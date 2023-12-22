@@ -29,16 +29,16 @@ export type Index = {
     search(query: string): string[];
 }
 
-function pushText(texts: Array<string | string[]>, value: string | MessageDescriptor, intl: IntlShape) {
+function pushText(texts: string[], value: string | MessageDescriptor | JSX.Element, intl: IntlShape, values?: Record<string, any>) {
     if (typeof value === 'string') {
         texts.push(value);
-    } else {
-        texts.push(intl.formatMessage(value));
+    } else if ('id' in value) {
+        texts.push(intl.formatMessage(value, values));
     }
 }
 
 function extractTextsFromSection(section: AdminDefinitionSubSection, intl: IntlShape) {
-    const texts: Array<string | string[]> = [];
+    const texts: string[] = [];
     if (section.title) {
         pushText(texts, section.title, intl);
     }
@@ -57,7 +57,7 @@ function extractTextsFromSection(section: AdminDefinitionSubSection, intl: IntlS
 
     if (section.schema) {
         if ('settings' in section.schema && section.schema.settings) {
-            texts.push(extractTextFromSettings(section.schema.settings, intl));
+            texts.push(...extractTextFromSettings(section.schema.settings, intl));
         } else if ('sections' in section.schema && section.schema.sections) {
             section.schema.sections.forEach((schemaSection) => {
                 texts.push(...extractTextFromSettings(schemaSection.settings, intl));
@@ -69,18 +69,14 @@ function extractTextsFromSection(section: AdminDefinitionSubSection, intl: IntlS
 }
 
 function extractTextFromSettings(settings: AdminDefinitionSetting[], intl: IntlShape) {
-    const texts = [];
+    const texts: string[] = [];
 
     for (const setting of Object.values(settings)) {
         if (setting.label) {
-            texts.push(typeof setting.label === 'string' ? setting.label : intl.formatMessage(setting.label, setting.label_values));
+            pushText(texts, setting.label, intl, setting.label_values);
         }
         if (setting.help_text) {
-            if (typeof setting.help_text === 'string') {
-                texts.push(setting.help_text);
-            } else if ('id' in setting.help_text) {
-                texts.push(intl.formatMessage(setting.help_text, setting.help_text_values));
-            }
+            pushText(texts, setting.help_text, intl, setting.help_text_values);
         }
         if ('remove_help_text' in setting && setting.remove_help_text) {
             pushText(texts, setting.remove_help_text, intl);

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
 import type {AnalyticsRow} from '@mattermost/types/admin';
@@ -15,7 +16,7 @@ import {General} from 'mattermost-redux/constants';
 import * as AdminActions from 'actions/admin_actions';
 
 import Banner from 'components/admin_console/banner';
-import {ActivatedUserCard} from 'components/analytics/activated_users_card';
+import {ActivatedUserCard, messages as activatedUsersCardsMessages} from 'components/analytics/activated_users_card';
 import LineChart from 'components/analytics/line_chart';
 import StatisticCount from 'components/analytics/statistic_count';
 import TableChart from 'components/analytics/table_chart';
@@ -79,7 +80,7 @@ type State = {
     newUsers?: UserProfile[];
 };
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'analytics.team.title', defaultMessage: 'Team Statistics for {team}'},
     info: {id: 'analytics.system.info', defaultMessage: 'Use data for only the chosen team. Exclude posts in direct message channels that are not tied to a team.'},
     totalPosts: {id: 'analytics.team.totalPosts', defaultMessage: 'Total Posts'},
@@ -89,6 +90,18 @@ export const messages = defineMessages({
     recentUsers: {id: 'analytics.team.recentUsers', defaultMessage: 'Recent Active Users'},
     newlyCreated: {id: 'analytics.team.newlyCreated', defaultMessage: 'Newly Created Users'},
 });
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    [messages.title, {team: ''}],
+    messages.info,
+    messages.totalPosts,
+    messages.activeUsers,
+    activatedUsersCardsMessages.totalUsers,
+    messages.publicChannels,
+    messages.privateGroups,
+    messages.recentUsers,
+    messages.newlyCreated,
+];
 
 export default class TeamAnalytics extends React.PureComponent<Props, State> {
     constructor(props: Props) {

@@ -35,7 +35,7 @@ import WarningIcon from 'components/widgets/icons/fa_warning_icon';
 
 import * as I18n from 'i18n/i18n.jsx';
 import Constants from 'utils/constants';
-import {rolesFromMapping} from 'utils/policy_roles_adapter';
+import {mappingValueFromRoles, rolesFromMapping} from 'utils/policy_roles_adapter';
 
 import Setting from './setting';
 import type {AdminDefinitionSetting, AdminDefinitionSettingBanner, AdminDefinitionSettingDropdownOption, AdminDefinitionSubSectionSchema, ConsoleAccess} from './types';
@@ -85,7 +85,7 @@ export function unescapePathPart(pathPart: string) {
     return pathPart.replace(/\+/g, '.');
 }
 
-function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape, values?: {[key: string]: any}) {
+function descriptorOrStringToString(text: string | MessageDescriptor | undefined, intl: IntlShape, values?: {[key: string]: any}): string | undefined {
     if (!text) {
         return undefined;
     }
@@ -145,7 +145,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 saving: false,
                 serverError: null,
                 errorTooltip: false,
-                ...SchemaAdminSettings.getStateFromConfig(props.config, props.schema),
+                ...SchemaAdminSettings.getStateFromConfig(props.config, props.schema, props.roles),
             };
         }
         return null;
@@ -167,7 +167,14 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         });
 
         if (this.state.saveNeeded === 'both' || this.state.saveNeeded === 'permissions') {
-            const updatedRoles = rolesFromMapping({}, this.props.roles);
+            const settings = (this.props.schema && 'settings' in this.props.schema && this.props.schema.settings) || [];
+            const rolesBinding = settings.reduce<Record<string, string>>((acc, val) => {
+                if (val.type === Constants.SettingsTypes.TYPE_PERMISSION) {
+                    acc[val.permissions_mapping_name] = this.state[val.key].toString();
+                }
+                return acc;
+            }, {});
+            const updatedRoles = rolesFromMapping(rolesBinding, this.props.roles);
 
             let success = true;
 
@@ -217,6 +224,11 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                     return;
                 }
 
+                if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
+                    this.setConfigValue(config, setting.key, null);
+                    return;
+                }
+
                 let value = this.getSettingValue(setting);
                 const previousValue = SchemaAdminSettings.getConfigValue(config, setting.key);
 
@@ -235,7 +247,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         return config;
     }
 
-    static getStateFromConfig(config: Partial<AdminConfig>, schema: AdminDefinitionSubSectionSchema) {
+    static getStateFromConfig(config: Partial<AdminConfig>, schema: AdminDefinitionSubSectionSchema, roles?: Record<string, Role>) {
         let state: Partial<State> = {};
 
         if (schema) {
@@ -249,6 +261,15 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
 
             settings.forEach((setting) => {
                 if (!setting.key) {
+                    return;
+                }
+
+                if (setting.type === Constants.SettingsTypes.TYPE_PERMISSION) {
+                    try {
+                        state[setting.key] = mappingValueFromRoles(setting.permissions_mapping_name, roles!) === 'true';
+                    } catch (e) {
+                        state[setting.key] = false;
+                    }
                     return;
                 }
 
@@ -1108,7 +1129,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         this.setState({errorTooltip: isElipsis});
     };
 
-    doSubmit = async (getStateFromConfig: (config: Partial<AdminConfig>, schema: AdminDefinitionSubSectionSchema) => Partial<State>) => {
+    doSubmit = async (getStateFromConfig: (config: Partial<AdminConfig>, schema: AdminDefinitionSubSectionSchema, roles?: Record<string, Role>) => Partial<State>) => {
         if (!this.props.schema) {
             return;
         }

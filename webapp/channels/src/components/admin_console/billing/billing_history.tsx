@@ -24,9 +24,13 @@ import BillingHistoryTable from './billing_history_table';
 
 import './billing_history.scss';
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.billing.history.title', defaultMessage: 'Billing History'},
 });
+
+export const searchableStrings = [
+    messages.title,
+];
 
 interface NoBillingHistorySectionProps {
     selfHosted: boolean;

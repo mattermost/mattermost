@@ -45,7 +45,7 @@ type State = {
     phase2MigrationIsComplete: boolean;
 };
 
-export const messages = defineMessages({
+const messages = defineMessages({
     teamOverrideSchemesNoSchemes: {id: 'admin.permissions.teamOverrideSchemesNoSchemes', defaultMessage: 'No team override schemes created.'},
     loadMoreSchemes: {id: 'admin.permissions.loadMoreSchemes', defaultMessage: 'Load more schemes'},
     introBanner: {id: 'admin.permissions.introBanner', defaultMessage: 'Permission Schemes set the default permissions for Team Admins, Channel Admins and everyone else. Learn more about permission schemes in our <link>documentation</link>.'},
@@ -56,6 +56,18 @@ export const messages = defineMessages({
     teamOverrideSchemesBannerText: {id: 'admin.permissions.teamOverrideSchemesBannerText', defaultMessage: 'Use when specific teams need permission exceptions to the <link>System Scheme</link>'},
     teamOverrideSchemesNewButton: {id: 'admin.permissions.teamOverrideSchemesNewButton', defaultMessage: 'New Team Override Scheme'},
 });
+
+export const searchableStrings = [
+    messages.teamOverrideSchemesNoSchemes,
+    messages.loadMoreSchemes,
+    messages.introBanner,
+    messages.systemSchemeBannerTitle,
+    messages.systemSchemeBannerText,
+    messages.systemSchemeBannerButton,
+    messages.teamOverrideSchemesTitle,
+    messages.teamOverrideSchemesBannerText,
+    messages.teamOverrideSchemesNewButton,
+];
 
 class PermissionSchemesSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {

@@ -1,7 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type { MessageDescriptor } from "react-intl";
+// Equivalent to MessageDescriptor from react-intl
+type MessageDescriptor = {
+    id: string;
+    defaultMessage: string;
+}
 
 export type PluginManifest = {
     id: string;

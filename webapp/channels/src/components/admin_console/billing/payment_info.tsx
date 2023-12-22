@@ -23,9 +23,14 @@ import './payment_info.scss';
 
 type Props = Record<string, never>;
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.billing.payment_info.title', defaultMessage: 'Payment Information'},
 });
+
+export const searchableStrings = [
+    messages.title,
+];
+
 const PaymentInfo: React.FC<Props> = () => {
     const dispatch = useDispatch<DispatchFunc>();
     const {customer: customerError} = useSelector(getCloudErrors);

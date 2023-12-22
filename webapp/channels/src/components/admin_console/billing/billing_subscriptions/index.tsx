@@ -18,7 +18,7 @@ import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
-import DeleteWorkspaceCTA from 'components/admin_console/billing//delete_workspace/delete_workspace_cta';
+import DeleteWorkspaceCTA, {messages as deleteWorkspaceMessages} from 'components/admin_console/billing//delete_workspace/delete_workspace_cta';
 import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
 import useGetLimits from 'components/common/hooks/useGetLimits';
@@ -49,13 +49,21 @@ import {ToPaidNudgeBanner} from './to_paid_plan_nudge_banner';
 import {ToYearlyNudgeBanner} from './to_yearly_nudge_banner';
 
 import BillingSummary from '../billing_summary';
+import {messages as deleteWorkspaceModalmessages} from '../delete_workspace/delete_workspace_modal';
 import PlanDetails from '../plan_details';
 
 import './billing_subscriptions.scss';
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.billing.subscription.title', defaultMessage: 'Subscription'},
 });
+
+export const searchableStrings = [
+    messages.title,
+    deleteWorkspaceMessages.title,
+    deleteWorkspaceModalmessages.deleteButton,
+];
+
 const BillingSubscriptions = () => {
     const dispatch = useDispatch<DispatchFunc>();
     const subscription = useSelector(selectCloudSubscription);

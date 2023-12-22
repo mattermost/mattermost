@@ -45,10 +45,15 @@ type State = {
     loadingPlain: boolean;
 };
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.logs.title', defaultMessage: 'Server Logs'},
     bannerDesc: {id: 'admin.logs.bannerDesc', defaultMessage: 'To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.'},
 });
+
+export const searchableStrings = [
+    messages.title,
+    messages.bannerDesc,
+];
 
 export default class Logs extends React.PureComponent<Props, State> {
     constructor(props: Props) {

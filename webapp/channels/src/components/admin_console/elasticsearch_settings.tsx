@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job, JobType} from '@mattermost/types/jobs';
@@ -42,7 +42,7 @@ interface State extends BaseState {
 
 type Props = BaseProps & {
     config: AdminConfig;
-} & WrappedComponentProps;
+};
 
 export const messages = defineMessages({
     title: {id: 'admin.elasticsearch.title', defaultMessage: 'Elasticsearch'},
@@ -69,7 +69,32 @@ export const messages = defineMessages({
     enableSearchingDescription: {id: 'admin.elasticsearch.enableSearchingDescription', defaultMessage: 'Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'},
 });
 
-class ElasticsearchSettings extends AdminSettings<Props, State> {
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    [messages.connectionUrlDescription, {documentationLink: ''}],
+    [messages.enableIndexingDescription, {documentationLink: ''}],
+    messages.title,
+    messages.enableIndexingTitle,
+    messages.connectionUrlTitle,
+    messages.skipTLSVerificationTitle,
+    messages.skipTLSVerificationDescription,
+    messages.usernameTitle,
+    messages.usernameDescription,
+    messages.passwordTitle,
+    messages.passwordDescription,
+    messages.sniffTitle,
+    messages.sniffDescription,
+    messages.testHelpText,
+    messages.elasticsearch_test_button,
+    messages.bulkIndexingTitle,
+    messages.help,
+    messages.purgeIndexesHelpText,
+    messages.purgeIndexesButton,
+    messages.label,
+    messages.enableSearchingTitle,
+    messages.enableSearchingDescription,
+];
+
+export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ElasticsearchSettings.ConnectionURL = this.state.connectionUrl;
         config.ElasticsearchSettings.SkipTLSVerification = this.state.skipTLSVerification;
@@ -224,7 +249,7 @@ class ElasticsearchSettings extends AdminSettings<Props, State> {
                     label={
                         <FormattedMessage {...messages.connectionUrlTitle}/>
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.elasticsearch.connectionUrlExample', defaultMessage: 'E.g.: "https://elasticsearch.example.org:9200"'})}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.connectionUrlExample', defaultMessage: 'E.g.: "https://elasticsearch.example.org:9200"'})}
                     helpText={
                         <FormattedMessage
                             {...messages.connectionUrlDescription}
@@ -253,7 +278,7 @@ class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='CA path:'
                         />
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.elasticsearch.caExample', defaultMessage: 'E.g.: "./elasticsearch/ca.pem"'})}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.caExample', defaultMessage: 'E.g.: "./elasticsearch/ca.pem"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.caDescription'
@@ -273,7 +298,7 @@ class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='Client Certificate path:'
                         />
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.elasticsearch.clientCertExample', defaultMessage: 'E.g.: "./elasticsearch/client-cert.pem"'})}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.clientCertExample', defaultMessage: 'E.g.: "./elasticsearch/client-cert.pem"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.clientCertDescription'
@@ -293,7 +318,7 @@ class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='Client Certificate Key path:'
                         />
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.elasticsearch.clientKeyExample', defaultMessage: 'E.g.: "./elasticsearch/client-key.pem"'})}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.clientKeyExample', defaultMessage: 'E.g.: "./elasticsearch/client-key.pem"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.clientKeyDescription'
@@ -317,7 +342,7 @@ class ElasticsearchSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='username'
                     label={<FormattedMessage {...messages.usernameTitle}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.elasticsearch.usernameExample', defaultMessage: 'E.g.: "elastic"'})}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.usernameExample', defaultMessage: 'E.g.: "elastic"'})}
                     helpText={<FormattedMessage {...messages.usernameDescription}/>}
                     value={this.state.username}
                     disabled={this.props.isDisabled || !this.state.enableIndexing}
@@ -327,7 +352,7 @@ class ElasticsearchSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='password'
                     label={<FormattedMessage {...messages.passwordTitle}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.elasticsearch.password', defaultMessage: 'E.g.: "yourpassword"'})}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.password', defaultMessage: 'E.g.: "yourpassword"'})}
                     helpText={<FormattedMessage {...messages.passwordDescription}/>}
                     value={this.state.password}
                     disabled={this.props.isDisabled || !this.state.enableIndexing}
@@ -399,7 +424,7 @@ class ElasticsearchSettings extends AdminSettings<Props, State> {
                             defaultMessage='Indexes to skip while purging:'
                         />
                     }
-                    placeholder={'E.g.: .opendistro*,.security*'}
+                    placeholder={defineMessage({id: 'admin.elasticsearch.ignoredPurgeIndexesDescription.example', defaultMessage: 'E.g.: .opendistro*,.security*'})}
                     helpText={
                         <FormattedMessage
                             id='admin.elasticsearch.ignoredPurgeIndexesDescription'
@@ -443,5 +468,3 @@ class ElasticsearchSettings extends AdminSettings<Props, State> {
         );
     };
 }
-
-export default injectIntl(ElasticsearchSettings);

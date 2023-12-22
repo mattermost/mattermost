@@ -129,8 +129,12 @@ type AdminDefinitionSettingUsername = AdminDefinitionSettingBase & {
     placeholder_message: string;
 }
 
+type MappingKeyTypes = 'enableTeamCreation' | 'editOthersPosts' | 'enableOnlyAdminIntegrations';
+
 type AdminDefinitionSettingPermission = AdminDefinitionSettingBase & {
     type: typeof Constants.SettingsTypes.TYPE_PERMISSION;
+    permissions_mapping_name: MappingKeyTypes;
+    key: string;
 }
 
 type AdminDefinitionSettingRadio = AdminDefinitionSettingBase & {

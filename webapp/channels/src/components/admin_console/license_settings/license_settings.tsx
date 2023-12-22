@@ -21,13 +21,13 @@ import {isLicenseExpired, isLicenseExpiring, isTrialLicense, isEnterpriseOrE20Li
 
 import type {ModalData} from 'types/actions';
 
-import EnterpriseEditionLeftPanel from './enterprise_edition/enterprise_edition_left_panel';
+import EnterpriseEditionLeftPanel, {messages as enterpriseEditionLeftPanelMessages} from './enterprise_edition/enterprise_edition_left_panel';
 import EnterpriseEditionRightPanel from './enterprise_edition/enterprise_edition_right_panel';
 import ConfirmLicenseRemovalModal from './modals/confirm_license_removal_modal';
 import EELicenseModal from './modals/ee_license_modal';
 import UploadLicenseModal from './modals/upload_license_modal';
 import RenewLinkCard from './renew_license_card/renew_license_card';
-import StarterLeftPanel from './starter_edition/starter_left_panel';
+import StarterLeftPanel, {messages as licenseSettingsStarterEditionMessages} from './starter_edition/starter_left_panel';
 import StarterRightPanel from './starter_edition/starter_right_panel';
 import TeamEditionLeftPanel from './team_edition/team_edition_left_panel';
 import TeamEditionRightPanel from './team_edition/team_edition_right_panel';
@@ -61,9 +61,16 @@ type Props = {
     };
 }
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.license.title', defaultMessage: 'Edition and License'},
 });
+
+export const searchableStrings = [
+    licenseSettingsStarterEditionMessages.key,
+    enterpriseEditionLeftPanelMessages.keyRemove,
+    messages.title,
+    enterpriseEditionLeftPanelMessages.notice,
+];
 
 type State = {
     fileSelected: boolean;

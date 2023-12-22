@@ -3,6 +3,7 @@
 
 import React from 'react';
 import type {ChangeEvent} from 'react';
+import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -102,9 +103,11 @@ type State = {
     term?: string;
 };
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.system_users.title', defaultMessage: '{siteName} Users'},
 });
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
 
 export class SystemUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {

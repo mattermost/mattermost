@@ -3,8 +3,8 @@
 
 import React from 'react';
 import type {ReactNode} from 'react';
-import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
+import type {MessageDescriptor, WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
@@ -37,7 +37,7 @@ interface State extends BaseState {
     globalRelaySMTPServerTimeout: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPServerTimeout'];
 }
 
-export const messages = defineMessages({
+const messages = defineMessages({
     globalRelayCustomerType_title: {id: 'admin.complianceExport.globalRelayCustomerType.title', defaultMessage: 'Customer Type:'},
     globalRelayCustomerType_description: {id: 'admin.complianceExport.globalRelayCustomerType.description', defaultMessage: 'The type of GlobalRelay customer account that your organization has.'},
     globalRelaySMTPUsername_title: {id: 'admin.complianceExport.globalRelaySMTPUsername.title', defaultMessage: 'SMTP Username:'},
@@ -55,6 +55,25 @@ export const messages = defineMessages({
     createJob_title: {id: 'admin.complianceExport.createJob.title', defaultMessage: 'Run Compliance Export Job Now'},
     createJob_help: {id: 'admin.complianceExport.createJob.help', defaultMessage: 'Initiates a Compliance Export job immediately.'},
 });
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    [messages.exportFormat_description, {siteURL: ''}],
+    messages.complianceExportTitle,
+    messages.complianceExportDesc,
+    messages.exportJobStartTime_title,
+    messages.exportJobStartTime_description,
+    messages.exportFormat_title,
+    messages.createJob_title,
+    messages.createJob_help,
+    messages.globalRelayCustomerType_title,
+    messages.globalRelayCustomerType_description,
+    messages.globalRelaySMTPUsername_title,
+    messages.globalRelaySMTPUsername_description,
+    messages.globalRelaySMTPPassword_title,
+    messages.globalRelaySMTPPassword_description,
+    messages.globalRelayEmailAddress_title,
+    messages.globalRelayEmailAddress_description,
+];
 
 class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentProps, State> {
     getConfigFromState = (config: AdminConfig) => {
@@ -190,7 +209,7 @@ class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentPr
                 <TextSetting
                     id='globalRelaySMTPUsername'
                     label={<FormattedMessage {...messages.globalRelaySMTPUsername_title}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.complianceExport.globalRelaySMTPUsername.example', defaultMessage: 'E.g.: "globalRelayUser"'})}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelaySMTPUsername.example', defaultMessage: 'E.g.: "globalRelayUser"'})}
                     helpText={<FormattedMessage {...messages.globalRelaySMTPUsername_description}/>}
                     value={this.state.globalRelaySMTPUsername ? this.state.globalRelaySMTPUsername : ''}
                     onChange={this.handleChange}
@@ -203,7 +222,7 @@ class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentPr
                 <TextSetting
                     id='globalRelaySMTPPassword'
                     label={<FormattedMessage {...messages.globalRelaySMTPPassword_title}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.complianceExport.globalRelaySMTPPassword.example', defaultMessage: 'E.g.: "globalRelayPassword"'})}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelaySMTPPassword.example', defaultMessage: 'E.g.: "globalRelayPassword"'})}
                     helpText={<FormattedMessage {...messages.globalRelaySMTPPassword_description}/>}
                     value={this.state.globalRelaySMTPPassword ? this.state.globalRelaySMTPPassword : ''}
                     onChange={this.handleChange}
@@ -216,7 +235,7 @@ class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentPr
                 <TextSetting
                     id='globalRelayEmailAddress'
                     label={<FormattedMessage {...messages.globalRelayEmailAddress_title}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.complianceExport.globalRelayEmailAddress.example', defaultMessage: 'E.g.: "globalrelay@mattermost.com"'})}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelayEmailAddress.example', defaultMessage: 'E.g.: "globalrelay@mattermost.com"'})}
                     helpText={<FormattedMessage {...messages.globalRelayEmailAddress_description}/>}
                     value={this.state.globalRelayEmailAddress ? this.state.globalRelayEmailAddress : ''}
                     onChange={this.handleChange}
@@ -234,7 +253,7 @@ class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentPr
                             defaultMessage='SMTP Server Name:'
                         />
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.complianceExport.globalRelayCustomSMTPServerName.example', defaultMessage: 'E.g.: "feeds.globalrelay.com"'})}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelayCustomSMTPServerName.example', defaultMessage: 'E.g.: "feeds.globalrelay.com"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.complianceExport.globalRelayCustomSMTPServerName.description'
@@ -257,7 +276,7 @@ class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentPr
                             defaultMessage='SMTP Server Port:'
                         />
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.complianceExport.globalRelayCustomSMTPPort.example', defaultMessage: 'E.g.: "25"'})}
+                    placeholder={defineMessage({id: 'admin.complianceExport.globalRelayCustomSMTPPort.example', defaultMessage: 'E.g.: "25"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.complianceExport.globalRelayCustomSMTPPort.description'
@@ -328,7 +347,7 @@ class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentPr
                 <TextSetting
                     id='exportJobStartTime'
                     label={<FormattedMessage {...messages.exportJobStartTime_title}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.complianceExport.exportJobStartTime.example', defaultMessage: 'E.g.: "02:00"'})}
+                    placeholder={defineMessage({id: 'admin.complianceExport.exportJobStartTime.example', defaultMessage: 'E.g.: "02:00"'})}
                     helpText={<FormattedMessage {...messages.exportJobStartTime_description}/>}
                     value={this.state.exportJobStartTime}
                     onChange={this.handleChange}

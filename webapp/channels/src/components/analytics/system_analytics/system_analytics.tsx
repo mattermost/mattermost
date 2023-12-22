@@ -42,7 +42,7 @@ type State = {
     pluginSiteStats: Record<string, PluginAnalyticsRow>;
 }
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'analytics.system.title', defaultMessage: 'System Statistics'},
     totalPosts: {id: 'analytics.system.totalPosts', defaultMessage: 'Total Posts'},
     activeUsers: {id: 'analytics.system.activeUsers', defaultMessage: 'Active Users With Posts'},
@@ -60,6 +60,25 @@ export const messages = defineMessages({
     dailyActiveUsers: {id: 'analytics.system.dailyActiveUsers', defaultMessage: 'Daily Active Users'},
     monthlyActiveUsers: {id: 'analytics.system.monthlyActiveUsers', defaultMessage: 'Monthly Active Users'},
 });
+
+export const searchableStrings = [
+    messages.title,
+    messages.totalPosts,
+    messages.activeUsers,
+    messages.totalSessions,
+    messages.totalCommands,
+    messages.totalIncomingWebhooks,
+    messages.totalOutgoingWebhooks,
+    messages.totalWebsockets,
+    messages.totalMasterDbConnections,
+    messages.totalReadDbConnections,
+    messages.postTypes,
+    messages.channelTypes,
+    messages.totalTeams,
+    messages.totalChannels,
+    messages.dailyActiveUsers,
+    messages.monthlyActiveUsers,
+];
 
 export default class SystemAnalytics extends React.PureComponent<Props, State> {
     state = {

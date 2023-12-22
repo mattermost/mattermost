@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 
@@ -23,7 +22,7 @@ import TextSetting from './text_setting';
 
 type Props = {
     license: ClientLicense;
-} & WrappedComponentProps & BaseProps;
+} & BaseProps;
 
 type State = {
     Enable: boolean;
@@ -37,7 +36,7 @@ type State = {
     showWarning: boolean;
 } & BaseState;
 
-export const messages = defineMessages({
+const messages = defineMessages({
     cluster: {id: 'admin.advance.cluster', defaultMessage: 'High Availability'},
     noteDescription: {id: 'admin.cluster.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'},
     enableTitle: {id: 'admin.cluster.enableTitle', defaultMessage: 'Enable High Availability Mode:'},
@@ -57,7 +56,29 @@ export const messages = defineMessages({
     streamingPort: {id: 'admin.cluster.StreamingPort', defaultMessage: 'Streaming Port:'},
     streamingPortDesc: {id: 'admin.cluster.StreamingPortDesc', defaultMessage: 'The port used for streaming data between servers.'},
 });
-class ClusterSettings extends AdminSettings<Props, State> {
+
+export const searchableStrings = [
+    messages.cluster,
+    messages.noteDescription,
+    messages.enableTitle,
+    messages.enableDescription,
+    messages.clusterName,
+    messages.clusterNameDesc,
+    messages.overrideHostname,
+    messages.overrideHostnameDesc,
+    messages.useIPAddress,
+    messages.useIPAddressDesc,
+    messages.enableExperimentalGossipEncryption,
+    messages.enableExperimentalGossipEncryptionDesc,
+    messages.enableGossipCompression,
+    messages.enableGossipCompressionDesc,
+    messages.gossipPort,
+    messages.gossipPortDesc,
+    messages.streamingPort,
+    messages.streamingPortDesc,
+];
+
+export default class ClusterSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.ClusterSettings.Enable = this.state.Enable;
         config.ClusterSettings.ClusterName = this.state.ClusterName;
@@ -200,7 +221,7 @@ class ClusterSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='ClusterName'
                     label={<FormattedMessage {...messages.clusterName}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.cluster.ClusterNameEx', defaultMessage: 'E.g.: "Production" or "Staging"'})}
+                    placeholder={defineMessage({id: 'admin.cluster.ClusterNameEx', defaultMessage: 'E.g.: "Production" or "Staging"'})}
                     helpText={<FormattedMessage {...messages.clusterNameDesc}/>}
                     value={this.state.ClusterName}
                     onChange={this.overrideHandleChange}
@@ -210,7 +231,7 @@ class ClusterSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='OverrideHostname'
                     label={<FormattedMessage {...messages.overrideHostname}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.cluster.OverrideHostnameEx', defaultMessage: 'E.g.: "app-server-01"'})}
+                    placeholder={defineMessage({id: 'admin.cluster.OverrideHostnameEx', defaultMessage: 'E.g.: "app-server-01"'})}
                     helpText={<FormattedMessage {...messages.overrideHostnameDesc}/>}
                     value={this.state.OverrideHostname}
                     onChange={this.overrideHandleChange}
@@ -247,7 +268,7 @@ class ClusterSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='GossipPort'
                     label={<FormattedMessage {...messages.gossipPort}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.cluster.GossipPortEx', defaultMessage: 'E.g.: "8074"'})}
+                    placeholder={defineMessage({id: 'admin.cluster.GossipPortEx', defaultMessage: 'E.g.: "8074"'})}
                     helpText={<FormattedMessage {...messages.gossipPortDesc}/>}
                     value={this.state.GossipPort}
                     onChange={this.overrideHandleChange}
@@ -257,7 +278,7 @@ class ClusterSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='StreamingPort'
                     label={<FormattedMessage {...messages.streamingPort}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.cluster.StreamingPortEx', defaultMessage: 'E.g.: "8075"'})}
+                    placeholder={defineMessage({id: 'admin.cluster.StreamingPortEx', defaultMessage: 'E.g.: "8075"'})}
                     helpText={<FormattedMessage {...messages.streamingPortDesc}/>}
                     value={this.state.StreamingPort}
                     onChange={this.overrideHandleChange}
@@ -268,8 +289,6 @@ class ClusterSettings extends AdminSettings<Props, State> {
         );
     };
 }
-
-export default injectIntl(ClusterSettings);
 
 const style = {
     configLoadedFromCluster: {marginBottom: 10},

@@ -54,7 +54,7 @@ type State = {
 }
 const PAGE_SIZE = 10;
 
-export const messages = defineMessages({
+const messages = defineMessages({
     createJob_title: {id: 'admin.data_retention.createJob.title', defaultMessage: 'Run Deletion Job Now'},
     settings_title: {id: 'admin.data_retention.settings.title', defaultMessage: 'Data Retention Policies'},
     globalPolicy_title: {id: 'admin.data_retention.globalPolicy.title', defaultMessage: 'Global retention policy'},
@@ -65,6 +65,18 @@ export const messages = defineMessages({
     jobCreation_subTitle: {id: 'admin.data_retention.jobCreation.subTitle', defaultMessage: 'Daily log of messages and files removed based on the policies defined above.'},
     createJob_instructions: {id: 'admin.data_retention.createJob.instructions', defaultMessage: 'Daily time to check policies and run delete job:'},
 });
+
+export const searchableStrings = [
+    messages.createJob_title,
+    messages.settings_title,
+    messages.globalPolicy_title,
+    messages.globalPolicy_subTitle,
+    messages.customPolicies_title,
+    messages.customPolicies_subTitle,
+    messages.jobCreation_title,
+    messages.jobCreation_subTitle,
+    messages.createJob_instructions,
+];
 
 class DataRetentionSettings extends React.PureComponent<Props, State> {
     inputRef: RefObject<ReactSelect<OptionType>>;

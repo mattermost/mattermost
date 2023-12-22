@@ -187,7 +187,7 @@ type PluginItemProps = {
     isDisabled?: boolean;
 };
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.plugin.management.title', defaultMessage: 'Management'},
     enable: {id: 'admin.plugins.settings.enable', defaultMessage: 'Enable Plugins: '},
     enableDesc: {id: 'admin.plugins.settings.enableDesc', defaultMessage: 'When true, enables plugins on your Mattermost server. Use plugins to integrate with third-party systems, extend functionality, or customize the user interface of your Mattermost server. See <link>documentation</link> to learn more.'},
@@ -205,6 +205,26 @@ export const messages = defineMessages({
     marketplaceUrl: {id: 'admin.plugins.settings.marketplaceUrl', defaultMessage: 'Marketplace URL:'},
     marketplaceUrlDesc: {id: 'admin.plugins.settings.marketplaceUrlDesc', defaultMessage: 'URL of the marketplace server.'},
 });
+
+export const searchableStrings = [
+    messages.title,
+    messages.enable,
+    messages.enableDesc,
+    messages.uploadTitle,
+    messages.installedTitle,
+    messages.installedDesc,
+    messages.uploadDesc,
+    messages.uploadDisabledDesc,
+    messages.enableMarketplace,
+    messages.enableMarketplaceDesc,
+    messages.enableRemoteMarketplace,
+    messages.enableRemoteMarketplaceDesc,
+    messages.automaticPrepackagedPlugins,
+    messages.automaticPrepackagedPluginsDesc,
+    messages.marketplaceUrl,
+    messages.marketplaceUrlDesc,
+];
+
 const PluginItem = ({
     pluginStatus,
     removing,

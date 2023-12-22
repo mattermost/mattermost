@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessages} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, ServiceSettings} from '@mattermost/types/config';
 
@@ -27,9 +26,9 @@ interface State extends BaseState {
 
 type Props = BaseProps & {
     license: ClientLicense;
-}& WrappedComponentProps;
+};
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.sessionLengths.title', defaultMessage: 'Session Lengths'},
     webSessionHoursDesc_extendLength: {id: 'admin.service.webSessionHoursDesc.extendLength', defaultMessage: "Set the number of hours from the last activity in Mattermost to the expiry of the user's session when using email and AD/LDAP authentication. After changing this setting, the new session length will take effect after the next time the user enters their credentials."},
     mobileSessionHoursDesc_extendLength: {id: 'admin.service.mobileSessionHoursDesc.extendLength', defaultMessage: "Set the number of hours from the last activity in Mattermost to the expiry of the user's session on mobile. After changing this setting, the new session length will take effect after the next time the user enters their credentials."},
@@ -48,6 +47,26 @@ export const messages = defineMessages({
     sessionHoursEx: {id: 'admin.service.sessionHoursEx', defaultMessage: 'E.g.: "720"'},
     sessionIdleTimeoutDesc: {id: 'admin.service.sessionIdleTimeoutDesc', defaultMessage: "The number of minutes from the last time a user was active on the system to the expiry of the user's session. Once expired, the user will need to log in to continue. Minimum is 5 minutes, and 0 is unlimited. Applies to the desktop app and browsers. For mobile apps, use an EMM provider to lock the app when not in use. In High Availability mode, enable IP hash load balancing for reliable timeout measurement."},
 });
+
+export const searchableStrings = [
+    messages.title,
+    messages.webSessionHoursDesc_extendLength,
+    messages.mobileSessionHoursDesc_extendLength,
+    messages.ssoSessionHoursDesc_extendLength,
+    messages.webSessionHoursDesc,
+    messages.mobileSessionHoursDesc,
+    messages.ssoSessionHoursDesc,
+    messages.sessionIdleTimeout,
+    messages.extendSessionLengthActivity_label,
+    messages.extendSessionLengthActivity_helpText,
+    messages.webSessionHours,
+    messages.mobileSessionHours,
+    messages.ssoSessionHours,
+    messages.sessionCache,
+    messages.sessionCacheDesc,
+    messages.sessionHoursEx,
+    messages.sessionIdleTimeoutDesc,
+];
 
 export default class SessionLengthSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: AdminConfig) => {
@@ -100,7 +119,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                     id='sessionIdleTimeoutInMinutes'
                     type='number'
                     label={<FormattedMessage {...messages.sessionIdleTimeout}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.service.sessionIdleTimeoutEx', defaultMessage: 'E.g.: "60"'})}
+                    placeholder={defineMessage({id: 'admin.service.sessionIdleTimeoutEx', defaultMessage: 'E.g.: "60"'})}
                     helpText={<FormattedMarkdownMessage {...messages.sessionIdleTimeoutDesc}/>}
                     value={this.state.sessionIdleTimeoutInMinutes}
                     onChange={this.handleChange}
@@ -124,7 +143,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='sessionLengthWebInHours'
                     label={<FormattedMessage {...messages.webSessionHours}/>}
-                    placeholder={this.props.intl.formatMessage(messages.sessionHoursEx)}
+                    placeholder={defineMessage(messages.sessionHoursEx)}
                     helpText={sessionLengthWebHelpText}
                     value={this.state.sessionLengthWebInHours}
                     onChange={this.handleChange}
@@ -135,7 +154,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='sessionLengthMobileInHours'
                     label={<FormattedMessage {...messages.mobileSessionHours}/>}
-                    placeholder={this.props.intl.formatMessage(messages.sessionHoursEx)}
+                    placeholder={defineMessage(messages.sessionHoursEx)}
                     helpText={sessionLengthMobileHelpText}
                     value={this.state.sessionLengthMobileInHours}
                     onChange={this.handleChange}
@@ -146,7 +165,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='sessionLengthSSOInHours'
                     label={<FormattedMessage {...messages.ssoSessionHours}/>}
-                    placeholder={this.props.intl.formatMessage(messages.sessionHoursEx)}
+                    placeholder={defineMessage(messages.sessionHoursEx)}
                     helpText={sessionLengthSSOHelpText}
                     value={this.state.sessionLengthSSOInHours}
                     onChange={this.handleChange}
@@ -157,7 +176,7 @@ export default class SessionLengthSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='sessionCacheInMinutes'
                     label={<FormattedMessage {...messages.sessionCache}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.service.sessionMinutesEx', defaultMessage: 'E.g.: "10"'})}
+                    placeholder={defineMessage({id: 'admin.service.sessionMinutesEx', defaultMessage: 'E.g.: "10"'})}
                     helpText={<FormattedMessage {...messages.sessionCacheDesc}/>}
                     value={this.state.sessionCacheInMinutes}
                     onChange={this.handleChange}

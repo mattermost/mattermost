@@ -18,9 +18,14 @@ import CompanyInfoDisplay from './company_info_display';
 
 type Props = Record<string, never>;
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.billing.company_info.title', defaultMessage: 'Company Information'},
 });
+
+export const searchableStrings = [
+    messages.title,
+];
+
 const CompanyInfo: React.FC<Props> = () => {
     const dispatch = useDispatch<DispatchFunc>();
     const {customer: customerError} = useSelector(getCloudErrors);

@@ -34,7 +34,7 @@ type State = BaseState & {
     canPurgeAndIndex: boolean;
 };
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.bleve.title', defaultMessage: 'Bleve'},
     enableIndexingTitle: {id: 'admin.bleve.enableIndexingTitle', defaultMessage: 'Enable Bleve Indexing:'},
     enableIndexingDescription: {id: 'admin.bleve.enableIndexingDescription', defaultMessage: 'When true, indexing of new posts occurs automatically. Search queries will use database search until "Enable Bleve for search queries" is enabled. <link>Learn more about Bleve in our documentation.</link>'},
@@ -46,6 +46,19 @@ export const messages = defineMessages({
     enableSearchingTitle: {id: 'admin.bleve.enableSearchingTitle', defaultMessage: 'Enable Bleve for search queries:'},
     enableSearchingDescription: {id: 'admin.bleve.enableSearchingDescription', defaultMessage: 'When true, Bleve will be used for all search queries using the latest index. Search results may be incomplete until a bulk index of the existing post database is finished. When false, database search is used.'},
 });
+
+export const searchableStrings = [
+    messages.title,
+    messages.enableIndexingTitle,
+    messages.enableIndexingDescription,
+    messages.bulkIndexingTitle,
+    messages.createJob_help,
+    messages.purgeIndexesHelpText,
+    messages.purgeIndexesButton,
+    messages.purgeIndexesButton_label,
+    messages.enableSearchingTitle,
+    messages.enableSearchingDescription,
+];
 
 export default class BleveSettings extends AdminSettings<Props, State> {
     getConfigFromState = (config: Props['config']) => {

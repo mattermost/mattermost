@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -20,7 +20,7 @@ import TextSetting from './text_setting';
 
 type Props = BaseProps & {
     config: AdminConfig;
-} & WrappedComponentProps;
+};
 
 type State = BaseState & {
     passwordMinimumLength?: string;
@@ -32,7 +32,7 @@ type State = BaseState & {
     maximumLoginAttempts?: string;
 };
 
-export const messages = defineMessages({
+const messages = defineMessages({
     passwordMinLength: {id: 'user.settings.security.passwordMinLength', defaultMessage: 'Invalid minimum length, cannot show preview.'},
     password: {id: 'admin.security.password', defaultMessage: 'Password'},
     minimumLength: {id: 'admin.password.minimumLength', defaultMessage: 'Minimum Password Length:'},
@@ -46,6 +46,21 @@ export const messages = defineMessages({
     attemptDescription: {id: 'admin.service.attemptDescription', defaultMessage: 'Login attempts allowed before user is locked out and required to reset password via email.'},
     passwordRequirements: {id: 'passwordRequirements', defaultMessage: 'Password Requirements:'},
 });
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    [messages.minimumLength, {max: '', min: ''}],
+    [messages.minimumLengthDescription, {max: '', min: ''}],
+    messages.passwordMinLength,
+    messages.password,
+    messages.passwordRequirements,
+    messages.lowercase,
+    messages.uppercase,
+    messages.number,
+    messages.symbol,
+    messages.preview,
+    messages.attemptTitle,
+    messages.attemptDescription,
+];
 
 const passwordErrors = defineMessages({
     passwordError: {id: 'user.settings.security.passwordError', defaultMessage: 'Must be {min}-{max} characters long.'},
@@ -86,7 +101,7 @@ function getPasswordErrorsMessage(lowercase?: boolean, uppercase?: boolean, numb
 
     return passwordErrors[key as KeyType];
 }
-class PasswordSettings extends AdminSettings<Props, State> {
+export default class PasswordSettings extends AdminSettings<Props, State> {
     sampleErrorMsg: React.ReactNode;
 
     constructor(props: Props) {
@@ -186,7 +201,7 @@ class PasswordSettings extends AdminSettings<Props, State> {
                     <TextSetting
                         id='passwordMinimumLength'
                         label={<FormattedMessage {...messages.minimumLength}/>}
-                        placeholder={this.props.intl.formatMessage({id: 'admin.password.minimumLengthExample', defaultMessage: 'E.g.: "5"'})}
+                        placeholder={defineMessage({id: 'admin.password.minimumLengthExample', defaultMessage: 'E.g.: "5"'})}
                         helpText={
                             <FormattedMessage
                                 {...messages.minimumLengthDescription}
@@ -269,7 +284,7 @@ class PasswordSettings extends AdminSettings<Props, State> {
                         label={
                             <FormattedMessage {...messages.attemptTitle}/>
                         }
-                        placeholder={this.props.intl.formatMessage({id: 'admin.service.attemptExample', defaultMessage: 'E.g.: "10"'})}
+                        placeholder={defineMessage({id: 'admin.service.attemptExample', defaultMessage: 'E.g.: "10"'})}
                         helpText={
                             <FormattedMessage {...messages.attemptDescription}/>
                         }
@@ -310,5 +325,3 @@ class PasswordSettings extends AdminSettings<Props, State> {
         );
     };
 }
-
-export default injectIntl(PasswordSettings);

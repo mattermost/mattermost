@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
 
@@ -45,11 +45,17 @@ const PUSH_NOTIFICATIONS_SERVER_DIC = {
 const DROPDOWN_ID_SERVER_TYPE = 'pushNotificationServerType';
 const DROPDOWN_ID_SERVER_LOCATION = 'pushNotificationServerLocation';
 
-export const messages = defineMessages({
+const messages = defineMessages({
     pushNotificationServer: {id: 'admin.environment.pushNotificationServer', defaultMessage: 'Push Notification Server'},
     pushTitle: {id: 'admin.email.pushTitle', defaultMessage: 'Enable Push Notifications: '},
     pushServerTitle: {id: 'admin.email.pushServerTitle', defaultMessage: 'Push Notification Server:'},
 });
+
+export const searchableStrings = [
+    messages.pushNotificationServer,
+    messages.pushTitle,
+    messages.pushServerTitle,
+];
 
 class PushSettings extends AdminSettings<Props, State> {
     canSave = () => {
@@ -346,7 +352,7 @@ class PushSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='pushNotificationServer'
                     label={<FormattedMessage {...messages.pushServerTitle}/>}
-                    placeholder={this.props.intl.formatMessage({id: 'admin.email.pushServerEx', defaultMessage: 'E.g.: "https://push-test.mattermost.com"'})}
+                    placeholder={defineMessage({id: 'admin.email.pushServerEx', defaultMessage: 'E.g.: "https://push-test.mattermost.com"'})}
                     helpText={pushServerHelpText}
                     value={this.state.pushNotificationServer}
                     onChange={this.handleChange}
@@ -362,7 +368,7 @@ class PushSettings extends AdminSettings<Props, State> {
                             defaultMessage='Max Notifications Per Channel:'
                         />
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.team.maxNotificationsPerChannelExample', defaultMessage: 'E.g.: "1000"'})}
+                    placeholder={defineMessage({id: 'admin.team.maxNotificationsPerChannelExample', defaultMessage: 'E.g.: "1000"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.team.maxNotificationsPerChannelDescription'

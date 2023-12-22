@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
@@ -26,7 +26,7 @@ type Props = {
         IsLicensed: string;
     };
     isDisabled: boolean;
-} & WrappedComponentProps;
+};
 
 interface State extends BaseState {
     searchBackend: string;
@@ -42,7 +42,7 @@ interface State extends BaseState {
     driverName: string;
 }
 
-export const messages = defineMessages({
+const messages = defineMessages({
     title: {id: 'admin.database.title', defaultMessage: 'Database Settings'},
     recycleDescription: {id: 'admin.recycle.recycleDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'},
     featureName: {id: 'admin.recycle.recycleDescription.featureName', defaultMessage: 'Recycle Database Connections'},
@@ -71,7 +71,34 @@ export const messages = defineMessages({
     traceDescription: {id: 'admin.sql.traceDescription', defaultMessage: '(Development Mode) When true, executing SQL statements are written to the log.'},
 });
 
-class DatabaseSettings extends AdminSettings<Props, State> {
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    messages.title,
+    [messages.recycleDescription, {featureName: '', reloadConfiguration: ''}],
+    messages.featureName,
+    messages.reloadConfiguration,
+    messages.button,
+    messages.noteDescription,
+    messages.disableDatabaseSearchTitle,
+    messages.disableDatabaseSearchDescription,
+    messages.driverName,
+    messages.driverNameDescription,
+    messages.dataSource,
+    messages.dataSourceDescription,
+    messages.maxConnectionsTitle,
+    messages.maxConnectionsDescription,
+    messages.maxOpenTitle,
+    messages.maxOpenDescription,
+    messages.queryTimeoutTitle,
+    messages.queryTimeoutDescription,
+    messages.connMaxLifetimeTitle,
+    messages.connMaxLifetimeDescription,
+    messages.connMaxIdleTimeTitle,
+    messages.connMaxIdleTimeDescription,
+    messages.traceTitle,
+    messages.traceDescription,
+];
+
+export default class DatabaseSettings extends AdminSettings<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -215,7 +242,7 @@ class DatabaseSettings extends AdminSettings<Props, State> {
                     label={
                         <FormattedMessage {...messages.maxConnectionsTitle}/>
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.sql.maxConnectionsExample', defaultMessage: 'E.g.: "10"'})}
+                    placeholder={defineMessage({id: 'admin.sql.maxConnectionsExample', defaultMessage: 'E.g.: "10"'})}
                     helpText={
                         <FormattedMessage {...messages.maxConnectionsDescription}/>
                     }
@@ -230,7 +257,7 @@ class DatabaseSettings extends AdminSettings<Props, State> {
                     label={
                         <FormattedMessage {...messages.maxOpenTitle}/>
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.sql.maxOpenExample', defaultMessage: 'E.g.: "10"'})}
+                    placeholder={defineMessage({id: 'admin.sql.maxOpenExample', defaultMessage: 'E.g.: "10"'})}
                     helpText={
                         <FormattedMessage {...messages.maxOpenDescription}/>
                     }
@@ -245,7 +272,7 @@ class DatabaseSettings extends AdminSettings<Props, State> {
                     label={
                         <FormattedMessage {...messages.queryTimeoutTitle}/>
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.sql.queryTimeoutExample', defaultMessage: 'E.g.: "30"'})}
+                    placeholder={defineMessage({id: 'admin.sql.queryTimeoutExample', defaultMessage: 'E.g.: "30"'})}
                     helpText={
                         <FormattedMessage {...messages.queryTimeoutDescription}/>
                     }
@@ -260,7 +287,7 @@ class DatabaseSettings extends AdminSettings<Props, State> {
                     label={
                         <FormattedMessage {...messages.connMaxLifetimeTitle}/>
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.sql.connMaxLifetimeExample', defaultMessage: 'E.g.: "3600000"'})}
+                    placeholder={defineMessage({id: 'admin.sql.connMaxLifetimeExample', defaultMessage: 'E.g.: "3600000"'})}
                     helpText={
                         <FormattedMessage {...messages.connMaxLifetimeDescription}/>
                     }
@@ -275,7 +302,7 @@ class DatabaseSettings extends AdminSettings<Props, State> {
                     label={
                         <FormattedMessage {...messages.connMaxIdleTimeTitle}/>
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.sql.connMaxIdleTimeExample', defaultMessage: 'E.g.: "300000"'})}
+                    placeholder={defineMessage({id: 'admin.sql.connMaxIdleTimeExample', defaultMessage: 'E.g.: "300000"'})}
                     helpText={
                         <FormattedMessage {...messages.connMaxIdleTimeDescription}/>
                     }
@@ -290,7 +317,7 @@ class DatabaseSettings extends AdminSettings<Props, State> {
                     label={
                         <FormattedMessage {...messages.minimumHashtagLengthTitle}/>
                     }
-                    placeholder={this.props.intl.formatMessage({id: 'admin.service.minimumHashtagLengthExample', defaultMessage: 'E.g.: "3"'})}
+                    placeholder={defineMessage({id: 'admin.service.minimumHashtagLengthExample', defaultMessage: 'E.g.: "3"'})}
                     helpText={
                         <FormattedMessage
                             {...messages.minimumHashtagLengthDescription}
@@ -401,5 +428,3 @@ class DatabaseSettings extends AdminSettings<Props, State> {
         );
     };
 }
-
-export default injectIntl(DatabaseSettings);

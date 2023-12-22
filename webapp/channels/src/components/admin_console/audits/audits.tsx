@@ -25,9 +25,14 @@ type State = {
     loadingAudits: boolean;
 };
 
-export const messages = defineMessages({
+const messages = defineMessages({
     reload: {id: 'admin.audits.reload', defaultMessage: 'Reload User Activity Logs'},
 });
+
+export const searchableStrings = [
+    messages.reload,
+];
+
 export default class Audits extends React.PureComponent<Props, State> {
     public constructor(props: Props) {
         super(props);
