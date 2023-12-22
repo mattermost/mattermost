@@ -397,23 +397,23 @@ func extractPlugin(bundle io.ReadSeeker, extractDir string) (*model.Manifest, st
 	if err != nil {
 		return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-  // If the root of the plugin bundle consists of exactly one directory, assume the plugin
-	// is contained therein. Otherwise the root directory is expected to contain the plugin.
-	filteredDir := make([]os.DirEntry, 0)
-    for _, entry := range dir {
-        _, err := entry.Info()
-        if err != nil {
-            return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-        }
+	// If the tar contains a single directory (ignoring "hidden" files), assume the
+	// plugin is rooted therein.
+	filteredDir := make([]os.DirEntry, 0, len(dir))
+	for _, entry := range dir {
+		info, err := entry.Info()
+		if err != nil {
+			return nil, "", model.NewAppError("extractPlugin", "app.plugin.filesystem_info.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
 
-        if !strings.HasPrefix(entry.Name(), ".") {
-            filteredDir = append(filteredDir, entry)
-        }
-    }
+		if !strings.HasPrefix(entry.Name(), ".") {
+			filteredDir = append(filteredDir, entry)
+		}
+	}
 
-    if len(filteredDir) == 1 && filteredDir[0].IsDir() {
-        extractDir = filepath.Join(extractDir, filteredDir[0].Name())
-    }
+	if len(filteredDir) == 1 && filteredDir[0].IsDir() {
+		extractDir = filepath.Join(extractDir, filteredDir[0].Name())
+	}
 
 	manifest, _, err := model.FindManifest(extractDir)
 	if err != nil {
