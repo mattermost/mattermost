@@ -10,6 +10,8 @@ import {Role} from '@mattermost/types/roles';
 
 import {bindClientFunc} from './helpers';
 
+import {General} from '../constants';
+
 export function getRolesByNames(rolesNames: string[]) {
     return bindClientFunc({
         clientFunc: Client4.getRolesByNames,
@@ -98,8 +100,24 @@ export function loadRolesIfNeeded(roles: Iterable<string>): ActionFunc {
         if (state.entities.roles.pending) {
             await dispatch(setPendingRoles([]));
         }
+
         if (newRoles.size > 0) {
-            return getRolesByNames(Array.from(newRoles))(dispatch, getState);
+            const newRolesArray = Array.from(newRoles);
+            const getRolesRequests = [];
+
+            for (let i = 0; i < newRolesArray.length; i += General.MAX_GET_ROLES_BY_NAMES) {
+                const chunk = newRolesArray.slice(i, i + General.MAX_GET_ROLES_BY_NAMES);
+                getRolesRequests.push(getRolesByNames(chunk)(dispatch, getState));
+            }
+
+            const result = await Promise.all(getRolesRequests);
+            return result.reduce(
+                (acc: Record<string, any>, val: Record<string, any>): Record<string, any> => {
+                    acc.data = acc.data.concat(val.data);
+                    return acc;
+                },
+                {data: []},
+            );
         }
         return {data: state.entities.roles.roles};
     };
