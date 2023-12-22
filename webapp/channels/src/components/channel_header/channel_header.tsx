@@ -87,7 +87,6 @@ export type Props = {
 };
 
 type State = {
-    titleMenuOpen: boolean;
     showChannelHeaderPopover: boolean;
     channelHeaderPoverWidth: number;
     leftOffset: number;
@@ -114,7 +113,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             channelHeaderPoverWidth: 0,
             leftOffset: 0,
             topOffset: 0,
-            titleMenuOpen: false,
         };
 
         this.getHeaderMarkdownOptions = memoizeResult((channelNamesMap: Record<string, any>) => (

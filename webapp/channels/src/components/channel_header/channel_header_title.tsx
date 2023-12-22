@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import type {ReactNode} from 'react';
 import React, {memo, useState} from 'react';
 import {useIntl} from 'react-intl';
@@ -96,7 +97,7 @@ const ChannelHeaderTitle = ({
                     className='channel-header__top'
                 >
                     <button
-                        className={`channel-header__trigger style--none ${titleMenuOpen ? 'active' : ''}`}
+                        className={classNames('channel-header__trigger style--none', {active: titleMenuOpen})}
                         aria-label={intl.formatMessage({id: 'channel_header.menuAriaLabel', defaultMessage: 'Channel Menu'}).toLowerCase()}
                     >
                         <strong
