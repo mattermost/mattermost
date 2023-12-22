@@ -18,7 +18,12 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value="autolink"
     />
@@ -98,7 +103,12 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value=""
     />
@@ -505,7 +515,12 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value=""
     />
@@ -1157,7 +1172,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -1199,7 +1214,12 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value=""
     />
@@ -1851,7 +1871,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -1893,7 +1913,12 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value=""
     />
@@ -1948,7 +1973,12 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value=""
     />
@@ -2600,7 +2630,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -2642,7 +2672,12 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value=""
     />
@@ -3294,7 +3329,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -3336,7 +3371,12 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value=""
     />
@@ -4150,7 +4190,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }
@@ -4192,7 +4232,12 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder="Find settings"
+      placeholder={
+        Object {
+          "defaultMessage": "Find settings",
+          "id": "admin.sidebar.filter",
+        }
+      }
       type="text"
       value=""
     />
@@ -5103,7 +5148,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
               name="experimental/feature_flags"
               title={
                 <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Feature Flags"
+                  defaultMessage="Features Flags"
                   id="admin.feature_flags.title"
                 />
               }

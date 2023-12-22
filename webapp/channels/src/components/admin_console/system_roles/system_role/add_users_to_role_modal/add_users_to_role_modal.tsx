@@ -217,6 +217,8 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
             return {label: user.username, value: user.id, ...user};
         });
 
+        const name = rolesStrings[this.props.role.name] ? <FormattedMessage {...rolesStrings[this.props.role.name].name}/> : this.props.role.name;
+
         return (
             <Modal
                 id='addUsersToRoleModal'
@@ -233,7 +235,7 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
                             values={{
                                 roleName: (
                                     <strong>
-                                        <FormattedMessage {...rolesStrings[this.props.role.name].name}/>
+                                        {name}
                                     </strong>
                                 ),
                             }}

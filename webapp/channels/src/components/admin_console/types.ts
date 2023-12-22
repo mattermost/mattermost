@@ -67,12 +67,14 @@ type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     setFromMetadataField?: string;
     dynamic_value?: (value: any, config: Partial<AdminConfig>, state: any) => string;
     max_length?: number;
+    default?: string;
 }
 
 type AdminDefinitionSettingGenerated = AdminDefinitionSettingBase & {
     type: 'generated';
     placeholder?: string | MessageDescriptor;
     regenerate_help_text?: string;
+    default?: string;
 }
 
 export type AdminDefinitionSettingDropdownOption = {
@@ -126,7 +128,8 @@ type AdminDefinitionSettingButton = AdminDefinitionSettingBase & {
 
 type AdminDefinitionSettingUsername = AdminDefinitionSettingBase & {
     type: typeof Constants.SettingsTypes.TYPE_USERNAME;
-    placeholder_message: string;
+    placeholder: string;
+    default?: string;
 }
 
 type MappingKeyTypes = 'enableTeamCreation' | 'editOthersPosts' | 'enableOnlyAdminIntegrations';
@@ -140,6 +143,7 @@ type AdminDefinitionSettingPermission = AdminDefinitionSettingBase & {
 type AdminDefinitionSettingRadio = AdminDefinitionSettingBase & {
     type: typeof Constants.SettingsTypes.TYPE_RADIO;
     options: AdminDefinitionSettingDropdownOption[];
+    default?: string;
 }
 
 export type AdminDefinitionSetting = AdminDefinitionSettingCustom |

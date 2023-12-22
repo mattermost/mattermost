@@ -243,6 +243,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
     render() {
         const {usersToAdd, usersToRemove, saving, saveNeeded, serverError, permissionsToUpdate, saveKey} = this.state;
         const {role, isDisabled, isLicensedForCloud} = this.props;
+        const name = rolesStrings[role.name] ? <FormattedMessage {...rolesStrings[role.name].name}/> : role.name;
         return (
             <div className='wrapper--fixed'>
                 <AdminHeader withBackButton={true}>
@@ -251,7 +252,7 @@ export default class SystemRole extends React.PureComponent<Props, State> {
                             to='/admin_console/user_management/system_roles'
                             className='fa fa-angle-left back'
                         />
-                        <FormattedMessage {...rolesStrings[role.name].name}/>
+                        {name}
                     </div>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>

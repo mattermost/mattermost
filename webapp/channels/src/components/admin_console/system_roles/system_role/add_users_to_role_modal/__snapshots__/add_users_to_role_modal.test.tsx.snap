@@ -44,10 +44,7 @@ exports[`admin_console/add_users_to_role_modal search should not include bot use
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -189,10 +186,7 @@ exports[`admin_console/add_users_to_role_modal should exclude user 1`] = `
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -290,10 +284,7 @@ exports[`admin_console/add_users_to_role_modal should have single passed value 1
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -435,10 +426,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 1`
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -621,10 +609,7 @@ exports[`admin_console/add_users_to_role_modal should include additional user 2`
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }
@@ -807,10 +792,7 @@ exports[`admin_console/add_users_to_role_modal should not include bot user 1`] =
         values={
           Object {
             "roleName": <strong>
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="role_name"
-                id="admin.permissions.roles.role_name.name"
-              />
+              role_name
             </strong>,
           }
         }

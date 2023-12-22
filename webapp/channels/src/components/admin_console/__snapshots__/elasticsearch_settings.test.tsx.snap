@@ -73,7 +73,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"https://elasticsearch.example.org:9200\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"https://elasticsearch.example.org:9200\\"",
+            "id": "admin.elasticsearch.connectionUrlExample",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -93,7 +98,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/ca.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/ca.pem\\"",
+            "id": "admin.elasticsearch.caExample",
+          }
+        }
         setByEnv={false}
         value="test.ca"
       />
@@ -113,7 +123,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/client-cert.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/client-cert.pem\\"",
+            "id": "admin.elasticsearch.clientCertExample",
+          }
+        }
         setByEnv={false}
         value="test.crt"
       />
@@ -133,7 +148,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/client-key.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/client-key.pem\\"",
+            "id": "admin.elasticsearch.clientKeyExample",
+          }
+        }
         setByEnv={false}
         value="test.key"
       />
@@ -184,7 +204,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"elastic\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"elastic\\"",
+            "id": "admin.elasticsearch.usernameExample",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -204,7 +229,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"yourpassword\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"yourpassword\\"",
+            "id": "admin.elasticsearch.password",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -362,7 +392,12 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: .opendistro*,.security*"
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: .opendistro*,.security*",
+            "id": "admin.elasticsearch.ignoredPurgeIndexesDescription.example",
+          }
+        }
         setByEnv={false}
       />
       <BooleanSetting
@@ -544,7 +579,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"https://elasticsearch.example.org:9200\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"https://elasticsearch.example.org:9200\\"",
+            "id": "admin.elasticsearch.connectionUrlExample",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -564,7 +604,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/ca.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/ca.pem\\"",
+            "id": "admin.elasticsearch.caExample",
+          }
+        }
         setByEnv={false}
         value="test.ca"
       />
@@ -584,7 +629,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/client-cert.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/client-cert.pem\\"",
+            "id": "admin.elasticsearch.clientCertExample",
+          }
+        }
         setByEnv={false}
         value="test.crt"
       />
@@ -604,7 +654,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"./elasticsearch/client-key.pem\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"./elasticsearch/client-key.pem\\"",
+            "id": "admin.elasticsearch.clientKeyExample",
+          }
+        }
         setByEnv={false}
         value="test.key"
       />
@@ -655,7 +710,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"elastic\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"elastic\\"",
+            "id": "admin.elasticsearch.usernameExample",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -675,7 +735,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"yourpassword\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"yourpassword\\"",
+            "id": "admin.elasticsearch.password",
+          }
+        }
         setByEnv={false}
         value="test"
       />
@@ -832,7 +897,12 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: .opendistro*,.security*"
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: .opendistro*,.security*",
+            "id": "admin.elasticsearch.ignoredPurgeIndexesDescription.example",
+          }
+        }
         setByEnv={false}
       />
       <BooleanSetting

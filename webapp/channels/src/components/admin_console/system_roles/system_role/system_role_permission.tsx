@@ -79,6 +79,8 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
     };
 
     renderSectionRow = (section: SystemSection, permissionsMap: Record<string, boolean>, permissionsToUpdate: PermissionsToUpdate, isSectionVisible: boolean) => {
+        const name = sectionStrings[section.name] ? <FormattedMessage {...sectionStrings[section.name].name}/> : section.name;
+        const description = sectionStrings[section.name] ? <FormattedMessage {...sectionStrings[section.name].description}/> : '';
         return (
             <div
                 key={section.name}
@@ -86,12 +88,12 @@ export default class SystemRolePermission extends React.PureComponent<Props> {
             >
                 <div className='PermissionSectionText'>
                     <div className='PermissionSectionText_title'>
-                        <FormattedMessage {...sectionStrings[section.name].name}/>
+                        {name}
                     </div>
 
-                    {section.hasDescription &&
+                    {section.hasDescription && description &&
                         <div className='PermissionSection_description'>
-                            <FormattedMessage {...sectionStrings[section.name].description}/>
+                            {description}
                         </div>
                     }
 

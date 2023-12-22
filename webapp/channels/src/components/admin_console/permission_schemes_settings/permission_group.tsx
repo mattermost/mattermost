@@ -281,6 +281,9 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
         }
         const additionalValuesProp = additionalValues?.[id] ? additionalValues[id] : undefined;
 
+        const name = groupRolesStrings[id] ? <FormattedMessage {...groupRolesStrings[id].name}/> : id;
+        const description = groupRolesStrings[id] ? <FormattedMessage {...groupRolesStrings[id].description}/> : '';
+
         return (
             <div className='permission-group'>
                 {!root &&
@@ -299,14 +302,14 @@ export default class PermissionGroup extends React.PureComponent<Props, State> {
                             id={`${uniqId}-checkbox`}
                         />
                         <span className='permission-name'>
-                            <FormattedMessage {...groupRolesStrings[id].name}/>
+                            {name}
                         </span>
                         <PermissionDescription
                             additionalValues={additionalValuesProp}
                             inherited={inherited}
                             id={id}
                             selectRow={this.props.selectRow}
-                            description={(<FormattedMessage {...groupRolesStrings[id].description}/>)}
+                            description={description}
                         />
                     </div>}
                 {!combined &&

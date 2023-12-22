@@ -506,7 +506,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         } else if (setting.multiple) {
             value = this.state[setting.key] ? this.state[setting.key].join(',') : '';
         } else {
-            value = this.state[setting.key] || '';
+            value = this.state[setting.key] || setting.default || '';
         }
 
         let footer = null;
@@ -567,7 +567,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 id={setting.key}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || false}
+                value={this.state[setting.key] || setting.default || false}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -746,6 +746,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
 
         const options = setting.options || [];
         const values = options.map((o) => ({value: o.value, text: descriptorOrStringToString(o.display_name, this.props.intl)!}));
+        const defaultOption = values.find((v) => v.value === setting.default)?.value || values[0].value;
 
         return (
             <RadioSetting
@@ -754,7 +755,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 values={values}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                value={this.state[setting.key] || values[0]}
+                value={this.state[setting.key] || defaultOption}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleChange}
@@ -795,7 +796,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 helpText={this.renderSettingHelpText(setting)}
                 regenerateHelpText={setting.regenerate_help_text}
                 placeholder={descriptorOrStringToString(setting.placeholder, this.props.intl)}
-                value={this.state[setting.key] || ''}
+                value={this.state[setting.key] || setting.default || ''}
                 disabled={this.isDisabled(setting)}
                 setByEnv={this.isSetByEnv(setting.key)}
                 onChange={this.handleGeneratedChange}
@@ -861,8 +862,8 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
                 id={setting.key}
                 label={this.renderLabel(setting)}
                 helpText={this.renderSettingHelpText(setting)}
-                placeholder={setting.placeholder_message}
-                value={this.state[setting.key] || ''}
+                placeholder={setting.placeholder}
+                value={this.state[setting.key] || setting.default || ''}
                 disabled={this.isDisabled(setting)}
                 onChange={this.handleChange}
             />
