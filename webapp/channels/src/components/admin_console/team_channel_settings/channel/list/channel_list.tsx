@@ -5,25 +5,29 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-import {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
-import {debounce} from 'mattermost-redux/actions/helpers';
+import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 
-import {getHistory} from 'utils/browser_history';
+import {debounce} from 'mattermost-redux/actions/helpers';
+import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import {Constants} from 'utils/constants';
-import {isArchivedChannel} from 'utils/channel_utils';
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
-import {FilterOptions} from 'components/admin_console/filter/filter';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import type {FilterOptions} from 'components/admin_console/filter/filter';
 import TeamFilterDropdown from 'components/admin_console/filter/team_filter_dropdown';
 import {PAGE_SIZE} from 'components/admin_console/team_channel_settings/abstract_list';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
+import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import GlobeIcon from 'components/widgets/icons/globe_icon';
 import LockIcon from 'components/widgets/icons/lock_icon';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
+
+import {getHistory} from 'utils/browser_history';
+import {isArchivedChannel} from 'utils/channel_utils';
+import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
+
 interface ChannelListProps {
     actions: {
         searchAllChannels: (term: string, opts: ChannelSearchOpts) => Promise<{ data: any }>;

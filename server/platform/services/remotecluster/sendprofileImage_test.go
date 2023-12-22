@@ -100,8 +100,7 @@ func TestService_sendProfileImageToRemote(t *testing.T) {
 
 	provider := testImageProvider{}
 
-	mockServer := newMockServer(makeRemoteClusters(NumRemotes, ts.URL))
-	defer mockServer.Shutdown()
+	mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
 	mockServer.SetUser(user)
 	service, err := NewRemoteClusterService(mockServer)
 	require.NoError(t, err)

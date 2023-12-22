@@ -22,6 +22,10 @@
         max-height: 100%;
         padding: 0;
 
+        &.divider {
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        }
+
         .form-control {
             height: 40px;
             box-sizing: border-box;
@@ -106,7 +110,7 @@
         border-radius: 4px;
 
         &.divider {
-            border-top: 1px solid rgba(63, 67, 80, 0.08);
+            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
         }
     }
 
@@ -196,62 +200,6 @@
 
                     &::before {
                         margin: 0;
-                    }
-                }
-            }
-
-            .GenericModal__button {
-                padding: 13px 20px;
-                border: none;
-                border-radius: 4px;
-                box-shadow: none;
-
-                @include button-medium;
-
-                &.cancel {
-                    margin-right: 8px;
-                    background: var(--center-channel-bg);
-                    background: rgba(var(--button-bg-rgb), 0.08);
-                    color: var(--button-bg);
-
-                    &:hover {
-                        background: rgba(var(--button-bg-rgb), 0.12);
-                    }
-
-                    &:active {
-                        background: rgba(var(--button-bg-rgb), 0.16);
-                    }
-
-                    &:focus {
-                        box-sizing: border-box;
-                        padding: 11px 18px;
-                        border: 2px solid var(--sidebar-text-active-border);
-                    }
-                }
-
-                &.delete {
-                    @include primary-button;
-
-                    border-color: transparent;
-                    background: var(--dnd-indicator);
-
-                    &:focus {
-                        padding: 11px 18px;
-                    }
-
-                    &:hover,
-                    &:focus,
-                    &:active {
-                        background: linear-gradient(0deg, rgba(0, 0, 0, 0.08), rgba(0, 0, 0, 0.08)), var(--dnd-indicator) !important;
-                    }
-                }
-
-                &.confirm {
-                    @include primary-button;
-                    @include button-medium;
-
-                    &:focus {
-                        padding: 11px 18px;
                     }
                 }
             }

@@ -3,10 +3,15 @@
 
 /* eslint-disable max-lines */
 
+import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
+import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
+import githubCSS from 'highlight.js/styles/github.css';
+import monokaiCSS from 'highlight.js/styles/monokai.css';
 import keyMirror from 'key-mirror';
 
-import Permissions from 'mattermost-redux/constants/permissions';
+import {CustomStatusDuration} from '@mattermost/types/users';
 
+import Permissions from 'mattermost-redux/constants/permissions';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import audioIcon from 'images/icons/audio.svg';
@@ -23,15 +28,7 @@ import monokaiIcon from 'images/themes/code_themes/monokai.png';
 import solarizedDarkIcon from 'images/themes/code_themes/solarized-dark.png';
 import solarizedLightIcon from 'images/themes/code_themes/solarized-light.png';
 import logoWebhook from 'images/webhook_icon.jpg';
-
 import {t} from 'utils/i18n';
-
-import {CustomStatusDuration} from '@mattermost/types/users';
-
-import githubCSS from 'highlight.js/styles/github.css';
-import monokaiCSS from 'highlight.js/styles/monokai.css';
-import solarizedDarkCSS from 'highlight.js/styles/base16/solarized-dark.css';
-import solarizedLightCSS from 'highlight.js/styles/base16/solarized-light.css';
 
 export const SettingsTypes = {
     TYPE_TEXT: 'text',
@@ -50,6 +47,7 @@ export const SettingsTypes = {
     TYPE_JOBSTABLE: 'jobstable',
     TYPE_FILE_UPLOAD: 'fileupload',
     TYPE_CUSTOM: 'custom',
+    TYPE_ROLES: 'roles',
 };
 
 export const InviteTypes = {
@@ -60,7 +58,6 @@ export const InviteTypes = {
 export const PreviousViewedTypes = {
     CHANNELS: 'channels',
     THREADS: 'threads',
-    INSIGHTS: 'insights',
 };
 
 export const Preferences = {
@@ -152,6 +149,7 @@ export const Preferences = {
     OVERAGE_USERS_BANNER: 'overage_users_banner',
     TO_CLOUD_YEARLY_PLAN_NUDGE: 'to_cloud_yearly_plan_nudge',
     TO_PAID_PLAN_NUDGE: 'to_paid_plan_nudge',
+    CLOUD_ANNUAL_RENEWAL_BANNER: 'cloud_annual_renewal_banner',
 };
 
 // For one off things that have a special, attention-grabbing UI until you interact with them
@@ -177,17 +175,6 @@ export const TrialPeriodDays = {
 
 export const suitePluginIds = {
     playbooks: 'playbooks',
-
-    /**
-     * @warning This only applies to the Boards product and will not work with the Boards plugin. Both cases need to
-     * be supported until we enable the Boards product permanently.
-     */
-    boards: 'boards',
-
-    /**
-     * @deprecated This only applies to the Boards plugin and will not work with the Boards product. Both cases need
-     * to be supported until we enable the Boards product permanently.
-     */
     focalboard: 'focalboard',
 
     apps: 'com.mattermost.apps',
@@ -210,6 +197,8 @@ export const ActionTypes = keyMirror({
     UPDATE_RHS_SEARCH_TERMS: null,
     UPDATE_RHS_SEARCH_TYPE: null,
     UPDATE_RHS_SEARCH_RESULTS_TERMS: null,
+
+    SET_RHS_SIZE: null,
 
     RHS_GO_BACK: null,
 
@@ -245,6 +234,7 @@ export const ActionTypes = keyMirror({
     REMOVED_ADMIN_CONSOLE_REDUCER: null,
     RECEIVED_ADMIN_CONSOLE_CUSTOM_COMPONENT: null,
     RECEIVED_PLUGIN_STATS_HANDLER: null,
+    RECEIVED_PLUGIN_USER_SETTINGS: null,
 
     MODAL_OPEN: null,
     MODAL_CLOSE: null,
@@ -267,6 +257,7 @@ export const ActionTypes = keyMirror({
     TOGGLE_LHS: null,
     OPEN_LHS: null,
     CLOSE_LHS: null,
+    SET_LHS_SIZE: null,
     SELECT_STATIC_PAGE: null,
 
     SET_SHOW_PREVIEW_ON_CREATE_COMMENT: null,
@@ -326,7 +317,6 @@ export const ActionTypes = keyMirror({
 
     FIRST_CHANNEL_NAME: null,
 
-    RECEIVED_PLUGIN_INSIGHT: null,
     SET_EDIT_CHANNEL_MEMBERS: null,
     NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK: null,
 
@@ -430,13 +420,11 @@ export const ModalIdentifiers = {
     DELETE_DRAFT: 'delete_draft_modal',
     SEND_DRAFT: 'send_draft_modal',
     UPLOAD_LICENSE: 'upload_license',
-    INSIGHTS: 'insights',
     CLOUD_LIMITS: 'cloud_limits',
     THREE_DAYS_LEFT_TRIAL_MODAL: 'three_days_left_trial_modal',
     REQUEST_BUSINESS_EMAIL_MODAL: 'request_business_email_modal',
     FEATURE_RESTRICTED_MODAL: 'feature_restricted_modal',
     FORWARD_POST_MODAL: 'forward_post_modal',
-    CLOUD_SUBSCRIBE_WITH_LOADING_MODAL: 'cloud_subscribe_with_loading_modal',
     JOIN_PUBLIC_CHANNEL_MODAL: 'join_public_channel_modal',
     CLOUD_INVOICE_PREVIEW: 'cloud_invoice_preview',
     BILLING_HISTORY: 'billing_history',
@@ -460,6 +448,12 @@ export const ModalIdentifiers = {
     SELF_HOSTED_EXPANSION: 'self_hosted_expansion',
     START_TRIAL_FORM_MODAL: 'start_trial_form_modal',
     START_TRIAL_FORM_MODAL_RESULT: 'start_trial_form_modal_result',
+    MOVE_THREAD_MODAL: 'move_thread_modal',
+    CONVERT_GM_TO_CHANNEL: 'convert_gm_to_channel',
+    IP_FILTERING_ADD_EDIT_MODAL: 'ip_filtering_add_edit_modal',
+    IP_FILTERING_DELETE_CONFIRMATION_MODAL: 'ip_filtering_delete_confirmation_modal',
+    IP_FILTERING_SAVE_CONFIRMATION_MODAL: 'ip_filtering_save_confirmation_modal',
+    REACTION_LIMIT_REACHED: 'reaction_limit_reached',
 };
 
 export const UserStatuses = {
@@ -517,11 +511,11 @@ export const MattermostFeatures = {
     PLAYBOOKS_RETRO: 'mattermost.feature.playbooks_retro',
     UNLIMITED_MESSAGES: 'mattermost.feature.unlimited_messages',
     UNLIMITED_FILE_STORAGE: 'mattermost.feature.unlimited_file_storage',
-    TEAM_INSIGHTS: 'mattermost.feature.team_insights',
     ALL_PROFESSIONAL_FEATURES: 'mattermost.feature.all_professional',
     ALL_ENTERPRISE_FEATURES: 'mattermost.feature.all_enterprise',
     UPGRADE_DOWNGRADED_WORKSPACE: 'mattermost.feature.upgrade_downgraded_workspace',
     PLUGIN_FEATURE: 'mattermost.feature.plugin',
+    HIGHLIGHT_WITHOUT_NOTIFICATION: 'mattermost.feature.highlight_without_notification',
 };
 
 export enum LicenseSkus {
@@ -585,7 +579,7 @@ export const SocketEvents = {
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_UNARCHIVED: 'channel_restored',
     CHANNEL_UPDATED: 'channel_updated',
-    CHANNEL_VIEWED: 'channel_viewed',
+    MULTIPLE_CHANNELS_VIEWED: 'multiple_channels_viewed',
     CHANNEL_MEMBER_UPDATED: 'channel_member_updated',
     CHANNEL_SCHEME_UPDATED: 'channel_scheme_updated',
     DIRECT_ADDED: 'direct_added',
@@ -676,7 +670,6 @@ export const CrtTutorialSteps = {
 };
 
 export const ExploreOtherToolsTourSteps = {
-    BOARDS_TOUR: 0,
     PLAYBOOKS_TOUR: 1,
     FINISHED: 999,
 };
@@ -730,6 +723,8 @@ export const CloudBanners = {
     THREE_DAYS_LEFT_TRIAL_MODAL_DISMISSED: 'dismiss_3_days_left_trial_modal',
     NUDGE_TO_CLOUD_YEARLY_PLAN_SNOOZED: 'nudge_to_cloud_yearly_plan_snoozed',
     NUDGE_TO_PAID_PLAN_SNOOZED: 'nudge_to_paid_plan_snoozed',
+    ANNUAL_RENEWAL_60_DAY: 'annual_renewal_60_day',
+    ANNUAL_RENEWAL_30_DAY: 'annual_renewal_30_day',
 };
 
 export const ConfigurationBanners = {
@@ -777,6 +772,7 @@ export const TELEMETRY_LABELS = {
     REPLY: 'reply',
     UNREAD: 'unread',
     FORWARD: 'forward',
+    MOVE_THREAD: 'move_thread',
 };
 
 export const PostTypes = {
@@ -803,6 +799,7 @@ export const PostTypes = {
     REMOVE_LINK_PREVIEW: 'remove_link_preview',
     ME: 'me',
     REMINDER: 'reminder',
+    WRANGLER: 'system_wrangler',
     CUSTOM_CALLS: 'custom_calls',
     CUSTOM_CALLS_RECORDING: 'custom_calls_recording',
 };
@@ -1103,6 +1100,7 @@ export const HostedCustomerLinks = {
 
 export const DocLinks = {
     ABOUT_TEAMS: 'https://docs.mattermost.com/welcome/about-teams.html#team-url',
+    ADVANCED_LOGGING: 'https://mattermost.com/pl/advanced-logging',
     CONFIGURE_DOCUMENT_CONTENT_SEARCH: 'https://mattermost.com/pl/configure-document-content-search',
     CONFIGURE_AD_LDAP_QUERY_TIMEOUT: 'https://mattermost.com/pl/configure-ad-ldap-query-timeout',
     CONFIGURE_OVERRIDE_SAML_BIND_DATA_WITH_LDAP: 'https://mattermost.com/pl/configure-override-saml-bind-data-with-ldap',
@@ -1115,8 +1113,9 @@ export const DocLinks = {
     ENABLE_CLIENT_SIDE_CERTIFICATION: 'https://mattermost.com/pl/enable-client-side-certification',
     ENABLE_HARDENED_MODE: 'https://mattermost.com/pl/enable-hardened-mode',
     FORMAT_MESSAGES: 'https://mattermost.com/pl/format-messages',
+    FILE_STORAGE: 'https://mattermost.com/pl/configure-file-storage',
     GUEST_ACCOUNTS: 'https://docs.mattermost.com/onboard/guest-accounts.html',
-    HIGH_AVAILABILITY_CLUSTER: 'https://mattermomst.com/pl/high-availability-cluster',
+    HIGH_AVAILABILITY_CLUSTER: 'https://mattermost.com/pl/high-availability-cluster',
     IN_PRODUCT_NOTICES: 'https://mattermost.com/pl/in-product-notices',
     MULTI_FACTOR_AUTH: 'https://mattermost.com/pl/multi-factor-authentication',
     ONBOARD_ADVANCED_PERMISSIONS: 'https://mattermost.com/pl/advanced-permissions',
@@ -1140,6 +1139,8 @@ export const DeveloperLinks = {
     ENABLE_OAUTH2: 'https://mattermost.com/pl/enable-oauth',
     INCOMING_WEBHOOKS: 'https://mattermost.com/pl/incoming-webhooks',
     OUTGOING_WEBHOOKS: 'https://mattermost.com/pl/outgoing-webhooks',
+    INTERACTIVE_MESSAGES: 'https://mattermost.com/pl/interactive-messages',
+    INTERACTIVE_DIALOGS: 'https://mattermost.com/pl/interactive-dialogs',
     PERSONAL_ACCESS_TOKENS: 'https://mattermost.com/pl/personal-access-tokens',
     PLUGIN_SIGNING: 'https://mattermost.com/pl/sign-plugins',
     PLUGINS: 'https://mattermost.com/pl/plugins',
@@ -1199,6 +1200,7 @@ export const PermissionsScope = {
     [Permissions.DELETE_PRIVATE_CHANNEL]: 'channel_scope',
     [Permissions.EDIT_OTHER_USERS]: 'system_scope',
     [Permissions.READ_CHANNEL]: 'channel_scope',
+    [Permissions.READ_CHANNEL_CONTENT]: 'channel_scope',
     [Permissions.READ_PUBLIC_CHANNEL]: 'team_scope',
     [Permissions.ADD_REACTION]: 'channel_scope',
     [Permissions.REMOVE_REACTION]: 'channel_scope',
@@ -1258,13 +1260,13 @@ export const PermissionsScope = {
     [Permissions.DELETE_CUSTOM_GROUP]: 'system_scope',
     [Permissions.RESTORE_CUSTOM_GROUP]: 'system_scope',
     [Permissions.MANAGE_CUSTOM_GROUP_MEMBERS]: 'system_scope',
+    [Permissions.USE_SLASH_COMMANDS]: 'channel_scope',
 };
 
 export const DefaultRolePermissions = {
     all_users: [
         Permissions.CREATE_DIRECT_CHANNEL,
         Permissions.CREATE_GROUP_CHANNEL,
-        Permissions.PERMANENT_DELETE_USER,
         Permissions.CREATE_TEAM,
         Permissions.LIST_TEAM_CHANNELS,
         Permissions.JOIN_PUBLIC_CHANNELS,
@@ -1279,6 +1281,7 @@ export const DefaultRolePermissions = {
         Permissions.INVITE_USER,
         Permissions.ADD_USER_TO_TEAM,
         Permissions.READ_CHANNEL,
+        Permissions.READ_CHANNEL_CONTENT,
         Permissions.ADD_REACTION,
         Permissions.REMOVE_REACTION,
         Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
@@ -1290,8 +1293,6 @@ export const DefaultRolePermissions = {
         Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS,
         Permissions.DELETE_POST,
         Permissions.EDIT_POST,
-        Permissions.LIST_PUBLIC_TEAMS,
-        Permissions.JOIN_PUBLIC_TEAMS,
         Permissions.USE_CHANNEL_MENTIONS,
         Permissions.USE_GROUP_MENTIONS,
         Permissions.CREATE_CUSTOM_GROUP,
@@ -1304,8 +1305,13 @@ export const DefaultRolePermissions = {
         Permissions.PLAYBOOK_PRIVATE_MANAGE_MEMBERS,
         Permissions.PLAYBOOK_PUBLIC_MANAGE_PROPERTIES,
         Permissions.PLAYBOOK_PRIVATE_MANAGE_PROPERTIES,
-        Permissions.PLAYBOOK_PUBLIC_MAKE_PRIVATE,
         Permissions.RUN_CREATE,
+        Permissions.USE_SLASH_COMMANDS,
+        Permissions.DELETE_EMOJIS,
+        Permissions.INVITE_GUEST,
+        Permissions.CREATE_EMOJIS,
+        Permissions.RUN_VIEW,
+        Permissions.RESTORE_CUSTOM_GROUP,
     ],
     channel_admin: [
         Permissions.MANAGE_CHANNEL_ROLES,
@@ -1452,7 +1458,7 @@ export const Constants = {
     MENTIONS_REGEX: /(?:\B|\b_+)@([a-z0-9.\-_]+)/gi,
     DEFAULT_CHARACTER_LIMIT: 4000,
     IMAGE_TYPE_GIF: 'gif',
-    TEXT_TYPES: ['txt', 'rtf'],
+    TEXT_TYPES: ['txt', 'rtf', 'vtt'],
     IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg', 'tiff', 'tif', 'psd'],
     AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac', 'ogg', 'm4r'],
     VIDEO_TYPES: ['mp4', 'avi', 'webm', 'mkv', 'wmv', 'mpg', 'mov', 'flv'],
@@ -1502,6 +1508,10 @@ export const Constants = {
     DESKTOP_SCREEN_WIDTH: 1679,
     TABLET_SCREEN_WIDTH: 1020,
     MOBILE_SCREEN_WIDTH: 768,
+
+    SMALL_SIDEBAR_BREAKPOINT: 900,
+    MEDIUM_SIDEBAR_BREAKPOINT: 1200,
+    LARGE_SIDEBAR_BREAKPOINT: 1680,
 
     POST_MODAL_PADDING: 170,
     SCROLL_DELAY: 2000,
@@ -1581,12 +1591,12 @@ export const Constants = {
     INVITE_TEAM: 'I',
     OPEN_TEAM: 'O',
     THREADS: 'threads',
-    INSIGHTS: 'insights',
     MAX_POST_LEN: 4000,
     EMOJI_SIZE: 16,
     DEFAULT_EMOJI_PICKER_LEFT_OFFSET: 87,
     DEFAULT_EMOJI_PICKER_RIGHT_OFFSET: 15,
     EMOJI_PICKER_WIDTH_OFFSET: 295,
+    SIDEBAR_MINIMUM_WIDTH: 400,
     THEME_ELEMENTS: [
         {
             group: 'sidebarElements',
@@ -1906,6 +1916,7 @@ export const Constants = {
         vbscript: {name: 'VBScript', extensions: ['vbs'], aliases: ['vbs']},
         verilog: {name: 'Verilog', extensions: ['v', 'veo', 'sv', 'svh']},
         vhdl: {name: 'VHDL', extensions: ['vhd', 'vhdl'], aliases: ['vhd']},
+        vtt: {name: 'WebVTT', extensions: ['vtt'], aliases: ['vtt', 'webvtt']},
         xml: {name: 'HTML, XML', extensions: ['xml', 'html', 'xhtml', 'rss', 'atom', 'xsl', 'plist']},
         yaml: {name: 'YAML', extensions: ['yaml'], aliases: ['yml']},
     },
@@ -2017,7 +2028,7 @@ export const Constants = {
     SEARCH_POST: 'searchpost',
     CHANNEL_ID_LENGTH: 26,
     TRANSPARENT_PIXEL: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
-    TRIPLE_BACK_TICKS: /```/g,
+    REGEX_CODE_BLOCK_OPTIONAL_LANGUAGE_TAG: /^```.*$/gm,
     MAX_ATTACHMENT_FOOTER_LENGTH: 300,
     ACCEPT_STATIC_IMAGE: '.jpeg,.jpg,.png,.bmp',
     ACCEPT_EMOJI_IMAGE: '.jpeg,.jpg,.png,.gif',
@@ -2050,6 +2061,7 @@ export const ConsolePages = {
     GUEST_ACCOUNTS: '/admin_console/authentication/guest_access',
     LICENSE: '/admin_console/about/license',
     SAML: '/admin_console/authentication/saml',
+    FILE_STORAGE: '/admin_console/environment/file_storage',
     SESSION_LENGTHS: '/admin_console/environment/session_lengths',
     WEB_SERVER: '/admin_console/environment/web_server',
     PUSH_NOTIFICATION_CENTER: '/admin_console/environment/push_notification_server',
@@ -2149,141 +2161,6 @@ export const durationValues = {
         defaultMessage: 'Custom Date and Time',
     },
 };
-
-export const InsightsScopes = {
-    MY: 'MY',
-    TEAM: 'TEAM',
-};
-
-export const InsightsCardTitles = {
-    TOP_CHANNELS: {
-        teamTitle: {
-            id: t('insights.topChannels.title'),
-            defaultMessage: 'Top channels',
-        },
-        myTitle: {
-            id: t('insights.topChannels.myTitle'),
-            defaultMessage: 'My top channels',
-        },
-        teamSubTitle: {
-            id: t('insights.topChannels.subTitle'),
-            defaultMessage: 'Most active channels for the team',
-        },
-        mySubTitle: {
-            id: t('insights.topChannels.mySubTitle'),
-            defaultMessage: 'Most active channels that I\'m a member of',
-        },
-    },
-    TOP_REACTIONS: {
-        teamTitle: {
-            id: t('insights.topReactions.title'),
-            defaultMessage: 'Top reactions',
-        },
-        myTitle: {
-            id: t('insights.topReactions.myTitle'),
-            defaultMessage: 'My top reactions',
-        },
-        teamSubTitle: {
-            id: t('insights.topReactions.subTitle'),
-            defaultMessage: 'The team\'s most-used reactions',
-        },
-        mySubTitle: {
-            id: t('insights.topReactions.mySubTitle'),
-            defaultMessage: 'Reactions I\'ve used the most',
-        },
-    },
-    TOP_THREADS: {
-        teamTitle: {
-            id: t('insights.topThreads.title'),
-            defaultMessage: 'Top threads',
-        },
-        myTitle: {
-            id: t('insights.topThreads.myTitle'),
-            defaultMessage: 'My top threads',
-        },
-        teamSubTitle: {
-            id: t('insights.topThreads.subTitle'),
-            defaultMessage: 'Most active threads for the team',
-        },
-        mySubTitle: {
-            id: t('insights.topThreads.mySubTitle'),
-            defaultMessage: 'Most active threads I\'ve followed',
-        },
-    },
-    TOP_BOARDS: {
-        teamTitle: {
-            id: t('insights.topBoards.title'),
-            defaultMessage: 'Top boards',
-        },
-        myTitle: {
-            id: t('insights.topBoards.myTitle'),
-            defaultMessage: 'My top boards',
-        },
-        teamSubTitle: {
-            id: t('insights.topBoards.subTitle'),
-            defaultMessage: 'Most active boards for the team',
-        },
-        mySubTitle: {
-            id: t('insights.topBoards.mySubTitle'),
-            defaultMessage: 'Most active boards I\'ve participated in',
-        },
-    },
-    LEAST_ACTIVE_CHANNELS: {
-        teamTitle: {
-            id: t('insights.leastActiveChannels.title'),
-            defaultMessage: 'Least active channels',
-        },
-        myTitle: {
-            id: t('insights.leastActiveChannels.myTitle'),
-            defaultMessage: 'My least active channels',
-        },
-        teamSubTitle: {
-            id: t('insights.leastActiveChannels.subTitle'),
-            defaultMessage: 'Channels with the least posts',
-        },
-        mySubTitle: {
-            id: t('insights.leastActiveChannels.mySubTitle'),
-            defaultMessage: 'My channels with the least posts',
-        },
-    },
-    TOP_PLAYBOOKS: {
-        teamTitle: {
-            id: t('insights.topPlaybooks.title'),
-            defaultMessage: 'Top playbooks',
-        },
-        myTitle: {
-            id: t('insights.topPlaybooks.myTitle'),
-            defaultMessage: 'My top playbooks',
-        },
-        teamSubTitle: {
-            id: t('insights.topPlaybooks.subTitle'),
-            defaultMessage: 'Playbooks with the most runs',
-        },
-        mySubTitle: {
-            id: t('insights.topPlaybooks.mySubTitle'),
-            defaultMessage: 'Playbooks I\'ve used with the most runs',
-        },
-    },
-    TOP_DMS: {
-        teamTitle: {},
-        myTitle: {
-            id: t('insights.topDMs.myTitle'),
-            defaultMessage: 'My most active direct messages',
-        },
-        teamSubTitle: {},
-        mySubTitle: {},
-    },
-    NEW_TEAM_MEMBERS: {
-        teamTitle: {
-            id: t('insights.newTeamMembers.title'),
-            defaultMessage: 'New team members',
-        },
-        myTitle: {},
-        teamSubTitle: {},
-        mySubTitle: {},
-    },
-};
-
 export enum ClaimErrors {
     MFA_VALIDATE_TOKEN_AUTHENTICATE = 'mfa.validate_token.authenticate.app_error',
     ENT_LDAP_LOGIN_USER_NOT_REGISTERED = 'ent.ldap.do_login.user_not_registered.app_error',
@@ -2301,6 +2178,11 @@ export const DataSearchTypes = {
 export const OverActiveUserLimits = {
     MIN: 0.05,
     MAX: 0.1,
+} as const;
+
+export const PageLoadContext = {
+    PAGE_LOAD: 'page_load',
+    RECONNECT: 'reconnect',
 } as const;
 
 export default Constants;

@@ -15,6 +15,12 @@
   "env": {
     "cypress/globals": true
   },
+  "settings": {
+    "react": {
+        "pragma": "React",
+        "version": "detect"
+    }
+  },
   "rules": {
     "header/header": [
       2,
@@ -89,6 +95,7 @@
             "format": ["PascalCase"]
           }
         ],
+        "@typescript-eslint/no-explicit-any": "off",
         "@typescript-eslint/no-non-null-assertion": 0,
         "@typescript-eslint/no-unused-vars": [
           2,

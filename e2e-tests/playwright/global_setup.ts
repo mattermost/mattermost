@@ -4,7 +4,7 @@
 import {expect} from '@playwright/test';
 
 import {UserProfile} from '@mattermost/types/users';
-import { PreferenceType } from '@mattermost/types/preferences';
+import {PreferenceType} from '@mattermost/types/preferences';
 
 import {Client, createRandomTeam, getAdminClient, getDefaultAdminUser, makeClient} from './support/server';
 import {defaultTeam} from './support/util';
@@ -48,7 +48,7 @@ async function sysadminSetup(client: Client, user: UserProfile | null) {
         await client.createTeam(createRandomTeam(defaultTeam.name, defaultTeam.displayName, 'O', false));
     } else if (myDefaultTeam && testConfig.resetBeforeTest) {
         await Promise.all(
-            myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id))
+            myTeams.filter((team) => team.name !== defaultTeam.name).map((team) => client.deleteTeam(team.id)),
         );
 
         const myChannels = await client.getMyChannels(myDefaultTeam.id);
@@ -61,7 +61,7 @@ async function sysadminSetup(client: Client, user: UserProfile | null) {
                         channel.name !== 'off-topic'
                     );
                 })
-                .map((channel) => client.deleteChannel(channel.id))
+                .map((channel) => client.deleteChannel(channel.id)),
         );
     }
 
@@ -170,7 +170,7 @@ async function ensureServerDeployment(client: Client) {
             sameClusterName,
             sameClusterName
                 ? ''
-                : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${haClusterName}"`
+                : `Should have cluster name set and as expected. Got "${ClusterName}" but expected "${haClusterName}"`,
         ).toBe(true);
 
         const clusterInfo = await client.getClusterStatus();
@@ -179,12 +179,12 @@ async function ensureServerDeployment(client: Client) {
             sameCount,
             sameCount
                 ? ''
-                : `Should match number of nodes in a cluster as expected. Got "${clusterInfo?.length}" but expected "${haClusterNodeCount}"`
+                : `Should match number of nodes in a cluster as expected. Got "${clusterInfo?.length}" but expected "${haClusterNodeCount}"`,
         ).toBe(true);
 
         clusterInfo.forEach((info) =>
             // eslint-disable-next-line no-console
-            console.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`)
+            console.log(`hostname: ${info.hostname}, version: ${info.version}, config_hash: ${info.config_hash}`),
         );
     }
 }
@@ -197,10 +197,15 @@ async function savePreferences(client: Client, userId: UserProfile['id']) {
 
         const preferences: PreferenceType[] = [
             {user_id: userId, category: 'tutorial_step', name: userId, value: '999'},
-            {user_id: userId, category: 'drafts', name: 'drafts_tour_tip_showed', value: JSON.stringify({drafts_tour_tip_showed: true})},
+            {
+                user_id: userId,
+                category: 'drafts',
+                name: 'drafts_tour_tip_showed',
+                value: JSON.stringify({drafts_tour_tip_showed: true}),
+            },
             {user_id: userId, category: 'crt_thread_pane_step', name: userId, value: '999'},
         ];
-        
+
         await client.savePreferences(userId, preferences);
     } catch (error) {
         // eslint-disable-next-line no-console

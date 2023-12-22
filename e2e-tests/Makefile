@@ -1,30 +1,49 @@
+# Load environment variables from .env file
+-include .ci/.env
+export
+
 SHELL := /bin/bash
 
-.PHONY: all run stop
+.PHONY: all run stop clean
 all: run
-run: start-server prepare-server run-cypress
-stop: stop-server stop-dashboard clean-env-placeholders
+run: cloud-init generate-server start-server prepare-server run-test cloud-teardown
+stop: stop-server stop-dashboard clean
+clean:
+	rm -fv .ci/server.yml
+	rm -fv .ci/.env*
 
-.PHONY: start-server prepare-server run-cypress stop-server restart-server
-start-server:
-	./.ci/server.start.sh
+.PHONY: generate-server start-server prepare-server run-test stop-server restart-server
+generate-server:
+	bash ./.ci/server.generate.sh
+start-server: generate-server
+	bash ./.ci/server.start.sh
 prepare-server:
-	./.ci/server.prepare.sh
-run-cypress:
-	./.ci/server.run_cypress.sh
-stop-server:
-	./.ci/server.stop.sh
+	bash ./.ci/server.prepare.sh
+run-test:
+	bash ./.ci/server.run_test.sh
+stop-server: generate-server
+	bash ./.ci/server.stop.sh
 restart-server: stop-server start-server
 
 .PHONY: start-dashboard stop-dashboard
 start-dashboard:
-	./.ci/dashboard.start.sh
+	bash ./.ci/dashboard.start.sh
 stop-dashboard:
-	./.ci/dashboard.stop.sh
+	bash ./.ci/dashboard.stop.sh
 
-.PHONY: print-env-placeholders clean-env-placeholders
-print-env-placeholders:
-	find .ci -maxdepth 1 -name '.env.*'  | xargs --verbose -l cat
-clean-env-placeholders:
-	git reset .ci/.env.{cypress,server,dashboard}
-	git checkout .ci/.env.{cypress,server,dashboard}
+.PHONY: cloud-init cloud-teardown
+cloud-init: requirecmd-jq requirecmd-curl
+	bash ./.ci/server.cloud_init.sh
+cloud-teardown:
+	bash ./.ci/server.cloud_teardown.sh
+
+.PHONY: fmt-node fmt-shell fmt
+requirecmd-%:
+	@which "$(*)" >/dev/null || { echo "Error, missing required CLI tool: $(*). Aborting." >&2; exit 1; }
+fmt-node: requirecmd-npx
+	# Formats yaml files
+	npx prettier ./.ci "!./.ci/dashboard" --write --cache
+fmt-shell: requirecmd-shfmt requirecmd-shellcheck
+	shfmt -w -s -i 2 ./.ci/*.sh         # Install with https://webinstall.dev/shellcheck/
+	shellcheck ./.ci/*.sh ./.ci/.e2erc* # Install with https://webinstall.dev/shfmt/
+fmt: fmt-node fmt-shell

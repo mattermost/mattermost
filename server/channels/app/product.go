@@ -4,9 +4,7 @@
 package app
 
 import (
-	"errors"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -77,30 +75,5 @@ func (s *Server) shouldStart(product string) bool {
 		return false
 	}
 
-	if product == "boards" {
-		if os.Getenv("MM_DISABLE_BOARDS") == "true" {
-			s.Log().Warn("Skipping Boards start: disabled via env var")
-			return false
-		}
-	}
-
 	return true
-}
-
-func (s *Server) HasBoardProduct() (bool, error) {
-	prod, exists := s.services[product.BoardsKey]
-	if !exists {
-		return false, nil
-	}
-	if prod == nil {
-		return false, errors.New("board product is nil")
-	}
-	if _, ok := prod.(product.BoardsService); !ok {
-		return false, errors.New("board product key does not match its definition")
-	}
-	return true, nil
-}
-
-func (a *App) HasBoardProduct() (bool, error) {
-	return a.Srv().HasBoardProduct()
 }

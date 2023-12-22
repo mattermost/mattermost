@@ -296,6 +296,14 @@
     "translation": "Your license does not support channel moderation"
   },
   {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "User is not allowed to convert group message to private channel"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} created this channel from a group message with {{.GMMembers}}."
+  },
+  {
     "id": "api.channel.guest_join_channel.post_and_forget",
     "translation": "%v joined the channel as guest."
   },
@@ -338,6 +346,10 @@
   {
     "id": "api.channel.patch_update_channel.forbidden.app_error",
     "translation": "Failed to update the channel."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
   {
     "id": "api.channel.post_channel_privacy_message.error",
@@ -430,6 +442,10 @@
   {
     "id": "api.channel.update_channel.typechange.app_error",
     "translation": "Channel type cannot be updated."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "You are not allowed to update the name, display_name, and purpose of direct or group messages."
   },
   {
     "id": "api.channel.update_channel_member_roles.changing_guest_role.app_error",
@@ -812,6 +828,46 @@
     "translation": "An error occurred while expanding previews."
   },
   {
+    "id": "api.command_exportlink.desc",
+    "translation": "Generate a link to download a export."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "The file store driver does not support link generation."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "No export file has been found."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip filename|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Unable to find the file you requested."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "You can download your file here: {{.Link}}.\nThis link will expire in {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Unable to retrieve the export list."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "You don't have enough permissions to run this command."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Unable to generate presign url."
+  },
+  {
     "id": "api.command_groupmsg.desc",
     "translation": "Sends a Group Message to the specified users"
   },
@@ -860,7 +916,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains three key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n**[Boards](/boards)** - Manage projects and tasks in a Kanban board structure to help your team hit key milestones.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
+    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains two key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -869,6 +925,10 @@
   {
     "id": "api.command_invite.channel.error",
     "translation": "Could not find the channel {{.Channel}}. Please use the [channel handle](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) to identify channels."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command_invite.desc",
@@ -881,10 +941,6 @@
   {
     "id": "api.command_invite.fail.app_error",
     "translation": "An error occurred while joining the channel."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "This channel is managed by groups.  This user is not part of a group that is synced to this channel."
   },
   {
     "id": "api.command_invite.hint",
@@ -915,12 +971,27 @@
     "translation": "{{.User}} added to {{.Channel}} channel."
   },
   {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} and {{.Others}} added to {{.Channel}} channel."
+  },
+  {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is already in the channel."
+    "translation": {
+      "one": "{{.User}} is already in the channel.",
+      "other": "{{.User}} are already in the channel."
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} and {{.Others}} others are already in the channel."
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} is not a member of the team."
+    "translation": "You can add {{.Users}} to this channel once they are members of the **{{.Team}}** team."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "You can add {{.FirstUser}} and {{.Others}} others to this channel once they are members of the **{{.Team}}** team."
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1555,6 +1626,22 @@
     "translation": "Invitation is expired."
   },
   {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "An error has occurred while applying IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "An error has occurred while fetching IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "An error has occurred while fetching the client's IP address"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP Filtering is not available on this server"
+  },
+  {
     "id": "api.context.json_encoding.app_error",
     "translation": "Error encoding JSON."
   },
@@ -1629,6 +1716,10 @@
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
     "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Failed to update the custom status. An emoji with the given name does not exist."
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
@@ -1726,6 +1817,10 @@
     "translation": "Unable to read image file for emoji."
   },
   {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many emojis by name. Only {{.MaxNames}} emojis can be requested at once."
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -1756,6 +1851,10 @@
   {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
@@ -1926,6 +2025,18 @@
     "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
   },
   {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Cannot hide both active and inactive users."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Page size is invalid or too large."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Invalid team id provided."
+  },
+  {
     "id": "api.image.get.app_error",
     "translation": "Requested image url cannot be parsed."
   },
@@ -1936,10 +2047,6 @@
   {
     "id": "api.incoming_webhook.invalid_username.app_error",
     "translation": "Invalid username."
-  },
-  {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights is behind a feature flag which is not enabled."
   },
   {
     "id": "api.invalid_channel",
@@ -2356,8 +2463,12 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link previews have been disabled by the system administrator."
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Thread moving is disabled"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "You do not have permission to move this thread."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -2570,6 +2681,10 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -3640,6 +3755,38 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
   },
   {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Review changes"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} changed the IP filtering settings for your workspace at the URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Changes to Your Workspace's IP Filters"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "IP filtering changes for your workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Contact support"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Log in to the customer portal to reset IP filtering"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Send an email to {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Having trouble accessing your workspace?"
+  },
+  {
     "id": "api.templates.license_up_for_renewal_contact_sales",
     "translation": "Contact sales"
   },
@@ -4256,6 +4403,10 @@
     "translation": "Login failed because email address has not been verified."
   },
   {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Login failed because remote users are not allow to log in."
+  },
+  {
     "id": "api.user.login.use_auth_service.app_error",
     "translation": "Please sign in using {{.AuthService}}."
   },
@@ -4740,6 +4891,26 @@
     "translation": "No channel found."
   },
   {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Unable to find member count for given channels."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Unable to find member count."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Unable to check unreads and mentions"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Channel is not a group message."
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Couldn't fetch common teams."
+  },
+  {
     "id": "app.channel.get_deleted.existing.app_error",
     "translation": "Unable to find the existing deleted channel."
   },
@@ -4798,6 +4969,26 @@
   {
     "id": "app.channel.get_unread.app_error",
     "translation": "Unable to get the channel unread messages."
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Couldn't delete existing sidebar categories for converted GM."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Cannot find user's channel membership"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "The specified team ID in conversion request does not contain all the group message members"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "The channel being converted is not a group message. You can only convert group messages"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Failed to create group message to channel conversion post"
   },
   {
     "id": "app.channel.migrate_channel_members.select.app_error",
@@ -4886,6 +5077,14 @@
   {
     "id": "app.channel.update_last_viewed_at_post.app_error",
     "translation": "Unable to mark channel as unread."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Unable to update the channel member."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Unable to update the channel member, notify props size limit exceeded."
   },
   {
     "id": "app.channel.user_belongs_to_channels.app_error",
@@ -5024,6 +5223,18 @@
     "translation": "group name is not unique"
   },
   {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token does not exist or is expired"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token is not valid or is expired"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Cannot find a user for this token"
+  },
+  {
     "id": "app.draft.delete.app_error",
     "translation": "Unable to delete the Draft."
   },
@@ -5092,6 +5303,30 @@
     "translation": "Unable to get the emoji."
   },
   {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "This actions requires the use of a dedicated export store."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Your export store driver does not support presign url generation."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Unable to check if the file exists."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Unable to generate the presigned url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "The export file was not found."
+  },
+  {
     "id": "app.export.export_attachment.copy_file.error",
     "translation": "Failed to copy file during export."
   },
@@ -5154,6 +5389,10 @@
   {
     "id": "app.file_info.save.app_error",
     "translation": "Unable to save the file info."
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Unable to set the searchable content of the file."
   },
   {
     "id": "app.group.crud_permission",
@@ -5222,6 +5461,10 @@
   {
     "id": "app.import.get_users_by_username.some_users_not_found.error",
     "translation": "Some users not found"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Unable to archive imported channel."
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -5752,10 +5995,6 @@
     "translation": "insert error"
   },
   {
-    "id": "app.insights.feature_disabled",
-    "translation": "Insights feature is disabled."
-  },
-  {
     "id": "app.job.download_export_results_not_enabled",
     "translation": "DownloadExportResults in config.json is false. Please set this to true to download the results of this job."
   },
@@ -5810,6 +6049,14 @@
   {
     "id": "app.license.generate_renewal_token.no_license",
     "translation": "No license present"
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Failed to get user count"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Could not update last login timestamp"
   },
   {
     "id": "app.member_count",
@@ -5950,10 +6197,6 @@
   {
     "id": "app.oauth.update_app.updating.app_error",
     "translation": "We encountered an error updating the app."
-  },
-  {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Plugin {{.Id}} is on the block list. Some plugins are blocked because they are built into this version of Mattermost."
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -6100,6 +6343,10 @@
     "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Failed to parse SiteURL subpath"
+  },
+  {
     "id": "app.plugin.sync.list_filestore.app_error",
     "translation": "Error reading files from the plugins folder in the file store."
   },
@@ -6216,20 +6463,32 @@
     "translation": "Unable to get the posts for the channel."
   },
   {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Unable to get top DMs for user."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Unable to get top threads for team."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Unable to get top threads for user."
-  },
-  {
     "id": "app.post.marshal.app_error",
     "translation": "Failed to marshal post."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "This thread was moved from another channel"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "A message has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "A message has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unable to remove thread"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -6320,12 +6579,16 @@
     "translation": "Unable to get reactions for post."
   },
   {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Unable to delete reactions for user."
+  },
+  {
     "id": "app.reaction.save.save.app_error",
     "translation": "Unable to save reaction."
   },
   {
-    "id": "app.recent_searches.app_error",
-    "translation": "Error fetching recent searches"
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Reaction limit has been reached for this post."
   },
   {
     "id": "app.recover.delete.app_error",
@@ -6334,6 +6597,10 @@
   {
     "id": "app.recover.save.app_error",
     "translation": "Unable to save the token."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Failed to fetch user report."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -6690,6 +6957,10 @@
   {
     "id": "app.terms_of_service.get.no_rows.app_error",
     "translation": "No terms of service found."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Unable to mark all threads as read by channel"
   },
   {
     "id": "app.update_error",
@@ -7976,6 +8247,10 @@
     "translation": "Unsupported syncable type '{{.Value}}'."
   },
   {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} and {{.LastItem}}"
+  },
+  {
     "id": "import_process.worker.do_job.file_exists",
     "translation": "Unable to process import: file does not exists."
   },
@@ -8001,7 +8276,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -8222,6 +8497,10 @@
   {
     "id": "model.channel_member.is_valid.notify_level.app_error",
     "translation": "Invalid notify level."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props size limit exceeded."
   },
   {
     "id": "model.channel_member.is_valid.push_level.app_error",
@@ -8560,6 +8839,10 @@
     "translation": "AD/LDAP field \"Username Attribute\" is required."
   },
   {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Invalid value for link metadata timeout. Must be a positive number."
+  },
+  {
     "id": "model.config.is_valid.listen_address.app_error",
     "translation": "Invalid listen address for service settings Must be set."
   },
@@ -8570,6 +8853,14 @@
   {
     "id": "model.config.is_valid.localization.available_locales.app_error",
     "translation": "Available Languages must contain Default Client Language."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Failed to parse JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Invalid format: {{.Error}}"
   },
   {
     "id": "model.config.is_valid.login_attempts.app_error",
@@ -8621,7 +8912,11 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'."
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "If GlobalRelaySettings.CustomerType is 'CUSTOM', then GlobalRelaySettings.CustomSMTPServerName and GlobalRelaySettings.CustomSMTPPort must be set."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -8634,6 +8929,14 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
     "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -8693,7 +8996,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "Identity Provider Issuer URL cannot be an empty string."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -8778,6 +9081,10 @@
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
     "translation": "Invalid value passed for TLS overwrite cipher - Please refer to the documentation for valid values."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Invalid value for user status away timeout. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.webserver_security.app_error",
@@ -8992,10 +9299,6 @@
     "translation": "Invalid username."
   },
   {
-    "id": "model.insights.get_start_of_day_for_time_range.time_range.app_error",
-    "translation": "Invalid time range."
-  },
-  {
     "id": "model.job.is_valid.create_at.app_error",
     "translation": "Create at must be a valid time."
   },
@@ -9160,6 +9463,54 @@
     "translation": "Invalid username."
   },
   {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience must not be empty."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Some audience URL is incorrect."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Invalid client id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Invalid client secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Invalid creator id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Invalid grant type."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Invalid name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Invalid oauth token url."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Invalid password credentials."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Update at must be a valid time."
+  },
+  {
     "id": "model.plugin_command.error.app_error",
     "translation": "An error occurred while trying to execute this command."
   },
@@ -9278,6 +9629,10 @@
   {
     "id": "model.reaction.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Date range provided is invalid."
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
@@ -9552,6 +9907,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Provided sort column is not valid."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode."
   },
@@ -9733,15 +10092,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 112+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",

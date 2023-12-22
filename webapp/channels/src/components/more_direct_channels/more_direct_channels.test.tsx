@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import MoreDirectChannels from 'components/more_direct_channels/more_direct_channels';
-import {UserProfile} from '@mattermost/types/users';
+
 import {TestHelper} from 'utils/test_helper';
 
 jest.useFakeTimers();
@@ -132,7 +135,7 @@ describe('components/MoreDirectChannels', () => {
     });
 
     test('should call on search', () => {
-        jest.useFakeTimers('modern');
+        jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         wrapper.instance().search('user_search');
@@ -175,7 +178,7 @@ describe('components/MoreDirectChannels', () => {
     });
 
     test('should open a DM', (done) => {
-        jest.useFakeTimers('legacy');
+        jest.useFakeTimers({legacyFakeTimers: true});
         const user: UserProfile = {
             ...mockedUser,
             id: 'user_id_1',
@@ -200,7 +203,7 @@ describe('components/MoreDirectChannels', () => {
     });
 
     test('should open a GM', (done) => {
-        jest.useFakeTimers('legacy');
+        jest.useFakeTimers({legacyFakeTimers: true});
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...baseProps}/>);
         const handleHide = jest.fn();
         const exitToChannel = '';

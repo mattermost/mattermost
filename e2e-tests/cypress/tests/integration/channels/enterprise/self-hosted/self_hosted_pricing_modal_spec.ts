@@ -9,26 +9,6 @@
 
 // Group: @channels @enterprise @not_cloud
 
-function withTrialBefore(trialed: string) {
-    cy.intercept('GET', '**/api/v4/trial-license/prev', {
-        statusCode: 200,
-        body: {
-            IsLicensed: trialed,
-            IsTrial: trialed,
-        },
-    });
-}
-
-function withTrialLicense(trial: string) {
-    cy.intercept('GET', '**/api/v4/license/client?format=old', {
-        statusCode: 200,
-        body: {
-            IsLicensed: 'true',
-            IsTrial: trial,
-        },
-    });
-}
-
 describe('Self hosted Pricing modal', () => {
     let urlL: string | undefined;
     let createdUser: Cypress.UserProfile | undefined;
@@ -191,4 +171,24 @@ describe('Self hosted Pricing modal', () => {
 
         cy.findByText('https://mattermost.com/pl/pricing/#self-hosted').last().should('exist');
     });
+
+    function withTrialBefore(trialed: string) {
+        cy.intercept('GET', '**/api/v4/trial-license/prev', {
+            statusCode: 200,
+            body: {
+                IsLicensed: trialed,
+                IsTrial: trialed,
+            },
+        });
+    }
+
+    function withTrialLicense(trial: string) {
+        cy.intercept('GET', '**/api/v4/license/client?format=old', {
+            statusCode: 200,
+            body: {
+                IsLicensed: 'true',
+                IsTrial: trial,
+            },
+        });
+    }
 });

@@ -4,20 +4,20 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import Tag from 'components/widgets/tag/tag';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Role} from '@mattermost/types/roles';
+import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
-import {Role} from '@mattermost/types/roles';
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+import UserGridName from 'components/admin_console/user_grid/user_grid_name';
+import UserGridRemove from 'components/admin_console/user_grid/user_grid_remove';
+import ToggleModalButton from 'components/toggle_modal_button';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import Tag from 'components/widgets/tag/tag';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import ToggleModalButton from 'components/toggle_modal_button';
-import DataGrid from 'components/admin_console/data_grid/data_grid';
-import UserGridName from 'components/admin_console/user_grid/user_grid_name';
-import UserGridRemove from 'components/admin_console/user_grid/user_grid_remove';
 import AddUsersToRoleModal from '../add_users_to_role_modal';
 
 export type Props = {

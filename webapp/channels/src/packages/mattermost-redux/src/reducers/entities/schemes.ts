@@ -3,9 +3,10 @@
 
 import {combineReducers} from 'redux';
 
+import type {SchemesState, Scheme} from '@mattermost/types/schemes';
+
 import {SchemeTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {SchemesState, Scheme} from '@mattermost/types/schemes';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function schemes(state: {
     [x: string]: Scheme;

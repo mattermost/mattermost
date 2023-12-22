@@ -2,26 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import LocalizedIcon from 'components/localized_icon';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import FollowButton from 'components/threading/common/follow_button';
+import type {Channel} from '@mattermost/types/channels';
+
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
+import FollowButton from 'components/threading/common/follow_button';
+import Tooltip from 'components/tooltip';
+import CRTThreadsPaneTutorialTip
+    from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {RHSStates} from 'utils/constants';
-import {t} from 'utils/i18n';
-import CRTThreadsPaneTutorialTip
-    from 'components/tours/crt_tour/crt_threads_pane_tutorial_tip';
-import {RhsState} from 'types/store/rhs';
 
-import {Channel} from '@mattermost/types/channels';
+import type {RhsState} from 'types/store/rhs';
 
-interface RhsHeaderPostProps {
+interface Props extends WrappedComponentProps {
     isExpanded: boolean;
     isMobileView: boolean;
     rootPostId: string;
@@ -44,7 +43,7 @@ interface RhsHeaderPostProps {
     setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
 }
 
-export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProps> {
+class RhsHeaderPost extends React.PureComponent<Props> {
     handleBack = (e: React.MouseEvent) => {
         e.preventDefault();
 
@@ -78,6 +77,7 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
     render() {
         let back;
         const {isFollowingThread} = this.props;
+        const {formatMessage} = this.props.intl;
         const closeSidebarTooltip = (
             <Tooltip id='closeSidebarTooltip'>
                 <FormattedMessage
@@ -106,7 +106,7 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToFlaggedTooltip'
-                        defaultMessage='Back to saved posts'
+                        defaultMessage='Back to saved messages'
                     />
                 </Tooltip>
             );
@@ -116,7 +116,7 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToPinnedTooltip'
-                        defaultMessage='Back to pinned posts'
+                        defaultMessage='Back to pinned messages'
                     />
                 </Tooltip>
             );
@@ -165,9 +165,9 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
                         onClick={this.handleBack}
                         className='sidebar--right__back'
                     >
-                        <LocalizedIcon
+                        <i
                             className='icon icon-arrow-back-ios'
-                            ariaLabel={{id: t('generic_icons.back'), defaultMessage: 'Back Icon'}}
+                            aria-label={formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
                         />
                     </a>
                 </OverlayTrigger>
@@ -207,17 +207,17 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
                     >
                         <button
                             type='button'
-                            className='sidebar--right__expand btn-icon'
+                            className='sidebar--right__expand btn btn-icon btn-sm'
                             aria-label='Expand'
                             onClick={this.props.toggleRhsExpanded}
                         >
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-arrow-expand'
-                                ariaLabel={{id: t('rhs_header.expandSidebarTooltip.icon'), defaultMessage: 'Expand Sidebar Icon'}}
+                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
                             />
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-arrow-collapse'
-                                ariaLabel={{id: t('rhs_header.collapseSidebarTooltip.icon'), defaultMessage: 'Collapse Sidebar Icon'}}
+                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
                             />
                         </button>
                     </OverlayTrigger>
@@ -230,13 +230,13 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
                         <button
                             id='rhsCloseButton'
                             type='button'
-                            className='sidebar--right__close btn-icon'
+                            className='sidebar--right__close btn btn-icon btn-sm'
                             aria-label='Close'
                             onClick={this.props.closeRightHandSide}
                         >
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-close'
-                                ariaLabel={{id: t('rhs_header.closeTooltip.icon'), defaultMessage: 'Close Sidebar Icon'}}
+                                aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             />
                         </button>
                     </OverlayTrigger>
@@ -246,3 +246,5 @@ export default class RhsHeaderPost extends React.PureComponent<RhsHeaderPostProp
         );
     }
 }
+
+export default injectIntl(RhsHeaderPost);

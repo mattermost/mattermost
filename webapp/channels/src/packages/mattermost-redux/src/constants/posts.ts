@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {PostType} from '@mattermost/types/posts';
+import type {PostType} from '@mattermost/types/posts';
 
 export const PostTypes = {
     CHANNEL_DELETED: 'system_channel_deleted' as PostType,
@@ -17,6 +17,7 @@ export const PostTypes = {
     JOIN_CHANNEL: 'system_join_channel' as PostType,
     GUEST_JOIN_CHANNEL: 'system_guest_join_channel' as PostType,
     LEAVE_CHANNEL: 'system_leave_channel' as PostType,
+    JOIN_LEAVE_CHANNEL: 'system_join_leave_channel' as PostType,
     ADD_REMOVE: 'system_add_remove' as PostType,
     ADD_TO_CHANNEL: 'system_add_to_channel' as PostType,
     ADD_GUEST_TO_CHANNEL: 'system_add_guest_to_chan' as PostType,
@@ -32,6 +33,8 @@ export const PostTypes = {
     ADD_BOT_TEAMS_CHANNELS: 'add_bot_teams_channels' as PostType,
     SYSTEM_WARN_METRIC_STATUS: 'warn_metric_status' as PostType,
     REMINDER: 'reminder' as PostType,
+    WRANGLER: 'system_wrangler' as PostType,
+    GM_CONVERTED_TO_CHANNEL: 'system_gm_to_channel' as PostType,
 };
 
 export default {

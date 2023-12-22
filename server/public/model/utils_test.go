@@ -97,6 +97,11 @@ func TestAppErrorRender(t *testing.T) {
 		assert.EqualError(t, aerr, "here: message")
 	})
 
+	t.Run("Without where", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "details", http.StatusTeapot)
+		assert.EqualError(t, aerr, "message, details")
+	})
+
 	t.Run("Detailed", func(t *testing.T) {
 		aerr := NewAppError("here", "message", nil, "details", http.StatusTeapot)
 		assert.EqualError(t, aerr, "here: message, details")
@@ -183,7 +188,6 @@ func TestCopyStringMap(t *testing.T) {
 }
 
 func TestMapJson(t *testing.T) {
-
 	m := make(map[string]string)
 	m["id"] = "test_id"
 	json := MapToJSON(m)

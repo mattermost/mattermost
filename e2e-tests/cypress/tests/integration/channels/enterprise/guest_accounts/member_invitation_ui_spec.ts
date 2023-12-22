@@ -69,7 +69,7 @@ describe('Guest Account - Member Invitation Flow', () => {
 
         cy.get('@clipboard').its('contents').should('eq', `${baseUrl}/signup_user_complete/?id=${testTeam.invite_id}`);
 
-        cy.get('#inviteMembersButton').scrollIntoView().should('be.visible').and('be.disabled');
+        cy.findByTestId('inviteButton').scrollIntoView().should('be.visible').and('be.disabled');
         cy.get('.users-emails-input__control').should('be.visible').within(() => {
             // * Verify the input placeholder text
             cy.get('.users-emails-input__placeholder').should('have.text', 'Enter a name or email address');
@@ -224,7 +224,7 @@ describe('Guest Account - Member Invitation Flow', () => {
             });
 
             // # Click Invite Members
-            cy.get('#inviteMembersButton').scrollIntoView().click();
+            cy.findByTestId('inviteButton').scrollIntoView().click();
 
             // * Verify the content and message in the Invitation Modal
             cy.findByTestId('invitationModal').within(() => {
@@ -267,7 +267,7 @@ function invitePeople(typeText, resultsCount, verifyText, clickInvite = true) {
 
     // # Click Invite Members
     if (clickInvite) {
-        cy.get('#inviteMembersButton').scrollIntoView().click();
+        cy.findByTestId('inviteButton').scrollIntoView().click();
     }
 }
 

@@ -13,28 +13,27 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestThreadStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, ss) })
+func TestThreadStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("ThreadStorePopulation", func(t *testing.T) { testThreadStorePopulation(t, rctx, ss) })
 	t.Run("ThreadStorePermanentDeleteBatchForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, ss)
+		testThreadStorePermanentDeleteBatchForRetentionPolicies(t, rctx, ss)
 	})
 	t.Run("ThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies", func(t *testing.T) {
-		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, ss, s)
+		testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t, rctx, ss, s)
 	})
-	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, ss) })
-	t.Run("GetVarious", func(t *testing.T) { testVarious(t, ss) })
-	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, ss) })
-	t.Run("GetTopThreads", func(t *testing.T) { testGetTopThreads(t, ss) })
-	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, ss) })
-	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, ss) })
+	t.Run("GetTeamsUnreadForUser", func(t *testing.T) { testGetTeamsUnreadForUser(t, rctx, ss) })
+	t.Run("GetVarious", func(t *testing.T) { testVarious(t, rctx, ss) })
+	t.Run("MarkAllAsReadByChannels", func(t *testing.T) { testMarkAllAsReadByChannels(t, rctx, ss) })
+	t.Run("MarkAllAsReadByTeam", func(t *testing.T) { testMarkAllAsReadByTeam(t, rctx, ss) })
+	t.Run("DeleteMembershipsForChannel", func(t *testing.T) { testDeleteMembershipsForChannel(t, rctx, ss) })
 }
 
-func testThreadStorePopulation(t *testing.T, ss store.Store) {
+func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 	makeSomePosts := func(urgent bool) []*model.Post {
-
 		u1 := model.User{
 			Email:    MakeEmail(),
 			Username: model.NewId(),
@@ -151,7 +150,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.Equal(t, int64(2), thread.ReplyCount)
 		require.ElementsMatch(t, model.StringArray{newPosts[0].UserId, newPosts[1].UserId}, thread.Participants)
 
-		err = ss.Post().Delete(newPosts[1].Id, 1234, model.NewId())
+		err = ss.Post().Delete(rctx, newPosts[1].Id, 1234, model.NewId())
 		require.NoError(t, err, "couldn't delete post")
 
 		thread, err = ss.Thread().Get(newPosts[0].Id)
@@ -263,14 +262,14 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.EqualValues(t, thread.ReplyCount, 3)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
-		err = ss.Post().Delete(replyPost2.Id, 123, model.NewId())
+		err = ss.Post().Delete(rctx, replyPost2.Id, 123, model.NewId())
 		require.NoError(t, err)
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
 		require.EqualValues(t, thread.ReplyCount, 2)
 		require.EqualValues(t, thread.Participants, model.StringArray{replyPost.UserId, replyPost3.UserId})
 
-		err = ss.Post().Delete(replyPost.Id, 123, model.NewId())
+		err = ss.Post().Delete(rctx, replyPost.Id, 123, model.NewId())
 		require.NoError(t, err)
 		thread, err = ss.Thread().Get(rootPost.Id)
 		require.NoError(t, err)
@@ -310,7 +309,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 		require.EqualValues(t, thread1.ReplyCount, 1)
 		require.Len(t, thread1.Participants, 1)
 
-		err = ss.Post().PermanentDeleteByUser(rootPost.UserId)
+		err = ss.Post().PermanentDeleteByUser(rctx, rootPost.UserId)
 		require.NoError(t, err)
 
 		thread2, _ := ss.Thread().Get(rootPost.Id)
@@ -390,7 +389,7 @@ func testThreadStorePopulation(t *testing.T, ss store.Store) {
 
 		editedPost := newPosts[2].Clone()
 		editedPost.Message = "This is an edited post"
-		_, err = ss.Post().Update(editedPost, newPosts[2])
+		_, err = ss.Post().Update(rctx, editedPost, newPosts[2])
 		require.NoError(t, err)
 
 		th, err = ss.Thread().GetThreadForUser(m, false, false)
@@ -492,7 +491,7 @@ func threadStoreCreateReply(t *testing.T, ss store.Store, channelID, postID, use
 	return reply
 }
 
-func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss store.Store) {
+func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx request.CTX, ss store.Store) {
 	const limit = 1000
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "DisplayName",
@@ -566,7 +565,7 @@ func testThreadStorePermanentDeleteBatchForRetentionPolicies(t *testing.T, ss st
 	assert.Nil(t, thread, "thread should have been deleted by team policy")
 }
 
-func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, ss store.Store, s SqlStore) {
+func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	const limit = 1000
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) *model.ThreadMembership {
@@ -664,7 +663,7 @@ func testThreadStorePermanentDeleteBatchThreadMembershipsForRetentionPolicies(t 
 	require.Error(t, err, "thread membership should have been deleted because thread no longer exists")
 }
 
-func testGetTeamsUnreadForUser(t *testing.T, ss store.Store) {
+func testGetTeamsUnreadForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	userID := model.NewId()
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
@@ -778,7 +777,7 @@ func (a byPostId) Len() int           { return len(a) }
 func (a byPostId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
 func (a byPostId) Less(i, j int) bool { return a[i].Id < a[j].Id }
 
-func testVarious(t *testing.T, ss store.Store) {
+func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string, isMention bool) {
 		t.Helper()
 
@@ -853,7 +852,7 @@ func testVarious(t *testing.T, ss store.Store) {
 	}, -1)
 	require.NoError(t, err)
 
-	dm1, err := ss.Channel().CreateDirectChannel(&model.User{Id: user1ID}, &model.User{Id: user2ID})
+	dm1, err := ss.Channel().CreateDirectChannel(rctx, &model.User{Id: user1ID}, &model.User{Id: user2ID})
 	require.NoError(t, err)
 
 	gm1, err := ss.Channel().Save(&model.Channel{
@@ -957,7 +956,7 @@ func testVarious(t *testing.T, ss store.Store) {
 	threadStoreCreateReply(t, ss, team1channel1.Id, team1channel1post2.Id, user2ID, model.GetMillis())
 
 	// Actually make team2channel1post2deleted deleted
-	err = ss.Post().Delete(team2channel1post2deleted.Id, model.GetMillis(), user1ID)
+	err = ss.Post().Delete(rctx, team2channel1post2deleted.Id, model.GetMillis(), user1ID)
 	require.NoError(t, err)
 
 	// Re-fetch posts to ensure metadata up-to-date
@@ -1205,7 +1204,7 @@ func testVarious(t *testing.T, ss store.Store) {
 	})
 }
 
-func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
+func testMarkAllAsReadByChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	postingUserId := model.NewId()
 	userAID := model.NewId()
 	userBID := model.NewId()
@@ -1349,348 +1348,7 @@ func testMarkAllAsReadByChannels(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetTopThreads(t *testing.T, ss store.Store) {
-	// create two users
-	u1 := model.User{
-		Email:    MakeEmail(),
-		Username: model.NewId(),
-	}
-
-	_, err := ss.User().Save(&u1)
-	require.NoError(t, err)
-
-	u2 := model.User{
-		Email:    MakeEmail(),
-		Username: model.NewId(),
-	}
-
-	_, err = ss.User().Save(&u2)
-	require.NoError(t, err)
-
-	u3 := model.User{
-		Email:    MakeEmail(),
-		Username: model.NewId(),
-	}
-
-	_, err = ss.User().Save(&u3)
-	require.NoError(t, err)
-
-	t.Run("test get top team threads", func(t *testing.T) {
-		const limit = 10
-		team, err := ss.Team().Save(&model.Team{
-			DisplayName: "DisplayName",
-			Name:        "team" + model.NewId(),
-			Email:       MakeEmail(),
-			Type:        model.TeamOpen,
-		})
-		require.NoError(t, err)
-		channel, err := ss.Channel().Save(&model.Channel{
-			TeamId:      team.Id,
-			DisplayName: "DisplayName",
-			Name:        "channel" + model.NewId(),
-			Type:        model.ChannelTypeOpen,
-		}, -1)
-		require.NoError(t, err)
-
-		post1, err := ss.Post().Save(&model.Post{
-			ChannelId: channel.Id,
-			UserId:    u1.Id,
-		})
-		require.NoError(t, err)
-		post2, err := ss.Post().Save(&model.Post{
-			ChannelId: channel.Id,
-			UserId:    u2.Id,
-		})
-		require.NoError(t, err)
-		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
-		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
-
-		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post1.UserId, 2000)
-
-		//  get top threads
-		topThreadsInTeam, err := ss.Thread().GetTopThreadsForTeamSince(team.Id, model.NewId(), 12, 0, limit)
-		require.NoError(t, err)
-		// require length of top threads to be 2
-		require.Len(t, topThreadsInTeam.Items, 2)
-
-		// require first element to be post1 with 2 replyCount=2
-		require.Equal(t, topThreadsInTeam.Items[0].PostId, post1.Id)
-		require.Equal(t, topThreadsInTeam.Items[0].UserId, post1.UserId)
-		require.Equal(t, topThreadsInTeam.Items[0].UserInformation.Id, post1.UserId)
-		require.Equal(t, topThreadsInTeam.Items[0].Post.ReplyCount, int64(2))
-		require.Equal(t, topThreadsInTeam.Items[0].Post.Message, post1.Message)
-		// require second element to be post2 with 2 replyCount=2
-		require.Equal(t, topThreadsInTeam.Items[1].PostId, post2.Id)
-		require.Equal(t, topThreadsInTeam.Items[1].Post.ReplyCount, int64(1))
-		require.Equal(t, topThreadsInTeam.Items[1].UserId, post2.UserId)
-		require.Equal(t, topThreadsInTeam.Items[1].UserInformation.Id, post2.UserId)
-		require.Equal(t, topThreadsInTeam.Items[1].Post.Message, post2.Message)
-
-		// require topThreads[i].Post is not null
-		require.Equal(t, topThreadsInTeam.Items[0].Post.Id, post1.Id)
-		require.Equal(t, topThreadsInTeam.Items[1].Post.Id, post2.Id)
-	})
-	t.Run("test get top user threads", func(t *testing.T) {
-		const limit = 10
-		team, err := ss.Team().Save(&model.Team{
-			DisplayName: "DisplayName",
-			Name:        "team" + model.NewId(),
-			Email:       MakeEmail(),
-			Type:        model.TeamOpen,
-		})
-		require.NoError(t, err)
-		channel, err := ss.Channel().Save(&model.Channel{
-			TeamId:      team.Id,
-			DisplayName: "DisplayName",
-			Name:        "channel" + model.NewId(),
-			Type:        model.ChannelTypeOpen,
-		}, -1)
-		require.NoError(t, err)
-
-		post1, err := ss.Post().Save(&model.Post{
-			ChannelId: channel.Id,
-			UserId:    u1.Id,
-		})
-		require.NoError(t, err)
-		post2, err := ss.Post().Save(&model.Post{
-			ChannelId: channel.Id,
-			UserId:    u2.Id,
-		})
-		require.NoError(t, err)
-		post3, err := ss.Post().Save(&model.Post{
-			ChannelId: channel.Id,
-			UserId:    u3.Id,
-		})
-		require.NoError(t, err)
-		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
-		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
-
-		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post2.UserId, 2000)
-		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post2.UserId, 2000)
-		threadStoreCreateReply(t, ss, channel.Id, post3.Id, post3.UserId, 2000)
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-
-		// create threadmemberships entries.
-		_, err = ss.Thread().MaintainMembership(post1.UserId, post1.Id, opts)
-		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(post2.UserId, post2.Id, opts)
-		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(post2.UserId, post3.Id, opts)
-		require.NoError(t, err)
-
-		//  get top threads by user
-		topThreadsByUser1, err := ss.Thread().GetTopThreadsForUserSince(team.Id, post1.UserId, 12, 0, limit)
-		require.NoError(t, err)
-		topThreadsByUser2, err := ss.Thread().GetTopThreadsForUserSince(team.Id, post2.UserId, 12, 0, limit)
-		require.NoError(t, err)
-		// require length of top threads by users to be 1,2 respectively
-		require.Len(t, topThreadsByUser1.Items, 1)
-		require.Len(t, topThreadsByUser2.Items, 2)
-
-		// require first element of topThreadsByUser1 to be post1 with 2 replyCount=2
-		require.Equal(t, topThreadsByUser1.Items[0].PostId, post1.Id)
-		require.Equal(t, topThreadsByUser1.Items[0].Post.ReplyCount, int64(2))
-		require.Equal(t, topThreadsByUser1.Items[0].Post.Message, post1.Message)
-		require.Equal(t, topThreadsByUser1.Items[0].UserId, post1.UserId)
-		require.Equal(t, topThreadsByUser1.Items[0].UserInformation.Id, post1.UserId)
-		// require elements of topThreadsByUser2 to be post2 and post3 respectively
-		require.Equal(t, topThreadsByUser2.Items[0].PostId, post2.Id)
-		require.Equal(t, topThreadsByUser2.Items[0].Post.ReplyCount, int64(2))
-		require.Equal(t, topThreadsByUser2.Items[0].Post.Message, post2.Message)
-		require.Equal(t, topThreadsByUser2.Items[0].UserId, post2.UserId)
-		require.Equal(t, topThreadsByUser2.Items[0].UserInformation.Id, post2.UserId)
-
-		require.Equal(t, topThreadsByUser2.Items[1].PostId, post3.Id)
-		require.Equal(t, topThreadsByUser2.Items[1].Post.ReplyCount, int64(1))
-		require.Equal(t, topThreadsByUser2.Items[1].Post.Message, post3.Message)
-		require.Equal(t, topThreadsByUser2.Items[1].UserId, post3.UserId)
-		require.Equal(t, topThreadsByUser2.Items[1].UserInformation.Id, post3.UserId)
-
-		// require topThreads[i].Post is not null
-		require.Equal(t, topThreadsByUser1.Items[0].Post.Id, post1.Id)
-		require.Equal(t, topThreadsByUser2.Items[1].Post.Id, post3.Id)
-	})
-	t.Run("test get top threads only from given teamid", func(t *testing.T) {
-		const limit = 10
-		team1, err := ss.Team().Save(&model.Team{
-			DisplayName: "DisplayName",
-			Name:        "team" + model.NewId(),
-			Email:       MakeEmail(),
-			Type:        model.TeamOpen,
-		})
-		require.NoError(t, err)
-		team2, err := ss.Team().Save(&model.Team{
-			DisplayName: "DisplayName",
-			Name:        "team" + model.NewId(),
-			Email:       MakeEmail(),
-			Type:        model.TeamOpen,
-		})
-		require.NoError(t, err)
-		channel1, err := ss.Channel().Save(&model.Channel{
-			TeamId:      team1.Id,
-			DisplayName: "DisplayName",
-			Name:        "channel" + model.NewId(),
-			Type:        model.ChannelTypeOpen,
-		}, -1)
-		require.NoError(t, err)
-
-		channel2, err := ss.Channel().Save(&model.Channel{
-			TeamId:      team2.Id,
-			DisplayName: "DisplayName",
-			Name:        "channel" + model.NewId(),
-			Type:        model.ChannelTypeOpen,
-		}, -1)
-		require.NoError(t, err)
-
-		post1, err := ss.Post().Save(&model.Post{
-			ChannelId: channel1.Id,
-			UserId:    u1.Id,
-		})
-		require.NoError(t, err)
-		post2, err := ss.Post().Save(&model.Post{
-			ChannelId: channel2.Id,
-			UserId:    u2.Id,
-		})
-		require.NoError(t, err)
-		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
-		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
-
-		threadStoreCreateReply(t, ss, channel2.Id, post2.Id, post2.UserId, 2000)
-
-		//  assert that getting top threads from teamid 1 doesn't have post1.Id
-
-		topThreadsTeam2, err := ss.Thread().GetTopThreadsForTeamSince(team2.Id, u1.Id, 12, 0, limit)
-		require.NoError(t, err)
-		require.Len(t, topThreadsTeam2.Items, 1)
-		require.Equal(t, topThreadsTeam2.Items[0].Post.Id, post2.Id)
-	})
-	t.Run("test get top threads only from non-direct channels", func(t *testing.T) {
-		const limit = 10
-		team1, err := ss.Team().Save(&model.Team{
-			DisplayName: "DisplayName",
-			Name:        "team" + model.NewId(),
-			Email:       MakeEmail(),
-			Type:        model.TeamOpen,
-		})
-		require.NoError(t, err)
-		channel1, err := ss.Channel().CreateDirectChannel(&u1, &u2)
-		require.NoError(t, err)
-
-		channel2, err := ss.Channel().Save(&model.Channel{
-			TeamId:      team1.Id,
-			DisplayName: "DisplayName",
-			Name:        "channel" + model.NewId(),
-			Type:        model.ChannelTypeOpen,
-		}, -1)
-		require.NoError(t, err)
-
-		post1, err := ss.Post().Save(&model.Post{
-			ChannelId: channel1.Id,
-			UserId:    u1.Id,
-		})
-		require.NoError(t, err)
-		post2, err := ss.Post().Save(&model.Post{
-			ChannelId: channel2.Id,
-			UserId:    u2.Id,
-		})
-		require.NoError(t, err)
-		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
-		threadStoreCreateReply(t, ss, channel1.Id, post1.Id, post1.UserId, 2000)
-
-		threadStoreCreateReply(t, ss, channel2.Id, post2.Id, u1.Id, 2000)
-
-		opts := store.ThreadMembershipOpts{
-			Following:             true,
-			IncrementMentions:     false,
-			UpdateFollowing:       true,
-			UpdateViewedTimestamp: false,
-			UpdateParticipants:    false,
-		}
-
-		// create threadmemberships entries.
-		_, err = ss.Thread().MaintainMembership(u1.Id, post1.Id, opts)
-		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(u1.Id, post2.Id, opts)
-		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(u2.Id, post1.Id, opts)
-		require.NoError(t, err)
-		_, err = ss.Thread().MaintainMembership(u2.Id, post2.Id, opts)
-		require.NoError(t, err)
-
-		//  assert that getting top threads from teamid 1 doesn't have DMs
-
-		topThreadsTeam1, err := ss.Thread().GetTopThreadsForTeamSince(team1.Id, u1.Id, 12, 0, limit)
-		require.NoError(t, err)
-		require.Len(t, topThreadsTeam1.Items, 1)
-		require.Equal(t, topThreadsTeam1.Items[0].Post.Id, post2.Id)
-
-		// assert that getting top threads from user 1 doesn't contain dm threads.
-		topUserThreads, err := ss.Thread().GetTopThreadsForUserSince(team1.Id, u1.Id, 12, 0, limit)
-		require.NoError(t, err)
-		require.Len(t, topUserThreads.Items, 1)
-		require.Equal(t, topUserThreads.Items[0].Post.Id, post2.Id)
-	})
-	t.Run("test get top threads doesn't exceed duration", func(t *testing.T) {
-		const limit = 10
-		team, err := ss.Team().Save(&model.Team{
-			DisplayName: "DisplayName",
-			Name:        "team" + model.NewId(),
-			Email:       MakeEmail(),
-			Type:        model.TeamOpen,
-		})
-		require.NoError(t, err)
-		channel, err := ss.Channel().Save(&model.Channel{
-			TeamId:      team.Id,
-			DisplayName: "DisplayName",
-			Name:        "channel" + model.NewId(),
-			Type:        model.ChannelTypeOpen,
-		}, -1)
-		require.NoError(t, err)
-
-		post1, err := ss.Post().Save(&model.Post{
-			ChannelId: channel.Id,
-			UserId:    u1.Id,
-		})
-		require.NoError(t, err)
-		// post 2 has replies after 10 ms unix time.
-		post2, err := ss.Post().Save(&model.Post{
-			ChannelId: channel.Id,
-			UserId:    u2.Id,
-			CreateAt:  1,
-		})
-		require.NoError(t, err)
-		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
-		threadStoreCreateReply(t, ss, channel.Id, post1.Id, post1.UserId, 2000)
-
-		threadStoreCreateReply(t, ss, channel.Id, post2.Id, post1.UserId, 10)
-
-		//  get top threads
-		topThreadsInTeamNewer, err := ss.Thread().GetTopThreadsForTeamSince(team.Id, model.NewId(), 12, 0, limit)
-		require.NoError(t, err)
-		// require length of top threads to be 2
-		require.Len(t, topThreadsInTeamNewer.Items, 1)
-
-		// require first element to be post1 with 2 replyCount=2
-		require.Equal(t, topThreadsInTeamNewer.Items[0].PostId, post1.Id)
-
-		//  get top threads
-		topThreadsInTeamOlder, err := ss.Thread().GetTopThreadsForTeamSince(team.Id, model.NewId(), 9, 0, limit)
-		require.NoError(t, err)
-		// require length of top threads to be 2
-		require.Len(t, topThreadsInTeamOlder.Items, 2)
-
-		// require first element to be post1 with 2 replyCount=2
-		require.Equal(t, topThreadsInTeamOlder.Items[1].PostId, post2.Id)
-	})
-}
-
-func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
+func testMarkAllAsReadByTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{
@@ -1916,7 +1574,7 @@ func testMarkAllAsReadByTeam(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteMembershipsForChannel(t *testing.T, ss store.Store) {
+func testDeleteMembershipsForChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	createThreadMembership := func(userID, postID string) (*model.ThreadMembership, func()) {
 		t.Helper()
 		opts := store.ThreadMembershipOpts{

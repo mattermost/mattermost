@@ -4,10 +4,11 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {t} from 'utils/i18n';
 import TeamList from 'components/admin_console/team_channel_settings/team/list';
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+
+import {t} from 'utils/i18n';
 
 type Props = {
     siteName: string;

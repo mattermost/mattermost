@@ -4,12 +4,12 @@
 package platform
 
 import (
+	"bytes"
 	"encoding/json"
 	"net"
 	"net/http"
 	"net/http/httptest"
 	"runtime"
-	"sync/atomic"
 	"testing"
 	"time"
 
@@ -65,12 +65,12 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	session, err := th.Service.CreateSession(&model.Session{
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
 	})
 	require.NoError(t, err)
 
-	th.Service.Start()
+	th.Service.Start(nil)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -89,12 +89,12 @@ func TestHubStopRaceCondition(t *testing.T) {
 	// So we just use this quick hack for the test.
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 
-	session, err := th.Service.CreateSession(&model.Session{
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
 	})
 	require.NoError(t, err)
 
-	th.Service.Start()
+	th.Service.Start(nil)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 
@@ -127,81 +127,6 @@ func TestHubStopRaceCondition(t *testing.T) {
 	}
 }
 
-func TestBroadcastChannelHook(t *testing.T) {
-	th := SetupWithStoreMock(t)
-	sess1 := &model.Session{
-		Id:             "id1",
-		UserId:         "user1",
-		DeviceId:       "",
-		Token:          "sesstoken",
-		ExpiresAt:      model.GetMillis() + 300000,
-		LastActivityAt: 10000,
-	}
-
-	mockStore := th.Service.Store.(*mocks.Store)
-
-	mockUserStore := mocks.UserStore{}
-	mockUserStore.On("Count", mock.Anything).Return(int64(10), nil)
-	mockUserStore.On("GetUnreadCount", mock.AnythingOfType("string"), mock.AnythingOfType("bool")).Return(int64(1), nil)
-	mockPostStore := mocks.PostStore{}
-	mockPostStore.On("GetMaxPostSize").Return(65535, nil)
-	mockSystemStore := mocks.SystemStore{}
-	mockSystemStore.On("GetByName", "UpgradedFromTE").Return(&model.System{Name: "UpgradedFromTE", Value: "false"}, nil)
-	mockSystemStore.On("GetByName", "InstallationDate").Return(&model.System{Name: "InstallationDate", Value: "10"}, nil)
-	mockSystemStore.On("GetByName", "FirstServerRunTimestamp").Return(&model.System{Name: "FirstServerRunTimestamp", Value: "10"}, nil)
-
-	mockSessionStore := mocks.SessionStore{}
-	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
-	mockSessionStore.On("Save", mock.AnythingOfType("*model.Session")).Return(sess1, nil)
-	mockSessionStore.On("Get", mock.Anything, "id1").Return(sess1, nil)
-	mockSessionStore.On("Remove", "id1").Return(nil)
-
-	mockStatusStore := mocks.StatusStore{}
-	mockStatusStore.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
-	mockStatusStore.On("UpdateLastActivityAt", "user1", mock.Anything).Return(nil)
-	mockStatusStore.On("SaveOrUpdate", mock.AnythingOfType("*model.Status")).Return(nil)
-
-	mockOAuthStore := mocks.OAuthStore{}
-
-	mockChannelStore := mocks.ChannelStore{}
-
-	mockStore.On("Session").Return(&mockSessionStore)
-	mockStore.On("OAuth").Return(&mockOAuthStore)
-	mockStore.On("Status").Return(&mockStatusStore)
-	mockStore.On("User").Return(&mockUserStore)
-	mockStore.On("Post").Return(&mockPostStore)
-	mockStore.On("System").Return(&mockSystemStore)
-	mockStore.On("Channel").Return(&mockChannelStore)
-	mockStore.On("GetDBSchemaVersion").Return(1, nil)
-
-	s := httptest.NewServer(dummyWebsocketHandler(t))
-	defer s.Close()
-
-	session, err := th.Service.CreateSession(&model.Session{
-		UserId: "testid",
-	})
-	require.NoError(t, err)
-
-	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
-	wc1.SetConnectionID("connID")
-	hub := th.Service.GetHubForUserId(wc1.UserId)
-	mockChannelStore.On("GetAllChannelMembersForUser", wc1.UserId, false, false).Return(map[string]string{"channelID": "test"}, nil)
-
-	ev := model.NewWebSocketEvent("", "", "channelID", "", nil, "")
-	broadcast := ev.GetBroadcast()
-	var test atomic.Bool
-	broadcast.ChannelHook = func(_ string, ev *model.WebSocketEvent) bool {
-		test.Store(true)
-		return true
-	}
-	ev.SetBroadcast(broadcast)
-	hub.Broadcast(ev)
-	// Wait until the goroutines from NewWebConn are finished.
-	th.Service.waitForGoroutines()
-	th.TearDown()
-	assert.Equal(t, true, test.Load())
-}
-
 func TestHubSessionRevokeRace(t *testing.T) {
 	th := SetupWithStoreMock(t)
 	defer th.TearDown()
@@ -229,8 +154,8 @@ func TestHubSessionRevokeRace(t *testing.T) {
 
 	mockSessionStore := mocks.SessionStore{}
 	mockSessionStore.On("UpdateLastActivityAt", "id1", mock.Anything).Return(nil)
-	mockSessionStore.On("Save", mock.AnythingOfType("*model.Session")).Return(sess1, nil)
-	mockSessionStore.On("Get", mock.Anything, "id1").Return(sess1, nil)
+	mockSessionStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Session")).Return(sess1, nil)
+	mockSessionStore.On("Get", mock.AnythingOfType("*request.Context"), mock.Anything, "id1").Return(sess1, nil)
 	mockSessionStore.On("Remove", "id1").Return(nil)
 
 	mockStatusStore := mocks.StatusStore{}
@@ -255,7 +180,7 @@ func TestHubSessionRevokeRace(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	session, err := th.Service.CreateSession(&model.Session{
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: "testid",
 	})
 	require.NoError(t, err)
@@ -455,8 +380,8 @@ func TestHubConnIndexInactive(t *testing.T) {
 	wc1 := &WebConn{
 		Platform: th.Service,
 		UserId:   model.NewId(),
-		active:   true,
 	}
+	wc1.active.Store(true)
 	wc1.SetConnectionID("conn1")
 	wc1.SetSession(&model.Session{})
 
@@ -464,16 +389,16 @@ func TestHubConnIndexInactive(t *testing.T) {
 	wc2 := &WebConn{
 		Platform: th.Service,
 		UserId:   model.NewId(),
-		active:   true,
 	}
+	wc2.active.Store(true)
 	wc2.SetConnectionID("conn2")
 	wc2.SetSession(&model.Session{})
 
 	wc3 := &WebConn{
 		Platform: th.Service,
 		UserId:   wc2.UserId,
-		active:   false,
 	}
+	wc3.active.Store(false)
 	wc3.SetConnectionID("conn3")
 	wc3.SetSession(&model.Session{})
 
@@ -540,7 +465,7 @@ func TestHubIsRegistered(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	session, err := th.Service.CreateSession(&model.Session{
+	session, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser.Id,
 	})
 	require.NoError(t, err)
@@ -552,7 +477,7 @@ func TestHubIsRegistered(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Service.Start()
+	th.Service.Start(nil)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -564,7 +489,7 @@ func TestHubIsRegistered(t *testing.T) {
 	assert.True(t, th.Service.SessionIsRegistered(*wc2.session.Load()))
 	assert.True(t, th.Service.SessionIsRegistered(*wc3.session.Load()))
 
-	session4, err := th.Service.CreateSession(&model.Session{
+	session4, err := th.Service.CreateSession(th.Context, &model.Session{
 		UserId: th.BasicUser2.Id,
 	})
 	require.NoError(t, err)
@@ -659,7 +584,7 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	th.Service.Start()
+	th.Service.Start(nil)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -693,4 +618,55 @@ func TestClusterBroadcast(t *testing.T) {
 	err := json.Unmarshal(messages[0].Data, &clusterEvent)
 	require.NoError(t, err)
 	require.Equal(t, clusterEvent.Broadcast, broadcast)
+}
+
+func TestClusterBroadcastHooks(t *testing.T) {
+	t.Run("should send broadcast hook information across cluster", func(t *testing.T) {
+		testCluster := &testlib.FakeClusterInterface{}
+
+		th := SetupWithCluster(t, testCluster)
+		defer th.TearDown()
+
+		hookID := broadcastTest
+		hookArgs := map[string]any{
+			"makes_changes": true,
+		}
+
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+		event.GetBroadcast().AddHook(hookID, hookArgs)
+
+		th.Service.Publish(event)
+
+		received, err := model.WebSocketEventFromJSON(bytes.NewReader(testCluster.GetMessages()[0].Data))
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{hookID}, received.GetBroadcast().BroadcastHooks)
+		assert.Equal(t, []map[string]any{hookArgs}, received.GetBroadcast().BroadcastHookArgs)
+	})
+
+	t.Run("should not preserve type information for args", func(t *testing.T) {
+		// This behaviour isn't ideal, but this test confirms that it hasn't changed
+		testCluster := &testlib.FakeClusterInterface{}
+
+		th := SetupWithCluster(t, testCluster)
+		defer th.TearDown()
+
+		hookID := "test_broadcast_hook_with_args"
+		hookArgs := map[string]any{
+			"user":  &model.User{Id: "user1"},
+			"array": []string{"a", "b", "c"},
+		}
+
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+		event.GetBroadcast().AddHook(hookID, hookArgs)
+
+		th.Service.Publish(event)
+
+		received, err := model.WebSocketEventFromJSON(bytes.NewReader(testCluster.GetMessages()[0].Data))
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{hookID}, received.GetBroadcast().BroadcastHooks)
+		assert.IsType(t, map[string]any{}, received.GetBroadcast().BroadcastHookArgs[0]["user"])
+		assert.IsType(t, []any{}, received.GetBroadcast().BroadcastHookArgs[0]["array"])
+	})
 }

@@ -1,17 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {bindActionCreators, Dispatch} from 'redux';
-import {connect, ConnectedProps} from 'react-redux';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {GenericAction} from 'mattermost-redux/types/actions';
+import type {FileInfo} from '@mattermost/types/files';
+
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {FileInfo} from '@mattermost/types/files';
-
-import {GlobalState} from 'types/store';
-import {FileDropdownPluginComponent} from 'types/store/plugins';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
+
+import type {GlobalState} from 'types/store';
+import type {FileDropdownPluginComponent} from 'types/store/plugins';
 
 import FileSearchResultItem from './file_search_result_item';
 

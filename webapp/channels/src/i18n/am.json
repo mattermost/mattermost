@@ -1,0 +1,6 @@
+{
+    "user.settings.general.imageTooLarge": "የአይከን ምስሉን መጫን አልተቻለም.ፋይሉ በጣም ትልቅ ነው.",
+    "general_tab.teamIconTooLarge": "የአይከን ምስሉን መጫን አልተቻለም.ፋይሉ በጣም ትልቅ ነው.",
+    "admin.channel_settings.channel_details.isDefaultDescr": "ይህ ነባሪ(default) ቻናል ወደ ግል ቻናል ሊቀየር አይችልም.",
+    "admin.saml.assertionConsumerServiceURLPopulatedDesc": "This field is also known as the Assertion Consumer Service URL."
+}

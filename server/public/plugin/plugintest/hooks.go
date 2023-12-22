@@ -131,6 +131,11 @@ func (_m *Hooks) Implemented() ([]string, error) {
 	return r0, r1
 }
 
+// MessageHasBeenDeleted provides a mock function with given fields: c, post
+func (_m *Hooks) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+	_m.Called(c, post)
+}
+
 // MessageHasBeenPosted provides a mock function with given fields: c, post
 func (_m *Hooks) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 	_m.Called(c, post)
@@ -186,6 +191,48 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 
 	if rf, ok := ret.Get(1).(func(*plugin.Context, *model.Post, *model.Post) string); ok {
 		r1 = rf(c, newPost, oldPost)
+	} else {
+		r1 = ret.Get(1).(string)
+	}
+
+	return r0, r1
+}
+
+// MessagesWillBeConsumed provides a mock function with given fields: posts
+func (_m *Hooks) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	return r0
+}
+
+// NotificationWillBePushed provides a mock function with given fields: pushNotification, userID
+func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
+	ret := _m.Called(pushNotification, userID)
+
+	var r0 *model.PushNotification
+	var r1 string
+	if rf, ok := ret.Get(0).(func(*model.PushNotification, string) (*model.PushNotification, string)); ok {
+		return rf(pushNotification, userID)
+	}
+	if rf, ok := ret.Get(0).(func(*model.PushNotification, string) *model.PushNotification); ok {
+		r0 = rf(pushNotification, userID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.PushNotification)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.PushNotification, string) string); ok {
+		r1 = rf(pushNotification, userID)
 	} else {
 		r1 = ret.Get(1).(string)
 	}
@@ -313,8 +360,18 @@ func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 	_m.Called(c, w, r)
 }
 
+// ServeMetrics provides a mock function with given fields: c, w, r
+func (_m *Hooks) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	_m.Called(c, w, r)
+}
+
 // UserHasBeenCreated provides a mock function with given fields: c, user
 func (_m *Hooks) UserHasBeenCreated(c *plugin.Context, user *model.User) {
+	_m.Called(c, user)
+}
+
+// UserHasBeenDeactivated provides a mock function with given fields: c, user
+func (_m *Hooks) UserHasBeenDeactivated(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
 }
 

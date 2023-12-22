@@ -11,7 +11,6 @@ exports[`components/UserProfile should match snapshot 1`] = `
         hide={[Function]}
         hideStatus={false}
         isBusy={false}
-        isRHS={false}
         overwriteName=""
         src="/api/v4/users/undefined/image?_=0"
         userId="user_id"
@@ -46,7 +45,6 @@ exports[`components/UserProfile should match snapshot, when displayUsername is e
         hide={[Function]}
         hideStatus={false}
         isBusy={false}
-        isRHS={false}
         overwriteName=""
         src="/api/v4/users/undefined/image?_=0"
         userId="user_id"
@@ -89,7 +87,6 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
         hide={[Function]}
         hideStatus={false}
         isBusy={false}
-        isRHS={false}
         overwriteName=""
         src="/api/v4/users/undefined/image?_=0"
         userId="user_id"
@@ -128,7 +125,6 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
         hide={[Function]}
         hideStatus={false}
         isBusy={false}
-        isRHS={false}
         overwriteName=""
         src="/api/v4/users/undefined/image?_=0"
         userId="user_id"

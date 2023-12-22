@@ -5,7 +5,6 @@ import React from 'react';
 import {IntlProvider} from 'react-intl';
 
 import {render, screen} from 'tests/react_testing_utils';
-
 import EmojiMap from 'utils/emoji_map';
 
 import EmojiPicker from './emoji_picker';

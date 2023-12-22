@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	graphql "github.com/graph-gophers/graphql-go"
 	_ "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -81,8 +80,6 @@ type Routes struct {
 	OAuthApps *mux.Router // 'api/v4/oauth/apps'
 	OAuthApp  *mux.Router // 'api/v4/oauth/apps/{app_id:[A-Za-z0-9]+}'
 
-	OpenGraph *mux.Router // 'api/v4/opengraph'
-
 	SAML       *mux.Router // 'api/v4/saml'
 	Compliance *mux.Router // 'api/v4/compliance'
 	Cluster    *mux.Router // 'api/v4/cluster'
@@ -135,19 +132,21 @@ type Routes struct {
 
 	Permissions *mux.Router // 'api/v4/permissions'
 
-	InsightsForTeam *mux.Router // 'api/v4/teams/{team_id:[A-Za-z0-9]+}/top'
-	InsightsForUser *mux.Router // 'api/v4/users/me/top'
-
 	Usage *mux.Router // 'api/v4/usage'
 
 	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
 
 	Drafts *mux.Router // 'api/v4/drafts'
+
+	IPFiltering *mux.Router // 'api/v4/ip_filtering'
+
+	Reports *mux.Router // 'api/v4/reports'
+
+	Limits *mux.Router // 'api/v4/limits'
 }
 
 type API struct {
 	srv        *app.Server
-	schema     *graphql.Schema
 	BaseRoutes *Routes
 }
 
@@ -243,8 +242,6 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.ReactionByNameForPostForUser = api.BaseRoutes.PostForUser.PathPrefix("/reactions/{emoji_name:[A-Za-z0-9\\_\\-\\+]+}").Subrouter()
 
-	api.BaseRoutes.OpenGraph = api.BaseRoutes.APIRoot.PathPrefix("/opengraph").Subrouter()
-
 	api.BaseRoutes.Roles = api.BaseRoutes.APIRoot.PathPrefix("/roles").Subrouter()
 	api.BaseRoutes.Schemes = api.BaseRoutes.APIRoot.PathPrefix("/schemes").Subrouter()
 
@@ -264,14 +261,17 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Permissions = api.BaseRoutes.APIRoot.PathPrefix("/permissions").Subrouter()
 
-	api.BaseRoutes.InsightsForTeam = api.BaseRoutes.Team.PathPrefix("/top").Subrouter()
-	api.BaseRoutes.InsightsForUser = api.BaseRoutes.Users.PathPrefix("/me/top").Subrouter()
-
 	api.BaseRoutes.Usage = api.BaseRoutes.APIRoot.PathPrefix("/usage").Subrouter()
 
 	api.BaseRoutes.HostedCustomer = api.BaseRoutes.APIRoot.PathPrefix("/hosted_customer").Subrouter()
 
 	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
+
+	api.BaseRoutes.IPFiltering = api.BaseRoutes.APIRoot.PathPrefix("/ip_filtering").Subrouter()
+
+	api.BaseRoutes.Reports = api.BaseRoutes.APIRoot.PathPrefix("/reports").Subrouter()
+
+	api.BaseRoutes.Limits = api.BaseRoutes.APIRoot.PathPrefix("/limits").Subrouter()
 
 	api.InitUser()
 	api.InitBot()
@@ -300,7 +300,6 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitEmoji()
 	api.InitOAuth()
 	api.InitReaction()
-	api.InitOpenGraph()
 	api.InitPlugin()
 	api.InitRole()
 	api.InitScheme()
@@ -314,13 +313,12 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitSharedChannels()
 	api.InitPermissions()
 	api.InitExport()
-	api.InitInsights()
 	api.InitUsage()
 	api.InitHostedCustomer()
 	api.InitDrafts()
-	if err := api.InitGraphQL(); err != nil {
-		return nil, err
-	}
+	api.InitIPFiltering()
+	api.InitReports()
+	api.InitLimits()
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

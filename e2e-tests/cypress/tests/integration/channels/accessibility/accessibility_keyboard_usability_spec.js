@@ -137,10 +137,11 @@ describe('Verify Accessibility keyboard usability across different regions in th
             cy.clickPostCommentIcon(postId);
 
             // * Verify Screen reader should not switch to virtual cursor mode. This is handled by adding a role=application attribute
-            const regions = ['#sidebar-left', '#rhsContainer .post-right__content', '.search__form', '#advancedTextEditorCell'];
+            const regions = ['#sidebar-left', '#rhsContainer .post-right__content', '#advancedTextEditorCell'];
             regions.forEach((region) => {
                 cy.get(region).should('have.attr', 'role', 'application');
             });
+            cy.get('.search__form').should('have.attr', 'role', 'search');
             cy.get(`#post_${postId}`).children('.post__content').eq(0).should('have.attr', 'role', 'application');
             cy.get(`#rhsPost_${postId}`).children('.post__content').eq(0).should('have.attr', 'role', 'application');
         });

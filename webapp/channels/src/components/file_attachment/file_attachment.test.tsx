@@ -4,11 +4,11 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
+import type {GlobalState} from '@mattermost/types/store';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-
-import {renderWithIntl, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
-
-import {GlobalState} from '@mattermost/types/store';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import FileAttachment from './file_attachment';
 
@@ -70,7 +70,7 @@ describe('FileAttachment', () => {
     });
 
     test('non archived file does not show archived elements', () => {
-        const reduxState = {
+        const reduxState: DeepPartial<GlobalState> = {
             entities: {
                 general: {
                     config: {},
@@ -79,15 +79,15 @@ describe('FileAttachment', () => {
                     currentUserId: 'currentUserId',
                 },
             },
-        } as GlobalState;
-        renderWithIntlAndStore(<FileAttachment {...baseProps}/>, reduxState);
+        };
+        renderWithContext(<FileAttachment {...baseProps}/>, reduxState);
 
         expect(screen.queryByTestId('archived-file-icon')).not.toBeInTheDocument();
         expect(screen.queryByText(/This file is archived/)).not.toBeInTheDocument();
     });
 
     test('non archived file does not show archived elements in compact display mode', () => {
-        renderWithIntl(<FileAttachment {...{...baseProps, compactDisplay: true}}/>);
+        renderWithContext(<FileAttachment {...{...baseProps, compactDisplay: true}}/>);
 
         expect(screen.queryByTestId('archived-file-icon')).not.toBeInTheDocument();
         expect(screen.queryByText(/archived/)).not.toBeInTheDocument();
@@ -189,7 +189,7 @@ describe('FileAttachment', () => {
                 },
                 compactDisplay: true,
             };
-            renderWithIntl(<FileAttachment {...props}/>);
+            renderWithContext(<FileAttachment {...props}/>);
             screen.getByTestId('archived-file-icon');
             screen.getByText(baseProps.fileInfo.name);
             screen.getByText(/archived/);
@@ -204,7 +204,7 @@ describe('FileAttachment', () => {
                 },
                 compactDisplay: false,
             };
-            renderWithIntl(<FileAttachment {...props}/>);
+            renderWithContext(<FileAttachment {...props}/>);
             screen.getByTestId('archived-file-icon');
             screen.getByText(baseProps.fileInfo.name);
             screen.getByText(/This file is archived/);

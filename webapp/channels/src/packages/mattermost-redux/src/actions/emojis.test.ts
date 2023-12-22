@@ -7,10 +7,10 @@ import nock from 'nock';
 
 import * as Actions from 'mattermost-redux/actions/emojis';
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {ActionResult} from 'mattermost-redux/types/actions';
 
 const OK_RESPONSE = {status: 'OK'};
 
@@ -264,36 +264,75 @@ describe('Actions.Emojis', () => {
         expect(state.entities.emojis.nonExistentEmoji.has(missingName)).toBeTruthy();
     });
 
-    it('getCustomEmojisByName', async () => {
-        const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
+    describe('getCustomEmojisByName', () => {
+        test('should be able to request a single emoji', async () => {
+            const emoji1 = TestHelper.getCustomEmojiMock({name: 'emoji1', id: 'emojiId1'});
 
-        nock(Client4.getBaseRoute()).
-            post('/emoji').
-            reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
+            nock(Client4.getBaseRoute()).
+                post('/emoji/names', ['emoji1']).
+                reply(200, [emoji1]);
 
-        const {data: created} = await Actions.createCustomEmoji(
-            {
-                name: TestHelper.generateId(),
-                creator_id: TestHelper.basicUser!.id,
-            },
-            testImageData,
-        )(store.dispatch, store.getState) as ActionResult;
+            await store.dispatch(Actions.getCustomEmojisByName(['emoji1']));
 
-        nock(Client4.getBaseRoute()).
-            get(`/emoji/name/${created.name}`).
-            reply(200, created);
+            const state = store.getState();
+            expect(state.entities.emojis.customEmoji[emoji1.id]).toEqual(emoji1);
+        });
 
-        const missingName = TestHelper.generateId();
+        test('should be able to request multiple emojis', async () => {
+            const emoji1 = TestHelper.getCustomEmojiMock({name: 'emoji1', id: 'emojiId1'});
+            const emoji2 = TestHelper.getCustomEmojiMock({name: 'emoji2', id: 'emojiId2'});
 
-        nock(Client4.getBaseRoute()).
-            get(`/emoji/name/${missingName}`).
-            reply(404, {message: 'Not found', status_code: 404});
+            nock(Client4.getBaseRoute()).
+                post('/emoji/names', ['emoji1', 'emoji2']).
+                reply(200, [emoji1, emoji2]);
 
-        await Actions.getCustomEmojisByName([created.name, missingName])(store.dispatch, store.getState);
+            await store.dispatch(Actions.getCustomEmojisByName(['emoji1', 'emoji2']));
 
-        const state = store.getState();
-        expect(state.entities.emojis.customEmoji[created.id]).toBeTruthy();
-        expect(state.entities.emojis.nonExistentEmoji.has(missingName)).toBeTruthy();
+            const state = store.getState();
+            expect(state.entities.emojis.customEmoji[emoji1.id]).toEqual(emoji1);
+            expect(state.entities.emojis.customEmoji[emoji2.id]).toEqual(emoji2);
+        });
+
+        test('should correctly track non-existent emojis', async () => {
+            const emoji1 = TestHelper.getCustomEmojiMock({name: 'emoji1', id: 'emojiId1'});
+
+            nock(Client4.getBaseRoute()).
+                post('/emoji/names', ['emoji1', 'emoji2']).
+                reply(200, [emoji1]);
+
+            await store.dispatch(Actions.getCustomEmojisByName(['emoji1', 'emoji2']));
+
+            const state = store.getState();
+            expect(state.entities.emojis.customEmoji[emoji1.id]).toEqual(emoji1);
+            expect(state.entities.emojis.nonExistentEmoji).toEqual(new Set(['emoji2']));
+        });
+
+        test('should be able to request over 200 emojis', async () => {
+            const emojis = [];
+            for (let i = 0; i < 500; i++) {
+                emojis.push(TestHelper.getCustomEmojiMock({name: 'emoji' + i, id: 'emojiId' + i}));
+            }
+
+            const names = emojis.map((emoji) => emoji.name);
+
+            nock(Client4.getBaseRoute()).
+                post('/emoji/names', names.slice(0, 200)).
+                reply(200, emojis.slice(0, 200));
+            nock(Client4.getBaseRoute()).
+                post('/emoji/names', names.slice(200, 400)).
+                reply(200, emojis.slice(200, 400));
+            nock(Client4.getBaseRoute()).
+                post('/emoji/names', names.slice(400, 500)).
+                reply(200, emojis.slice(400, 500));
+
+            await store.dispatch(Actions.getCustomEmojisByName(names));
+
+            const state = store.getState();
+            expect(Object.keys(state.entities.emojis.customEmoji)).toHaveLength(emojis.length);
+            for (const emoji of emojis) {
+                expect(state.entities.emojis.customEmoji[emoji.id]).toEqual(emoji);
+            }
+        });
     });
 
     it('getCustomEmojisInText', async () => {
@@ -311,15 +350,11 @@ describe('Actions.Emojis', () => {
             testImageData,
         )(store.dispatch, store.getState) as ActionResult;
 
-        nock(Client4.getBaseRoute()).
-            get(`/emoji/name/${created.name}`).
-            reply(200, created);
-
         const missingName = TestHelper.generateId();
 
         nock(Client4.getBaseRoute()).
-            get(`/emoji/name/${missingName}`).
-            reply(404, {message: 'Not found', status_code: 404});
+            post('/emoji/names', [created.name, missingName]).
+            reply(200, [created]);
 
         await Actions.getCustomEmojisInText(`some text :${created.name}: :${missingName}:`)(store.dispatch, store.getState);
 

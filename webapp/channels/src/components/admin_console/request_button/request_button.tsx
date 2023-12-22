@@ -4,11 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 import SuccessIcon from 'components/widgets/icons/fa_success_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
+import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
+
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 /**
  * A button which, when clicked, performs an action and displays
@@ -256,7 +257,7 @@ export default class RequestButton extends React.PureComponent<Props, State> {
                     <div>
                         <button
                             type='button'
-                            className='btn btn-default'
+                            className='btn btn-tertiary'
                             onClick={this.handleRequest}
                             disabled={this.props.disabled}
                         >

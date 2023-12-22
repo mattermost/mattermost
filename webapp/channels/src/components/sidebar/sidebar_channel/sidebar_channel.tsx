@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {AnimationEvent, ReactNode, useState} from 'react';
-import {Draggable} from 'react-beautiful-dnd';
 import classNames from 'classnames';
+import React, {useState} from 'react';
+import type {AnimationEvent, ReactNode} from 'react';
+import {Draggable} from 'react-beautiful-dnd';
 import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';

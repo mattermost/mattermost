@@ -1,21 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Permissions} from 'mattermost-redux/constants';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team, TeamMembership, TeamStats} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
+import {Permissions} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getConfig, isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
-
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
-import {isTeamAdmin} from 'mattermost-redux/utils/user_utils';
 import {sortTeamsWithLocale, filterTeamsStartingWithTerm} from 'mattermost-redux/utils/team_utils';
-import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
-
-import {GlobalState} from '@mattermost/types/store';
-import {Team, TeamMembership, TeamStats} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
+import {isTeamAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {isCollapsedThreadsEnabled} from './preferences';
 
@@ -145,6 +143,11 @@ export const getCurrentRelativeTeamUrl: (state: GlobalState) => string = createS
     },
 );
 
+export function getRelativeTeamUrl(state: GlobalState, teamId: string): string {
+    const team = getTeam(state, teamId);
+    return `/${team.name}`;
+}
+
 export const getCurrentTeamStats: (state: GlobalState) => TeamStats = createSelector(
     'getCurrentTeamStats',
     getCurrentTeamId,
@@ -187,6 +190,15 @@ export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<U
     getMembersInTeams,
     (currentTeamId, teamMembers) => {
         return teamMembers[currentTeamId];
+    },
+);
+
+export const getMembersInTeam: (state: GlobalState, teamId: string) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
+    'getMembersInTeam',
+    (state: GlobalState, teamId: string) => teamId,
+    getMembersInTeams,
+    (teamId, teamMembers) => {
+        return teamMembers[teamId];
     },
 );
 

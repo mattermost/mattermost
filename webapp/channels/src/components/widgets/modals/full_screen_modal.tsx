@@ -2,11 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {CSSTransition} from 'react-transition-group';
 import {injectIntl} from 'react-intl';
+import {CSSTransition} from 'react-transition-group';
 
-import CloseIcon from 'components/widgets/icons/close_icon';
 import BackIcon from 'components/widgets/icons/back_icon';
+import CloseIcon from 'components/widgets/icons/close_icon';
 
 import './full_screen_modal.scss';
 

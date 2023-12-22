@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
+import type {Scheme, SchemeScope, SchemePatch} from '@mattermost/types/schemes';
+
 import {SchemeTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+
+import {logError} from './errors';
+import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+
 import {General} from '../constants';
 
-import {Scheme, SchemeScope, SchemePatch} from '@mattermost/types/schemes';
-
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
-import {logError} from './errors';
 export function getScheme(schemeId: string): ActionFunc {
     return bindClientFunc({
         clientFunc: Client4.getScheme,

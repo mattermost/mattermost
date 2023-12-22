@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import styled from 'styled-components';
-import {useIntl} from 'react-intl';
-
-import {TrialPeriodDays} from 'utils/constants';
-import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 
 import {getCloudSubscription as selectCloudSubscription, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
+import {TrialPeriodDays} from 'utils/constants';
+import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 
 type PlanLabelProps = {
     text: string;

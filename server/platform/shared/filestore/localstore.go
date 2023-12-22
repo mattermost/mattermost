@@ -68,6 +68,10 @@ func copyFile(src, dst string) (err error) {
 	return
 }
 
+func (b *LocalFileBackend) DriverName() string {
+	return driverLocal
+}
+
 func (b *LocalFileBackend) TestConnection() error {
 	f := bytes.NewReader([]byte("testingwrite"))
 	if _, err := writeFileLocally(f, filepath.Join(b.directory, TestFilePath)); err != nil {

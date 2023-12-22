@@ -6,22 +6,24 @@ package model
 import (
 	"net/http"
 	"strings"
+	"unicode/utf8"
 )
 
 const (
-	ChannelNotifyDefault            = "default"
-	ChannelNotifyAll                = "all"
-	ChannelNotifyMention            = "mention"
-	ChannelNotifyNone               = "none"
-	ChannelMarkUnreadAll            = "all"
-	ChannelMarkUnreadMention        = "mention"
-	IgnoreChannelMentionsDefault    = "default"
-	IgnoreChannelMentionsOff        = "off"
-	IgnoreChannelMentionsOn         = "on"
-	IgnoreChannelMentionsNotifyProp = "ignore_channel_mentions"
-	ChannelAutoFollowThreadsOff     = "off"
-	ChannelAutoFollowThreadsOn      = "on"
-	ChannelAutoFollowThreads        = "channel_auto_follow_threads"
+	ChannelNotifyDefault             = "default"
+	ChannelNotifyAll                 = "all"
+	ChannelNotifyMention             = "mention"
+	ChannelNotifyNone                = "none"
+	ChannelMarkUnreadAll             = "all"
+	ChannelMarkUnreadMention         = "mention"
+	IgnoreChannelMentionsDefault     = "default"
+	IgnoreChannelMentionsOff         = "off"
+	IgnoreChannelMentionsOn          = "on"
+	IgnoreChannelMentionsNotifyProp  = "ignore_channel_mentions"
+	ChannelAutoFollowThreadsOff      = "off"
+	ChannelAutoFollowThreadsOn       = "on"
+	ChannelAutoFollowThreads         = "channel_auto_follow_threads"
+	ChannelMemberNotifyPropsMaxRunes = 800000
 )
 
 type ChannelUnread struct {
@@ -84,39 +86,6 @@ func (o *ChannelMember) Auditable() map[string]interface{} {
 		"scheme_admin":         o.SchemeAdmin,
 		"explicit_roles":       o.ExplicitRoles,
 	}
-}
-
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
-
-func (o *ChannelMember) LastViewedAt_() float64 {
-	return float64(o.LastViewedAt)
-}
-
-func (o *ChannelMember) MsgCount_() float64 {
-	return float64(o.MsgCount)
-}
-
-func (o *ChannelMember) MentionCount_() float64 {
-	return float64(o.MentionCount)
-}
-
-func (o *ChannelMember) MentionCountRoot_() float64 {
-	return float64(o.MentionCountRoot)
-}
-
-func (o *ChannelMember) UrgentMentionCount_() float64 {
-	return float64(o.UrgentMentionCount)
-}
-
-func (o *ChannelMember) MsgCountRoot_() float64 {
-	return float64(o.MsgCountRoot)
-}
-
-func (o *ChannelMember) LastUpdateAt_() float64 {
-	return float64(o.LastUpdateAt)
 }
 
 // ChannelMemberWithTeamData contains ChannelMember appended with extra team information
@@ -184,6 +153,11 @@ func (o *ChannelMember) IsValid() *AppError {
 	if len(o.Roles) > UserRolesMaxLength {
 		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.roles_limit.app_error",
 			map[string]any{"Limit": UserRolesMaxLength}, "", http.StatusBadRequest)
+	}
+
+	jsonStringNotifyProps := string(ToJSON(o.NotifyProps))
+	if utf8.RuneCountInString(jsonStringNotifyProps) > ChannelMemberNotifyPropsMaxRunes {
+		return NewAppError("ChannelMember.IsValid", "model.channel_member.is_valid.notify_props.app_error", nil, "channel_id="+o.ChannelId+" user_id="+o.UserId, http.StatusBadRequest)
 	}
 
 	return nil

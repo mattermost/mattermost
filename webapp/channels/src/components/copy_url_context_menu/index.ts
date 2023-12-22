@@ -3,11 +3,11 @@
 
 import {connect} from 'react-redux';
 
-import {GlobalState} from 'types/store/index.js';
-
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {copyToClipboard} from 'utils/utils';
+
+import type {GlobalState} from 'types/store/index.js';
 
 import CopyUrlContextMenu from './copy_url_context_menu';
 

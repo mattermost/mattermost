@@ -8,18 +8,23 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
+
 import {trackEvent} from 'actions/telemetry_actions';
-import {isModalOpen} from 'selectors/views/modals';
-import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {GlobalState} from 'types/store';
 import {openModal, closeModal as closeModalAction} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
+
+import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
+import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+
+import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+
+import {FreemiumModal} from './freemium_modal';
 
 import './delinquency_modal.scss';
-import {FreemiumModal} from './freemium_modal';
 
 interface DelinquencyModalProps {
     planName: string;

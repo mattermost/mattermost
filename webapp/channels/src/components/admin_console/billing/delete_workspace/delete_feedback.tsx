@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {injectIntl} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
 
-import {injectIntl, WrappedComponentProps} from 'react-intl';
+import type {Feedback} from '@mattermost/types/cloud';
 
-import {Feedback} from '@mattermost/types/cloud';
-import FeedbackModal, {FeedbackOption} from 'components/feedback_modal/feedback';
+import FeedbackModal from 'components/feedback_modal/feedback';
+import type {FeedbackOption} from 'components/feedback_modal/feedback';
 
 type Props = {
     onSubmit: (deleteFeedback: Feedback) => void;

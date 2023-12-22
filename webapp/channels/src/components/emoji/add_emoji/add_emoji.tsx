@@ -1,24 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
+import React from 'react';
+import type {ChangeEvent, FormEvent, SyntheticEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {UserProfile} from '@mattermost/types/users';
-import {CustomEmoji} from '@mattermost/types/emojis';
-import {Team} from '@mattermost/types/teams';
+import type {CustomEmoji} from '@mattermost/types/emojis';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-import {getHistory} from 'utils/browser_history';
-import {localizeMessage} from 'utils/utils';
-import {Constants} from 'utils/constants';
 
-import EmojiMap from 'utils/emoji_map';
+import {getHistory} from 'utils/browser_history';
+import {Constants} from 'utils/constants';
+import type EmojiMap from 'utils/emoji_map';
+import {localizeMessage} from 'utils/utils';
 
 export interface AddEmojiProps {
     actions: {
@@ -206,7 +207,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
         const genericError = (
             <FormattedMessage
                 id='add_emoji.failedToAdd'
-                defaultMessage='Something when wrong when adding the custom emoji.'
+                defaultMessage='Something went wrong when adding the custom emoji.'
             />
         );
 
@@ -375,7 +376,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 error={this.state.error}
                             />
                             <Link
-                                className='btn btn-link btn-sm'
+                                className='btn btn-tertiary'
                                 to={'/' + this.props.team.name + '/emoji'}
                             >
                                 <FormattedMessage
@@ -384,6 +385,7 @@ export default class AddEmoji extends React.PureComponent<AddEmojiProps, AddEmoj
                                 />
                             </Link>
                             <SpinnerButton
+                                data-testid='save-button'
                                 className='btn btn-primary'
                                 type='submit'
                                 spinning={this.state.saving}

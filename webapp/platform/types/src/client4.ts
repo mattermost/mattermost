@@ -20,6 +20,7 @@ export type Options = {
     url?: string;
     credentials?: 'omit' | 'same-origin' | 'include';
     body?: any;
+    ignoreStatus?: boolean; /** If true, status codes > 300 are ignored and don't cause an error */
 };
 
 export type StatusOK = {
@@ -35,4 +36,25 @@ export type FetchPaginatedThreadOptions = {
     perPage?: number;
     fromCreateAt?: number;
     fromPost?: string;
+}
+
+export enum ReportDuration {
+    Last30Days = 'last_30_days',
+    PreviousMonth = 'previous_month',
+    Last6Months = 'last_6_months',
+}
+
+export type UserReportOptions = {
+    sort_column: 'CreateAt' | 'Username' | 'FirstName' | 'LastName' | 'Nickname' | 'Email',
+    page_size: number,
+    sort_direction?: 'asc' | 'desc',
+    direction?: 'up' | 'down',
+    date_range?: ReportDuration,
+    from_column_value?: string,
+    from_id?: string,
+    role_filter?: string,
+    has_no_team?: boolean,
+    team_filter?: string,
+    hide_active?: boolean,
+    hide_inactive?: boolean,
 }

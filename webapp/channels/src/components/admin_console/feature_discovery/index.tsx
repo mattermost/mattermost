@@ -2,24 +2,25 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
-import {Action, GenericAction} from 'mattermost-redux/types/actions';
 import {checkHadPriorTrial, getCloudCustomer} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
-
-import {ModalData} from 'types/actions';
-import {GlobalState} from 'types/store';
-
-import {isCloudLicense} from 'utils/license_utils';
-import {LicenseSkus} from 'utils/constants';
+import type {Action, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
+
+import {LicenseSkus} from 'utils/constants';
+import {isCloudLicense} from 'utils/license_utils';
+
+import type {ModalData} from 'types/actions';
+import type {GlobalState} from 'types/store';
 
 import FeatureDiscovery from './feature_discovery';
 

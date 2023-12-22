@@ -6,9 +6,11 @@ package api4
 import (
 	"net/http"
 
-	"github.com/mattermost/gziphandler"
+	"github.com/klauspost/compress/gzhttp"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/web"
 )
 
@@ -30,7 +32,7 @@ func (api *API) APIHandler(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -49,10 +51,9 @@ func (api *API) APISessionRequired(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
@@ -69,10 +70,9 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc) http.Handler {
 		IsLocal:         false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
@@ -90,7 +90,7 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc) http.Handler {
 		IsLocal:                   false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
 }
@@ -110,10 +110,9 @@ func (api *API) APISessionRequiredMfa(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // APIHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
@@ -131,10 +130,9 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
@@ -151,10 +149,9 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc) http.Handler {
 		IsLocal:        false,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
@@ -172,10 +169,9 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc) http.Handler {
 		DisableWhenBusy: true,
 	}
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
-
 }
 
 // APILocal provides a handler for API endpoints to be used in local
@@ -195,9 +191,20 @@ func (api *API) APILocal(h handlerFunc) http.Handler {
 	}
 
 	if *api.srv.Config().ServiceSettings.WebserverMode == "gzip" {
-		return gziphandler.GzipHandler(handler)
+		return gzhttp.GzipHandler(handler)
 	}
 	return handler
+}
+
+func (api *API) RateLimitedHandler(apiHandler http.Handler, settings model.RateLimitSettings) http.Handler {
+	settings.SetDefaults()
+
+	rateLimiter, err := app.NewRateLimiter(&settings, []string{})
+	if err != nil {
+		api.srv.Log().Error("getRateLimitedHandler", mlog.Err(err))
+		return nil
+	}
+	return rateLimiter.RateLimitHandler(apiHandler)
 }
 
 func requireLicense(c *Context) *model.AppError {
@@ -212,14 +219,6 @@ func minimumProfessionalLicense(c *Context) *model.AppError {
 	lic := c.App.Srv().License()
 	if lic == nil || (lic.SkuShortName != model.LicenseShortSkuProfessional && lic.SkuShortName != model.LicenseShortSkuEnterprise) {
 		err := model.NewAppError("", model.NoTranslation, nil, "license is neither professional nor enterprise", http.StatusNotImplemented)
-		return err
-	}
-	return nil
-}
-
-func rejectGuests(c *Context) *model.AppError {
-	if c.AppContext.Session().Props[model.SessionPropIsGuest] == "true" {
-		err := model.NewAppError("", model.NoTranslation, nil, "insufficient permissions as a guest user", http.StatusNotImplemented)
 		return err
 	}
 	return nil

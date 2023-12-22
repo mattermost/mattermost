@@ -3,14 +3,16 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {RouteComponentProps} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import deferComponentRender from 'components/deferComponentRender';
-import ChannelHeader from 'components/channel_header';
-import FileUploadOverlay from 'components/file_upload_overlay';
-import PostView from 'components/post_view';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdvancedCreatePost from 'components/advanced_create_post';
+import ChannelHeader from 'components/channel_header';
+import deferComponentRender from 'components/deferComponentRender';
+import FileUploadOverlay from 'components/file_upload_overlay';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import PostView from 'components/post_view';
+
+import WebSocketClient from 'client/web_websocket_client';
 
 import type {PropsFromRedux} from './index';
 
@@ -86,6 +88,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     };
 
     componentDidUpdate(prevProps: Props) {
+        // TODO: debounce
+        if (prevProps.channelId !== this.props.channelId) {
+            WebSocketClient.updateActiveChannel(this.props.channelId);
+        }
         if (prevProps.channelId !== this.props.channelId || prevProps.channelIsArchived !== this.props.channelIsArchived) {
             if (this.props.channelIsArchived && !this.props.viewArchivedChannels) {
                 this.props.goToLastViewedChannel();
@@ -149,8 +155,9 @@ export default class ChannelView extends React.PureComponent<Props, State> {
         } else {
             createPost = (
                 <div
-                    className='post-create__container AdvancedTextEditor__ctr'
                     id='post-create'
+                    data-testid='post-create'
+                    className='post-create__container AdvancedTextEditor__ctr'
                 >
                     <AdvancedCreatePost getChannelView={this.getChannelView}/>
                 </div>

@@ -133,6 +133,23 @@ func TestCreateBot(t *testing.T) {
 		CheckErrorID(t, err, "api.context.permissions.app_error")
 	})
 
+	t.Run("create bot with null value", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		var bot *model.Bot
+
+		_, resp, err := th.Client.CreateBot(context.Background(), bot)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestPatchBot(t *testing.T) {
@@ -473,6 +490,34 @@ func TestPatchBot(t *testing.T) {
 		CheckOKStatus(t, resp)
 
 		require.Equal(t, th.BasicUser.Id, patchedBot.OwnerId)
+	})
+
+	t.Run("patch with null bot", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		defer th.RestoreDefaultRolePermissions(th.SaveDefaultRolePermissions())
+
+		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageBots.Id, model.TeamUserRoleId)
+		th.App.UpdateUserRoles(th.Context, th.BasicUser.Id, model.TeamUserRoleId, false)
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.ServiceSettings.EnableBotAccountCreation = true
+		})
+
+		createdBot, resp, err := th.Client.CreateBot(context.Background(), &model.Bot{
+			Username:    GenerateTestUsername(),
+			DisplayName: "a bot",
+			Description: "bot",
+		})
+		require.NoError(t, err)
+		CheckCreatedStatus(t, resp)
+		defer th.App.PermanentDeleteBot(createdBot.UserId)
+
+		var botPatch *model.BotPatch
+
+		_, resp1, err1 := th.Client.PatchBot(context.Background(), createdBot.UserId, botPatch)
+		require.Error(t, err1)
+		CheckBadRequestStatus(t, resp1)
 	})
 }
 
@@ -1280,7 +1325,6 @@ func TestAssignBot(t *testing.T) {
 
 		_, _, err = th.Client.AssignBot(context.Background(), bot.UserId, bot2.UserId)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
-
 	})
 }
 

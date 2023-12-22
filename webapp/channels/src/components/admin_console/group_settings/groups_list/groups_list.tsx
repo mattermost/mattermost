@@ -4,16 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
-
-import * as Utils from 'utils/utils';
+import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
 import GroupRow from 'components/admin_console/group_settings/group_row';
+import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
-import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
+
 import {Constants} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 const LDAP_GROUPS_PAGE_SIZE = 200;
 
@@ -187,10 +187,10 @@ export default class GroupsList extends React.PureComponent<Props, State> {
             return (
                 <button
                     type='button'
-                    className='btn btn-inactive disabled'
+                    className='btn btn-primary'
                     disabled={this.props.readOnly}
                 >
-                    <i className='icon fa fa-link'/>
+                    <i className='icon icon-link-variant'/>
                     <FormattedMessage
                         id='admin.group_settings.groups_list.link_selected'
                         defaultMessage='Link Selected Groups'
@@ -517,7 +517,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         </div>
                         <button
                             type='button'
-                            className={'btn btn-link prev ' + (firstPage ? 'disabled' : '')}
+                            className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
                             onClick={(e: any) => this.previousPage(e)}
                             disabled={firstPage}
                         >
@@ -525,7 +525,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
                         </button>
                         <button
                             type='button'
-                            className={'btn btn-link next ' + (lastPage ? 'disabled' : '')}
+                            className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
                             onClick={(e: any) => this.nextPage(e)}
                             disabled={lastPage}
                         >

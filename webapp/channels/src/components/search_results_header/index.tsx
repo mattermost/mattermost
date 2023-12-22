@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {AnyAction, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {AnyAction, Dispatch} from 'redux';
 
-import {GlobalState} from 'types/store/index.js';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
 import {
     closeRightHandSide,
@@ -12,9 +13,10 @@ import {
     goBack,
 } from 'actions/views/rhs';
 import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
 import {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store/index.js';
 
 import SearchResultsHeader from './search_results_header';
 

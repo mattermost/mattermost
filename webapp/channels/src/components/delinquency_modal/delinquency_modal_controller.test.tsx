@@ -2,15 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import * as reactRedux from 'react-redux';
 
-import {CloudProducts, ModalIdentifiers, Preferences} from 'utils/constants';
-import * as StorageSelectors from 'selectors/storage';
-import configureStore from 'store';
-import {TestHelper} from 'utils/test_helper';
-import ModalController from 'components/modal_controller';
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import * as cloudActions from 'mattermost-redux/actions/cloud';
+
+import * as StorageSelectors from 'selectors/storage';
+
+import ModalController from 'components/modal_controller';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+import {CloudProducts, ModalIdentifiers, Preferences} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
+
+import type {GlobalState} from 'types/store';
 
 import DelinquencyModalController from './index';
 
@@ -18,13 +23,8 @@ jest.mock('selectors/storage');
 
 (StorageSelectors.makeGetItem as jest.Mock).mockReturnValue(() => false);
 
-jest.mock('react-dom', () => ({
-    ...jest.requireActual('react-dom'),
-    createPortal: (node: any) => node,
-}));
-
 describe('components/delinquency_modal/delinquency_modal_controller', () => {
-    const initialState = {
+    const initialState: DeepPartial<GlobalState> = {
         views: {
             modals: {
                 modalState: {},
@@ -47,31 +47,31 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
                 },
             },
             cloud: {
-                subscription: {
+                subscription: TestHelper.getSubscriptionMock({
                     product_id: 'test_prod_1',
                     trial_end_at: 1652807380,
                     is_free_trial: 'false',
                     delinquent_since: 1652807380, // may 17 2022
-                },
+                }),
                 products: {
-                    test_prod_1: {
+                    test_prod_1: TestHelper.getProductMock({
                         id: 'test_prod_1',
                         sku: CloudProducts.STARTER,
                         price_per_seat: 0,
                         name: 'testProd1',
-                    },
-                    test_prod_2: {
+                    }),
+                    test_prod_2: TestHelper.getProductMock({
                         id: 'test_prod_2',
                         sku: CloudProducts.ENTERPRISE,
                         price_per_seat: 0,
                         name: 'testProd2',
-                    },
-                    test_prod_3: {
+                    }),
+                    test_prod_3: TestHelper.getProductMock({
                         id: 'test_prod_3',
                         sku: CloudProducts.PROFESSIONAL,
                         price_per_seat: 0,
                         name: 'testProd3',
-                    },
+                    }),
                 },
             },
         },
@@ -80,14 +80,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the admin hasn\'t a preference', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        const store = configureStore(initialState);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            initialState,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).toBeInTheDocument();
@@ -107,14 +106,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
 
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        const store = configureStore(state);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            state,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).not.toBeInTheDocument();
@@ -123,14 +121,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the deliquency_since is equal 90 days', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-16'));
 
-        const store = configureStore(initialState);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            initialState,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).toBeInTheDocument();
@@ -139,14 +136,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the deliquency_since is more than 90 days', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        const store = configureStore(initialState);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            initialState,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).toBeInTheDocument();
@@ -155,14 +151,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Shouldn\'t show the modal if the deliqeuncy_since is less than 90 days', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-15'));
 
-        const store = configureStore(initialState);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            initialState,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).not.toBeInTheDocument();
@@ -171,14 +166,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the license is cloud', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        const store = configureStore(initialState);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            initialState,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).toBeInTheDocument();
@@ -193,14 +187,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
 
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        const store = configureStore(state);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            state,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).not.toBeInTheDocument();
@@ -215,14 +208,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
 
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        const store = configureStore(state);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            state,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).not.toBeInTheDocument();
@@ -231,14 +223,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the user is an admin', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        const store = configureStore(initialState);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            initialState,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).toBeInTheDocument();
@@ -254,14 +245,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
         };
         jest.useFakeTimers().setSystemTime(new Date('2022-12-20'));
 
-        const store = configureStore(state);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            state,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).not.toBeInTheDocument();
@@ -270,14 +260,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
     it('Should show the modal if the user just logged in', () => {
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        const store = configureStore(initialState);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            initialState,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).toBeInTheDocument();
@@ -286,14 +275,13 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
         (StorageSelectors.makeGetItem as jest.Mock).mockReturnValue(() => true);
         jest.useFakeTimers().setSystemTime(new Date('2022-08-17'));
 
-        const store = configureStore(initialState);
-
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            initialState,
         );
 
         expect(screen.queryByText('Your workspace has been downgraded')).not.toBeInTheDocument();
@@ -305,15 +293,15 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
         const newState = JSON.parse(JSON.stringify(initialState));
         newState.entities.cloud.products = {};
 
-        const store = configureStore(newState);
         const getCloudProds = jest.spyOn(cloudActions, 'getCloudProducts').mockImplementationOnce(jest.fn().mockReturnValue({type: 'mock_impl'}));
 
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            newState,
         );
 
         expect(getCloudProds).toHaveBeenCalledTimes(1);
@@ -329,15 +317,15 @@ describe('components/delinquency_modal/delinquency_modal_controller', () => {
             Cloud: 'false',
         };
 
-        const store = configureStore(newState);
         const getCloudProds = jest.spyOn(cloudActions, 'getCloudProducts').mockImplementationOnce(jest.fn().mockReturnValue({type: 'mock_impl'}));
 
-        renderWithIntl(
-            <reactRedux.Provider store={store}>
+        renderWithContext(
+            <>
                 <div id='root-portal'/>
                 <ModalController/>
                 <DelinquencyModalController/>
-            </reactRedux.Provider>,
+            </>,
+            newState,
         );
 
         expect(getCloudProds).toHaveBeenCalledTimes(0);

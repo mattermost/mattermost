@@ -3,7 +3,7 @@
 
 import {Audit} from './audits';
 import {Compliance} from './compliance';
-import {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
+import {AdminConfig, AllowedIPRange, ClientLicense, EnvironmentConfig} from './config';
 import {DataRetentionCustomPolicies} from './data_retention';
 import {MixedUnlinkedGroupRedux} from './groups';
 import {PluginRedux, PluginStatusRedux} from './plugins';
@@ -70,6 +70,7 @@ export type ClusterInfo = {
     config_hash: string;
     ipaddress: string;
     hostname: string;
+    schema_version: string;
 };
 
 export type AnalyticsRow = {

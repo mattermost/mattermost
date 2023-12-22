@@ -38,7 +38,7 @@ export function invitePeople(typeText: string, resultsCount: number, verifyText:
 
     if (clickInvite) {
         // # Click Invite Guests Button
-        cy.get('#inviteGuestButton').scrollIntoView().click();
+        cy.findByTestId('inviteButton').scrollIntoView().click();
     }
 }
 

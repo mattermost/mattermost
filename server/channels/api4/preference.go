@@ -116,8 +116,8 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 				return
 			}
 
-			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannel) {
-				c.SetPermissionError(model.PermissionReadChannel)
+			if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), post.ChannelId, model.PermissionReadChannelContent) {
+				c.SetPermissionError(model.PermissionReadChannelContent)
 				return
 			}
 		}

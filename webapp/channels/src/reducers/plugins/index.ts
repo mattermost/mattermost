@@ -1,18 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import remove from 'lodash/remove';
 import {combineReducers} from 'redux';
 
-import remove from 'lodash/remove';
+import type {ClientPluginManifest} from '@mattermost/types/plugins';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-import {ClientPluginManifest} from '@mattermost/types/plugins';
-
-import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
 import {ActionTypes} from 'utils/constants';
+import {extractPluginConfiguration} from 'utils/plugins/plugin_setting_extraction';
+
+import type {PluginsState, PluginComponent, AdminConsolePluginComponent, Menu} from 'types/store/plugins';
 
 function hasMenuId(menu: Menu|PluginComponent, menuId: string) {
     if (!menu.subMenu) {
@@ -181,6 +182,10 @@ const initialComponents: PluginsState['components'] = {
     ChannelHeaderButton: [],
     MobileChannelHeaderButton: [],
     PostDropdownMenu: [],
+    PostAction: [],
+    PostEditorAction: [],
+    CodeBlockAction: [],
+    NewMessagesSeparatorAction: [],
     Product: [],
     RightHandSidebarComponent: [],
     UserGuideDropdownItem: [],
@@ -381,12 +386,18 @@ function siteStatsHandlers(state: PluginsState['siteStatsHandlers'] = {}, action
     }
 }
 
-function insightsHandlers(state: PluginsState['insightsHandlers'] = {}, action: GenericAction) {
+function userSettings(state: PluginsState['userSettings'] = {}, action: GenericAction) {
     switch (action.type) {
-    case ActionTypes.RECEIVED_PLUGIN_INSIGHT:
+    case ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS:
         if (action.data) {
+            const extractedConfiguration = extractPluginConfiguration(action.data.setting, action.data.pluginId);
+            if (!extractedConfiguration) {
+                // eslint-disable-next-line no-console
+                console.warn(`Plugin ${action.data.pluginId} is trying to register an invalid configuration. Contact the plugin developer to fix this issue.`);
+                return state;
+            }
             const nextState = {...state};
-            nextState[action.data.pluginId] = action.data.handler;
+            nextState[action.data.pluginId] = extractedConfiguration;
             return nextState;
         }
         return state;
@@ -397,6 +408,7 @@ function insightsHandlers(state: PluginsState['insightsHandlers'] = {}, action: 
             return nextState;
         }
         return state;
+
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:
@@ -433,7 +445,7 @@ export default combineReducers({
     // a plugin to render on system console
     siteStatsHandlers,
 
-    // object where every key is a plugin id and the value is a promise to fetch insights from
-    // a plugin to render on the insights page
-    insightsHandlers,
+    // objects where every key is a plugin id and the value is configuration schema to show in
+    // the user settings modal
+    userSettings,
 });

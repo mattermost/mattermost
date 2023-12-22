@@ -2,7 +2,6 @@
 
 exports[`SidebarList should match snapshot 1`] = `
 <Fragment>
-  <ActivityAndInsightsLink />
   <GlobalThreadsLink />
   <Memo(DraftsLink) />
   <div

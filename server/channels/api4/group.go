@@ -84,7 +84,7 @@ func (api *API) InitGroup() {
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}",
 		api.APISessionRequired(deleteGroup)).Methods("DELETE")
 
-	// GET /api/v4/groups/:group_id
+	// POST /api/v4/groups/:group_id
 	api.BaseRoutes.Groups.Handle("/{group_id:[A-Za-z0-9]+}/restore",
 		api.APISessionRequired(restoreGroup)).Methods("POST")
 
@@ -109,7 +109,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -117,6 +117,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	group, appErr := c.App.GetGroup(c.Params.GroupId, &model.GetGroupOpts{
 		IncludeMemberCount: c.Params.IncludeMemberCount,
+		IncludeMemberIDs:   c.Params.IncludeMemberIDs,
 	}, restrictions)
 	if appErr != nil {
 		c.Err = appErr
@@ -152,7 +153,7 @@ func createGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var group *model.GroupWithUserIds
-	if err := json.NewDecoder(r.Body).Decode(&group); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&group); err != nil || group == nil {
 		c.SetInvalidParamWithErr("group", err)
 		return
 	}
@@ -633,7 +634,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeam) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
 		}
 	case model.GroupSyncableTypeChannel:
 		channel, err := c.App.GetChannel(c.AppContext, syncableID)
@@ -649,7 +650,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		}
 
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 		}
 	}
 
@@ -685,7 +686,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -875,7 +876,7 @@ func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppEr
 		permission = model.PermissionReadPublicChannelGroups
 	}
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission) {
-		return nil, c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 	}
 
 	opts := model.GroupSearchOpts{
@@ -986,14 +987,20 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	includeTimezones := r.URL.Query().Get("include_timezones") == "true"
 
+	// Include archived groups
+	includeArchived := r.URL.Query().Get("include_archived") == "true"
+
 	opts := model.GroupSearchOpts{
 		Q:                         c.Params.Q,
 		IncludeMemberCount:        c.Params.IncludeMemberCount,
 		FilterAllowReference:      c.Params.FilterAllowReference,
+		FilterArchived:            c.Params.FilterArchived,
 		FilterParentTeamPermitted: c.Params.FilterParentTeamPermitted,
 		Source:                    source,
 		FilterHasMember:           c.Params.FilterHasMember,
 		IncludeTimezones:          includeTimezones,
+		IncludeMemberIDs:          c.Params.IncludeMemberIDs,
+		IncludeArchived:           includeArchived,
 	}
 
 	if teamID != "" {
@@ -1054,7 +1061,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1066,7 +1073,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	)
 
 	if opts.FilterHasMember != "" {
-		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, opts.FilterHasMember)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -1145,15 +1152,19 @@ func deleteGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 
-	_, err = c.App.DeleteGroup(c.Params.GroupId)
+	group, err = c.App.DeleteGroup(c.Params.GroupId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
+	b, jsonErr := json.Marshal(group)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.deleteGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
 	auditRec.Success()
-
-	ReturnStatusOK(w)
+	w.Write(b)
 }
 
 func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1194,15 +1205,20 @@ func restoreGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "group_id", c.Params.GroupId)
 
-	_, err = c.App.RestoreGroup(c.Params.GroupId)
+	restoredGroup, err := c.App.RestoreGroup(c.Params.GroupId)
 	if err != nil {
 		c.Err = err
 		return
 	}
 
-	auditRec.Success()
+	b, jsonErr := json.Marshal(restoredGroup)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("Api4.restoreGroup", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return
+	}
 
-	ReturnStatusOK(w)
+	auditRec.Success()
+	w.Write(b)
 }
 
 func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1223,13 +1239,13 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source != model.GroupSourceCustom {
-		c.Err = model.NewAppError("Api4.deleteGroup", "app.group.crud_permission", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.addGroupMembers", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	appErr = licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom)
 	if appErr != nil {
-		appErr.Where = "Api4.deleteGroup"
+		appErr.Where = "Api4.addGroupMembers"
 		c.Err = appErr
 		return
 	}
@@ -1240,7 +1256,7 @@ func addGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var newMembers *model.GroupModifyMembers
-	if err := json.NewDecoder(r.Body).Decode(&newMembers); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&newMembers); err != nil || newMembers == nil {
 		c.SetInvalidParamWithErr("addGroupMembers", err)
 		return
 	}
@@ -1282,13 +1298,13 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if group.Source != model.GroupSourceCustom {
-		c.Err = model.NewAppError("Api4.deleteGroup", "app.group.crud_permission", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError("Api4.deleteGroupMembers", "app.group.crud_permission", nil, "", http.StatusBadRequest)
 		return
 	}
 
 	appErr = licensedAndConfiguredForGroupBySource(c.App, model.GroupSourceCustom)
 	if appErr != nil {
-		appErr.Where = "Api4.deleteGroup"
+		appErr.Where = "Api4.deleteGroupMembers"
 		c.Err = appErr
 		return
 	}
@@ -1299,7 +1315,7 @@ func deleteGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var deleteBody *model.GroupModifyMembers
-	if err := json.NewDecoder(r.Body).Decode(&deleteBody); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&deleteBody); err != nil || deleteBody == nil {
 		c.SetInvalidParamWithErr("deleteGroupMembers", err)
 		return
 	}

@@ -4,17 +4,18 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import NewChannelWithBoardTourTip from 'components/app_bar/new_channel_with_board_tour_tip';
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
-    KeyboardShortcutDescriptor,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import type {
+    KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
 
-import {localizeMessage} from 'utils/utils';
 import {Constants, suitePluginIds} from 'utils/constants';
 import {t} from 'utils/i18n';
+import {localizeMessage} from 'utils/utils';
 
 type Props = {
     ariaLabel?: boolean;
@@ -54,13 +55,13 @@ const HeaderIconWrapper = (props: Props) => {
             class: 'text-nowrap',
             id: 'flaggedTooltip',
             messageID: t('channel_header.flagged'),
-            message: 'Saved posts',
+            message: 'Saved messages',
         },
         pinnedPosts: {
             class: 'pinned-posts',
             id: 'pinnedPostTooltip',
             messageID: t('channel_header.pinnedPosts'),
-            message: 'Pinned posts',
+            message: 'Pinned messages',
         },
         recentMentions: {
             class: '',
@@ -145,7 +146,7 @@ const HeaderIconWrapper = (props: Props) => {
         ariaLabelText = `${localizeMessage(toolTips[tooltipKey].messageID, toolTips[tooltipKey].message)}`;
     }
 
-    const boardsEnabled = pluginId === suitePluginIds.focalboard || pluginId === suitePluginIds.boards;
+    const boardsEnabled = pluginId === suitePluginIds.focalboard;
 
     if (tooltip) {
         return (

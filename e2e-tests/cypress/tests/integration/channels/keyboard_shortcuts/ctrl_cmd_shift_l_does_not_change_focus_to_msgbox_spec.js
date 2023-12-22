@@ -32,7 +32,7 @@ describe('Keyboard Shortcuts', () => {
         cy.uiClose();
 
         // # Open invite members full-page screen
-        cy.get('#introTextInvite').click();
+        cy.findByLabelText('Invite Users').click();
 
         // # Press ctrl/cmd+shift+l
         cy.get('body').cmdOrCtrlShortcut('{shift+l}');

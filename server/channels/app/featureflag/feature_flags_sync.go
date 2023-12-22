@@ -95,7 +95,6 @@ func featureFlagsFromMap(featuresMap map[string]string, baseFeatureFlags model.F
 		default:
 			refField.Set(reflect.ValueOf(fieldValue))
 		}
-
 	}
 	return baseFeatureFlags
 }

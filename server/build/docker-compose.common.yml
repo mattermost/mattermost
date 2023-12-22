@@ -113,13 +113,13 @@ services:
     volumes:
      - "./docker/keycloak:/setup"
   prometheus:
-    image: "prom/prometheus"
+    image: "prom/prometheus:v2.46.0"
     volumes:
       - "./docker/prometheus${IS_LINUX}.yml:/etc/prometheus/prometheus.yml"
     networks:
       - mm-test
   grafana:
-    image: "grafana/grafana"
+    image: "grafana/grafana:10.0.3"
     volumes:
      - "./docker/grafana/grafana.ini:/etc/grafana/grafana.ini"
      - "./docker/grafana/provisioning:/etc/grafana/provisioning"

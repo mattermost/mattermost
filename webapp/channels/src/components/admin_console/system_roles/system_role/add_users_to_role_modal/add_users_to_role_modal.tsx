@@ -5,23 +5,21 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-
-import BotTag from 'components/widgets/tag/bot_tag';
-
-import {UserProfile} from '@mattermost/types/users';
-import {Role} from '@mattermost/types/roles';
-
-import {filterProfilesStartingWithTerm, profileListToMap, isGuest} from 'mattermost-redux/utils/user_utils';
-import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
+import type {Role} from '@mattermost/types/roles';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
+import {filterProfilesStartingWithTerm, profileListToMap, isGuest} from 'mattermost-redux/utils/user_utils';
+
+import MultiSelect from 'components/multiselect/multiselect';
+import type {Value} from 'components/multiselect/multiselect';
+import ProfilePicture from 'components/profile_picture';
+import AddIcon from 'components/widgets/icons/fa_add_icon';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
 
 import {displayEntireNameForUser, localizeMessage} from 'utils/utils';
-import ProfilePicture from 'components/profile_picture';
-
-import MultiSelect, {Value} from 'components/multiselect/multiselect';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 
 const USERS_PER_PAGE = 50;
 const MAX_SELECTABLE_VALUES = 20;
@@ -84,11 +82,15 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
 
     search = async (term: string) => {
         this.setUsersLoadingState(true);
-        let searchResults: UserProfile[] = [];
+        const searchResults: UserProfile[] = [];
         const search = term !== '';
         if (search) {
             const {data} = await this.props.actions.searchProfiles(term, {replace: true});
-            searchResults = data;
+            data.forEach((user) => {
+                if (!user.is_bot) {
+                    searchResults.push(user);
+                }
+            });
         } else {
             await this.props.actions.getProfiles(0, USERS_PER_PAGE * 2);
         }

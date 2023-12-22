@@ -1,20 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useState, useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useLocation, useHistory} from 'react-router-dom';
-import classNames from 'classnames';
+
+import {sendVerificationEmail} from 'mattermost-redux/actions/users';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import ManWithMailboxSVG from 'components/common/svg_images_components/man_with_mailbox_svg';
 import ColumnLayout from 'components/header_footer_route/content_layouts/column';
 import SaveButton from 'components/save_button';
-
-import {sendVerificationEmail} from 'mattermost-redux/actions/users';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {getRoleFromTrackFlow} from 'utils/utils';
 

@@ -38,33 +38,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getBotModel()->createBot([
-                "username" => "userbot",
-                "display_name" => "AwesomeBot",
-                "description" => "test bot"
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $createdBot = json_decode($resp->getBody());
-            }
     get:
       tags:
         - bots
@@ -118,34 +91,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $resp = $driver->getBotModel()->getBots([
-                "page" => 0,
-                "per_page" => 60,
-                "include_deleted" => true,
-                "only_orphaned" => true,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $bots = json_decode($resp->getBody());
-            }
   "/api/v4/bots/{bot_user_id}":
     put:
       tags:
@@ -198,35 +143,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getBotModel()->patchBot($botUserID, [
-                "username" => "userbot2",
-                "display_name" => "AwesomeBot2",
-                "description" => "test bot2"
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $bot = json_decode($resp->getBody());
-            }
     get:
       tags:
         - bots
@@ -265,33 +181,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getBotModel()->getBot($botUserID, [
-                "include_deleted" => true,
-            ]);
-
-            if ($resp->getStatusCode() == 200) {
-                $bot = json_decode($resp->getBody());
-            }
   "/api/v4/bots/{bot_user_id}/disable":
     post:
       tags:
@@ -323,31 +212,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getBotModel()->disableBot($botUserID);
-
-            if ($resp->getStatusCode() == 200) {
-                $disabledBot = json_decode($resp->getBody());
-            }
   "/api/v4/bots/{bot_user_id}/enable":
     post:
       tags:
@@ -379,31 +243,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
-
-            $resp = $driver->getBotModel()->enableBot($botUserID);
-
-            if ($resp->getStatusCode() == 200) {
-                $enabledBot = json_decode($resp->getBody());
-            }
   "/api/v4/bots/{bot_user_id}/assign/{user_id}":
     post:
       tags:
@@ -441,32 +280,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: PHP
-          source: |
-            require 'vendor/autoload.php';
-
-            use \Gnello\Mattermost\Driver;
-
-            $container = new \Pimple\Container([
-                "driver" => [
-                    "url" => "https://your-mattermost-url.com",
-                    "login_id" => "email@domain.com",
-                    "password" => "Password1",
-                ]
-            ]);
-
-            $driver = new Driver($container);
-            $driver->authenticate();
-
-            $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
-            $userID = "adWv1qPZmHdtxk7Lmqh6RtxWxS";
-
-            $resp = $driver->getBotModel()->assignBotToUser($botUserID, $userID);
-
-            if ($resp->getStatusCode() == 200) {
-                $assignedBot = json_decode($resp->getBody());
-            }
   "/api/v4/bots/{bot_user_id}/icon":
     get:
       tags:
@@ -500,41 +313,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            data, resp := Client.GetBotIconImage(botUserID)
-        - lang: PHP
-          source: |
-             require 'vendor/autoload.php';
-
-             use \Gnello\Mattermost\Driver;
-
-             $container = new \Pimple\Container([
-                 "driver" => [
-                     "url" => "https://your-mattermost-url.com",
-                     "login_id" => "email@domain.com",
-                     "password" => "Password1",
-                 ]
-             ]);
-
-             $driver = new Driver($container);
-             $driver->authenticate();
-
-             $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
-
-             $resp = $driver->getBotModel()->getBotIcon($botUserID);
-
-             if ($resp->getStatusCode() == 200) {
-                 $data = json_decode($resp->getBody());
-             }
     post:
       tags:
         - bots
@@ -587,62 +365,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import (
-              "io/ioutil"
-              "log"
-
-              "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            data, err := ioutil.ReadFile("icon_image.svg")
-            if err != nil {
-              log.Fatal(err)
-            }
-
-            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.SetBotIconImage(botUserID, data)
-        - lang: PHP
-          source: |
-              require 'vendor/autoload.php';
-
-              use \Gnello\Mattermost\Driver;
-
-              $container = new \Pimple\Container([
-                  "driver" => [
-                      "url" => "https://your-mattermost-url.com",
-                      "login_id" => "email@domain.com",
-                      "password" => "Password1",
-                  ]
-              ]);
-
-              $driver = new Driver($container);
-              $driver->authenticate();
-
-              $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
-              $resource = fopen("icon_image.svg", 'rb');
-
-              if ($resource === false) {
-                  throw new \Exeption("Failure.");
-              }
-
-              $data = new \GuzzleHttp\Psr7\Stream($resource);
-
-              $resp = $driver->getBotModel()->setBotIcon($botUserID, [
-                  "image" => $data,
-              ]);
-
-              fclose($resource);
-
-              if ($resp->getStatusCode() == 200) {
-                  $ok = json_decode($resp->getBody())->status;
-              }
     delete:
       tags:
         - bots
@@ -679,41 +401,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            botUserID := "4xp9fdt77pncbef59f4k1qe83o"
-
-            ok, resp := Client.DeleteBotIconImage(botUserID)
-        - lang: PHP
-          source: |
-              require 'vendor/autoload.php';
-
-              use \Gnello\Mattermost\Driver;
-
-              $container = new \Pimple\Container([
-                  "driver" => [
-                      "url" => "https://your-mattermost-url.com",
-                      "login_id" => "email@domain.com",
-                      "password" => "Password1",
-                  ]
-              ]);
-
-              $driver = new Driver($container);
-              $driver->authenticate();
-
-              $botUserID = "4xp9fdt77pncbef59f4k1qe83o";
-
-              $resp = $driver->getBotModel()->deleteBotIcon($botUserID);
-
-              if ($resp->getStatusCode() == 200) {
-                  $ok = json_decode($resp->getBody())->status;
-              }
   "/api/v4/bots/{bot_user_id}/convert_to_user":
     post:
       tags:
@@ -784,17 +471,3 @@
           $ref: "#/components/responses/Forbidden"
         "404":
           $ref: "#/components/responses/NotFound"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            userId := "BbaYBYDV5IDOZFiJGBSzkw1k5u"
-            patch := &model.UserPatch{}
-            patch.Email = model.NewString("test@domain.com")
-            patch.Username = model.NewString("testUsername")
-            patch.Password = model.NewString("password")
-
-            user, resp := Client.ConvertBotToUser(userId, userPatch, false)

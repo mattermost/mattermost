@@ -5,10 +5,10 @@ import nock from 'nock';
 
 import * as Actions from 'mattermost-redux/actions/roles';
 import {Client4} from 'mattermost-redux/client';
-import {RequestStatus} from '../constants';
-
 import TestHelper from 'mattermost-redux/test/test_helper';
 import configureStore from 'mattermost-redux/test/test_store';
+
+import {RequestStatus} from '../constants';
 
 describe('Actions.Roles', () => {
     let store;

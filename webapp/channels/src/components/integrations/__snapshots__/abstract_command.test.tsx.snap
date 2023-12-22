@@ -106,17 +106,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="trigger"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
-                "id": "add_command.trigger.placeholder",
-              }
-            }
+            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
             type="text"
             value="trigger"
           />
@@ -174,17 +169,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="url"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Must start with http:// or https://",
-                "id": "add_command.url.placeholder",
-              }
-            }
+            placeholder="Must start with http:// or https://"
             type="text"
             value="https://google.com/command"
           />
@@ -255,17 +245,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="username"
             maxLength={64}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Username",
-                "id": "add_command.username.placeholder",
-              }
-            }
+            placeholder="Username"
             type="text"
             value="username"
           />
@@ -294,17 +279,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="iconUrl"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "https://www.example.com/myicon.png",
-                "id": "add_command.iconUrl.placeholder",
-              }
-            }
+            placeholder="https://www.example.com/myicon.png"
             type="text"
             value="https://google.com/icon"
           />
@@ -364,17 +344,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: [Patient Name]",
-                "id": "add_command.autocompleteHint.placeholder",
-              }
-            }
+            placeholder="Example: [Patient Name]"
             type="text"
             value="auto_complete_hint"
           />
@@ -403,17 +378,12 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="description"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
-                "id": "add_command.autocompleteDescription.placeholder",
-              }
-            }
+            placeholder="Example: \\"Returns search results for patient records\\""
             type="text"
             value="auto_complete_desc"
           />
@@ -441,7 +411,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/test/integrations/commands"
         >
           <MemoizedFormattedMessage
@@ -449,7 +419,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             id="add_command.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -461,7 +431,446 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             defaultMessage="Footer"
             id="Footer"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
+        <div>
+          renderExtra
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+`;
+
+exports[`components/integrations/AbstractCommand should match snapshot when header/footer/loading is a string 1`] = `
+<div
+  className="backstage-content row"
+>
+  <BackstageHeader>
+    <Link
+      to="/test/integrations/commands"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Slash Commands"
+        id="installed_command.header"
+      />
+    </Link>
+    <span>
+      Header as string
+    </span>
+  </BackstageHeader>
+  <div
+    className="backstage-form"
+  >
+    <form
+      className="form-horizontal"
+      onSubmit={[Function]}
+    >
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="displayName"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Title"
+            id="add_command.displayName"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="displayName"
+            maxLength={64}
+            onChange={[Function]}
+            type="text"
+            value="display_name"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a title, of up to 64 characters, for the slash command settings page."
+              id="add_command.displayName.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="description"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Description"
+            id="add_command.description"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={128}
+            onChange={[Function]}
+            type="text"
+            value="description"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Describe your slash command."
+              id="add_command.description.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="trigger"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Command Trigger Word"
+            id="add_command.trigger"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="trigger"
+            maxLength={128}
+            onChange={[Function]}
+            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
+            type="text"
+            value="trigger"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify a trigger word that is not a built-in command, does not contain spaces, and does not begin with the slash character."
+              id="add_command.trigger.help"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Examples: client, employee, patient, weather"
+              id="add_command.trigger.helpExamples"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Reserved: {link}"
+              id="add_command.trigger.helpReserved"
+              values={
+                Object {
+                  "link": <ExternalLink
+                    href="https://mattermost.com/pl/custom-slash-commands"
+                    location="abstract_command"
+                  >
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="See built-in slash commands"
+                      id="add_command.trigger.helpReservedLinkText"
+                    />
+                  </ExternalLink>,
+                }
+              }
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="url"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Request URL"
+            id="add_command.url"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="url"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder="Must start with http:// or https://"
+            type="text"
+            value="https://google.com/command"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
+              id="add_command.url.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="method"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Request Method"
+            id="add_command.method"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <select
+            className="form-control"
+            id="method"
+            onChange={[Function]}
+            value="G"
+          >
+            <option
+              value="P"
+            >
+              POST
+            </option>
+            <option
+              value="G"
+            >
+              GET
+            </option>
+          </select>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="Specify the type of request, either POST or GET, sent to the endpoint that Mattermost hits to reach your application."
+              id="add_command.method.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="username"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Response Username"
+            id="add_command.username"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="username"
+            maxLength={64}
+            onChange={[Function]}
+            placeholder="Username"
+            type="text"
+            value="username"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Specify the name to use when posting responses for this slash command. Usernames can be up to 22 characters, and contain lowercase letters, numbers, and the symbols \\\\\\"-\\\\\\", \\\\\\"_\\\\\\", and \\\\\\".\\\\\\". If left blank, your Mattermost username is used."
+              id="add_command.username.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="iconUrl"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Response Icon"
+            id="add_command.iconUrl"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="iconUrl"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder="https://www.example.com/myicon.png"
+            type="text"
+            value="https://google.com/icon"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Enter the URL of a .png or .jpg file to use as the icon when posting responses to this slash command. The file must be at least 128 pixels by 128 pixels. If left blank, your profile picture is used."
+              id="add_command.iconUrl.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="autocomplete"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Autocomplete"
+            id="add_command.autocomplete"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8 checkbox"
+        >
+          <input
+            checked={true}
+            id="autocomplete"
+            onChange={[Function]}
+            type="checkbox"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Show your slash command on the autocomplete list when someone types \\"/\\" in the input box."
+              id="add_command.autocomplete.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="autocompleteHint"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Autocomplete Hint"
+            id="add_command.autocompleteHint"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="autocompleteHint"
+            maxLength={1024}
+            onChange={[Function]}
+            placeholder="Example: [Patient Name]"
+            type="text"
+            value="auto_complete_hint"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Specify the arguments associated with your slash command. These are displayed as help on the autocomplete list."
+              id="add_command.autocompleteHint.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+          htmlFor="autocompleteDescription"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Autocomplete Description"
+            id="add_command.autocompleteDescription"
+          />
+        </label>
+        <div
+          className="col-md-5 col-sm-8"
+        >
+          <input
+            className="form-control"
+            id="description"
+            maxLength={128}
+            onChange={[Function]}
+            placeholder="Example: \\"Returns search results for patient records\\""
+            type="text"
+            value="auto_complete_desc"
+          />
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="(Optional) Describe your slash command for the autocomplete list."
+              id="add_command.autocompleteDescription.help"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="backstage-form__footer"
+      >
+        <FormError
+          error={null}
+          errors={
+            Array [
+              "",
+              null,
+            ]
+          }
+          type="backstage"
+        />
+        <Link
+          className="btn btn-tertiary"
+          to="/test/integrations/commands"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Cancel"
+            id="add_command.cancel"
+          />
+        </Link>
+        <Memo(SpinnerButton)
+          className="btn btn-primary"
+          id="saveCommand"
+          onClick={[Function]}
+          spinning={false}
+          spinningText="Loading as string"
+          type="submit"
+        >
+          <span>
+            Footer as string
+          </span>
+        </Memo(SpinnerButton)>
         <div>
           renderExtra
         </div>
@@ -577,17 +986,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="trigger"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Command trigger e.g. \\"hello\\" not including the slash",
-                "id": "add_command.trigger.placeholder",
-              }
-            }
+            placeholder="Command trigger e.g. \\"hello\\" not including the slash"
             type="text"
             value=""
           />
@@ -645,17 +1049,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="url"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Must start with http:// or https://",
-                "id": "add_command.url.placeholder",
-              }
-            }
+            placeholder="Must start with http:// or https://"
             type="text"
             value="https://google.com/command"
           />
@@ -726,17 +1125,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="username"
             maxLength={64}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Username",
-                "id": "add_command.username.placeholder",
-              }
-            }
+            placeholder="Username"
             type="text"
             value="username"
           />
@@ -765,17 +1159,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="iconUrl"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "https://www.example.com/myicon.png",
-                "id": "add_command.iconUrl.placeholder",
-              }
-            }
+            placeholder="https://www.example.com/myicon.png"
             type="text"
             value="https://google.com/icon"
           />
@@ -835,17 +1224,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="autocompleteHint"
             maxLength={1024}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: [Patient Name]",
-                "id": "add_command.autocompleteHint.placeholder",
-              }
-            }
+            placeholder="Example: [Patient Name]"
             type="text"
             value="auto_complete_hint"
           />
@@ -874,17 +1258,12 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <LocalizedInput
+          <input
             className="form-control"
             id="description"
             maxLength={128}
             onChange={[Function]}
-            placeholder={
-              Object {
-                "defaultMessage": "Example: \\"Returns search results for patient records\\"",
-                "id": "add_command.autocompleteDescription.placeholder",
-              }
-            }
+            placeholder="Example: \\"Returns search results for patient records\\""
             type="text"
             value="auto_complete_desc"
           />
@@ -915,7 +1294,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
           type="backstage"
         />
         <Link
-          className="btn btn-link btn-sm"
+          className="btn btn-tertiary"
           to="/test/integrations/commands"
         >
           <MemoizedFormattedMessage
@@ -923,7 +1302,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             id="add_command.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveCommand"
           onClick={[Function]}
@@ -935,7 +1314,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             defaultMessage="Footer"
             id="Footer"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
         <div>
           renderExtra
         </div>

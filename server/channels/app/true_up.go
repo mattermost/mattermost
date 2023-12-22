@@ -46,7 +46,6 @@ func (a *App) getMarketplacePlugins() ([]string, error) {
 }
 
 func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
-
 	license := a.Channels().License()
 	if license == nil {
 		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.license_required", nil, "Could not get the total active users count", http.StatusInternalServerError)
@@ -117,7 +116,6 @@ func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 	}
 
 	return &reviewProfile, nil
-
 }
 
 func (a *App) GetTrueUpProfile() (map[string]any, error) {

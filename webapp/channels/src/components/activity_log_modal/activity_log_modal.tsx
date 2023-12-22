@@ -5,8 +5,9 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Session} from '@mattermost/types/sessions';
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import type {Session} from '@mattermost/types/sessions';
+
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import ActivityLog from 'components/activity_log_modal/components/activity_log';
 
@@ -141,7 +142,7 @@ export default class ActivityLogModal extends React.PureComponent<Props, State> 
                     <button
                         id='closeModalButton'
                         type='button'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                     >
                         <FormattedMessage
                             id='general_button.close'

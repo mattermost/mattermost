@@ -49,38 +49,6 @@
           $ref: "#/components/responses/TooLarge"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: >
-            import (
-              "bytes"
-              "io/ioutil"
-              "log"
-
-              "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            Client.Login("email@domain.com", "Password1")
-
-
-            tarData, err := ioutil.ReadFile("plugin.tar.gz")
-
-            if err != nil {
-              log.Fatal("error while reading file")
-            }
-
-
-            // Not forced
-
-            manifest, resp := Client.UploadPlugin(bytes.NewReader(tarData))
-
-
-            // Forced
-
-            manifest, resp := Client.UploadPluginForced(bytes.NewReader(tarData))
     get:
       tags:
         - plugins
@@ -121,15 +89,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            pluginsResp, resp := Client.GetPlugins()
   /api/v4/plugins/install_from_url:
     post:
       tags:
@@ -174,23 +133,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import (
-              "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            url := "https://mysite.com/my-plugin.tar.gz"
-
-            // Not forced
-            manifest, resp := Client.InstallPluginFromUrl(url, false)
-
-            // Forced
-            manifest, resp := Client.InstallPluginFromUrl(url, true)
   "/api/v4/plugins/{plugin_id}":
     delete:
       tags:
@@ -232,17 +174,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            pluginID := "com.mattermost.demo-plugin"
-
-            ok, resp = Client.RemovePlugin(pluginID)
   "/api/v4/plugins/{plugin_id}/enable":
     post:
       tags:
@@ -284,17 +215,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            pluginID := "com.mattermost.demo-plugin"
-
-            ok, resp = Client.EnablePlugin(pluginID)
   "/api/v4/plugins/{plugin_id}/disable":
     post:
       tags:
@@ -336,17 +256,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            pluginID := "com.mattermost.demo-plugin"
-
-            ok, resp = Client.DisablePlugin(pluginID)
   /api/v4/plugins/webapp:
     get:
       tags:
@@ -377,14 +286,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            manifests, resp := Client.GetWebappPlugins()
   /api/v4/plugins/statuses:
     get:
       tags:
@@ -415,14 +316,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-
-            manifests, resp := Client.GetPluginStatuses()
   /api/v4/plugins/marketplace:
     post:
       tags:
@@ -470,19 +363,6 @@
           $ref: "#/components/responses/NotFound"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            plugin := &model.InstallMarketplacePluginRequest{
-              Id: "antivirus",
-            }
-
-            ok, resp = Client.InstallMarketplacePlugin(plugin)
     get:
       tags:
         - plugins
@@ -548,23 +428,6 @@
           $ref: "#/components/responses/Forbidden"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            filter := &model.MarketplacePluginFilter{
-              Page: 1,
-              PerPage: 10,
-              Filter: "antivirus",
-              ServerVersion: "0.1.2",
-              LocalOnly: true,
-            }
-
-            ok, resp = Client.GetMarketplacePlugins(filter)
   /api/v4/plugins/marketplace/first_admin_visit:
     get:
       tags:

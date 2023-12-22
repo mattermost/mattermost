@@ -1,33 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
-import './actions_menu.scss';
-
+import React from 'react';
 import {Tooltip} from 'react-bootstrap';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+
+import type {AppBinding} from '@mattermost/types/apps';
+import type {Post} from '@mattermost/types/posts';
+
+import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import Permissions from 'mattermost-redux/constants/permissions';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
-import {Post} from '@mattermost/types/posts';
-import {AppBinding} from '@mattermost/types/apps';
-import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-
-import {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
-import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
-import Permissions from 'mattermost-redux/constants/permissions';
-import {ModalData} from 'types/actions';
-import MarketplaceModal, {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import OverlayTrigger from 'components/overlay_trigger';
-import * as PostUtils from 'utils/post_utils';
-import * as Utils from 'utils/utils';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-import Pluggable from 'plugins/pluggable';
+import MarketplaceModal from 'components/plugin_marketplace/marketplace_modal';
+import type {OpenedFromType} from 'components/plugin_marketplace/marketplace_modal';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import {PluginComponent} from 'types/store/plugins';
+
+import Pluggable from 'plugins/pluggable';
 import {createCallContext} from 'utils/apps';
+import {Locations, Constants, ModalIdentifiers} from 'utils/constants';
+import * as PostUtils from 'utils/post_utils';
+import * as Utils from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
+import type {HandleBindingClick, PostEphemeralCallResponseForPost, OpenAppsModal} from 'types/apps';
+import type {PluginComponent} from 'types/store/plugins';
+
+import './actions_menu.scss';
+
+import {ActionsMenuIcon} from './actions_menu_icon';
 
 const MENU_BOTTOM_MARGIN = 80;
 
@@ -217,7 +223,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         className='btn btn-primary visit-marketplace-button'
                         onClick={this.handleOpenMarketplace}
                     >
-                        {Utils.getMenuItemIcon('icon-view-grid-plus-outline visit-marketplace-button-icon')}
+                        <ActionsMenuIcon name='icon-view-grid-plus-outline visit-marketplace-button-icon'/>
                         <span className='visit-marketplace-button-text'>
                             <FormattedMarkdownMessage
                                 id='post_info.actions.visitMarketplace'
@@ -270,8 +276,6 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
         if (isSystemMessage) {
             return null;
         }
-
-        // const isMobile = this.props.isMobileView TODO;
 
         const pluginItems = this.props.pluginMenuItems?.
             filter((item) => {
@@ -339,7 +343,7 @@ export class ActionMenuClass extends React.PureComponent<Props, State> {
                         key={`marketplace_${this.props.post.id}`}
                         show={true}
                         text={formatMessage({id: 'post_info.marketplace', defaultMessage: 'App Marketplace'})}
-                        icon={Utils.getMenuItemIcon('icon-view-grid-plus-outline')}
+                        icon={<ActionsMenuIcon name='icon-view-grid-plus-outline'/>}
                         onClick={this.handleOpenMarketplace}
                     />
                 </React.Fragment>

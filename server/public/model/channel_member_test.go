@@ -4,6 +4,7 @@
 package model
 
 import (
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -37,4 +38,7 @@ func TestChannelMemberIsValid(t *testing.T) {
 
 	o.Roles = ""
 	require.Nil(t, o.IsValid(), "should be invalid")
+
+	o.NotifyProps["property"] = strings.Repeat("Z", ChannelMemberNotifyPropsMaxRunes)
+	require.NotNil(t, o.IsValid(), "should be invalid")
 }

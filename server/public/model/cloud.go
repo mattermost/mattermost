@@ -180,6 +180,8 @@ type Subscription struct {
 	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
 	ComplianceBlocked       string   `json:"compliance_blocked"`
 	BillingType             string   `json:"billing_type"`
+	CancelAt                *int64   `json:"cancel_at"`
+	WillRenew               string   `json:"will_renew"`
 }
 
 // Subscription History model represents true up event in a yearly subscription
@@ -266,20 +268,11 @@ type CloudWorkspaceOwner struct {
 }
 
 type SubscriptionChange struct {
-	ProductID       string    `json:"product_id"`
-	Seats           int       `json:"seats"`
-	Feedback        *Feedback `json:"downgrade_feedback"`
-	ShippingAddress *Address  `json:"shipping_address"`
-}
-
-// TODO remove BoardsLimits.
-// It is not used for real.
-// Focalboard has some lingering code using this struct
-// https://github.com/mattermost/mattermost/server/v8/boards/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
-// we should remove this struct once that code is removed.
-type BoardsLimits struct {
-	Cards *int `json:"cards"`
-	Views *int `json:"views"`
+	ProductID       string             `json:"product_id"`
+	Seats           int                `json:"seats"`
+	Feedback        *Feedback          `json:"downgrade_feedback"`
+	ShippingAddress *Address           `json:"shipping_address"`
+	Customer        *CloudCustomerInfo `json:"customer"`
 }
 
 type FilesLimits struct {
@@ -295,12 +288,6 @@ type TeamsLimits struct {
 }
 
 type ProductLimits struct {
-	// TODO remove Boards property.
-	// It is not used for real.
-	// Focalboard has some lingering code using this property
-	// https://github.com/mattermost/mattermost/server/v8/boards/blob/fd4cf95f8ac9ba616864b25bf91bb1e4ec21335a/server/app/cloud.go#L86
-	// we should remove this property once that code is removed.
-	Boards   *BoardsLimits   `json:"boards,omitempty"`
 	Files    *FilesLimits    `json:"files,omitempty"`
 	Messages *MessagesLimits `json:"messages,omitempty"`
 	Teams    *TeamsLimits    `json:"teams,omitempty"`
@@ -314,6 +301,12 @@ type CreateSubscriptionRequest struct {
 	Total                 float64  `json:"total"`
 	InternalPurchaseOrder string   `json:"internal_purchase_order"`
 	DiscountID            string   `json:"discount_id"`
+}
+
+type Installation struct {
+	ID              string           `json:"id"`
+	State           string           `json:"state"`
+	AllowedIPRanges *AllowedIPRanges `json:"allowed_ip_ranges"`
 }
 
 type Feedback struct {

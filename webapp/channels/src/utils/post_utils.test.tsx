@@ -5,13 +5,13 @@ import {createIntl} from 'react-intl';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import * as PostUtils from 'utils/post_utils';
+import enMessages from 'i18n/en.json';
 import {PostListRowListIds, Constants} from 'utils/constants';
-import {TestHelper} from 'utils/test_helper';
 import EmojiMap from 'utils/emoji_map';
+import * as PostUtils from 'utils/post_utils';
+import {TestHelper} from 'utils/test_helper';
 
-import enMessages from '../i18n/en.json';
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 describe('PostUtils.containsAtChannel', () => {
     test('should return correct @all (same for @channel)', () => {
@@ -1116,5 +1116,280 @@ describe('PostUtils.getPostURL', () => {
     ])('replies should return %s', (expected, postCase, collapsedThreads) => {
         const state = getState(collapsedThreads);
         expect(PostUtils.getPostURL(state, postCase)).toBe(expected);
+    });
+});
+
+describe('PostUtils.isWithinCodeBlock', () => {
+    const CARET_MARKER = '•';
+    const TRIPLE_BACKTICKS = '```';
+
+    const getCaretAndMsg = (textWithCaret: string): [number, string] => {
+        const normalizedText = textWithCaret.split('\n').map((line) => line.replace(/^\s*\|/, '')).join('\n');
+
+        return [normalizedText.indexOf(CARET_MARKER), normalizedText];
+    };
+
+    it('should return true if caret is within a code block', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is a line of text
+            |${TRIPLE_BACKTICKS}
+            |    fun main() {
+            |        println("Hello Wo${CARET_MARKER}")
+            |    }
+            |${TRIPLE_BACKTICKS}
+            |This is a line of text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should return false if caret is not within a code block', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is a line of text
+            |${TRIPLE_BACKTICKS}
+            |    fun main() {
+            |        println("Hello World")
+            |    }
+            |${TRIPLE_BACKTICKS}
+            |This is a line of t${CARET_MARKER}
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle code blocks with language tags', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |This is a line of text
+            |${TRIPLE_BACKTICKS}kotlin
+            |    fun main() {
+            |        println("Hello Wo${CARET_MARKER}")
+            |    }
+            |${TRIPLE_BACKTICKS}
+            |This is a line of text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle caret in front of code block', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${CARET_MARKER}${TRIPLE_BACKTICKS}kotlin
+            |   fun main() {
+            |       println("Test")
+            |   }
+            |${TRIPLE_BACKTICKS}
+            |This is text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle caret behind code block', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}kotlin
+            |   fun main() {
+            |       println("Test")
+            |   }
+            |${TRIPLE_BACKTICKS}${CARET_MARKER}
+            |This is text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle multiple code blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 1
+            |${TRIPLE_BACKTICKS}
+            |This is text
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 2 ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle empty code blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |${TRIPLE_BACKTICKS}
+            |${CARET_MARKER}
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle consecutive code blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 1
+            |${TRIPLE_BACKTICKS}
+            |This is text
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 2 ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
+            |${TRIPLE_BACKTICKS}
+            |   Code Block 3
+            |${TRIPLE_BACKTICKS}
+            |This is text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should handle caret position at 0', () => {
+        const [caretPosition, message] = getCaretAndMsg(`${CARET_MARKER}
+            |This is text
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(false);
+    });
+
+    it('should handle whitespace within and around code blocks', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |   Test text asd 1
+            |        ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
+        `);
+        expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
+    });
+
+    it('should produce consistent results when called multiple times', () => {
+        const [caretPosition, message] = getCaretAndMsg(`
+            |${TRIPLE_BACKTICKS}
+            |   Test text asd 1
+            |        ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
+        `);
+
+        const results = Array.from({length: 10}, () => PostUtils.isWithinCodeBlock(message, caretPosition));
+
+        expect(results.every(Boolean)).toBe(true);
+    });
+});
+
+describe('PostUtils.getMentionDetails', () => {
+    const user1 = TestHelper.getUserMock({username: 'user1'});
+    const user2 = TestHelper.getUserMock({username: 'user2'});
+    const users = {user1, user2};
+
+    test.each([
+        ['user1 data from mention', 'user1', user1],
+        ['user2 data from mention', 'user2', user2],
+        ['user1 data from mention with punctution', 'user1.', user1],
+        ['blank string when no matching user', 'user3', undefined],
+    ])('should return %s', (description, mention, expected) => {
+        expect(PostUtils.getMentionDetails(users, mention)).toEqual(expected);
+    });
+
+    const group1 = TestHelper.getGroupMock({name: 'group1'});
+    const group2 = TestHelper.getGroupMock({name: 'group2'});
+    const groups = {group1, group2};
+
+    test.each([
+        ['group1 data from mention', 'group1', group1],
+        ['group2 data from mention', 'group2', group2],
+        ['group1 data from mention with punctuation', 'group2.', group2],
+        ['blank string when no matching group', 'group3', undefined],
+    ])('shoud return %s', (description, mention, expected) => {
+        expect(PostUtils.getMentionDetails(groups, mention)).toEqual(expected);
+    });
+});
+
+describe('PostUtils.getUserOrGroupFromMentionName', () => {
+    const userMention = 'user1';
+    const groupMention = 'group1';
+    const userAndGroupMention = 'user2';
+    const user1 = TestHelper.getUserMock({username: 'user1'});
+    const user2 = TestHelper.getUserMock({username: 'user2'});
+    const users = {user1, user2};
+    const group1 = TestHelper.getGroupMock({name: 'group1'});
+    const group2 = TestHelper.getGroupMock({name: 'user2'});
+    const groups = {group1, user2: group2};
+
+    test.each([
+        ['the found user', userMention, false, [user1, undefined]],
+        ['nothing when not matching user or group', 'user3', false, [undefined, undefined]],
+        ['the found group', groupMention, false, [undefined, group1]],
+        ['no group when groups highlights are disabled', groupMention, true, [undefined, undefined]],
+        ['user when there is a matching user and group mention', userAndGroupMention, false, [user2, undefined]],
+    ])('should return %s', (description, mention, disabledGroups, expected) => {
+        const result = PostUtils.getUserOrGroupFromMentionName(
+            mention,
+            users,
+            groups,
+            disabledGroups,
+            (usersOrGroups, mention) => usersOrGroups[mention],
+        );
+
+        expect(result).toEqual(expected);
+    });
+});
+
+describe('makeGetIsReactionAlreadyAddedToPost', () => {
+    const currentUserId = 'current_user_id';
+
+    const baseState = {
+        entities: {
+            users: {
+                currentUserId,
+            },
+            posts: {
+                reactions: {
+                    post_id_1: {
+                        'current_user_id-smile': {
+                            emoji_name: 'smile',
+                            user_id: currentUserId,
+                            post_id: 'post_id_1',
+                        },
+                    },
+
+                },
+            },
+            general: {
+                config: {},
+            },
+            emojis: {},
+        }} as unknown as GlobalState;
+
+    test('should return true if the post has an emoji that the user has reacted to.', () => {
+        const getIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost();
+
+        expect(getIsReactionAlreadyAddedToPost(baseState, 'post_id_1', 'sad')).toBeFalsy();
+        expect(getIsReactionAlreadyAddedToPost(baseState, 'post_id_1', 'smile')).toBeTruthy();
+    });
+});
+
+describe('makeGetUniqueEmojiNameReactionsForPost', () => {
+    const baseState = {
+        entities: {
+            posts: {
+                reactions: {
+                    post_id_1: {
+                        user_1_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_2_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_3_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_1_post_id_1_cry: {
+                            emoji_name: 'cry',
+                            post_id: 'post_id_1',
+                        },
+                    },
+
+                },
+            },
+            general: {
+                config: {},
+            },
+            emojis: {},
+        },
+    } as unknown as GlobalState;
+
+    test('should only return names of unique reactions', () => {
+        const getUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost();
+
+        expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
     });
 });

@@ -8,11 +8,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 ENV PATH="/mattermost/bin:${PATH}"
 ARG PUID=2000
 ARG PGID=2000
-ARG MM_PACKAGE="https://releases.mattermost.com/8.0.0/mattermost-8.0.0-linux-amd64.tar.gz?src=docker"
+ARG MM_PACKAGE="https://releases.mattermost.com/9.3.0/mattermost-9.3.0-linux-amd64.tar.gz?src=docker"
 
 # # Install needed packages and indirect dependencies
 RUN apt-get update \
-  && apt-get install --no-install-recommends -y \
+  && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
   ca-certificates \
   curl \
   mime-support \
@@ -20,6 +20,7 @@ RUN apt-get update \
   wv \
   poppler-utils \
   tidy \
+  tzdata \
   && rm -rf /var/lib/apt/lists/*
 
 # Set mattermost group/user and download Mattermost
@@ -38,7 +39,7 @@ HEALTHCHECK --interval=30s --timeout=10s \
   CMD curl -f http://localhost:8065/api/v4/system/ping || exit 1
 
 # Configure entrypoint and command
-COPY entrypoint.sh /
+COPY --chown=mattermost:mattermost --chmod=765 entrypoint.sh /
 ENTRYPOINT ["/entrypoint.sh"]
 WORKDIR /mattermost
 CMD ["mattermost"]

@@ -5,8 +5,8 @@
 //
 // 1. An integration creates an interactive message button or menu.
 // 2. A user clicks on a button or selects an option from the menu.
-// 3. The client sends a request to server to complete the post action, calling DoPostAction below.
-// 4. DoPostAction will send an HTTP POST request to the integration containing contextual data, including
+// 3. The client sends a request to server to complete the post action, calling DoPostActionWithCookie below.
+// 4. DoPostActionWithCookie will send an HTTP POST request to the integration containing contextual data, including
 // an encoded and signed trigger ID. Slash commands also include trigger IDs in their payloads.
 // 5. The integration performs any actions it needs to and optionally makes a request back to the MM server
 // using the trigger ID to open an interactive dialog.
@@ -29,23 +29,19 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func (a *App) DoPostAction(c *request.Context, postID, actionId, userID, selectedOption string) (string, *model.AppError) {
-	return a.DoPostActionWithCookie(c, postID, actionId, userID, selectedOption, nil)
-}
-
-func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
-
+func (a *App) DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError) {
 	// PostAction may result in the original post being updated. For the
 	// updated post, we need to unconditionally preserve the original
 	// IsPinned and HasReaction attributes, and preserve its entire
@@ -71,24 +67,24 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 
 	// See if the post exists in the DB, if so ignore the cookie.
 	// Start all queries here for parallel execution
-	pchan := make(chan store.StoreResult, 1)
+	pchan := make(chan store.GenericStoreResult[*model.Post], 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, false)
-		pchan <- store.StoreResult{Data: post, NErr: err}
+		pchan <- store.GenericStoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
-	cchan := make(chan store.StoreResult, 1)
+	cchan := make(chan store.GenericStoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().GetForPost(postID)
-		cchan <- store.StoreResult{Data: channel, NErr: err}
+		cchan <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(cchan)
 	}()
 
-	userChan := make(chan store.StoreResult, 1)
+	userChan := make(chan store.GenericStoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), upstreamRequest.UserId)
-		userChan <- store.StoreResult{Data: user, NErr: err}
+		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -134,12 +130,12 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		rootPostId = cookie.RootPostId
 		upstreamURL = cookie.Integration.URL
 	} else {
-		post := result.Data.(*model.Post)
-		result = <-cchan
-		if result.NErr != nil {
+		post := result.Data
+		chResult := <-cchan
+		if chResult.NErr != nil {
 			return "", model.NewAppError("DoPostActionWithCookie", "app.channel.get_for_post.app_error", nil, "", http.StatusInternalServerError).Wrap(result.NErr)
 		}
-		channel := result.Data.(*model.Channel)
+		channel := chResult.Data
 
 		action := post.GetAction(actionId)
 		if action == nil || action.Integration == nil {
@@ -176,7 +172,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		upstreamURL = action.Integration.URL
 	}
 
-	teamChan := make(chan store.StoreResult, 1)
+	teamChan := make(chan store.GenericStoreResult[*model.Team], 1)
 
 	go func() {
 		defer close(teamChan)
@@ -187,7 +183,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 		}
 
 		team, err := a.Srv().Store().Team().Get(upstreamRequest.TeamId)
-		teamChan <- store.StoreResult{Data: team, NErr: err}
+		teamChan <- store.GenericStoreResult[*model.Team]{Data: team, NErr: err}
 	}()
 
 	ur := <-userChan
@@ -200,7 +196,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			return "", model.NewAppError("DoPostActionWithCookie", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
 	}
-	user := ur.Data.(*model.User)
+	user := ur.Data
 	upstreamRequest.UserName = user.Username
 
 	tr, ok := <-teamChan
@@ -215,7 +211,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 			}
 		}
 
-		team := tr.Data.(*model.Team)
+		team := tr.Data
 		upstreamRequest.TeamName = team.Name
 	}
 
@@ -310,7 +306,7 @@ func (a *App) DoPostActionWithCookie(c *request.Context, postID, actionId, userI
 // Perform an HTTP POST request to an integration's action endpoint.
 // Caller must consume and close returned http.Response as necessary.
 // For internal requests, requests are routed directly to a plugin ServerHTTP hook
-func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoActionRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -321,8 +317,14 @@ func (a *App) DoActionRequest(c *request.Context, rawURL string, body []byte) (*
 		return a.DoLocalRequest(c, rawURLPath, body)
 	}
 
-	req, err := http.NewRequest("POST", rawURL, bytes.NewReader(body))
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", rawURL, bytes.NewReader(body))
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			c.Logger().Info("Outgoing Integration Action request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
+		}
 		return nil, model.NewAppError("DoActionRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -374,11 +376,11 @@ func (w *LocalResponseWriter) WriteHeader(statusCode int) {
 	w.status = statusCode
 }
 
-func (a *App) doPluginRequest(c *request.Context, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
+func (a *App) doPluginRequest(c request.CTX, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
 	return a.ch.doPluginRequest(c, method, rawURL, values, body)
 }
 
-func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
+func (ch *Channels) doPluginRequest(c request.CTX, method, rawURL string, values url.Values, body []byte) (*http.Response, *model.AppError) {
 	rawURL = strings.TrimPrefix(rawURL, "/")
 	inURL, err := url.Parse(rawURL)
 	if err != nil {
@@ -444,7 +446,7 @@ func (ch *Channels) doPluginRequest(c *request.Context, method, rawURL string, v
 	return resp, nil
 }
 
-func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
+func (a *App) doLocalWarnMetricsRequest(c request.CTX, rawURL string, upstreamRequest *model.PostActionIntegrationRequest) *model.AppError {
 	_, err := url.Parse(rawURL)
 	if err != nil {
 		return model.NewAppError("doLocalWarnMetricsRequest", "api.post.do_action.action_integration.app_error", nil, "", http.StatusBadRequest).Wrap(err)
@@ -457,7 +459,7 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 
 	license := a.Srv().License()
 	if license != nil {
-		mlog.Debug("License is present, skip this call")
+		c.Logger().Debug("License is present, skip this call")
 		return nil
 	}
 
@@ -473,7 +475,7 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 	}
 
 	isE0Edition := (model.BuildEnterpriseReady == "true") // license == nil was already validated upstream
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, i18n.T, isE0Edition)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(c, warnMetricId, i18n.T, isE0Edition)
 	botPost.Message = ":white_check_mark: " + warnMetricDisplayTexts.BotSuccessMessage
 
 	if isE0Edition {
@@ -482,11 +484,11 @@ func (a *App) doLocalWarnMetricsRequest(c *request.Context, rawURL string, upstr
 		}
 	} else {
 		forceAck := upstreamRequest.Context["force_ack"].(bool)
-		if appErr = a.NotifyAndSetWarnMetricAck(warnMetricId, user, forceAck, true); appErr != nil {
+		if appErr = a.NotifyAndSetWarnMetricAck(c, warnMetricId, user, forceAck, true); appErr != nil {
 			if forceAck {
 				return appErr
 			}
-			mailtoLinkText := a.buildWarnMetricMailtoLink(warnMetricId, user)
+			mailtoLinkText := a.buildWarnMetricMailtoLink(c, warnMetricId, user)
 			botPost.Message = ":warning: " + i18n.T("api.server.warn_metric.bot_response.notification_failure.message")
 			actions := []*model.PostAction{}
 			actions = append(actions,
@@ -543,9 +545,9 @@ func (mlc *MailToLinkContent) ToJSON() string {
 	return string(b)
 }
 
-func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) string {
+func (a *App) buildWarnMetricMailtoLink(rctx request.CTX, warnMetricId string, user *model.User) string {
 	T := i18n.GetUserTranslations(user.Locale)
-	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(warnMetricId, T, false)
+	_, warnMetricDisplayTexts := a.getWarnMetricStatusAndDisplayTextsForId(rctx, warnMetricId, T, false)
 
 	mailBody := warnMetricDisplayTexts.EmailBody
 	mailBody += T("api.server.warn_metric.bot_response.mailto_contact_header", map[string]any{"Contact": user.GetFullName()})
@@ -555,7 +557,7 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 
 	registeredUsersCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		mlog.Warn("Error retrieving the number of registered users", mlog.Err(err))
+		rctx.Logger().Warn("Error retrieving the number of registered users", mlog.Err(err))
 	} else {
 		mailBody += i18n.T("api.server.warn_metric.bot_response.mailto_registered_users_header", map[string]any{"NoRegisteredUsers": registeredUsersCount})
 		mailBody += "\r\n"
@@ -580,12 +582,13 @@ func (a *App) buildWarnMetricMailtoLink(warnMetricId string, user *model.User) s
 	return mailToLinkContent.ToJSON()
 }
 
-func (a *App) DoLocalRequest(c *request.Context, rawURL string, body []byte) (*http.Response, *model.AppError) {
+func (a *App) DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError) {
 	return a.doPluginRequest(c, "POST", rawURL, nil, body)
 }
 
 func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError {
-	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey())
+	timeout := time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout) * time.Second
+	clientTriggerId, userID, appErr := request.DecodeAndVerifyTriggerId(a.AsymmetricSigningKey(), timeout)
 	if appErr != nil {
 		return appErr
 	}
@@ -604,7 +607,7 @@ func (a *App) OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppE
 	return nil
 }
 
-func (a *App) SubmitInteractiveDialog(c *request.Context, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
+func (a *App) SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError) {
 	url := request.URL
 	request.URL = ""
 	request.Type = "dialog_submission"

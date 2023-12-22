@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -525,7 +524,7 @@ func TestPatchTeam(t *testing.T) {
 	patch.CompanyName = model.NewString("Other company name")
 	patch.AllowOpenInvite = model.NewBool(true)
 
-	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestId(), patch)
+	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestID(), patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1377,7 +1376,6 @@ func TestGetTeamByName(t *testing.T) {
 		_, resp, err = client.GetTeamByName(context.Background(), "", "")
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
-
 	})
 
 	th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
@@ -2164,11 +2162,11 @@ func TestAddTeamMember(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddTeamMember(context.Background(), GenerateTestId(), otherUser.Id)
+	_, resp, err = client.AddTeamMember(context.Background(), GenerateTestID(), otherUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, err = client.AddTeamMember(context.Background(), team.Id, GenerateTestId())
+	_, resp, err = client.AddTeamMember(context.Background(), team.Id, GenerateTestID())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -2259,7 +2257,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.App.DeleteToken(token)
 
 	// invalid team id
-	testId := GenerateTestId()
+	testId := GenerateTestID()
 	token = model.NewToken(
 		app.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": testId}),
@@ -2428,7 +2426,6 @@ func TestAddTeamMemberMyself(t *testing.T) {
 			}
 		})
 	}
-
 }
 
 func TestAddTeamMembersDomainConstrained(t *testing.T) {
@@ -2534,18 +2531,18 @@ func TestAddTeamMembers(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddTeamMembers(context.Background(), GenerateTestId(), userList)
+	_, resp, err = client.AddTeamMembers(context.Background(), GenerateTestID(), userList)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	testUserList := append(userList, GenerateTestId())
+	testUserList := append(userList, GenerateTestID())
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, testUserList)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// Test with many users.
 	for i := 0; i < 260; i++ {
-		testUserList = append(testUserList, GenerateTestId())
+		testUserList = append(testUserList, GenerateTestID())
 	}
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, testUserList)
 	require.Error(t, err)
@@ -2733,7 +2730,6 @@ func TestRemoveTeamMemberEvents(t *testing.T) {
 			assert.Equal(t, eventUserId, th.BasicUser2.Id)
 		})
 	})
-
 }
 
 func TestGetTeamStats(t *testing.T) {
@@ -3196,15 +3192,12 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	// define user session and context
-	context := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-
 	t.Run("User WITH permissions on private channel CAN invite members to it", func(t *testing.T) {
 		channelIds := []string{th.BasicChannel.Id, th.BasicPrivateChannel.Id}
 
 		require.Len(t, channelIds, 2)
 
-		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
+		channelIds = th.App.ValidateUserPermissionsOnChannels(th.Context, th.BasicUser.Id, channelIds)
 
 		// basicUser has permission onBasicChannel and BasicPrivateChannel so he can invite to both channels
 		require.Len(t, channelIds, 2)
@@ -3216,7 +3209,7 @@ func TestValidateUserPermissionsOnChannels(t *testing.T) {
 
 		require.Len(t, channelIds, 2)
 
-		channelIds = th.App.ValidateUserPermissionsOnChannels(context, th.BasicUser.Id, channelIds)
+		channelIds = th.App.ValidateUserPermissionsOnChannels(th.Context, th.BasicUser.Id, channelIds)
 
 		// basicUser DOES NOT have permission on BasicPrivateChannel2 so he can only invite to BasicChannel
 		require.Len(t, channelIds, 1)

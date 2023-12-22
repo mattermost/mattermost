@@ -33,17 +33,18 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 		{[]string{model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
 		{[]string{model.SystemAdminRoleId}, "non-existent-permission", false},
 		{[]string{model.ChannelUserRoleId}, model.PermissionReadChannel.Id, true},
+		{[]string{model.ChannelUserRoleId}, model.PermissionReadChannelContent.Id, true},
 		{[]string{model.ChannelUserRoleId}, model.PermissionManageSystem.Id, false},
 		{[]string{model.SystemAdminRoleId, model.ChannelUserRoleId}, model.PermissionManageSystem.Id, true},
 		{[]string{model.ChannelUserRoleId, model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
 		{[]string{model.TeamUserRoleId, model.TeamAdminRoleId}, model.PermissionManageSlashCommands.Id, true},
 		{[]string{model.TeamAdminRoleId, model.TeamUserRoleId}, model.PermissionManageSlashCommands.Id, true},
+		{[]string{model.ChannelGuestRoleId}, model.PermissionReadChannelContent.Id, true},
 	}
 
 	for _, testcase := range cases {
 		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
 	}
-
 }
 
 func TestChannelRolesGrantPermission(t *testing.T) {
@@ -56,28 +57,75 @@ func TestHasPermissionToTeam(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	assert.True(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.BasicUser, th.BasicTeam)
-	assert.False(t, th.App.HasPermissionToTeam(th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.False(t, th.App.HasPermissionToTeam(th.Context, th.BasicUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.LinkUserToTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemovePermissionFromRole(model.PermissionListTeamChannels.Id, model.TeamUserRoleId)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 	th.RemoveUserFromTeam(th.SystemAdminUser, th.BasicTeam)
-	assert.True(t, th.App.HasPermissionToTeam(th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
+	assert.True(t, th.App.HasPermissionToTeam(th.Context, th.SystemAdminUser.Id, th.BasicTeam.Id, model.PermissionListTeamChannels))
 }
 
-func TestSessionHasPermissionToReadChannel(t *testing.T) {
+func TestSessionHasPermissionToTeams(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	assert.True(t, th.App.HasPermissionToReadChannel(th.Context, th.BasicUser.Id, th.BasicChannel))
-	pc1 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
-	assert.False(t, th.App.HasPermissionToReadChannel(th.Context, th.BasicUser2.Id, pc1))
-	th.AddUserToChannel(th.BasicUser2, pc1)
-	assert.True(t, th.App.HasPermissionToReadChannel(th.Context, th.BasicUser2.Id, pc1))
+	// Adding another team with more channels (public and private)
+	myTeam := th.CreateTeam()
+
+	bothTeams := []string{th.BasicTeam.Id, myTeam.Id}
+	t.Run("session with team members can access teams", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			TeamMembers: []*model.TeamMember{
+				{
+					UserId: th.BasicUser.Id,
+					TeamId: th.BasicTeam.Id,
+					Roles:  model.TeamUserRoleId,
+				},
+				{
+					UserId: th.BasicUser.Id,
+					TeamId: myTeam.Id,
+					Roles:  model.TeamUserRoleId,
+				},
+			},
+		}
+		assert.True(t, th.App.SessionHasPermissionToTeams(th.Context, session, bothTeams, model.PermissionJoinPublicChannels))
+	})
+
+	t.Run("session with one team members cannot access teams", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			TeamMembers: []*model.TeamMember{
+				{
+					UserId: th.BasicUser.Id,
+					TeamId: th.BasicTeam.Id,
+					Roles:  model.TeamUserRoleId,
+				},
+			},
+		}
+		assert.False(t, th.App.SessionHasPermissionToTeams(th.Context, session, bothTeams, model.PermissionJoinPublicChannels))
+	})
+
+	t.Run("session role  cannot access teams", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemUserRoleId,
+		}
+		assert.False(t, th.App.SessionHasPermissionToTeams(th.Context, session, bothTeams, model.PermissionJoinPublicChannels))
+	})
+
+	t.Run("session admin role can access teams", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+			Roles:  model.SystemAdminRoleId,
+		}
+		assert.True(t, th.App.SessionHasPermissionToTeams(th.Context, session, bothTeams, model.PermissionJoinPublicChannels))
+	})
 }
 
 func TestSessionHasPermissionToChannel(t *testing.T) {
@@ -121,6 +169,71 @@ func TestSessionHasPermissionToChannel(t *testing.T) {
 		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
 		// are no session level permissions in this test case, the permission should be denied.
 		assert.False(t, th.App.SessionHasPermissionToChannel(th.Context, session, th.BasicUser.Id, model.PermissionAddReaction))
+	})
+}
+
+func TestSessionHasPermissionToChannels(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ch1 := th.CreateChannel(th.Context, th.BasicTeam)
+	ch2 := th.CreatePrivateChannel(th.Context, th.BasicTeam)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch1, false)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, ch2, false)
+
+	allChannels := []string{th.BasicChannel.Id, ch1.Id, ch2.Id}
+
+	t.Run("basic user can access basic channels", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+		}
+
+		assert.True(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionReadChannel))
+	})
+
+	t.Run("basic user removed from channel cannot access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+		}
+
+		th.App.removeUserFromChannel(th.Context, th.BasicUser.Id, th.SystemAdminUser.Id, ch1)
+		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionReadChannel))
+	})
+
+	t.Run("System Admins can access basic channels", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemAdminRoleId,
+		}
+		assert.True(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionManagePrivateChannelMembers))
+	})
+
+	t.Run("does not panic if fetching channel causes an error", func(t *testing.T) {
+		// Regression test for MM-29812
+		// Mock the channel store so getting the channel returns with an error, as per the bug report.
+		mockStore := mocks.Store{}
+		mockChannelStore := mocks.ChannelStore{}
+		mockChannelStore.On("Get", mock.Anything, mock.Anything).Return(nil, fmt.Errorf("arbitrary error"))
+		mockChannelStore.On("GetAllChannelMembersForUser", mock.Anything, mock.Anything, mock.Anything).Return(th.App.Srv().Store().Channel().GetAllChannelMembersForUser(th.BasicUser.Id, false, false))
+		mockChannelStore.On("ClearCaches").Return()
+		mockStore.On("Channel").Return(&mockChannelStore)
+		mockStore.On("FileInfo").Return(th.App.Srv().Store().FileInfo())
+		mockStore.On("License").Return(th.App.Srv().Store().License())
+		mockStore.On("Post").Return(th.App.Srv().Store().Post())
+		mockStore.On("Role").Return(th.App.Srv().Store().Role())
+		mockStore.On("System").Return(th.App.Srv().Store().System())
+		mockStore.On("Team").Return(th.App.Srv().Store().Team())
+		mockStore.On("User").Return(th.App.Srv().Store().User())
+		mockStore.On("Webhook").Return(th.App.Srv().Store().Webhook())
+		mockStore.On("Close").Return(nil)
+		th.App.Srv().SetStore(&mockStore)
+
+		// If there's an error returned from the GetChannel call the code should continue to cascade and since there
+		// are no session level permissions in this test case, the permission should be denied.
+		session := model.Session{
+			UserId: th.BasicUser.Id,
+		}
+		assert.False(t, th.App.SessionHasPermissionToChannels(th.Context, session, allChannels, model.PermissionReadChannel))
 	})
 }
 
@@ -194,6 +307,32 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserRoleId)
 	})
 
+	t.Run("test user manager access", func(t *testing.T) {
+		session := model.Session{
+			UserId: th.BasicUser2.Id,
+			Roles:  model.SystemUserManagerRoleId,
+		}
+
+		// test non bot, contains wrapped error
+		err = th.App.SessionHasPermissionToManageBot(session, "12345")
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.Error(t, err.Unwrap())
+
+		// test existing bot, without PermissionManageOthersBots - no wrapped error
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.NotNil(t, err)
+		assert.Equal(t, "store.sql_bot.get.missing.app_error", err.Id)
+		assert.NoError(t, err.Unwrap())
+
+		// test with correct permissions
+		th.AddPermissionToRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+		err = th.App.SessionHasPermissionToManageBot(session, bot.UserId)
+		assert.Nil(t, err)
+
+		th.RemovePermissionFromRole(model.PermissionManageOthersBots.Id, model.SystemUserManagerRoleId)
+	})
+
 	t.Run("test sysadmin role", func(t *testing.T) {
 		session := model.Session{
 			UserId: th.SystemAdminUser.Id,
@@ -238,6 +377,17 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
 		assert.True(t, th.App.SessionHasPermissionToUser(session, th.BasicUser2.Id))
 		th.RemovePermissionFromRole(model.PermissionEditOtherUsers.Id, model.SystemUserManagerRoleId)
+
+		bot, err := th.App.CreateBot(th.Context, &model.Bot{
+			Username:    "username",
+			Description: "a bot",
+			OwnerId:     th.BasicUser2.Id,
+		})
+		require.Nil(t, err)
+		assert.NotNil(t, bot)
+		defer th.App.PermanentDeleteBot(bot.UserId)
+
+		assert.False(t, th.App.SessionHasPermissionToUser(session, bot.UserId))
 	})
 
 	t.Run("test admin user access", func(t *testing.T) {
@@ -305,7 +455,7 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 func TestHasPermissionToCategory(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
-	session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
+	session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}})
 	require.Nil(t, err)
 
 	categories, err := th.App.GetSidebarCategoriesForTeamForUser(th.Context, th.BasicUser.Id, th.BasicTeam.Id)
@@ -391,7 +541,7 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 			th.RemovePermissionFromRole(permission.Id, groupRole.Name)
 		}
 
-		session, err := th.App.CreateSession(&model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
+		session, err := th.App.CreateSession(th.Context, &model.Session{UserId: th.BasicUser.Id, Props: model.StringMap{}, Roles: systemRole.Name})
 		require.Nil(t, err)
 
 		result := th.App.SessionHasPermissionToGroup(*session, group.Id, permission)
@@ -401,5 +551,119 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 		} else {
 			require.False(t, result, fmt.Sprintf("row: %v", row))
 		}
+	}
+}
+
+func TestHasPermissionToReadChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ttcc := []struct {
+		name                    string
+		configViewArchived      bool
+		configComplianceEnabled bool
+		channelDeleted          bool
+		canReadChannel          bool
+		channelIsOpen           bool
+		canReadPublicChannel    bool
+		expected                bool
+	}{
+		{
+			name:                    "Cannot read archived channels if the config doesn't allow it",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          true,
+			canReadChannel:          true,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Can read if it has permissions to read",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          false,
+			canReadChannel:          true,
+			channelIsOpen:           false,
+			canReadPublicChannel:    true,
+			expected:                true,
+		},
+		{
+			name:                    "Cannot read private channels if it has no permission",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           false,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Cannot read open channels if compliance is enabled",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Cannot read open channels if it has no team permissions",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    false,
+			expected:                false,
+		},
+		{
+			name:                    "Can read open channels if it has team permissions and compliance is not enabled",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                true,
+		},
+	}
+
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				configViewArchived := tc.configViewArchived
+				configComplianceEnabled := tc.configComplianceEnabled
+				cfg.TeamSettings.ExperimentalViewArchivedChannels = &configViewArchived
+				cfg.ComplianceSettings.Enable = &configComplianceEnabled
+			})
+
+			team := th.CreateTeam()
+			if tc.canReadPublicChannel {
+				th.LinkUserToTeam(th.BasicUser2, team)
+			}
+
+			var channel *model.Channel
+			if tc.channelIsOpen {
+				channel = th.CreateChannel(th.Context, team)
+			} else {
+				channel = th.CreatePrivateChannel(th.Context, team)
+			}
+			if tc.canReadChannel {
+				_, err := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+				require.Nil(t, err)
+			}
+
+			if tc.channelDeleted {
+				err := th.App.DeleteChannel(th.Context, channel, th.SystemAdminUser.Id)
+				require.Nil(t, err)
+				channel, err = th.App.GetChannel(th.Context, channel.Id)
+				require.Nil(t, err)
+			}
+
+			result := th.App.HasPermissionToReadChannel(th.Context, th.BasicUser2.Id, channel)
+			require.Equal(t, tc.expected, result)
+		})
 	}
 }

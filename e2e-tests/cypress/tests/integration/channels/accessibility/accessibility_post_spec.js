@@ -185,7 +185,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab();
 
                 // * Verify focus is on the save post button
-                cy.get(`#CENTER_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save');
+                cy.get(`#CENTER_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save message');
                 cy.focused().tab();
 
                 // * Verify focus is on message actions button
@@ -201,7 +201,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab();
 
                 // * Verify focus is on the post text
-                cy.get(`#postMessageText_${postId}`).should('be.focused').and('have.attr', 'aria-readonly', 'true');
+                cy.get(`#postMessageText_${postId}`).should('be.focused');
             });
         });
     });
@@ -231,7 +231,7 @@ describe('Verify Accessibility Support in Post', () => {
         cy.getLastPostId().then((postId) => {
             cy.get(`#rhsPost_${postId}`).within(() => {
                 // * Verify focus is on the post text
-                cy.get(`#rhsPostMessageText_${postId}`).should('be.focused').and('have.attr', 'aria-readonly', 'true');
+                cy.get(`#rhsPostMessageText_${postId}`).should('be.focused');
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on the more button
@@ -243,7 +243,7 @@ describe('Verify Accessibility Support in Post', () => {
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on the save icon
-                cy.get(`#RHS_COMMENT_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save');
+                cy.get(`#RHS_COMMENT_flagIcon_${postId}`).should('be.focused').and('have.attr', 'aria-label', 'save message');
                 cy.focused().tab({shift: true});
 
                 // * Verify focus is on the reactions button

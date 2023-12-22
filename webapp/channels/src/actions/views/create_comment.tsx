@@ -1,39 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {
-    makeGetMessageInHistoryItem,
-    getPost,
-    makeGetPostIdsForThread,
-} from 'mattermost-redux/selectors/entities/posts';
-import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import {
-    removeReaction,
     addMessageIntoHistory,
     moveHistoryIndexBack,
     moveHistoryIndexForward,
 } from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import {
+    makeGetMessageInHistoryItem,
+    getPost,
+    makeGetPostIdsForThread,
+} from 'mattermost-redux/selectors/entities/posts';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
-import * as PostActions from 'actions/post_actions';
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
+import * as PostActions from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
-import EmojiMap from 'utils/emoji_map';
 import {getPostDraft} from 'selectors/rhs';
 
-import * as Utils from 'utils/utils';
 import {Constants, StoragePrefixes} from 'utils/constants';
-import type {PostDraft} from 'types/store/draft';
+import EmojiMap from 'utils/emoji_map';
+import * as Utils from 'utils/utils';
+
 import type {GlobalState} from 'types/store';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {PostDraft} from 'types/store/draft';
 
 export function clearCommentDraftUploads() {
     return actionOnGlobalItemsWithPrefix(StoragePrefixes.COMMENT_DRAFT, (_key: string, draft: PostDraft) => {
@@ -105,17 +105,6 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft) 
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string) {
-    return (dispatch: DispatchFunc) => {
-        if (action === '+') {
-            dispatch(PostActions.addReaction(postId, emojiName));
-        } else if (action === '-') {
-            dispatch(removeReaction(postId, emojiName));
-        }
-        return {data: true};
-    };
-}
-
 export function submitCommand(channelId: string, rootId: string, draft: PostDraft) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
@@ -169,7 +158,7 @@ export function makeOnSubmit(channelId: string, rootId: string, latestPostId: st
         const emojiMap = new EmojiMap(emojis);
 
         if (isReaction && emojiMap.has(isReaction[2])) {
-            dispatch(submitReaction(latestPostId, isReaction[1], isReaction[2]));
+            dispatch(PostActions.submitReaction(latestPostId, isReaction[1], isReaction[2]));
         } else if (message.indexOf('/') === 0 && !options.ignoreSlash) {
             try {
                 await dispatch(submitCommand(channelId, rootId, draft));

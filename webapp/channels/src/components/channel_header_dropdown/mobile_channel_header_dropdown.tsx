@@ -2,19 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-
-import StatusIcon from 'components/status_icon';
-
-import {Constants} from 'utils/constants';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelHeaderDropdownItems} from 'components/channel_header_dropdown';
-
+import StatusIcon from 'components/status_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
+import {Constants} from 'utils/constants';
 
 import MobileChannelHeaderDropdownAnimation from './mobile_channel_header_dropdown_animation';
 

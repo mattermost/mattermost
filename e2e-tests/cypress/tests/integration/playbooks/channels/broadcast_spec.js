@@ -325,10 +325,10 @@ const verifyInitialAndStatusPostInBroadcast = (testTeam, channelName, runName, i
             should('exist').
             within(() => {
                 // * Thread should have two posts
-                cy.findAllByRole('listitem').should('have.length', 2);
+                cy.findAllByTestId('postContent').should('have.length', 2);
 
                 // * The first should be announcement
-                cy.findAllByRole('listitem').eq(0).contains(initialMessage);
+                cy.findAllByTestId('postContent').eq(0).contains(initialMessage);
 
                 // * Latest post should be update
                 cy.get(`#rhsPost_${lastPostId}`).contains(
@@ -354,7 +354,7 @@ const deleteLatestPostRoot = (testTeam, channelName) => {
         cy.get('#rhsContainer').
             should('exist').
             within(() => {
-                cy.findAllByRole('listitem').eq(0).then((root) => {
+                cy.findAllByTestId('postContent').eq(0).parent().then((root) => {
                     const rootId = root.attr('id').slice(8);
 
                     // # Click root's post dot menu.

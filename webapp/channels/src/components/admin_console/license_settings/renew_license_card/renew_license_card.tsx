@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import moment from 'moment';
 
-import {ClientLicense} from '@mattermost/types/config';
+import type {ClientLicense} from '@mattermost/types/config';
+
 import {Client4} from 'mattermost-redux/client';
-
-import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
-import RenewalLink from 'components/announcement_bar/renewal_link/';
-import {getSkuDisplayName} from 'utils/subscription';
-
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import AlertBanner from 'components/alert_banner';
 import ContactUsButton from 'components/announcement_bar/contact_sales/contact_us';
+import RenewalLink from 'components/announcement_bar/renewal_link/';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+
+import {getSkuDisplayName} from 'utils/subscription';
+import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 
 import './renew_license_card.scss';
 

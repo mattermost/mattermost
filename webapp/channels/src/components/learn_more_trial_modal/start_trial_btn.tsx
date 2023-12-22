@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {useIntl} from 'react-intl';
+
 import useOpenStartTrialFormModal from 'components/common/hooks/useOpenStartTrialFormModal';
 
 import './start_trial_btn.scss';

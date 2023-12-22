@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import CenterChannel from './center_channel';
 
@@ -23,7 +23,6 @@ describe('components/channel_layout/CenterChannel', () => {
         rhsMenuOpen: true,
         isCollapsedThreadsEnabled: true,
         currentUserId: 'testUserId',
-        insightsAreEnabled: true,
         isMobileView: false,
         actions: {
             getProfiles: jest.fn,

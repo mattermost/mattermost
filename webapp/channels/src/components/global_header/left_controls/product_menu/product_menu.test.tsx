@@ -1,15 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import * as productUtils from 'utils/products';
-
 import mockStore from 'tests/test_store';
-
 import {TopLevelProducts} from 'utils/constants';
+import * as productUtils from 'utils/products';
 import {TestHelper} from 'utils/test_helper';
 
 import ProductMenu, {ProductMenuButton, ProductMenuContainer} from './product_menu';

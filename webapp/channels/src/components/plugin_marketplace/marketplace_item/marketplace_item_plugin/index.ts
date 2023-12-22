@@ -2,21 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {getPluginStatus} from 'mattermost-redux/selectors/entities/admin';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {installPlugin} from 'actions/marketplace';
-import {closeModal} from 'actions/views/modals';
-import {ModalIdentifiers} from 'utils/constants';
-import {getInstalling, getError} from 'selectors/views/marketplace';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
+import {closeModal} from 'actions/views/modals';
+import {getInstalling, getError} from 'selectors/views/marketplace';
 
-import MarketplaceItemPlugin, {MarketplaceItemPluginProps} from './marketplace_item_plugin';
+import {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+
+import MarketplaceItemPlugin from './marketplace_item_plugin';
+import type {MarketplaceItemPluginProps} from './marketplace_item_plugin';
 
 type Props = {
     id: string;

@@ -1,14 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 import styled from 'styled-components';
 
-import OverlayTrigger, {BaseOverlayTrigger} from 'components/overlay_trigger';
+import OverlayTrigger from 'components/overlay_trigger';
+import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ProfilePopover from 'components/profile_popover';
 import StatusIcon from 'components/status_icon';
 import StatusIconNew from 'components/status_icon_new';
-import Avatar, {TAvatarSizeToken, getAvatarWidth} from 'components/widgets/users/avatar';
+import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
+import type {TAvatarSizeToken} from 'components/widgets/users/avatar';
 
 import './profile_picture.scss';
 
@@ -20,7 +23,6 @@ type Props = {
     hasMention?: boolean;
     isBusy?: boolean;
     isEmoji?: boolean;
-    isRHS?: boolean;
     profileSrc?: string;
     size?: ComponentProps<typeof Avatar>['size'];
     src: string;
@@ -42,7 +44,6 @@ type Props = {
 export default class ProfilePicture extends React.PureComponent<Props> {
     public static defaultProps = {
         size: 'md',
-        isRHS: false,
         isEmoji: false,
         hasMention: false,
         wrapperClass: '',
@@ -81,7 +82,6 @@ export default class ProfilePicture extends React.PureComponent<Props> {
                             src={profileSrc}
                             isBusy={this.props.isBusy}
                             hide={this.hideProfilePopover}
-                            isRHS={this.props.isRHS}
                             channelId={this.props.channelId}
                             hasMention={this.props.hasMention}
                             overwriteIcon={this.props.overwriteIcon}

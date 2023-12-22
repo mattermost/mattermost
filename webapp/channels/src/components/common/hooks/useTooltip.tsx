@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {useHover, useInteractions, useFloating, arrow, offset, autoPlacement} from '@floating-ui/react-dom-interactions';
+import type {Strategy, Placement} from '@floating-ui/react-dom-interactions';
+import classNames from 'classnames';
 import React, {useState, useRef} from 'react';
 import ReactDOM from 'react-dom';
-import classNames from 'classnames';
-import {useHover, useInteractions, useFloating, arrow, offset, autoPlacement, Strategy, Placement} from '@floating-ui/react-dom-interactions';
 
 import {Constants} from 'utils/constants';
 

@@ -7,10 +7,14 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestUpAndDownMigrations(t *testing.T) {
+	logger := mlog.CreateTestLogger(t)
+
 	testDrivers := []string{
 		model.DatabaseDriverPostgres,
 		model.DatabaseDriverMysql,
@@ -23,7 +27,8 @@ func TestUpAndDownMigrations(t *testing.T) {
 				t.Skip(err)
 			}
 
-			store := New(*settings, nil)
+			store, err := New(*settings, logger, nil)
+			require.NoError(t, err)
 			defer store.Close()
 
 			err = store.migrate(migrationsDirectionDown, false)

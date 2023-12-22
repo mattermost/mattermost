@@ -1,20 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {Modal} from 'react-bootstrap';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {General} from 'mattermost-redux/constants';
 
-import {Value} from 'components/multiselect/multiselect';
 import ChannelInviteModal from 'components/channel_invite_modal/channel_invite_modal';
-
-import {UserProfile} from '@mattermost/types/users';
-import {Channel} from '@mattermost/types/channels';
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import type {Value} from 'components/multiselect/multiselect';
 
 type UserProfileValue = Value & UserProfile;
+
+jest.mock('utils/utils', () => {
+    const original = jest.requireActual('utils/utils');
+    return {
+        ...original,
+        localizeMessage: jest.fn(),
+        sortUsersAndGroups: jest.fn(),
+    };
+});
 
 describe('components/channel_invite_modal', () => {
     const users = [{
@@ -55,8 +64,11 @@ describe('components/channel_invite_modal', () => {
         profilesInCurrentChannel: [],
         profilesNotInCurrentTeam: [],
         profilesFromRecentDMs: [],
+        membersInTeam: {},
+        groups: [],
         userStatuses: {},
         teammateNameDisplaySetting: General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
+        isGroupsEnabled: true,
         actions: {
             addUsersToChannel: jest.fn().mockImplementation(() => {
                 const error = {
@@ -67,11 +79,13 @@ describe('components/channel_invite_modal', () => {
             }),
             getProfilesNotInChannel: jest.fn().mockImplementation(() => Promise.resolve()),
             getProfilesInChannel: jest.fn().mockImplementation(() => Promise.resolve()),
+            searchAssociatedGroupsForReference: jest.fn().mockImplementation(() => Promise.resolve()),
             getTeamStats: jest.fn(),
             getUserStatuses: jest.fn().mockImplementation(() => Promise.resolve()),
             loadStatusesForProfilesList: jest.fn(),
             searchProfiles: jest.fn(),
             closeModal: jest.fn(),
+            getTeamMembersByIds: jest.fn(),
         },
         onExited: jest.fn(),
     };
@@ -176,7 +190,7 @@ describe('components/channel_invite_modal', () => {
             />,
         );
 
-        wrapper.setState({values: users, show: true});
+        wrapper.setState({selectedUsers: users, show: true});
         wrapper.instance().handleSubmit();
         expect(wrapper.state('saving')).toEqual(true);
         expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(1);
@@ -205,7 +219,7 @@ describe('components/channel_invite_modal', () => {
             />,
         );
 
-        wrapper.setState({values: users, show: true});
+        wrapper.setState({selectedUsers: users, show: true});
         wrapper.instance().handleSubmit();
         expect(wrapper.state('saving')).toEqual(true);
         expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(1);
@@ -231,7 +245,7 @@ describe('components/channel_invite_modal', () => {
             />,
         );
 
-        wrapper.setState({values: users, show: true});
+        wrapper.setState({selectedUsers: users, show: true});
         wrapper.instance().handleSubmit();
         expect(onAddCallback).toHaveBeenCalled();
         expect(wrapper.instance().props.actions.addUsersToChannel).toHaveBeenCalledTimes(0);

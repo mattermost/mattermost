@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
+
+import type {Channel} from '@mattermost/types/channels';
 
 import Markdown from 'components/markdown';
 
-import {Channel} from '@mattermost/types/channels';
-
-import LineLimiter from './components/linelimiter';
 import EditableArea from './components/editable_area';
+import LineLimiter from './components/linelimiter';
 
 const ChannelId = styled.div`
     margin-bottom: 12px;

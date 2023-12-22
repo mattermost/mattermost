@@ -4,11 +4,14 @@
 import React, {useState} from 'react';
 import {useSelector} from 'react-redux';
 
+import {isCustomStatusEnabled} from 'selectors/views/custom_status';
+
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import {isCustomStatusEnabled} from 'selectors/views/custom_status';
-import {GlobalState} from 'types/store';
+
 import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 interface ComponentProps {
     tooltipDirection?: 'top' | 'right' | 'bottom' | 'left';

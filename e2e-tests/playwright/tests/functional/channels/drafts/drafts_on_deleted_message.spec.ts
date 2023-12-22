@@ -20,9 +20,9 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     // # Create a post in the channel by admin
     const adminPost = await adminClient.createPost(
         createRandomPost({
-                channel_id: channel.id,
-                user_id: adminUser.id,
-        })
+            channel_id: channel.id,
+            user_id: adminUser.id,
+        }),
     );
 
     // # Log in as user in new browser context
@@ -33,26 +33,25 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     await channelPage.goto();
     await channelPage.toBeVisible();
 
-    const lastPostByAdmin = await channelPage.getLastPost();
+    const lastPostByAdmin = await channelPage.centerView.getLastPost();
     await lastPostByAdmin.toBeVisible();
-    
+
     // # Open the last post sent by admin in RHS
     await lastPostByAdmin.hover();
     await lastPostByAdmin.postMenu.toBeVisible();
     await lastPostByAdmin.postMenu.reply();
 
-    // # Write a message as a user
+    // # Post a message as a user
     const sidebarRight = channelPage.sidebarRight;
     await sidebarRight.toBeVisible();
-    await sidebarRight.postMessage('Replying to a thread');
-    await sidebarRight.sendMessage();
+    await sidebarRight.postCreate.postMessage('Replying to a thread');
 
     // # Write a message in the reply thread but don't send it now so that it becomes a draft
     const draftMessageByUser = 'I should be in drafts by User';
-    await sidebarRight.postMessage(draftMessageByUser);
+    await sidebarRight.postCreate.writeMessage(draftMessageByUser);
 
     // # Close the RHS for draft to be saved
-    await sidebarRight.close()
+    await sidebarRight.close();
 
     // * Verify drafts link in channel sidebar is visible
     await channelPage.sidebarLeft.draftsVisible();
@@ -68,11 +67,11 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
     await lastPostByAdmin.threadFooter.reply();
 
     // * Verify drafts in user's textbox is still visible
-    const rhsTextboxValue = await sidebarRight.getInputValue();
+    const rhsTextboxValue = await sidebarRight.postCreate.getInputValue();
     expect(rhsTextboxValue).toBe(draftMessageByUser);
 
     // # Click on remove post
-    const deletedPostByAdminInRHS = await sidebarRight.getRHSPostById(adminPost.id);
+    const deletedPostByAdminInRHS = await sidebarRight.getPostById(adminPost.id);
     await deletedPostByAdminInRHS.remove();
 
     // * Verify the drafts links should also be removed from sidebar
@@ -91,11 +90,10 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     await channelPage.toBeVisible();
 
     // # Post a message in the channel
-    await channelPage.postMessage('Message which will be deleted');
-    await channelPage.sendMessage();
+    await channelPage.centerView.postCreate.postMessage('Message which will be deleted');
 
     // # Start a thread by clicking on reply menuitem from post options menu
-    const post = await channelPage.getLastPost();
+    const post = await channelPage.centerView.getLastPost();
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.reply();
@@ -103,15 +101,14 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     const sidebarRight = channelPage.sidebarRight;
     await sidebarRight.toBeVisible();
 
-    // # Write a message in the thread
-    await sidebarRight.postMessage('Replying to a thread');
-    await sidebarRight.sendMessage();
+    // # Post a message in the thread
+    await sidebarRight.postCreate.postMessage('Replying to a thread');
 
     // # Write a message in the reply thread but don't send it
-    await sidebarRight.postMessage('I should be in drafts');
+    await sidebarRight.postCreate.writeMessage('I should be in drafts');
 
     // # Close the RHS for draft to be saved
-    await sidebarRight.close()
+    await sidebarRight.close();
 
     // * Verify drafts link in channel sidebar is visible
     await channelPage.sidebarLeft.draftsVisible();
@@ -120,8 +117,8 @@ test('MM-T5435_2 Global Drafts link in sidebar should be hidden when user delete
     await post.hover();
     await post.postMenu.toBeVisible();
     await post.postMenu.openDotMenu();
-    await channelPage.postDotMenu.toBeVisible()
-    await channelPage.postDotMenu.delete();
+    await channelPage.postDotMenu.toBeVisible();
+    await channelPage.postDotMenu.deleteMenuItem.click();
 
     // # Confirm the delete from the modal
     await channelPage.deletePostModal.toBeVisible();

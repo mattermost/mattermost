@@ -151,7 +151,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -384,7 +384,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -397,17 +397,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Connect(BlockableLink)
-      className="cancel-button"
+    <Connect(Component)
+      className="btn btn-tertiary"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
     <a
-      className="cancel-button reset-defaults-btn"
+      className="btn btn-quaternary"
       data-testid="resetPermissionsToDefault"
       onClick={[Function]}
     >
@@ -461,7 +461,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -695,7 +695,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -708,17 +708,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Connect(BlockableLink)
-      className="cancel-button"
+    <Connect(Component)
+      className="btn btn-tertiary"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
     <a
-      className="cancel-button reset-defaults-btn"
+      className="btn btn-quaternary"
       data-testid="resetPermissionsToDefault"
       onClick={[Function]}
     >
@@ -772,7 +772,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -1006,7 +1006,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -1019,17 +1019,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Connect(BlockableLink)
-      className="cancel-button"
+    <Connect(Component)
+      className="btn btn-tertiary"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
     <a
-      className="cancel-button reset-defaults-btn"
+      className="btn btn-quaternary"
       data-testid="resetPermissionsToDefault"
       onClick={[Function]}
     >
@@ -1083,7 +1083,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/permissions"
       />
@@ -1317,7 +1317,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -1330,17 +1330,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_system_
       saving={false}
       savingMessage="Saving Config..."
     />
-    <Connect(BlockableLink)
-      className="cancel-button"
+    <Connect(Component)
+      className="btn btn-tertiary"
       to="/admin_console/user_management/permissions"
     >
       <MemoizedFormattedMessage
         defaultMessage="Cancel"
         id="admin.permissions.permissionSchemes.cancel"
       />
-    </Connect(BlockableLink)>
+    </Connect(Component)>
     <a
-      className="cancel-button reset-defaults-btn"
+      className="btn btn-quaternary"
       data-testid="resetPermissionsToDefault"
       onClick={[Function]}
     >

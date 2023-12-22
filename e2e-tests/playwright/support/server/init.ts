@@ -24,7 +24,7 @@ export async function initSetup({
         const {adminClient, adminUser} = await getAdminClient();
         if (!adminClient) {
             throw new Error(
-                "Failed to setup admin: Check that you're able to access the server using the same admin credential."
+                "Failed to setup admin: Check that you're able to access the server using the same admin credential.",
             );
         }
 
@@ -52,7 +52,12 @@ export async function initSetup({
         // Update user preference
         const preferences: PreferenceType[] = [
             {user_id: user.id, category: 'tutorial_step', name: user.id, value: '999'},
-            {user_id: user.id, category: 'drafts', name: 'drafts_tour_tip_showed', value: JSON.stringify({drafts_tour_tip_showed: true})},
+            {
+                user_id: user.id,
+                category: 'drafts',
+                name: 'drafts_tour_tip_showed',
+                value: JSON.stringify({drafts_tour_tip_showed: true}),
+            },
             {user_id: user.id, category: 'crt_thread_pane_step', name: user.id, value: '999'},
         ];
         await userClient.savePreferences(user.id, preferences);
@@ -78,8 +83,8 @@ export async function initSetup({
             // eslint-disable-next-line no-console
             console.log(
                 chalk.green(
-                    `This failed due to the experimental fetch support in Node.js starting v18.0.0.\nYou may set environment variable: "export NODE_OPTIONS='--no-experimental-fetch'", then try again.'`
-                )
+                    `This failed due to the experimental fetch support in Node.js starting v18.0.0.\nYou may set environment variable: "export NODE_OPTIONS='--no-experimental-fetch'", then try again.'`,
+                ),
             );
         }
         expect(err, 'Should not throw an error').toBeFalsy();

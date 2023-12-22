@@ -33,6 +33,33 @@ var T TranslateFunc
 var TDefault TranslateFunc
 
 var locales = make(map[string]string)
+
+// supportedLocales is a hard-coded list of locales considered ready for production use. It must
+// be kept in sync with ../../../../webapp/channels/src/i18n/i18n.jsx.
+var supportedLocales = []string{
+	"de",
+	"en",
+	"en-AU",
+	"es",
+	"fr",
+	"it",
+	"hu",
+	"nl",
+	"pl",
+	"pt-BR",
+	"ro",
+	"sv",
+	"vi",
+	"tr",
+	"bg",
+	"ru",
+	"uk",
+	"fa",
+	"ko",
+	"zh-CN",
+	"zh-TW",
+	"ja",
+}
 var defaultServerLocale string
 var defaultClientLocale string
 
@@ -58,7 +85,7 @@ func InitTranslations(serverLocale, clientLocale string) error {
 	defaultClientLocale = clientLocale
 
 	var err error
-	T, err = getTranslationsBySystemLocale()
+	T, err = GetTranslationsBySystemLocale()
 	return err
 }
 
@@ -67,7 +94,13 @@ func initTranslationsWithDir(dir string) error {
 	for _, f := range files {
 		if filepath.Ext(f.Name()) == ".json" {
 			filename := f.Name()
-			locales[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
+
+			locale := strings.Split(filename, ".")[0]
+			if !isSupportedLocale(locale) {
+				continue
+			}
+
+			locales[locale] = filepath.Join(dir, filename)
 
 			if err := i18n.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
 				return err
@@ -89,8 +122,13 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 			continue
 		}
 
+		locale := strings.Split(f.Name(), ".")[0]
+		if !isSupportedLocale(locale) {
+			continue
+		}
+
 		filename := f.Name()
-		availableLocals[strings.Split(filename, ".")[0]] = filepath.Join(dir, filename)
+		availableLocals[locale] = filepath.Join(dir, filename)
 		if err := bundle.LoadTranslationFile(filepath.Join(dir, filename)); err != nil {
 			return nil, err
 		}
@@ -113,10 +151,15 @@ func GetTranslationFuncForDir(dir string) (TranslationFuncByLocal, error) {
 	}, nil
 }
 
-func getTranslationsBySystemLocale() (TranslateFunc, error) {
+func GetTranslationsBySystemLocale() (TranslateFunc, error) {
 	locale := defaultServerLocale
 	if _, ok := locales[locale]; !ok {
-		mlog.Warn("Failed to load system translations for", mlog.String("locale", locale), mlog.String("attempting to fall back to default locale", defaultLocale))
+		mlog.Warn("Failed to load system translations for selected locale, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))
+		locale = defaultLocale
+	}
+
+	if !isSupportedLocale(locale) {
+		mlog.Warn("Selected locale is unsupported, attempting to fall back to default", mlog.String("locale", locale), mlog.String("default_locale", defaultLocale))
 		locale = defaultLocale
 	}
 
@@ -221,4 +264,14 @@ func IdentityTfunc() TranslateFunc {
 	return func(translationID string, args ...any) string {
 		return translationID
 	}
+}
+
+func isSupportedLocale(locale string) bool {
+	for _, supportedLocale := range supportedLocales {
+		if locale == supportedLocale {
+			return true
+		}
+	}
+
+	return false
 }

@@ -4,8 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientLicense} from '@mattermost/types/config';
-import {Role} from '@mattermost/types/roles';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 

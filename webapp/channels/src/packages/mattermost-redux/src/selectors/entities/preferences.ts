@@ -1,20 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {General, Preferences} from 'mattermost-redux/constants';
+import {CollapsedThreads} from '@mattermost/types/config';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {GlobalState} from '@mattermost/types/store';
 
+import {General, Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-
-import {PreferenceType} from '@mattermost/types/preferences';
-import {GlobalState} from '@mattermost/types/store';
-
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
-import {CollapsedThreads} from '@mattermost/types/config';
 
 export function getMyPreferences(state: GlobalState): { [x: string]: PreferenceType } {
     return state.entities.preferences.myPreferences;
@@ -248,17 +244,6 @@ export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableOnboardingFlow === 'true';
 }
 
-export function insightsAreEnabled(state: GlobalState): boolean {
-    const isConfiguredForFeature = getConfig(state).InsightsEnabled === 'true';
-    const featureIsEnabled = getFeatureFlagValue(state, 'InsightsEnabled') === 'true';
-    const currentUserIsGuest = isGuest(getCurrentUser(state).roles);
-    return featureIsEnabled && isConfiguredForFeature && !currentUserIsGuest;
-}
-
-export function isGraphQLEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'GraphQL') === 'true';
-}
-
 export function getHasDismissedSystemConsoleLimitReached(state: GlobalState): boolean {
     return getBool(state, Preferences.CATEGORY_UPGRADE_CLOUD, Preferences.SYSTEM_CONSOLE_LIMIT_REACHED, false);
 }
@@ -289,4 +274,12 @@ export function deprecateCloudFree(state: GlobalState): boolean {
 
 export function cloudReverseTrial(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
+}
+
+export function moveThreadsEnabled(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'MoveThreadsEnabled') === 'true';
+}
+
+export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
 }

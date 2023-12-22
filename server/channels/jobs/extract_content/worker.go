@@ -8,6 +8,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -19,18 +20,18 @@ var ignoredFiles = map[string]bool{
 	"mkv": true,
 }
 
-const jobName = "ExtractContent"
-
 type AppIface interface {
-	ExtractContentFromFileInfo(fileInfo *model.FileInfo) error
+	ExtractContentFromFileInfo(rctx request.CTX, fileInfo *model.FileInfo) error
 }
 
-func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) *jobs.SimpleWorker {
+	const workerName = "ExtractContent"
+
 	isEnabled := func(cfg *model.Config) bool {
 		return true
 	}
-	execute := func(job *model.Job) error {
-		jobServer.HandleJobPanic(job)
+	execute := func(logger mlog.LoggerIFace, job *model.Job) error {
+		jobServer.HandleJobPanic(logger, job)
 
 		var err error
 		var fromTS int64
@@ -65,10 +66,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) mode
 			}
 			for _, fileInfo := range fileInfos {
 				if !ignoredFiles[fileInfo.Extension] {
-					mlog.Debug("extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
-					err = app.ExtractContentFromFileInfo(fileInfo)
+					logger.Debug("Extracting file", mlog.String("filename", fileInfo.Name), mlog.String("filepath", fileInfo.Path))
+
+					err = app.ExtractContentFromFileInfo(request.EmptyContext(logger), fileInfo)
 					if err != nil {
-						mlog.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))
+						logger.Warn("Failed to extract file content", mlog.Err(err), mlog.String("file_info_id", fileInfo.Id))
 						nErrs++
 					}
 					nFiles++
@@ -85,10 +87,10 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface, store store.Store) mode
 		job.Data["processed"] = strconv.Itoa(nFiles)
 
 		if err := jobServer.UpdateInProgressJobData(job); err != nil {
-			mlog.Error("Worker: Failed to update job data", mlog.String("worker", model.JobTypeExtractContent), mlog.String("job_id", job.Id), mlog.Err(err))
+			logger.Error("Worker: Failed to update job data", mlog.Err(err))
 		}
 		return nil
 	}
-	worker := jobs.NewSimpleWorker(jobName, jobServer, execute, isEnabled)
+	worker := jobs.NewSimpleWorker(workerName, jobServer, execute, isEnabled)
 	return worker
 }

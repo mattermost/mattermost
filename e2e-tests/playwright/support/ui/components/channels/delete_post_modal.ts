@@ -9,7 +9,7 @@ export default class DeletePostModal {
 
     constructor(container: Locator) {
         this.container = container;
-        this.confirmButton = this.container.locator('#deletePostModalButton');
+        this.confirmButton = container.locator('#deletePostModalButton');
     }
 
     async toBeVisible() {

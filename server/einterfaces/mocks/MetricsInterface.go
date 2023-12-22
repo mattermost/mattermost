@@ -210,7 +210,7 @@ func (_m *MetricsInterface) IncrementUserIndexCounter() {
 }
 
 // IncrementWebSocketBroadcast provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType string) {
+func (_m *MetricsInterface) IncrementWebSocketBroadcast(eventType model.WebsocketEventType) {
 	_m.Called(eventType)
 }
 
@@ -230,7 +230,7 @@ func (_m *MetricsInterface) IncrementWebhookPost() {
 }
 
 // IncrementWebsocketEvent provides a mock function with given fields: eventType
-func (_m *MetricsInterface) IncrementWebsocketEvent(eventType string) {
+func (_m *MetricsInterface) IncrementWebsocketEvent(eventType model.WebsocketEventType) {
 	_m.Called(eventType)
 }
 
@@ -239,9 +239,9 @@ func (_m *MetricsInterface) IncrementWebsocketReconnectEvent(eventType string) {
 	_m.Called(eventType)
 }
 
-// ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, elapsed
-func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, elapsed float64) {
-	_m.Called(endpoint, method, statusCode, elapsed)
+// ObserveAPIEndpointDuration provides a mock function with given fields: endpoint, method, statusCode, originClient, pageLoadContext, elapsed
+func (_m *MetricsInterface) ObserveAPIEndpointDuration(endpoint string, method string, statusCode string, originClient string, pageLoadContext string, elapsed float64) {
+	_m.Called(endpoint, method, statusCode, originClient, pageLoadContext, elapsed)
 }
 
 // ObserveClusterRequestDuration provides a mock function with given fields: elapsed

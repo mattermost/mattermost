@@ -4,31 +4,31 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {
+import type {ChannelWithTeamData} from '@mattermost/types/channels';
+import type {
     DataRetentionCustomPolicy,
     CreateDataRetentionCustomPolicy,
     PatchDataRetentionCustomPolicy,
 } from '@mattermost/types/data_retention';
-import {Team} from '@mattermost/types/teams';
-import {IDMappedObjects} from '@mattermost/types/utilities';
-import {ChannelWithTeamData} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
-import * as Utils from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-import {ItemStatus} from 'utils/constants';
-
-import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
-import Card from 'components/card/card';
 import BlockableLink from 'components/admin_console/blockable_link';
-import Input from 'components/widgets/inputs/input/input';
-import TeamSelectorModal from 'components/team_selector_modal';
-import ChannelSelectorModal from 'components/channel_selector_modal';
-import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
-import SaveButton from 'components/save_button';
-import TeamList from 'components/admin_console/data_retention_settings/team_list';
 import ChannelList from 'components/admin_console/data_retention_settings/channel_list';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
+import TeamList from 'components/admin_console/data_retention_settings/team_list';
+import Card from 'components/card/card';
+import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
+import ChannelSelectorModal from 'components/channel_selector_modal';
+import SaveButton from 'components/save_button';
+import TeamSelectorModal from 'components/team_selector_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
+import DropdownInputHybrid from 'components/widgets/inputs/dropdown_input_hybrid';
+import Input from 'components/widgets/inputs/input/input';
+
+import {getHistory} from 'utils/browser_history';
+import {ItemStatus} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 import './custom_policy_form.scss';
 

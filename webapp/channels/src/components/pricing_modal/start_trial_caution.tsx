@@ -2,11 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
+
+import ExternalLink from 'components/external_link';
 
 import {AboutLinks, LicenseLinks} from 'utils/constants';
-import ExternalLink from 'components/external_link';
 
 const ContainerSpan = styled.span`
 font-style: normal;

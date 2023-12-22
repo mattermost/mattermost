@@ -18,7 +18,7 @@ const webhookUtils = require('../../../../utils/webhook_utils');
 
 describe('Interactive Dialog', () => {
     const inputTypes = {
-        realname: 'input',
+        realname: 'text',
         someemail: 'email',
         somenumber: 'number',
         somepassword: 'password',
@@ -101,7 +101,7 @@ describe('Interactive Dialog', () => {
                     cy.wrap($elForm).find('#suggestionList').scrollIntoView().should('be.visible');
 
                     // # Click field label to close any opened drop-downs
-                    cy.wrap($elForm).find('label.control-label').scrollIntoView().click();
+                    cy.wrap($elForm).find('label.control-label').scrollIntoView().click({force: true});
                 } else if (element.name === 'someradiooptions') {
                     cy.wrap($elForm).find('input').should('be.visible').and('have.length', optionsLength[element.name]);
 

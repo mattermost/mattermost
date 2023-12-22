@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {debounce} from 'lodash';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {debounce} from 'lodash';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {
+import type {
     LogFilter,
     LogLevels,
     LogObject,
     LogServerNames,
 } from '@mattermost/types/admin';
+
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 

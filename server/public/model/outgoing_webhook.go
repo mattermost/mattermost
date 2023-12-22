@@ -96,7 +96,6 @@ func (o *OutgoingWebhookPayload) ToFormValues() string {
 }
 
 func (o *OutgoingWebhook) IsValid() *AppError {
-
 	if !IsValidId(o.Id) {
 		return NewAppError("OutgoingWebhook.IsValid", "model.outgoing_hook.is_valid.id.app_error", nil, "", http.StatusBadRequest)
 	}

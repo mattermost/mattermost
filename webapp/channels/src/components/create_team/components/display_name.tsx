@@ -4,13 +4,13 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
+
+import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
-import logoImage from 'images/logo.png';
-import NextIcon from 'components/widgets/icons/fa_next_icon';
 
 type CreateTeamState = {
     team?: Partial<Team>;
@@ -148,7 +148,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                             id='create_team.display_name.next'
                             defaultMessage='Next'
                         />
-                        <NextIcon/>
+                        <i className='icon icon-chevron-right'/>
                     </button>
                 </form>
             </div>

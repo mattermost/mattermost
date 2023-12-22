@@ -4,11 +4,12 @@
 import React from 'react';
 import * as reactRedux from 'react-redux';
 
-import {FileSizes} from 'utils/file_utils';
-import {CloudProducts, Preferences, CloudBanners} from 'utils/constants';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import {CloudProducts, Preferences, CloudBanners} from 'utils/constants';
+import {FileSizes} from 'utils/file_utils';
 
 import CloudTrialEndAnnouncementBar from './index';
 

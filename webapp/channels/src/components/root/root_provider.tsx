@@ -3,10 +3,9 @@
 
 import React from 'react';
 
-import WebSocketClient from 'client/web_websocket_client';
-
 import IntlProvider from 'components/intl_provider';
 
+import WebSocketClient from 'client/web_websocket_client';
 import {WebSocketContext} from 'utils/use_websocket';
 
 type Props = {

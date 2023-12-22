@@ -151,7 +151,6 @@ func TestGetRemoteClusterById(t *testing.T) {
 		require.Error(t, err)
 		CheckNotFoundStatus(t, resp)
 	})
-
 }
 
 func TestCreateDirectChannelWithRemoteUser(t *testing.T) {

@@ -8,13 +8,15 @@ import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {GlobalState} from 'types/store';
 import {makeGetCustomStatus, isCustomStatusEnabled, isCustomStatusExpired} from 'selectors/views/custom_status';
 
-import Constants from 'utils/constants';
+import RenderEmoji from 'components/emoji/render_emoji';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import RenderEmoji from 'components/emoji/render_emoji';
+
+import Constants from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import ExpiryTime from './expiry_time';
 

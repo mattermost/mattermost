@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
-import MultiSelect, {Value} from './multiselect';
-import MultiSelectList, {Props as MultiSelectProps} from './multiselect_list';
+import MultiSelect from './multiselect';
+import type {Value} from './multiselect';
+import MultiSelectList from './multiselect_list';
+import type {Props as MultiSelectProps} from './multiselect_list';
 
 const element = () => <div/>;
 

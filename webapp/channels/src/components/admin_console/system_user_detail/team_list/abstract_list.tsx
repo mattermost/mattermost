@@ -4,12 +4,12 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import NextIcon from 'components/widgets/icons/fa_next_icon';
 import PreviousIcon from 'components/widgets/icons/fa_previous_icon';
 
-import {TeamWithMembership} from './types';
+import type {TeamWithMembership} from './types';
 
 import './abstract_list.scss';
 
@@ -161,7 +161,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                         </div>
                         <button
                             type='button'
-                            className={'btn btn-link prev ' + (firstPage ? 'disabled' : '')}
+                            className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
                             onClick={firstPage ? () => null : this.previousPage}
                             disabled={firstPage}
                         >
@@ -169,7 +169,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                         </button>
                         <button
                             type='button'
-                            className={'btn btn-link next ' + (lastPage ? 'disabled' : '')}
+                            className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
                             onClick={lastPage ? () => null : this.nextPage}
                             disabled={lastPage}
                         >

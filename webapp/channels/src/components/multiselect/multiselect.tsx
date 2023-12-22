@@ -1,18 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
+import classNames from 'classnames';
+import React from 'react';
+import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
-
-import {InputActionMeta} from 'react-select/src/types';
-import {getOptionValue} from 'react-select/src/builtins';
-
-import classNames from 'classnames';
+import type {getOptionValue} from 'react-select/src/builtins';
+import type {InputActionMeta} from 'react-select/src/types';
 
 import LocalizedIcon from 'components/localized_icon';
-import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import SaveButton from 'components/save_button';
+import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_icon';
 import Avatar from 'components/widgets/users/avatar';
 
 import {Constants, A11yCustomEventTypes} from 'utils/constants';
@@ -362,7 +361,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                 if (options.length > pageEnd) {
                     nextButton = (
                         <button
-                            className='btn btn-link filter-control filter-control__next'
+                            className='btn btn-tertiary filter-control filter-control__next'
                             onClick={this.nextPage}
                         >
                             <FormattedMessage
@@ -376,7 +375,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                 if (this.state.page > 0) {
                     previousButton = (
                         <button
-                            className='btn btn-link filter-control filter-control__prev'
+                            className='btn btn-tertiary filter-control filter-control__prev'
                             onClick={this.prevPage}
                         >
                             <FormattedMessage
@@ -524,7 +523,7 @@ export default class MultiSelect<T extends Value> extends React.PureComponent<Pr
                                         this.props.backButtonClick();
                                     }
                                 }}
-                                className={classNames('btn', this.props.backButtonClass)}
+                                className={classNames('btn btn-tertiary', this.props.backButtonClass)}
                             >
                                 {this.props.backButtonText || localizeMessage('multiselect.backButton', 'Back')}
                             </button>

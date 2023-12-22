@@ -1,19 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Team} from '@mattermost/types/teams';
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile} from '@mattermost/types/users';
+import type {ServerError} from '@mattermost/types/errors';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {TeamTypes} from 'mattermost-redux/action_types';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelStats} from 'mattermost-redux/actions/channels';
-import * as TeamActions from 'mattermost-redux/actions/teams';
-import {getUser} from 'mattermost-redux/actions/users';
+import {logError} from 'mattermost-redux/actions/errors';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
+import * as TeamActions from 'mattermost-redux/actions/teams';
 import {selectTeam} from 'mattermost-redux/actions/teams';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {getUser} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getHistory} from 'utils/browser_history';
 import {Preferences} from 'utils/constants';
@@ -112,5 +114,21 @@ export function updateTeamsOrderForUser(teamIds: Array<Team['id']>) {
             value: teamIds.join(','),
         }];
         dispatch(savePreferences(currentUserId, teamOrderPreferences));
+    };
+}
+
+export function getGroupMessageMembersCommonTeams(channelId: string): ActionFunc<Team[], ServerError> {
+    return async (dispatch) => {
+        let teams: Team[];
+
+        try {
+            const response = await Client4.getGroupMessageMembersCommonTeams(channelId);
+            teams = response.data;
+        } catch (error) {
+            dispatch(logError(error as ServerError));
+            return {error: error as ServerError};
+        }
+
+        return {data: teams};
     };
 }

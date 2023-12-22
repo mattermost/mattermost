@@ -2,21 +2,24 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
 
 import {getGroupsNotAssociatedToChannel, linkGroupSyncable, getAllGroupsAssociatedToChannel, getAllGroupsAssociatedToTeam} from 'mattermost-redux/actions/groups';
 import {getTeam} from 'mattermost-redux/actions/teams';
-import {getGroupsNotAssociatedToChannel as selectGroupsNotAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getGroupsNotAssociatedToChannel as selectGroupsNotAssociatedToChannel} from 'mattermost-redux/selectors/entities/groups';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
-import {Channel} from '@mattermost/types/channels';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {Group} from '@mattermost/types/groups';
-
-import {GlobalState} from 'types/store';
 import {setModalSearchTerm} from 'actions/views/search';
 
-import AddGroupsToChannelModal, {Props} from './add_groups_to_channel_modal';
+import type {GlobalState} from 'types/store';
+
+import AddGroupsToChannelModal from './add_groups_to_channel_modal';
+import type {Props} from './add_groups_to_channel_modal';
 
 type OwnProps = {
     channel: Channel;

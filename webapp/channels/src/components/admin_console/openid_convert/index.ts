@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+
+import type {AdminConfig} from '@mattermost/types/config';
 
 import {updateConfig} from 'mattermost-redux/actions/admin';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {AdminConfig} from '@mattermost/types/config';
+import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import OpenIdConvert from './openid_convert';
 

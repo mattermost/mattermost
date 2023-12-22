@@ -2,8 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
+
+import {trackEvent} from 'actions/telemetry_actions';
+
+import ExternalLink from 'components/external_link';
 
 import {
     TELEMETRY_CATEGORIES,
@@ -11,9 +14,6 @@ import {
     CloudLinks,
     LicenseLinks,
 } from 'utils/constants';
-
-import {trackEvent} from 'actions/telemetry_actions';
-import ExternalLink from 'components/external_link';
 
 type Props = {
     isCloud: boolean;

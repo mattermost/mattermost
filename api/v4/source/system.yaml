@@ -73,19 +73,6 @@
                 $ref: "#/components/schemas/SystemStatusResponse"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetPing
-            status, resp := Client.GetPing()
-
-            // Get server status with database and storage checks
-            status, resp = Client.GetPingWithServerStatus()
   "/api/v4/system/notices/{teamId}":
     get:
       tags:
@@ -137,15 +124,6 @@
 
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            notices, resp := Client.GetNotices(0, teamId, "mobile-android", "1.2.3", "enUS")
   /api/v4/system/notices/view:
     put:
       tags:
@@ -178,17 +156,6 @@
                 $ref: "#/components/schemas/StatusOK"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            notices := []string{"id1","id2"}
-            resp := Client.MarkNoticesViewed(notices)
-
   /api/v4/database/recycle:
     post:
       tags:
@@ -211,15 +178,6 @@
                 $ref: "#/components/schemas/StatusOK"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            ok, resp := Client.DatabaseRecycle()
   /api/v4/email/test:
     post:
       tags:
@@ -253,25 +211,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            config := model.Config{
-              EmailSettings: model.EmailSettings{
-                SMTPServer:    <SMTPServer>,
-                SMTPPort:      <SMTPPort>,
-                SMTPUsername:  <SMTPUsername>,
-                SMTPPassword:  <SMTPPassword>,
-              },
-            }
-
-            // TestEmail
-            ok, resp := Client.TestEmail(&config)
   /api/v4/site_url/test:
     post:
       tags:
@@ -314,18 +253,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            siteURL := "https://your-new-mattermost-url.com"
-
-            // TestSiteURL
-            ok, resp := Client.TestSiteURL(siteUrl)
   /api/v4/file/s3_test:
     post:
       tags:
@@ -361,26 +288,6 @@
           $ref: "#/components/responses/Forbidden"
         "500":
           $ref: "#/components/responses/InternalServerError"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            config := model.Config{
-              FileSettings: model.FileSettings{
-                DriverName:              model.NewString(model.IMAGE_DRIVER_S3),
-                AmazonS3AccessKeyId:     <AmazonS3AccessKeyId>,
-                AmazonS3SecretAccessKey: <AmazonS3SecretAccessKey>,
-                AmazonS3Bucket:          <AmazonS3Bucket>,
-                AmazonS3Endpoint:        <AmazonS3Endpoint>
-              },
-            }
-
-            // TestS3Connection
-            ok, resp := Client.TestS3Connection(&config)
   /api/v4/config:
     get:
       tags:
@@ -402,16 +309,6 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetConfig
-            config, resp := Client.GetConfig()
     put:
       tags:
         - system
@@ -449,21 +346,6 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetConfig
-            config, resp := Client.GetConfig()
-
-            config.TeamSettings.SiteName = "MyFancyName"
-
-            // UpdateConfig
-            updatedConfig, resp := Client.UpdateConfig(config)
   /api/v4/config/reload:
     post:
       tags:
@@ -485,16 +367,6 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // ReloadConfig
-            ok, resp := Client.ReloadConfig()
   /api/v4/config/client:
     get:
       tags:
@@ -519,16 +391,6 @@
           $ref: "#/components/responses/BadRequest"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetOldClientConfig
-            ok, resp := Client.GetOldClientConfig()
   /api/v4/config/environment:
     get:
       tags:
@@ -604,21 +466,6 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetConfig
-            config, resp := Client.GetConfig()
-
-            config.TeamSettings.SiteName = "MyFancyName"
-
-            // UpdateConfig
-            updatedConfig, resp := Client.PatchConfig(config)
   /api/v4/license:
     post:
       tags:
@@ -659,26 +506,6 @@
           $ref: "#/components/responses/Forbidden"
         "413":
           $ref: "#/components/responses/TooLarge"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            file, err := os.Open("<Your license file>")
-            if err != nil {
-              return err
-            }
-            defer file.Close()
-
-            data := &bytes.Buffer{}
-            if _, err := io.Copy(data, file); err != nil {
-              return err
-            }
-
-            ok, resp := Client.UploadLicenseFile(data.Bytes())
     delete:
       tags:
         - system
@@ -728,16 +555,6 @@
           $ref: "#/components/responses/BadRequest"
         "501":
           $ref: "#/components/responses/NotImplemented"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetOldClientLicense
-            license, resp := Client.GetOldClientLicense()
   /api/v4/license/renewal:
     get:
       tags:
@@ -803,16 +620,6 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // RequestTrialLicense
-            resp := Client.RequestTrialLicense()
   /api/v4/trial-license/prev:
     get:
       tags:
@@ -873,16 +680,6 @@
                   $ref: "#/components/schemas/Audit"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetAudits
-            audits, resp := Client.GetAudits(0, 100, "")
   /api/v4/caches/invalidate:
     post:
       tags:
@@ -906,16 +703,6 @@
                 $ref: "#/components/schemas/StatusOK"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // InvalidateCaches
-            ok, resp := Client.InvalidateCaches()
   /api/v4/logs:
     get:
       tags:
@@ -954,16 +741,6 @@
                   type: string
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // GetLogs
-            logs, resp := Client.GetLogs(0, 10)
     post:
       tags:
         - system
@@ -1006,20 +783,6 @@
                   type: string
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            message := make(map[string]string)
-            message["level"] = "ERROR"
-            message["message"] = "this is a test"
-
-            // PostLog
-            _, resp := Client.PostLog(message)
   /api/v4/analytics/old:
     get:
       tags:
@@ -1101,20 +864,6 @@
           $ref: "#/components/responses/BadRequest"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            ok, resp := Client.SetServerBusy(300)
-        - lang: curl
-          source: |
-            curl -X POST \
-              'http://your-mattermost-url.com/api/v4/server_busy?seconds=3600' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy'
     get:
       tags:
         - system
@@ -1140,22 +889,6 @@
                 $ref: "#/components/schemas/Server_Busy"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            // expires is a time.Time
-            expires, resp := Client.GetServerBusyExpires()
-        - lang: curl
-          source: |
-            curl -X GET \
-              'http://your-mattermost-url.com/api/v4/server_busy' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy' \
-              -H 'Content-Type: application/json'
     delete:
       tags:
         - system
@@ -1181,20 +914,6 @@
                 $ref: "#/components/schemas/StatusOK"
         "403":
           $ref: "#/components/responses/Forbidden"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import "github.com/mattermost/mattermost-server/v5/model"
-
-            Client := model.NewAPIv4Client("https://your-mattermost-url.com")
-            Client.Login("email@domain.com", "Password1")
-
-            ok, resp := Client.ClearServerBusy()
-        - lang: curl
-          source: |
-            curl -X DELETE \
-              'http://your-mattermost-url.com/api/v4/server_busy' \
-              -H 'Authorization: Bearer kno8tcdotpbx3dj1gzcbx9jrqy'
   /api/v4/notifications/ack:
     post:
       tags:
@@ -1498,19 +1217,6 @@
                 type: array
                 items:
                   $ref: "#/components/schemas/IntegrityCheckResult"
-      x-code-samples:
-        - lang: Go
-          source: |
-            import (
-                "net"
-                "net/http"
-
-                "github.com/mattermost/mattermost-server/v5/model"
-            )
-
-            Client := model.NewAPIv4SocketClient(socketPath)
-
-            ok, resp := Client.CheckIntegrity()
   /api/v4/system/support_packet:
     get:
       tags:

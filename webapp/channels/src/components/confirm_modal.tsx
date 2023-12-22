@@ -147,7 +147,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
             cancelButton = (
                 <button
                     type='button'
-                    className='btn btn-link btn-cancel'
+                    className='btn btn-tertiary'
                     onClick={this.handleCancel}
                     id='cancelModalButton'
                 >

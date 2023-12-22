@@ -2,20 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {Permissions} from 'mattermost-redux/constants';
-import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getConfig, getLicense, warnMetricsStatus as getWarnMetricsStatus} from 'mattermost-redux/selectors/entities/general';
-import {getDisplayableErrors} from 'mattermost-redux/selectors/errors';
-import {dismissError} from 'mattermost-redux/actions/errors';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
-import {GenericAction} from 'mattermost-redux/types/actions';
 import {getCloudSubscription, getCloudCustomer} from 'mattermost-redux/actions/cloud';
+import {dismissError} from 'mattermost-redux/actions/errors';
+import {Permissions} from 'mattermost-redux/constants';
+import {getConfig, getLicense, warnMetricsStatus as getWarnMetricsStatus} from 'mattermost-redux/selectors/entities/general';
+import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getDisplayableErrors} from 'mattermost-redux/selectors/errors';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {dismissNotice} from 'actions/views/notice';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import AnnouncementBarController from './announcement_bar_controller';
 

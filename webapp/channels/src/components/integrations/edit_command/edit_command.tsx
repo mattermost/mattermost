@@ -4,14 +4,16 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
-import {Command} from '@mattermost/types/integrations';
-import {RelationOneToOne} from '@mattermost/types/utilities';
+import type {Command} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
+
+import ConfirmModal from 'components/confirm_modal';
+import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
 import {t} from 'utils/i18n';
-import LoadingScreen from 'components/loading_screen';
-import ConfirmModal from 'components/confirm_modal';
+
 import AbstractCommand from '../abstract_command';
 
 const HEADER = {id: t('integrations.edit'), defaultMessage: 'Edit'};

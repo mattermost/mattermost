@@ -1,28 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createRef, RefObject} from 'react';
+import React, {createRef} from 'react';
+import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
 
-import {AdminConfig} from '@mattermost/types/config';
-import {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {JobTypeBase, JobType} from '@mattermost/types/jobs';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {JobTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import JobsTable from 'components/admin_console/jobs';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import JobsTable from 'components/admin_console/jobs';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
+import {getHistory} from 'utils/browser_history';
+import {JobTypes} from 'utils/constants';
+import * as Utils from 'utils/utils';
 
 import './data_retention_settings.scss';
 
@@ -69,7 +71,6 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         this.loadPage(0);
     };
 
-    includeBoards = this.props.config.PluginSettings?.PluginStates?.focalboard?.Enable && this.props.config.FeatureFlags?.BoardsDataRetention;
     getGlobalPolicyColumns = (): Column[] => {
         const columns: Column[] = [
             {
@@ -100,19 +101,6 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 field: 'files',
             },
         ];
-        if (this.includeBoards) {
-            columns.push(
-                {
-                    name: (
-                        <FormattedMessage
-                            id='admin.data_retention.globalPoliciesTable.boards'
-                            defaultMessage='Boards'
-                        />
-                    ),
-                    field: 'boards',
-                },
-            );
-        }
         columns.push(
             {
                 name: '',
@@ -203,11 +191,6 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 files: (
                     <div data-testid='global_file_retention_cell'>
                         {this.getMessageRetentionSetting(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionDays)}
-                    </div>
-                ),
-                boards: (
-                    <div data-testid='global_boards_retention_cell'>
-                        {this.getMessageRetentionSetting(DataRetentionSettings?.EnableBoardsDeletion, DataRetentionSettings?.BoardsRetentionDays)}
                     </div>
                 ),
                 actions: (
@@ -599,7 +582,7 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                                                 id='admin.data_retention.createJob.instructions'
                                                 defaultMessage='Daily time to check policies and run delete job:'
                                             />
-                                            {this.state.showEditJobTime ?
+                                            {this.state.showEditJobTime ? (
                                                 <ReactSelect
                                                     id={'JobSelectTime'}
                                                     className={'JobSelectTime'}
@@ -633,13 +616,14 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                                                         this.showEditJobTime(true);
                                                     }}
                                                     menuIsOpen={this.state.showEditJobTime}
-                                                /> :
+                                                />
+                                            ) : (
                                                 <span
                                                     className='JobSelectedtime'
                                                 >
                                                     <b>{this.getJobStartTime()}</b>
                                                 </span>
-                                            }
+                                            )}
                                             <a
                                                 className='EditJobTime'
                                                 onClick={() => this.showEditJobTime(true)}

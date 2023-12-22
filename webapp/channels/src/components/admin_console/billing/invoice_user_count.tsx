@@ -4,7 +4,8 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Invoice, InvoiceLineItemType} from '@mattermost/types/cloud';
+import {InvoiceLineItemType} from '@mattermost/types/cloud';
+import type {Invoice} from '@mattermost/types/cloud';
 
 import {numberToFixedDynamic} from 'utils/utils';
 

@@ -10,11 +10,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
+func (a *App) SaveAcknowledgementForPost(c request.CTX, postID, userID string) (*model.PostAcknowledgement, *model.AppError) {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return nil, err
@@ -55,7 +55,7 @@ func (a *App) SaveAcknowledgementForPost(c *request.Context, postID, userID stri
 	return acknowledgement, nil
 }
 
-func (a *App) DeleteAcknowledgementForPost(c *request.Context, postID, userID string) *model.AppError {
+func (a *App) DeleteAcknowledgementForPost(c request.CTX, postID, userID string) *model.AppError {
 	post, err := a.GetSinglePost(postID, false)
 	if err != nil {
 		return err
@@ -126,7 +126,7 @@ func (a *App) GetAcknowledgementsForPostList(postList *model.PostList) (map[stri
 	return acknowledgementsMap, nil
 }
 
-func (a *App) sendAcknowledgementEvent(event string, acknowledgement *model.PostAcknowledgement, post *model.Post) {
+func (a *App) sendAcknowledgementEvent(event model.WebsocketEventType, acknowledgement *model.PostAcknowledgement, post *model.Post) {
 	// send out that a acknowledgement has been added/removed
 	message := model.NewWebSocketEvent(event, "", post.ChannelId, "", nil, "")
 

@@ -1,27 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {shallow} from 'enzyme';
 import React from 'react';
-import {shallow, mount} from 'enzyme';
 import {IntlProvider} from 'react-intl';
-
 import {MemoryRouter} from 'react-router-dom';
+
+import type {ClientConfig} from '@mattermost/types/config';
+
+import {RequestStatus} from 'mattermost-redux/constants';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
+
+import LocalStorageStore from 'stores/local_storage_store';
 
 import AlertBanner from 'components/alert_banner';
 import ExternalLoginButton from 'components/external_login_button/external_login_button';
 import Login from 'components/login/login';
+import SaveButton from 'components/save_button';
 import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
-import SaveButton from 'components/save_button';
 
-import {RequestStatus} from 'mattermost-redux/constants';
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import LocalStorageStore from 'stores/local_storage_store';
-import {GlobalState} from 'types/store';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import Constants, {WindowSizes} from 'utils/constants';
 
-import {ClientConfig} from '@mattermost/types/config';
+import type {GlobalState} from 'types/store';
 
 let mockState: GlobalState;
 let mockLocation = {pathname: '', search: '', hash: ''};
@@ -151,7 +153,7 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(true);
         mockConfig.EnableSignInWithEmail = 'true';
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <MemoryRouter><Login/></MemoryRouter>,
         );
 
@@ -173,7 +175,7 @@ describe('components/login/Login', () => {
             messages: {},
         };
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <IntlProvider {...intlProviderProps}>
                 <MemoryRouter>
                     <Login/>
@@ -194,7 +196,7 @@ describe('components/login/Login', () => {
             messages: {},
         };
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <IntlProvider {...intlProviderProps}>
                 <Login/>
             </IntlProvider>,
@@ -209,7 +211,7 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(true);
         mockConfig.EnableSignInWithEmail = 'true';
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <MemoryRouter>
                 <Login/>
             </MemoryRouter>,
@@ -230,7 +232,7 @@ describe('components/login/Login', () => {
         LocalStorageStore.setWasLoggedIn(true);
         mockConfig.EnableSignInWithEmail = 'true';
 
-        const wrapper = mount(
+        const wrapper = mountWithIntl(
             <MemoryRouter>
                 <Login/>
             </MemoryRouter>,
@@ -296,7 +298,7 @@ describe('components/login/Login', () => {
         mockConfig.EnableSignInWithEmail = 'true';
         const redirectPath = '/boards/team/teamID/boardID';
         mockLocation.search = '?redirect_to=' + redirectPath;
-        mount(
+        mountWithIntl(
             <MemoryRouter>
                 <Login/>
             </MemoryRouter>,

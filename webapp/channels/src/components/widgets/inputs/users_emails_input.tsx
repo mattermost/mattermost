@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
-import {FormattedMessage} from 'react-intl';
-import {components, FormatOptionLabelMeta, InputActionMeta, InputProps, OptionsType, Styles, ValueType} from 'react-select';
-import AsyncCreatable from 'react-select/async-creatable';
 import classNames from 'classnames';
+import React from 'react';
+import type {RefObject} from 'react';
+import {FormattedMessage} from 'react-intl';
+import {components} from 'react-select';
+import type {FormatOptionLabelMeta, InputActionMeta, InputProps, OptionsType, Styles, ValueType} from 'react-select';
+import AsyncCreatable from 'react-select/async-creatable';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {isEmail} from 'mattermost-redux/utils/helpers';
@@ -18,9 +20,9 @@ import CloseCircleSolidIcon from 'components/widgets/icons/close_circle_solid_ic
 import MailIcon from 'components/widgets/icons/mail_icon';
 import MailPlusIcon from 'components/widgets/icons/mail_plus_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import Avatar from 'components/widgets/users/avatar';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
+import Avatar from 'components/widgets/users/avatar';
 
 import {t} from 'utils/i18n';
 import {getDisplayName, getLongDisplayNameParts, imageURLForUser} from 'utils/utils';

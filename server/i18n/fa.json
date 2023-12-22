@@ -584,10 +584,6 @@
     "translation": "مقدارcreate_at نامعتبر است."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "رمزگشایی gif امکان پذیر نیست."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "شناسه سازنده نامعتبر است."
   },
@@ -6564,10 +6560,6 @@
     "translation": "نمی توان پستی را در کانال حذف شده به روز کرد."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "پیش نمایش پیوند توسط مدیر سیستم غیرفعال شده است."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "{{.Count}} تصویر ارسالی: {{.Filenames}}",
@@ -7879,10 +7871,6 @@
   {
     "id": "api.command_invite.hint",
     "translation": "@[username]... ~[channel]..."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "این کانال توسط گروه ها مدیریت می شود. این کاربر بخشی از گروهی نیست که با این کانال همگام سازی شده باشد."
   },
   {
     "id": "api.command_invite.fail.app_error",

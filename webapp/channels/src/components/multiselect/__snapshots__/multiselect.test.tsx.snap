@@ -96,7 +96,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
           }
         />
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Save"
@@ -188,7 +188,7 @@ exports[`components/multiselect/multiselect MultiSelectList should match snapsho
       className="filter-controls"
     >
       <button
-        className="btn btn-link filter-control filter-control__next"
+        className="btn btn-tertiary filter-control filter-control__next"
         onClick={[Function]}
       >
         <MemoizedFormattedMessage
@@ -297,7 +297,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
           }
         />
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Save"
@@ -380,7 +380,7 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
       className="filter-controls"
     >
       <button
-        className="btn btn-link filter-control filter-control__next"
+        className="btn btn-tertiary filter-control filter-control__next"
         onClick={[Function]}
       >
         <MemoizedFormattedMessage
@@ -489,7 +489,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
           }
         />
         <SaveButton
-          btnClass="btn-primary"
+          btnClass=""
           defaultMessage={
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Save"
@@ -562,7 +562,7 @@ exports[`components/multiselect/multiselect should match snapshot for page 2 1`]
       className="filter-controls"
     >
       <button
-        className="btn btn-link filter-control filter-control__prev"
+        className="btn btn-tertiary filter-control filter-control__prev"
         onClick={[Function]}
       >
         <MemoizedFormattedMessage

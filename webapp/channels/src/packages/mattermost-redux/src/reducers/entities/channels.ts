@@ -1,16 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
 import {isEqual} from 'lodash';
+import {combineReducers} from 'redux';
 
-import {AdminTypes, ChannelTypes, UserTypes, SchemeTypes, GroupTypes, PostTypes} from 'mattermost-redux/action_types';
-
-import {General} from 'mattermost-redux/constants';
-import {MarkUnread} from 'mattermost-redux/constants/channels';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {
+import type {
     Channel,
     ChannelMembership,
     ChannelStats,
@@ -18,16 +12,19 @@ import {
     ChannelMemberCountsByGroup,
     ServerChannel,
 } from '@mattermost/types/channels';
-import {
+import type {Group} from '@mattermost/types/groups';
+import type {Team} from '@mattermost/types/teams';
+import type {
     RelationOneToMany,
     RelationOneToOne,
     IDMappedObjects,
 } from '@mattermost/types/utilities';
 
-import {Team} from '@mattermost/types/teams';
+import {AdminTypes, ChannelTypes, UserTypes, SchemeTypes, GroupTypes, PostTypes} from 'mattermost-redux/action_types';
+import {General} from 'mattermost-redux/constants';
+import {MarkUnread} from 'mattermost-redux/constants/channels';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 import {channelListToMap, splitRoles} from 'mattermost-redux/utils/channel_utils';
-
-import {Group} from '@mattermost/types/groups';
 
 import messageCounts from './channels/message_counts';
 
@@ -713,6 +710,22 @@ function stats(state: RelationOneToOne<Channel, ChannelStats> = {}, action: Gene
     }
 }
 
+function channelsMemberCount(state: Record<string, number> = {}, action: GenericAction) {
+    switch (action.type) {
+    case ChannelTypes.RECEIVED_CHANNELS_MEMBER_COUNT: {
+        const memberCount = action.data;
+        return {
+            ...state,
+            ...memberCount,
+        };
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+    default:
+        return state;
+    }
+}
+
 function groupsAssociatedToChannel(state: any = {}, action: GenericAction) {
     switch (action.type) {
     case GroupTypes.RECEIVED_ALL_GROUPS_ASSOCIATED_TO_CHANNELS_IN_TEAM: {
@@ -989,4 +1002,7 @@ export default combineReducers({
 
     // object where every key is the channel id mapping to an object containing the number of messages in the channel
     messageCounts,
+
+    // object where key is the channel id and value is the member count for the channel
+    channelsMemberCount,
 });

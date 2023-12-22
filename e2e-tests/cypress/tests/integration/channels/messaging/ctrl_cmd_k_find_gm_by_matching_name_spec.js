@@ -42,6 +42,7 @@ describe('Messaging', () => {
         cy.apiCreateGroupChannel([firstUser.id, secondUser.id, thirdUser.id]).then(({channel}) => {
             // # Visit the newly created group message
             cy.visit(`/${testTeam.name}/channels/${channel.name}`);
+            cy.postMessage('hello');
 
             // # Go to off-topic
             cy.get('#sidebarItem_off-topic').click();

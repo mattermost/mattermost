@@ -49,7 +49,6 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
       hasMention={false}
       hide={[Function]}
       isBusy={true}
-      isRHS={false}
       src="http://example.com/image.png"
       userId="uid"
     />

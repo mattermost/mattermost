@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme, ThemeKey} from 'mattermost-redux/selectors/entities/preferences';
 
 const Preferences = {
     APP_BAR: 'app_bar',
@@ -66,10 +66,6 @@ const Preferences = {
     UNREAD_SCROLL_POSITION: 'unread_scroll_position',
     UNREAD_SCROLL_POSITION_START_FROM_LEFT: 'start_from_left_off',
     UNREAD_SCROLL_POSITION_START_FROM_NEWEST: 'start_from_newest',
-
-    CATEGORY_INSIGHTS: 'insights',
-    NAME_INSIGHTS_TUTORIAL_STATE: 'insights_tutorial_state',
-    INSIGHTS_VIEWED: 'insights_modal_viewed',
 
     CATEGORY_UPGRADE_CLOUD: 'upgrade_cloud',
     SYSTEM_CONSOLE_LIMIT_REACHED: 'system_console_limit_reached',

@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+
+import type {IncomingWebhook} from '@mattermost/types/integrations';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {getIncomingHook, updateIncomingHook} from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {GlobalState} from '@mattermost/types/store';
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-import {IncomingWebhook} from '@mattermost/types/integrations';
+import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import EditIncomingWebhook from './edit_incoming_webhook';
 

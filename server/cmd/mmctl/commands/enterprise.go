@@ -4,6 +4,10 @@
 //go:build enterprise
 // +build enterprise
 
+// This file is needed to ensure the enterprise code get complied
+// when running tests. See https://mattermost.atlassian.net/browse/MM-54929
+// for more details.
+
 package commands
 
 import (

@@ -1,32 +1,33 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent, MouseEvent, FormEvent, useEffect, useState, useRef} from 'react';
-import {useIntl} from 'react-intl';
 import classNames from 'classnames';
-
+import React, {useEffect, useState, useRef} from 'react';
+import type {ChangeEvent, MouseEvent, FormEvent} from 'react';
+import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import {getCurrentChannelNameForSearchShortcut} from 'mattermost-redux/selectors/entities/channels';
-import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
-import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
-import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
 
 import HeaderIconWrapper from 'components/channel_header/components/header_icon_wrapper';
+import UserGuideDropdown from 'components/search/user_guide_dropdown';
+import SearchBar from 'components/search_bar/search_bar';
 import SearchHint from 'components/search_hint/search_hint';
+import SearchResults from 'components/search_results';
+import type Provider from 'components/suggestion/provider';
+import SearchChannelProvider from 'components/suggestion/search_channel_provider';
+import SearchDateProvider from 'components/suggestion/search_date_provider';
+import SearchUserProvider from 'components/suggestion/search_user_provider';
 import FlagIcon from 'components/widgets/icons/flag_icon';
 import MentionsIcon from 'components/widgets/icons/mentions_icon';
 import SearchIcon from 'components/widgets/icons/search_icon';
 import Popover from 'components/widgets/popover';
 
-import UserGuideDropdown from 'components/search/user_guide_dropdown';
-import SearchBar from 'components/search_bar/search_bar';
-import SearchResults from 'components/search_results';
-import Provider from 'components/suggestion/provider';
-import SearchDateProvider from 'components/suggestion/search_date_provider';
-import SearchChannelProvider from 'components/suggestion/search_channel_provider';
-import SearchUserProvider from 'components/suggestion/search_user_provider';
+import Constants, {searchHintOptions, RHSStates, searchFilesHintOptions} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {isServerVersionGreaterThanOrEqualTo} from 'utils/server_version';
+import {isDesktopApp, getDesktopVersion, isMacApp} from 'utils/user_agent';
+
 import type {SearchType} from 'types/store/rhs';
 
 import type {Props, SearchFilterType} from './types';
@@ -54,11 +55,21 @@ const determineVisibleSearchHintOptions = (searchTerms: string, searchType: Sear
     const pretext = pretextArray[pretextArray.length - 1];
     const penultimatePretext = pretextArray[pretextArray.length - 2];
 
-    const shouldShowHintOptions = penultimatePretext ? !options.some(({searchTerm}) => penultimatePretext.toLowerCase().endsWith(searchTerm.toLowerCase())) : !options.some(({searchTerm}) => searchTerms.toLowerCase().endsWith(searchTerm.toLowerCase()));
+    let shouldShowHintOptions: boolean;
+
+    if (penultimatePretext) {
+        shouldShowHintOptions = !(options.some(({searchTerm}) => penultimatePretext.toLowerCase().endsWith(searchTerm.toLowerCase())) && penultimatePretext !== '@');
+    } else {
+        shouldShowHintOptions = !options.some(({searchTerm}) => searchTerms.toLowerCase().endsWith(searchTerm.toLowerCase())) || searchTerms === '@';
+    }
 
     if (shouldShowHintOptions) {
         try {
             newVisibleSearchHintOptions = options.filter((option) => {
+                if (pretext === '@' && option.searchTerm === 'From:') {
+                    return true;
+                }
+
                 return new RegExp(pretext, 'ig').
                     test(option.searchTerm) && option.searchTerm.toLowerCase() !== pretext.toLowerCase();
             });

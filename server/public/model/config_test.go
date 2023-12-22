@@ -50,7 +50,6 @@ func TestConfigDefaults(t *testing.T) {
 				if assert.False(t, v.IsNil(), "%s should be non-nil after SetDefaults()", name) {
 					recursivelyUninitialize(config, fmt.Sprintf("(*%s)", name), v.Elem())
 				}
-
 			} else if v.Type().Kind() == reflect.Struct {
 				for i := 0; i < v.NumField(); i++ {
 					recursivelyUninitialize(config, fmt.Sprintf("%s.%s", name, v.Type().Field(i).Name), v.Field(i))
@@ -73,6 +72,47 @@ func TestConfigEmptySiteName(t *testing.T) {
 	c1.SetDefaults()
 
 	require.Equal(t, *c1.TeamSettings.SiteName, TeamSettingsDefaultSiteName)
+}
+
+func TestServiceSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		ServiceSettings ServiceSettings
+		ExpectError     bool
+	}{
+		"empty": {
+			ServiceSettings: ServiceSettings{},
+			ExpectError:     false,
+		},
+		"OutgoingIntegrationRequestsTimeout is negative": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(-1),
+			},
+			ExpectError: true,
+		},
+		"OutgoingIntegrationRequestsTimeout is zero": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(0),
+			},
+			ExpectError: true,
+		},
+		"OutgoingIntegrationRequestsTimeout is positiv": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(1),
+			},
+			ExpectError: false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.ServiceSettings.SetDefaults(false)
+
+			appErr := test.ServiceSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, appErr)
+			} else {
+				assert.Nil(t, appErr)
+			}
+		})
+	}
 }
 
 func TestConfigEnableDeveloper(t *testing.T) {
@@ -142,6 +182,24 @@ func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
 
 	require.Equal(t, *c1.SamlSettings.SignatureAlgorithm, testAlgorithm)
 	require.Equal(t, *c1.SamlSettings.CanonicalAlgorithm, testAlgorithm)
+}
+
+func TestWranglerSettingsIsValid(t *testing.T) {
+	// // Test valid domains
+	w := &WranglerSettings{
+		AllowedEmailDomain: []string{"example.com", "subdomain.example.com"},
+	}
+	if err := w.IsValid(); err != nil {
+		t.Errorf("Expected no error for valid domains, but got %v", err)
+	}
+
+	// Test invalid domains
+	w = &WranglerSettings{
+		AllowedEmailDomain: []string{"example", "example..com", "example-.com", "-example.com", "example.com.", "example.com-"},
+	}
+	if err := w.IsValid(); err == nil {
+		t.Errorf("Expected error for invalid domains, but got none")
+	}
 }
 
 func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
@@ -317,37 +375,12 @@ func TestConfigDefaultNPSPluginState(t *testing.T) {
 }
 
 func TestConfigDefaultChannelExportPluginState(t *testing.T) {
-	t.Run("should enable ChannelExport plugin by default on enterprise-ready builds", func(t *testing.T) {
+	t.Run("should not enable ChannelExport plugin by default", func(t *testing.T) {
 		BuildEnterpriseReady = "true"
 		c1 := Config{}
 		c1.SetDefaults()
 
-		assert.True(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
-	})
-
-	t.Run("should not enable ChannelExport plugin by default on non-enterprise-ready builds", func(t *testing.T) {
-		BuildEnterpriseReady = ""
-		c1 := Config{}
-		c1.SetDefaults()
-
 		assert.Nil(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"])
-	})
-
-	t.Run("should not re-enable ChannelExport plugin after it has been disabled", func(t *testing.T) {
-		BuildEnterpriseReady = ""
-		c1 := Config{
-			PluginSettings: PluginSettings{
-				PluginStates: map[string]*PluginState{
-					"com.mattermost.plugin-channel-export": {
-						Enable: false,
-					},
-				},
-			},
-		}
-
-		c1.SetDefaults()
-
-		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.plugin-channel-export"].Enable)
 	})
 }
 
@@ -358,6 +391,14 @@ func TestTeamSettingsIsValidSiteNameEmpty(t *testing.T) {
 
 	// should not fail if ts.SiteName is not set, defaults are used
 	require.Nil(t, c1.TeamSettings.isValid())
+}
+
+func TestTeamSettingsDefaultJoinLeaveMessage(t *testing.T) {
+	c1 := Config{}
+	c1.SetDefaults()
+
+	// should default to true
+	require.Equal(t, NewBool(true), c1.TeamSettings.EnableJoinLeaveMessageByDefault)
 }
 
 func TestMessageExportSettingsIsValidEnableExportNotSet(t *testing.T) {
@@ -745,7 +786,6 @@ func TestDisplaySettingsIsValidCustomURLSchemes(t *testing.T) {
 }
 
 func TestListenAddressIsValidated(t *testing.T) {
-
 	testValues := map[string]bool{
 		":8065":                true,
 		":9917":                true,
@@ -783,7 +823,6 @@ func TestListenAddressIsValidated(t *testing.T) {
 			require.Equal(t, "model.config.is_valid.listen_address.app_error", appErr.Message)
 		}
 	}
-
 }
 
 func TestImageProxySettingsSetDefaults(t *testing.T) {
@@ -1228,6 +1267,115 @@ func TestLdapSettingsIsValid(t *testing.T) {
 	}
 }
 
+func TestLogSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		LogSettings LogSettings
+		ExpectError bool
+	}{
+		"empty": {
+			LogSettings: LogSettings{},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON contains empty string": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(``),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON contains empty JSON": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`{}`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON has JSON error ": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has missing target": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has an unknown Type": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+							"Type": "XYZ",
+							"Format": "json",
+							"Levels": [
+							  {"ID": 10, "Name": "stdlog", "Stacktrace": false},
+									{"ID": 5, "Name": "debug", "Stacktrace": false},
+									{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+									{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+									{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
+									{"ID": 1, "Name": "fatal", "Stacktrace": true},
+									{"ID": 0, "Name": "panic", "Stacktrace": true}
+							],
+							"Options": {
+									"Out": "stdout"
+							},
+							"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON is valid": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+							"Type": "console",
+							"Format": "json",
+							"Levels": [
+								{"ID": 5, "Name": "debug", "Stacktrace": false},
+								{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+								{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+								{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+							],
+							"Options": {
+									"Out": "stdout"
+							},
+							"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingConfig contains filepath": {
+			LogSettings: LogSettings{
+				AdvancedLoggingConfig: sToP("/some/Path"),
+			},
+			ExpectError: false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.LogSettings.SetDefaults()
+
+			appErr := test.LogSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, appErr)
+			} else {
+				assert.Nil(t, appErr)
+			}
+		})
+	}
+}
+
 func TestConfigSanitize(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
@@ -1349,7 +1497,6 @@ func TestSetDefaultFeatureFlagBehaviour(t *testing.T) {
 	cfg.SetDefaults()
 	require.NotNil(t, cfg.FeatureFlags)
 	require.Equal(t, "somevalue", cfg.FeatureFlags.TestFeature)
-
 }
 
 func TestConfigImportSettingsDefaults(t *testing.T) {

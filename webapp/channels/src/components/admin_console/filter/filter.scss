@@ -78,15 +78,7 @@
     }
 
     .Filter_apply {
-        margin: 8px 8px 8px 0;
-        border-radius: 4px;
         float: right;
-        font-size: 12px;
-
-        &:disabled {
-            background: rgba(var(--sys-center-channel-color-rgb), 0.1);
-            color: var(--sys-center-channel-color);
-        }
     }
 
     .FilterList {

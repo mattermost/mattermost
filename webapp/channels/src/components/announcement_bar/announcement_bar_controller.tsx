@@ -3,25 +3,25 @@
 
 import React from 'react';
 
-import {ToYearlyNudgeBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_yearly_nudge_banner';
+import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
+
 import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
+import {ToYearlyNudgeBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_yearly_nudge_banner';
+import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
-import {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
-import withGetCloudSubscription from '../common/hocs/cloud/with_get_cloud_subscription';
-
-import ConfigurationAnnouncementBar from './configuration_bar';
-import VersionBar from './version_bar';
-import TextDismissableBar from './text_dismissable_bar';
-import AnnouncementBar from './default_announcement_bar';
-
-import PaymentAnnouncementBar from './payment_announcement_bar';
+import CloudAnnualRenewalAnnouncementBar from './cloud_annual_renewal';
+import CloudDelinquencyAnnouncementBar from './cloud_delinquency';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
-import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
-import CloudDelinquencyAnnouncementBar from './cloud_delinquency';
-import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
+import ConfigurationAnnouncementBar from './configuration_bar';
+import AnnouncementBar from './default_announcement_bar';
 import NotifyAdminDowngradeDelinquencyBar from './notify_admin_downgrade_delinquency_bar';
 import OverageUsersBanner from './overage_users_banner';
+import PaymentAnnouncementBar from './payment_announcement_bar';
+import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
+import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
+import TextDismissableBar from './text_dismissable_bar';
+import VersionBar from './version_bar';
 
 type Props = {
     license?: ClientLicense;
@@ -71,6 +71,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let cloudTrialAnnouncementBar = null;
         let cloudTrialEndAnnouncementBar = null;
         let cloudDelinquencyAnnouncementBar = null;
+        let cloudRenewalAnnouncementBar = null;
         let notifyAdminDowngradeDelinquencyBar = null;
         let toYearlyNudgeBannerDismissable = null;
         let toPaidPlanNudgeBannerDismissable = null;
@@ -86,6 +87,9 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
             cloudDelinquencyAnnouncementBar = (
                 <CloudDelinquencyAnnouncementBar/>
+            );
+            cloudRenewalAnnouncementBar = (
+                <CloudAnnualRenewalAnnouncementBar/>
             );
             notifyAdminDowngradeDelinquencyBar = (
                 <NotifyAdminDowngradeDelinquencyBar/>
@@ -109,6 +113,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}
                 {cloudDelinquencyAnnouncementBar}
+                {cloudRenewalAnnouncementBar}
                 {notifyAdminDowngradeDelinquencyBar}
                 {toYearlyNudgeBannerDismissable}
                 {toPaidPlanNudgeBannerDismissable}

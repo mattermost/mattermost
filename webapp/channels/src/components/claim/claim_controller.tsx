@@ -4,15 +4,15 @@
 import React from 'react';
 import {Route, Switch} from 'react-router-dom';
 
-import logoImage from 'images/logo.png';
+import type {AuthChangeResponse} from '@mattermost/types/users';
 
-import {AuthChangeResponse} from '@mattermost/types/users';
-
-import BackButton from 'components/common/back_button';
-import OAuthToEmail from 'components/claim/components/oauth_to_email';
+import EmailToLDAP from 'components/claim/components/email_to_ldap';
 import EmailToOAuth from 'components/claim/components/email_to_oauth';
 import LDAPToEmail from 'components/claim/components/ldap_to_email';
-import EmailToLDAP from 'components/claim/components/email_to_ldap';
+import OAuthToEmail from 'components/claim/components/oauth_to_email';
+import BackButton from 'components/common/back_button';
+
+import logoImage from 'images/logo.png';
 
 export interface PasswordConfig {
     minimumLength: number;

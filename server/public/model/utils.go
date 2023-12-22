@@ -82,13 +82,11 @@ func (sa StringArray) Contains(input string) bool {
 	return false
 }
 func (sa StringArray) Equals(input StringArray) bool {
-
 	if len(sa) != len(input) {
 		return false
 	}
 
 	for index := range sa {
-
 		if sa[index] != input[index] {
 			return false
 		}
@@ -179,22 +177,8 @@ func (m StringMap) Value() (driver.Value, error) {
 	return string(buf), nil
 }
 
-func (StringMap) ImplementsGraphQLType(name string) bool {
-	return name == "StringMap"
-}
-
 func (m StringMap) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]string)(m))
-}
-
-func (m *StringMap) UnmarshalGraphQL(input any) error {
-	json, ok := input.(map[string]string)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*m = json
-	return nil
 }
 
 func (si *StringInterface) Scan(value any) error {
@@ -230,22 +214,8 @@ func (si StringInterface) Value() (driver.Value, error) {
 	return string(j), err
 }
 
-func (StringInterface) ImplementsGraphQLType(name string) bool {
-	return name == "StringInterface"
-}
-
 func (si StringInterface) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]any)(si))
-}
-
-func (si *StringInterface) UnmarshalGraphQL(input any) error {
-	json, ok := input.(map[string]any)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*si = json
-	return nil
 }
 
 var translateFunc i18n.TranslateFunc
@@ -276,8 +246,11 @@ func (er *AppError) Error() string {
 	var sb strings.Builder
 
 	// render the error information
-	sb.WriteString(er.Where)
-	sb.WriteString(": ")
+	if er.Where != "" {
+		sb.WriteString(er.Where)
+		sb.WriteString(": ")
+	}
+
 	if er.Message != NoTranslation {
 		sb.WriteString(er.Message)
 	}
@@ -586,7 +559,6 @@ func GetServerIPAddress(iface string) string {
 	}
 
 	for _, addr := range addrs {
-
 		if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() && !ip.IP.IsLinkLocalUnicast() && !ip.IP.IsLinkLocalMulticast() {
 			if ip.IP.To4() != nil {
 				return ip.IP.String()
@@ -664,7 +636,6 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 }
 
 func Etag(parts ...any) string {
-
 	etag := CurrentVersion
 
 	for _, part := range parts {

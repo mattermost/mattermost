@@ -1,0 +1,66 @@
+[
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Negalima pašalinti patvirtinimo archyvuotame kanale."
+  },
+  {
+    "id": "June",
+    "translation": "Birželis"
+  },
+  {
+    "id": "March",
+    "translation": "Kovas"
+  },
+  {
+    "id": "May",
+    "translation": "Gegužė"
+  },
+  {
+    "id": "November",
+    "translation": "Lapkritis"
+  },
+  {
+    "id": "October",
+    "translation": "Spalis"
+  },
+  {
+    "id": "September",
+    "translation": "Rugsėjis"
+  },
+  {
+    "id": "July",
+    "translation": "Liepa"
+  },
+  {
+    "id": "April",
+    "translation": "Balandis"
+  },
+  {
+    "id": "August",
+    "translation": "Rugpjūtis"
+  },
+  {
+    "id": "December",
+    "translation": "Gruodis"
+  },
+  {
+    "id": "February",
+    "translation": "Vasaris"
+  },
+  {
+    "id": "January",
+    "translation": "Sausis"
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Praėjus 5 min. patvirtinimo ištrinti nebegalima."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Negalima patvirtinti archyvuotame kanale."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Užklausoje nėra failo 'certificate' dalyje."
+  }
+]

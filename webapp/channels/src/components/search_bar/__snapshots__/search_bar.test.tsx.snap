@@ -10,7 +10,7 @@ exports[`components/search_bar/SearchBar should match snapshot with search 1`] =
       aria-labelledby="searchBox"
       autocomplete="off"
       class="search__form"
-      role="application"
+      role="search"
       style="overflow: visible;"
     >
       <div
@@ -70,7 +70,7 @@ exports[`components/search_bar/SearchBar should match snapshot with search, with
       aria-labelledby="searchBox"
       autocomplete="off"
       class="search__form"
-      role="application"
+      role="search"
       style="overflow: visible;"
     >
       <div
@@ -138,7 +138,7 @@ exports[`components/search_bar/SearchBar should match snapshot without search 1`
       aria-labelledby="searchBox"
       autocomplete="off"
       class="search__form"
-      role="application"
+      role="search"
       style="overflow: visible;"
     >
       <div
@@ -187,7 +187,7 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
       aria-labelledby="searchBox"
       autocomplete="off"
       class="search__form"
-      role="application"
+      role="search"
       style="overflow: visible;"
     >
       <div
@@ -244,7 +244,7 @@ exports[`components/search_bar/SearchBar should match snapshot without search, w
       aria-labelledby="searchBox"
       autocomplete="off"
       class="search__form"
-      role="application"
+      role="search"
       style="overflow: visible;"
     >
       <div

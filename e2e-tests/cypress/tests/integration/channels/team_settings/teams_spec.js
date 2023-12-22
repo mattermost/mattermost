@@ -93,7 +93,7 @@ describe('Teams Suite', () => {
                 click();
 
             // # Click "Invite Members" button, then "Done" button
-            cy.get('#inviteMembersButton').click();
+            cy.findByTestId('inviteButton').click();
             cy.findByTestId('confirm-done').click();
 
             // * As sysadmin, verify system message posts in Town Square and Off-Topic

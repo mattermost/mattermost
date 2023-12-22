@@ -1,15 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
-import classNames from 'classnames';
 
-import LoadingScreen from 'components/loading_screen';
-import PermalinkView from 'components/permalink_view';
+import {makeAsyncComponent} from 'components/async_load';
 import ChannelIdentifierRouter from 'components/channel_layout/channel_identifier_router';
 import PlaybookRunner from 'components/channel_layout/playbook_runner';
-import {makeAsyncComponent} from 'components/async_load';
+import LoadingScreen from 'components/loading_screen';
+import PermalinkView from 'components/permalink_view';
+
+import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
 import type {OwnProps, PropsFromRedux} from './index';
 
@@ -31,16 +33,6 @@ const LazyGlobalThreads = makeAsyncComponent(
 const LazyDrafts = makeAsyncComponent(
     'LazyDrafts',
     React.lazy(() => import('components/drafts')),
-    (
-        <div className='app__content'>
-            <LoadingScreen/>
-        </div>
-    ),
-);
-
-const LazyActivityAndInsights = makeAsyncComponent(
-    'LazyActivityAndInsights',
-    React.lazy(() => import('components/activity_and_insights/activity_and_insights')),
     (
         <div className='app__content'>
             <LoadingScreen/>
@@ -80,7 +72,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
     }
 
     render() {
-        const {lastChannelPath, isCollapsedThreadsEnabled, insightsAreEnabled, isMobileView} = this.props;
+        const {lastChannelPath, isCollapsedThreadsEnabled, isMobileView} = this.props;
         const url = this.props.match.url;
 
         return (
@@ -102,7 +94,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                 <div className='row main'>
                     <Switch>
                         <Route
-                            path={`${url}/pl/:postid`}
+                            path={`${url}/pl/:postid(${ID_PATH_PATTERN})`}
                             render={(props) => (
                                 <PermalinkView
                                     {...props}
@@ -111,30 +103,25 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             )}
                         />
                         <Route
-                            path='/:team/:path(channels|messages)/:identifier/:postid?'
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
                             component={ChannelIdentifierRouter}
                         />
                         <Route
-                            path='/:team/_playbooks/:playbookId/run'
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
                         >
                             <PlaybookRunner/>
                         </Route>
                         {isCollapsedThreadsEnabled ? (
                             <Route
-                                path='/:team/threads/:threadIdentifier?'
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
                                 component={LazyGlobalThreads}
                             />
                         ) : null}
                         <Route
-                            path='/:team/drafts'
+                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
                             component={LazyDrafts}
                         />
-                        {insightsAreEnabled ? (
-                            <Route
-                                path='/:team/activity-and-insights'
-                                component={LazyActivityAndInsights}
-                            />
-                        ) : null}
+
                         <Redirect to={lastChannelPath}/>
                     </Switch>
                 </div>

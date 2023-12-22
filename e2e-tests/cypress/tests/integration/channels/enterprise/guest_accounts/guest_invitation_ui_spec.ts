@@ -65,7 +65,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         });
 
         // * Verify Invite Guests button is disabled by default
-        cy.get('#inviteGuestButton').scrollIntoView().should('be.visible').and('be.disabled');
+        cy.findByTestId('inviteButton').scrollIntoView().should('be.visible').and('be.disabled');
 
         // * Verify Invite People field
         const email = `temp-${getRandomId()}@mattermost.com`;
@@ -141,7 +141,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         invitePeople(email, 1, email, 'Town Square', false);
 
         // * Verify Invite Guests button is disabled
-        cy.get('#inviteGuestButton').should('be.disabled');
+        cy.findByTestId('inviteButton').should('be.disabled');
     });
 
     it('MM-T4449 Invite Guest via Email containing upper case letters', () => {
@@ -177,7 +177,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             children().should('have.length', 1).eq(0).should('contain', newUser.username).click();
 
         // # Click Invite Members
-        cy.get('#inviteMembersButton').scrollIntoView().click();
+        cy.findByTestId('inviteButton').scrollIntoView().click();
 
         // * Verify the content and error message in the Invitation Modal
         cy.findByTestId('invitationModal').within(() => {
@@ -218,7 +218,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
         cy.get('.users-emails-input__menu').children().should('have.length', 1).eq(0).should('contain', email).click();
 
         // # Click Invite Guests Button
-        cy.get('#inviteGuestButton').scrollIntoView().click();
+        cy.findByTestId('inviteButton').scrollIntoView().click();
 
         // * Verify invite more button is present
         cy.findByTestId('invite-more').should('be.visible');

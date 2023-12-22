@@ -1,34 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties} from 'react';
-import {FormattedMessage} from 'react-intl';
-import Scrollbars from 'react-custom-scrollbars';
-import {DragDropContext, Droppable, DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
-import {Spring, SpringSystem} from 'rebound';
 import classNames from 'classnames';
-
 import debounce from 'lodash/debounce';
+import React from 'react';
+import type {CSSProperties} from 'react';
+import {DragDropContext, Droppable} from 'react-beautiful-dnd';
+import type {DropResult, DragStart, BeforeCapture} from 'react-beautiful-dnd';
+import Scrollbars from 'react-custom-scrollbars';
+import {FormattedMessage} from 'react-intl';
+import {SpringSystem} from 'rebound';
+import type {Spring} from 'rebound';
 
-import * as ChannelUtils from 'utils/channel_utils';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
 
 import {General} from 'mattermost-redux/constants';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {DraggingState} from 'types/store';
+
+import DraftsLink from 'components/drafts/drafts_link/drafts_link';
+import GlobalThreadsLink from 'components/threading/global_threads_link';
+
+import * as ChannelUtils from 'utils/channel_utils';
 import {Constants, DraggingStates, DraggingStateTypes} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
-import {StaticPage} from 'types/store/lhs';
 
-import GlobalThreadsLink from 'components/threading/global_threads_link';
-import DraftsLink from 'components/drafts/drafts_link/drafts_link';
-import ActivityAndInsightsLink
-    from 'components/activity_and_insights/activity_and_insights_link/activity_and_insights_link';
-
-import {Team} from '@mattermost/types/teams';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
-import {Channel} from '@mattermost/types/channels';
+import type {DraggingState} from 'types/store';
+import type {StaticPage} from 'types/store/lhs';
 
 import SidebarCategory from '../sidebar_category';
 import UnreadChannelIndicator from '../unread_channel_indicator';
@@ -101,7 +102,6 @@ type Props = {
         setDraggingState: (data: DraggingState) => void;
         stopDragging: () => void;
         clearChannelSelection: () => void;
-        multiSelectChannelAdd: (channelId: string) => void;
     };
 };
 
@@ -535,7 +535,6 @@ export default class SidebarList extends React.PureComponent<Props, State> {
 
             // NOTE: id attribute added to temporarily support the desktop app's at-mention DOM scraping of the old sidebar
             <>
-                <ActivityAndInsightsLink/>
                 <GlobalThreadsLink/>
                 <DraftsLink/>
                 <div

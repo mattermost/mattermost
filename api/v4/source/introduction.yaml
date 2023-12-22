@@ -57,19 +57,15 @@ tags:
 
       #### Official Drivers
 
-      * [Mattermost JavaScript Driver](https://github.com/mattermost/mattermost-redux/blob/master/src/client/client4.ts)
+      * Mattermost JavaScript/TypeScript Driver
+        * [NPM](https://www.npmjs.com/package/@mattermost/client)
+        * [Source](https://github.com/mattermost/mattermost/tree/master/webapp/platform/client)
 
       * [Mattermost Golang Driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/client4.go)
 
-
       #### Community-built Drivers
 
-      * [PHP Driver](https://github.com/gnello/php-mattermost-driver) - built by [@gnello](https://github.com/gnello) and [@prixone](https://github.com/prixone)
-
-      * [Python Driver](https://github.com/Vaelor/python-mattermost-driver) - built by [@Vaelor](https://github.com/Vaelor)
-
-
-      For other community-built drivers and API wrappers, see [our app directory](https://mattermost.com/marketplace/).
+      For community-built drivers and API wrappers, see [our app directory](https://mattermost.com/marketplace/).
   - name: authentication
     description: >
       There are multiple ways to authenticate against the Mattermost API.
@@ -475,7 +471,7 @@ tags:
       - get_statuses_by_ids
 
 
-      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost-server/blob/master/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost-redux/blob/master/src/client/websocket_client.ts).
+      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost/blob/master/webapp/platform/client/src/websocket.ts).
   - name: APIv3 Deprecation
     description: >
       Since Mattermost 4.6 released on January 16, 2018, API v3 has no longer
@@ -538,8 +534,6 @@ tags:
     description: Endpoints for creating, getting and updating webhooks.
   - name: commands
     description: Endpoints for creating, getting and updating slash commands.
-  - name: OpenGraph
-    description: Endpoint for getting Open Graph metadata.
   - name: system
     description: General endpoints for interacting with the server, such as configuration and logging.
   - name: brand
@@ -579,8 +573,6 @@ tags:
     description: Endpoints for interactive actions for use by integrations.
   - name: shared channels
     description: Endpoints for getting information about shared channels.
-  - name: insights
-    description: Endpoints for getting insights into teams and users.
   - name: terms of service
     description: Endpoints for getting and updating custom terms of service.
   - name: imports
@@ -616,7 +608,6 @@ x-tagGroups:
       - reactions
       - webhooks
       - commands
-      - OpenGraph
       - system
       - brand
       - OAuth
@@ -635,7 +626,6 @@ x-tagGroups:
       - schemes
       - integration_actions
       - shared channels
-      - insights
       - terms of service
       - imports
       - permissions
