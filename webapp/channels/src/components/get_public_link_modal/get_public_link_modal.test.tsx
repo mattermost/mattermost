@@ -3,9 +3,12 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 
 import GetLinkModal from 'components/get_link_modal';
 import GetPublicLinkModal from 'components/get_public_link_modal/get_public_link_modal';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/GetPublicLinkModal', () => {
     const baseProps = {
@@ -23,7 +26,7 @@ describe('components/GetPublicLinkModal', () => {
             link: '',
         };
 
-        const wrapper = shallow<GetPublicLinkModal>(
+        const wrapper = shallow(
             <GetPublicLinkModal {...props}/>,
         );
 
@@ -31,7 +34,7 @@ describe('components/GetPublicLinkModal', () => {
     });
 
     test('should match snapshot when link is not empty', () => {
-        const wrapper = shallow<GetPublicLinkModal>(
+        const wrapper = shallow(
             <GetPublicLinkModal {...baseProps}/>,
         );
 
@@ -39,31 +42,29 @@ describe('components/GetPublicLinkModal', () => {
     });
 
     test('should call getFilePublicLink on GetPublicLinkModal\'s show', () => {
-        const wrapper = shallow<GetPublicLinkModal>(
-            <GetPublicLinkModal {...baseProps}/>,
-        );
+        mountWithIntl(<GetPublicLinkModal {...baseProps}/>);
 
-        wrapper.setState({show: true});
         expect(baseProps.actions.getFilePublicLink).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.getFilePublicLink).toHaveBeenCalledWith(baseProps.fileId);
     });
 
     test('should not call getFilePublicLink on GetLinkModal\'s onHide', () => {
-        const wrapper = shallow<GetPublicLinkModal>(
+        const wrapper = shallow(
             <GetPublicLinkModal {...baseProps}/>,
         );
 
-        wrapper.setState({show: true});
         baseProps.actions.getFilePublicLink.mockClear();
         wrapper.find(GetLinkModal).first().props().onHide();
         expect(baseProps.actions.getFilePublicLink).not.toHaveBeenCalled();
     });
 
     test('should call handleToggle on GetLinkModal\'s onHide', () => {
-        const wrapper = shallow<GetPublicLinkModal>(
-            <GetPublicLinkModal {...baseProps}/>);
+        const wrapper = mountWithIntl(<GetPublicLinkModal {...baseProps}/>);
 
-        wrapper.find(GetLinkModal).first().props().onHide();
-        expect(wrapper.state('show')).toBe(false);
+        act(() => {
+            wrapper.find(GetLinkModal).first().props().onHide();
+        });
+        wrapper.update();
+        expect(wrapper.find(GetLinkModal).first().props().show).toBe(false);
     });
 });

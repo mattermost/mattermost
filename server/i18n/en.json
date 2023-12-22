@@ -1718,6 +1718,10 @@
     "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
   },
   {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Failed to update the custom status. An emoji with the given name does not exist."
+  },
+  {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
     "translation": "Failed to update the custom status. Please add either emoji or custom text status or both."
   },
@@ -1847,6 +1851,10 @@
   {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
@@ -2015,6 +2023,18 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Cannot hide both active and inactive users."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Page size is invalid or too large."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Invalid team id provided."
   },
   {
     "id": "api.image.get.app_error",
@@ -2443,6 +2463,14 @@
     }
   },
   {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Thread moving is disabled"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "You do not have permission to move this thread."
+  },
+  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -2653,6 +2681,10 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -6019,6 +6051,10 @@
     "translation": "No license present"
   },
   {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Failed to get user count"
+  },
+  {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "Could not update last login timestamp"
   },
@@ -6431,6 +6467,30 @@
     "translation": "Failed to marshal post."
   },
   {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "This thread was moved from another channel"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "A message has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "A message has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unable to remove thread"
+  },
+  {
     "id": "app.post.overwrite.app_error",
     "translation": "Unable to overwrite the Post."
   },
@@ -6537,6 +6597,10 @@
   {
     "id": "app.recover.save.app_error",
     "translation": "Unable to save the token."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Failed to fetch user report."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -8212,7 +8276,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -8848,7 +8912,11 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'."
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "If GlobalRelaySettings.CustomerType is 'CUSTOM', then GlobalRelaySettings.CustomSMTPServerName and GlobalRelaySettings.CustomSMTPPort must be set."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -8861,6 +8929,14 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
     "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -9555,6 +9631,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Date range provided is invalid."
+  },
+  {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
     "translation": "All IncludeDeletedChannels params should have the same value."
   },
@@ -9825,6 +9905,10 @@
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Provided sort column is not valid."
   },
   {
     "id": "model.utils.decode_json.app_error",
