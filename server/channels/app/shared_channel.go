@@ -179,7 +179,7 @@ func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string) error {
 	// send channel invite to remote cluster. Will notify clients of channel change.
 	if err := syncService.SendChannelInvite(channel, userID, rc); err != nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
-			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusBadRequest).Wrap(err)
+			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return nil
 }
