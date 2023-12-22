@@ -11,14 +11,6 @@ import Tooltip from 'components/tooltip';
 import {CreateAndJoinChannelsTour, InvitePeopleTour} from 'components/tours/onboarding_tour';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import {openModal} from "actions/views/modals";
-import {ModalIdentifiers} from "utils/constants";
-import StartTrialFormModal from "components/start_trial_form_modal";
-import AirGappedModal from "components/start_trial_form_modal/air_gapped_modal";
-import {useDispatch} from "react-redux";
-import type {DispatchFunc} from "mattermost-redux/types/actions";
-import AirGappedContactSalesModal from "components/air_gapped_contact_sales_modal";
-
 
 type Props = {
     canCreateChannel: boolean;
@@ -143,13 +135,7 @@ const AddChannelDropdown = ({
         );
     };
 
-    const dispatch = useDispatch<DispatchFunc>();
-
     const trackOpen = (opened: boolean) => {
-        dispatch(openModal({
-            modalId: ModalIdentifiers.AIR_GAPPED_CONTACT_SALES,
-            dialogType: AirGappedContactSalesModal,
-        }));
         openAddChannelOpen(opened);
         if (opened) {
             trackEvent('ui', 'ui_add_channel_dropdown_opened');
