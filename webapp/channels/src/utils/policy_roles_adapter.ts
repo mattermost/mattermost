@@ -61,8 +61,8 @@ export function rolesFromMapping(mappingValues: Record<string, string>, roles: R
 
     Object.keys(MAPPING).forEach((mappingKey) => {
         const value = mappingValues[mappingKey];
-        if (value && (value === 'true' || value === 'false')) {
-            mutateRolesBasedOnMapping(mappingKey as MappingKeyTypes, value, rolesClone);
+        if (value) {
+            mutateRolesBasedOnMapping(mappingKey as MappingKeyTypes, value as any, rolesClone);
         }
     });
 

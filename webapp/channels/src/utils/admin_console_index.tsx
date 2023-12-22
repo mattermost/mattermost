@@ -119,7 +119,7 @@ export function generateIndex(adminDefinition: typeof AdminDefinition, intl: Int
 
     addToIndex(adminDefinitionsToUrlsAndTexts(adminDefinition, intl), idx);
 
-    addToIndex(getPluginEntries(plugins), idx);
+    addToIndex(getPluginEntries(plugins, intl), idx);
 
     return idx;
 }
