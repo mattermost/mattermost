@@ -1214,14 +1214,14 @@ type API interface {
 	// it will return the same remoteID.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error)
 
 	// UnregisterPluginForSharedChannels unregisters the plugin as a `Remote` for SharedChannels.
 	// The plugin will no longer receive synchronization messages via the `OnSharedChannelsSyncMsg` hook.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	UnregisterPluginForSharedChannels(pluginID string) error
 
 	// ShareChannel marks a channel for sharing via shared channels. Note, this does not automatically
@@ -1229,21 +1229,21 @@ type API interface {
 	// to the shared channel and start synchronization.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 
 	// UpdateSharedChannel updates a shared channel. This can be used to change the share name,
 	// display name, purpose, header, etc.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
 
 	// UnshareChannel unmarks a channel for sharing. The channel will no longer be shared and
 	// all remotes will be uninvited to the channel.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	UnshareChannel(channelID string) (unshared bool, err error)
 
 	// UpdateSharedChannelCursor updates the cursor for the specified channel and RemoteID (passed by
@@ -1252,27 +1252,27 @@ type API interface {
 	// a re-sync - a change to channel contents or a call to SyncSharedChannel are needed to force a sync.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error
 
 	// SyncSharedChannel forces a shared channel to send any changed content to all remotes.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	SyncSharedChannel(channelID string) error
 
 	// InviteRemoteToChannel invites a remote, or this plugin, as a target for synchronizing. Once invited, the
 	// remote will start to receive synchronization messages for any changed content in the specified channel.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	InviteRemoteToChannel(channelID string, remoteID string, userID string) error
 
 	// UninviteRemoteFromChannel uninvites a remote, or this plugin, such that it will stop receiving sychronization
 	// messages for the channel.
 	//
 	// @tag SharedChannels
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	UninviteRemoteFromChannel(channelID string, remoteID string) error
 }
 
