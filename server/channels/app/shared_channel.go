@@ -162,7 +162,7 @@ func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string) error {
 	// don't allow invitation to shared channel originating from remote.
 	// (also blocks cyclic invitations)
 	if err := a.CheckCanInviteToSharedChannel(channelID); err != nil {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusBadRequest)
+		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusInternalServerError)
 	}
 
 	rc, appErr := a.GetRemoteCluster(remoteID)
