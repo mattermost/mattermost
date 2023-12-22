@@ -7,30 +7,30 @@ import {defineMessages} from 'react-intl';
 export const rolesRolesStrings: Record<string, MessageDescriptor> = defineMessages({
     all_users: {
         id: 'admin.permissions.roles.all_users.name',
-        defaultMessage: '',
+        defaultMessage: 'All Members',
     },
     channel_admin: {
         id: 'admin.permissions.roles.channel_admin.name',
-        defaultMessage: '',
+        defaultMessage: 'Channel Admin',
     },
     channel_user: {
         id: 'admin.permissions.roles.channel_user.name',
-        defaultMessage: '',
+        defaultMessage: 'Channel User',
     },
     system_admin: {
         id: 'admin.permissions.roles.system_admin.name',
-        defaultMessage: '',
+        defaultMessage: 'System Admin',
     },
     system_user: {
         id: 'admin.permissions.roles.system_user.name',
-        defaultMessage: '',
+        defaultMessage: 'System User',
     },
     team_admin: {
         id: 'admin.permissions.roles.team_admin.name',
-        defaultMessage: '',
+        defaultMessage: 'Team Admin',
     },
     team_user: {
         id: 'admin.permissions.roles.team_user.name',
-        defaultMessage: '',
+        defaultMessage: 'Team User',
     },
 });

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
-import {FormattedMessage, defineMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserStatus} from '@mattermost/types/users';
@@ -15,118 +15,96 @@ import ConfirmModal from 'components/confirm_modal';
 import {UserStatuses} from 'utils/constants';
 
 const messages: Record<string, Record<string, MessageDescriptor>> = {
-    '': {
-        auto_responder_message: defineMessage({
-            id: 'modal.manual_status.auto_responder.message_',
-            defaultMessage: '',
-        }),
-        button: defineMessage({
-            id: 'modal.manual_status.button_',
-            defaultMessage: '',
-        }),
-        cancel: defineMessage({
-            id: 'modal.manual_status.cancel_',
-            defaultMessage: '',
-        }),
-        message: defineMessage({
-            id: 'modal.manual_status.message_',
-            defaultMessage: '',
-        }),
-        title: defineMessage({
-            id: 'modal.manual_status.title_',
-            defaultMessage: '',
-        }),
-    },
-    away: {
-        auto_responder_message: defineMessage({
+    away: defineMessages({
+        auto_responder_message: {
             id: 'modal.manual_status.auto_responder.message_away',
-            defaultMessage: '',
-        }),
-        button: defineMessage({
+            defaultMessage: 'Would you like to switch your status to "Away" and disable Automatic Replies?',
+        },
+        button: {
             id: 'modal.manual_status.button_away',
-            defaultMessage: '',
-        }),
-        cancel: defineMessage({
+            defaultMessage: 'Yes, set my status to "Away"',
+        },
+        cancel: {
             id: 'modal.manual_status.cancel_away',
-            defaultMessage: '',
-        }),
-        message: defineMessage({
+            defaultMessage: 'No, keep it as "Away"',
+        },
+        message: {
             id: 'modal.manual_status.message_away',
-            defaultMessage: '',
-        }),
-        title: defineMessage({
+            defaultMessage: 'Would you like to switch your status to "Away"?',
+        },
+        title: {
             id: 'modal.manual_status.title_away',
-            defaultMessage: '',
-        }),
-    },
-    dnd: {
-        auto_responder_message: defineMessage({
+            defaultMessage: 'Your Status is Set to "Away"',
+        },
+    }),
+    dnd: defineMessages({
+        auto_responder_message: {
             id: 'modal.manual_status.auto_responder.message_dnd',
-            defaultMessage: '',
-        }),
-        button: defineMessage({
+            defaultMessage: 'Would you like to switch your status to "Do Not Disturb" and disable Automatic Replies?',
+        },
+        button: {
             id: 'modal.manual_status.button_dnd',
-            defaultMessage: '',
-        }),
-        cancel: defineMessage({
+            defaultMessage: 'Yes, set my status to "Do Not Disturb"',
+        },
+        cancel: {
             id: 'modal.manual_status.cancel_dnd',
-            defaultMessage: '',
-        }),
-        message: defineMessage({
+            defaultMessage: 'No, keep it as "Do Not Disturb"',
+        },
+        message: {
             id: 'modal.manual_status.message_dnd',
-            defaultMessage: '',
-        }),
-        title: defineMessage({
+            defaultMessage: 'Would you like to switch your status to "Do Not Disturb"?',
+        },
+        title: {
             id: 'modal.manual_status.title_dnd',
-            defaultMessage: '',
-        }),
-    },
-    offline: {
-        auto_responder_message: defineMessage({
+            defaultMessage: 'Your Status is Set to "Do Not Disturb"',
+        },
+    }),
+    offline: defineMessages({
+        auto_responder_message: {
             id: 'modal.manual_status.auto_responder.message_offline',
-            defaultMessage: '',
-        }),
-        button: defineMessage({
+            defaultMessage: 'Would you like to switch your status to "Offline" and disable Automatic Replies?',
+        },
+        button: {
             id: 'modal.manual_status.button_offline',
-            defaultMessage: '',
-        }),
-        cancel: defineMessage({
+            defaultMessage: 'Yes, set my status to "Offline"',
+        },
+        cancel: {
             id: 'modal.manual_status.cancel_offline',
-            defaultMessage: '',
-        }),
-        message: defineMessage({
+            defaultMessage: 'No, keep it as "Offline"',
+        },
+        message: {
             id: 'modal.manual_status.message_offline',
-            defaultMessage: '',
-        }),
-        title: defineMessage({
+            defaultMessage: 'Would you like to switch your status to "Offline"?',
+        },
+        title: {
             id: 'modal.manual_status.title_offline',
-            defaultMessage: '',
-        }),
-    },
-    online: {
-        auto_responder_message: defineMessage({
-            id: 'modal.manual_status.auto_responder.message_',
-            defaultMessage: '',
-        }),
-        button: defineMessage({
+            defaultMessage: 'Your Status is Set to "Offline"',
+        },
+    }),
+    online: defineMessages({
+        auto_responder_message: {
+            id: 'modal.manual_status.auto_responder.message_online',
+            defaultMessage: 'Would you like to switch your status to "Online" and disable Automatic Replies?',
+        },
+        button: {
             id: 'modal.manual_status.button_online',
-            defaultMessage: '',
-        }),
-        message: defineMessage({
+            defaultMessage: 'Yes, set my status to "Online"',
+        },
+        message: {
             id: 'modal.manual_status.message_online',
-            defaultMessage: '',
-        }),
-    },
-    ooo: {
-        cancel: defineMessage({
+            defaultMessage: 'Would you like to switch your status to "Online"?',
+        },
+    }),
+    ooo: defineMessages({
+        cancel: {
             id: 'modal.manual_status.cancel_ooo',
-            defaultMessage: '',
-        }),
-        title: defineMessage({
+            defaultMessage: 'No, keep it as "Out of Office"',
+        },
+        title: {
             id: 'modal.manual_status.title_ooo',
-            defaultMessage: '',
-        }),
-    },
+            defaultMessage: 'Your Status is Set to "Out of Office"',
+        },
+    }),
 };
 
 type Props = {

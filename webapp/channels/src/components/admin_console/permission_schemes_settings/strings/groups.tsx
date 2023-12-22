@@ -28,231 +28,231 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
     posts: defineMessages({
         name: {
             id: 'admin.permissions.group.posts.name',
-            defaultMessage: '',
+            defaultMessage: 'Manage Posts',
         },
         description: {
             id: 'admin.permissions.group.posts.description',
-            defaultMessage: '',
+            defaultMessage: 'Write, edit and delete posts.',
         },
     }),
     private_channel: defineMessages({
         name: {
             id: 'admin.permissions.group.private_channel.name',
-            defaultMessage: '',
+            defaultMessage: 'Manage Private Channels',
         },
         description: {
             id: 'admin.permissions.group.private_channel.description',
-            defaultMessage: '',
+            defaultMessage: 'Create and archive channels, manage settings and members.',
         },
     }),
     public_channel: defineMessages({
         name: {
             id: 'admin.permissions.group.public_channel.name',
-            defaultMessage: '',
+            defaultMessage: 'Manage Public Channels',
         },
         description: {
             id: 'admin.permissions.group.public_channel.description',
-            defaultMessage: '',
+            defaultMessage: 'Join, create and archive channels, manage settings and members.',
         },
     }),
     reactions: defineMessages({
         name: {
             id: 'admin.permissions.group.reactions.name',
-            defaultMessage: '',
+            defaultMessage: 'Post Reactions',
         },
         description: {
             id: 'admin.permissions.group.reactions.description',
-            defaultMessage: '',
+            defaultMessage: 'Add and delete reactions on posts.',
         },
     }),
     send_invites: defineMessages({
         name: {
             id: 'admin.permissions.group.send_invites.name',
-            defaultMessage: '',
+            defaultMessage: 'Add Team Members',
         },
         description: {
             id: 'admin.permissions.group.send_invites.description',
-            defaultMessage: '',
+            defaultMessage: 'Add team members, send email invites and share team invite link.',
         },
     }),
     teams: defineMessages({
         name: {
             id: 'admin.permissions.group.teams.name',
-            defaultMessage: '',
+            defaultMessage: 'Teams',
         },
         description: {
             id: 'admin.permissions.group.teams.description',
-            defaultMessage: '',
+            defaultMessage: 'Create teams and manage members.',
         },
     }),
     edit_posts: defineMessages({
         name: {
             id: 'admin.permissions.group.edit_posts.name',
-            defaultMessage: '',
+            defaultMessage: 'Edit Posts',
         },
         description: {
             id: 'admin.permissions.group.edit_posts.description',
-            defaultMessage: '',
+            defaultMessage: 'Edit own and others\' posts.',
         },
     }),
     teams_team_scope: defineMessages({
         name: {
             id: 'admin.permissions.group.teams_team_scope.name',
-            defaultMessage: '',
+            defaultMessage: 'Teams',
         },
         description: {
             id: 'admin.permissions.group.teams_team_scope.description',
-            defaultMessage: '',
+            defaultMessage: 'Manage team members.',
         },
     }),
     guest_reactions: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_reactions.name',
-            defaultMessage: '',
+            defaultMessage: 'Post Reactions',
         },
         description: {
             id: 'admin.permissions.group.guest_reactions.description',
-            defaultMessage: '',
+            defaultMessage: 'Add and delete reactions on posts.',
         },
     }),
     guest_create_post: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_create_post.name',
-            defaultMessage: '',
+            defaultMessage: 'Create Posts',
         },
         description: {
             id: 'admin.permissions.group.guest_create_post.description',
-            defaultMessage: '',
+            defaultMessage: 'Allow users to create posts.',
         },
     }),
     guest_create_private_channel: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_create_private_channel.name',
-            defaultMessage: '',
+            defaultMessage: 'Create Channels',
         },
         description: {
             id: 'admin.permissions.group.guest_create_private_channel.description',
-            defaultMessage: '',
+            defaultMessage: 'Create new private channels.',
         },
     }),
     guest_delete_post: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_delete_post.name',
-            defaultMessage: '',
+            defaultMessage: 'Delete Own Posts',
         },
         description: {
             id: 'admin.permissions.group.guest_delete_post.description',
-            defaultMessage: '',
+            defaultMessage: 'Author\'s own posts can be deleted.',
         },
     }),
     guest_edit_post: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_edit_post.name',
-            defaultMessage: '',
+            defaultMessage: 'Edit Own Posts',
         },
         description: {
             id: 'admin.permissions.group.guest_edit_post.description',
-            defaultMessage: '',
+            defaultMessage: '{editTimeLimitButton} after posting, allow users to edit their own posts.',
         },
     }),
     guest_use_channel_mentions: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_use_channel_mentions.name',
-            defaultMessage: '',
+            defaultMessage: 'Channel Mentions',
         },
         description: {
             id: 'admin.permissions.group.guest_use_channel_mentions.description',
-            defaultMessage: '',
+            defaultMessage: 'Notify channel members with @all, @channel and @here',
         },
     }),
     guest_use_group_mentions: defineMessages({
         name: {
             id: 'admin.permissions.group.guest_use_group_mentions.name',
-            defaultMessage: '',
+            defaultMessage: 'Group Mentions',
         },
         description: {
             id: 'admin.permissions.group.guest_use_group_mentions.description',
-            defaultMessage: '',
+            defaultMessage: 'Notify group members with a group mention',
         },
     }),
     manage_private_channel_members_and_read_groups: defineMessages({
         name: {
             id: 'admin.permissions.group.manage_private_channel_members_and_read_groups.name',
-            defaultMessage: '',
+            defaultMessage: 'Manage Channel Members',
         },
         description: {
             id: 'admin.permissions.group.manage_private_channel_members_and_read_groups.description',
-            defaultMessage: '',
+            defaultMessage: 'Add and remove private channel members.',
         },
     }),
     manage_public_channel_members_and_read_groups: defineMessages({
         name: {
             id: 'admin.permissions.group.manage_public_channel_members_and_read_groups.name',
-            defaultMessage: '',
+            defaultMessage: 'Manage Channel Members',
         },
         description: {
             id: 'admin.permissions.group.manage_public_channel_members_and_read_groups.description',
-            defaultMessage: '',
+            defaultMessage: 'Add and remove public channel members.',
         },
     }),
     convert_public_channel_to_private: defineMessages({
         name: {
             id: 'admin.permissions.group.convert_public_channel_to_private.name',
-            defaultMessage: '',
+            defaultMessage: 'Convert Channels',
         },
         description: {
             id: 'admin.permissions.group.convert_public_channel_to_private.description',
-            defaultMessage: '',
+            defaultMessage: 'Convert public channels to private',
         },
     }),
     manage_shared_channels: defineMessages({
         name: {
             id: 'admin.permissions.group.manage_shared_channels.name',
-            defaultMessage: '',
+            defaultMessage: 'Shared Channels',
         },
         description: {
             id: 'admin.permissions.group.manage_shared_channels.description',
-            defaultMessage: '',
+            defaultMessage: 'Manage Shared Channels',
         },
     }),
     playbook_public: defineMessages({
         name: {
             id: 'admin.permissions.group.playbook_public.name',
-            defaultMessage: '',
+            defaultMessage: 'Manage Public Playbooks',
         },
         description: {
             id: 'admin.permissions.group.playbook_public.description',
-            defaultMessage: '',
+            defaultMessage: 'Manage public playbooks.',
         },
     }),
     playbook_private: defineMessages({
         name: {
             id: 'admin.permissions.group.playbook_private.name',
-            defaultMessage: '',
+            defaultMessage: 'Manage Private Playbooks',
         },
         description: {
             id: 'admin.permissions.group.playbook_private.description',
-            defaultMessage: '',
+            defaultMessage: 'Manage private playbooks.',
         },
     }),
     runs: defineMessages({
         name: {
             id: 'admin.permissions.group.runs.name',
-            defaultMessage: '',
+            defaultMessage: 'Manage Runs',
         },
         description: {
             id: 'admin.permissions.group.runs.description',
-            defaultMessage: '',
+            defaultMessage: 'Manage runs.',
         },
     }),
     custom_groups: defineMessages({
         name: {
             id: 'admin.permissions.group.custom_groups.name',
-            defaultMessage: '',
+            defaultMessage: 'Custom Groups',
         },
         description: {
             id: 'admin.permissions.group.custom_groups.description',
-            defaultMessage: '',
+            defaultMessage: 'Create, edit, delete and manage the members of custom groups.',
         },
     }),
 };
