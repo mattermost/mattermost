@@ -395,6 +395,51 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		assert.Nil(t, received2.GetBroadcast().BroadcastHooks)
 		assert.Nil(t, received2.GetBroadcast().BroadcastHookArgs)
 	})
+
+	t.Run("should sanitize the post if there is an error", func(t *testing.T) {
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		defer closeWS1()
+
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		defer closeWS2()
+
+		linkedPostId := "123456789"
+		postURL := fmt.Sprintf("%s/%s/pl/%s", th.App.GetSiteURL(), th.BasicTeam.Name, linkedPostId)
+		post := &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   postURL,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						URL:  postURL,
+						Data: &model.Post{},
+					},
+				},
+			},
+		}
+		post.SetProps(model.StringInterface{model.PostPropsPreviewedPost: linkedPostId})
+
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		require.NoError(t, err)
+
+		received1 := <-messages1
+		require.Equal(t, model.WebsocketEventPosted, received1.EventType())
+		received1Post := &model.Post{}
+		err = json.Unmarshal([]byte(received1.GetData()["post"].(string)), &received1Post)
+		require.NoError(t, err)
+		assert.Equal(t, postURL, received1Post.Message)
+		assert.Nil(t, received1Post.Metadata.Embeds)
+
+		received2 := <-messages2
+		require.Equal(t, model.WebsocketEventPosted, received2.EventType())
+		received2Post := &model.Post{}
+		err = json.Unmarshal([]byte(received2.GetData()["post"].(string)), &received2Post)
+		require.NoError(t, err)
+		assert.Equal(t, postURL, received2Post.Message)
+		assert.Nil(t, received1Post.Metadata.Embeds)
+	})
 }
 
 func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
