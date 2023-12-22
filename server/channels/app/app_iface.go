@@ -269,6 +269,12 @@ type AppIface interface {
 	MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
 	NotifySessionsExpired() error
+	// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin wto check that the plugin
+	// is still responding and has a connection to any upstream services it needs (e.g. MS Graph API).
+	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+	// OnSharedChannelsSyncMsg is called by the Shared Channels service for a registered plugin when there is new content
+	// that needs to be synchronized.
+	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
 	// OverrideIconURLIfEmoji changes the post icon override URL prop, if it has an emoji icon,
 	// so that it points to the URL (relative) of the emoji - static if emoji is default, /api if custom.
 	OverrideIconURLIfEmoji(c request.CTX, post *model.Post)
@@ -339,6 +345,8 @@ type AppIface interface {
 	// SyncRolesAndMembership updates the SchemeAdmin status and membership of all of the members of the given
 	// syncable.
 	SyncRolesAndMembership(c request.CTX, syncableID string, syncableType model.GroupSyncableType, includeRemovedMembers bool)
+	// SyncSharedChannel forces a shared channel to send any changed content to all remote clusters.
+	SyncSharedChannel(channelID string) error
 	// SyncSyncableRoles updates the SchemeAdmin field value of the given syncable's members based on the configuration of
 	// the member's group memberships and the configuration of those groups to the syncable. This method should only
 	// be invoked on group-synced (aka group-constrained) syncables.
@@ -376,6 +384,12 @@ type AppIface interface {
 	UpdateDNDStatusOfUsers()
 	// UpdateProductNotices is called periodically from a scheduled worker to fetch new notices and update the cache
 	UpdateProductNotices() *model.AppError
+	// UpdateSharedChannelCursor updates the cursor for the specified channelID and remoteID.
+	// This can be used to manually set the point of last sync, either forward to skip older posts,
+	// or backward to re-sync history.
+	// This call by itself does not force a re-sync - a change to channel contents or a call to
+	// SyncSharedChannel are needed to force a sync.
+	UpdateSharedChannelCursor(channelID, remoteID string, cursor model.GetPostsSinceForSyncCursor) error
 	// UpdateViewedProductNotices is called from the frontend to mark a set of notices as 'viewed' by user
 	UpdateViewedProductNotices(userID string, noticeIds []string) *model.AppError
 	// UpdateViewedProductNoticesForNewUser is called when new user is created to mark all current notices for this
@@ -546,7 +560,6 @@ type AppIface interface {
 	DeleteRemoteCluster(remoteClusterId string) (bool, *model.AppError)
 	DeleteRetentionPolicy(policyID string) *model.AppError
 	DeleteScheme(schemeId string) (*model.Scheme, *model.AppError)
-	DeleteSharedChannel(channelID string) (bool, error)
 	DeleteSharedChannelRemote(id string) (bool, error)
 	DeleteSidebarCategory(c request.CTX, userID, teamID, categoryId string) *model.AppError
 	DeleteToken(token *model.Token) *model.AppError
@@ -888,6 +901,7 @@ type AppIface interface {
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
 	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
+	InviteRemoteToChannel(channelID, remoteID, userID string) error
 	IsCRTEnabledForUser(c request.CTX, userID string) bool
 	IsConfigReadOnly() bool
 	IsFirstUserAccount() bool
@@ -968,6 +982,7 @@ type AppIface interface {
 	RegenerateOAuthAppSecret(app *model.OAuthApp) (*model.OAuthApp, *model.AppError)
 	RegenerateTeamInviteId(teamID string) (*model.Team, *model.AppError)
 	RegisterPluginCommand(pluginID string, command *model.Command) error
+	RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error)
 	ReloadConfig() error
 	RemoveAllDeactivatedMembersFromChannel(c request.CTX, channel *model.Channel) *model.AppError
 	RemoveChannelsFromRetentionPolicy(policyID string, channelIDs []string) *model.AppError
@@ -1016,7 +1031,6 @@ type AppIface interface {
 	SaveBrandImage(rctx request.CTX, imageData *multipart.FileHeader) *model.AppError
 	SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError)
 	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	SaveSharedChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
 	SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error)
 	SaveUserTermsOfService(userID, termsOfServiceId string, accepted bool) *model.AppError
 	SchemesIterator(scope string, batchSize int) func() []*model.Scheme
@@ -1092,6 +1106,7 @@ type AppIface interface {
 	SetTeamIcon(teamID string, imageData *multipart.FileHeader) *model.AppError
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
+	ShareChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
 	SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
 	SoftDeleteTeam(teamID string) *model.AppError
 	Srv() *Server
@@ -1112,7 +1127,10 @@ type AppIface interface {
 	ToggleMuteChannel(c request.CTX, channelID, userID string) (*model.ChannelMember, *model.AppError)
 	TotalWebsocketConnections() int
 	TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayload, hook *model.OutgoingWebhook, post *model.Post, channel *model.Channel)
+	UninviteRemoteFromChannel(channelID, remoteID string) error
 	UnregisterPluginCommand(pluginID, teamID, trigger string)
+	UnregisterPluginForSharedChannels(pluginID string) error
+	UnshareChannel(channelID string) (bool, error)
 	UpdateActive(c request.CTX, user *model.User, active bool) (*model.User, *model.AppError)
 	UpdateChannelMemberNotifyProps(c request.CTX, data map[string]string, channelID string, userID string) (*model.ChannelMember, *model.AppError)
 	UpdateChannelMemberRoles(c request.CTX, channelID string, userID string, newRoles string) (*model.ChannelMember, *model.AppError)
