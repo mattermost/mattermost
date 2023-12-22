@@ -168,7 +168,7 @@ func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string) error {
 	rc, appErr := a.GetRemoteCluster(remoteID)
 	if appErr != nil {
 		return model.NewAppError("InviteRemoteToChannel", "api.command_share.remote_id_invalid.error",
-			map[string]any{"Error": appErr.Error()}, "", http.StatusBadRequest).Wrap(appErr)
+			map[string]any{"Error": appErr.Error()}, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	channel, errApp := a.GetChannel(request.EmptyContext(a.Log()), channelID)
