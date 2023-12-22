@@ -339,7 +339,7 @@ type Hooks interface {
 	//
 	// The cursor will be advanced based on the SyncResponse returned.
 	//
-	// Minimum server version: 9.4
+	// Minimum server version: 9.5
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
 
 	// OnSharedChannelsPing is invoked for plugins to indicate the health of the plugin and the connection
@@ -351,5 +351,7 @@ type Hooks interface {
 	// Some number of failed pings will result in the plugin being marked offline and it will stop receiving
 	// OnSharedChannelsSyncMsg calls until it comes back online. The plugin will also appear offline in the status
 	// report via the `secure-connection status` slash command.
+	//
+	// Minimum server version: 9.5
 	OnSharedChannelsPing(rc *model.RemoteCluster) bool
 }
