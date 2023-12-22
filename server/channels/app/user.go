@@ -235,6 +235,23 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		return nil, err
 	}
 
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.UserWillBeCreated(pluginContext, user)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("createUserOrGuest", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.UserWillBeCreatedID)
+
+		if rejectionError != nil {
+			return nil, rejectionError
+		}
+	}
+
 	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
@@ -971,6 +988,22 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 	if active {
 		user.DeleteAt = 0
 	} else {
+		if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+			var rejectionError *model.AppError
+			pluginContext := pluginContext(c)
+			a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+				rejectionReason := hooks.UserWillBeDeactivated(pluginContext, user)
+				if rejectionReason != "" {
+					rejectionError = model.NewAppError("UpdateActive", rejectionReason, nil, "", http.StatusBadRequest)
+					return false
+				}
+				return true
+			}, plugin.UserWillBeDeactivatedID)
+
+			if rejectionError != nil {
+				return nil, rejectionError
+			}
+		}
 		user.DeleteAt = user.UpdateAt
 	}
 

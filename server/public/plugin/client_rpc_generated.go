@@ -947,6 +947,359 @@ func (s *hooksRPCServer) UserHasBeenDeactivated(args *Z_UserHasBeenDeactivatedAr
 	return nil
 }
 
+func init() {
+	hookNameToId["UserWillJoinChannel"] = UserWillJoinChannelID
+}
+
+type Z_UserWillJoinChannelArgs struct {
+	A *Context
+	B *model.User
+	C *model.Channel
+	D *model.User
+}
+
+type Z_UserWillJoinChannelReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) UserWillJoinChannel(c *Context, user *model.User, channel *model.Channel, requester *model.User) string {
+	_args := &Z_UserWillJoinChannelArgs{c, user, channel, requester}
+	_returns := &Z_UserWillJoinChannelReturns{}
+	if g.implemented[UserWillJoinChannelID] {
+		if err := g.client.Call("Plugin.UserWillJoinChannel", _args, _returns); err != nil {
+			g.log.Error("RPC call UserWillJoinChannel to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) UserWillJoinChannel(args *Z_UserWillJoinChannelArgs, returns *Z_UserWillJoinChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserWillJoinChannel(c *Context, user *model.User, channel *model.Channel, requester *model.User) string
+	}); ok {
+		returns.A = hook.UserWillJoinChannel(args.A, args.B, args.C, args.D)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserWillJoinChannel called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["UserWillLeaveChannel"] = UserWillLeaveChannelID
+}
+
+type Z_UserWillLeaveChannelArgs struct {
+	A *Context
+	B *model.ChannelMember
+}
+
+type Z_UserWillLeaveChannelReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) UserWillLeaveChannel(c *Context, channelMember *model.ChannelMember) string {
+	_args := &Z_UserWillLeaveChannelArgs{c, channelMember}
+	_returns := &Z_UserWillLeaveChannelReturns{}
+	if g.implemented[UserWillLeaveChannelID] {
+		if err := g.client.Call("Plugin.UserWillLeaveChannel", _args, _returns); err != nil {
+			g.log.Error("RPC call UserWillLeaveChannel to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) UserWillLeaveChannel(args *Z_UserWillLeaveChannelArgs, returns *Z_UserWillLeaveChannelReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserWillLeaveChannel(c *Context, channelMember *model.ChannelMember) string
+	}); ok {
+		returns.A = hook.UserWillLeaveChannel(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserWillLeaveChannel called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["UserWillJoinTeam"] = UserWillJoinTeamID
+}
+
+type Z_UserWillJoinTeamArgs struct {
+	A *Context
+	B *model.User
+	C *model.Team
+}
+
+type Z_UserWillJoinTeamReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) UserWillJoinTeam(c *Context, user *model.User, team *model.Team) string {
+	_args := &Z_UserWillJoinTeamArgs{c, user, team}
+	_returns := &Z_UserWillJoinTeamReturns{}
+	if g.implemented[UserWillJoinTeamID] {
+		if err := g.client.Call("Plugin.UserWillJoinTeam", _args, _returns); err != nil {
+			g.log.Error("RPC call UserWillJoinTeam to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) UserWillJoinTeam(args *Z_UserWillJoinTeamArgs, returns *Z_UserWillJoinTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserWillJoinTeam(c *Context, user *model.User, team *model.Team) string
+	}); ok {
+		returns.A = hook.UserWillJoinTeam(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserWillJoinTeam called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["UserWillLeaveTeam"] = UserWillLeaveTeamID
+}
+
+type Z_UserWillLeaveTeamArgs struct {
+	A *Context
+	B *model.TeamMember
+}
+
+type Z_UserWillLeaveTeamReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) UserWillLeaveTeam(c *Context, teamMember *model.TeamMember) string {
+	_args := &Z_UserWillLeaveTeamArgs{c, teamMember}
+	_returns := &Z_UserWillLeaveTeamReturns{}
+	if g.implemented[UserWillLeaveTeamID] {
+		if err := g.client.Call("Plugin.UserWillLeaveTeam", _args, _returns); err != nil {
+			g.log.Error("RPC call UserWillLeaveTeam to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) UserWillLeaveTeam(args *Z_UserWillLeaveTeamArgs, returns *Z_UserWillLeaveTeamReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserWillLeaveTeam(c *Context, teamMember *model.TeamMember) string
+	}); ok {
+		returns.A = hook.UserWillLeaveTeam(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserWillLeaveTeam called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["UserWillBeCreated"] = UserWillBeCreatedID
+}
+
+type Z_UserWillBeCreatedArgs struct {
+	A *Context
+	B *model.User
+}
+
+type Z_UserWillBeCreatedReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) UserWillBeCreated(c *Context, user *model.User) string {
+	_args := &Z_UserWillBeCreatedArgs{c, user}
+	_returns := &Z_UserWillBeCreatedReturns{}
+	if g.implemented[UserWillBeCreatedID] {
+		if err := g.client.Call("Plugin.UserWillBeCreated", _args, _returns); err != nil {
+			g.log.Error("RPC call UserWillBeCreated to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) UserWillBeCreated(args *Z_UserWillBeCreatedArgs, returns *Z_UserWillBeCreatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserWillBeCreated(c *Context, user *model.User) string
+	}); ok {
+		returns.A = hook.UserWillBeCreated(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserWillBeCreated called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["UserWillBeDeactivated"] = UserWillBeDeactivatedID
+}
+
+type Z_UserWillBeDeactivatedArgs struct {
+	A *Context
+	B *model.User
+}
+
+type Z_UserWillBeDeactivatedReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) UserWillBeDeactivated(c *Context, user *model.User) string {
+	_args := &Z_UserWillBeDeactivatedArgs{c, user}
+	_returns := &Z_UserWillBeDeactivatedReturns{}
+	if g.implemented[UserWillBeDeactivatedID] {
+		if err := g.client.Call("Plugin.UserWillBeDeactivated", _args, _returns); err != nil {
+			g.log.Error("RPC call UserWillBeDeactivated to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) UserWillBeDeactivated(args *Z_UserWillBeDeactivatedArgs, returns *Z_UserWillBeDeactivatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		UserWillBeDeactivated(c *Context, user *model.User) string
+	}); ok {
+		returns.A = hook.UserWillBeDeactivated(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook UserWillBeDeactivated called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["ReactionWillBeAdded"] = ReactionWillBeAddedID
+}
+
+type Z_ReactionWillBeAddedArgs struct {
+	A *Context
+	B *model.Reaction
+}
+
+type Z_ReactionWillBeAddedReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) ReactionWillBeAdded(c *Context, reaction *model.Reaction) string {
+	_args := &Z_ReactionWillBeAddedArgs{c, reaction}
+	_returns := &Z_ReactionWillBeAddedReturns{}
+	if g.implemented[ReactionWillBeAddedID] {
+		if err := g.client.Call("Plugin.ReactionWillBeAdded", _args, _returns); err != nil {
+			g.log.Error("RPC call ReactionWillBeAdded to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) ReactionWillBeAdded(args *Z_ReactionWillBeAddedArgs, returns *Z_ReactionWillBeAddedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ReactionWillBeAdded(c *Context, reaction *model.Reaction) string
+	}); ok {
+		returns.A = hook.ReactionWillBeAdded(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ReactionWillBeAdded called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["ReactionWillBeRemoved"] = ReactionWillBeRemovedID
+}
+
+type Z_ReactionWillBeRemovedArgs struct {
+	A *Context
+	B *model.Reaction
+}
+
+type Z_ReactionWillBeRemovedReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) ReactionWillBeRemoved(c *Context, reaction *model.Reaction) string {
+	_args := &Z_ReactionWillBeRemovedArgs{c, reaction}
+	_returns := &Z_ReactionWillBeRemovedReturns{}
+	if g.implemented[ReactionWillBeRemovedID] {
+		if err := g.client.Call("Plugin.ReactionWillBeRemoved", _args, _returns); err != nil {
+			g.log.Error("RPC call ReactionWillBeRemoved to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) ReactionWillBeRemoved(args *Z_ReactionWillBeRemovedArgs, returns *Z_ReactionWillBeRemovedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ReactionWillBeRemoved(c *Context, reaction *model.Reaction) string
+	}); ok {
+		returns.A = hook.ReactionWillBeRemoved(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ReactionWillBeRemoved called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["ChannelWillBeCreated"] = ChannelWillBeCreatedID
+}
+
+type Z_ChannelWillBeCreatedArgs struct {
+	A *Context
+	B *model.Channel
+}
+
+type Z_ChannelWillBeCreatedReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) ChannelWillBeCreated(c *Context, channel *model.Channel) string {
+	_args := &Z_ChannelWillBeCreatedArgs{c, channel}
+	_returns := &Z_ChannelWillBeCreatedReturns{}
+	if g.implemented[ChannelWillBeCreatedID] {
+		if err := g.client.Call("Plugin.ChannelWillBeCreated", _args, _returns); err != nil {
+			g.log.Error("RPC call ChannelWillBeCreated to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) ChannelWillBeCreated(args *Z_ChannelWillBeCreatedArgs, returns *Z_ChannelWillBeCreatedReturns) error {
+	if hook, ok := s.impl.(interface {
+		ChannelWillBeCreated(c *Context, channel *model.Channel) string
+	}); ok {
+		returns.A = hook.ChannelWillBeCreated(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook ChannelWillBeCreated called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["MessageWillBeDeleted"] = MessageWillBeDeletedID
+}
+
+type Z_MessageWillBeDeletedArgs struct {
+	A *Context
+	B *model.Post
+}
+
+type Z_MessageWillBeDeletedReturns struct {
+	A string
+}
+
+func (g *hooksRPCClient) MessageWillBeDeleted(c *Context, post *model.Post) string {
+	_args := &Z_MessageWillBeDeletedArgs{c, post}
+	_returns := &Z_MessageWillBeDeletedReturns{}
+	if g.implemented[MessageWillBeDeletedID] {
+		if err := g.client.Call("Plugin.MessageWillBeDeleted", _args, _returns); err != nil {
+			g.log.Error("RPC call MessageWillBeDeleted to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) MessageWillBeDeleted(args *Z_MessageWillBeDeletedArgs, returns *Z_MessageWillBeDeletedReturns) error {
+	if hook, ok := s.impl.(interface {
+		MessageWillBeDeleted(c *Context, post *model.Post) string
+	}); ok {
+		returns.A = hook.MessageWillBeDeleted(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook MessageWillBeDeleted called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

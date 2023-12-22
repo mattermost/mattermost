@@ -25,6 +25,20 @@ func (_m *Hooks) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel
 	_m.Called(c, channel)
 }
 
+// ChannelWillBeCreated provides a mock function with given fields: c, channel
+func (_m *Hooks) ChannelWillBeCreated(c *plugin.Context, channel *model.Channel) string {
+	ret := _m.Called(c, channel)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Channel) string); ok {
+		r0 = rf(c, channel)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // ConfigurationWillBeSaved provides a mock function with given fields: newCfg
 func (_m *Hooks) ConfigurationWillBeSaved(newCfg *model.Config) (*model.Config, error) {
 	ret := _m.Called(newCfg)
@@ -144,6 +158,20 @@ func (_m *Hooks) MessageHasBeenPosted(c *plugin.Context, post *model.Post) {
 // MessageHasBeenUpdated provides a mock function with given fields: c, newPost, oldPost
 func (_m *Hooks) MessageHasBeenUpdated(c *plugin.Context, newPost *model.Post, oldPost *model.Post) {
 	_m.Called(c, newPost, oldPost)
+}
+
+// MessageWillBeDeleted provides a mock function with given fields: c, post
+func (_m *Hooks) MessageWillBeDeleted(c *plugin.Context, post *model.Post) string {
+	ret := _m.Called(c, post)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Post) string); ok {
+		r0 = rf(c, post)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
 }
 
 // MessageWillBePosted provides a mock function with given fields: c, post
@@ -331,6 +359,34 @@ func (_m *Hooks) ReactionHasBeenRemoved(c *plugin.Context, reaction *model.React
 	_m.Called(c, reaction)
 }
 
+// ReactionWillBeAdded provides a mock function with given fields: c, reaction
+func (_m *Hooks) ReactionWillBeAdded(c *plugin.Context, reaction *model.Reaction) string {
+	ret := _m.Called(c, reaction)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Reaction) string); ok {
+		r0 = rf(c, reaction)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// ReactionWillBeRemoved provides a mock function with given fields: c, reaction
+func (_m *Hooks) ReactionWillBeRemoved(c *plugin.Context, reaction *model.Reaction) string {
+	ret := _m.Called(c, reaction)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.Reaction) string); ok {
+		r0 = rf(c, reaction)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
 // RunDataRetention provides a mock function with given fields: nowTime, batchSize
 func (_m *Hooks) RunDataRetention(nowTime int64, batchSize int64) (int64, error) {
 	ret := _m.Called(nowTime, batchSize)
@@ -398,6 +454,90 @@ func (_m *Hooks) UserHasLeftTeam(c *plugin.Context, teamMember *model.TeamMember
 // UserHasLoggedIn provides a mock function with given fields: c, user
 func (_m *Hooks) UserHasLoggedIn(c *plugin.Context, user *model.User) {
 	_m.Called(c, user)
+}
+
+// UserWillBeCreated provides a mock function with given fields: c, user
+func (_m *Hooks) UserWillBeCreated(c *plugin.Context, user *model.User) string {
+	ret := _m.Called(c, user)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.User) string); ok {
+		r0 = rf(c, user)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// UserWillBeDeactivated provides a mock function with given fields: c, user
+func (_m *Hooks) UserWillBeDeactivated(c *plugin.Context, user *model.User) string {
+	ret := _m.Called(c, user)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.User) string); ok {
+		r0 = rf(c, user)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// UserWillJoinChannel provides a mock function with given fields: c, user, channel, requester
+func (_m *Hooks) UserWillJoinChannel(c *plugin.Context, user *model.User, channel *model.Channel, requester *model.User) string {
+	ret := _m.Called(c, user, channel, requester)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.User, *model.Channel, *model.User) string); ok {
+		r0 = rf(c, user, channel, requester)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// UserWillJoinTeam provides a mock function with given fields: c, user, team
+func (_m *Hooks) UserWillJoinTeam(c *plugin.Context, user *model.User, team *model.Team) string {
+	ret := _m.Called(c, user, team)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.User, *model.Team) string); ok {
+		r0 = rf(c, user, team)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// UserWillLeaveChannel provides a mock function with given fields: c, channelMember
+func (_m *Hooks) UserWillLeaveChannel(c *plugin.Context, channelMember *model.ChannelMember) string {
+	ret := _m.Called(c, channelMember)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.ChannelMember) string); ok {
+		r0 = rf(c, channelMember)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
+}
+
+// UserWillLeaveTeam provides a mock function with given fields: c, teamMember
+func (_m *Hooks) UserWillLeaveTeam(c *plugin.Context, teamMember *model.TeamMember) string {
+	ret := _m.Called(c, teamMember)
+
+	var r0 string
+	if rf, ok := ret.Get(0).(func(*plugin.Context, *model.TeamMember) string); ok {
+		r0 = rf(c, teamMember)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	return r0
 }
 
 // UserWillLogIn provides a mock function with given fields: c, user

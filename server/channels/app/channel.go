@@ -300,6 +300,24 @@ func (a *App) RenameChannel(c request.CTX, channel *model.Channel, newChannelNam
 
 func (a *App) CreateChannel(c request.CTX, channel *model.Channel, addMember bool) (*model.Channel, *model.AppError) {
 	channel.DisplayName = strings.TrimSpace(channel.DisplayName)
+
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.ChannelWillBeCreated(pluginContext, channel)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("CreateChannel", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.ChannelWillBeCreatedID)
+
+		if rejectionError != nil {
+			return nil, rejectionError
+		}
+	}
+
 	sc, nErr := a.Srv().Store().Channel().Save(channel, *a.Config().TeamSettings.MaxChannelsPerTeam)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
@@ -503,6 +521,32 @@ func (a *App) createDirectChannel(c request.CTX, userID string, otherUserID stri
 }
 
 func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError) {
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			channel := new(model.Channel)
+			for _, option := range channelOptions {
+				option(channel)
+			}
+			channel.Name = model.GetDMNameFromIds(otherUser.Id, user.Id)
+			channel.Type = model.ChannelTypeDirect
+			channel.Shared = model.NewBool(user.IsRemote() || otherUser.IsRemote())
+			channel.CreatorId = user.Id
+
+			rejectionReason := hooks.ChannelWillBeCreated(pluginContext, channel)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("CreateChannel", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.ChannelWillBeCreatedID)
+
+		if rejectionError != nil {
+			return nil, rejectionError
+		}
+	}
+
 	channel, nErr := a.Srv().Store().Channel().CreateDirectChannel(c, user, otherUser, channelOptions...)
 	if nErr != nil {
 		var invErr *store.ErrInvalidInput
@@ -1647,6 +1691,23 @@ func (a *App) AddChannelMember(c request.CTX, userID string, channel *model.Chan
 		}
 	}
 
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.UserWillJoinChannel(pluginContext, user, channel, userRequestor)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("joinChannel", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.UserWillJoinChannelID)
+
+		if rejectionError != nil {
+			return nil, rejectionError
+		}
+	}
+
 	cm, err := a.AddUserToChannel(c, user, channel, opts.SkipTeamMemberIntegrityCheck)
 	if err != nil {
 		return nil, err
@@ -2246,6 +2307,23 @@ func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) 
 		return model.NewAppError("JoinChannel", "api.channel.join_channel.permissions.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.UserWillJoinChannel(pluginContext, user, channel, nil)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("joinChannel", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.UserWillJoinChannelID)
+
+		if rejectionError != nil {
+			return rejectionError
+		}
+	}
+
 	cm, err := a.AddUserToChannel(c, user, channel, false)
 	if err != nil {
 		return err
@@ -2524,6 +2602,23 @@ func (a *App) removeUserFromChannel(c request.CTX, userIDToRemove string, remove
 	cm, err := a.GetChannelMember(c, channel.Id, userIDToRemove)
 	if err != nil {
 		return err
+	}
+
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.UserWillLeaveChannel(pluginContext, cm)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("leaveChannel", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.UserWillLeaveChannelID)
+
+		if rejectionError != nil {
+			return rejectionError
+		}
 	}
 
 	if err := a.Srv().Store().Channel().RemoveMember(c, channel.Id, userIDToRemove); err != nil {

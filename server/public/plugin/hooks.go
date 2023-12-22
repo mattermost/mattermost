@@ -55,6 +55,16 @@ const (
 	MessageHasBeenDeletedID                   = 37
 	MessagesWillBeConsumedID                  = 38
 	ServeMetricsID                            = 39
+	UserWillJoinChannelID                     = 40
+	UserWillLeaveChannelID                    = 41
+	UserWillJoinTeamID                        = 42
+	UserWillLeaveTeamID                       = 43
+	UserWillBeCreatedID                       = 44
+	UserWillBeDeactivatedID                   = 45
+	ReactionWillBeAddedID                     = 46
+	ReactionWillBeRemovedID                   = 47
+	ChannelWillBeCreatedID                    = 48
+	MessageWillBeDeletedID                    = 49
 	TotalHooksID                              = iota
 )
 
@@ -330,4 +340,94 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.2
 	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
+
+	// UserWillJoinChannel is invoked before a user joins a channel.
+	//
+	// To reject a user joining a channel, return an non-empty string describing why the user was rejected.
+	// To allow the user to join the channel, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	UserWillJoinChannel(c *Context, user *model.User, channel *model.Channel, requester *model.User) string
+
+	// UserWillLeaveChannel is invoked before a user leaves a channel.
+	//
+	// To reject a user leaving a channel, return an non-empty string describing why the user was rejected.
+	// To allow the user to leave the channel, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	UserWillLeaveChannel(c *Context, channelMember *model.ChannelMember) string
+
+	// UserWillJoinTeam is invoked before a user joins a team.
+	//
+	// To reject a user joining a team, return an non-empty string describing why the user was rejected.
+	// To allow the user to join the team, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	UserWillJoinTeam(c *Context, user *model.User, team *model.Team) string
+
+	// UserWillLeaveTeam is invoked before a user leaves a team.
+	//
+	// To reject a user leaving a team, return an non-empty string describing why the user was rejected.
+	// To allow the user to leave the team, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	UserWillLeaveTeam(c *Context, teamMember *model.TeamMember) string
+
+	// UserWillBeCreated is invoked before a user is created.
+	//
+	// To reject a user creation, return an non-empty string describing why the user was rejected.
+	// To allow the user to be created, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	UserWillBeCreated(c *Context, user *model.User) string
+
+	// UserWillBeDeactivated is invoked before a user is deactivated.
+	//
+	// To reject a user deactivation, return an non-empty string describing why the user was rejected.
+	// To allow the user to be deactivated, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	UserWillBeDeactivated(c *Context, user *model.User) string
+
+	// ReactionWillBeAdded is invoked before a reaction is added.
+	//
+	// To reject a reaction addition, return an non-empty string describing why the reaction was rejected.
+	// To allow the reaction to be added, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	ReactionWillBeAdded(c *Context, reaction *model.Reaction) string
+
+	// ReactionWillBeRemoved is invoked before a reaction is removed.
+	//
+	// To reject a reaction removal, return an non-empty string describing why the reaction was rejected.
+	// To allow the reaction to be removed, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	ReactionWillBeRemoved(c *Context, reaction *model.Reaction) string
+
+	// ChannelWillBeCreated is invoked before a channel is created.
+	//
+	// To reject a channel creation, return an non-empty string describing why the channel was rejected.
+	// To allow the channel to be created, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	ChannelWillBeCreated(c *Context, channel *model.Channel) string
+
+	// MessageWillBeDeleted is invoked before a message is deleted.
+	//
+	// To reject a message deletion, return an non-empty string describing why the message was rejected.
+	// To allow the message to be deleted, return an empty string.
+	//
+	// Minimum server version: 9.5
+	// Requires enterprise license
+	MessageWillBeDeleted(c *Context, post *model.Post) string
 }

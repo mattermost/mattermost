@@ -1357,6 +1357,23 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		return nil, appErr
 	}
 
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.MessageWillBeDeleted(pluginContext, post)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("DeletePost", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.MessageWillBeDeletedID)
+
+		if rejectionError != nil {
+			return nil, rejectionError
+		}
+	}
+
 	err = a.Srv().Store().Post().Delete(c, postID, model.GetMillis(), deleteByID)
 	if err != nil {
 		var nfErr *store.ErrNotFound

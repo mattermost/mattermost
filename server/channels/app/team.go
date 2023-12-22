@@ -759,6 +759,23 @@ func (a *App) AddUserToTeamByInviteId(c request.CTX, inviteId string, userID str
 }
 
 func (a *App) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User, userRequestorId string) (*model.TeamMember, *model.AppError) {
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.UserWillJoinTeam(pluginContext, user, team)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("joinTeam", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.UserWillJoinTeamID)
+
+		if rejectionError != nil {
+			return nil, rejectionError
+		}
+	}
+
 	teamMember, alreadyAdded, err := a.ch.srv.teamService.JoinUserToTeam(c, team, user)
 	if err != nil {
 		var appErr *model.AppError
@@ -1285,6 +1302,23 @@ func (a *App) LeaveTeam(c request.CTX, team *model.Team, user *model.User, reque
 			if err = a.postRemoveFromTeamMessage(c, user, channel); err != nil {
 				c.Logger().Warn("Failed to post join/leave message", mlog.Err(err))
 			}
+		}
+	}
+
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.UserWillLeaveTeam(pluginContext, teamMember)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("leaveTeam", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.UserWillLeaveTeamID)
+
+		if rejectionError != nil {
+			return rejectionError
 		}
 	}
 

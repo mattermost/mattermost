@@ -250,3 +250,73 @@ func (hooks *hooksTimerLayer) ServeMetrics(c *Context, w http.ResponseWriter, r 
 	hooks.hooksImpl.ServeMetrics(c, w, r)
 	hooks.recordTime(startTime, "ServeMetrics", true)
 }
+
+func (hooks *hooksTimerLayer) UserWillJoinChannel(c *Context, user *model.User, channel *model.Channel, requester *model.User) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.UserWillJoinChannel(c, user, channel, requester)
+	hooks.recordTime(startTime, "UserWillJoinChannel", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) UserWillLeaveChannel(c *Context, channelMember *model.ChannelMember) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.UserWillLeaveChannel(c, channelMember)
+	hooks.recordTime(startTime, "UserWillLeaveChannel", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) UserWillJoinTeam(c *Context, user *model.User, team *model.Team) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.UserWillJoinTeam(c, user, team)
+	hooks.recordTime(startTime, "UserWillJoinTeam", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) UserWillLeaveTeam(c *Context, teamMember *model.TeamMember) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.UserWillLeaveTeam(c, teamMember)
+	hooks.recordTime(startTime, "UserWillLeaveTeam", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) UserWillBeCreated(c *Context, user *model.User) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.UserWillBeCreated(c, user)
+	hooks.recordTime(startTime, "UserWillBeCreated", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) UserWillBeDeactivated(c *Context, user *model.User) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.UserWillBeDeactivated(c, user)
+	hooks.recordTime(startTime, "UserWillBeDeactivated", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) ReactionWillBeAdded(c *Context, reaction *model.Reaction) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.ReactionWillBeAdded(c, reaction)
+	hooks.recordTime(startTime, "ReactionWillBeAdded", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) ReactionWillBeRemoved(c *Context, reaction *model.Reaction) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.ReactionWillBeRemoved(c, reaction)
+	hooks.recordTime(startTime, "ReactionWillBeRemoved", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) ChannelWillBeCreated(c *Context, channel *model.Channel) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.ChannelWillBeCreated(c, channel)
+	hooks.recordTime(startTime, "ChannelWillBeCreated", true)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) MessageWillBeDeleted(c *Context, post *model.Post) string {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.MessageWillBeDeleted(c, post)
+	hooks.recordTime(startTime, "MessageWillBeDeleted", true)
+	return _returnsA
+}

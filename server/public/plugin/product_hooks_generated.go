@@ -139,6 +139,46 @@ type ServeMetricsIFace interface {
 	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
+type UserWillJoinChannelIFace interface {
+	UserWillJoinChannel(c *Context, user *model.User, channel *model.Channel, requester *model.User) string
+}
+
+type UserWillLeaveChannelIFace interface {
+	UserWillLeaveChannel(c *Context, channelMember *model.ChannelMember) string
+}
+
+type UserWillJoinTeamIFace interface {
+	UserWillJoinTeam(c *Context, user *model.User, team *model.Team) string
+}
+
+type UserWillLeaveTeamIFace interface {
+	UserWillLeaveTeam(c *Context, teamMember *model.TeamMember) string
+}
+
+type UserWillBeCreatedIFace interface {
+	UserWillBeCreated(c *Context, user *model.User) string
+}
+
+type UserWillBeDeactivatedIFace interface {
+	UserWillBeDeactivated(c *Context, user *model.User) string
+}
+
+type ReactionWillBeAddedIFace interface {
+	ReactionWillBeAdded(c *Context, reaction *model.Reaction) string
+}
+
+type ReactionWillBeRemovedIFace interface {
+	ReactionWillBeRemoved(c *Context, reaction *model.Reaction) string
+}
+
+type ChannelWillBeCreatedIFace interface {
+	ChannelWillBeCreated(c *Context, channel *model.Channel) string
+}
+
+type MessageWillBeDeletedIFace interface {
+	MessageWillBeDeleted(c *Context, post *model.Post) string
+}
+
 type HooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -431,6 +471,96 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has ServeMetrics method but does not implement plugin.ServeMetrics interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements UserWillJoinChannel interface.
+	tt = reflect.TypeOf((*UserWillJoinChannelIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserWillJoinChannelID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserWillJoinChannel"); ok {
+		return nil, errors.New("hook has UserWillJoinChannel method but does not implement plugin.UserWillJoinChannel interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements UserWillLeaveChannel interface.
+	tt = reflect.TypeOf((*UserWillLeaveChannelIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserWillLeaveChannelID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserWillLeaveChannel"); ok {
+		return nil, errors.New("hook has UserWillLeaveChannel method but does not implement plugin.UserWillLeaveChannel interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements UserWillJoinTeam interface.
+	tt = reflect.TypeOf((*UserWillJoinTeamIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserWillJoinTeamID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserWillJoinTeam"); ok {
+		return nil, errors.New("hook has UserWillJoinTeam method but does not implement plugin.UserWillJoinTeam interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements UserWillLeaveTeam interface.
+	tt = reflect.TypeOf((*UserWillLeaveTeamIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserWillLeaveTeamID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserWillLeaveTeam"); ok {
+		return nil, errors.New("hook has UserWillLeaveTeam method but does not implement plugin.UserWillLeaveTeam interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements UserWillBeCreated interface.
+	tt = reflect.TypeOf((*UserWillBeCreatedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserWillBeCreatedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserWillBeCreated"); ok {
+		return nil, errors.New("hook has UserWillBeCreated method but does not implement plugin.UserWillBeCreated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements UserWillBeDeactivated interface.
+	tt = reflect.TypeOf((*UserWillBeDeactivatedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[UserWillBeDeactivatedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("UserWillBeDeactivated"); ok {
+		return nil, errors.New("hook has UserWillBeDeactivated method but does not implement plugin.UserWillBeDeactivated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements ReactionWillBeAdded interface.
+	tt = reflect.TypeOf((*ReactionWillBeAddedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[ReactionWillBeAddedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("ReactionWillBeAdded"); ok {
+		return nil, errors.New("hook has ReactionWillBeAdded method but does not implement plugin.ReactionWillBeAdded interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements ReactionWillBeRemoved interface.
+	tt = reflect.TypeOf((*ReactionWillBeRemovedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[ReactionWillBeRemovedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("ReactionWillBeRemoved"); ok {
+		return nil, errors.New("hook has ReactionWillBeRemoved method but does not implement plugin.ReactionWillBeRemoved interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements ChannelWillBeCreated interface.
+	tt = reflect.TypeOf((*ChannelWillBeCreatedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[ChannelWillBeCreatedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("ChannelWillBeCreated"); ok {
+		return nil, errors.New("hook has ChannelWillBeCreated method but does not implement plugin.ChannelWillBeCreated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements MessageWillBeDeleted interface.
+	tt = reflect.TypeOf((*MessageWillBeDeletedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[MessageWillBeDeletedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("MessageWillBeDeleted"); ok {
+		return nil, errors.New("hook has MessageWillBeDeleted method but does not implement plugin.MessageWillBeDeleted interface")
+	}
+
 	return a, nil
 }
 
@@ -710,5 +840,95 @@ func (a *HooksAdapter) ServeMetrics(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	a.productHooks.(ServeMetricsIFace).ServeMetrics(c, w, r)
+
+}
+
+func (a *HooksAdapter) UserWillJoinChannel(c *Context, user *model.User, channel *model.Channel, requester *model.User) string {
+	if _, ok := a.implemented[UserWillJoinChannelID]; !ok {
+		panic("product hooks must implement UserWillJoinChannel")
+	}
+
+	return a.productHooks.(UserWillJoinChannelIFace).UserWillJoinChannel(c, user, channel, requester)
+
+}
+
+func (a *HooksAdapter) UserWillLeaveChannel(c *Context, channelMember *model.ChannelMember) string {
+	if _, ok := a.implemented[UserWillLeaveChannelID]; !ok {
+		panic("product hooks must implement UserWillLeaveChannel")
+	}
+
+	return a.productHooks.(UserWillLeaveChannelIFace).UserWillLeaveChannel(c, channelMember)
+
+}
+
+func (a *HooksAdapter) UserWillJoinTeam(c *Context, user *model.User, team *model.Team) string {
+	if _, ok := a.implemented[UserWillJoinTeamID]; !ok {
+		panic("product hooks must implement UserWillJoinTeam")
+	}
+
+	return a.productHooks.(UserWillJoinTeamIFace).UserWillJoinTeam(c, user, team)
+
+}
+
+func (a *HooksAdapter) UserWillLeaveTeam(c *Context, teamMember *model.TeamMember) string {
+	if _, ok := a.implemented[UserWillLeaveTeamID]; !ok {
+		panic("product hooks must implement UserWillLeaveTeam")
+	}
+
+	return a.productHooks.(UserWillLeaveTeamIFace).UserWillLeaveTeam(c, teamMember)
+
+}
+
+func (a *HooksAdapter) UserWillBeCreated(c *Context, user *model.User) string {
+	if _, ok := a.implemented[UserWillBeCreatedID]; !ok {
+		panic("product hooks must implement UserWillBeCreated")
+	}
+
+	return a.productHooks.(UserWillBeCreatedIFace).UserWillBeCreated(c, user)
+
+}
+
+func (a *HooksAdapter) UserWillBeDeactivated(c *Context, user *model.User) string {
+	if _, ok := a.implemented[UserWillBeDeactivatedID]; !ok {
+		panic("product hooks must implement UserWillBeDeactivated")
+	}
+
+	return a.productHooks.(UserWillBeDeactivatedIFace).UserWillBeDeactivated(c, user)
+
+}
+
+func (a *HooksAdapter) ReactionWillBeAdded(c *Context, reaction *model.Reaction) string {
+	if _, ok := a.implemented[ReactionWillBeAddedID]; !ok {
+		panic("product hooks must implement ReactionWillBeAdded")
+	}
+
+	return a.productHooks.(ReactionWillBeAddedIFace).ReactionWillBeAdded(c, reaction)
+
+}
+
+func (a *HooksAdapter) ReactionWillBeRemoved(c *Context, reaction *model.Reaction) string {
+	if _, ok := a.implemented[ReactionWillBeRemovedID]; !ok {
+		panic("product hooks must implement ReactionWillBeRemoved")
+	}
+
+	return a.productHooks.(ReactionWillBeRemovedIFace).ReactionWillBeRemoved(c, reaction)
+
+}
+
+func (a *HooksAdapter) ChannelWillBeCreated(c *Context, channel *model.Channel) string {
+	if _, ok := a.implemented[ChannelWillBeCreatedID]; !ok {
+		panic("product hooks must implement ChannelWillBeCreated")
+	}
+
+	return a.productHooks.(ChannelWillBeCreatedIFace).ChannelWillBeCreated(c, channel)
+
+}
+
+func (a *HooksAdapter) MessageWillBeDeleted(c *Context, post *model.Post) string {
+	if _, ok := a.implemented[MessageWillBeDeletedID]; !ok {
+		panic("product hooks must implement MessageWillBeDeleted")
+	}
+
+	return a.productHooks.(MessageWillBeDeletedIFace).MessageWillBeDeleted(c, post)
 
 }

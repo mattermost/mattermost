@@ -53,6 +53,23 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 		return nil, model.NewAppError("SaveReactionForPost", "api.reaction.save.archived_channel.app_error", nil, "", http.StatusForbidden)
 	}
 
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.ReactionWillBeAdded(pluginContext, reaction)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("SaveReactionForPost", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.ReactionWillBeAddedID)
+
+		if rejectionError != nil {
+			return nil, rejectionError
+		}
+	}
+
 	reaction, nErr := a.Srv().Store().Reaction().Save(reaction)
 	if nErr != nil {
 		var appErr *model.AppError
@@ -137,6 +154,23 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 
 	if channel.DeleteAt > 0 {
 		return model.NewAppError("DeleteReactionForPost", "api.reaction.delete.archived_channel.app_error", nil, "", http.StatusForbidden)
+	}
+
+	if a.Channels().License() != nil && *a.Channels().License().Features.EnterprisePlugins {
+		var rejectionError *model.AppError
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			rejectionReason := hooks.ReactionWillBeRemoved(pluginContext, reaction)
+			if rejectionReason != "" {
+				rejectionError = model.NewAppError("DeleteReactionForPost", rejectionReason, nil, "", http.StatusBadRequest)
+				return false
+			}
+			return true
+		}, plugin.ReactionWillBeRemovedID)
+
+		if rejectionError != nil {
+			return rejectionError
+		}
 	}
 
 	if _, err := a.Srv().Store().Reaction().Delete(reaction); err != nil {
