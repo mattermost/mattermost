@@ -1657,6 +1657,14 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		c.Logger().Warn("You are deleting a user that is a system administrator.  You may need to set another account as the system administrator using the command line tools.", mlog.String("user_email", user.Email))
 	}
 
+	isAdminOfTeam, isAdminOfTeamErr := a.Srv().Store().Team().IsUserAdminOfATeam(user.Email)
+	if isAdminOfTeamErr != nil {
+		return model.NewAppError("PermanentDeleteUser", "app.session.is_user_admin_of_a_team.app_error", nil, "", http.StatusInternalServerError).Wrap(isAdminOfTeamErr)
+	}
+	if isAdminOfTeam {
+		return model.NewAppError("PermanentDeleteUser", "app.session.is_user_admin_of_a_team.app_error", nil, "You are deleting a user that is an owner of a team. You may need to set another user as the team's owner before deleting.", http.StatusBadRequest)
+	}
+
 	if _, err := a.UpdateActive(c, user, false); err != nil {
 		return err
 	}
@@ -1715,9 +1723,9 @@ func (a *App) PermanentDeleteUser(c request.CTX, user *model.User) *model.AppErr
 		}
 	}
 
-	infos, err := a.Srv().Store().FileInfo().GetForUser(user.Id)
-	if err != nil {
-		c.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(err))
+	infos, isAdminOfTeamErr := a.Srv().Store().FileInfo().GetForUser(user.Id)
+	if isAdminOfTeamErr != nil {
+		c.Logger().Warn("Error getting file list for user from FileInfoStore", mlog.Err(isAdminOfTeamErr))
 	}
 
 	for _, info := range infos {
