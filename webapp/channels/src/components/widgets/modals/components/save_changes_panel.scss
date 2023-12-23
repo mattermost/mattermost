@@ -1,8 +1,8 @@
 .mm-save-changes-panel {
     position: fixed;
     z-index: 1000;
-    right: 20px;
     bottom: 20px;
+    left: 50%;
     display: flex;
     width: calc(95%);
     align-items: center;
@@ -12,6 +12,7 @@
     border-radius: 4px;
     box-shadow: var(--elevation-3);
     font-family: 'Open Sans', sans-serif;
+    transform: translateX(-50%);
 
     &.error {
         border-color: var(--dnd-indicator);
