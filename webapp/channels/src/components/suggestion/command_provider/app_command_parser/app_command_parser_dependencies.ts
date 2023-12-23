@@ -12,7 +12,7 @@ import ReduxStore from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
 import {isMac} from 'utils/user_agent';
-import {localizeAndFormatMessage} from 'utils/utils';
+import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -125,7 +125,7 @@ export const displayError = (err: string, channelID: string, rootID?: string) =>
 // Shim of mobile-version intl
 export const intlShim = {
     formatMessage: (config: {id: string; defaultMessage: string}, values?: {[name: string]: any}) => {
-        return localizeAndFormatMessage(config.id, config.defaultMessage, values);
+        return localizeMessage(config, values);
     },
 };
 

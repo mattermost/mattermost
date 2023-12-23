@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useEffect, useMemo} from 'react';
 import type {ReactNode} from 'react';
-import {IntlProvider as BaseIntlProvider} from 'react-intl';
-import type {IntlConfig} from 'react-intl';
+import {RawIntlProvider, createIntl, createIntlCache} from 'react-intl';
+import type {IntlConfig, IntlShape} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
@@ -22,28 +22,33 @@ type Props = {
     };
 };
 
-export default class IntlProvider extends React.PureComponent<Props> {
-    componentDidMount() {
+const intlCache = createIntlCache();
+
+export let GLOBAL_INTL: IntlShape | undefined;
+let LAST_MSG_REF: IntlConfig['messages'];
+
+export const makeIntl = (locale: IntlConfig['locale'], messages: IntlConfig['messages']) => {
+    if (locale === GLOBAL_INTL?.locale && messages === LAST_MSG_REF) {
+        return GLOBAL_INTL;
+    }
+    GLOBAL_INTL = (messages && createIntl({locale, messages, textComponent: 'span', wrapRichTextChunksInFragment: false}, intlCache)) || undefined;
+    if (GLOBAL_INTL) {
+        LAST_MSG_REF = messages;
+    }
+
+    return GLOBAL_INTL;
+};
+
+function IntlProvider({locale, translations, children, actions}: Props) {
+    useEffect(() => {
         // Pass localization function back to mattermost-redux
         setLocalizeFunction(localizeMessage);
+    }, [localizeMessage]);
 
-        this.handleLocaleChange(this.props.locale);
-    }
-
-    componentDidUpdate(prevProps: Props) {
-        if (prevProps.locale !== this.props.locale) {
-            this.handleLocaleChange(this.props.locale);
-        }
-    }
-
-    handleLocaleChange = (locale: string) => {
+    useEffect(() => {
         Client4.setAcceptLanguage(locale);
 
-        this.loadTranslationsIfNecessary(locale);
-    };
-
-    loadTranslationsIfNecessary = (locale: string) => {
-        if (this.props.translations) {
+        if (translations) {
             // Already loaded
             return;
         }
@@ -53,24 +58,23 @@ export default class IntlProvider extends React.PureComponent<Props> {
             return;
         }
 
-        this.props.actions.loadTranslations(locale, localeInfo.url);
-    };
+        actions.loadTranslations(locale, localeInfo.url);
+    }, [locale]);
 
-    render() {
-        if (!this.props.translations) {
-            return null;
-        }
+    const intl = useMemo(() => makeIntl(locale, translations), [translations]);
 
-        return (
-            <BaseIntlProvider
-                key={this.props.locale}
-                locale={this.props.locale}
-                messages={this.props.translations}
-                textComponent='span'
-                wrapRichTextChunksInFragment={false}
-            >
-                {this.props.children}
-            </BaseIntlProvider>
-        );
+    if (!intl) {
+        return null;
     }
+
+    return (
+        <RawIntlProvider
+            key={locale}
+            value={intl}
+        >
+            {children}
+        </RawIntlProvider>
+    );
 }
+
+export default memo(IntlProvider);

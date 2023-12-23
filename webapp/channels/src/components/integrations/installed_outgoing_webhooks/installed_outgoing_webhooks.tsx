@@ -135,25 +135,27 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
         return displayNameA.localeCompare(displayNameB);
     };
 
-    outgoingWebhooks = (filter: string) => this.props.outgoingWebhooks.
-        sort(this.outgoingWebhookCompare).
-        filter((outgoingWebhook) => matchesFilter(outgoingWebhook, this.props.channels[outgoingWebhook.channel_id], filter)).
-        map((outgoingWebhook) => {
-            const canChange = this.props.canManageOthersWebhooks || this.props.user.id === outgoingWebhook.creator_id;
-            const channel = this.props.channels[outgoingWebhook.channel_id];
-            return (
-                <InstalledOutgoingWebhook
-                    key={outgoingWebhook.id}
-                    outgoingWebhook={outgoingWebhook}
-                    onRegenToken={this.regenOutgoingWebhookToken}
-                    onDelete={this.removeOutgoingHook}
-                    creator={this.props.users[outgoingWebhook.creator_id] || {}}
-                    canChange={canChange}
-                    team={this.props.team}
-                    channel={channel}
-                />
-            );
-        });
+    outgoingWebhooks = (filter: string) => {
+        return this.props.outgoingWebhooks.
+            sort(this.outgoingWebhookCompare).
+            filter((outgoingWebhook) => matchesFilter(outgoingWebhook, this.props.channels[outgoingWebhook.channel_id], filter)).
+            map((outgoingWebhook) => {
+                const canChange = this.props.canManageOthersWebhooks || this.props.user.id === outgoingWebhook.creator_id;
+                const channel = this.props.channels[outgoingWebhook.channel_id];
+                return (
+                    <InstalledOutgoingWebhook
+                        key={outgoingWebhook.id}
+                        outgoingWebhook={outgoingWebhook}
+                        onRegenToken={this.regenOutgoingWebhookToken}
+                        onDelete={this.removeOutgoingHook}
+                        creator={this.props.users[outgoingWebhook.creator_id] || {}}
+                        canChange={canChange}
+                        team={this.props.team}
+                        channel={channel}
+                    />
+                );
+            });
+    };
 
     render() {
         return (
@@ -185,6 +187,9 @@ export default class InstalledOutgoingWebhooks extends React.PureComponent<Props
                 emptyTextSearch={
                     <FormattedMarkdownMessage
                         id='installed_outgoing_webhooks.emptySearch'
+
+                        // BackstageList clones the searchTerm into value
+                        // eslint-disable-next-line formatjs/enforce-placeholders
                         defaultMessage='No outgoing webhooks match {searchTerm}'
                     />
                 }

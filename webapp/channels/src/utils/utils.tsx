@@ -5,19 +5,19 @@ import {getName} from 'country-list';
 import crypto from 'crypto';
 import cssVars from 'css-vars-ponyfill';
 import type {Locale} from 'date-fns';
+import type {FormatXMLElementFn, Options as IntlMessageFormatOptions} from 'intl-messageformat';
 import {isNil} from 'lodash';
 import moment from 'moment';
 import React from 'react';
 import type {LinkHTMLAttributes} from 'react';
 import {FormattedMessage} from 'react-intl';
-import type {IntlShape} from 'react-intl';
+import type {IntlShape, PrimitiveType, MessageDescriptor} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Address} from '@mattermost/types/cloud';
 import type {ClientConfig} from '@mattermost/types/config';
 import type {FileInfo} from '@mattermost/types/files';
 import type {Group} from '@mattermost/types/groups';
-import type {GlobalState} from '@mattermost/types/store';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -53,6 +53,7 @@ import {addUserToTeam} from 'actions/team_actions';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 import store from 'stores/redux_store';
 
+import {makeIntl} from 'components/intl_provider/intl_provider';
 import {focusPost} from 'components/permalink_view/actions';
 import type {TextboxElement} from 'components/textbox';
 
@@ -62,6 +63,8 @@ import type {A11yFocusEventDetail} from 'utils/constants';
 import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
+
+import type {GlobalState} from 'types/store';
 
 import {joinPrivateChannelPrompt} from './channel_utils';
 
@@ -1186,36 +1189,67 @@ export function clearFileInput(elm: HTMLInputElement) {
     }
 }
 
-/**
- * @deprecated Use react-intl instead, only place its usage can be justified is in the redux actions
- */
-export function localizeMessage(id: string, defaultMessage?: string) {
-    const state = store.getState();
+/**  {@link IntlShape["formatMessage"]} */
+type PrimitiveValues = Record<string, PrimitiveType | FormatXMLElementFn<string, string>>;
 
+/** {@link IntlShape["formatMessage"]} */
+type RichValues<T> = Record<string, PrimitiveType | T | FormatXMLElementFn<T>>;
+
+/**
+ * Localize a simple message.
+ * @deprecated Except for backwards compatibility and preexisting code, please do not use this signature under any circumstances—pass a {@link MessageDescriptor} instead.
+ * @remarks Warning: does not support i18n-extraction, placeholders, or any other ICU MessageFormat funcionality.
+ */
+export function localizeMessage(id: string, defaultMessage?: string): string;
+
+/**
+ * Localize a message with full intl.formatMessage compatiblity.
+ * @remarks Supports extraction. However, if possible, please use react-intl directly instead.
+ */
+export function localizeMessage(descriptor: MessageDescriptor, values?: PrimitiveValues, opts?: IntlMessageFormatOptions): string;
+export function localizeMessage<T>(descriptor: MessageDescriptor, values?: RichValues<T>, opts?: IntlMessageFormatOptions): string | T | Array<T | string>;
+export function localizeMessage(...params: Parameters<IntlShape['formatMessage']> | [id: string, defaultMessages?: string]): ReturnType<IntlShape['formatMessage']> {
+    const intl = getIntl(store.getState());
+    const [descriptor, values, opts] = params;
+
+    if (typeof descriptor === 'string' || typeof values === 'string') {
+        // backwards-compat; remap params, handle deprecated signature
+        const id = (typeof descriptor === 'string' && descriptor) || '';
+        const defaultMessage = (typeof values === 'string' && values) || undefined;
+
+        if (!intl) {
+            return descriptor || id;
+        }
+
+        return intl.formatMessage({id, defaultMessage});
+    }
+
+    if (!intl) {
+        const msg = descriptor?.defaultMessage;
+
+        if (msg && typeof msg === 'string' && values) {
+            // backwards-compat; simple placeholders from locaizeAndFormatMessage during fallback
+            return msg.replace(/{[\w]+}/g, (match) => {
+                const key = match.substr(1, match.length - 2);
+                const value = values[key];
+                if (typeof value === 'string') {
+                    return value || match;
+                }
+                return match;
+            });
+        }
+
+        return msg || descriptor?.id;
+    }
+
+    return intl.formatMessage(descriptor, values, opts);
+}
+
+function getIntl(state: GlobalState) {
     const locale = getCurrentLocale(state);
     const translations = getTranslations(state, locale);
 
-    if (!translations || !(id in translations)) {
-        return defaultMessage || id;
-    }
-
-    return translations[id];
-}
-
-/**
- * @deprecated If possible, use intl.formatMessage instead. If you have to use this, remember to mark the id using `t`
- */
-export function localizeAndFormatMessage(id: string, defaultMessage: string, template: { [name: string]: any } | undefined) {
-    const base = localizeMessage(id, defaultMessage);
-
-    if (!template) {
-        return base;
-    }
-
-    return base.replace(/{[\w]+}/g, (match) => {
-        const key = match.substr(1, match.length - 2);
-        return template[key] || match;
-    });
+    return makeIntl(locale, translations);
 }
 
 export function mod(a: number, b: number): number {

@@ -23,7 +23,7 @@ import Constants, {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isKeyPressed} from 'utils/keyboard';
 import * as UserAgent from 'utils/user_agent';
-import {localizeMessage, localizeAndFormatMessage} from 'utils/utils';
+import {localizeMessage} from 'utils/utils';
 
 import type {FilterType} from './browse_channels/browse_channels';
 import {Filter} from './browse_channels/browse_channels';
@@ -152,11 +152,10 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             </div>
         ) : null;
 
-        const channelPurposeContainerAriaLabel = localizeAndFormatMessage(
-            t('more_channels.channel_purpose'),
-            'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
-            {memberCount, channelPurpose: channel.purpose || ''},
-        );
+        const channelPurposeContainerAriaLabel = localizeMessage({
+            id: t('more_channels.channel_purpose'),
+            defaultMessage: 'Channel Information: Membership Indicator: Joined, Member count {memberCount}, Purpose: {channelPurpose}',
+        }, {memberCount, channelPurpose: channel.purpose || ''});
 
         const channelPurposeContainer = (
             <div
@@ -349,8 +348,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
             listContent = (
                 <div
                     className='no-channel-message'
-                    aria-label={this.state.channelSearchValue.length > 0 ? localizeAndFormatMessage(t('more_channels.noMore'), 'No results for {text}', {text: this.state.channelSearchValue}) : localizeMessage('widgets.channels_input.empty', 'No channels found')
-                    }
+                    aria-label={this.state.channelSearchValue.length > 0 ? localizeMessage({id: 'more_channels.noMore', defaultMessage: 'No results for {text}'}, {text: this.state.channelSearchValue}) : localizeMessage('widgets.channels_input.empty', 'No channels found')}
                 >
                     <MagnifyingGlassSVG/>
                     <h3 className='primary-message'>
@@ -538,7 +536,7 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         } else if (channels.length === 1) {
             channelCountLabel = localizeMessage('more_channels.count_one', '1 Result');
         } else if (channels.length > 1) {
-            channelCountLabel = localizeAndFormatMessage(t('more_channels.count'), '0 Results', {count: channels.length});
+            channelCountLabel = localizeMessage({id: 'more_channels.count', defaultMessage: '{count} Results'}, {count: channels.length});
         } else {
             channelCountLabel = localizeMessage('more_channels.count_zero', '0 Results');
         }

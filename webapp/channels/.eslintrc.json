@@ -20,6 +20,10 @@
     "react": {
         "pragma": "React",
         "version": "detect"
+    },
+    "formatjs": {
+      "additionalFunctionNames": ["defineMessage","localizeMessage"],
+      "additionalComponentNames": ["FormattedMarkdownMessage"]
     }
   },
   "rules": {
@@ -127,6 +131,15 @@
     ],
     "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}],
     "formatjs/no-multiple-whitespaces": 2,
+    "formatjs/enforce-default-message": 2,
+    "formatjs/no-multiple-plurals": 1,
+    "formatjs/enforce-placeholders": 2,
+    "formatjs/enforce-id": 2,
+    "formatjs/no-invalid-icu": 2,
+    "formatjs/no-literal-string-in-jsx": 1,
+    "formatjs/prefer-formatted-message": 1,
+    "formatjs/no-useless-message": 1,
+    "formatjs/prefer-pound-in-plural": 0,
     "@typescript-eslint/consistent-type-imports": ["error", {"disallowTypeAnnotations": false}]
   },
   "overrides": [

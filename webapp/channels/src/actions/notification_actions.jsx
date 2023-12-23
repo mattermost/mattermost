@@ -224,7 +224,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         if (isCrtReply) {
-            title = Utils.localizeAndFormatMessage(t('notification.crt'), 'Reply in {title}', {title});
+            title = Utils.localizeMessage({id: t('notification.crt'), defaultMessage: 'Reply in {title}'}, {title});
         }
 
         let notifyText = post.message;
