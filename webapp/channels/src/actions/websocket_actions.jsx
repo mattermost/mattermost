@@ -256,6 +256,10 @@ export function reconnect() {
                 syncThreads(team.id, currentUserId);
             }
         }
+
+        // Re-syncing the current channel and team ids.
+        WebSocketClient.updateActiveChannel(currentChannelId);
+        WebSocketClient.updateActiveTeam(currentTeamId);
     }
 
     loadPluginsIfNecessary();
@@ -644,7 +648,8 @@ export function handleChannelUpdatedEvent(msg) {
 
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
-            getHistory().replace(`${getRelativeTeamUrl(state, channel.team_id)}/channels/${channel.name}`);
+            const teamId = channel.team_id || getCurrentTeamId(state);
+            getHistory().replace(`${getRelativeTeamUrl(state, teamId)}/channels/${channel.name}`);
         }
     };
 }

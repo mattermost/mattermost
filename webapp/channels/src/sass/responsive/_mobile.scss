@@ -194,13 +194,8 @@
                             }
 
                             .section-min__edit {
-                                position: relative;
-                                top: 0;
-                                right: 0;
-                                text-align: left;
-
-                                button {
-                                    opacity: 1;
+                                span {
+                                    display: none;
                                 }
                             }
 
@@ -278,10 +273,6 @@
                         width: 100%;
                         margin: 0;
 
-                        &.position--top {
-                            top: auto;
-                        }
-
                         >li {
                             >a {
                                 font-size: 1.1em;
@@ -299,23 +290,6 @@
                     }
 
                     .settings-content {
-                        .section-min__edit {
-                            text-align: left;
-                            text-decoration: none;
-
-                            button {
-                                display: flex;
-                                width: 100%;
-                                align-items: center;
-                                color: rgba(var(--center-channel-color-rgb), 0.75);
-                                text-align: left;
-                            }
-
-                            .fa {
-                                display: inline-block;
-                            }
-                        }
-
                         &.minimize-settings {
                             display: none;
                             padding: 0;

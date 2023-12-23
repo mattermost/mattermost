@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 	"github.com/mattermost/mattermost/server/v8/platform/services/imageproxy"
@@ -44,18 +43,6 @@ func (a *App) TelemetryId() string {
 
 func (s *Server) TemplatesContainer() *templates.Container {
 	return s.htmlTemplateWatcher
-}
-
-func (a *App) Handle404(w http.ResponseWriter, r *http.Request) {
-	ipAddress := utils.GetIPAddress(r, a.Config().ServiceSettings.TrustedProxyIPHeader)
-	mlog.Debug("not found handler triggered", mlog.String("path", r.URL.Path), mlog.Int("code", 404), mlog.String("ip", ipAddress))
-
-	if *a.Config().ServiceSettings.WebserverMode == "disabled" {
-		http.NotFound(w, r)
-		return
-	}
-
-	utils.RenderWebAppError(a.Config(), w, r, model.NewAppError("Handle404", "api.context.404.app_error", nil, "", http.StatusNotFound), a.AsymmetricSigningKey())
 }
 
 func (s *Server) getFirstServerRunTimestamp() (int64, *model.AppError) {
@@ -116,6 +103,11 @@ func (a *App) Saml() einterfaces.SamlInterface {
 func (a *App) Cloud() einterfaces.CloudInterface {
 	return a.ch.srv.Cloud
 }
+
+func (a *App) IPFiltering() einterfaces.IPFilteringInterface {
+	return a.ch.srv.IPFiltering
+}
+
 func (a *App) HTTPService() httpservice.HTTPService {
 	return a.ch.srv.httpService
 }

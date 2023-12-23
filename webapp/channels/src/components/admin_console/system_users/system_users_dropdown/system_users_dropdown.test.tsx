@@ -22,6 +22,8 @@ describe('components/admin_console/system_users/system_users_dropdown/system_use
         username: 'other-user',
     });
 
+    const mockMouseEvent = TestHelper.getMockMouseButtonEvent();
+
     const requiredProps: Props = {
         user,
         mfaEnabled: true,
@@ -37,7 +39,6 @@ describe('components/admin_console/system_users/system_users_dropdown/system_use
         currentUser: otherUser,
         index: 0,
         totalUsers: 10,
-        isDisabled: false,
         actions: {
             updateUserActive: jest.fn().mockResolvedValue({data: true}),
             revokeAllSessionsForUser: jest.fn().mockResolvedValue({data: true}),
@@ -57,11 +58,20 @@ describe('components/admin_console/system_users/system_users_dropdown/system_use
     test('handleMakeActive() should have called updateUserActive', async () => {
         const wrapper = shallow<SystemUsersDropdown>(<SystemUsersDropdown {...requiredProps}/>);
 
-        const event = {preventDefault: jest.fn()};
-        wrapper.instance().handleMakeActive(event);
+        wrapper.instance().handleMakeActive(mockMouseEvent, false);
 
         expect(requiredProps.actions.updateUserActive).toHaveBeenCalledTimes(1);
         expect(requiredProps.actions.updateUserActive).toHaveBeenCalledWith(requiredProps.user.id, true);
+    });
+
+    test('handleMakeActive() should not have called updateUserActive if user auth service is LDAP', async () => {
+        const ldapUserProps = {...requiredProps, user: {...requiredProps.user, auth_service: 'ldap'}};
+
+        const wrapper = shallow<SystemUsersDropdown>(<SystemUsersDropdown {...ldapUserProps}/>);
+
+        wrapper.instance().handleMakeActive(mockMouseEvent, true);
+
+        expect(requiredProps.actions.updateUserActive).toHaveBeenCalledTimes(0);
     });
 
     test('handleMakeActive() should have called onError', async () => {
@@ -70,8 +80,7 @@ describe('components/admin_console/system_users/system_users_dropdown/system_use
         const props = {...requiredProps, actions: {...requiredProps.actions, updateUserActive}};
         const wrapper = shallow<SystemUsersDropdown>(<SystemUsersDropdown {...props}/>);
 
-        const event = {preventDefault: jest.fn()};
-        await wrapper.instance().handleMakeActive(event);
+        await wrapper.instance().handleMakeActive(mockMouseEvent, false);
 
         expect(requiredProps.onError).toHaveBeenCalledTimes(1);
         expect(requiredProps.onError).toHaveBeenCalledWith({id: retVal.error.server_error_id, ...retVal.error});
@@ -84,6 +93,18 @@ describe('components/admin_console/system_users/system_users_dropdown/system_use
 
         expect(requiredProps.actions.updateUserActive).toHaveBeenCalledTimes(1);
         expect(requiredProps.actions.updateUserActive).toHaveBeenCalledWith(requiredProps.user.id, false);
+    });
+
+    test('handleShowDeactivateMemberModal() should not have show the deactivation modal if user auth service is LDAP', async () => {
+        const ldapUserProps = {...requiredProps, user: {...requiredProps.user, auth_service: 'ldap'}};
+
+        const wrapper = shallow<SystemUsersDropdown>(<SystemUsersDropdown {...ldapUserProps}/>);
+
+        await wrapper.instance().handleShowDeactivateMemberModal(mockMouseEvent, true);
+
+        wrapper.update();
+
+        expect(wrapper.state('showDeactivateMemberModal')).toBeFalsy();
     });
 
     test('handleDeactivateMember() should have called onError', async () => {
@@ -121,8 +142,7 @@ describe('components/admin_console/system_users/system_users_dropdown/system_use
     test('handleShowDeactivateMemberModal should not call the loadBots if the setting is not true', async () => {
         const wrapper = shallow<SystemUsersDropdown>(<SystemUsersDropdown {...requiredProps}/>);
 
-        const event = {preventDefault: jest.fn()};
-        await wrapper.instance().handleShowDeactivateMemberModal(event);
+        await wrapper.instance().handleShowDeactivateMemberModal(mockMouseEvent, false);
 
         expect(requiredProps.actions.loadBots).toHaveBeenCalledTimes(0);
     });
@@ -135,8 +155,7 @@ describe('components/admin_console/system_users/system_users_dropdown/system_use
         };
         const wrapper = shallow<SystemUsersDropdown>(<SystemUsersDropdown {...{...requiredProps, config: overrideConfig, bots: {}}}/>);
 
-        const event = {preventDefault: jest.fn()};
-        await wrapper.instance().handleShowDeactivateMemberModal(event);
+        await wrapper.instance().handleShowDeactivateMemberModal(mockMouseEvent, false);
 
         expect(requiredProps.actions.loadBots).toHaveBeenCalledTimes(1);
     });

@@ -2152,7 +2152,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	mockChannelStore.On("GetMemberCountsByGroup", context.Background(), "channelID", true).Return(cmc, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
-	resp, err := th.App.GetMemberCountsByGroup(context.Background(), "channelID", true)
+	resp, err := th.App.GetMemberCountsByGroup(th.Context, "channelID", true)
 	require.Nil(t, err)
 	require.ElementsMatch(t, cmc, resp)
 }
@@ -2537,12 +2537,14 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 		UpdateAt: time.Now().Unix(),
 		Type:     model.ChannelTypeGroup,
 	}, nil)
-	mockChannelStore.On("Update", mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
+	mockChannelStore.On("Update", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
 	mockChannelStore.On("InvalidateChannel", "channelidchannelidchanneli")
 	mockChannelStore.On("InvalidateChannelByName", "team_id_1", "new_name").Times(1)
 	mockChannelStore.On("InvalidateChannelByName", "dm", "")
 	mockChannelStore.On("GetMember", sqlstore.WithMaster(context.Background()), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(1)
-	mockChannelStore.On("GetMember", context.Background(), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(1)
+	mockChannelStore.On("GetMember", context.Background(), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(2)
+	mockChannelStore.On("UpdateMember", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.ChannelMember")).Return(&model.ChannelMember{UserId: "user_id_1"}, nil)
+	mockChannelStore.On("InvalidateAllChannelMembersForUser", "user_id_1").Return()
 	mockChannelStore.On("InvalidatePinnedPostCount", "channelidchannelidchanneli")
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
 	mockChannelStore.On("IncrementMentionCount", "", []string{}, true, false).Return(nil)
@@ -2623,11 +2625,17 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 		{Id: "user_id_2", Username: "user_id_2"},
 	}, nil)
 	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(map[string]*model.User{}, nil)
+	mockUserStore.On("InvalidateProfilesInChannelCacheByUser", "user_id_1").Return()
+	mockUserStore.On("InvalidateProfileCacheForUser", "user_id_1").Return()
 
 	mockPostStore := mocks.PostStore{}
 	mockStore.On("Post").Return(&mockPostStore)
 	mockPostStore.On("Save", mock.AnythingOfType("*model.Post")).Return(&model.Post{}, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelidchannelidchanneli")
+
+	mockSystemStore := mocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", model.MigrationKeyAdvancedPermissionsPhase2).Return(nil, nil)
 
 	var err error
 

@@ -91,7 +91,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 	written, err := a.WriteFile(r, tmpPath)
 	if err != nil {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		r.CloseWithError(err) // always returns nil
 		return err
@@ -99,10 +99,10 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 
 	if err = <-errChan; err != nil {
 		if fileErr := a.RemoveFile(info.Path); fileErr != nil {
-			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 		return err
 	}
@@ -115,7 +115,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
 
@@ -203,7 +203,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}()
 
 	// fetch the session from store to check for inconsistencies.
-	c.SetContext(WithMaster(c.Context()))
+	c = c.With(RequestContextWithMaster)
 	if storedSession, err := a.GetUploadSession(c, us.Id); err != nil {
 		return nil, err
 	} else if us.FileOffset != storedSession.FileOffset {
@@ -296,7 +296,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 		if fileErr != nil {
 			return nil, fileErr
 		}
-		a.HandleImages([]string{info.PreviewPath}, []string{info.ThumbnailPath}, [][]byte{imgData})
+		a.HandleImages(c, []string{info.PreviewPath}, []string{info.ThumbnailPath}, [][]byte{imgData})
 	}
 
 	if us.Type == model.UploadTypeImport {
@@ -306,7 +306,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}
 
 	var storeErr error
-	if info, storeErr = a.Srv().Store().FileInfo().Save(info); storeErr != nil {
+	if info, storeErr = a.Srv().Store().FileInfo().Save(c, info); storeErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(storeErr, &appErr):
@@ -318,11 +318,10 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 
 	if *a.Config().FileSettings.ExtractContent {
 		infoCopy := *info
-		crctx := c.Clone()
 		a.Srv().Go(func() {
-			err := a.ExtractContentFromFileInfo(crctx, &infoCopy)
+			err := a.ExtractContentFromFileInfo(c, &infoCopy)
 			if err != nil {
-				crctx.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
+				c.Logger().Error("Failed to extract file content", mlog.Err(err), mlog.String("fileInfoId", infoCopy.Id))
 			}
 		})
 	}

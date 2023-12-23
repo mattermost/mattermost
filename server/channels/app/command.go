@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 	"unicode"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -368,24 +369,24 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	chanChan := make(chan store.StoreResult, 1)
+	chanChan := make(chan store.GenericStoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(args.ChannelId, true)
-		chanChan <- store.StoreResult{Data: channel, NErr: err}
+		chanChan <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(chanChan)
 	}()
 
-	teamChan := make(chan store.StoreResult, 1)
+	teamChan := make(chan store.GenericStoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(args.TeamId)
-		teamChan <- store.StoreResult{Data: team, NErr: err}
+		teamChan <- store.GenericStoreResult[*model.Team]{Data: team, NErr: err}
 		close(teamChan)
 	}()
 
-	userChan := make(chan store.StoreResult, 1)
+	userChan := make(chan store.GenericStoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
-		userChan <- store.StoreResult{Data: user, NErr: err}
+		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -404,7 +405,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.team.get.finding.app_error", nil, "", http.StatusInternalServerError).Wrap(tr.NErr)
 		}
 	}
-	team := tr.Data.(*model.Team)
+	team := tr.Data
 
 	ur := <-userChan
 	if ur.NErr != nil {
@@ -416,7 +417,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(ur.NErr)
 		}
 	}
-	user := ur.Data.(*model.User)
+	user := ur.Data
 
 	cr := <-chanChan
 	if cr.NErr != nil {
@@ -428,7 +429,7 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 			return nil, nil, model.NewAppError("tryExecuteCustomCommand", "app.channel.get.find.app_error", nil, "", http.StatusInternalServerError).Wrap(cr.NErr)
 		}
 	}
-	channel := cr.Data.(*model.Channel)
+	channel := cr.Data
 
 	var cmd *model.Command
 
@@ -477,17 +478,20 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 	}
 	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 
-	return a.DoCommandRequest(cmd, p)
+	return a.DoCommandRequest(c, cmd, p)
 }
 
-func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+
 	// Prepare the request
 	var req *http.Request
 	var err error
 	if cmd.Method == model.CommandMethodGet {
-		req, err = http.NewRequest(http.MethodGet, cmd.URL, nil)
+		req, err = http.NewRequestWithContext(ctx, http.MethodGet, cmd.URL, nil)
 	} else {
-		req, err = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 	}
 
 	if err != nil {
@@ -507,9 +511,11 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 
-	// Send the request
-	resp, err := a.HTTPService().MakeClient(false).Do(req)
+	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			rctx.Logger().Info("Outgoing Command request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
+		}
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -547,7 +553,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 	_, err := a.HandleCommandResponsePost(c, command, args, response, builtIn)
 
 	if err != nil {
-		mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
+		c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 		lastError = err
 	}
 
@@ -556,7 +562,7 @@ func (a *App) HandleCommandResponse(c request.CTX, command *model.Command, args 
 			_, err := a.HandleCommandResponsePost(c, command, args, resp, builtIn)
 
 			if err != nil {
-				mlog.Debug("Error occurred in handling command response post", mlog.Err(err))
+				c.Logger().Debug("Error occurred in handling command response post", mlog.Err(err))
 				lastError = err
 			}
 		}

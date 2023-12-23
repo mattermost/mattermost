@@ -36,7 +36,7 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
         }
         teamId="team_id2sss"
       >
-        <Connect(ToggleModalButton)
+        <ToggleModalButton
           ariaLabel="Invite Members"
           className="intro-links color--link cursor--pointer"
           dialogType={
@@ -51,51 +51,30 @@ exports[`components/sidebar/invite_members_button should match snapshot 1`] = `
           modalId="invitation"
           onClick={[Function]}
         >
-          <ToggleModalButton
-            actions={
-              Object {
-                "openModal": [Function],
-              }
-            }
-            ariaLabel="Invite Members"
-            className="intro-links color--link cursor--pointer"
-            dialogType={
-              Object {
-                "$$typeof": Symbol(react.memo),
-                "WrappedComponent": [Function],
-                "compare": null,
-                "type": [Function],
-              }
-            }
+          <button
+            aria-label="Invite Members dialog"
+            className="style--none intro-links color--link cursor--pointer"
             id="inviteMembersButton"
-            modalId="invitation"
             onClick={[Function]}
           >
-            <button
-              aria-label="Invite Members dialog"
-              className="style--none intro-links color--link cursor--pointer"
-              id="inviteMembersButton"
-              onClick={[Function]}
+            <div
+              aria-label="Invite Members"
+              className="SidebarChannelNavigator__inviteMembersLhsButton"
             >
-              <div
-                aria-label="Invite Members"
-                className="SidebarChannelNavigator__inviteMembersLhsButton"
+              <i
+                className="icon-plus-box"
+              />
+              <FormattedMessage
+                defaultMessage="Invite Members"
+                id="sidebar_left.inviteMembers"
               >
-                <i
-                  className="icon-plus-box"
-                />
-                <FormattedMessage
-                  defaultMessage="Invite Members"
-                  id="sidebar_left.inviteMembers"
-                >
-                  <span>
-                    Invite Members
-                  </span>
-                </FormattedMessage>
-              </div>
-            </button>
-          </ToggleModalButton>
-        </Connect(ToggleModalButton)>
+                <span>
+                  Invite Members
+                </span>
+              </FormattedMessage>
+            </div>
+          </button>
+        </ToggleModalButton>
       </Memo(TeamPermissionGate)>
     </Connect(Component)>
   </InviteMembersButton>

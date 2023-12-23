@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/ProfilePopover should disable start call button when user is in another call 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -14,9 +14,6 @@ exports[`components/ProfilePopover should disable start call button when user is
   isMobileView={false}
   isUserInCall={true}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -139,6 +136,7 @@ exports[`components/ProfilePopover should disable start call button when user is
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -197,7 +195,7 @@ exports[`components/ProfilePopover should disable start call button when user is
             }
           >
             <div>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 ariaLabel="Add to a Channel"
                 className="btn icon-btn"
                 dialogProps={
@@ -227,6 +225,7 @@ exports[`components/ProfilePopover should disable start call button when user is
                         "desktop_sound": "false",
                         "email": "false",
                         "first_name": "false",
+                        "highlight_keys": "",
                         "mark_unread": "mention",
                         "mention_keys": "",
                         "push": "none",
@@ -259,7 +258,7 @@ exports[`components/ProfilePopover should disable start call button when user is
                   aria-label="Add User to Channel Icon"
                   size={18}
                 />
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </div>
           </OverlayTrigger>
           <OverlayTrigger
@@ -324,6 +323,7 @@ exports[`components/ProfilePopover should disable start call button when user is
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -346,11 +346,11 @@ exports[`components/ProfilePopover should disable start call button when user is
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should hide add-to-channel option if not on team 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -362,9 +362,6 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
   isInCurrentTeam={false}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -487,6 +484,7 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -592,6 +590,7 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -614,11 +613,11 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -630,9 +629,6 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -755,6 +751,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -813,7 +810,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
             }
           >
             <div>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 ariaLabel="Add to a Channel"
                 className="btn icon-btn"
                 dialogProps={
@@ -843,6 +840,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
                         "desktop_sound": "false",
                         "email": "false",
                         "first_name": "false",
+                        "highlight_keys": "",
                         "mark_unread": "mention",
                         "mention_keys": "",
                         "push": "none",
@@ -875,7 +873,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
                   aria-label="Add User to Channel Icon"
                   size={18}
                 />
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </div>
           </OverlayTrigger>
           <Connect(ProfilePopoverCallButton)
@@ -944,6 +942,7 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -966,11 +965,11 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -982,9 +981,6 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -1122,6 +1118,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -1181,7 +1178,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
             }
           >
             <div>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 ariaLabel="Add to a Channel"
                 className="btn icon-btn"
                 dialogProps={
@@ -1211,6 +1208,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
                         "desktop_sound": "false",
                         "email": "false",
                         "first_name": "false",
+                        "highlight_keys": "",
                         "mark_unread": "mention",
                         "mention_keys": "",
                         "push": "none",
@@ -1244,7 +1242,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
                   aria-label="Add User to Channel Icon"
                   size={18}
                 />
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </div>
           </OverlayTrigger>
           <Connect(ProfilePopoverCallButton)
@@ -1313,6 +1311,7 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -1336,11 +1335,11 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot when calls are disabled 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -1352,9 +1351,6 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -1477,6 +1473,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -1535,7 +1532,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
             }
           >
             <div>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 ariaLabel="Add to a Channel"
                 className="btn icon-btn"
                 dialogProps={
@@ -1565,6 +1562,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
                         "desktop_sound": "false",
                         "email": "false",
                         "first_name": "false",
+                        "highlight_keys": "",
                         "mark_unread": "mention",
                         "mention_keys": "",
                         "push": "none",
@@ -1597,7 +1595,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
                   aria-label="Add User to Channel Icon"
                   size={18}
                 />
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </div>
           </OverlayTrigger>
         </div>
@@ -1632,6 +1630,7 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -1654,11 +1653,11 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with custom status 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={
     Object {
       "duration": "today",
@@ -1677,9 +1676,6 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -1802,6 +1798,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -1898,7 +1895,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
             }
           >
             <div>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 ariaLabel="Add to a Channel"
                 className="btn icon-btn"
                 dialogProps={
@@ -1928,6 +1925,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
                         "desktop_sound": "false",
                         "email": "false",
                         "first_name": "false",
+                        "highlight_keys": "",
                         "mark_unread": "mention",
                         "mention_keys": "",
                         "push": "none",
@@ -1960,7 +1958,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
                   aria-label="Add User to Channel Icon"
                   size={18}
                 />
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </div>
           </OverlayTrigger>
           <Connect(ProfilePopoverCallButton)
@@ -2029,6 +2027,7 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -2051,11 +2050,11 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with custom status expired 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={
     Object {
       "duration": "today",
@@ -2074,9 +2073,6 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -2199,6 +2195,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -2257,7 +2254,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
             }
           >
             <div>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 ariaLabel="Add to a Channel"
                 className="btn icon-btn"
                 dialogProps={
@@ -2287,6 +2284,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
                         "desktop_sound": "false",
                         "email": "false",
                         "first_name": "false",
+                        "highlight_keys": "",
                         "mark_unread": "mention",
                         "mention_keys": "",
                         "push": "none",
@@ -2319,7 +2317,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
                   aria-label="Add User to Channel Icon"
                   size={18}
                 />
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </div>
           </OverlayTrigger>
           <Connect(ProfilePopoverCallButton)
@@ -2388,6 +2386,7 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -2410,11 +2409,11 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with custom status not set but can set 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -2426,9 +2425,6 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -2551,6 +2547,7 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -2676,6 +2673,7 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -2698,11 +2696,11 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with last active display 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -2714,9 +2712,6 @@ exports[`components/ProfilePopover should match snapshot with last active displa
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -2839,6 +2834,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -2897,7 +2893,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
             }
           >
             <div>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 ariaLabel="Add to a Channel"
                 className="btn icon-btn"
                 dialogProps={
@@ -2927,6 +2923,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
                         "desktop_sound": "false",
                         "email": "false",
                         "first_name": "false",
+                        "highlight_keys": "",
                         "mark_unread": "mention",
                         "mention_keys": "",
                         "push": "none",
@@ -2959,7 +2956,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
                   aria-label="Add User to Channel Icon"
                   size={18}
                 />
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </div>
           </OverlayTrigger>
           <Connect(ProfilePopoverCallButton)
@@ -3028,6 +3025,7 @@ exports[`components/ProfilePopover should match snapshot with last active displa
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -3050,11 +3048,11 @@ exports[`components/ProfilePopover should match snapshot with last active displa
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with no last active display because it is disabled 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={false}
   id="user-profile-popover"
@@ -3066,9 +3064,6 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -3166,6 +3161,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -3224,7 +3220,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
             }
           >
             <div>
-              <Connect(ToggleModalButton)
+              <ToggleModalButton
                 ariaLabel="Add to a Channel"
                 className="btn icon-btn"
                 dialogProps={
@@ -3254,6 +3250,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
                         "desktop_sound": "false",
                         "email": "false",
                         "first_name": "false",
+                        "highlight_keys": "",
                         "mark_unread": "mention",
                         "mention_keys": "",
                         "push": "none",
@@ -3286,7 +3283,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
                   aria-label="Add User to Channel Icon"
                   size={18}
                 />
-              </Connect(ToggleModalButton)>
+              </ToggleModalButton>
             </div>
           </OverlayTrigger>
           <Connect(ProfilePopoverCallButton)
@@ -3355,6 +3352,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
               "desktop_sound": "false",
               "email": "false",
               "first_name": "false",
+              "highlight_keys": "",
               "mark_unread": "mention",
               "mention_keys": "",
               "push": "none",
@@ -3377,7 +3375,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should show the start call button when isCallsDefaultEnabledOnAllChannels, isCallsCanBeDisabledOnSpecificChannels is false and callsChannelState.enabled is true 1`] = `
@@ -3468,6 +3466,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
           "desktop_sound": "false",
           "email": "false",
           "first_name": "false",
+          "highlight_keys": "",
           "mark_unread": "mention",
           "mention_keys": "",
           "push": "none",
@@ -3602,6 +3601,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
             "desktop_sound": "false",
             "email": "false",
             "first_name": "false",
+            "highlight_keys": "",
             "mark_unread": "mention",
             "mention_keys": "",
             "push": "none",
@@ -3619,7 +3619,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
       }
       userId="0"
     >
-      <Popover
+      <Memo(Popover)
         customStatus={null}
         enableLastActiveTime={true}
         id="user-profile-popover"
@@ -3632,9 +3632,6 @@ exports[`components/ProfilePopover should show the start call button when isCall
         isInCurrentTeam={true}
         isMobileView={false}
         lastActivityTimestamp={1632146562846}
-        placement="right"
-        popoverSize="sm"
-        popoverStyle="info"
         teammateNameDisplay="username"
         timestampUnits={
           Array [
@@ -3946,6 +3943,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                           "desktop_sound": "false",
                           "email": "false",
                           "first_name": "false",
+                          "highlight_keys": "",
                           "mark_unread": "mention",
                           "mention_keys": "",
                           "push": "none",
@@ -4027,6 +4025,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                             "desktop_sound": "false",
                             "email": "false",
                             "first_name": "false",
+                            "highlight_keys": "",
                             "mark_unread": "mention",
                             "mention_keys": "",
                             "push": "none",
@@ -4167,7 +4166,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                             onMouseOut={[Function]}
                             onMouseOver={[Function]}
                           >
-                            <Connect(ToggleModalButton)
+                            <ToggleModalButton
                               ariaLabel="Add to a Channel"
                               className="btn icon-btn"
                               dialogProps={
@@ -4197,6 +4196,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                                       "desktop_sound": "false",
                                       "email": "false",
                                       "first_name": "false",
+                                      "highlight_keys": "",
                                       "mark_unread": "mention",
                                       "mention_keys": "",
                                       "push": "none",
@@ -4225,90 +4225,27 @@ exports[`components/ProfilePopover should show the start call button when isCall
                               modalId="add_user_to_channel"
                               onClick={[Function]}
                             >
-                              <ToggleModalButton
-                                actions={
-                                  Object {
-                                    "openModal": [Function],
-                                  }
-                                }
-                                ariaLabel="Add to a Channel"
-                                className="btn icon-btn"
-                                dialogProps={
-                                  Object {
-                                    "onExited": [Function],
-                                    "user": Object {
-                                      "auth_service": "",
-                                      "bot_description": "",
-                                      "create_at": 0,
-                                      "delete_at": 0,
-                                      "email": "",
-                                      "first_name": "",
-                                      "id": "user_id",
-                                      "is_bot": false,
-                                      "last_activity_at": 0,
-                                      "last_name": "",
-                                      "last_password_update": 0,
-                                      "last_picture_update": 0,
-                                      "locale": "",
-                                      "mfa_active": false,
-                                      "nickname": "",
-                                      "notify_props": Object {
-                                        "calls_desktop_sound": "true",
-                                        "channel": "false",
-                                        "comments": "never",
-                                        "desktop": "default",
-                                        "desktop_sound": "false",
-                                        "email": "false",
-                                        "first_name": "false",
-                                        "mark_unread": "mention",
-                                        "mention_keys": "",
-                                        "push": "none",
-                                        "push_status": "offline",
-                                      },
-                                      "password": "",
-                                      "position": "",
-                                      "props": Object {},
-                                      "roles": "",
-                                      "terms_of_service_create_at": 0,
-                                      "terms_of_service_id": "",
-                                      "update_at": 0,
-                                      "username": "some_username",
-                                    },
-                                  }
-                                }
-                                dialogType={
-                                  Object {
-                                    "$$typeof": Symbol(react.memo),
-                                    "WrappedComponent": [Function],
-                                    "compare": null,
-                                    "type": [Function],
-                                  }
-                                }
+                              <button
+                                aria-label="Add to a Channel dialog"
+                                className="style--none btn icon-btn"
                                 id="addToChannelButton"
-                                modalId="add_user_to_channel"
                                 onClick={[Function]}
                               >
-                                <button
-                                  aria-label="Add to a Channel dialog"
-                                  className="style--none btn icon-btn"
-                                  id="addToChannelButton"
-                                  onClick={[Function]}
+                                <AccountPlusOutlineIcon
+                                  aria-label="Add User to Channel Icon"
+                                  size={18}
                                 >
-                                  <AccountPlusOutlineIcon
+                                  <svg
                                     aria-label="Add User to Channel Icon"
-                                    size={18}
+                                    fill="currentColor"
+                                    height={18}
+                                    version="1.1"
+                                    viewBox="0 0 24 24"
+                                    width={18}
+                                    xmlns="http://www.w3.org/2000/svg"
                                   >
-                                    <svg
-                                      aria-label="Add User to Channel Icon"
-                                      fill="currentColor"
-                                      height={18}
-                                      version="1.1"
-                                      viewBox="0 0 24 24"
-                                      width={18}
-                                      xmlns="http://www.w3.org/2000/svg"
-                                    >
-                                      <path
-                                        d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
+                                    <path
+                                      d="M5.033,19C4.463,19,4,18.528,4,17.945c0-0.105,0.015-0.208,0.044-0.306c0.058-0.195,0.171-0.37,0.324-0.501c0.076-0.066,0.163-0.121,0.258-0.162l3.093-1.857C8.387,15.52,9.151,15.75,10,15.75s1.613-0.23,2.28-0.631l0.352,0.211
 	c0.302-0.606,0.701-1.156,1.181-1.624l-0.006-0.004c1.045-1.391,1.622-3.311,1.622-5.203C15.429,5.21,13.247,3,10,3
 	S4.571,5.21,4.571,8.5c0,1.891,0.577,3.812,1.622,5.203l-2.515,1.51C2.653,15.727,2,16.783,2,17.945C2,19.63,3.361,21,5.033,21
 	h7.776c-0.352-0.608-0.599-1.282-0.719-2H5.033z M10,5c1.894,0,3.429,1.084,3.429,3.5c0,1.482-0.485,3.117-1.353,4.163
@@ -4316,12 +4253,11 @@ exports[`components/ProfilePopover should show the start call button when isCall
 	c-0.226-0.119-0.437-0.272-0.633-0.453c-0.116-0.108-0.225-0.229-0.331-0.356c-0.072-0.086-0.143-0.174-0.209-0.268
 	C7.55,12.164,7.403,11.91,7.272,11.64c-0.194-0.406-0.351-0.846-0.466-1.3C6.729,10.037,6.67,9.728,6.631,9.419
 	c-0.04-0.308-0.06-0.617-0.06-0.919C6.571,6.084,8.106,5,10,5z M17,14h2v3h3v2h-3v3h-2v-3h-3v-2h3V14"
-                                      />
-                                    </svg>
-                                  </AccountPlusOutlineIcon>
-                                </button>
-                              </ToggleModalButton>
-                            </Connect(ToggleModalButton)>
+                                    />
+                                  </svg>
+                                </AccountPlusOutlineIcon>
+                              </button>
+                            </ToggleModalButton>
                           </div>
                         </OverlayTrigger>
                       </OverlayTrigger>
@@ -4430,6 +4366,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                           "desktop_sound": "false",
                           "email": "false",
                           "first_name": "false",
+                          "highlight_keys": "",
                           "mark_unread": "mention",
                           "mention_keys": "",
                           "push": "none",
@@ -4511,6 +4448,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
                             "desktop_sound": "false",
                             "email": "false",
                             "first_name": "false",
+                            "highlight_keys": "",
                             "mark_unread": "mention",
                             "mention_keys": "",
                             "push": "none",
@@ -4537,7 +4475,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
             </div>
           </div>
         </Popover>
-      </Popover>
+      </Memo(Popover)>
     </ProfilePopover>
   </injectIntl(ProfilePopover)>
 </Provider>

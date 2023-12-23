@@ -35,10 +35,10 @@ func (a *App) SyncLdap(c request.CTX, includeRemovedMembers bool) {
 	})
 }
 
-func (a *App) TestLdap() *model.AppError {
+func (a *App) TestLdap(rctx request.CTX) *model.AppError {
 	license := a.Srv().License()
 	if ldapI := a.Ldap(); ldapI != nil && license != nil && *license.Features.LDAP && (*a.Config().LdapSettings.Enable || *a.Config().LdapSettings.EnableSync) {
-		if err := ldapI.RunTest(); err != nil {
+		if err := ldapI.RunTest(rctx); err != nil {
 			err.StatusCode = 500
 			return err
 		}
@@ -51,12 +51,12 @@ func (a *App) TestLdap() *model.AppError {
 }
 
 // GetLdapGroup retrieves a single LDAP group by the given LDAP group id.
-func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
+func (a *App) GetLdapGroup(rctx request.CTX, ldapGroupID string) (*model.Group, *model.AppError) {
 	var group *model.Group
 
 	if a.Ldap() != nil {
 		var err *model.AppError
-		group, err = a.Ldap().GetGroup(ldapGroupID)
+		group, err = a.Ldap().GetGroup(rctx, ldapGroupID)
 		if err != nil {
 			return nil, err
 		}
@@ -70,13 +70,13 @@ func (a *App) GetLdapGroup(ldapGroupID string) (*model.Group, *model.AppError) {
 
 // GetAllLdapGroupsPage retrieves all LDAP groups under the configured base DN using the default or configured group
 // filter.
-func (a *App) GetAllLdapGroupsPage(page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
+func (a *App) GetAllLdapGroupsPage(rctx request.CTX, page int, perPage int, opts model.LdapGroupSearchOpts) ([]*model.Group, int, *model.AppError) {
 	var groups []*model.Group
 	var total int
 
 	if a.Ldap() != nil {
 		var err *model.AppError
-		groups, total, err = a.Ldap().GetAllGroupsPage(page, perPage, opts)
+		groups, total, err = a.Ldap().GetAllGroupsPage(rctx, page, perPage, opts)
 		if err != nil {
 			return nil, 0, err
 		}
@@ -98,7 +98,7 @@ func (a *App) SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginI
 		return "", err
 	}
 
-	if err := a.CheckPasswordAndAllCriteria(user, password, code); err != nil {
+	if err := a.CheckPasswordAndAllCriteria(c, user, password, code); err != nil {
 		return "", err
 	}
 
@@ -147,11 +147,11 @@ func (a *App) SwitchLdapToEmail(c request.CTX, ldapPassword, code, email, newPas
 		return "", err
 	}
 
-	if err := a.CheckUserMfa(user, code); err != nil {
+	if err := a.CheckUserMfa(c, user, code); err != nil {
 		return "", err
 	}
 
-	if err := a.UpdatePassword(user, newPassword); err != nil {
+	if err := a.UpdatePassword(c, user, newPassword); err != nil {
 		return "", err
 	}
 

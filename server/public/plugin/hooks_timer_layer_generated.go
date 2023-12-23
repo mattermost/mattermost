@@ -244,3 +244,23 @@ func (hooks *hooksTimerLayer) UserHasBeenDeactivated(c *Context, user *model.Use
 	hooks.hooksImpl.UserHasBeenDeactivated(c, user)
 	hooks.recordTime(startTime, "UserHasBeenDeactivated", true)
 }
+
+func (hooks *hooksTimerLayer) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.ServeMetrics(c, w, r)
+	hooks.recordTime(startTime, "ServeMetrics", true)
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.OnSharedChannelsSyncMsg(msg, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsSyncMsg", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSharedChannelsPing(rc)
+	hooks.recordTime(startTime, "OnSharedChannelsPing", true)
+	return _returnsA
+}

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/global/product_switcher_menu should match snapshot with id 1`] = `
-<MenuGroup>
+<Memo(MenuGroup)>
   <div
     onClick={[Function]}
   >
@@ -195,11 +195,11 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       text="About "
     />
   </div>
-</MenuGroup>
+</Memo(MenuGroup)>
 `;
 
 exports[`components/global/product_switcher_menu should match snapshot with most of the thing enabled 1`] = `
-<MenuGroup>
+<Memo(MenuGroup)>
   <div
     onClick={[Function]}
   >
@@ -393,7 +393,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       text="About "
     />
   </div>
-</MenuGroup>
+</Memo(MenuGroup)>
 `;
 
 exports[`components/global/product_switcher_menu should match userGroups snapshot with EnableCustomGroups config 1`] = `

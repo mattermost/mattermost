@@ -5,8 +5,6 @@ import React from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
-import ExternalLink from 'components/external_link';
-
 import * as Utils from 'utils/utils';
 
 type Props = {
@@ -36,17 +34,16 @@ export default class FileInfoPreview extends React.PureComponent<Props> {
         let preview = null;
         if (this.props.canDownloadFiles) {
             preview = (
-                <ExternalLink
+                <a
                     className='file-details__preview'
                     href={fileUrl}
-                    location='file_info_preview'
                 >
                     <span className='file-details__preview-helper'/>
                     <img
                         alt={'file preview'}
                         src={Utils.getFileIconPath(fileInfo)}
                     />
-                </ExternalLink>
+                </a>
             );
         } else {
             preview = (

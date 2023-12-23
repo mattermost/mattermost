@@ -205,7 +205,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 			span.Finish()
 		}()
-		c.AppContext.SetContext(ctx)
+		c.AppContext = c.AppContext.WithContext(ctx)
 
 		tmpSrv := *c.App.Srv()
 		tmpSrv.SetStore(opentracinglayer.New(c.App.Srv().Store(), ctx))
@@ -285,7 +285,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		} else if !session.IsOAuth && tokenLocation == app.TokenLocationQueryString {
 			c.Err = model.NewAppError("ServeHTTP", "api.context.token_provided.app_error", nil, "token="+token, http.StatusUnauthorized)
 		} else {
-			c.AppContext.SetSession(session)
+			c.AppContext = c.AppContext.WithSession(session)
 		}
 
 		// Rate limit by UserID
@@ -301,7 +301,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			c.Logger.Warn("Invalid CWS token", mlog.Err(err))
 			c.Err = err
 		} else {
-			c.AppContext.SetSession(session)
+			c.AppContext = c.AppContext.WithSession(session)
 		}
 	} else if token != "" && c.App.Channels().License() != nil && c.App.Channels().License().HasRemoteClusterService() && tokenLocation == app.TokenLocationRemoteClusterHeader {
 		// Get the remote cluster
@@ -315,7 +315,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				c.Logger.Warn("Invalid remote cluster token", mlog.Err(err))
 				c.Err = err
 			} else {
-				c.AppContext.SetSession(session)
+				c.AppContext = c.AppContext.WithSession(session)
 			}
 		}
 	}
@@ -327,7 +327,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		mlog.String("user_id", c.AppContext.Session().UserId),
 		mlog.String("method", r.Method),
 	)
-	c.AppContext.SetLogger(c.Logger)
+	c.AppContext = c.AppContext.WithLogger(c.Logger)
 
 	if c.Err == nil && h.RequireSession {
 		c.SessionRequired()
@@ -354,7 +354,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		// shape IP:PORT (it will be "@" in Linux, for example)
 		isLocalOrigin := !strings.Contains(r.RemoteAddr, ":")
 		if *c.App.Config().ServiceSettings.EnableLocalMode && isLocalOrigin {
-			c.AppContext.SetSession(&model.Session{Local: true})
+			c.AppContext = c.AppContext.WithSession(&model.Session{Local: true})
 		} else if !isLocalOrigin {
 			c.Err = model.NewAppError("", "api.context.local_origin_required.app_error", nil, "LocalOriginRequired", http.StatusUnauthorized)
 		}
@@ -501,7 +501,7 @@ func (h *Handler) checkCSRFToken(c *Context, r *http.Request, token string, toke
 		}
 
 		if !csrfCheckPassed {
-			c.AppContext.SetSession(&model.Session{})
+			c.AppContext = c.AppContext.WithSession(&model.Session{})
 			c.Err = model.NewAppError("ServeHTTP", "api.context.session_expired.app_error", nil, "token="+token+" Appears to be a CSRF attempt", http.StatusUnauthorized)
 		}
 	}

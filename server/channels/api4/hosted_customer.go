@@ -7,9 +7,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -180,7 +180,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
 		}
 
-		if err.Error() == fmt.Sprintf("%d", http.StatusUnprocessableEntity) {
+		if err.Error() == strconv.Itoa(http.StatusUnprocessableEntity) {
 			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 			return
 		}
@@ -251,7 +251,7 @@ func selfHostedInvoices(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	invoices, err := c.App.Cloud().GetSelfHostedInvoices()
+	invoices, err := c.App.Cloud().GetSelfHostedInvoices(c.AppContext)
 
 	if err != nil {
 		if err.Error() == "404" {
@@ -365,7 +365,7 @@ func selfHostedConfirmExpand(c *Context, w http.ResponseWriter, r *http.Request)
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
 		}
 
-		if err.Error() == fmt.Sprintf("%d", http.StatusUnprocessableEntity) {
+		if err.Error() == strconv.Itoa(http.StatusUnprocessableEntity) {
 			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 			return
 		}

@@ -156,8 +156,10 @@ export default class AutocompleteSelector extends React.PureComponent<Props, Sta
                 {labelContent}
                 <div className={inputClassName}>
                     <SuggestionBox
-                        placeholder={placeholder}
+                        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                        // @ts-ignore
                         ref={this.setSuggestionRef}
+                        placeholder={placeholder}
                         listComponent={listComponent}
                         className='form-control'
                         containerClass='select-suggestion-container'
