@@ -12,7 +12,7 @@ function uiInviteMemberToCurrentTeam(username: string) {
     // # Open members section if licensed for guest accounts
     cy.findByTestId('invitationModal').
         then((container) => container.find('[data-testid="inviteMembersLink"]')).
-        then((link) => link && link.click());
+        then((link) => link?.click());
 
     // # Enter bot username and submit
     cy.get('.users-emails-input__control input').typeWithForce(username).as('input');
