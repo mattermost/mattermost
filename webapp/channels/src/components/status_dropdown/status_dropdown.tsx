@@ -156,8 +156,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             endTime = currentDate.add(2, 'hours');
             break;
         case 4:
-            // add one day in current date
-            endTime = currentDate.add(1, 'day');
+            // set to next day 9 in the morning
+            endTime = currentDate.add(1, 'day').set({hour: 9, minute: 0});
             break;
         }
 
@@ -425,7 +425,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             this.dndTimes.map(({id, label, labelDefault}, index) => {
                 let text: React.ReactNode = localizeMessage(label, labelDefault);
                 if (index === 4) {
-                    const tomorrow = getCurrentMomentForTimezone(this.props.timezone).add(1, 'day').toDate();
+                    const tomorrow = getCurrentMomentForTimezone(this.props.timezone).add(1, 'day').set({hour: 9, minute: 0}).toDate();
                     text = (
                         <>
                             {text}

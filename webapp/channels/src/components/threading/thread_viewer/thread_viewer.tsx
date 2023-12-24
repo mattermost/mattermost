@@ -49,7 +49,7 @@ export type Props = Attrs & {
     postIds: string[];
     highlightedPostId?: Post['id'];
     selectedPostFocusedAt?: number;
-    isThreadView?: boolean;
+    isThreadView: boolean;
     inputPlaceholder?: string;
     rootPostId: string;
     fromSuppressed?: boolean;
@@ -81,7 +81,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     }
 
     public componentWillUnmount() {
-        WebSocketClient.updateActiveThread('');
+        WebSocketClient.updateActiveThread(this.props.isThreadView, '');
     }
 
     public componentDidUpdate(prevProps: Props) {
@@ -184,7 +184,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
 
         if (this.props.channel) {
-            WebSocketClient.updateActiveThread(this.props.channel?.id);
+            WebSocketClient.updateActiveThread(this.props.isThreadView, this.props.channel?.id);
         }
         this.setState({isLoading: false});
     };
