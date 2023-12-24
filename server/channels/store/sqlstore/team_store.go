@@ -1687,3 +1687,19 @@ func (s SqlTeamStore) GroupSyncedTeamCount() (int64, error) {
 
 	return count, nil
 }
+
+func (s SqlTeamStore) IsUserAdminOfTeam(userEmail string) (bool, error) {
+	builder := s.getQueryBuilder().Select("COUNT(*)").From("Teams").Where(sq.Eq{"Email": userEmail})
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return false, errors.Wrap(err, "team_tosql")
+	}
+
+	var count int64
+	err = s.GetReplicaX().Get(&count, query, args...)
+	if err != nil {
+		return false, errors.Wrap(err, "failed to count Team where user is admin")
+	}
+
+	return count > 0, nil
+}
