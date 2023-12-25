@@ -2747,6 +2747,8 @@
   "app.channel.post_update_channel_purpose_message.removed": "{username} 移除了频道作用 (曾是：{old})",
   "app.channel.post_update_channel_purpose_message.updated_from": "{username} 更新了频道作用从：{old} 到：{new}",
   "app.channel.post_update_channel_purpose_message.updated_to": "{username} 更新了频道作用到：{new}",
+  "app.post.move_thread_command.channel.one_message": "一条消息已被移动：{{.Link}}\n",
+  "app.post.move_thread_command.direct_or_group.one_message": "一条消息已被移动到私信/群组消息\n",
   "app_bar.marketplace": "应用市场",
   "apps.error": "错误：{error}",
   "apps.error.command.field_missing": "缺少必填字段：`{fieldName}`。",
