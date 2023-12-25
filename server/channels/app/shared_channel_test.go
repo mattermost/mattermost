@@ -38,7 +38,7 @@ func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
 			CreatorId: th.BasicUser.Id,
 			RemoteId:  d.remoteId,
 		}
-		_, err := th.App.SaveSharedChannel(th.Context, sc)
+		_, err := th.App.ShareChannel(th.Context, sc)
 		require.NoError(t, err)
 	}
 

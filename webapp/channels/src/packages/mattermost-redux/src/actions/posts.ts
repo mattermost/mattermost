@@ -276,7 +276,8 @@ export function createPost(post: Post, files: any[] = []) {
                     error.server_error_id === 'api.post.create_post.town_square_read_only' ||
                     error.server_error_id === 'plugin.message_will_be_posted.dismiss_post'
                 ) {
-                    actions.push(removePost(data) as any);
+                    // RemovePost is a Thunk, and not handled by batchActions
+                    dispatch(removePost(data));
                 } else {
                     actions.push(receivedPost(data, crtEnabled));
                 }
