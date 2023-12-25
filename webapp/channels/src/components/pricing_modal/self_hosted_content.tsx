@@ -185,7 +185,6 @@ function SelfHostedContent(props: ContentProps) {
                         plan='Free'
                         planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                         price='$0'
-                        rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
                         isCloud={false}
                         cloudFreeDeprecated={false}
                         planLabel={
