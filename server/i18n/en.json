@@ -1390,6 +1390,10 @@
     "translation": "Cannot invite secure connection to a shared channel originating somewhere else."
   },
   {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Cannot invite remote because channel {{.ChannelID}} is not shared."
+  },
+  {
     "id": "api.command_share.channel_remote_id_not_exists",
     "translation": "Shared channel secure connection `{{.RemoteId}}` does not exist for this channel."
   },
@@ -1407,7 +1411,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Error while checking if shared channel exists: {{.Error}}"
+    "translation": "Error while checking if shared channel {{.ChannelID}} exists: {{.Error}}"
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -2681,6 +2685,10 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
   {
     "id": "api.roles.patch_roles.license.error",

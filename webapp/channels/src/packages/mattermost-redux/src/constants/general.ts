@@ -76,4 +76,5 @@ export default {
     ALWAYS_ON: 'always_on',
     DEFAULT_GROUP: 'board',
     CUSTOM_GROUP_USER_ROLE: 'custom_group_user',
+    MAX_GET_ROLES_BY_NAMES: 100,
 };
