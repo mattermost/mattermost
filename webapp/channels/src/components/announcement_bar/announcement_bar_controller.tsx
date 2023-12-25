@@ -27,9 +27,7 @@ type Props = {
     license?: ClientLicense;
     config?: Partial<ClientConfig>;
     canViewSystemErrors: boolean;
-    isCloud: boolean;
     userIsAdmin: boolean;
-    subscription?: Subscription;
     latestError?: {
         error: any;
     };
@@ -109,6 +107,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             <>
                 {adminConfiguredAnnouncementBar}
                 {errorBar}
+
                 {paymentAnnouncementBar}
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}

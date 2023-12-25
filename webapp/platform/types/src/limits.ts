@@ -8,6 +8,4 @@ export type LimitsState = {
 export type UsersLimits = {
     activeUserCount: number;
     maxUsersLimit: number;
-    lowerBandUserLimit: number;
-    upperBandUserLimit: number;
 };

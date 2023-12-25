@@ -19,7 +19,7 @@ import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
+import {getCurrentUserId, getUsers, getCurrentUserRoles} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
@@ -63,7 +63,6 @@ export function loadMe(): ActionFunc {
 
         try {
             await Promise.all([
-                dispatch(getUsersLimits()),
                 dispatch(getClientConfig()),
                 dispatch(getLicenseConfig()),
                 dispatch(getMe()),
@@ -74,6 +73,9 @@ export function loadMe(): ActionFunc {
 
             const isCollapsedThreads = isCollapsedThreadsEnabled(getState());
             await dispatch(getMyTeamUnreads(isCollapsedThreads));
+
+            const roles = getCurrentUserRoles(getState());
+            await dispatch(getUsersLimits(roles));
         } catch (error) {
             dispatch(logError(error as ServerError));
             return {error: error as ServerError};

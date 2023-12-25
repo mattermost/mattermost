@@ -6,7 +6,7 @@ import React from 'react';
 function AdminConsoleUsersLimitsAnnouncementBar() {
     return (
         <div>
-            Hello
+            {'This is a test'}
         </div>
     );
 }
