@@ -46,6 +46,7 @@ function AirGappedContactSalesModal() {
                 </div>
                 <div className='image'>
                     <img
+                        aria-hidden='true'
                         src={accessProblemImage}
                     />
                 </div>
