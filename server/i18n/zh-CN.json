@@ -10088,5 +10088,37 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
     "translation": "如果 GlobalRelaySettings.CustomerType 为“CUSTOM”，则必须设置 GlobalRelaySettings.CustomSMTPServerName 和 GlobalRelaySettings.CustomSMTPPort。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "页面大小无效或过大。"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "更新自定义状态失败。给定名称的表情符号不存在。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "无法同时隐藏活跃和非活跃用户。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "提供的团队ID无效。"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "获取用户报告失败。"
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "无法定位到文件开始位置。"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "一条消息已被移动：{{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "一条消息已被移动到私信/群组消息\n"
   }
 ]
