@@ -872,7 +872,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         autoFocus={true}
                         isClearable={false}
                         isMulti={true}
-                        styles={customKeywordsWithNotificationStyles}
+                        styles={customKeywordsSelectorStyles}
                         className='multiInput'
                         placeholder=''
                         components={{
@@ -965,7 +965,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         autoFocus={true}
                         isClearable={false}
                         isMulti={true}
-                        styles={customKeywordsWithNotificationStyles}
+                        styles={customKeywordsSelectorStyles}
                         className='multiInput'
                         placeholder=''
                         components={{
@@ -1395,7 +1395,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     }
 }
 
-const customKeywordsWithNotificationStyles: ReactSelectStyles = {
+const customKeywordsSelectorStyles: ReactSelectStyles = {
     control: ((baseStyles) => ({
         ...baseStyles,
         backgroundColor: 'var(--center-channel-bg)',
