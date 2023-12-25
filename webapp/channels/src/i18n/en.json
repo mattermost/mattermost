@@ -2684,6 +2684,8 @@
   "adminConsole.list.table.rowsCount.20": "20",
   "adminConsole.list.table.rowsCount.50": "50",
   "adminConsole.list.table.rowsCount.show(rowsPerPage)": "rows per page",
+  "air_gapped_contact_sales_modal.body": "Please access the link below to contact sales.",
+  "air_gapped_contact_sales_modal.title": "Looks like you do not have access to the internet",
   "air_gapped_modal.close": "Close",
   "air_gapped_modal.description": "To start your trial, please visit {link} and request a trial key.",
   "air_gapped_modal.title": "Request a trial key",
