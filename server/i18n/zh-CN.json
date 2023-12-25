@@ -3879,7 +3879,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "消息导出 GlobalRelaySettings.CustomerType 必须设为 ‘A9’ 或 ‘A10’。"
+    "translation": "消息导出 GlobalRelaySettings.CustomerType 必须设为“A9”、“A10”或“CUSTOM”。"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -10084,5 +10084,9 @@
   {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "此消息已达到反应上限。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "如果 GlobalRelaySettings.CustomerType 为“CUSTOM”，则必须设置 GlobalRelaySettings.CustomSMTPServerName 和 GlobalRelaySettings.CustomSMTPPort。"
   }
 ]
