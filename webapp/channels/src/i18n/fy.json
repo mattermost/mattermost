@@ -4001,7 +4001,6 @@
   "pricing_modal.planSummary.enterprise": "Administratie, beveiliging en compliance voor grote teams",
   "pricing_modal.planSummary.professional": "Schaalbare oplossingen voor groeiende teams",
   "pricing_modal.plan_label_trialDays": "{days} DAGEN OVER VAN PROEFPERIODE",
-  "pricing_modal.price.freeForever": "Voor altijd gratis",
   "pricing_modal.reviewDeploymentOptions": "Bekijk de installatiemogelijkheden",
   "pricing_modal.start_trial.disclaimer": "Door <span>Gratis 30 dagen proberen,</span> te selecteren ga ik akkoord met de <a>Mattermost Software Evaluatie Overeenkomst, Privacy Beleid,</a> en het ontvangen van product emails.",
   "pricing_modal.subtitle": "Kies een plan om te beginnen",

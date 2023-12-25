@@ -3908,7 +3908,6 @@
   "pricing_modal.planLabel.mostPopular": "MÁS POPULAR",
   "pricing_modal.planSummary.enterprise": "Administración, seguridad y cumplimiento para grandes equipos",
   "pricing_modal.plan_label_trialDays": "{days} DÍAS RESTANTES DE LA PRUEBA",
-  "pricing_modal.price.freeForever": "Libre por siempre",
   "pricing_modal.subtitle": "Elige un plan para empezar",
   "promote_to_user_modal.desc": "Esta acción promueve al huésped {username} a miembro. Esto permitirá que el usuario se pueda unir a canales públicos y pueda interactuar con usuarios fuera de los canales de los cuales es miembro actualmente. ¿Está seguro que desea promover al huésped {username} a miembro?",
   "promote_to_user_modal.promote": "Promover",

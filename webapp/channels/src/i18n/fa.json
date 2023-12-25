@@ -3721,7 +3721,6 @@
   "pricing_modal.or": "یا",
   "pricing_modal.planLabel.currentPlan": "طرح فعلی",
   "pricing_modal.planLabel.mostPopular": "محبوب‌ترین",
-  "pricing_modal.price.freeForever": "همیشه رایگان",
   "promote_to_user_modal.desc": "این اقدام، مهمان {username} را به عضوی ارتقا می‌دهد. این به کاربر امکان می دهد به کانال های عمومی بپیوندد و با کاربران خارج از کانال هایی که در حال حاضر در آن عضو هستند تعامل داشته باشد. آیا مطمئن هستید که می خواهید مهمان {username} را به عضو ارتقا دهید؟",
   "promote_to_user_modal.promote": "ترویج",
   "promote_to_user_modal.title": "مهمان {username} را به عضو ارتقا دهید",
