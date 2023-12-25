@@ -39,6 +39,8 @@ type Props = {
         decrementAnnouncementBarCount: () => void;
     };
     showCTA?: boolean;
+    ctaText?: string;
+    ctaDisabled?: boolean;
 }
 
 type State = {
@@ -189,7 +191,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                             {message}
                         </span>
                         {
-                            !this.props.showLinkAsButton && this.props.showCTA &&
+                            !this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText && this.props.modalButtonDefaultText &&
                             <span className='announcement-bar__link'>
                                 {this.props.showModal &&
                                 <FormattedMessage
@@ -216,7 +218,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                             </span>
                         }
                         {
-                            this.props.showLinkAsButton && this.props.showCTA &&
+                            this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText && this.props.modalButtonDefaultText &&
                             <button
                                 className='upgrade-button'
                                 onClick={this.props.onButtonClick}
@@ -225,6 +227,16 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                                     id={this.props.modalButtonText}
                                     defaultMessage={this.props.modalButtonDefaultText}
                                 />
+                            </button>
+                        }
+                        {
+                            this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
+                            <button
+                                className='upgrade-button'
+                                onClick={this.props.onButtonClick}
+                                disabled={this.props.ctaDisabled}
+                            >
+                                {this.props.ctaText}
                             </button>
                         }
                     </div>

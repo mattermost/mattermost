@@ -21,6 +21,7 @@ import PaymentAnnouncementBar from './payment_announcement_bar';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
 import ShowThreeDaysLeftTrialModal from './show_tree_days_left_trial_modal/show_three_days_left_trial_modal';
 import TextDismissableBar from './text_dismissable_bar';
+import UsersLimitsAnnouncementBar from './users_limits_announcement_bar';
 import VersionBar from './version_bar';
 
 type Props = {
@@ -103,11 +104,20 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
         }
 
+        let usersLimitsAnnouncementBar = null;
+        if (this.props.userIsAdmin) {
+            usersLimitsAnnouncementBar = (
+                <UsersLimitsAnnouncementBar
+                    license={this.props.license}
+                />
+            );
+        }
+
         return (
             <>
                 {adminConfiguredAnnouncementBar}
                 {errorBar}
-
+                {usersLimitsAnnouncementBar}
                 {paymentAnnouncementBar}
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}
