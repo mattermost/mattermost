@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"net/http"
+)
+
 const (
 	PermissionScopeSystem   = "system_scope"
 	PermissionScopeTeam     = "team_scope"
@@ -2463,4 +2467,15 @@ func initializePermissions() {
 
 func init() {
 	initializePermissions()
+}
+
+func MakePermissionError(s *Session, permissions []*Permission) *AppError {
+	permissionsStr := "permission="
+	for i, permission := range permissions {
+		permissionsStr += permission.Id
+		if i != len(permissions)-1 {
+			permissionsStr += ","
+		}
+	}
+	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
 }

@@ -305,7 +305,7 @@ func NewJSONEncodingError(err error) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
-	c.Err = c.App.MakePermissionError(c.AppContext.Session(), permissions)
+	c.Err = model.MakePermissionError(c.AppContext.Session(), permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {

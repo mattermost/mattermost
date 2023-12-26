@@ -73,19 +73,19 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.creator_id.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if len(oa.Name) == 0 || utf8.RuneCountInString(oa.Name) > 64 {
+	if oa.Name == "" || utf8.RuneCountInString(oa.Name) > 64 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.name.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if len(oa.ClientId) == 0 || utf8.RuneCountInString(oa.ClientId) > 255 {
+	if oa.ClientId == "" || utf8.RuneCountInString(oa.ClientId) > 255 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.client_id.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if len(oa.ClientSecret) == 0 || utf8.RuneCountInString(oa.ClientSecret) > 255 {
+	if oa.ClientSecret == "" || utf8.RuneCountInString(oa.ClientSecret) > 255 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.client_secret.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if len(oa.OAuthTokenURL) == 0 || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
+	if oa.OAuthTokenURL == "" || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.oauth_token_url.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 

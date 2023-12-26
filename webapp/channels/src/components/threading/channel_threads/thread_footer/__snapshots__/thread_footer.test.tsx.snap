@@ -160,7 +160,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                 <OverlayTrigger
                   animation={true}
                   defaultOverlayShown={false}
-                  delayShow={500}
+                  delayShow={100}
                   onClick={[Function]}
                   onEntered={[Function]}
                   overlay={
@@ -183,7 +183,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                   <OverlayTrigger
                     animation={true}
                     defaultOverlayShown={false}
-                    delayShow={500}
+                    delayShow={100}
                     onClick={[Function]}
                     onEntered={[Function]}
                     overlay={
@@ -386,7 +386,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                 <OverlayTrigger
                   animation={true}
                   defaultOverlayShown={false}
-                  delayShow={500}
+                  delayShow={100}
                   onClick={[Function]}
                   onEntered={[Function]}
                   overlay={
@@ -409,7 +409,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                   <OverlayTrigger
                     animation={true}
                     defaultOverlayShown={false}
-                    delayShow={500}
+                    delayShow={100}
                     onClick={[Function]}
                     onEntered={[Function]}
                     overlay={
@@ -612,7 +612,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                 <OverlayTrigger
                   animation={true}
                   defaultOverlayShown={false}
-                  delayShow={500}
+                  delayShow={100}
                   onClick={[Function]}
                   onEntered={[Function]}
                   overlay={
@@ -635,7 +635,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                   <OverlayTrigger
                     animation={true}
                     defaultOverlayShown={false}
-                    delayShow={500}
+                    delayShow={100}
                     onClick={[Function]}
                     onEntered={[Function]}
                     overlay={
@@ -751,7 +751,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
           <OverlayTrigger
             animation={true}
             defaultOverlayShown={false}
-            delayShow={500}
+            delayShow={100}
             onEntered={[Function]}
             overlay={
               <Tooltip
@@ -773,7 +773,7 @@ exports[`components/threading/channel_threads/thread_footer should report total 
             <OverlayTrigger
               animation={true}
               defaultOverlayShown={false}
-              delayShow={500}
+              delayShow={100}
               onEntered={[Function]}
               overlay={
                 <OverlayWrapper
@@ -1094,7 +1094,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
     >
       <OverlayTrigger
         defaultOverlayShown={false}
-        delayShow={500}
+        delayShow={100}
         overlay={
           <Tooltip
             className="hidden-xs"
@@ -1122,7 +1122,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
       >
         <OverlayTrigger
           defaultOverlayShown={false}
-          delayShow={500}
+          delayShow={100}
           overlay={
             <OverlayWrapper
               className="hidden-xs"
@@ -1315,7 +1315,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                 <OverlayTrigger
                   animation={true}
                   defaultOverlayShown={false}
-                  delayShow={500}
+                  delayShow={100}
                   onClick={[Function]}
                   onEntered={[Function]}
                   overlay={
@@ -1338,7 +1338,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                   <OverlayTrigger
                     animation={true}
                     defaultOverlayShown={false}
-                    delayShow={500}
+                    delayShow={100}
                     onClick={[Function]}
                     onEntered={[Function]}
                     overlay={
@@ -1541,7 +1541,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                 <OverlayTrigger
                   animation={true}
                   defaultOverlayShown={false}
-                  delayShow={500}
+                  delayShow={100}
                   onClick={[Function]}
                   onEntered={[Function]}
                   overlay={
@@ -1564,7 +1564,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                   <OverlayTrigger
                     animation={true}
                     defaultOverlayShown={false}
-                    delayShow={500}
+                    delayShow={100}
                     onClick={[Function]}
                     onEntered={[Function]}
                     overlay={
@@ -1767,7 +1767,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                 <OverlayTrigger
                   animation={true}
                   defaultOverlayShown={false}
-                  delayShow={500}
+                  delayShow={100}
                   onClick={[Function]}
                   onEntered={[Function]}
                   overlay={
@@ -1790,7 +1790,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                   <OverlayTrigger
                     animation={true}
                     defaultOverlayShown={false}
-                    delayShow={500}
+                    delayShow={100}
                     onClick={[Function]}
                     onEntered={[Function]}
                     overlay={
@@ -1906,7 +1906,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
           <OverlayTrigger
             animation={true}
             defaultOverlayShown={false}
-            delayShow={500}
+            delayShow={100}
             onEntered={[Function]}
             overlay={
               <Tooltip
@@ -1928,7 +1928,7 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
             <OverlayTrigger
               animation={true}
               defaultOverlayShown={false}
-              delayShow={500}
+              delayShow={100}
               onEntered={[Function]}
               overlay={
                 <OverlayWrapper
