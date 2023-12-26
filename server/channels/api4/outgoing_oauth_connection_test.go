@@ -335,3 +335,192 @@ func TestOutgoingOAuthConnectionAPIHandlers(t *testing.T) {
 		require.NoError(t, json.NewEncoder(&buf).Encode(conn))
 	})
 }
+
+func TestUpdateOutgoingOAuthConnection(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
+	license.Id = "test-license-id"
+	th.App.Srv().SetLicense(license)
+	defer th.App.Srv().RemoveLicense()
+
+	t.Run("no permissions", func(t *testing.T) {
+		c := &Context{}
+		c.AppContext = th.Context
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		req, err := http.NewRequest("PUT", "/", nil)
+		if err != nil {
+			t.Error(err)
+		}
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
+		c.Params = &web.Params{
+			OutgoingOAuthConnectionID: model.NewId(),
+		}
+
+		httpRecorder := httptest.NewRecorder()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			updateOutgoingOAuthConnection(c, w, r)
+		})
+
+		handler.ServeHTTP(httpRecorder, req)
+
+		require.Equal(t, http.StatusForbidden, c.Err.StatusCode)
+	})
+
+	t.Run("bad json", func(t *testing.T) {
+		c := &Context{}
+		c.AppContext = th.Context
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c.AppContext = th.Context.WithSession(&session)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+
+		th.AddPermissionToRole(model.OutgoingOAuthConnectionManagementPermission.Id, model.SystemUserRoleId)
+
+		body := &bytes.Buffer{}
+		body.Write([]byte(`{/}`))
+
+		req, err := http.NewRequest("PUT", "/", body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
+		c.Params = &web.Params{
+			OutgoingOAuthConnectionID: model.NewId(),
+		}
+
+		httpRecorder := httptest.NewRecorder()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			updateOutgoingOAuthConnection(c, w, r)
+		})
+
+		handler.ServeHTTP(httpRecorder, req)
+
+		require.Equal(t, http.StatusBadRequest, c.Err.StatusCode)
+	})
+
+	t.Run("wrong id", func(t *testing.T) {
+		c := &Context{}
+		c.AppContext = th.Context
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c.AppContext = th.Context.WithSession(&session)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+
+		th.AddPermissionToRole(model.OutgoingOAuthConnectionManagementPermission.Id, model.SystemUserRoleId)
+
+		body := &bytes.Buffer{}
+		body.Write([]byte(`{"Id": "` + model.NewId() + `", "name": "changed name"}`))
+
+		req, err := http.NewRequest("PUT", "/", body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
+		c.Params = &web.Params{
+			OutgoingOAuthConnectionID: model.NewId(),
+		}
+
+		httpRecorder := httptest.NewRecorder()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			updateOutgoingOAuthConnection(c, w, r)
+		})
+
+		handler.ServeHTTP(httpRecorder, req)
+
+		require.Equal(t, http.StatusBadRequest, c.Err.StatusCode)
+	})
+
+	t.Run("ok", func(t *testing.T) {
+		c := &Context{}
+		c.AppContext = th.Context
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		conn := newOutgoingOAuthConnection()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c.AppContext = th.Context.WithSession(&session)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.OutgoingOAuthConnectionManagementPermission.Id, model.SystemUserRoleId)
+
+		conn.Id = model.NewId() // Faking an ID for the connection
+		t.Cleanup(func() {
+			conn.Id = ""
+		})
+
+		body := &bytes.Buffer{}
+
+		inputConnection := conn
+		inputConnection.Name = "changed name"
+
+		require.NoError(t, json.NewEncoder(body).Encode(inputConnection))
+
+		req, err := http.NewRequest("PUT", "/"+conn.Id, body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		c.Params = &web.Params{
+			OutgoingOAuthConnectionID: conn.Id,
+		}
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+		outgoingOauthIface.Mock.On("GetConnection", c.AppContext, c.Params.OutgoingOAuthConnectionID).Return(conn, nil)
+		outgoingOauthIface.Mock.On("UpdateConnection", c.AppContext, inputConnection).Return(inputConnection, nil)
+		outgoingOauthIface.Mock.On("SanitizeConnection", mock.Anything)
+
+		httpRecorder := httptest.NewRecorder()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			updateOutgoingOAuthConnection(c, w, r)
+		})
+
+		handler.ServeHTTP(httpRecorder, req)
+
+		require.Equal(t, http.StatusOK, httpRecorder.Code)
+		require.NotEmpty(t, httpRecorder.Body.String())
+	})
+}
