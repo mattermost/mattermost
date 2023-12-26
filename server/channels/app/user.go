@@ -325,7 +325,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		mlog.Error("Error fetching user limits in createUserOrGuest", mlog.Err(appErr))
 	} else {
 		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-			mlog.Warn(fmt.Sprintf("User count has exceeded the permissible limit of %d users", userLimits.MaxUsersLimit))
+			mlog.Warn("User count has exceeded the permissible limit of %d users", mlog.Int("user_limit", userLimits.MaxUsersLimit))
 		}
 	}
 
