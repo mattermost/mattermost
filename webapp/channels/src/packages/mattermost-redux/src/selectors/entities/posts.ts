@@ -372,11 +372,12 @@ export function makeGetPostsForThread(): (state: GlobalState, rootId: string) =>
 
             postsForThread?.forEach((id) => {
                 const post = posts[id];
+                if (post) {
+                    const skip = shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '');
 
-                const skip = shouldFilterJoinLeavePost(post, showJoinLeave, currentUser ? currentUser.username : '');
-
-                if (post && !skip) {
-                    thread.push(post);
+                    if (!skip) {
+                        thread.push(post);
+                    }
                 }
             });
 
