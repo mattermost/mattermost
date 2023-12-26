@@ -2127,6 +2127,13 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	OutgoingOAuthConnectionManagementPermission = &Permission{
+		"manage_outgoing_oauth_connections",
+		"outgoing_oauth_connections.permissions.management.name",
+		"outgoing_oauth_connections.permissions.management.description",
+		PermissionScopeSystem,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2319,6 +2326,7 @@ func initializePermissions() {
 		PermissionReadLicenseInformation,
 		PermissionManageLicenseInformation,
 		PermissionCreateCustomGroup,
+		OutgoingOAuthConnectionManagementPermission,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -2455,13 +2463,6 @@ func initializePermissions() {
 		PermissionManagePublicChannelMembers.Id:  ChannelModeratedPermissions[2],
 		PermissionManagePrivateChannelMembers.Id: ChannelModeratedPermissions[2],
 		PermissionUseChannelMentions.Id:          ChannelModeratedPermissions[3],
-	}
-
-	OutgoingOAuthConnectionManagementPermission = &Permission{
-		"manage_outgoing_oauth_connections",
-		"outgoing_oauth_connections.permissions.management.name",
-		"outgoing_oauth_connections.permissions.management.description",
-		PermissionScopeSystem,
 	}
 }
 
