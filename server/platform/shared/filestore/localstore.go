@@ -16,7 +16,8 @@ import (
 )
 
 const (
-	TestFilePath = "/testfile"
+	TestFilePath      = "/testfile"
+	MaxRecursionDepth = 50
 )
 
 type LocalFileBackend struct {
@@ -211,7 +212,7 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 		}
 		if dirEntry.IsDir() {
 			if maxDepth <= 0 {
-				mlog.Warn("Max Depth reached", mlog.String("path", entryPath))
+				mlog.Warn("Max depth reached, skipping any further directories", mlog.Int("depth", maxDepth), mlog.String("path", entryPath))
 				results = append(results, entryPath)
 				continue // we'll ignore it if max depth is reached.
 			}
@@ -228,11 +229,26 @@ func appendRecursively(basePath, path string, maxDepth int) ([]string, error) {
 }
 
 func (b *LocalFileBackend) ListDirectory(path string) ([]string, error) {
-	return appendRecursively(b.directory, path, 0)
+	results := []string{}
+	dirEntries, err := os.ReadDir(filepath.Join(b.directory, path))
+	if err != nil {
+		if os.IsNotExist(err) {
+			// ideally os.ErrNotExist should've been returned but to keep the
+			// consistency, leaving it as is before.
+			return results, nil
+		}
+		// same here, ideally we shouldn't return the empty slice
+		return results, errors.Wrapf(err, "unable to list the directory %s", path)
+	}
+	for _, dirEntry := range dirEntries {
+		results = append(results, filepath.Join(path, dirEntry.Name()))
+	}
+
+	return results, nil
 }
 
 func (b *LocalFileBackend) ListDirectoryRecursively(path string) ([]string, error) {
-	return appendRecursively(b.directory, path, 10)
+	return appendRecursively(b.directory, path, MaxRecursionDepth)
 }
 
 func (b *LocalFileBackend) RemoveDirectory(path string) error {

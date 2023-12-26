@@ -3569,6 +3569,17 @@ components:
         state:
           description: The current state of the installation
           type: string
+    UserLimits:
+      type: object
+      properties:
+        maxUsersLimit:
+          description: The maximum number of users allowed on server
+          type: integer
+          format: int64
+        activeUserCount:
+          description: The number of active users in the server
+          type: integer
+          format: int64
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'
