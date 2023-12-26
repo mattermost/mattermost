@@ -373,6 +373,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
         <GenericModal
             enforceFocus={false}
             onExited={props.onExited}
+            compassDesign={true}
             modalHeaderText={
                 <FormattedMessage
                     id='custom_status.set_status'

@@ -2469,7 +2469,7 @@ func TestUpdateUserActive(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		resp, err = th.Client.UpdateUserActive(context.Background(), GenerateTestId(), true)
+		resp, err = th.Client.UpdateUserActive(context.Background(), GenerateTestID(), true)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
@@ -3672,7 +3672,7 @@ func TestVerifyUserEmail(t *testing.T) {
 	_, err = th.Client.VerifyUserEmail(context.Background(), token.Token)
 	require.NoError(t, err)
 
-	resp, err := th.Client.VerifyUserEmail(context.Background(), GenerateTestId())
+	resp, err := th.Client.VerifyUserEmail(context.Background(), GenerateTestID())
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 

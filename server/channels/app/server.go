@@ -512,12 +512,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.runEssentialJobs {
-		s.Go(func() {
-			appInstance := New(ServerConnector(s.Channels()))
-			s.runLicenseExpirationCheckJob()
-			runDNDStatusExpireJob(appInstance)
-			runPostReminderJob(appInstance)
-		})
 		s.runJobs()
 	}
 
@@ -539,6 +533,12 @@ func NewServer(options ...Option) (*Server, error) {
 }
 
 func (s *Server) runJobs() {
+	s.Go(func() {
+		appInstance := New(ServerConnector(s.Channels()))
+		s.runLicenseExpirationCheckJob()
+		runDNDStatusExpireJob(appInstance)
+		runPostReminderJob(appInstance)
+	})
 	s.Go(func() {
 		runSecurityJob(s)
 	})
@@ -626,8 +626,8 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	var err error
-
-	rcs, err := remotecluster.NewRemoteClusterService(s)
+	appInstance := New(ServerConnector(s.Channels()))
+	rcs, err := remotecluster.NewRemoteClusterService(s, appInstance)
 	if err != nil {
 		return err
 	}
@@ -654,7 +654,6 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	appInstance := New(ServerConnector(s.Channels()))
 	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
 	if err != nil {
 		return err

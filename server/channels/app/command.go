@@ -12,6 +12,7 @@ import (
 	"regexp"
 	"strings"
 	"sync"
+	"time"
 	"unicode"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -477,17 +478,20 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 	}
 	p.Set("response_url", args.SiteURL+"/hooks/commands/"+hook.Id)
 
-	return a.DoCommandRequest(cmd, p)
+	return a.DoCommandRequest(c, cmd, p)
 }
 
-func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Values) (*model.Command, *model.CommandResponse, *model.AppError) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
+	defer cancel()
+
 	// Prepare the request
 	var req *http.Request
 	var err error
 	if cmd.Method == model.CommandMethodGet {
-		req, err = http.NewRequest(http.MethodGet, cmd.URL, nil)
+		req, err = http.NewRequestWithContext(ctx, http.MethodGet, cmd.URL, nil)
 	} else {
-		req, err = http.NewRequest(http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
+		req, err = http.NewRequestWithContext(ctx, http.MethodPost, cmd.URL, strings.NewReader(p.Encode()))
 	}
 
 	if err != nil {
@@ -507,9 +511,11 @@ func (a *App) DoCommandRequest(cmd *model.Command, p url.Values) (*model.Command
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
 
-	// Send the request
 	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
+		if errors.Is(err, context.DeadlineExceeded) {
+			rctx.Logger().Info("Outgoing Command request timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.")
+		}
 		return cmd, nil, model.NewAppError("command", "api.command.execute_command.failed.app_error", map[string]any{"Trigger": cmd.Trigger}, "", http.StatusInternalServerError).Wrap(err)
 	}
 

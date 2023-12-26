@@ -66,6 +66,16 @@ describe('plugin setting', () => {
         expect(screen.queryByText(OPTION_1_TEXT)).toBeInTheDocument();
     });
 
+    it('isDisabled is respected', () => {
+        const props = getBaseProps();
+        props.section.disabled = true;
+        renderWithContext(<PluginSetting {...props}/>);
+        expect(screen.queryByText('Edit')).not.toBeInTheDocument();
+        expect(screen.queryByText(SECTION_TITLE)).toBeInTheDocument();
+        fireEvent.click(screen.getByText(SECTION_TITLE));
+        expect(screen.queryByText(OPTION_1_TEXT)).not.toBeInTheDocument();
+    });
+
     it('properly take the current value from the preferences', () => {
         const category = getPluginPreferenceKey(PLUGIN_ID);
         const prefKey = getPreferenceKey(category, SETTING_1_NAME);

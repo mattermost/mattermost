@@ -575,6 +575,10 @@ func (c *Client4) permissionsRoute() string {
 	return "/permissions"
 }
 
+func (c *Client4) limitsRoute() string {
+	return "/limits"
+}
+
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
 	return c.DoAPIRequest(ctx, http.MethodGet, c.APIURL+url, "", etag)
 }
@@ -1932,6 +1936,9 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 
 func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptions) ([]*UserReport, *Response, error) {
 	values := url.Values{}
+	if options.Direction != "" {
+		values.Set("direction", options.Direction)
+	}
 	if options.SortColumn != "" {
 		values.Set("sort_column", options.SortColumn)
 	}
@@ -1950,11 +1957,11 @@ func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportO
 	if options.SortDesc {
 		values.Set("sort_direction", "desc")
 	}
-	if options.LastSortColumnValue != "" {
-		values.Set("last_column_value", options.LastSortColumnValue)
+	if options.FromColumnValue != "" {
+		values.Set("from_column_value", options.FromColumnValue)
 	}
-	if options.LastUserId != "" {
-		values.Set("last_id", options.LastUserId)
+	if options.FromId != "" {
+		values.Set("from_id", options.FromId)
 	}
 	if options.Role != "" {
 		values.Set("role_filter", options.Role)
@@ -8829,4 +8836,20 @@ func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*
 	defer closeBody(r)
 
 	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var userLimits UserLimits
+	if r.StatusCode == http.StatusNotModified {
+		return &userLimits, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&userLimits); err != nil {
+		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &userLimits, BuildResponse(r), nil
 }
