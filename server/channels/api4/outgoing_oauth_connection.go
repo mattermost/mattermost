@@ -27,6 +27,26 @@ func (api *API) InitOutgoingOAuthConnection() {
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(deleteOutgoingOAuthConnection)).Methods("DELETE")
 }
 
+// checkOutgoingOAuthConnectionReadPermissions checks if the user has the permissions to read outgoing oauth connections.
+func checkOutgoingOAuthConnectionReadPermissions(c *Context) bool {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingWebhooks) && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSlashCommands) {
+		return true
+	}
+
+	c.SetPermissionError(model.PermissionManageOutgoingWebhooks, model.PermissionManageSlashCommands)
+	return false
+}
+
+// checkOutgoingOAuthConnectionWritePermissions checks if the user has the permissions to write outgoing oauth connections.
+func checkOutgoingOAuthConnectionWritePermissions(c *Context) bool {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.OutgoingOAuthConnectionManagementPermission) {
+		return true
+	}
+
+	c.SetPermissionError(model.OutgoingOAuthConnectionManagementPermission)
+	return false
+}
+
 func ensureOutgoingOAuthConnectionInterface(c *Context, where string) (einterfaces.OutgoingOAuthConnectionInterface, bool) {
 	if !c.App.Config().FeatureFlags.OutgoingOAuthConnections {
 		c.Err = model.NewAppError(where, "api.context.outgoing_oauth_connection.not_available.feature_flag", nil, "", http.StatusNotImplemented)
@@ -96,6 +116,10 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	if !checkOutgoingOAuthConnectionReadPermissions(c) {
+		return
+	}
+
 	query, err := NewListOutgoingOAuthConnectionsQueryFromURLQuery(r.URL.Query())
 	if err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.input_error", nil, err.Error(), http.StatusBadRequest)
@@ -129,6 +153,10 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 
 	c.RequireOutgoingOAuthConnectionId()
 
+	if !checkOutgoingOAuthConnectionReadPermissions(c) {
+		return
+	}
+
 	connection, err := service.GetConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID)
 	if err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
@@ -149,8 +177,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.OutgoingOAuthConnectionManagementPermission) {
-		c.SetPermissionError(model.OutgoingOAuthConnectionManagementPermission)
+	if !checkOutgoingOAuthConnectionWritePermissions(c) {
 		return
 	}
 
@@ -202,8 +229,7 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	audit.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.OutgoingOAuthConnectionManagementPermission) {
-		c.SetPermissionError(model.OutgoingOAuthConnectionManagementPermission)
+	if !checkOutgoingOAuthConnectionWritePermissions(c) {
 		return
 	}
 
@@ -269,8 +295,7 @@ func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	audit.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
-	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.OutgoingOAuthConnectionManagementPermission) {
-		c.SetPermissionError(model.OutgoingOAuthConnectionManagementPermission)
+	if !checkOutgoingOAuthConnectionWritePermissions(c) {
 		return
 	}
 

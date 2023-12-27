@@ -99,8 +99,33 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 	license.Id = "test-license-id"
 	th.App.Srv().SetLicense(license)
 
+	t.Run("no permissions", func(t *testing.T) {
+		defer outgoingOauthConnectionsCleanup(t, th)
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		defer func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		}()
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
+		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+
+		connection, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10)
+		require.Error(t, err)
+		require.Nil(t, connection)
+		require.Equal(t, http.StatusForbidden, response.StatusCode)
+	})
+
 	t.Run("empty", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
@@ -118,6 +143,13 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 
 	t.Run("return result", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
@@ -152,8 +184,33 @@ func TestClientGetOutgoingOauthConnection(t *testing.T) {
 	license.Id = "test-license-id"
 	th.App.Srv().SetLicense(license)
 
+	t.Run("no permissions", func(t *testing.T) {
+		defer outgoingOauthConnectionsCleanup(t, th)
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		defer func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		}()
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
+		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+
+		connection, response, err := th.Client.GetOutgoingOAuthConnection(context.Background(), "test")
+		require.Error(t, err)
+		require.Nil(t, connection)
+		require.Equal(t, http.StatusForbidden, response.StatusCode)
+	})
+
 	t.Run("return result", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
@@ -486,6 +543,20 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 
 	conn := newOutgoingOAuthConnection()
 
+	session := model.Session{
+		Id:     model.NewId(),
+		UserId: model.NewId(),
+		Roles:  model.SystemUserRoleId,
+	}
+	c.AppContext = th.Context.WithSession(&session)
+
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+	th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+	th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+
 	t.Run("getOutgoingOAuthConnection", func(t *testing.T) {
 		req, err := http.NewRequest("GET", "/", nil)
 		if err != nil {
@@ -498,7 +569,7 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
-		outgoingOauthIface.Mock.On("GetConnection", th.Context, c.Params.OutgoingOAuthConnectionID).Return(conn, nil)
+		outgoingOauthIface.Mock.On("GetConnection", c.AppContext, c.Params.OutgoingOAuthConnectionID).Return(conn, nil)
 		outgoingOauthIface.Mock.On("SanitizeConnection", mock.Anything)
 
 		httpRecorder := httptest.NewRecorder()
@@ -525,7 +596,7 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
-		outgoingOauthIface.Mock.On("GetConnections", th.Context, mock.Anything).Return(conns, nil)
+		outgoingOauthIface.Mock.On("GetConnections", c.AppContext, mock.Anything).Return(conns, nil)
 		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
 
 		httpRecorder := httptest.NewRecorder()
@@ -552,7 +623,7 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
-		outgoingOauthIface.Mock.On("GetConnections", th.Context, model.OutgoingOAuthConnectionGetConnectionsFilter{Limit: 2}).Return(conns, nil)
+		outgoingOauthIface.Mock.On("GetConnections", c.AppContext, model.OutgoingOAuthConnectionGetConnectionsFilter{Limit: 2}).Return(conns, nil)
 		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
 
 		httpRecorder := httptest.NewRecorder()
