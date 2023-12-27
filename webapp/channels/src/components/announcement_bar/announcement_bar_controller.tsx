@@ -104,20 +104,14 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
         }
 
-        let usersLimitsAnnouncementBar = null;
-        if (this.props.userIsAdmin) {
-            usersLimitsAnnouncementBar = (
-                <UsersLimitsAnnouncementBar
-                    license={this.props.license}
-                />
-            );
-        }
-
         return (
             <>
                 {adminConfiguredAnnouncementBar}
                 {errorBar}
-                {usersLimitsAnnouncementBar}
+                <UsersLimitsAnnouncementBar
+                    license={this.props.license}
+                    userIsAdmin={this.props.userIsAdmin}
+                />
                 {paymentAnnouncementBar}
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}
