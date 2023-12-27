@@ -476,7 +476,7 @@ func (c *Client4) outgoingOAuthConnectionsRoute() string {
 }
 
 func (c *Client4) outgoingOAuthConnectionRoute(id string) string {
-	return fmt.Sprintf("/oauth/outgoing_connections/%s", id)
+	return fmt.Sprintf("%s/%s", c.outgoingOAuthConnectionsRoute(), id)
 }
 
 func (c *Client4) jobsRoute() string {
