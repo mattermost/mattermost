@@ -5,6 +5,7 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -66,6 +67,29 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string
 		return nil, errors.Wrap(err, "failed to get OutgoingOAuthConnection")
 	}
 	return conn, nil
+}
+
+func (s *SqlOutgoingOAuthConnectionStore) GetConnectionByAudience(c request.CTX, audience string) (*model.OutgoingOAuthConnection, error) {
+	conns := []*model.OutgoingOAuthConnection{}
+	query := s.getQueryBuilder().
+		Select("*").
+		From("OutgoingOAuthConnections").
+		Where("Audiences LIKE ?", fmt.Sprint("%", audience, "%")).
+		OrderBy("Id").
+		Limit(1)
+
+	if err := s.GetReplicaX().SelectBuilder(&conns, query); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, store.NewErrNotFound("OutgoingOAuthConnection", audience)
+		}
+		return nil, errors.Wrap(err, "failed to get OutgoingOAuthConnection by audience")
+	}
+
+	if len(conns) > 0 {
+		return conns[0], nil
+	}
+
+	return nil, store.NewErrNotFound("OutgoingOAuthConnection", audience)
 }
 
 func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {

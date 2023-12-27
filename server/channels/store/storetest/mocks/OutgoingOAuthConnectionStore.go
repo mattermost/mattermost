@@ -55,6 +55,32 @@ func (_m *OutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string) 
 	return r0, r1
 }
 
+// GetConnectionByAudience provides a mock function with given fields: c, audience
+func (_m *OutgoingOAuthConnectionStore) GetConnectionByAudience(c request.CTX, audience string) (*model.OutgoingOAuthConnection, error) {
+	ret := _m.Called(c, audience)
+
+	var r0 *model.OutgoingOAuthConnection
+	var r1 error
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.OutgoingOAuthConnection, error)); ok {
+		return rf(c, audience)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.OutgoingOAuthConnection); ok {
+		r0 = rf(c, audience)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OutgoingOAuthConnection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(c, audience)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetConnections provides a mock function with given fields: c, filters
 func (_m *OutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 	ret := _m.Called(c, filters)

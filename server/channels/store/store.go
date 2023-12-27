@@ -586,6 +586,7 @@ type OutgoingOAuthConnectionStore interface {
 	SaveConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
 	UpdateConnection(c request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnection, error)
 	GetConnection(c request.CTX, id string) (*model.OutgoingOAuthConnection, error)
+	GetConnectionByAudience(c request.CTX, audience string) (*model.OutgoingOAuthConnection, error)
 	GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error)
 	DeleteConnection(c request.CTX, id string) error
 }
