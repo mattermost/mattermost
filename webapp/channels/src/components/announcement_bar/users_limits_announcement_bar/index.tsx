@@ -16,10 +16,15 @@ import AirGappedContactSalesModal from 'components/air_gapped_contact_sales_moda
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
 import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 
-import {AnnouncementBarTypes, LicenseLinks, ModalIdentifiers} from 'utils/constants';
+import {
+    AnnouncementBarTypes,
+    LicenseLinks,
+    ModalIdentifiers,
+} from 'utils/constants';
 
 type Props = {
     license?: ClientLicense;
+    userIsAdmin: boolean;
 };
 
 function UsersLimitsAnnouncementBar(props: Props) {
@@ -31,7 +36,10 @@ function UsersLimitsAnnouncementBar(props: Props) {
     const usersLimits = useSelector(getUsersLimits);
 
     const handleCTAClick = useCallback(() => {
-        if (cwsAvailability === CSWAvailabilityCheckTypes.Available || cwsAvailability === CSWAvailabilityCheckTypes.Unknown) {
+        if (
+            cwsAvailability === CSWAvailabilityCheckTypes.Available ||
+            cwsAvailability === CSWAvailabilityCheckTypes.NotApplicable
+        ) {
             window.open(LicenseLinks.CONTACT_SALES, '_blank');
         } else if (cwsAvailability === CSWAvailabilityCheckTypes.Unavailable) {
             // Its an airgapped instance
@@ -42,61 +50,56 @@ function UsersLimitsAnnouncementBar(props: Props) {
         }
     }, [cwsAvailability]);
 
+    const isLicensed = props?.license?.IsLicensed === 'true';
     const maxUsersLimit = usersLimits?.maxUsersLimit ?? 0;
     const activeUserCount = usersLimits?.activeUserCount ?? 0;
-    const isLicensed = props?.license?.IsLicensed === 'true';
-    const isCloud = props?.license?.Cloud === 'true';
-    const isTrial = props?.license?.IsTrial === 'true';
 
-    if (!shouldShowUserLimitsAnnouncementBar({isLicensed, isCloud, isTrial, maxUsersLimit, activeUserCount})) {
+    if (!shouldShowUserLimitsAnnouncementBar({userIsAdmin: props.userIsAdmin, isLicensed, maxUsersLimit, activeUserCount})) {
         return null;
     }
-
-    const copyText = formatMessage({
-        id: 'users_limits_announcement_bar.copyText',
-        defaultMessage: 'Your user count exceeds the maximum users allowed. Upgrade to Mattermost Professional or Mattermost Enterprise to continue using Mattermost.',
-    });
-    const ctaText = formatMessage({
-        id: 'users_limits_announcement_bar.ctaText',
-        defaultMessage: 'Contact sales',
-    });
 
     return (
         <AnnouncementBar
             id='users_limits_announcement_bar'
             showCloseButton={false}
-            message={copyText}
+            message={formatMessage({
+                id: 'users_limits_announcement_bar.copyText',
+                defaultMessage: 'Your user count exceeds the maximum users allowed. Upgrade to Mattermost Professional or Mattermost Enterprise to continue using Mattermost.',
+            })}
             type={AnnouncementBarTypes.CRITICAL}
             icon={<ExclamationThickIcon size={16}/>} // Icon to be fa-exclamation-triangle
             showCTA={true}
-            ctaDisabled={cwsAvailability === CSWAvailabilityCheckTypes.Loading}
+            ctaDisabled={cwsAvailability === CSWAvailabilityCheckTypes.Pending}
             showLinkAsButton={true}
-            ctaText={ctaText}
+            ctaText={formatMessage({
+                id: 'users_limits_announcement_bar.ctaText',
+                defaultMessage: 'Contact sales',
+            })}
             onButtonClick={handleCTAClick}
         />
     );
 }
 
 export type ShouldShowingUserLimitsAnnouncementBarProps = {
+    userIsAdmin: boolean;
     isLicensed: boolean;
-    isCloud: boolean;
-    isTrial: boolean;
     maxUsersLimit: number;
     activeUserCount: number;
 };
 
-export function shouldShowUserLimitsAnnouncementBar({isLicensed, isCloud, isTrial, maxUsersLimit, activeUserCount}: ShouldShowingUserLimitsAnnouncementBarProps) {
-    if (maxUsersLimit === 0 || activeUserCount === 0) {
+export function shouldShowUserLimitsAnnouncementBar({userIsAdmin, isLicensed, maxUsersLimit, activeUserCount}: ShouldShowingUserLimitsAnnouncementBarProps) {
+    if (!userIsAdmin) {
         return false;
     }
 
-    if (isCloud || isTrial) {
+    if (maxUsersLimit === 0 || activeUserCount === 0) {
         return false;
     }
 
     if (!isLicensed && activeUserCount >= maxUsersLimit) {
         return true;
     }
+
     return false;
 }
 

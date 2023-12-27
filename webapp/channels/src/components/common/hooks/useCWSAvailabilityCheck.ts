@@ -10,12 +10,13 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 export enum CSWAvailabilityCheckTypes {
     Available = 'available',
     Unavailable = 'unavailable',
-    Loading = 'loading',
-    Unknown = 'unknown',
+    Pending = 'pending',
+    NotApplicable = 'notApplicable',
 }
 
 export default function useCWSAvailabilityCheck(): CSWAvailabilityCheckTypes {
-    const [cswAvailability, setCSWAvailability] = useState<CSWAvailabilityCheckTypes>(CSWAvailabilityCheckTypes.Loading);
+    const [cswAvailability, setCSWAvailability] = useState<CSWAvailabilityCheckTypes>(CSWAvailabilityCheckTypes.Pending);
+
     const config = useSelector(getConfig);
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
 
@@ -32,7 +33,7 @@ export default function useCWSAvailabilityCheck(): CSWAvailabilityCheckTypes {
         if (isEnterpriseReady) {
             cwsAvailabilityCheck();
         } else {
-            setCSWAvailability(CSWAvailabilityCheckTypes.Unknown);
+            setCSWAvailability(CSWAvailabilityCheckTypes.NotApplicable);
         }
     }, [isEnterpriseReady]);
 

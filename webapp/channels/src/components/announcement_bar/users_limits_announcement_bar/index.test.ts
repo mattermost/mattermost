@@ -6,25 +6,16 @@ import type {ShouldShowingUserLimitsAnnouncementBarProps} from './index';
 
 describe('shouldShowUserLimitsAnnouncementBar', () => {
     const defaultProps: ShouldShowingUserLimitsAnnouncementBarProps = {
+        userIsAdmin: true,
         isLicensed: false,
-        isCloud: false,
-        isTrial: false,
         maxUsersLimit: 10,
         activeUserCount: 5,
     };
 
-    test('should not show for cloud', () => {
+    test('should not show when user is not admin', () => {
         const props = {
             ...defaultProps,
-            isCloud: true,
-        };
-        expect(shouldShowUserLimitsAnnouncementBar(props)).toBe(false);
-    });
-
-    test('should not show for trial license', () => {
-        const props = {
-            ...defaultProps,
-            isTrial: true,
+            userIsAdmin: false,
         };
         expect(shouldShowUserLimitsAnnouncementBar(props)).toBe(false);
     });
