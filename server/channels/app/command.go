@@ -485,6 +485,9 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
+	// TODO: check if the URL is contained in any outgoing oauth connection.
+	// If so, authenticate using the first matching connection to retrieve the access token.
+
 	// Prepare the request
 	var req *http.Request
 	var err error

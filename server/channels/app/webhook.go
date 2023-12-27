@@ -117,6 +117,10 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 
 		go func() {
 			defer wg.Done()
+
+			// TODO: check if the URL is contained in any outgoing oauth connection.
+			// If so, authenticate using the first matching connection to retrieve the access token.
+
 			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
