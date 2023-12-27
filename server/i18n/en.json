@@ -1658,6 +1658,18 @@
     "translation": "Multi-factor authentication is required on this server."
   },
   {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "There was an error while creating the outgoing OAuth connection."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "There was an error while deleting the outgoing OAuth connection."
+  },
+  {
     "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
     "translation": "There was an error while listing outgoing OAuth connections."
   },
@@ -1668,6 +1680,14 @@
   {
     "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
     "translation": "This feature is restricted by a feature flag."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "There was an error while updating the outgoing OAuth connection."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Invalid input parameters."
   },
   {
     "id": "api.context.permissions.app_error",
