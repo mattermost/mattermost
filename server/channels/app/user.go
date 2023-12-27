@@ -1024,6 +1024,17 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 		})
 	}
 
+	if active {
+		userLimits, appErr := a.GetUserLimits()
+		if appErr != nil {
+			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
+		} else {
+			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
+				mlog.Warn("User activated has exceeded the permissible total active users.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			}
+		}
+	}
+
 	return ruser, nil
 }
 
