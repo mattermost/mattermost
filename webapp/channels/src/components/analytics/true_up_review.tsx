@@ -35,7 +35,7 @@ const TrueUpReview: React.FC = () => {
     const dispatch = useDispatch();
     const isCloud = useSelector(isCurrentLicenseCloud);
     const cwsAvailability = useCWSAvailabilityCheck();
-    const isAirGapped = cwsAvailability === CSWAvailabilityCheckTypes.Unavailable;
+    const isAirGapped = cwsAvailability !== CSWAvailabilityCheckTypes.Available;
     const reviewProfile = useSelector(trueUpReviewProfileSelector);
     const reviewStatus = useSelector(trueUpReviewStatusSelector);
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
