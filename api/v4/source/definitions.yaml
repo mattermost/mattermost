@@ -3604,6 +3604,12 @@ components:
         audiences:
           description: The audiences of the outgoing OAuth connection.
           type: string
+    MaxPostSizeResponse:
+      type: object
+      properties:
+        MaxPostSize:
+          description: Max post size in bytes
+          type: number
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

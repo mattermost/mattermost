@@ -8853,3 +8853,17 @@ func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, er
 	}
 	return &userLimits, BuildResponse(r), nil
 }
+
+func (c *Client4) GetMaxPostsSize(ctx context.Context) (int, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.postsRoute()+"/max-size", "")
+	if err != nil {
+		return 0, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var resp *MaxPostSizeResponse
+	if jsonErr := json.NewDecoder(r.Body).Decode(&resp); jsonErr != nil {
+		return 0, nil, NewAppError("GetMaxPostsSize", "api.unmarshal_error", nil, jsonErr.Error(), http.StatusInternalServerError)
+	}
+	return resp.MaxPostSize, BuildResponse(r), nil
+}
