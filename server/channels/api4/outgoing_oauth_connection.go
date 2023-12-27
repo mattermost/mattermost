@@ -81,7 +81,7 @@ func NewListOutgoingOAuthConnectionsQueryFromURLQuery(values url.Values) (*listO
 	limit := values.Get("limit")
 	if limit != "" {
 		limitInt, err := strconv.Atoi(limit)
-		if err == nil {
+		if err != nil {
 			return nil, err
 		}
 		query.Limit = limitInt
