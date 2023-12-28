@@ -6014,8 +6014,13 @@ func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*Ac
 // OutgoingOAuthConnection section
 
 // GetOutgoingOAuthConnections retrieves the outgoing OAuth connections.
-func (c *Client4) GetOutgoingOAuthConnections(ctx context.Context, fromID string, limit int) ([]*OutgoingOAuthConnection, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionsRoute(), "")
+func (c *Client4) GetOutgoingOAuthConnections(ctx context.Context, fromID string, limit int, audience string) ([]*OutgoingOAuthConnection, *Response, error) {
+	filters := OutgoingOAuthConnectionGetConnectionsFilter{
+		OffsetId: fromID,
+		Limit:    limit,
+		Audience: audience,
+	}
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionsRoute()+"?"+filters.ToURLValues().Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}

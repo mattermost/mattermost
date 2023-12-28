@@ -5275,22 +5275,6 @@ func (s *TimerLayerOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id
 	return result, err
 }
 
-func (s *TimerLayerOutgoingOAuthConnectionStore) GetConnectionByAudience(c request.CTX, audience string) (*model.OutgoingOAuthConnection, error) {
-	start := time.Now()
-
-	result, err := s.OutgoingOAuthConnectionStore.GetConnectionByAudience(c, audience)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("OutgoingOAuthConnectionStore.GetConnectionByAudience", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 	start := time.Now()
 

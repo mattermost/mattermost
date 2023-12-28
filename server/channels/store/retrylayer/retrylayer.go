@@ -6602,27 +6602,6 @@ func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id
 
 }
 
-func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnectionByAudience(c request.CTX, audience string) (*model.OutgoingOAuthConnection, error) {
-
-	tries := 0
-	for {
-		result, err := s.OutgoingOAuthConnectionStore.GetConnectionByAudience(c, audience)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 
 	tries := 0

@@ -52,7 +52,7 @@ func TestOutgoingOAuthConnectionStore(t *testing.T, rctx request.CTX, ss store.S
 		t.Cleanup(cleanupOutgoingOAuthConnections(t, ss))
 		testGetOutgoingOAuthConnection(t, ss)
 	})
-	t.Run("GetConnectionByAudience", func(t *testing.T) {
+	t.Run("GetConnectionsByAudience", func(t *testing.T) {
 		t.Cleanup(cleanupOutgoingOAuthConnections(t, ss))
 		testGetOutgoingOAuthConnectionByAudience(t, ss)
 	})
@@ -180,27 +180,30 @@ func runAudienceTests(t *testing.T, ss store.Store, connection *model.OutgoingOA
 	c := request.TestContext(t)
 
 	t.Run("find by host only", func(t *testing.T) {
-		conn, err := ss.OutgoingOAuthConnection().GetConnectionByAudience(c, "knowhere.com")
+		conn, err := ss.OutgoingOAuthConnection().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{Audience: "knowhere.com"})
 		require.NoError(t, err)
-		require.Equal(t, connection, conn)
+		require.Len(t, conn, 1)
+		require.Equal(t, []*model.OutgoingOAuthConnection{connection}, conn)
 	})
 
 	t.Run("find by host and path", func(t *testing.T) {
-		conn, err := ss.OutgoingOAuthConnection().GetConnectionByAudience(c, "knowhere.com/audience")
+		conn, err := ss.OutgoingOAuthConnection().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{Audience: "knowhere.com/audience"})
 		require.NoError(t, err)
-		require.Equal(t, connection, conn)
+		require.Len(t, conn, 1)
+		require.Equal(t, []*model.OutgoingOAuthConnection{connection}, conn)
 	})
 
 	t.Run("find by full url", func(t *testing.T) {
-		conn, err := ss.OutgoingOAuthConnection().GetConnectionByAudience(c, "https://knowhere.com/audience")
+		conn, err := ss.OutgoingOAuthConnection().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{Audience: "https://knowhere.com/audience"})
 		require.NoError(t, err)
-		require.Equal(t, connection, conn)
+		require.Len(t, conn, 1)
+		require.Equal(t, []*model.OutgoingOAuthConnection{connection}, conn)
 	})
 
 	t.Run("non-existent", func(t *testing.T) {
-		conn, err := ss.OutgoingOAuthConnection().GetConnectionByAudience(c, "https://mattermost.com")
-		require.Error(t, err)
-		require.Zero(t, conn)
+		conn, err := ss.OutgoingOAuthConnection().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{Audience: "https://mattermost.com"})
+		require.NoError(t, err)
+		require.Empty(t, conn)
 	})
 }
 

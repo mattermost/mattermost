@@ -59,7 +59,7 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10)
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
 		require.Error(t, err)
 		require.Nil(t, connections)
 		require.Equal(t, 501, response.StatusCode)
@@ -82,7 +82,7 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10)
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
 		require.Error(t, err)
 		require.Nil(t, connections)
 		require.Equal(t, 501, response.StatusCode)
@@ -111,7 +111,7 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connection, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10)
+		connection, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
 		require.Error(t, err)
 		require.Nil(t, connection)
 		require.Equal(t, http.StatusForbidden, response.StatusCode)
@@ -134,11 +134,43 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10)
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
 		require.NoError(t, err)
 
 		require.Equal(t, 200, response.StatusCode)
 		require.Equal(t, 0, len(connections))
+	})
+
+	t.Run("filter by audience", func(t *testing.T) {
+		defer outgoingOauthConnectionsCleanup(t, th)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+
+		conn := newOutgoingOAuthConnection()
+		conn.Audiences = []string{"http://knowhere.com"}
+		conn.CreatorId = model.NewId()
+
+		conn, err := th.App.Srv().Store().OutgoingOAuthConnection().SaveConnection(th.Context, conn)
+		require.NoError(t, err)
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+		outgoingOauthIface.Mock.On("GetConnections", mock.Anything, model.OutgoingOAuthConnectionGetConnectionsFilter{Limit: 1, Audience: "knowhere.com"}).Return([]*model.OutgoingOAuthConnection{conn}, nil)
+		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
+
+		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 1, "knowhere.com")
+		require.NoError(t, err)
+
+		require.Equal(t, 200, response.StatusCode)
+		require.Equal(t, 1, len(connections))
+		require.Equal(t, conn, connections[0])
 	})
 
 	t.Run("return result", func(t *testing.T) {
@@ -164,7 +196,7 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10)
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
 		require.NoError(t, err)
 
 		require.Equal(t, 200, response.StatusCode)

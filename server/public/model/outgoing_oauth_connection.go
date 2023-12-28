@@ -4,7 +4,9 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
 	"unicode/utf8"
 )
 
@@ -149,6 +151,7 @@ func (oa *OutgoingOAuthConnection) Etag() string {
 type OutgoingOAuthConnectionGetConnectionsFilter struct {
 	OffsetId string
 	Limit    int
+	Audience string
 }
 
 // SetDefaults sets the default values for the filter
@@ -156,4 +159,13 @@ func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) SetDefaults() {
 	if oaf.Limit == 0 {
 		oaf.Limit = defaultGetConnectionsLimit
 	}
+}
+
+// ToURLValues converts the filter to url.Values
+func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) ToURLValues() url.Values {
+	v := url.Values{}
+	v.Set("limit", fmt.Sprintf("%d", oaf.Limit))
+	v.Set("offset_id", oaf.OffsetId)
+	v.Set("audience", oaf.Audience)
+	return v
 }

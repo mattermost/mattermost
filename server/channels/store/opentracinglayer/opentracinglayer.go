@@ -5819,24 +5819,6 @@ func (s *OpenTracingLayerOutgoingOAuthConnectionStore) GetConnection(c request.C
 	return result, err
 }
 
-func (s *OpenTracingLayerOutgoingOAuthConnectionStore) GetConnectionByAudience(c request.CTX, audience string) (*model.OutgoingOAuthConnection, error) {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OutgoingOAuthConnectionStore.GetConnectionByAudience")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result, err := s.OutgoingOAuthConnectionStore.GetConnectionByAudience(c, audience)
-	if err != nil {
-		span.LogFields(spanlog.Error(err))
-		ext.Error.Set(span, true)
-	}
-
-	return result, err
-}
-
 func (s *OpenTracingLayerOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "OutgoingOAuthConnectionStore.GetConnections")

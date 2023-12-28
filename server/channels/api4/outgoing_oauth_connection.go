@@ -61,8 +61,9 @@ func ensureOutgoingOAuthConnectionInterface(c *Context, where string) (einterfac
 }
 
 type listOutgoingOAuthConnectionsQuery struct {
-	FromID string
-	Limit  int
+	FromID   string
+	Limit    int
+	Audience string
 }
 
 // SetDefaults sets the default values for the query.
@@ -86,6 +87,7 @@ func (q *listOutgoingOAuthConnectionsQuery) ToFilter() model.OutgoingOAuthConnec
 	return model.OutgoingOAuthConnectionGetConnectionsFilter{
 		OffsetId: q.FromID,
 		Limit:    q.Limit,
+		Audience: q.Audience,
 	}
 }
 
@@ -105,6 +107,11 @@ func NewListOutgoingOAuthConnectionsQueryFromURLQuery(values url.Values) (*listO
 			return nil, err
 		}
 		query.Limit = limitInt
+	}
+
+	audience := values.Get("audience")
+	if audience != "" {
+		query.Audience = audience
 	}
 
 	return query, nil

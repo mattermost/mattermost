@@ -69,29 +69,6 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnection(c request.CTX, id string
 	return conn, nil
 }
 
-func (s *SqlOutgoingOAuthConnectionStore) GetConnectionByAudience(c request.CTX, audience string) (*model.OutgoingOAuthConnection, error) {
-	conns := []*model.OutgoingOAuthConnection{}
-	query := s.getQueryBuilder().
-		Select("*").
-		From("OutgoingOAuthConnections").
-		Where("Audiences LIKE ?", fmt.Sprint("%", audience, "%")).
-		OrderBy("Id").
-		Limit(1)
-
-	if err := s.GetReplicaX().SelectBuilder(&conns, query); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("OutgoingOAuthConnection", audience)
-		}
-		return nil, errors.Wrap(err, "failed to get OutgoingOAuthConnection by audience")
-	}
-
-	if len(conns) > 0 {
-		return conns[0], nil
-	}
-
-	return nil, store.NewErrNotFound("OutgoingOAuthConnection", audience)
-}
-
 func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, error) {
 	filters.SetDefaults()
 
@@ -104,6 +81,10 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 
 	if filters.OffsetId != "" {
 		query = query.Where("Id > ?", filters.OffsetId)
+	}
+
+	if filters.Audience != "" {
+		query = query.Where("Audiences LIKE ?", fmt.Sprint("%", filters.Audience, "%"))
 	}
 
 	if err := s.GetReplicaX().SelectBuilder(&conns, query); err != nil {
