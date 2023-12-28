@@ -29,9 +29,9 @@ function TeamFilterDropdown(props: Props) {
     const {formatMessage} = useIntl();
 
     const [list, setList] = useState<OptionsType<TeamSelectOption>>([]);
-    const [page, setPage] = useState(0);
+    const [pageNumber, setPageNumber] = useState(0);
 
-    async function load(page: number) {
+    async function loadListInPageNumber(page: number) {
         try {
             const response = await props.getTeams(page, TEAMS_PER_PAGE, true) as ActionResult<{teams: Team[]}>;
             if (response && response.data && response.data.teams && response.data.teams.length > 0) {
@@ -48,14 +48,14 @@ function TeamFilterDropdown(props: Props) {
                     setList((existingList) => [...existingList, ...list]);
                 }
 
-                setPage(page + 1);
+                setPageNumber(page + 1);
             }
         } catch (error) {
             console.error(error); // eslint-disable-line no-console
         }
     }
 
-    async function search(term: string, callBack: (options: OptionsType<{label: string; value: string}>) => void) {
+    async function searchInList(term: string, callBack: (options: OptionsType<{label: string; value: string}>) => void) {
         try {
             const response = await props.searchTeams(term, {page: 0, per_page: TEAMS_PER_PAGE}) as ActionResult<{teams: Team[]}>;
             if (response && response.data && response.data.teams && response.data.teams.length > 0) {
@@ -74,12 +74,8 @@ function TeamFilterDropdown(props: Props) {
         }
     }
 
-    useEffect(() => {
-        load(0);
-    }, []);
-
-    function handleMenuScrollToBottom() {
-        load(page);
+    function handleMenuScrolledToBottom() {
+        loadListInPageNumber(pageNumber);
     }
 
     function handleOnChange(value: ValueType<TeamSelectOption>, actionMeta: ActionMeta<TeamSelectOption>) {
@@ -99,8 +95,12 @@ function TeamFilterDropdown(props: Props) {
         }
     }
 
+    useEffect(() => {
+        loadListInPageNumber(0);
+    }, []);
+
     const optionValues = props.option.values?.team_ids?.value as string[];
-    const selected = list.filter((item) => optionValues.includes(item.value));
+    const selectedValues = list.filter((item) => optionValues.includes(item.value));
 
     return (
         <div className='FilterList FilterList__full'>
@@ -109,19 +109,19 @@ function TeamFilterDropdown(props: Props) {
             </div>
             <AsyncSelect
                 inputId='adminConsoleTeamFilterDropdown'
-                cacheOptions={true}
                 isMulti={true}
                 isClearable={true}
                 hideSelectedOptions={true}
                 classNamePrefix='filterListSelect'
+                cacheOptions={false}
                 placeholder={formatMessage({id: 'admin.channels.filterBy.team.placeholder', defaultMessage: 'Search and select teams'})}
                 loadingMessage={() => formatMessage({id: 'admin.channels.filterBy.team.loading', defaultMessage: 'Loading teams'})}
                 noOptionsMessage={() => formatMessage({id: 'admin.channels.filterBy.team.noTeams', defaultMessage: 'No teams found'})}
-                loadOptions={search}
+                loadOptions={searchInList}
                 defaultOptions={list}
-                value={selected}
+                value={selectedValues}
                 onChange={handleOnChange}
-                onMenuScrollToBottom={handleMenuScrollToBottom}
+                onMenuScrollToBottom={handleMenuScrolledToBottom}
                 components={{
                     LoadingIndicator: () => <LoadingSpinner/>,
                 }}
