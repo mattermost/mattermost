@@ -367,12 +367,6 @@ export function uploadLicense(fileData: File): ActionFunc {
     });
 }
 
-// export function removeLicense(): ActionFunc {
-//     return bindClientFunc({
-//         clientFunc: Client4.removeLicense,
-//     });
-// }
-
 export function removeLicense(): ActionFunc<boolean, ServerError> {
     return async (dispatch, getState) => {
         try {
