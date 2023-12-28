@@ -7,10 +7,12 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import type {StatusOK} from '@mattermost/types/client4';
 import type {ServerError} from '@mattermost/types/errors';
+import type {UsersLimits} from '@mattermost/types/limits';
 import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
 
 import {uploadLicense, removeLicense, getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
+import {getUsersLimits} from 'mattermost-redux/actions/limits';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getFilteredUsersStats as selectFilteredUserStats} from 'mattermost-redux/selectors/entities/users';
@@ -50,6 +52,7 @@ type Actions = {
     requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
     openModal: <P>(modalData: ModalData<P>) => void;
     getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{ data?: UsersStats | undefined; error?: ServerError | undefined}>;
+    getUsersLimits: () => Promise<ActionResult<UsersLimits, ServerError>>;
 }
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
@@ -66,6 +69,7 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             requestTrialLicense,
             openModal,
             getFilteredUsersStats,
+            getUsersLimits,
         }, dispatch),
     };
 }

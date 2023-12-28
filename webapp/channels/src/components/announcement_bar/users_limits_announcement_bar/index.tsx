@@ -54,6 +54,8 @@ function UsersLimitsAnnouncementBar(props: Props) {
     const maxUsersLimit = usersLimits?.maxUsersLimit ?? 0;
     const activeUserCount = usersLimits?.activeUserCount ?? 0;
 
+    console.log('UsersLimitsAnnouncementBar', {isLicensed, maxUsersLimit, activeUserCount});
+
     if (!shouldShowUserLimitsAnnouncementBar({userIsAdmin: props.userIsAdmin, isLicensed, maxUsersLimit, activeUserCount})) {
         return null;
     }
@@ -96,7 +98,7 @@ export function shouldShowUserLimitsAnnouncementBar({userIsAdmin, isLicensed, ma
         return false;
     }
 
-    if (!isLicensed && activeUserCount >= maxUsersLimit) {
+    if (!isLicensed && maxUsersLimit <= 10001) {
         return true;
     }
 
