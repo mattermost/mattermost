@@ -16,7 +16,6 @@ import {
     getUserAccessToken,
     getProfiles,
     searchProfiles,
-    revokeSessionsForAllUsers,
     getFilteredUsersStats,
 } from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -106,7 +105,6 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
             loadProfilesWithoutTeam,
             getProfiles,
             searchProfiles,
-            revokeSessionsForAllUsers,
             logError,
             getFilteredUsersStats,
         }, dispatch),

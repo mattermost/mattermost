@@ -13,7 +13,6 @@ import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 
 import groupsAvatar from 'images/groups-avatar.png';
 import Constants from 'utils/constants';
@@ -218,7 +217,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                 </div>
                 <div className='more-modal__actions'>
                     <div className='more-modal__actions--round'>
-                        <AddIcon/>
+                        <i className='icon icon-plus'/>
                     </div>
                 </div>
             </div>
@@ -271,7 +270,7 @@ export default class AddGroupsToChannelModal extends React.PureComponent<Props, 
                 onExited={this.props.onExited}
             >
                 <Modal.Header closeButton={true}>
-                    <Modal.Title>
+                    <Modal.Title componentClass='h1'>
                         <FormattedMessage
                             id='add_groups_to_channel.title'
                             defaultMessage='Add New Groups to {channelName} Channel'

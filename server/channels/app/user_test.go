@@ -1105,7 +1105,7 @@ func TestPermanentDeleteUser(t *testing.T) {
 
 	require.False(t, res, "File was not deleted on FS. err=%v", err)
 
-	finfo, err = th.App.GetFileInfo(finfo.Id)
+	finfo, err = th.App.GetFileInfo(th.Context, finfo.Id)
 
 	require.Nil(t, finfo, "Unable to find finfo. err=%v", err)
 
@@ -1930,5 +1930,84 @@ func TestSendSubscriptionHistoryEvent(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, subscription.ID, subscriptionHistoryEvent.SubscriptionID, "subscription ID doesn't match")
 		require.Equal(t, 10, subscriptionHistoryEvent.Seats, "Number of seats doesn't match")
+	})
+}
+
+func TestGetUsersForReporting(t *testing.T) {
+	t.Run("should throw error on invalid date range", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    1000,
+				EndAt:      500,
+			},
+		})
+		require.Error(t, err)
+		require.Nil(t, userReports)
+	})
+
+	t.Run("should throw error on bad sort column", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "FakeColumn",
+				PageSize:   50,
+			},
+		})
+		require.Error(t, err)
+		require.Nil(t, userReports)
+	})
+
+	t.Run("should return some formatted reporting data", func(t *testing.T) {
+		th := SetupWithStoreMock(t)
+		defer th.TearDown()
+
+		// Mock to get the user count
+		mockStore := th.App.Srv().Store().(*storemocks.Store)
+		mockUserStore := storemocks.UserStore{}
+		mockUserStore.On("GetUserReport",
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+			mock.Anything,
+		).Return([]*model.UserReportQuery{
+			{
+				User: model.User{
+					Id:        "some-id",
+					CreateAt:  1000,
+					FirstName: "Bob",
+					LastName:  "Bobson",
+				},
+				UserPostStats: model.UserPostStats{
+					LastLogin: 1500,
+				},
+			},
+		}, nil)
+
+		mockStore.On("User").Return(&mockUserStore)
+
+		userReports, err := th.App.GetUsersForReporting(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+		})
+		require.Nil(t, err)
+		require.NotNil(t, userReports)
+		require.Equal(t, "Bob Bobson", userReports[0].DisplayName)
 	})
 }

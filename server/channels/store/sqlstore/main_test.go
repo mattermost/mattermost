@@ -16,7 +16,7 @@ func TestMain(m *testing.M) {
 	mainHelper = testlib.NewMainHelperWithOptions(nil)
 	defer mainHelper.Close()
 
-	sqlstore.InitTest()
+	sqlstore.InitTest(mainHelper.Logger)
 
 	mainHelper.Main(m)
 	sqlstore.TearDownTest()

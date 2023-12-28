@@ -84,7 +84,7 @@ func (glu *GitLabUser) getAuthData() string {
 	return strconv.FormatInt(glu.Id, 10)
 }
 
-func (m *GitLabProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
+func (gp *GitLabProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUser *model.User) (*model.User, error) {
 	glu, err := gitLabUserFromJSON(data)
 	if err != nil {
 		return nil, err
@@ -96,14 +96,14 @@ func (m *GitLabProvider) GetUserFromJSON(c request.CTX, data io.Reader, tokenUse
 	return userFromGitLabUser(c.Logger(), glu), nil
 }
 
-func (m *GitLabProvider) GetSSOSettings(_ request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
+func (gp *GitLabProvider) GetSSOSettings(_ request.CTX, config *model.Config, service string) (*model.SSOSettings, error) {
 	return &config.GitLabSettings, nil
 }
 
-func (m *GitLabProvider) GetUserFromIdToken(_ request.CTX, idToken string) (*model.User, error) {
+func (gp *GitLabProvider) GetUserFromIdToken(_ request.CTX, idToken string) (*model.User, error) {
 	return nil, nil
 }
 
-func (m *GitLabProvider) IsSameUser(_ request.CTX, dbUser, oauthUser *model.User) bool {
+func (gp *GitLabProvider) IsSameUser(_ request.CTX, dbUser, oauthUser *model.User) bool {
 	return dbUser.AuthData == oauthUser.AuthData
 }

@@ -92,6 +92,18 @@ func RegisterNotificationInterface(f func(*App) einterfaces.NotificationInterfac
 	notificationInterface = f
 }
 
+var outgoingOauthConnectionInterface func(*App) einterfaces.OutgoingOAuthConnectionInterface
+
+func RegisterOutgoingOAuthConnectionInterface(f func(*App) einterfaces.OutgoingOAuthConnectionInterface) {
+	outgoingOauthConnectionInterface = f
+}
+
+var ipFilteringInterface func(*App) einterfaces.IPFilteringInterface
+
+func RegisterIPFilteringInterface(f func(*App) einterfaces.IPFilteringInterface) {
+	ipFilteringInterface = f
+}
+
 func (s *Server) initEnterprise() {
 	if cloudInterface != nil {
 		s.Cloud = cloudInterface(s)

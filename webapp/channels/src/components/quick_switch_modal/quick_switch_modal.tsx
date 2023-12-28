@@ -197,10 +197,10 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 animation={false}
             >
                 <Modal.Header
+                    className='modal-header'
                     id='quickSwitchModalLabel'
                     closeButton={true}
-                />
-                <Modal.Body>
+                >
                     <div
                         className='channel-switcher__header'
                         id='quickSwitchHeaderWithHint'
@@ -213,6 +213,8 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                             {help}
                         </div>
                     </div>
+                </Modal.Header>
+                <Modal.Body>
                     <div className='channel-switcher__suggestion-box'>
                         <i className='icon icon-magnify icon-16'/>
                         <SuggestionBox
@@ -240,8 +242,8 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                         />
                         {!this.state.shouldShowLoadingSpinner && !this.state.hasSuggestions && this.state.text &&
                             <NoResultsIndicator
-                                variant={NoResultsVariant.ChannelSearch}
-                                titleValues={{channelName: `"${this.state.pretext}"`}}
+                                variant={NoResultsVariant.Search}
+                                titleValues={{channelName: `${this.state.pretext}`}}
                             />
                         }
                     </div>

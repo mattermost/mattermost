@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest"
 )
@@ -18,7 +19,7 @@ func TestPreferenceStore(t *testing.T) {
 }
 
 func TestDeleteUnusedFeatures(t *testing.T) {
-	StoreTest(t, func(t *testing.T, ss store.Store) {
+	StoreTest(t, func(t *testing.T, rctx request.CTX, ss store.Store) {
 		userId1 := model.NewId()
 		userId2 := model.NewId()
 		category := model.PreferenceCategoryAdvancedSettings

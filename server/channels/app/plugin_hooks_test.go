@@ -611,7 +611,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.NotNil(t, response)
 
 		fileID := response.Id
-		fileInfo, err := th.App.GetFileInfo(fileID)
+		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "testhook.txt", fileInfo.Name)
@@ -682,7 +682,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.NotNil(t, response)
 		fileID := response.Id
 
-		fileInfo, err := th.App.GetFileInfo(fileID)
+		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "modifiedinfo", fileInfo.Name)
@@ -699,7 +699,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 	assert.Nil(t, err, "Error updating user password: %s", err)
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -737,7 +737,7 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
 	assert.Nil(t, err, "Error updating user password: %s", err)
 
@@ -778,7 +778,7 @@ func TestUserHasLoggedIn(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
 	assert.Nil(t, err, "Error updating user password: %s", err)
 
