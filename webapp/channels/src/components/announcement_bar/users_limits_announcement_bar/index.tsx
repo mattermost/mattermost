@@ -5,7 +5,7 @@ import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ExclamationThickIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {getUsersLimits} from 'mattermost-redux/selectors/entities/limits';
@@ -67,7 +67,7 @@ function UsersLimitsAnnouncementBar(props: Props) {
                 />
             }
             type={AnnouncementBarTypes.CRITICAL}
-            icon={<ExclamationThickIcon size={16}/>} // Icon to be fa-exclamation-triangle
+            icon={<AlertOutlineIcon size={16}/>}
             showCTA={true}
             ctaDisabled={cwsAvailability === CSWAvailabilityCheckTypes.Pending}
             showLinkAsButton={true}
