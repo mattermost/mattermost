@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {ExclamationThickIcon} from '@mattermost/compass-icons/components';
@@ -30,8 +30,6 @@ type Props = {
 function UsersLimitsAnnouncementBar(props: Props) {
     const dispatch = useDispatch();
 
-    const {formatMessage} = useIntl();
-
     const cwsAvailability = useCWSAvailabilityCheck();
     const usersLimits = useSelector(getUsersLimits);
 
@@ -54,8 +52,6 @@ function UsersLimitsAnnouncementBar(props: Props) {
     const maxUsersLimit = usersLimits?.maxUsersLimit ?? 0;
     const activeUserCount = usersLimits?.activeUserCount ?? 0;
 
-    console.log('UsersLimitsAnnouncementBar', {isLicensed, maxUsersLimit, activeUserCount});
-
     if (!shouldShowUserLimitsAnnouncementBar({userIsAdmin: props.userIsAdmin, isLicensed, maxUsersLimit, activeUserCount})) {
         return null;
     }
@@ -64,19 +60,23 @@ function UsersLimitsAnnouncementBar(props: Props) {
         <AnnouncementBar
             id='users_limits_announcement_bar'
             showCloseButton={false}
-            message={formatMessage({
-                id: 'users_limits_announcement_bar.copyText',
-                defaultMessage: 'Your user count exceeds the maximum users allowed. Upgrade to Mattermost Professional or Mattermost Enterprise to continue using Mattermost.',
-            })}
+            message={
+                <FormattedMessage
+                    id='users_limits_announcement_bar.copyText'
+                    defaultMessage='Your user count exceeds the maximum users allowed. Upgrade to Mattermost Professional or Mattermost Enterprise to continue using Mattermost.'
+                />
+            }
             type={AnnouncementBarTypes.CRITICAL}
             icon={<ExclamationThickIcon size={16}/>} // Icon to be fa-exclamation-triangle
             showCTA={true}
             ctaDisabled={cwsAvailability === CSWAvailabilityCheckTypes.Pending}
             showLinkAsButton={true}
-            ctaText={formatMessage({
-                id: 'users_limits_announcement_bar.ctaText',
-                defaultMessage: 'Contact sales',
-            })}
+            ctaText={
+                <FormattedMessage
+                    id='users_limits_announcement_bar.ctaText'
+                    defaultMessage='Contact sales'
+                />
+            }
             onButtonClick={handleCTAClick}
         />
     );
@@ -98,7 +98,7 @@ export function shouldShowUserLimitsAnnouncementBar({userIsAdmin, isLicensed, ma
         return false;
     }
 
-    if (!isLicensed && maxUsersLimit <= 10001) {
+    if (!isLicensed && activeUserCount >= maxUsersLimit) {
         return true;
     }
 

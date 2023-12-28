@@ -181,9 +181,13 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             return;
         }
 
-        this.props.actions.getPrevTrialLicense();
-        await this.props.actions.getLicenseConfig();
-        this.props.actions.getUsersLimits();
+        await Promise.all([
+            this.props.actions.getPrevTrialLicense(),
+            this.props.actions.getLicenseConfig(),
+        ]);
+
+        await this.props.actions.getUsersLimits();
+
         this.setState({serverError: null, removing: false});
     };
 
