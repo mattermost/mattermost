@@ -3429,6 +3429,7 @@
   "edit_post.time_limit_modal.save_button": "Save Edit Time",
   "edit_post.time_limit_modal.subscript": "Set the length of time users have to edit their messages after posting.",
   "edit_post.time_limit_modal.title": "Configure Global Edit Post Time Limit",
+  "editPreview": "Preview message",
   "email_verify.almost": "You’re almost done!",
   "email_verify.failed": "Failed to send verification email",
   "email_verify.notVerifiedBody": "Please verify your email address. Check your inbox for an email.",
