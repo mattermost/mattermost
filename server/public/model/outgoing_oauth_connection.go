@@ -169,3 +169,14 @@ func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) ToURLValues() url.Values
 	v.Set("audience", oaf.Audience)
 	return v
 }
+
+// OutgoingOAuthConnectionToken is used to return the token for an outgoing connection oauth
+// authentication request
+type OutgoingOAuthConnectionToken struct {
+	AccessToken string
+	TokenType   string
+}
+
+func (ooct *OutgoingOAuthConnectionToken) AsHeaderValue() string {
+	return ooct.TokenType + " " + ooct.AccessToken
+}
