@@ -512,7 +512,7 @@ func (api *PluginAPI) SearchUsers(search *model.UserSearch) ([]*model.User, *mod
 		AllowInactive: search.AllowInactive,
 		Limit:         search.Limit,
 	}
-	return api.app.SearchUsers(search, pluginSearchUsersOptions)
+	return api.app.SearchUsers(api.ctx, search, pluginSearchUsersOptions)
 }
 
 func (api *PluginAPI) SearchPostsInTeam(teamID string, paramsList []*model.SearchParams) ([]*model.Post, *model.AppError) {
@@ -763,7 +763,7 @@ func (api *PluginAPI) GetEmoji(emojiId string) (*model.Emoji, *model.AppError) {
 }
 
 func (api *PluginAPI) CopyFileInfos(userID string, fileIDs []string) ([]string, *model.AppError) {
-	return api.app.CopyFileInfos(userID, fileIDs)
+	return api.app.CopyFileInfos(api.ctx, userID, fileIDs)
 }
 
 func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
@@ -771,7 +771,7 @@ func (api *PluginAPI) GetFileInfo(fileID string) (*model.FileInfo, *model.AppErr
 }
 
 func (api *PluginAPI) SetFileSearchableContent(fileID string, content string) *model.AppError {
-	return api.app.SetFileSearchableContent(fileID, content)
+	return api.app.SetFileSearchableContent(api.ctx, fileID, content)
 }
 
 func (api *PluginAPI) GetFileInfos(page, perPage int, opt *model.GetFileInfosOptions) ([]*model.FileInfo, *model.AppError) {
@@ -957,7 +957,7 @@ func (api *PluginAPI) KVList(page, perPage int) ([]string, *model.AppError) {
 }
 
 func (api *PluginAPI) PublishWebSocketEvent(event string, payload map[string]any, broadcast *model.WebsocketBroadcast) {
-	ev := model.NewWebSocketEvent(fmt.Sprintf("custom_%v_%v", api.id, event), "", "", "", nil, "")
+	ev := model.NewWebSocketEvent(model.WebsocketEventType(fmt.Sprintf("custom_%v_%v", api.id, event)), "", "", "", nil, "")
 	ev = ev.SetBroadcast(broadcast).SetData(payload)
 	api.app.Publish(ev)
 }
@@ -1008,7 +1008,7 @@ func (api *PluginAPI) CreateBot(bot *model.Bot) (*model.Bot, *model.AppError) {
 }
 
 func (api *PluginAPI) PatchBot(userID string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
-	return api.app.PatchBot(userID, botPatch)
+	return api.app.PatchBot(api.ctx, userID, botPatch)
 }
 
 func (api *PluginAPI) GetBot(userID string, includeDeleted bool) (*model.Bot, *model.AppError) {
@@ -1278,4 +1278,40 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
 	// Ignoring skipSessionId because it's only used internally to clear push notifications
 	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
+}
+
+func (api *PluginAPI) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
+	return api.app.RegisterPluginForSharedChannels(opts)
+}
+
+func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
+	return api.app.UnregisterPluginForSharedChannels(pluginID)
+}
+
+func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	return api.app.ShareChannel(api.ctx, sc)
+}
+
+func (api *PluginAPI) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	return api.app.UpdateSharedChannel(sc)
+}
+
+func (api *PluginAPI) UnshareChannel(channelID string) (unshared bool, err error) {
+	return api.app.UnshareChannel(channelID)
+}
+
+func (api *PluginAPI) UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
+	return api.app.UpdateSharedChannelCursor(channelID, remoteID, cusror)
+}
+
+func (api *PluginAPI) SyncSharedChannel(channelID string) error {
+	return api.app.SyncSharedChannel(channelID)
+}
+
+func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string) error {
+	return api.app.InviteRemoteToChannel(channelID, remoteID, userID)
+}
+
+func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
+	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
 }

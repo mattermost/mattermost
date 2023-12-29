@@ -50,6 +50,7 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
 
     return (
         <GenericModal
+            compassDesign={true}
             className={'ConfirmLicenseRemovalModal'}
             show={show}
             id='ConfirmLicenseRemovalModal'

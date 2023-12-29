@@ -1324,7 +1324,7 @@ func testTeamMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
 
-	err = ss.Team().RemoveMember(teamId1, m1.UserId)
+	err = ss.Team().RemoveMember(rctx, teamId1, m1.UserId)
 	require.NoError(t, err)
 
 	ms, err = ss.Team().GetMembers(teamId1, 0, 100, nil)
@@ -1357,7 +1357,7 @@ func testTeamMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Len(t, ms, 1)
 
 	m4.DeleteAt = model.GetMillis()
-	_, err = ss.Team().UpdateMember(m4)
+	_, err = ss.Team().UpdateMember(rctx, m4)
 	require.NoError(t, err)
 
 	ms, err = ss.Team().GetTeamsForUser(rctx, uid, "", true)
@@ -1368,7 +1368,7 @@ func testTeamMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 	require.Len(t, ms, 1)
 
-	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	nErr = ss.Team().RemoveAllMembersByUser(rctx, uid)
 	require.NoError(t, nErr)
 
 	ms, err = ss.Team().GetTeamsForUser(rctx, m1.UserId, "", true)
@@ -1549,7 +1549,7 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 				}
 				member, nErr := ss.Team().SaveMember(member, -1)
 				require.NoError(t, nErr)
-				defer ss.Team().RemoveMember(team.Id, u1.Id)
+				defer ss.Team().RemoveMember(rctx, team.Id, u1.Id)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -1700,7 +1700,7 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 				}
 				member, nErr := ss.Team().SaveMember(member, -1)
 				require.NoError(t, nErr)
-				defer ss.Team().RemoveMember(team.Id, u1.Id)
+				defer ss.Team().RemoveMember(rctx, team.Id, u1.Id)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -1916,8 +1916,8 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 				require.NoError(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
-				defer ss.Team().RemoveMember(team.Id, u1.Id)
-				defer ss.Team().RemoveMember(team.Id, u2.Id)
+				defer ss.Team().RemoveMember(rctx, team.Id, u1.Id)
+				defer ss.Team().RemoveMember(rctx, team.Id, u2.Id)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -2078,8 +2078,8 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 				require.NoError(t, nErr)
 				require.Len(t, members, 2)
 				member = members[0]
-				defer ss.Team().RemoveMember(team.Id, u1.Id)
-				defer ss.Team().RemoveMember(team.Id, u2.Id)
+				defer ss.Team().RemoveMember(rctx, team.Id, u1.Id)
+				defer ss.Team().RemoveMember(rctx, team.Id, u2.Id)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
 				assert.Equal(t, tc.ExpectedExplicitRoles, member.ExplicitRoles)
@@ -2097,7 +2097,7 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 
 	t.Run("not valid team member", func(t *testing.T) {
 		member := &model.TeamMember{TeamId: "wrong", UserId: u1.Id}
-		_, nErr := ss.Team().UpdateMember(member)
+		_, nErr := ss.Team().UpdateMember(rctx, member)
 		require.Error(t, nErr)
 		var appErr *model.AppError
 		require.True(t, errors.As(nErr, &appErr))
@@ -2233,7 +2233,7 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
 
-				member, nErr = ss.Team().UpdateMember(member)
+				member, nErr = ss.Team().UpdateMember(rctx, member)
 				require.NoError(t, nErr)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
@@ -2384,7 +2384,7 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 				member.SchemeAdmin = tc.SchemeAdmin
 				member.ExplicitRoles = tc.ExplicitRoles
 
-				member, nErr = ss.Team().UpdateMember(member)
+				member, nErr = ss.Team().UpdateMember(rctx, member)
 				require.NoError(t, nErr)
 
 				assert.Equal(t, tc.ExpectedRoles, member.Roles)
@@ -2738,7 +2738,7 @@ func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, nErr)
 
 	t.Run("remove member from not existing team", func(t *testing.T) {
-		nErr = ss.Team().RemoveMember("not-existing-team", u1.Id)
+		nErr = ss.Team().RemoveMember(rctx, "not-existing-team", u1.Id)
 		require.NoError(t, nErr)
 		var membersOtherTeam []*model.TeamMember
 		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
@@ -2747,7 +2747,7 @@ func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("remove not existing member from an existing team", func(t *testing.T) {
-		nErr = ss.Team().RemoveMember(teamID, model.NewId())
+		nErr = ss.Team().RemoveMember(rctx, teamID, model.NewId())
 		require.NoError(t, nErr)
 		var membersOtherTeam []*model.TeamMember
 		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
@@ -2756,7 +2756,7 @@ func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("remove existing member from an existing team", func(t *testing.T) {
-		nErr = ss.Team().RemoveMember(teamID, u1.Id)
+		nErr = ss.Team().RemoveMember(rctx, teamID, u1.Id)
 		require.NoError(t, nErr)
 		defer ss.Team().SaveMember(m1, -1)
 		var membersOtherTeam []*model.TeamMember
@@ -2784,7 +2784,7 @@ func testTeamRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, nErr)
 
 	t.Run("remove members from not existing team", func(t *testing.T) {
-		nErr = ss.Team().RemoveMembers("not-existing-team", []string{u1.Id, u2.Id, u3.Id, u4.Id})
+		nErr = ss.Team().RemoveMembers(rctx, "not-existing-team", []string{u1.Id, u2.Id, u3.Id, u4.Id})
 		require.NoError(t, nErr)
 		var membersOtherTeam []*model.TeamMember
 		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
@@ -2793,7 +2793,7 @@ func testTeamRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("remove not existing members from an existing team", func(t *testing.T) {
-		nErr = ss.Team().RemoveMembers(teamID, []string{model.NewId(), model.NewId()})
+		nErr = ss.Team().RemoveMembers(rctx, teamID, []string{model.NewId(), model.NewId()})
 		require.NoError(t, nErr)
 		var membersOtherTeam []*model.TeamMember
 		membersOtherTeam, nErr = ss.Team().GetMembers(teamID, 0, 100, nil)
@@ -2802,7 +2802,7 @@ func testTeamRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("remove not existing and not existing members from an existing team", func(t *testing.T) {
-		nErr = ss.Team().RemoveMembers(teamID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
+		nErr = ss.Team().RemoveMembers(rctx, teamID, []string{u1.Id, u2.Id, model.NewId(), model.NewId()})
 		require.NoError(t, nErr)
 		defer ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2}, -1)
 		var membersOtherTeam []*model.TeamMember
@@ -2811,7 +2811,7 @@ func testTeamRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Len(t, membersOtherTeam, 2)
 	})
 	t.Run("remove existing members from an existing team", func(t *testing.T) {
-		nErr = ss.Team().RemoveMembers(teamID, []string{u1.Id, u2.Id, u3.Id})
+		nErr = ss.Team().RemoveMembers(rctx, teamID, []string{u1.Id, u2.Id, u3.Id})
 		require.NoError(t, nErr)
 		defer ss.Team().SaveMultipleMembers([]*model.TeamMember{m1, m2, m3}, -1)
 		var membersOtherTeam []*model.TeamMember
@@ -2838,7 +2838,7 @@ func testTeamMembersWithPagination(t *testing.T, rctx request.CTX, ss store.Stor
 	require.Len(t, ms, 1)
 	require.Equal(t, m1.TeamId, ms[0].TeamId)
 
-	e := ss.Team().RemoveMember(teamId1, m1.UserId)
+	e := ss.Team().RemoveMember(rctx, teamId1, m1.UserId)
 	require.NoError(t, e)
 
 	ms, err := ss.Team().GetMembers(teamId1, 0, 100, nil)
@@ -2863,7 +2863,7 @@ func testTeamMembersWithPagination(t *testing.T, rctx request.CTX, ss store.Stor
 	require.NoError(t, err)
 	require.Len(t, result, 1)
 
-	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	nErr = ss.Team().RemoveAllMembersByUser(rctx, uid)
 	require.NoError(t, nErr)
 
 	result, err = ss.Team().GetTeamsForUserWithPagination(uid, 1, 1)
@@ -2905,7 +2905,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 		require.NoError(t, nErr)
 
 		defer func(userId string) {
-			ss.Team().RemoveMember(team.Id, userId)
+			ss.Team().RemoveMember(rctx, team.Id, userId)
 		}(userIds[i])
 	}
 
@@ -2934,7 +2934,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	require.Equal(t, maxUsersPerTeam, int(totalMemberCount), "should still have 5 team members, had %v instead", totalMemberCount)
 
 	// Leaving the team from the UI sets DeleteAt instead of using TeamStore.RemoveMember
-	_, teamErr = ss.Team().UpdateMember(&model.TeamMember{
+	_, teamErr = ss.Team().UpdateMember(rctx, &model.TeamMember{
 		TeamId:   team.Id,
 		UserId:   userIds[0],
 		DeleteAt: 1234,
@@ -2948,7 +2948,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId}, maxUsersPerTeam)
 	require.NoError(t, nErr, "should've been able to save new member after deleting one")
 
-	defer ss.Team().RemoveMember(team.Id, newUserId)
+	defer ss.Team().RemoveMember(rctx, team.Id, newUserId)
 
 	totalMemberCount, teamErr = ss.Team().GetTotalMemberCount(team.Id, nil)
 	require.NoError(t, teamErr)
@@ -2958,7 +2958,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	user2, nErr := ss.User().Get(context.Background(), userIds[1])
 	require.NoError(t, nErr)
 	user2.DeleteAt = 1234
-	_, nErr = ss.User().Update(user2, true)
+	_, nErr = ss.User().Update(rctx, user2, true)
 	require.NoError(t, nErr)
 
 	user, nErr = ss.User().Save(&model.User{
@@ -2970,7 +2970,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: team.Id, UserId: newUserId2}, maxUsersPerTeam)
 	require.NoError(t, nErr, "should've been able to save new member after deleting one")
 
-	defer ss.Team().RemoveMember(team.Id, newUserId2)
+	defer ss.Team().RemoveMember(rctx, team.Id, newUserId2)
 }
 
 func testGetTeamMember(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -3163,7 +3163,7 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, rctx request.CTX, ss store.S
 
 	require.Equal(t, 10, int(ms2[0].MsgCount), "subtraction failed")
 
-	nErr = ss.Team().RemoveAllMembersByUser(uid)
+	nErr = ss.Team().RemoveAllMembersByUser(rctx, uid)
 	require.NoError(t, nErr)
 }
 
@@ -3687,10 +3687,10 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 		require.Contains(t, commonTeamIDs, t2.Id)
 
 		// cleanup
-		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		err2 = ss.Team().RemoveAllMembersByUser(rctx, u1.Id)
 		require.NoError(t, err2)
 
-		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		err2 = ss.Team().RemoveAllMembersByUser(rctx, u2.Id)
 		require.NoError(t, err2)
 	})
 
@@ -3714,10 +3714,10 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 		require.Contains(t, commonTeamIDs, t1.Id)
 
 		// cleanup
-		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		err2 = ss.Team().RemoveAllMembersByUser(rctx, u1.Id)
 		require.NoError(t, err2)
 
-		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		err2 = ss.Team().RemoveAllMembersByUser(rctx, u2.Id)
 		require.NoError(t, err2)
 	})
 
@@ -3739,10 +3739,10 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 		require.Equal(t, 0, len(commonTeamIDs))
 
 		// cleanup
-		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		err2 = ss.Team().RemoveAllMembersByUser(rctx, u1.Id)
 		require.NoError(t, err2)
 
-		err2 = ss.Team().RemoveAllMembersByUser(u2.Id)
+		err2 = ss.Team().RemoveAllMembersByUser(rctx, u2.Id)
 		require.NoError(t, err2)
 	})
 
@@ -3763,7 +3763,7 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 		require.Equal(t, 0, len(commonTeamIDs))
 
 		// cleanup
-		err2 = ss.Team().RemoveAllMembersByUser(u1.Id)
+		err2 = ss.Team().RemoveAllMembersByUser(rctx, u1.Id)
 		require.NoError(t, err2)
 	})
 
@@ -3811,10 +3811,10 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 		require.Contains(t, commonTeamIDs, t2.Id)
 
 		// cleanup
-		err = ss.Team().RemoveAllMembersByUser(u1.Id)
+		err = ss.Team().RemoveAllMembersByUser(rctx, u1.Id)
 		require.NoError(t, err)
 
-		err = ss.Team().RemoveAllMembersByUser(u2.Id)
+		err = ss.Team().RemoveAllMembersByUser(rctx, u2.Id)
 		require.NoError(t, err)
 	})
 }

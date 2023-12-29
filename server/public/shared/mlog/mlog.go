@@ -98,32 +98,25 @@ func (lc LoggerConfiguration) toTargetCfg() map[string]logrcfg.TargetCfg {
 // will be used to generate a string representation.
 var Any = logr.Any
 
-// Int64 constructs a field containing a key and Int64 value.
-var Int64 = logr.Int64
+// Int constructs a field containing a key and int value.
+func Int[T ~int | ~int8 | ~int16 | ~int32 | ~int64](key string, val T) Field {
+	return logr.Int[T](key, val)
+}
 
-// Int32 constructs a field containing a key and Int32 value.
-var Int32 = logr.Int32
+// Uint constructs a field containing a key and uint value.
+func Uint[T ~uint | ~uint8 | ~uint16 | ~uint32 | ~uint64 | ~uintptr](key string, val T) Field {
+	return logr.Uint[T](key, val)
+}
 
-// Int constructs a field containing a key and Int value.
-var Int = logr.Int
+// Float constructs a field containing a key and float value.
+func Float[T ~float32 | ~float64](key string, val T) Field {
+	return logr.Float[T](key, val)
+}
 
-// Uint64 constructs a field containing a key and Uint64 value.
-var Uint64 = logr.Uint64
-
-// Uint32 constructs a field containing a key and Uint32 value.
-var Uint32 = logr.Uint32
-
-// Uint constructs a field containing a key and Uint value.
-var Uint = logr.Uint
-
-// Float64 constructs a field containing a key and Float64 value.
-var Float64 = logr.Float64
-
-// Float32 constructs a field containing a key and Float32 value.
-var Float32 = logr.Float32
-
-// String constructs a field containing a key and String value.
-var String = logr.String
+// String constructs a field containing a key and string value.
+func String[T ~string | ~[]byte](key string, val T) Field {
+	return logr.String[T](key, val)
+}
 
 // Stringer constructs a field containing a key and a fmt.Stringer value.
 // The fmt.Stringer's `String` method is called lazily.
@@ -148,7 +141,9 @@ var NamedErr = func(key string, err error) logr.Field {
 }
 
 // Bool constructs a field containing a key and bool value.
-var Bool = logr.Bool
+func Bool[T ~bool](key string, val T) Field {
+	return logr.Bool[T](key, val)
+}
 
 // Time constructs a field containing a key and time.Time value.
 var Time = logr.Time
@@ -161,10 +156,14 @@ var Duration = logr.Duration
 var Millis = logr.Millis
 
 // Array constructs a field containing a key and array value.
-var Array = logr.Array
+func Array[S ~[]E, E any](key string, val S) Field {
+	return logr.Array[S](key, val)
+}
 
 // Map constructs a field containing a key and map value.
-var Map = logr.Map
+func Map[M ~map[K]V, K comparable, V any](key string, val M) Field {
+	return logr.Map[M](key, val)
+}
 
 // Logger provides a thin wrapper around a Logr instance. This is a struct instead of an interface
 // so that there are no allocations on the heap each interface method invocation. Normally not

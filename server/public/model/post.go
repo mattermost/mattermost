@@ -45,6 +45,7 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeWrangler               = "system_wrangler"
 	PostTypeGMConvertedToChannel   = "system_gm_to_channel"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
@@ -193,6 +194,10 @@ type GetPersistentNotificationsPostsParams struct {
 	PerPage      int
 }
 
+type MoveThreadParams struct {
+	ChannelId string `json:"channel_id"`
+}
+
 type SearchParameter struct {
 	Terms                  *string `json:"terms"`
 	IsOrSearch             *bool   `json:"is_or_search"`
@@ -327,13 +332,20 @@ type GetPostsSinceOptions struct {
 
 type GetPostsSinceForSyncCursor struct {
 	LastPostUpdateAt int64
-	LastPostId       string
+	LastPostUpdateID string
+	LastPostCreateAt int64
+	LastPostCreateID string
+}
+
+func (c GetPostsSinceForSyncCursor) IsEmpty() bool {
+	return c.LastPostCreateAt == 0 && c.LastPostCreateID == "" && c.LastPostUpdateAt == 0 && c.LastPostUpdateID == ""
 }
 
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
 	ExcludeRemoteId string
 	IncludeDeleted  bool
+	SinceCreateAt   bool // determines whether the cursor will be based on CreateAt or UpdateAt
 }
 
 type GetPostsOptions struct {
@@ -437,6 +449,7 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
 		PostTypeMe,
+		PostTypeWrangler,
 		PostTypeGMConvertedToChannel:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
@@ -885,4 +898,12 @@ func (o *Post) IsUrgent() bool {
 	}
 
 	return *postPriority.Priority == PostPriorityUrgent
+}
+
+func (o *Post) CleanPost() *Post {
+	o.Id = ""
+	o.CreateAt = 0
+	o.UpdateAt = 0
+	o.EditAt = 0
+	return o
 }

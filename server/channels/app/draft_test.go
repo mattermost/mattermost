@@ -383,14 +383,8 @@ func TestDeleteDraft(t *testing.T) {
 	assert.Nil(t, createDraftErr)
 
 	t.Run("delete draft", func(t *testing.T) {
-		draftResp, err := th.App.DeleteDraft(th.Context, user.Id, channel.Id, "", "")
+		err := th.App.DeleteDraft(th.Context, draft1, "")
 		assert.Nil(t, err)
-
-		assert.Equal(t, draft1.Message, draftResp.Message)
-		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
-
-		assert.Equal(t, draft1.Message, draftResp.Message)
-		assert.Equal(t, draft1.ChannelId, draftResp.ChannelId)
 	})
 
 	t.Run("delete drafts feature flag", func(t *testing.T) {
@@ -402,7 +396,7 @@ func TestDeleteDraft(t *testing.T) {
 		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = false })
 		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.AllowSyncedDrafts = true })
 
-		_, err := th.App.DeleteDraft(th.Context, user.Id, channel.Id, "", "")
+		err := th.App.DeleteDraft(th.Context, draft1, "")
 		assert.NotNil(t, err)
 	})
 }
