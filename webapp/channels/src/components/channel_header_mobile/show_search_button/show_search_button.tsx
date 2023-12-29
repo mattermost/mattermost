@@ -15,24 +15,23 @@ type Props = {
     actions: Actions;
 }
 
-export default class ShowSearchButton extends React.PureComponent<Props> {
-    handleClick = () => {
-        this.props.actions.openRHSSearch();
+const ShowSearchButton = ({actions}: Props) => {
+    const handleClick = () => {
+        actions.openRHSSearch();
     };
 
-    render() {
-        return (
-            <button
-                type='button'
-                className='navbar-toggle navbar-right__icon navbar-search pull-right'
-                onClick={this.handleClick}
-                aria-label={localizeMessage('accessibility.button.Search', 'Search')}
-            >
-                <SearchIcon
-                    className='icon icon__search'
-                    aria-hidden='true'
-                />
-            </button>
-        );
-    }
-}
+    return (
+        <button
+            type='button'
+            className='navbar-toggle navbar-right__icon navbar-search pull-right'
+            onClick={handleClick}
+            aria-label={localizeMessage('accessibility.button.Search', 'Search')}
+        >
+            <SearchIcon
+                className='icon icon__search'
+                aria-hidden='true'
+            />
+        </button>
+    );
+};
+export default React.memo(ShowSearchButton);

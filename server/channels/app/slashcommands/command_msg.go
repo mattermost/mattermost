@@ -73,7 +73,7 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 	// Find the channel based on this user
 	channelName := model.GetDMNameFromIds(args.UserId, userProfile.Id)
 
-	targetChannelId := ""
+	targetChannelID := ""
 	if channel, channelErr := a.Srv().Store().Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(channelErr, &nfErr) {
@@ -86,19 +86,19 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 				c.Logger().Error(err.Error())
 				return &model.CommandResponse{Text: args.T(err.Id), ResponseType: model.CommandResponseTypeEphemeral}
 			}
-			targetChannelId = directChannel.Id
+			targetChannelID = directChannel.Id
 		} else {
 			c.Logger().Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	} else {
-		targetChannelId = channel.Id
+		targetChannelID = channel.Id
 	}
 
 	if parsedMessage != "" {
 		post := &model.Post{}
 		post.Message = parsedMessage
-		post.ChannelId = targetChannelId
+		post.ChannelId = targetChannelID
 		post.UserId = args.UserId
 		if _, err = a.CreatePostMissingChannel(c, post, true, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}

@@ -15,7 +15,6 @@ import {filterProfilesStartingWithTerm, profileListToMap, isGuest} from 'matterm
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
@@ -134,7 +133,9 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
                 </div>
                 <div className='more-modal__actions'>
                     <div className='more-modal__actions--round'>
-                        <AddIcon/>
+                        <i
+                            className='icon icon-plus'
+                        />
                     </div>
                 </div>
             </div>
