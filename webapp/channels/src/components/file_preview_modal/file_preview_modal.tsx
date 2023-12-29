@@ -15,7 +15,7 @@ import AudioVideoPreview from 'components/audio_video_preview';
 import CodePreview from 'components/code_preview';
 import FileInfoPreview from 'components/file_info_preview';
 import LoadingImagePreview from 'components/loading_image_preview';
-import type {Props as PDFProps} from 'components/pdf_preview';
+import type {Props as PDFPreviewComponentProps} from 'components/pdf_preview';
 
 import Constants, {FileTypes, ZoomSettings} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -32,7 +32,7 @@ import type {LinkInfo} from './types';
 
 import './file_preview_modal.scss';
 
-const PDFPreview = React.lazy<React.ComponentType<PDFProps>>(() => import('components/pdf_preview'));
+const PDFPreview = React.lazy<React.ComponentType<PDFPreviewComponentProps>>(() => import('components/pdf_preview'));
 
 const KeyCodes = Constants.KeyCodes;
 
