@@ -1102,7 +1102,7 @@
         "501":
           $ref: "#/components/responses/NotImplemented"
   "/api/v4/posts/max-size":
-    post:
+    get:
       tags:
         - posts
       summary: Returns the maximum size a post can have.
