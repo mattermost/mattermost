@@ -122,25 +122,18 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 
 			// Retrieve an access token from a connection if one exists to use for the webhook request
 			if a.OutgoingOAuthConnections() != nil {
-				outgoingOAuthConnections, appErr := a.OutgoingOAuthConnections().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{
-					Limit:    1,
-					Audience: url,
-				})
-				if appErr != nil {
-					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(appErr))
+				connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(c, url)
+				if err != nil {
+					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
 					return
 				}
 
-				a.Log().Error("Connections found:", mlog.Any("conns", outgoingOAuthConnections))
-
-				if len(outgoingOAuthConnections) > 1 {
-					a.Log().Warn("More than one outgoing oauth connection found for the webhook. Using the first one.", mlog.String("webhook_id", hook.Id), mlog.Int("connections_count", len(outgoingOAuthConnections)))
-				}
-
-				accessToken, appErr = a.OutgoingOAuthConnections().RetrieveTokenForConnection(c, outgoingOAuthConnections[0])
-				if appErr != nil {
-					c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(appErr))
-					return
+				if connection != nil {
+					accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(c, connection)
+					if err != nil {
+						c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
+						return
+					}
 				}
 			}
 

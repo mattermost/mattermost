@@ -18,5 +18,6 @@ type OutgoingOAuthConnectionInterface interface {
 	SanitizeConnection(conn *model.OutgoingOAuthConnection)
 	SanitizeConnections(conns []*model.OutgoingOAuthConnection)
 
+	GetConnectionForAudience(rctx request.CTX, url string) (*model.OutgoingOAuthConnection, *model.AppError)
 	RetrieveTokenForConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnectionToken, *model.AppError)
 }
