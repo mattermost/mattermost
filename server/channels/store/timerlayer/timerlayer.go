@@ -6905,6 +6905,22 @@ func (s *TimerLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFil
 	return result, err
 }
 
+func (s *TimerLayerRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
+	start := time.Now()
+
+	result, err := s.RemoteClusterStore.GetByPluginID(pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetByPluginID", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	start := time.Now()
 
@@ -10705,6 +10721,22 @@ func (s *TimerLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUnreadCountForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetUserReport(filter)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUserReport", success, elapsed)
 	}
 	return result, err
 }

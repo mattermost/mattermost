@@ -36,7 +36,7 @@ exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
   >
     <ModalTitle
       bsClass="modal-title"
-      componentClass="h4"
+      componentClass="h1"
     >
       <MemoizedFormattedMessage
         defaultMessage="Add New Groups to {channelName} Channel"
@@ -139,7 +139,9 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     <div
       className="more-modal__actions--round"
     >
-      <AddIcon />
+      <i
+        className="icon icon-plus"
+      />
     </div>
   </div>
 </div>
@@ -186,7 +188,9 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     <div
       className="more-modal__actions--round"
     >
-      <AddIcon />
+      <i
+        className="icon icon-plus"
+      />
     </div>
   </div>
 </div>
@@ -233,7 +237,9 @@ exports[`components/AddGroupsToChannelModal should match when renderOption is ca
     <div
       className="more-modal__actions--round"
     >
-      <AddIcon />
+      <i
+        className="icon icon-plus"
+      />
     </div>
   </div>
 </div>

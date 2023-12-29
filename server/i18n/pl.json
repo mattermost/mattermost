@@ -233,7 +233,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s aktualizuje nagłówek kanału z: %s na: %s"
+    "translation": "%s zaktualizował wyświetlaną nazwę kanału z: %s na: %s"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.post.error",
@@ -289,11 +289,11 @@
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
-    "translation": "Ta rola jest zarządzana przez Schemat w związku z czym nie może być zastosowana bezpośrednio do Członka Kanału."
+    "translation": "Dostarczona rola jest zarządzana przez Schemat i dlatego nie może być zastosowana bezpośrednio do Członka Kanału."
   },
   {
     "id": "api.channel.update_channel_scheme.license.error",
-    "translation": "Twoja licencja nie wspiera aktualizacji szablonu kanałów"
+    "translation": "Licencja nie obsługuje aktualizacji schematu kanału"
   },
   {
     "id": "api.channel.update_channel_scheme.scheme_scope.error",
@@ -3889,7 +3889,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Eksport wiadomości GlobalRelaySettings.CustomerType musi być ustawiony na jeden z \"A9\" lub \"A10\"."
+    "translation": "Eksport wiadomości GlobalRelaySettings.CustomerType musi być ustawiony na jeden z 'A9', 'A10' lub 'CUSTOM."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -5697,7 +5697,7 @@
   },
   {
     "id": "api.command.execute_command.format.app_error",
-    "translation": "Command trigger word is missing the leading slash character"
+    "translation": "W słowie wyzwalającym komendę brakuje wiodącego znaku ukośnika"
   },
   {
     "id": "api.channel.update_team_member_roles.changing_guest_role.app_error",
@@ -5717,15 +5717,15 @@
   },
   {
     "id": "api.channel.update_channel.typechange.app_error",
-    "translation": "Typ kanału nie może zostać zakutalizowany."
+    "translation": "Typ kanału nie może zostać zaktualizowany."
   },
   {
     "id": "api.channel.restore_channel.unarchived",
-    "translation": "{{.Username}} unarchived the channel."
+    "translation": "{{.Username}} zdearchiwizował kanał."
   },
   {
     "id": "api.channel.restore_channel.restored.app_error",
-    "translation": "Unable to unarchive channel. The channel is not archived."
+    "translation": "Nie można zdearchiwizować kanału. Kanał nie został zarchiwizowany."
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
@@ -10090,5 +10090,25 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "Data aktualizacji musi być prawidłową godziną."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Nie można ukryć zarówno aktywnych, jak i nieaktywnych użytkowników."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Podano nieprawidłowy identyfikator zespołu."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Jeśli GlobalRelaySettings.CustomerType ma wartość \"CUSTOM\", należy ustawić GlobalRelaySettings.CustomSMTPServerName i GlobalRelaySettings.CustomSMTPPort."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Nie udało się zaktualizować niestandardowego statusu. Emoji o podanej nazwie nie istnieje."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Osiągnięto limit reakcji dla tego postu."
   }
 ]

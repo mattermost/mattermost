@@ -76,6 +76,7 @@ const (
 	TrackConfigImageProxy        = "config_image_proxy"
 	TrackConfigBleve             = "config_bleve"
 	TrackConfigExport            = "config_export"
+	TrackConfigWrangler          = "config_wrangler"
 	TrackFeatureFlags            = "config_feature_flags"
 	TrackConfigProducts          = "products"
 	TrackPermissionsGeneral      = "permissions_general"
@@ -410,6 +411,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_incoming_webhooks":                                cfg.ServiceSettings.EnableIncomingWebhooks,
 		"enable_outgoing_webhooks":                                cfg.ServiceSettings.EnableOutgoingWebhooks,
 		"enable_commands":                                         *cfg.ServiceSettings.EnableCommands,
+		"outgoing_integrations_requests_timeout":                  cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
 		"enable_post_icon_override":                               cfg.ServiceSettings.EnablePostIconOverride,
 		"enable_user_access_tokens":                               *cfg.ServiceSettings.EnableUserAccessTokens,
@@ -878,6 +880,16 @@ func (ts *TelemetryService) trackConfig() {
 
 	ts.SendTelemetry(TrackConfigExport, map[string]any{
 		"retention_days": *cfg.ExportSettings.RetentionDays,
+	})
+
+	ts.SendTelemetry(TrackConfigWrangler, map[string]any{
+		"permitted_wrangler_users":                       cfg.WranglerSettings.PermittedWranglerRoles,
+		"allowed_email_domain":                           cfg.WranglerSettings.AllowedEmailDomain,
+		"move_thread_max_count":                          cfg.WranglerSettings.MoveThreadMaxCount,
+		"move_thread_to_another_team_enable":             cfg.WranglerSettings.MoveThreadToAnotherTeamEnable,
+		"move_thread_from_private_channel_enable":        cfg.WranglerSettings.MoveThreadFromPrivateChannelEnable,
+		"move_thread_from_direct_message_channel_enable": cfg.WranglerSettings.MoveThreadFromDirectMessageChannelEnable,
+		"move_thread_from_group_message_channel_enable":  cfg.WranglerSettings.MoveThreadFromGroupMessageChannelEnable,
 	})
 
 	// Convert feature flags to map[string]any for sending
