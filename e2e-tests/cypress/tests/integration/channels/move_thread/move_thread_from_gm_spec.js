@@ -90,7 +90,7 @@ describe('Move thread', () => {
         cy.visit(`/${testTeam.name}/channels/${gmChannel.name}`);
     });
 
-    it('Move post from GM (with at least 2 other users)', () => {
+    it('MM-T5514_1 Move post from GM (with at least 2 other users)', () => {
         // # Check if ... button is visible in last post right side
         cy.get(`#CENTER_button_${testPost.id}`).should('not.be.visible');
 
@@ -155,7 +155,7 @@ describe('Move thread', () => {
         });
     });
 
-    it('Should not be able to move post from GM if configured off', () => {
+    it('MM-T5514_2 Should not be able to move post from GM if configured off', () => {
         cy.apiUpdateConfig({
             WranglerSettings: {
                 MoveThreadFromGroupMessageChannelEnable: false,
