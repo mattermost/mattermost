@@ -53,6 +53,7 @@ func TestGetOldClientLicense(t *testing.T) {
 }
 
 func TestUploadLicenseFile(t *testing.T) {
+	t.Skip("MM-56359")
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client

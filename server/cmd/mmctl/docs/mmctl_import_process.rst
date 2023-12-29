@@ -27,7 +27,8 @@ Options
 
 ::
 
-  -h, --help   help for process
+      --bypass-upload   If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.
+  -h, --help            help for process
 
 Options inherited from parent commands
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
