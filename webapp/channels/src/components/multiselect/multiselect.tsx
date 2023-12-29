@@ -359,9 +359,11 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             optionsToDisplay = options.slice(pageStart, pageEnd);
             if (!this.props.loading) {
                 if (options.length > pageEnd) {
+                    // eslint-disable-next-line no-console
+                    console.log('page options length greater than pageEnd');
                     nextButton = (
                         <button
-                            className='btn btn-tertiary filter-control filter-control__next'
+                            className='btn btn-sm btn-tertiary filter-control filter-control__next'
                             onClick={this.nextPage}
                         >
                             <FormattedMessage
@@ -375,7 +377,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                 if (this.state.page > 0) {
                     previousButton = (
                         <button
-                            className='btn btn-tertiary filter-control filter-control__prev'
+                            className='btn btn-sm btn-tertiary filter-control filter-control__prev'
                             onClick={this.prevPage}
                         >
                             <FormattedMessage
@@ -513,7 +515,7 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
                     }
                 </div>
                 {this.props.saveButtonPosition === 'bottom' &&
-                    <div className='multi-select__footer'>
+                    <div className='multi-select__footer modal-footer'>
                         {
                             this.props.backButtonClick &&
                             <button

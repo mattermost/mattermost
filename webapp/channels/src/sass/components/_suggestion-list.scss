@@ -196,6 +196,14 @@
     line-height: 20px;
     white-space: nowrap;
 
+    .modal & {
+        padding: 8px 3.2rem;
+
+        .suggestion-list__team-name {
+            right: 32px;
+        }
+    }
+
     .suggestion-list__ellipsis {
         display: flex;
         overflow: hidden;

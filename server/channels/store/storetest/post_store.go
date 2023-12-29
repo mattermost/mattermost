@@ -821,6 +821,8 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
+		require.Equal(t, r1.Posts[r1.Order[0]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[1]].ReplyCount, int64(4))
 		require.Len(t, r1.Order, 2) // including the root post
 		require.Len(t, r1.Posts, 2)
 		assert.LessOrEqual(t, r1.Posts[r1.Order[1]].CreateAt, m1.CreateAt)
@@ -852,6 +854,10 @@ func testPostStoreGetForThread(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		r1, err = ss.Post().Get(context.Background(), o1.Id, opts, o1.UserId, map[string]bool{})
 		require.NoError(t, err)
+		require.Equal(t, r1.Posts[r1.Order[0]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[1]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[2]].ReplyCount, int64(4))
+		require.Equal(t, r1.Posts[r1.Order[3]].ReplyCount, int64(4))
 		require.Len(t, r1.Order, 4) // including the root post
 		require.Len(t, r1.Posts, 4)
 		assert.GreaterOrEqual(t, r1.Posts[r1.Order[len(r1.Order)-1]].CreateAt, lastPostCreateAt)

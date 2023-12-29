@@ -493,6 +493,7 @@ type UserStore interface {
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
 	RefreshPostStatsForUsers() error
+	GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error)
 }
 
 type BotStore interface {
@@ -542,6 +543,7 @@ type RemoteClusterStore interface {
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterId string) (bool, error)
 	Get(remoteClusterId string) (*model.RemoteCluster, error)
+	GetByPluginID(pluginID string) (*model.RemoteCluster, error)
 	GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterId string) error

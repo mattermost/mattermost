@@ -115,9 +115,14 @@ function NotificationFromMembersModal(props: Props) {
 
     const modalTitle = formatMessage({id: 'postypes.custom_open_pricing_modal_post_renderer.membersThatRequested', defaultMessage: 'Members that requested '});
 
-    const modalHeaderText = (<h1 id='invitation_modal_title'>
-        {`${modalTitle}${mapFeatureIdToTranslation(props.feature, formatMessage)}`}
-    </h1>);
+    const modalHeaderText = (
+        <h1
+            id='invitation_modal_title'
+            className='modal-title'
+        >
+            {`${modalTitle}${mapFeatureIdToTranslation(props.feature, formatMessage)}`}
+        </h1>
+    );
 
     return (
         <GenericModal

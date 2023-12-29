@@ -15,7 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func CreateTestGif(t *testing.T, width int, height int) []byte {
+func CreateTestGif(t testing.TB, width int, height int) []byte {
 	var buffer bytes.Buffer
 
 	err := gif.Encode(&buffer, image.NewRGBA(image.Rect(0, 0, width, height)), nil)
@@ -50,7 +50,7 @@ func CreateTestJpeg(t *testing.T, width int, height int) []byte {
 	return buffer.Bytes()
 }
 
-func CreateTestPng(t *testing.T, width int, height int) []byte {
+func CreateTestPng(t testing.TB, width int, height int) []byte {
 	var buffer bytes.Buffer
 
 	err := png.Encode(&buffer, image.NewRGBA(image.Rect(0, 0, width, height)))
