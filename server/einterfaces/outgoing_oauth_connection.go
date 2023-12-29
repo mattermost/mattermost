@@ -17,4 +17,6 @@ type OutgoingOAuthConnectionInterface interface {
 
 	SanitizeConnection(conn *model.OutgoingOAuthConnection)
 	SanitizeConnections(conns []*model.OutgoingOAuthConnection)
+
+	RetrieveTokenForConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnectionToken, *model.AppError)
 }

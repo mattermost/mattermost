@@ -87,6 +87,34 @@ func (_m *OutgoingOAuthConnectionInterface) GetConnections(rctx request.CTX, fil
 	return r0, r1
 }
 
+// RetrieveTokenForConnection provides a mock function with given fields: rctx, conn
+func (_m *OutgoingOAuthConnectionInterface) RetrieveTokenForConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnectionToken, *model.AppError) {
+	ret := _m.Called(rctx, conn)
+
+	var r0 *model.OutgoingOAuthConnectionToken
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnectionToken, *model.AppError)); ok {
+		return rf(rctx, conn)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.OutgoingOAuthConnection) *model.OutgoingOAuthConnectionToken); ok {
+		r0 = rf(rctx, conn)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OutgoingOAuthConnectionToken)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.OutgoingOAuthConnection) *model.AppError); ok {
+		r1 = rf(rctx, conn)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // SanitizeConnection provides a mock function with given fields: conn
 func (_m *OutgoingOAuthConnectionInterface) SanitizeConnection(conn *model.OutgoingOAuthConnection) {
 	_m.Called(conn)

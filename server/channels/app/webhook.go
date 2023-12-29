@@ -118,10 +118,33 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 		go func() {
 			defer wg.Done()
 
-			// TODO: check if the URL is contained in any outgoing oauth connection.
-			// If so, authenticate using the first matching connection to retrieve the access token.
+			var accessToken *model.OutgoingOAuthConnectionToken
 
-			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
+			// Retrieve an access token from a connection if one exists to use for the webhook request
+			if a.OutgoingOAuthConnections() != nil {
+				outgoingOAuthConnections, appErr := a.OutgoingOAuthConnections().GetConnections(c, model.OutgoingOAuthConnectionGetConnectionsFilter{
+					Limit:    1,
+					Audience: url,
+				})
+				if appErr != nil {
+					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(appErr))
+					return
+				}
+
+				a.Log().Error("Connections found:", mlog.Any("conns", outgoingOAuthConnections))
+
+				if len(outgoingOAuthConnections) > 1 {
+					a.Log().Warn("More than one outgoing oauth connection found for the webhook. Using the first one.", mlog.String("webhook_id", hook.Id), mlog.Int("connections_count", len(outgoingOAuthConnections)))
+				}
+
+				accessToken, appErr = a.OutgoingOAuthConnections().RetrieveTokenForConnection(c, outgoingOAuthConnections[0])
+				if appErr != nil {
+					c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(appErr))
+					return
+				}
+			}
+
+			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType, accessToken)
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
 					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
@@ -166,7 +189,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 	wg.Wait()
 }
 
-func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string) (*model.OutgoingWebhookResponse, error) {
+func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string, accessToken *model.OutgoingOAuthConnectionToken) (*model.OutgoingWebhookResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
@@ -177,6 +200,10 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
+
+	if accessToken != nil {
+		req.Header.Add("Authorization", accessToken.AsHeaderValue())
+	}
 
 	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
