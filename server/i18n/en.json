@@ -8191,8 +8191,16 @@
     "translation": "Username already used by another Mattermost user."
   },
   {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "There was an error while authenticating the outgoing oauth connection."
+  },
+  {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
     "translation": "There was an error while deleting the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disable.app_error",
+    "translation": "Your instance does not have outgoing oauth connections enabled."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
@@ -8205,6 +8213,14 @@
   {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
     "translation": "There was an error retrieving the outgoing oauth connections."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Your license does not support outgoing oauth connections."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.retrieve_connection_for_audience.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connection for the specific audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
