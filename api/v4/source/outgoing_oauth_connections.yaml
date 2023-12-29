@@ -1,0 +1,52 @@
+  /api/v4/oauth/outgoing_connections:
+    get:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: List all connections
+      description: >
+        List all outgoing OAuth connections.
+
+        __Minimum server version__: 9.5
+      operationId: ListOutgoingOAuthConnections
+      responses:
+        "200":
+          description: Successfully fetched outgoing OAuth connections
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/OutgoingOAuthConnectionGetItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
+  /api/v4/oauth/outgoing_connections/{connection_id}:
+    get:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: Get a connection
+      description: >
+        Retrieve an outgoing OAuth connection.
+
+        __Minimum server version__: 9.5
+      operationId: GetOutgoingOAuthConnection
+      responses:
+        "200":
+          description: Successfully fetched outgoing OAuth connection
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OutgoingOAuthConnectionGetItem"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
