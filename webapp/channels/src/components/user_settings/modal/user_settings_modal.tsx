@@ -280,11 +280,18 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             return (<div/>);
         }
         const tabs = [];
+        let pluginTabs;
         if (this.props.isContentProductSettings) {
             tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'icon icon-bell-outline', iconTitle: Utils.localizeMessage('user.settings.notifications.icon', 'Notification Settings Icon')});
             tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'icon icon-eye-outline', iconTitle: Utils.localizeMessage('user.settings.display.icon', 'Display Settings Icon')});
             tabs.push({name: 'sidebar', uiName: formatMessage(holders.sidebar), icon: 'icon icon-dock-left', iconTitle: Utils.localizeMessage('user.settings.sidebar.icon', 'Sidebar Settings Icon')});
             tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'icon icon-tune', iconTitle: Utils.localizeMessage('user.settings.advance.icon', 'Advanced Settings Icon')});
+            pluginTabs = Object.values(this.props.pluginSettings).map((v) => ({
+                icon: v.icon ? {url: v.icon} : 'icon-power-plug-outline',
+                iconTitle: v.uiName,
+                name: v.id,
+                uiName: v.uiName,
+            }));
         } else {
             tabs.push({name: 'profile', uiName: formatMessage(holders.profile), icon: 'icon icon-settings-outline', iconTitle: Utils.localizeMessage('user.settings.profile.icon', 'Profile Settings Icon')});
             tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'icon icon-lock-outline', iconTitle: Utils.localizeMessage('user.settings.security.icon', 'Security Settings Icon')});
@@ -327,12 +334,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                 <Provider store={store}>
                                     <SettingsSidebar
                                         tabs={tabs}
-                                        pluginTabs={Object.values(this.props.pluginSettings).map((v) => ({
-                                            icon: v.icon ? {url: v.icon} : 'icon-power-plug-outline',
-                                            iconTitle: v.uiName,
-                                            name: v.id,
-                                            uiName: v.uiName,
-                                        }))}
+                                        pluginTabs={pluginTabs}
                                         activeTab={this.state.active_tab}
                                         updateTab={this.updateTab}
                                     />

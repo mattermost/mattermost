@@ -11,8 +11,8 @@ exports[`components/SearchableChannelList should match init snapshot 1`] = `
       aria-hidden="true"
       id="searchIcon"
     >
-      <MagnifyIcon
-        size={18}
+      <i
+        className="icon icon-magnify"
       />
     </span>
     <QuickInput
