@@ -3,6 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import type {IntlShape} from 'react-intl';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
@@ -27,6 +28,7 @@ describe('components/multiselect/multiselect', () => {
         handleDelete: jest.fn(),
         handleInput: jest.fn(),
         handleSubmit: jest.fn(),
+        intl: {} as IntlShape,
         optionRenderer: element,
         options: users,
         perPage: 5,

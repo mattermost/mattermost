@@ -3,6 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import type {IntlShape} from 'react-intl';
 
 import {SyncableType} from '@mattermost/types/groups';
 
@@ -14,6 +15,7 @@ describe('components/AddGroupsToChannelModal', () => {
         currentChannelName: 'foo',
         currentChannelId: '123',
         teamID: '456',
+        intl: {} as IntlShape,
         searchTerm: '',
         groups: [],
         onExited: jest.fn(),

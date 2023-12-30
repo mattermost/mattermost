@@ -4,8 +4,8 @@
 import classNames from 'classnames';
 import React from 'react';
 import type {ReactNode} from 'react';
-import type {WrappedComponentProps} from 'react-intl';
-import {injectIntl, FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {getOptionValue} from 'react-select/src/builtins';
 import type {InputActionMeta} from 'react-select/src/types';
@@ -28,7 +28,7 @@ export type Value = {
     value: string;
 };
 
-export type Props<T extends Value> = WrappedComponentProps & {
+export type Props<T extends Value> = {
     ariaLabelRenderer: getOptionValue<T>;
     backButtonClick?: () => void;
     backButtonClass?: string;
@@ -40,6 +40,7 @@ export type Props<T extends Value> = WrappedComponentProps & {
     handleInput: (input: string, multiselect: MultiSelect<T>) => void;
     handlePageChange?: (newPage: number, currentPage: number) => void;
     handleSubmit: (value?: T[]) => void;
+    intl: IntlShape;
     loading?: boolean;
     saveButtonPosition?: string;
     maxValues?: number;
@@ -574,4 +575,4 @@ const styles = {
     },
 };
 
-export default injectIntl(MultiSelect as React.ComponentType<Props<Value> & WrappedComponentProps>);
+export default MultiSelect;
