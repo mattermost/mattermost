@@ -172,11 +172,11 @@ class RhsCardHeader extends React.PureComponent<Props> {
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand sidebar'})}
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
+                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse sidebar'})}
                             />
                         </button>
                     </OverlayTrigger>
@@ -188,12 +188,11 @@ class RhsCardHeader extends React.PureComponent<Props> {
                         <button
                             type='button'
                             className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close sidebar'})}
                             onClick={this.props.actions.closeRightHandSide}
                         >
                             <i
                                 className='icon icon-close'
-                                aria-label={this.props.intl.formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             />
                         </button>
                     </OverlayTrigger>

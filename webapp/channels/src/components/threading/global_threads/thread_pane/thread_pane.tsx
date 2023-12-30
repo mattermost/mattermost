@@ -88,6 +88,7 @@ const ThreadPane = ({
                         <Button
                             className='Button___icon Button___large back'
                             onClick={selectHandler}
+                            aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Go back'})}
                         >
                             <i className='icon icon-arrow-back-ios'/>
                         </Button>

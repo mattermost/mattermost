@@ -10,6 +10,7 @@ exports[`components/threading/global_threads/thread_pane should match snapshot 1
     heading={
       <React.Fragment>
         <Memo(Button)
+          aria-label="Go back"
           className="Button___icon Button___large back"
           onClick={[Function]}
         >

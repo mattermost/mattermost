@@ -164,10 +164,10 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                         href='#'
                         onClick={this.handleBack}
                         className='sidebar--right__back'
+                        aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Go back'})}
                     >
                         <i
                             className='icon icon-arrow-back-ios'
-                            aria-label={formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
                         />
                     </a>
                 </OverlayTrigger>
@@ -213,11 +213,11 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                         >
                             <i
                                 className='icon icon-arrow-expand'
-                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand Sidebar Icon'})}
+                                aria-label={formatMessage({id: 'rhs_header.expandSidebarTooltip.icon', defaultMessage: 'Expand sidebar'})}
                             />
                             <i
                                 className='icon icon-arrow-collapse'
-                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse Sidebar Icon'})}
+                                aria-label={formatMessage({id: 'rhs_header.collapseSidebarTooltip.icon', defaultMessage: 'Collapse sidebar'})}
                             />
                         </button>
                     </OverlayTrigger>
@@ -231,12 +231,11 @@ class RhsHeaderPost extends React.PureComponent<Props> {
                             id='rhsCloseButton'
                             type='button'
                             className='sidebar--right__close btn btn-icon btn-sm'
-                            aria-label='Close'
+                            aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close sidebar'})}
                             onClick={this.props.closeRightHandSide}
                         >
                             <i
                                 className='icon icon-close'
-                                aria-label={formatMessage({id: 'rhs_header.closeTooltip.icon', defaultMessage: 'Close Sidebar Icon'})}
                             />
                         </button>
                     </OverlayTrigger>

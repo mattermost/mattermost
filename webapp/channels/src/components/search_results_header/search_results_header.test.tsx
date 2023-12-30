@@ -27,7 +27,7 @@ describe('search_results_header', () => {
             </Header>,
         );
 
-        expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
+        expect(screen.getByLabelText('Go back')).toBeInTheDocument();
     });
     test('should NOT diplay expand when the parent is channel info', () => {
         renderWithContext(
@@ -45,7 +45,7 @@ describe('search_results_header', () => {
             </Header>,
         );
 
-        expect(screen.queryByLabelText('Expand Sidebar Icon')).not.toBeInTheDocument();
+        expect(screen.queryByLabelText('Expand sidebar')).not.toBeInTheDocument();
     });
     test('should diplay expand when the parent is NOT channel info', () => {
         renderWithContext(
@@ -63,6 +63,6 @@ describe('search_results_header', () => {
             </Header>,
         );
 
-        expect(screen.getByLabelText('Expand Sidebar Icon')).toBeInTheDocument();
+        expect(screen.getByLabelText('Expand sidebar')).toBeInTheDocument();
     });
 });
