@@ -9,6 +9,7 @@ import {SyncableType} from '@mattermost/types/groups';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal/add_groups_to_channel_modal';
 import type {Props} from 'components/add_groups_to_channel_modal/add_groups_to_channel_modal';
+import { shallowWithIntl } from 'tests/helpers/intl-test-helper';
 
 describe('components/AddGroupsToChannelModal', () => {
     const baseProps: Props = {
@@ -30,7 +31,7 @@ describe('components/AddGroupsToChannelModal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
