@@ -1,17 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/multiselect/multiselect MultiSelectList should match snapshot when custom no option message is defined 1`] = `
-<<<<<<< HEAD
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
-`;
-
-exports[`components/multiselect/multiselect should match snapshot 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
-=======
 <Fragment>
   <div
     className="filtered-user-list"
@@ -402,7 +391,6 @@ exports[`components/multiselect/multiselect should match snapshot 1`] = `
     </div>
   </div>
 </Fragment>
->>>>>>> f38cb0762b750eff64c664712f89949a1ebfc400
 `;
 
 exports[`components/multiselect/multiselect should match snapshot for page 2 1`] = `
