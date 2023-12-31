@@ -360,8 +360,6 @@ export class MultiSelect<T extends Value> extends React.PureComponent<Props<T>, 
             optionsToDisplay = options.slice(pageStart, pageEnd);
             if (!this.props.loading) {
                 if (options.length > pageEnd) {
-                    // eslint-disable-next-line no-console
-                    console.log('page options length greater than pageEnd');
                     nextButton = (
                         <button
                             className='btn btn-sm btn-tertiary filter-control filter-control__next'
