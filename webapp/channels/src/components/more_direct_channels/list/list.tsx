@@ -2,8 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useMemo} from 'react';
-import type {IntlShape} from 'react-intl';
-import {FormattedMessage, useIntl, injectIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -24,7 +23,6 @@ type Props = {
     handleDelete: (values: OptionValue[]) => void;
     handlePageChange: (page: number, prevPage: number) => void;
     handleSubmit: (values?: OptionValue[]) => void;
-    intl: IntlShape;
     isExistingChannel: boolean;
     loading: boolean;
     options: Option[];
@@ -93,7 +91,7 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
             ref={ref}
             options={options}
             optionRenderer={renderOptionValue}
-            intl={props.intl}
+            intl={intl}
             selectedItemRef={props.selectedItemRef}
             values={props.values}
             valueRenderer={renderValue}
@@ -136,7 +134,8 @@ const List = React.forwardRef((props: Props, ref?: React.Ref<MultiSelect<OptionV
         />
     );
 });
-export default injectIntl(List);
+
+export default List;
 
 function renderValue(props: {data: OptionValue}) {
     return (props.data as UserProfile).username;
