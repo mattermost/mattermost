@@ -1,19 +1,238 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`component/add_user_to_group_multiselect should match snapshot with different submit button text 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
+<MultiSelect
+  ariaLabelRenderer={[Function]}
+  buttonSubmitLoadingText="Updating..."
+  buttonSubmitText="Update Group"
+  focusOnLoad={false}
+  handleAdd={[Function]}
+  handleDelete={[Function]}
+  handleInput={[Function]}
+  handlePageChange={[Function]}
+  handleSubmit={[Function]}
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  key="addUsersToGroupKey"
+  loading={true}
+  numRemainingText={null}
+  optionRenderer={[Function]}
+  options={
+    Array [
+      Object {
+        "delete_at": 0,
+        "id": "user-1",
+        "label": "user-1",
+        "value": "user-1",
+      },
+      Object {
+        "delete_at": 0,
+        "id": "user-2",
+        "label": "user-2",
+        "value": "user-2",
+      },
+    ]
+  }
+  perPage={50}
+  placeholderText="Search for people"
+  saveButtonPosition="bottom"
+  saving={false}
+  savingEnabled={false}
+  selectedItemRef={
+    Object {
+      "current": null,
+    }
+  }
+  valueWithImage={true}
+  values={Array []}
+/>
 `;
 
 exports[`component/add_user_to_group_multiselect should match snapshot with profiles 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
+<MultiSelect
+  ariaLabelRenderer={[Function]}
+  buttonSubmitLoadingText="Creating..."
+  buttonSubmitText="Create Group"
+  focusOnLoad={false}
+  handleAdd={[Function]}
+  handleDelete={[Function]}
+  handleInput={[Function]}
+  handlePageChange={[Function]}
+  handleSubmit={[Function]}
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  key="addUsersToGroupKey"
+  loading={true}
+  numRemainingText={null}
+  optionRenderer={[Function]}
+  options={
+    Array [
+      Object {
+        "delete_at": 0,
+        "id": "user-1",
+        "label": "user-1",
+        "value": "user-1",
+      },
+      Object {
+        "delete_at": 0,
+        "id": "user-2",
+        "label": "user-2",
+        "value": "user-2",
+      },
+    ]
+  }
+  perPage={50}
+  placeholderText="Search for people"
+  saveButtonPosition="bottom"
+  saving={false}
+  savingEnabled={false}
+  selectedItemRef={
+    Object {
+      "current": null,
+    }
+  }
+  valueWithImage={true}
+  values={Array []}
+/>
 `;
 
 exports[`component/add_user_to_group_multiselect should match snapshot without any profiles 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
+<MultiSelect
+  ariaLabelRenderer={[Function]}
+  buttonSubmitLoadingText="Creating..."
+  buttonSubmitText="Create Group"
+  focusOnLoad={false}
+  handleAdd={[Function]}
+  handleDelete={[Function]}
+  handleInput={[Function]}
+  handlePageChange={[Function]}
+  handleSubmit={[Function]}
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  key="addUsersToGroupKey"
+  loading={true}
+  numRemainingText={null}
+  optionRenderer={[Function]}
+  options={Array []}
+  perPage={50}
+  placeholderText="Search for people"
+  saveButtonPosition="bottom"
+  saving={false}
+  savingEnabled={false}
+  selectedItemRef={
+    Object {
+      "current": null,
+    }
+  }
+  valueWithImage={true}
+  values={Array []}
+/>
 `;

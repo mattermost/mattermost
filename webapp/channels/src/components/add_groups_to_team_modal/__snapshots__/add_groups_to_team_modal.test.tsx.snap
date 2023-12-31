@@ -1,9 +1,144 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/AddGroupsToTeamModal should match snapshot 1`] = `
-<ContextConsumer>
-  <Component />
-</ContextConsumer>
+<Modal
+  animation={true}
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal more-modal more-direct-channels"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="addGroupsToTeamModal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  show={true}
+>
+  <ModalHeader
+    bsClass="modal-header"
+    closeButton={true}
+    closeLabel="Close"
+  >
+    <ModalTitle
+      bsClass="modal-title"
+      componentClass="h1"
+    >
+      <MemoizedFormattedMessage
+        defaultMessage="Add New Groups to {teamName} Team"
+        id="add_groups_to_team.title"
+        values={
+          Object {
+            "teamName": <strong>
+              foo
+            </strong>,
+          }
+        }
+      />
+    </ModalTitle>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
+      buttonSubmitLoadingText="Adding..."
+      buttonSubmitText="Add"
+      focusOnLoad={true}
+      handleAdd={[Function]}
+      handleDelete={[Function]}
+      handleInput={[Function]}
+      handlePageChange={[Function]}
+      handleSubmit={[Function]}
+      intl={
+        Object {
+          "$t": [Function],
+          "defaultFormats": Object {},
+          "defaultLocale": "en",
+          "defaultRichTextElements": undefined,
+          "fallbackOnEmptyString": true,
+          "formatDate": [Function],
+          "formatDateTimeRange": [Function],
+          "formatDateToParts": [Function],
+          "formatDisplayName": [Function],
+          "formatList": [Function],
+          "formatListToParts": [Function],
+          "formatMessage": [Function],
+          "formatNumber": [Function],
+          "formatNumberToParts": [Function],
+          "formatPlural": [Function],
+          "formatRelativeTime": [Function],
+          "formatTime": [Function],
+          "formatTimeToParts": [Function],
+          "formats": Object {},
+          "formatters": Object {
+            "getDateTimeFormat": [Function],
+            "getDisplayNames": [Function],
+            "getListFormat": [Function],
+            "getMessageFormat": [Function],
+            "getNumberFormat": [Function],
+            "getPluralRules": [Function],
+            "getRelativeTimeFormat": [Function],
+          },
+          "locale": "en",
+          "messages": Object {},
+          "onError": [Function],
+          "onWarn": [Function],
+          "textComponent": "span",
+          "timeZone": "Etc/UTC",
+        }
+      }
+      key="addGroupsToTeamKey"
+      loading={true}
+      maxValues={10}
+      numRemainingText={
+        <div
+          id="numGroupsRemaining"
+        >
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Use ↑↓ to browse, ↵ to select. You can add {num, number} more {num, plural, one {group} other {groups}}. "
+            id="multiselect.numGroupsRemaining"
+            values={
+              Object {
+                "num": 10,
+              }
+            }
+          />
+        </div>
+      }
+      optionRenderer={[Function]}
+      options={Array []}
+      perPage={50}
+      placeholderText="Search and add groups"
+      saveButtonPosition="top"
+      saving={false}
+      savingEnabled={true}
+      selectedItemRef={
+        Object {
+          "current": null,
+        }
+      }
+      valueRenderer={[Function]}
+      valueWithImage={false}
+      values={Array []}
+    />
+  </ModalBody>
+</Modal>
 `;
 
 exports[`components/AddGroupsToTeamModal should match when renderOption is called 1`] = `
