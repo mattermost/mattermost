@@ -37,12 +37,12 @@ describe('components/multiselect/multiselect', () => {
         users,
         valueRenderer: element as any,
         values: [{id: 'id', label: 'label', value: 'value'}],
+        valueWithImage: false,
     };
 
     test('should match snapshot', () => {
         const wrapper = shallow(
             <MultiSelect
-                valueWithImage={false}
                 {...baseProps}
             />,
         );
@@ -53,7 +53,6 @@ describe('components/multiselect/multiselect', () => {
     test('should match snapshot for page 2', () => {
         const wrapper = shallow(
             <MultiSelect
-                valueWithImage={false}
                 {...baseProps}
             />,
         );
@@ -84,7 +83,6 @@ describe('components/multiselect/multiselect', () => {
 
         const wrapper = mountWithIntl(
             <MultiSelect
-                valueWithImage={false}
                 {...baseProps}
                 optionRenderer={renderOption}
                 valueRenderer={renderValue}
@@ -105,7 +103,6 @@ describe('components/multiselect/multiselect', () => {
 
         const wrapper = shallow(
             <MultiSelect
-                valueWithImage={false}
                 {...baseProps}
                 customNoOptionsMessage={customNoOptionsMessage}
             />,
@@ -118,7 +115,6 @@ describe('components/multiselect/multiselect', () => {
         const handleBackButtonClick = jest.fn();
         const wrapper = mountWithIntl(
             <MultiSelect
-                valueWithImage={false}
                 {...baseProps}
                 backButtonClick={handleBackButtonClick}
                 backButtonText='Cancel'

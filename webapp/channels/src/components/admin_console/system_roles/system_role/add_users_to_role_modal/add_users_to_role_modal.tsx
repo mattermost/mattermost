@@ -275,4 +275,3 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
 }
 
 export default injectIntl(AddUsersToRoleModal);
-
