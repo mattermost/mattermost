@@ -324,4 +324,5 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
         );
     }
 }
+
 export default injectIntl(AddGroupsToTeamModal);

@@ -55,14 +55,17 @@ exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
     bsClass="modal-body"
     componentClass="div"
   >
-    <injectIntl(MultiSelect)
+    <MultiSelect
+      ariaLabelRenderer={[Function]}
       buttonSubmitLoadingText="Adding..."
       buttonSubmitText="Add"
+      focusOnLoad={true}
       handleAdd={[Function]}
       handleDelete={[Function]}
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={Object {}}
       key="addGroupsToChannelKey"
       loading={true}
       maxValues={10}
@@ -85,13 +88,16 @@ exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
       options={Array []}
       perPage={50}
       placeholderText="Search and add groups"
+      saveButtonPosition="top"
       saving={false}
+      savingEnabled={true}
       selectedItemRef={
         Object {
           "current": null,
         }
       }
       valueRenderer={[Function]}
+      valueWithImage={false}
       values={Array []}
     />
   </ModalBody>

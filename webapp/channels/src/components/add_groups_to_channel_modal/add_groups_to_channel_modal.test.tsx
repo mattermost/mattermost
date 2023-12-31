@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 import type {IntlShape} from 'react-intl';
 
 import {SyncableType} from '@mattermost/types/groups';
 
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal/add_groups_to_channel_modal';
-import type {Props} from 'components/add_groups_to_channel_modal/add_groups_to_channel_modal';
+import type {AddGroupsToChannelModal as AddGroupsToChannelModalType, Props} from 'components/add_groups_to_channel_modal/add_groups_to_channel_modal';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/AddGroupsToChannelModal', () => {
     const baseProps: Props = {
@@ -30,19 +31,19 @@ describe('components/AddGroupsToChannelModal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match state when handleResponse is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
 
         wrapper.setState({saving: true, addError: ''});
-        const instance = wrapper.instance() as AddGroupsToChannelModal;
+        const instance = wrapper.instance() as AddGroupsToChannelModalType;
         instance.handleResponse();
         expect(wrapper.state('saving')).toEqual(false);
         expect(wrapper.state('addError')).toEqual(null);
@@ -58,10 +59,10 @@ describe('components/AddGroupsToChannelModal', () => {
         const linkGroupSyncable = jest.fn().mockResolvedValue({error: true, data: true});
         const actions = {...baseProps.actions, linkGroupSyncable};
         const props = {...baseProps, actions};
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...props}/>,
         );
-        const instance = wrapper.instance() as AddGroupsToChannelModal;
+        const instance = wrapper.instance() as AddGroupsToChannelModalType;
         instance.handleResponse = jest.fn();
         instance.handleHide = jest.fn();
         wrapper.setState({values: []});
@@ -83,14 +84,14 @@ describe('components/AddGroupsToChannelModal', () => {
     });
 
     test('should match state when addValue is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
         const value1: any = {id: 'id_1', label: 'label_1', value: 'value_1'};
         const value2: any = {id: 'id_2', label: 'label_2', value: 'value_2'};
 
         wrapper.setState({values: [value1]});
-        const instance = wrapper.instance() as AddGroupsToChannelModal;
+        const instance = wrapper.instance() as AddGroupsToChannelModalType;
         instance.addValue(value2);
         expect(wrapper.state('values')).toEqual([value1, value2]);
 
@@ -100,12 +101,12 @@ describe('components/AddGroupsToChannelModal', () => {
     });
 
     test('should match state when handlePageChange is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
 
         wrapper.setState({users: [{id: 'id_1'}]});
-        const instance = wrapper.instance() as AddGroupsToChannelModal;
+        const instance = wrapper.instance() as AddGroupsToChannelModalType;
         instance.handlePageChange(0, 1);
         expect(baseProps.actions.getGroupsNotAssociatedToChannel).toHaveBeenCalledTimes(1);
 
@@ -117,10 +118,10 @@ describe('components/AddGroupsToChannelModal', () => {
     });
 
     test('should match state when search is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
-        const instance = wrapper.instance() as AddGroupsToChannelModal;
+        const instance = wrapper.instance() as AddGroupsToChannelModalType;
         instance.search('');
         expect(baseProps.actions.setModalSearchTerm).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.setModalSearchTerm).toBeCalledWith('');
@@ -133,7 +134,7 @@ describe('components/AddGroupsToChannelModal', () => {
     });
 
     test('should match state when handleDelete is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
 
@@ -143,12 +144,12 @@ describe('components/AddGroupsToChannelModal', () => {
 
         wrapper.setState({values: [value1]});
         const newValues: any = [value2, value3];
-        (wrapper.instance() as AddGroupsToChannelModal).handleDelete(newValues);
+        (wrapper.instance() as AddGroupsToChannelModalType).handleDelete(newValues);
         expect(wrapper.state('values')).toEqual(newValues);
     });
 
     test('should match when renderOption is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
 
@@ -156,7 +157,7 @@ describe('components/AddGroupsToChannelModal', () => {
         let isSelected = false;
         function onAdd() {} //eslint-disable-line no-empty-function
 
-        const instance = wrapper.instance() as AddGroupsToChannelModal;
+        const instance = wrapper.instance() as AddGroupsToChannelModalType;
         expect(instance.renderOption(option, isSelected, onAdd)).toMatchSnapshot();
 
         isSelected = true;
@@ -167,10 +168,10 @@ describe('components/AddGroupsToChannelModal', () => {
     });
 
     test('should match when renderValue is called', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <AddGroupsToChannelModal {...baseProps}/>,
         );
 
-        expect((wrapper.instance() as AddGroupsToChannelModal).renderValue({data: {display_name: 'foo'}})).toEqual('foo');
+        expect((wrapper.instance() as AddGroupsToChannelModalType).renderValue({data: {display_name: 'foo'}})).toEqual('foo');
     });
 });
