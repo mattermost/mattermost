@@ -87,30 +87,6 @@
         flex-direction: column;
     }
 
-    .sidebar--right__back {
-        display: flex;
-        width: 2.4rem;
-        height: 2.4rem;
-        align-items: center;
-        justify-content: center;
-        margin-right: 4px;
-        border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        font-size: 12px;
-        text-decoration: none;
-        transition: all 0.2s ease-in;
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-        }
-
-        &:active {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-        }
-    }
-
     .sidebar-right__body {
         display: flex;
         height: 100%;
@@ -235,6 +211,14 @@
         .btn-icon {
             margin: 0 !important;
             font-size: 20px;
+        }
+
+        .sidebar--right__back {
+            margin-right: 4px !important;
+
+            & > i.icon {
+                font-size: 18px !important;
+            }
         }
 
         .controls {
