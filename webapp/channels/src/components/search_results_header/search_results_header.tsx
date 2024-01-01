@@ -63,7 +63,7 @@ function SearchResultsHeader(props: Props) {
             <span className='sidebar--right__title'>
                 {props.canGoBack && (
                     <button
-                        className='sidebar--right__back btn btn-icon btn-xs'
+                        className='sidebar--right__back btn btn-icon btn-sm'
                         onClick={props.actions.goBack}
                         aria-label={formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                     >
