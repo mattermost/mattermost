@@ -7,6 +7,7 @@ import type {HTMLAttributes} from 'react';
 import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
+//todo
 type Props = Omit<HTMLAttributes<HTMLSpanElement | HTMLElement>, 'title' | 'component'> & {
     component?: 'i' | 'span';
     ariaLabel?: MessageDescriptor & {
