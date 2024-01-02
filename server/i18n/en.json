@@ -8211,16 +8211,20 @@
     "translation": "The outgoing oauth connection was not found."
   },
   {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connection for the audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "The outgoing oauth connection for the provided audience was not found."
+  },
+  {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
     "translation": "There was an error retrieving the outgoing oauth connections."
   },
   {
     "id": "ent.outgoing_oauth_connections.license_disable.app_error",
     "translation": "Your license does not support outgoing oauth connections."
-  },
-  {
-    "id": "ent.outgoing_oauth_connections.retrieve_connection_for_audience.app_error",
-    "translation": "There was an error retrieving the outgoing oauth connection for the specific audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
