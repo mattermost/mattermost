@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/pluginapi"
 	"github.com/pkg/errors"
@@ -13,12 +14,127 @@ import (
 )
 
 func TestSet(t *testing.T) {
+	t.Run("empty key", func(t *testing.T) {
+		store := Store{}
+		ok, err := store.Set("", []byte("value"))
+		assert.Error(t, err)
+		assert.False(t, ok)
+	})
+
+	t.Run("key has mmi_ prefix", func(t *testing.T) {
+		store := Store{}
+		ok, err := store.Set("mmi_foo", []byte("value"))
+		assert.Error(t, err)
+		assert.False(t, ok)
+	})
+
 	t.Run("nil map", func(t *testing.T) {
 		store := Store{}
 		ok, err := store.Set("key", []byte("value"))
 		assert.NoError(t, err)
 		assert.True(t, ok)
+
+		var out []byte
+		err = store.Get("key", &out)
+		assert.NoError(t, err)
+		assert.Equal(t, []byte("value"), out)
 	})
+
+	t.Run("atomic with no old value", func(t *testing.T) {
+		store := Store{}
+		ok, err := store.Set("key", []byte("value"), pluginapi.SetAtomic([]byte("old")))
+		assert.NoError(t, err)
+		assert.False(t, ok)
+
+		var out []byte
+		err = store.Get("key", &out)
+		assert.NoError(t, err)
+		assert.Nil(t, out)
+	})
+
+	t.Run("atomic with same old value", func(t *testing.T) {
+		store := Store{}
+
+		ok, err := store.Set("key", []byte("old"))
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		ok, err = store.Set("key", []byte("new"), pluginapi.SetAtomic([]byte("old")))
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		var out []byte
+		err = store.Get("key", &out)
+		assert.NoError(t, err)
+		assert.Equal(t, []byte("new"), out)
+	})
+
+	t.Run("setting to nil is deleting", func(t *testing.T) {
+		store := Store{}
+
+		ok, err := store.Set("key", []byte("value"))
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		ok, err = store.Set("key", nil)
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		var out []byte
+		err = store.Get("key", &out)
+		assert.NoError(t, err)
+		assert.Nil(t, out)
+	})
+
+	t.Run("atomicly setting to nil is deleting", func(t *testing.T) {
+		store := Store{}
+
+		ok, err := store.Set("key", []byte("old"))
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		ok, err = store.Set("key", nil, pluginapi.SetAtomic([]byte("old")))
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		var out []byte
+		err = store.Get("key", &out)
+		assert.NoError(t, err)
+		assert.Nil(t, out)
+	})
+
+	t.Run("with long expiry", func(t *testing.T) {
+		store := Store{}
+
+		ok, err := store.Set("key", []byte("value"), pluginapi.SetExpiry(time.Minute))
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		var out []byte
+		err = store.Get("key", &out)
+		assert.NoError(t, err)
+		assert.Equal(t, []byte("value"), out)
+
+		ok, err = store.Set("key", []byte("value"), pluginapi.SetExpiry(time.Second))
+		assert.NoError(t, err)
+		assert.True(t, ok)
+
+		time.Sleep(time.Second)
+
+		out = nil
+		err = store.Get("key", &out)
+		assert.NoError(t, err)
+		assert.Nil(t, out)
+	})
+}
+
+func TestSetAtomicWithRetries(t *testing.T) {
+	t.Run("nil function", func(t *testing.T) {
+		store := Store{}
+		err := store.SetAtomicWithRetries("key", nil)
+		assert.Error(t, err)
+	})
+
 }
 
 func TestListKeys(t *testing.T) {

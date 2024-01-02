@@ -3,7 +3,6 @@ package memorystore
 import (
 	"bytes"
 	"encoding/json"
-	"fmt"
 	"sort"
 	"strings"
 	"sync"
@@ -15,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-// numRetries is the number of times the setAtomicWithRetries will retry before returning an error.
+// numRetries is the number of times setAtomicWithRetries will retry before returning an error.
 const numRetries = 5
 
 // Store is a implementation of the plugin KV store API for testing.
@@ -42,8 +41,16 @@ func (e elem) isExpired() bool {
 // Returns (false, nil) if the value was not set
 // Returns (true, nil) if the value was set
 func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bool, error) {
+	if key == "" {
+		return false, errors.New("key must not be empty")
+	}
+
 	if strings.HasPrefix(key, pluginapi.InternalKeyPrefix) {
 		return false, errors.Errorf("'%s' prefix is not allowed for keys", pluginapi.InternalKeyPrefix)
+	}
+
+	if utf8.RuneCountInString(key) > model.KeyValueKeyMaxRunes {
+		return false, errors.Errorf("key must not be longer then %d", model.KeyValueKeyMaxRunes)
 	}
 
 	opts := pluginapi.KVSetOptions{}
@@ -88,13 +95,6 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 		return false, err
 	}
 
-	if key == "" {
-		return false, errors.New("key must not be empty")
-	}
-	if utf8.RuneCountInString(key) > model.KeyValueKeyMaxRunes {
-		return false, errors.Errorf("key must not be longer then %d", model.KeyValueKeyMaxRunes)
-	}
-
 	s.mux.Lock()
 	defer s.mux.Unlock()
 
@@ -104,7 +104,7 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 
 	if !opts.Atomic {
 		if value == nil {
-			s.delete(key)
+			delete(s.elems, key)
 		} else {
 			s.elems[key] = elem{
 				value:     valueBytes,
@@ -116,12 +116,12 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 	}
 
 	oldElem := s.elems[key]
-	if !oldElem.isExpired() && bytes.Equal(oldElem.value, downstreamOpts.OldValue) {
+	if !oldElem.isExpired() && !bytes.Equal(oldElem.value, downstreamOpts.OldValue) {
 		return false, nil
 	}
 
 	if value == nil {
-		s.delete(key)
+		delete(s.elems, key)
 	} else {
 		s.elems[key] = elem{
 			value:     valueBytes,
@@ -133,6 +133,10 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 }
 
 func (s *Store) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue any, err error)) error {
+	if valueFunc == nil {
+		return errors.New("function must not be nil")
+	}
+
 	for i := 0; i < numRetries; i++ {
 		var oldVal []byte
 		if err := s.Get(key, &oldVal); err != nil {
@@ -153,7 +157,7 @@ func (s *Store) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte)
 		// small delay to allow cooperative scheduling to do its thing
 		time.Sleep(10 * time.Millisecond)
 	}
-	return fmt.Errorf("failed to set value after %d retries", numRetries)
+	return errors.Errorf("failed to set value after %d retries", numRetries)
 }
 
 func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOption) ([]string, error) {
@@ -242,15 +246,11 @@ func (s *Store) Get(key string, o any) error {
 }
 
 func (s *Store) Delete(key string) error {
-	s.delete(key)
-
-	return nil
-}
-
-func (s *Store) delete(key string) {
 	s.mux.Lock()
 	delete(s.elems, key)
 	s.mux.Unlock()
+
+	return nil
 }
 
 // DeleteAll removes all key-value pairs.
