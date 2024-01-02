@@ -99,7 +99,7 @@
         "500":
           $ref: "#/components/responses/InternalServerError"
   /api/v4/reports/users/export:
-    get:
+    post:
       tags:
         - reports
       summary: Starts a job to export the users to a report file.
@@ -135,5 +135,44 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+  /api/v4/reports/export/{report_id}:
+    get:
+      tags:
+        - reports
+      summary: Retrieves a compiled report file for the given report_id
+      description: >
+        Retrieves a compiled report file for the given report_id.
+
+        Must be a system admin to invoke this API.
+        
+        ##### Permissions
+        
+        Requires `sysconsole_read_user_management_users`.
+      
+      operationId: RetrieveBatchReportFile
+      parameters:
+        - name: report_id
+          in: path
+          description: Report ID for the given batch job
+          required: true
+          schema:
+            type: string
+        - name: format
+          in: query
+          description: The format of the report generated (one of "csv")
+          required: true
+          schema:
+            type: string
+      responses:
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
+        "404":
+          $ref: "#/components/responses/NotFound"
         "500":
           $ref: "#/components/responses/InternalServerError"
