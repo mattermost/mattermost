@@ -481,6 +481,10 @@ export default class Client4 {
         return `${this.getBaseRoute()}/reports`;
     }
 
+    getLimitsRoute(): string {
+        return `${this.getBaseRoute()}/limits`;
+    }
+
     getCSRFFromCookie() {
         if (typeof document !== 'undefined' && typeof document.cookie !== 'undefined') {
             const cookies = document.cookie.split(';');
