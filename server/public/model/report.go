@@ -24,7 +24,6 @@ var (
 )
 
 type ReportableObject interface {
-	GetHeaders() []string
 	ToReport() []string
 }
 
@@ -79,22 +78,6 @@ type UserReport struct {
 	DisplayName string `json:"display_name"`
 	Roles       string `json:"roles"`
 	UserPostStats
-}
-
-func (u UserReport) GetHeaders() []string {
-	return []string{
-		"Id",
-		"Username",
-		"Email",
-		"CreateAt",
-		"Name",
-		"Roles",
-		"LastLogin",
-		"LastStatusAt",
-		"LastPostDate",
-		"DaysActive",
-		"TotalPosts",
-	}
 }
 
 func (u *UserReport) ToReport() []string {

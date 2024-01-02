@@ -52,6 +52,7 @@ const (
 	PostTypeMe                     = "me"
 	PostCustomTypePrefix           = "custom_"
 	PostTypeReminder               = "reminder"
+	PostTypeAdminReport            = "system_admin_report"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000

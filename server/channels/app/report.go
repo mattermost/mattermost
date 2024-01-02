@@ -101,8 +101,12 @@ func (a *App) SendReportToUser(rctx request.CTX, userID string, jobId string, fo
 		post := &model.Post{
 			ChannelId: channel.Id,
 			Message:   i18n.T("app.report.send_report_to_user.export_finished", map[string]string{"Link": a.GetSiteURL() + "/api/v4/reports/export/" + jobId + "?format=" + format}),
-			Type:      model.PostTypeDefault,
+			Type:      model.PostTypeAdminReport,
 			UserId:    systemBot.UserId,
+			Props: model.StringInterface{
+				"reportId": jobId,
+				"format":   format,
+			},
 		}
 
 		if _, err := a.CreatePost(rctx, post, channel, false, true); err != nil {

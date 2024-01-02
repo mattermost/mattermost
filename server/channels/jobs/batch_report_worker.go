@@ -60,17 +60,15 @@ func MakeBatchReportWorker[T BatchReportWorkerAppIFace](
 func (worker *BatchReportWorker[T]) doBatch(rctx *request.Context, job *model.Job) bool {
 	reportData, nextData, done, err := worker.getData(job.Data, worker.app)
 	if err != nil {
-		// TODO getData error
-		worker.logger.Error("Worker: Failed to do report batch. Exiting", mlog.Err(err))
+		worker.logger.Error("Worker: Failed to get data for report batch. Exiting", mlog.Err(err))
 		worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		return true
 	} else if done {
 		if err = worker.complete(rctx, job); err != nil {
-			// TODO complete error
-			worker.logger.Error("Worker: Failed to do report batch. Exiting", mlog.Err(err))
+			worker.logger.Error("Worker: Failed to finish the batch report. Exiting", mlog.Err(err))
 			worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		} else {
-			worker.logger.Info("Worker: Job is complete")
+			worker.logger.Info("Worker: Report job complete")
 			worker.setJobSuccess(worker.logger, job)
 		}
 
@@ -79,8 +77,7 @@ func (worker *BatchReportWorker[T]) doBatch(rctx *request.Context, job *model.Jo
 
 	err = worker.saveData(job, reportData)
 	if err != nil {
-		// TODO saveData error
-		worker.logger.Error("Worker: Failed to do report batch. Exiting", mlog.Err(err))
+		worker.logger.Error("Worker: Failed to save report batch. Exiting", mlog.Err(err))
 		worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
 		return true
 	}
