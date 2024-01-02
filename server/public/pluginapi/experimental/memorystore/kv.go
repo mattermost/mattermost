@@ -18,7 +18,9 @@ import (
 // numRetries is the number of times the setAtomicWithRetries will retry before returning an error.
 const numRetries = 5
 
-// Store is safe for concurrent use by multiple goroutine.
+// Store is a implementation of the plugin KV store API for testing.
+// It's not meant for production use.
+// It is safe for concurrent use by multiple goroutine.
 type Store struct {
 	mux   sync.RWMutex
 	elems map[string]elem
