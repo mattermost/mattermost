@@ -127,7 +127,7 @@ func newS3FileBackend(settings FileBackendSettings, isCloud bool) (*S3FileBacken
 type s3Trace struct {
 }
 
-func (sTrace *s3Trace) Write(in []byte) (int, error) {
+func (_ *s3Trace) Write(in []byte) (int, error) {
 	mlog.Debug(string(in))
 	return len(in), nil
 }
@@ -186,8 +186,8 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 	}
 
 	if b.trace {
-		s3Trace := s3Trace{}
-		s3Clnt.TraceOn(&s3Trace)
+		s3Tracer := s3Trace{}
+		s3Clnt.TraceOn(&s3Tracer)
 	}
 
 	return s3Clnt, nil
