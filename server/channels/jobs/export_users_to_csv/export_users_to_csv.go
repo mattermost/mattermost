@@ -39,12 +39,12 @@ func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToC
 func parseJobMetadata(data model.StringMap) (*model.UserReportOptions, error) {
 	options := model.UserReportOptions{
 		ReportingBaseOptions: model.ReportingBaseOptions{
-			SortColumn:          "Username",
-			PageSize:            100,
-			LastSortColumnValue: data["last_column_value"],
-			DateRange:           data["date_range"],
+			SortColumn:      "Username",
+			PageSize:        100,
+			FromColumnValue: data["last_column_value"],
+			FromId:          data["last_user_id"],
+			DateRange:       data["date_range"],
 		},
-		LastUserId: data["last_user_id"],
 	}
 
 	options.ReportingBaseOptions.PopulateDateRange(time.Now())
@@ -69,7 +69,7 @@ func getData(jobData model.StringMap, app ExportUsersToCSVAppIFace) ([]model.Rep
 
 	users, appErr := app.GetUsersForReporting(filter)
 	if appErr != nil {
-		return nil, nil, false, errors.Wrapf(err, "failed to get the next batch (column_value=%v, user_id=%v)", filter.LastSortColumnValue, filter.LastUserId)
+		return nil, nil, false, errors.Wrapf(err, "failed to get the next batch (column_value=%v, user_id=%v)", filter.FromColumnValue, filter.FromId)
 	}
 
 	if len(users) == 0 {
