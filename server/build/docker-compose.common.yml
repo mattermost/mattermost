@@ -51,9 +51,9 @@ services:
     volumes:
      - "./docker/postgres.conf:/etc/postgresql/postgresql.conf"
     healthcheck:
-      test: [ "CMD", "pg_isready", "-h", "localhost" ]
-      interval: 5s
-      timeout: 10s
+      test: pg_isready -U mmuser -d mattermost_test
+      interval: 10s
+      timeout: 3s
       retries: 3
   minio:
     image: "minio/minio:RELEASE.2019-10-11T00-38-09Z"
