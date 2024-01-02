@@ -112,12 +112,13 @@ func retrieveBatchReportFile(c *Context, w http.ResponseWriter, r *http.Request)
 	reportId := c.Params.ReportId
 	if reportId == "" || !model.IsValidId(reportId) {
 		c.Err = model.NewAppError("retrieveBatchReportFile", "api.retrieveBatchReportFile.invalid_report_id", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	format := r.URL.Query().Get("format")
-	// TODO: Validate with more types
-	if format != "csv" {
+	if !model.IsValidReportExportFormat(format) {
 		c.Err = model.NewAppError("retrieveBatchReportFile", "api.retrieveBatchReportFile.invalid_format", nil, "", http.StatusBadRequest)
+		return
 	}
 
 	file, name, err := c.App.RetrieveBatchReport(reportId, format)

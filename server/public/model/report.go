@@ -20,6 +20,8 @@ const (
 )
 
 var (
+	ReportExportFormats = []string{"csv"}
+
 	UserReportSortColumns = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
 )
 
@@ -149,4 +151,14 @@ func (u *UserReportQuery) ToReport() *UserReport {
 		Roles:         u.Roles,
 		UserPostStats: u.UserPostStats,
 	}
+}
+
+func IsValidReportExportFormat(format string) bool {
+	for _, fmt := range ReportExportFormats {
+		if format == fmt {
+			return true
+		}
+	}
+
+	return false
 }
