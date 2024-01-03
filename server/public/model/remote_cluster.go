@@ -32,16 +32,16 @@ var (
 
 type Bitmask uint32
 
-func (bm Bitmask) IsBitSet(flag Bitmask) bool {
-	return bm != 0
+func (bm *Bitmask) IsBitSet(flag Bitmask) bool {
+	return *bm != 0
 }
 
-func (bm Bitmask) SetBit(flag Bitmask) {
-	bm |= flag
+func (bm *Bitmask) SetBit(flag Bitmask) {
+	*bm |= flag
 }
 
-func (bm Bitmask) UnsetBit(flag Bitmask) {
-	bm &= ^flag
+func (bm *Bitmask) UnsetBit(flag Bitmask) {
+	*bm &= ^flag
 }
 
 type RemoteCluster struct {
