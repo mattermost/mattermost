@@ -66,6 +66,7 @@ services:
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_SERVICEENVIRONMENT: "test"
+      MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
     network_mode: host
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do

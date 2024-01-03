@@ -198,16 +198,6 @@
                 vertical-align: top;
             }
 
-            .nav {
-                position: fixed;
-                width: 179px;
-                margin: 0;
-
-                &.position--top {
-                    top: 57px;
-                }
-            }
-
             .security-links {
                 margin-right: 20px;
 
@@ -425,6 +415,13 @@
                 .setting-list {
                     padding: 0;
                     list-style-type: none;
+
+                    .radio {
+                        p {
+                            padding-top: 5px;
+                            padding-left: 20px;
+                        }
+                    }
                 }
 
                 .setting-box__item {
@@ -508,6 +505,13 @@
                 text-align: left;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+            }
+
+            img {
+                &.icon {
+                    height: 18px;
+                    vertical-align: top;
+                }
             }
 
             .icon {

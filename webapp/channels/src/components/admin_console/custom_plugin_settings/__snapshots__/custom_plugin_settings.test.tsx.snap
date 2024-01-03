@@ -46,7 +46,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             onChange={[Function]}
             placeholder="e.g. some setting"
             setByEnv={false}
-            type="input"
+            type="text"
             value="setting_default"
           />
           <BooleanSetting
@@ -107,7 +107,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText
@@ -356,7 +356,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
             onChange={[Function]}
             placeholder="e.g. some setting"
             setByEnv={false}
-            type="input"
+            type="text"
             value="fsdsdg"
           />
           <BooleanSetting
@@ -417,7 +417,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText

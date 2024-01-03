@@ -54,6 +54,10 @@ const (
 	UserHasBeenDeactivatedID                  = 36
 	MessageHasBeenDeletedID                   = 37
 	MessagesWillBeConsumedID                  = 38
+	ServeMetricsID                            = 39
+	OnSharedChannelsSyncMsgID                 = 40
+	OnSharedChannelsPingID                    = 41
+	PreferencesHaveChangedID                  = 42
 	TotalHooksID                              = iota
 )
 
@@ -322,4 +326,40 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.1
 	UserHasBeenDeactivated(c *Context, user *model.User)
+
+	// ServeMetrics allows plugins to expose their own metrics endpoint through
+	// the server's metrics HTTP listener (e.g. "localhost:8067").
+	// Requests destined to the /plugins/{id}/metrics path will be routed to the plugin.
+	//
+	// Minimum server version: 9.2
+	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
+
+	// OnSharedChannelsSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each SyncMsg may contain
+	// multiple updates (posts, reactions, attachments, users) for a single channel.
+	//
+	// The cursor will be advanced based on the SyncResponse returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+
+	// OnSharedChannelsPing is invoked for plugins to indicate the health of the plugin and the connection
+	// to the upstream service (e.g. MS Graph APIs).
+	//
+	// Return true to indicate all is well.
+	//
+	// Return false to indicate there is a problem with the plugin or connection to upstream service.
+	// Some number of failed pings will result in the plugin being marked offline and it will stop receiving
+	// OnSharedChannelsSyncMsg calls until it comes back online. The plugin will also appear offline in the status
+	// report via the `secure-connection status` slash command.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+
+	// PreferencesHaveChanged is invoked after one or more of a user's preferences have changed.
+	// Note that this method will be called for preferences changed by plugins, including the plugin that changed
+	// the preferences.
+	//
+	// Minimum server version: 9.5
+	PreferencesHaveChanged(c *Context, preferences []model.Preference)
 }

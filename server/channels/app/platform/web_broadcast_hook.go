@@ -54,7 +54,7 @@ func (he *HookedWebSocketEvent) Add(key string, value any) {
 	he.copy.Add(key, value)
 }
 
-func (he *HookedWebSocketEvent) EventType() string {
+func (he *HookedWebSocketEvent) EventType() model.WebsocketEventType {
 	if he.copy == nil {
 		return he.original.EventType()
 	}

@@ -236,6 +236,7 @@ export const it = {
 export const validators = {
     isRequired: (text: string, textDefault: string) => (value: string) => new ValidationResult(Boolean(value), text, textDefault),
     minValue: (min: number, text: string, textDefault: string) => (value: number) => new ValidationResult((value >= min), text, textDefault),
+    maxValue: (max: number, text: string, textDefault: string) => (value: number) => new ValidationResult((value <= max), text, textDefault),
 };
 
 const usesLegacyOauth = (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
@@ -539,7 +540,6 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: [
                     ['admin.system_users.title', {siteName: ''}],
                 ],
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUsers',
@@ -548,7 +548,6 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_user_detail: {
                 url: 'user_management/user/:user_id',
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUserDetail',
@@ -3117,7 +3116,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.configIsFalse('ServiceSettings', 'EnableLatex'),
+                                it.stateIsFalse('ServiceSettings.EnableLatex'),
                             ),
                         },
                         {
@@ -3166,6 +3165,121 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: t('admin.customization.allowSyncedDraftsDesc'),
                             help_text_default: 'When enabled, users message drafts will sync with the server so they can be accessed from any device. Users may opt out of this behaviour in Account settings.',
                             help_text_markdown: false,
+                        },
+                        {
+                            type: 'number',
+                            key: 'ServiceSettings.UniqueEmojiReactionLimitPerPost',
+                            label: t('admin.customization.uniqueEmojiReactionLimitPerPost'),
+                            label_default: 'Unique Emoji Reaction Limit:',
+                            placeholder: t('admin.customization.uniqueEmojiReactionLimitPerPostPlaceholder'),
+                            placeholder_default: 'E.g.: 25',
+                            help_text: t('admin.customization.uniqueEmojiReactionLimitPerPostDesc'),
+                            help_text_default: 'The number of unique emoji reactions that can be added to a post. Increasing this limit could lead to poor client performance. Maximum is 500.',
+                            help_text_markdown: false,
+                            validate: (value) => {
+                                const maxResult = validators.maxValue(
+                                    500,
+                                    t('admin.customization.uniqueEmojiReactionLimitPerPost.maxValue'),
+                                    'Cannot increase the limit to a value above 500.',
+                                )(value);
+                                if (!maxResult.isValid()) {
+                                    return maxResult;
+                                }
+                                const minResult = validators.minValue(0,
+                                    t('admin.customization.uniqueEmojiReactionLimitPerPost.minValue'),
+                                    'Cannot decrease the limit below 0.',
+                                )(value);
+                                if (!minResult.isValid()) {
+                                    return minResult;
+                                }
+
+                                return new ValidationResult(true, '', '');
+                            },
+                        },
+                    ],
+                },
+            },
+            wrangler: {
+                url: 'site_config/wrangler',
+                title: t('admin.sidebar.move_thread'),
+                title_default: 'Move Thread (Beta)',
+                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled')),
+                schema: {
+                    id: 'WranglerSettings',
+                    name: t('admin.site.move_thread'),
+                    name_default: 'Move Thread (Beta)',
+                    settings: [
+                        {
+                            type: 'roles',
+                            multiple: true,
+                            key: 'WranglerSettings.PermittedWranglerRoles',
+                            label: t('admin.experimental.PermittedMoveThreadRoles.title'),
+                            label_default: 'Permitted Roles',
+                            help_text: t('admin.experimental.PermittedMoveThreadRoles.desc'),
+                            help_text_default: 'Choose who is allowed to move threads to other channels based on roles. (Other permissions below still apply).',
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'WranglerSettings.AllowedEmailDomain',
+                            multiple: true,
+                            label: t('admin.experimental.allowedEmailDomain.title'),
+                            label_default: 'Allowed Email Domain',
+                            help_text: t('admin.experimental.allowedEmailDomain.desc'),
+                            help_text_default: '(Optional) When set, users must have an email ending in this domain to move threads. Multiple domains can be specified by separating them with commas.',
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'number',
+                            key: 'WranglerSettings.MoveThreadMaxCount',
+                            label: t('admin.experimental.moveThreadMaxCount.title'),
+                            label_default: 'Max Thread Count Move Size',
+                            help_text: t('admin.experimental.moveThreadMaxCount.desc'),
+                            help_text_default: 'The maximum number of messages in a thread that the plugin is allowed to move. Leave empty for unlimited messages.',
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'WranglerSettings.MoveThreadToAnotherTeamEnable',
+                            label: t('admin.experimental.moveThreadToAnotherTeamEnable.title'),
+                            label_default: 'Enable Moving Threads To Different Teams',
+                            help_text: t('admin.experimental.moveThreadToAnotherTeamEnable.desc'),
+                            help_text_default: 'Control whether Wrangler is permitted to move message threads from one team to another or not.',
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'WranglerSettings.MoveThreadFromPrivateChannelEnable',
+                            label: t('admin.experimental.moveThreadFromPrivateChannelEnable.title'),
+                            label_default: 'Enable Moving Threads From Private Channels',
+                            help_text: t('admin.experimental.moveThreadFromPrivateChannelEnable.desc'),
+                            help_text_default: 'Control whether Wrangler is permitted to move message threads from private channels or not.',
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'WranglerSettings.MoveThreadFromDirectMessageChannelEnable',
+                            label: t('admin.experimental.moveThreadFromDirectMessageChannelEnable.title'),
+                            label_default: 'Enable Moving Threads From Direct Message Channels',
+                            help_text: t('admin.experimental.moveThreadFromDirectMessageChannelEnable.desc'),
+                            help_text_default: 'Control whether Wrangler is permitted to move message threads from direct message channels or not.',
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'WranglerSettings.MoveThreadFromGroupMessageChannelEnable',
+                            label: t('admin.experimental.moveThreadFromGroupMessageChannelEnable.title'),
+                            label_default: 'Enable Moving Threads From Group Message Channels',
+                            help_text: t('admin.experimental.moveThreadFromGroupMessageChannelEnable.desc'),
+                            help_text_default: 'Control whether Wrangler is permitted to move message threads from group message channels or not.',
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                     ],
                 },
@@ -6091,6 +6205,50 @@ const AdminDefinition: AdminDefinitionType = {
                             isHidden: it.licensedForFeature('Cloud'),
                         },
                         {
+                            type: 'number',
+                            key: 'ServiceSettings.OutgoingIntegrationRequestsTimeout',
+                            label: t('admin.service.integrationRequestTitle'),
+                            label_default: 'Integration request timeout: ',
+                            help_text: t('admin.service.integrationRequestDesc'),
+                            help_text_default: 'The number of seconds to wait for Integration requests. That includes <slashCommands>Slash Commands</slashCommands>, <outgoingWebhooks>Outgoing Webhooks</outgoingWebhooks>, <interactiveMessages>Interactive Messages</interactiveMessages> and <interactiveDialogs>Interactive Dialogs</interactiveDialogs>.',
+                            help_text_values: {
+                                slashCommands: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DeveloperLinks.CUSTOM_SLASH_COMMANDS}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                                outgoingWebhooks: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DeveloperLinks.OUTGOING_WEBHOOKS}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                                interactiveMessages: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DeveloperLinks.INTERACTIVE_MESSAGES}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                                interactiveDialogs: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DeveloperLinks.INTERACTIVE_DIALOGS}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                        },
+                        {
                             type: 'bool',
                             key: 'ServiceSettings.EnablePostUsernameOverride',
                             label: t('admin.service.overrideTitle'),
@@ -6940,27 +7098,6 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: true,
                             placeholder: t('admin.experimental.experimentalPrimaryTeam.example'),
                             placeholder_default: 'E.g.: "teamname"',
-                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
-                        },
-                        {
-                            type: 'bool',
-                            key: 'ExperimentalSettings.UseNewSAMLLibrary',
-                            label: t('admin.experimental.experimentalUseNewSAMLLibrary.title'),
-                            label_default: 'Use Improved SAML Library (Beta):',
-                            help_text: t('admin.experimental.experimentalUseNewSAMLLibrary.desc'),
-                            help_text_default: 'Enable an updated SAML Library, which does not require the XML Security Library (xmlsec1) to be installed. Warning: Not all providers have been tested. If you experience issues, please contact <linkSupport>support</linkSupport>. Changing this setting requires a server restart before taking effect.',
-                            help_text_markdown: false,
-                            help_text_values: {
-                                linkSupport: (msg: string) => (
-                                    <ExternalLink
-                                        location='admin_console'
-                                        href='https://mattermost.com/support'
-                                    >
-                                        {msg}
-                                    </ExternalLink>
-                                ),
-                            },
-                            isHidden: true || it.not(it.licensedForFeature('SAML')),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.EXPERIMENTAL.FEATURES)),
                         },
                         {

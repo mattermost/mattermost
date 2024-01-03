@@ -12,22 +12,25 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestRoleStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("Save", func(t *testing.T) { testRoleStoreSave(t, ss) })
-	t.Run("Get", func(t *testing.T) { testRoleStoreGet(t, ss) })
-	t.Run("GetAll", func(t *testing.T) { testRoleStoreGetAll(t, ss) })
-	t.Run("GetByName", func(t *testing.T) { testRoleStoreGetByName(t, ss) })
-	t.Run("GetNames", func(t *testing.T) { testRoleStoreGetByNames(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, ss) })
-	t.Run("PermanentDeleteAll", func(t *testing.T) { testRoleStorePermanentDeleteAll(t, ss) })
-	t.Run("LowerScopedChannelSchemeRoles_AllChannelSchemeRoles", func(t *testing.T) { testRoleStoreLowerScopedChannelSchemeRoles(t, ss) })
-	t.Run("ChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest", func(t *testing.T) { testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t, ss, s) })
+func TestRoleStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("Save", func(t *testing.T) { testRoleStoreSave(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testRoleStoreGet(t, rctx, ss) })
+	t.Run("GetAll", func(t *testing.T) { testRoleStoreGetAll(t, rctx, ss) })
+	t.Run("GetByName", func(t *testing.T) { testRoleStoreGetByName(t, rctx, ss) })
+	t.Run("GetNames", func(t *testing.T) { testRoleStoreGetByNames(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testRoleStoreDelete(t, rctx, ss) })
+	t.Run("PermanentDeleteAll", func(t *testing.T) { testRoleStorePermanentDeleteAll(t, rctx, ss) })
+	t.Run("LowerScopedChannelSchemeRoles_AllChannelSchemeRoles", func(t *testing.T) { testRoleStoreLowerScopedChannelSchemeRoles(t, rctx, ss) })
+	t.Run("ChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest", func(t *testing.T) {
+		testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t, rctx, ss, s)
+	})
 }
 
-func testRoleStoreSave(t *testing.T, ss store.Store) {
+func testRoleStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a new role.
 	r1 := &model.Role{
 		Name:        model.NewId(),
@@ -100,7 +103,7 @@ func testRoleStoreSave(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 }
 
-func testRoleStoreGetAll(t *testing.T, ss store.Store) {
+func testRoleStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	prev, err := ss.Role().GetAll()
 	require.NoError(t, err)
 	prevCount := len(prev)
@@ -140,7 +143,7 @@ func testRoleStoreGetAll(t *testing.T, ss store.Store) {
 	assert.Len(t, data, prevCount+2)
 }
 
-func testRoleStoreGet(t *testing.T, ss store.Store) {
+func testRoleStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a role to test with.
 	r1 := &model.Role{
 		Name:        model.NewId(),
@@ -173,7 +176,7 @@ func testRoleStoreGet(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 }
 
-func testRoleStoreGetByName(t *testing.T, ss store.Store) {
+func testRoleStoreGetByName(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a role to test with.
 	r1 := &model.Role{
 		Name:        model.NewId(),
@@ -206,7 +209,7 @@ func testRoleStoreGetByName(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 }
 
-func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
+func testRoleStoreGetByNames(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save some roles to test with.
 	r1 := &model.Role{
 		Name:        model.NewId(),
@@ -279,7 +282,7 @@ func testRoleStoreGetByNames(t *testing.T, ss store.Store) {
 	assert.NotContains(t, roles6, d3)
 }
 
-func testRoleStoreDelete(t *testing.T, ss store.Store) {
+func testRoleStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Save a role to test with.
 	r1 := &model.Role{
 		Name:        model.NewId(),
@@ -319,7 +322,7 @@ func testRoleStoreDelete(t *testing.T, ss store.Store) {
 	assert.Error(t, err)
 }
 
-func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
+func testRoleStorePermanentDeleteAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	r1 := &model.Role{
 		Name:        model.NewId(),
 		DisplayName: model.NewId(),
@@ -361,7 +364,7 @@ func testRoleStorePermanentDeleteAll(t *testing.T, ss store.Store) {
 	assert.Empty(t, roles)
 }
 
-func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
+func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, ss store.Store) {
 	createDefaultRoles(ss)
 
 	teamScheme1 := &model.Scheme{
@@ -517,7 +520,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, ss store.Store) {
 	})
 }
 
-func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *testing.T, ss store.Store, s SqlStore) {
+func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	teamScheme := &model.Scheme{
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),

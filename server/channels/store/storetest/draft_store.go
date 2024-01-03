@@ -11,20 +11,21 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestDraftStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("SaveDraft", func(t *testing.T) { testSaveDraft(t, ss) })
-	t.Run("UpdateDraft", func(t *testing.T) { testUpdateDraft(t, ss) })
-	t.Run("DeleteDraft", func(t *testing.T) { testDeleteDraft(t, ss) })
-	t.Run("GetDraft", func(t *testing.T) { testGetDraft(t, ss) })
-	t.Run("GetDraftsForUser", func(t *testing.T) { testGetDraftsForUser(t, ss) })
-	t.Run("GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration", func(t *testing.T) { testGetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(t, ss) })
-	t.Run("DeleteEmptyDraftsByCreateAtAndUserId", func(t *testing.T) { testDeleteEmptyDraftsByCreateAtAndUserId(t, ss) })
+func TestDraftStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("SaveDraft", func(t *testing.T) { testSaveDraft(t, rctx, ss) })
+	t.Run("UpdateDraft", func(t *testing.T) { testUpdateDraft(t, rctx, ss) })
+	t.Run("DeleteDraft", func(t *testing.T) { testDeleteDraft(t, rctx, ss) })
+	t.Run("GetDraft", func(t *testing.T) { testGetDraft(t, rctx, ss) })
+	t.Run("GetDraftsForUser", func(t *testing.T) { testGetDraftsForUser(t, rctx, ss) })
+	t.Run("GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration", func(t *testing.T) { testGetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(t, rctx, ss) })
+	t.Run("DeleteEmptyDraftsByCreateAtAndUserId", func(t *testing.T) { testDeleteEmptyDraftsByCreateAtAndUserId(t, rctx, ss) })
 }
 
-func testSaveDraft(t *testing.T, ss store.Store) {
+func testSaveDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := &model.User{
 		Id: model.NewId(),
 	}
@@ -89,7 +90,7 @@ func testSaveDraft(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateDraft(t *testing.T, ss store.Store) {
+func testUpdateDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := &model.User{
 		Id: model.NewId(),
 	}
@@ -146,7 +147,7 @@ func testUpdateDraft(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeleteDraft(t *testing.T, ss store.Store) {
+func testDeleteDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := &model.User{
 		Id: model.NewId(),
 	}
@@ -215,7 +216,7 @@ func testDeleteDraft(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetDraft(t *testing.T, ss store.Store) {
+func testGetDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := &model.User{
 		Id: model.NewId(),
 	}
@@ -280,7 +281,7 @@ func testGetDraft(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetDraftsForUser(t *testing.T, ss store.Store) {
+func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := &model.User{
 		Id: model.NewId(),
 	}
@@ -337,7 +338,7 @@ func testGetDraftsForUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func clearDrafts(t *testing.T, ss store.Store) {
+func clearDrafts(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Helper()
 
 	_, err := ss.GetInternalMasterDB().Exec("DELETE FROM Drafts")
@@ -370,7 +371,7 @@ func makeDrafts(t *testing.T, ss store.Store, count int, message string) {
 	}
 }
 
-func countDraftPages(t *testing.T, ss store.Store) int {
+func countDraftPages(t *testing.T, rctx request.CTX, ss store.Store) int {
 	t.Helper()
 
 	pages := 0
@@ -400,43 +401,43 @@ func countDraftPages(t *testing.T, ss store.Store) int {
 	return pages
 }
 
-func testGetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(t *testing.T, ss store.Store) {
+func testGetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("no drafts", func(t *testing.T) {
-		clearDrafts(t, ss)
+		clearDrafts(t, rctx, ss)
 
 		createAt, userId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(0, "")
 		require.NoError(t, err)
 		assert.EqualValues(t, 0, createAt)
 		assert.Equal(t, "", userId)
 
-		assert.Equal(t, 0, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 0, countDraftPages(t, rctx, ss), "incorrect number of pages")
 	})
 
 	t.Run("single page", func(t *testing.T) {
-		clearDrafts(t, ss)
+		clearDrafts(t, rctx, ss)
 
 		makeDrafts(t, ss, 100, model.NewRandomString(16))
-		assert.Equal(t, 1, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 1, countDraftPages(t, rctx, ss), "incorrect number of pages")
 	})
 
 	t.Run("multiple pages", func(t *testing.T) {
-		clearDrafts(t, ss)
+		clearDrafts(t, rctx, ss)
 
 		makeDrafts(t, ss, 300, model.NewRandomString(16))
-		assert.Equal(t, 3, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 3, countDraftPages(t, rctx, ss), "incorrect number of pages")
 	})
 }
 
-func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
+func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("nil parameters", func(t *testing.T) {
-		clearDrafts(t, ss)
+		clearDrafts(t, rctx, ss)
 
 		err := ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(0, "")
 		require.NoError(t, err)
 	})
 
 	t.Run("delete single page, all empty", func(t *testing.T) {
-		clearDrafts(t, ss)
+		clearDrafts(t, rctx, ss)
 		makeDrafts(t, ss, 100, "")
 
 		createAt, userId := int64(0), ""
@@ -446,7 +447,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		createAt, userId = nextCreateAt, nextUserId
 
-		assert.Equal(t, 0, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 0, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
 		require.NoError(t, err)
@@ -455,7 +456,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("delete multiple pages, all empty", func(t *testing.T) {
-		clearDrafts(t, ss)
+		clearDrafts(t, rctx, ss)
 		makeDrafts(t, ss, 300, "")
 
 		createAt, userId := int64(0), ""
@@ -465,7 +466,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		createAt, userId = nextCreateAt, nextUserId
 
-		assert.Equal(t, 2, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 2, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
 		require.NoError(t, err)
@@ -473,7 +474,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		createAt, userId = nextCreateAt, nextUserId
 
-		assert.Equal(t, 1, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 1, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
 		require.NoError(t, err)
@@ -481,7 +482,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		createAt, userId = nextCreateAt, nextUserId
 
-		assert.Equal(t, 0, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 0, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
 		require.NoError(t, err)
@@ -490,7 +491,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("delete multiple pages, some empty", func(t *testing.T) {
-		clearDrafts(t, ss)
+		clearDrafts(t, rctx, ss)
 		makeDrafts(t, ss, 50, "")
 		makeDrafts(t, ss, 50, "message")
 		makeDrafts(t, ss, 50, "")
@@ -503,7 +504,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		makeDrafts(t, ss, 50, "message")
 
 		// Verify initially 5 pages
-		assert.Equal(t, 5, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 5, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		createAt, userId := int64(0), ""
 
@@ -514,7 +515,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		createAt, userId = nextCreateAt, nextUserId
 
 		// Only deleted 50, so still 5 pages
-		assert.Equal(t, 5, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 5, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
 		require.NoError(t, err)
@@ -523,7 +524,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		createAt, userId = nextCreateAt, nextUserId
 
 		// Now deleted 100, so down to 4 pages
-		assert.Equal(t, 4, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 4, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
 		require.NoError(t, err)
@@ -532,7 +533,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		createAt, userId = nextCreateAt, nextUserId
 
 		// Only deleted 150 now, so still 4 pages
-		assert.Equal(t, 4, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 4, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
 		require.NoError(t, err)
@@ -541,7 +542,7 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, ss store.Store) {
 		createAt, userId = nextCreateAt, nextUserId
 
 		// Now deleted all 200 empty messages, so down to 3 pages
-		assert.Equal(t, 3, countDraftPages(t, ss), "incorrect number of pages")
+		assert.Equal(t, 3, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		// Keep going through all pages to verify nothing else gets deleted.
 

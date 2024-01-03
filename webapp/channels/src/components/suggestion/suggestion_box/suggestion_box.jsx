@@ -564,6 +564,29 @@ export default class SuggestionBox extends React.PureComponent {
         return this.state.items.some((item) => !item.loading);
     };
 
+    confirmPretext = () => {
+        const textbox = this.getTextbox();
+        const pretext = textbox.value.substring(0, textbox.selectionEnd).toLowerCase();
+
+        if (this.pretext !== pretext) {
+            this.handlePretextChanged(pretext);
+        }
+    };
+
+    handleKeyUp = (e) => {
+        this.confirmPretext();
+        if (this.props.onKeyUp) {
+            this.props.onKeyUp(e);
+        }
+    };
+
+    handleMouseUp = (e) => {
+        this.confirmPretext();
+        if (this.props.onMouseUp) {
+            this.props.onMouseUp(e);
+        }
+    };
+
     handleKeyDown = (e) => {
         if ((this.props.openWhenEmpty || this.props.value) && this.hasSuggestions()) {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
@@ -816,6 +839,8 @@ export default class SuggestionBox extends React.PureComponent {
                     onCompositionUpdate={this.handleCompositionUpdate}
                     onCompositionEnd={this.handleCompositionEnd}
                     onKeyDown={this.handleKeyDown}
+                    onKeyUp={this.handleKeyUp}
+                    onMouseUp={this.handleMouseUp}
                 />
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'text' && (
                     <SuggestionListComponent
