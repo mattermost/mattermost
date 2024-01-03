@@ -819,6 +819,7 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                             </div>,
                         ]}
                         saveButtonText={'Deactivate'}
+                        saveButtonClassName={'btn-danger'}
                         setting={'deactivateAccount'}
                         submit={this.handleShowDeactivateAccountModal}
                         saving={this.state.isSaving}
@@ -942,17 +943,17 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
                     />
                     {previewFeaturesSectionDivider}
                     {previewFeaturesSection}
-                    {formattingSectionDivider}
                     <PerformanceDebuggingSection
                         active={this.props.activeSection === AdvancedSections.PERFORMANCE_DEBUGGING}
                         onUpdateSection={this.handleUpdateSection}
                         areAllSectionsInactive={this.props.activeSection === ''}
                     />
-                    {deactivateAccountSection}
                     {unreadScrollPositionSectionDivider}
                     {unreadScrollPositionSection}
                     {syncDraftsSectionDivider}
                     {syncDraftsSection}
+                    {formattingSectionDivider}
+                    {deactivateAccountSection}
                     <div className='divider-dark'/>
                     {makeConfirmationModal}
                 </div>

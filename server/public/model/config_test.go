@@ -74,6 +74,47 @@ func TestConfigEmptySiteName(t *testing.T) {
 	require.Equal(t, *c1.TeamSettings.SiteName, TeamSettingsDefaultSiteName)
 }
 
+func TestServiceSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		ServiceSettings ServiceSettings
+		ExpectError     bool
+	}{
+		"empty": {
+			ServiceSettings: ServiceSettings{},
+			ExpectError:     false,
+		},
+		"OutgoingIntegrationRequestsTimeout is negative": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(-1),
+			},
+			ExpectError: true,
+		},
+		"OutgoingIntegrationRequestsTimeout is zero": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(0),
+			},
+			ExpectError: true,
+		},
+		"OutgoingIntegrationRequestsTimeout is positiv": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(1),
+			},
+			ExpectError: false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.ServiceSettings.SetDefaults(false)
+
+			appErr := test.ServiceSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, appErr)
+			} else {
+				assert.Nil(t, appErr)
+			}
+		})
+	}
+}
+
 func TestConfigEnableDeveloper(t *testing.T) {
 	testCases := []struct {
 		Description     string

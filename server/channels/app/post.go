@@ -574,6 +574,7 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = post.Clone()
 		sanitizedPost.Metadata = nil
+		sanitizedPost.DelProp(model.PostPropsPreviewedPost)
 	}
 	post = sanitizedPost
 
@@ -599,6 +600,18 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, post, userID)
+	if appErr != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+
+		// If we failed to sanitize the post, we still want to remove the metadata.
+		sanitizedPost = post.Clone()
+		sanitizedPost.Metadata = nil
+		sanitizedPost.DelProp(model.PostPropsPreviewedPost)
+	}
+	post = sanitizedPost
+
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
@@ -768,6 +781,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = rpost.Clone()
 		sanitizedPost.Metadata = nil
+		sanitizedPost.DelProp(model.PostPropsPreviewedPost)
 	}
 	rpost = sanitizedPost
 

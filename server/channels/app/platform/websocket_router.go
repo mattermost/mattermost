@@ -82,6 +82,14 @@ func (wr *WebSocketRouter) ServeWebSocket(conn *WebConn, r *model.WebSocketReque
 			// Set active team
 			conn.SetActiveTeamID(teamID)
 		}
+		if thChannelID, ok := r.Data["thread_channel_id"].(string); ok {
+			// Set the channelID of the active thread.
+			if isThreadView, ok := r.Data["is_thread_view"].(bool); ok && isThreadView {
+				conn.SetActiveThreadViewThreadChannelID(thChannelID)
+			} else {
+				conn.SetActiveRHSThreadChannelID(thChannelID)
+			}
+		}
 
 		resp := model.NewWebSocketResponse(model.StatusOk, r.Seq, nil)
 		hub := conn.Platform.GetHubForUserId(conn.UserId)

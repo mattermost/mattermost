@@ -527,11 +527,15 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
-// sendSyncMsgToRemote synchronously sends the sync message to the remote cluster.
+// sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, msg.ChannelId)
+	}
+
+	if rc.PluginID != "" {
+		return scs.sendSyncMsgToPlugin(msg, rc, f)
 	}
 
 	b, err := json.Marshal(msg)
@@ -566,6 +570,17 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 
 	wg.Wait()
 	return err
+}
+
+// sendSyncMsgToRemote synchronously sends the sync message to a plugin.
+func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
+	syncResp, errResp := scs.app.OnSharedChannelsSyncMsg(msg, rc)
+
+	if f != nil {
+		f(syncResp, errResp)
+	}
+
+	return errResp
 }
 
 func sanitizeSyncData(sd *syncData) {
