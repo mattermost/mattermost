@@ -736,6 +736,8 @@ func TestMoveThread(t *testing.T) {
 	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
 
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
 	client := th.Client
 
 	ctx := context.Background()
@@ -949,13 +951,6 @@ func TestMoveThread(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 		require.NotNil(t, posts)
-		// There should be 3 posts, the system join message for the user who moved it joining the channel, and the two posts in the thread
-		// require.Equal(t, 3, len(posts.Posts))
-		fmt.Println(posts.Order)
-		for _, p := range posts.Order {
-			fmt.Println(posts.Posts[p].Id)
-			fmt.Println(posts.Posts[p].Message)
-		}
 		require.Equal(t, "This thread was moved from another channel", posts.Posts[posts.Order[0]].Message)
 		require.Equal(t, newPost2.Message, posts.Posts[posts.Order[1]].Message)
 		require.Equal(t, newPost.Message, posts.Posts[posts.Order[2]].Message)
