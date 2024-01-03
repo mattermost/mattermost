@@ -8684,6 +8684,27 @@ func (s *RetryLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFil
 
 }
 
+func (s *RetryLayerRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
+
+	tries := 0
+	for {
+		result, err := s.RemoteClusterStore.GetByPluginID(pluginID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 
 	tries := 0
@@ -13561,6 +13582,27 @@ func (s *RetryLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 	tries := 0
 	for {
 		result, err := s.UserStore.GetUnreadCountForChannel(userID, channelID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+
+	tries := 0
+	for {
+		result, err := s.UserStore.GetUserReport(filter)
 		if err == nil {
 			return result, nil
 		}

@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
@@ -2265,4 +2266,141 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 	}
 
 	return nil
+}
+
+func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
+	selectColumns := []string{"u.Id", "u.LastLogin", "MAX(s.LastActivityAt) AS LastStatusAt"}
+	for _, column := range model.UserReportSortColumns {
+		selectColumns = append(selectColumns, "u."+column)
+	}
+	if isPostgres {
+		selectColumns = append(selectColumns,
+			"MAX(ps.LastPostDate) AS LastPostDate",
+			"COUNT(ps.Day) AS DaysActive",
+			"SUM(ps.NumPosts) AS TotalPosts",
+		)
+	} else {
+		selectColumns = append(selectColumns,
+			"MAX(p.CreateAt) AS LastPostDate",
+			"COUNT(DATE(FROM_UNIXTIME(p.CreateAt / 1000))) AS DaysActive",
+			"COUNT(p.Id) AS TotalPosts",
+		)
+	}
+
+	sortDirection := "ASC"
+	if filter.SortDesc {
+		sortDirection = "DESC"
+	}
+
+	query := us.getQueryBuilder().
+		Select(selectColumns...).
+		From("Users u").
+		LeftJoin("Status s ON s.UserId = u.Id").
+		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
+		GroupBy("u.Id")
+
+	// no need to apply any filtering and pagination if there are no
+	// previous element ID and value provided.
+	if filter.FromId != "" && filter.FromColumnValue != "" {
+		if (filter.Direction == "up" && !filter.SortDesc) || (filter.Direction == "down" && filter.SortDesc) {
+			sortDirection = "DESC"
+
+			query = query.Where(sq.Or{
+				sq.Lt{filter.SortColumn: filter.FromColumnValue},
+				sq.And{
+					sq.Eq{filter.SortColumn: filter.FromColumnValue},
+					sq.Lt{"u.Id": filter.FromId},
+				},
+			})
+		} else {
+			sortDirection = "ASC"
+
+			query = query.Where(sq.Or{
+				sq.Gt{filter.SortColumn: filter.FromColumnValue},
+				sq.And{
+					sq.Eq{filter.SortColumn: filter.FromColumnValue},
+					sq.Gt{"u.Id": filter.FromId},
+				},
+			})
+		}
+	}
+
+	query = query.OrderBy(filter.SortColumn+" "+sortDirection, "u.Id")
+
+	if filter.PageSize > 0 {
+		query = query.Limit(uint64(filter.PageSize))
+	}
+
+	if isPostgres {
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id")
+		if filter.StartAt > 0 {
+			startDate := time.UnixMilli(filter.StartAt)
+			query = query.Where(sq.Or{
+				sq.Expr("ps.UserId IS NULL"),
+				sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")},
+			})
+		}
+		if filter.EndAt > 0 {
+			endDate := time.UnixMilli(filter.EndAt)
+			query = query.Where(sq.Or{
+				sq.Expr("ps.UserId IS NULL"),
+				sq.Lt{"ps.Day": endDate.Format("2006-01-02")},
+			})
+		}
+	} else {
+		query = query.LeftJoin("Posts p on p.UserId = u.Id")
+		if filter.StartAt > 0 {
+			query = query.Where(sq.Or{
+				sq.Expr("p.UserId IS NULL"),
+				sq.GtOrEq{"p.CreateAt": filter.StartAt},
+			})
+		}
+		if filter.EndAt > 0 {
+			query = query.Where(sq.Or{
+				sq.Expr("p.UserId IS NULL"),
+				sq.Lt{"p.CreateAt": filter.EndAt},
+			})
+		}
+	}
+
+	query = applyRoleFilter(query, filter.Role, isPostgres)
+	if filter.HasNoTeam {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
+	} else if filter.Team != "" {
+		query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.DeleteAt = 0)").
+			Where(sq.Eq{"tm.TeamId": filter.Team})
+	}
+	if filter.HideActive {
+		query = query.Where(sq.Gt{"u.DeleteAt": 0})
+	}
+	if filter.HideInactive {
+		query = query.Where(sq.Eq{"u.DeleteAt": 0})
+	}
+
+	parentQuery := query
+	// If we're going a page back...
+	//
+	// The way pagination works, we get the previous page's rows
+	// in reverse order. So, we use parent query on it to
+	// reverse the order in database itself.
+	if filter.Direction == "up" {
+		reverseSortDirection := "ASC"
+		if sortDirection == "ASC" {
+			reverseSortDirection = "DESC"
+		}
+
+		parentQuery = us.getQueryBuilder().
+			Select("*").
+			FromSelect(query, "data").
+			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
+	}
+
+	userResults := []*model.UserReportQuery{}
+	err := us.GetReplicaX().SelectBuilder(&userResults, parentQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get users for reporting")
+	}
+
+	return userResults, nil
 }

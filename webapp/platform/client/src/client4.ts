@@ -52,7 +52,7 @@ import {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions, UserReportOptions} from '@mattermost/types/client4';
 import {Compliance} from '@mattermost/types/compliance';
 import {
     ClientConfig,
@@ -133,6 +133,7 @@ import {
     UserStatus,
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
+    UserReport,
 } from '@mattermost/types/users';
 import {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {ProductNotices} from '@mattermost/types/product_notices';
@@ -474,6 +475,14 @@ export default class Client4 {
 
     getDraftsRoute() {
         return `${this.getBaseRoute()}/drafts`;
+    }
+
+    getReportsRoute(): string {
+        return `${this.getBaseRoute()}/reports`;
+    }
+
+    getLimitsRoute(): string {
+        return `${this.getBaseRoute()}/limits`;
     }
 
     getCSRFFromCookie() {
@@ -982,6 +991,14 @@ export default class Client4 {
         );
     };
 
+    getUsersForReporting = (filter: UserReportOptions) => {
+        const queryString = buildQueryString(filter);
+        return this.doFetch<UserReport[]>(
+            `${this.getReportsRoute()}/users${queryString}`,
+            {method: 'get'},
+        );
+    }
+
     /**
      * @deprecated
      */
@@ -1047,6 +1064,14 @@ export default class Client4 {
         return this.doFetch(
             `${this.getUserRoute('me')}/status/custom/recent/delete`,
             {method: 'post', body: JSON.stringify(customStatus)},
+        );
+    }
+
+    moveThread = (postId: string, channelId: string) => {
+        const url = this.getPostRoute(postId) + '/move';
+        return this.doFetch<StatusOK>(
+            url,
+            {method: 'post', body: JSON.stringify({channel_id: channelId})},
         );
     }
 

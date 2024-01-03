@@ -251,6 +251,20 @@ func (hooks *hooksTimerLayer) ServeMetrics(c *Context, w http.ResponseWriter, r 
 	hooks.recordTime(startTime, "ServeMetrics", true)
 }
 
+func (hooks *hooksTimerLayer) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.OnSharedChannelsSyncMsg(msg, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsSyncMsg", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSharedChannelsPing(rc)
+	hooks.recordTime(startTime, "OnSharedChannelsPing", true)
+	return _returnsA
+}
+
 func (hooks *hooksTimerLayer) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
 	startTime := timePkg.Now()
 	hooks.hooksImpl.PreferencesHaveChanged(c, preferences)
