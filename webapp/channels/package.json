@@ -202,7 +202,7 @@
     "i18n-extract": "npm run mmjstool -- i18n extract-webapp --webapp-dir ./src",
     "i18n-clean-empty": "npm run mmjstool -- i18n clean-empty --webapp-dir ./src",
     "i18n-check-empty-src": "npm run mmjstool -- i18n check-empty-src --webapp-dir ./src",
-    "i18n-extract-beta": "rm -rf src/i18n/en.json && formatjs extract 'src/**/*.{js,jsx,ts,tsx}' --additional-function-names defineMessage,localizeMessage --additional-component-names FormattedMarkdownMessage --ignore 'src/**/*.d.ts' --out-file src/i18n/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]' --format simple",
+    "i18n-extract-beta": "rm -rf src/i18n/en.json && formatjs extract 'src/**/*.{js,jsx,ts,tsx}' --additional-function-names defineMessage,localizeMessage --ignore 'src/**/*.d.ts' --out-file src/i18n/en.json --id-interpolation-pattern '[sha512:contenthash:base64:6]' --format simple",
     "check-types": "tsc -b",
     "make-emojis": "node --experimental-json-modules build/emoji/make_emojis.mjs"
   }

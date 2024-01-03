@@ -22,8 +22,7 @@
         "version": "detect"
     },
     "formatjs": {
-      "additionalFunctionNames": ["defineMessage","localizeMessage"],
-      "additionalComponentNames": ["FormattedMarkdownMessage"]
+      "additionalFunctionNames": ["defineMessage","localizeMessage"]
     }
   },
   "rules": {
