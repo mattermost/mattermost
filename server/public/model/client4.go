@@ -471,6 +471,14 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
+func (c *Client4) outgoingOAuthConnectionsRoute() string {
+	return "/oauth/outgoing_connections"
+}
+
+func (c *Client4) outgoingOAuthConnectionRoute(id string) string {
+	return fmt.Sprintf("/oauth/outgoing_connections/%s", id)
+}
+
 func (c *Client4) jobsRoute() string {
 	return "/jobs"
 }
@@ -565,6 +573,10 @@ func (c *Client4) ipFiltersRoute() string {
 
 func (c *Client4) permissionsRoute() string {
 	return "/permissions"
+}
+
+func (c *Client4) limitsRoute() string {
+	return "/limits"
 }
 
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
@@ -5999,6 +6011,36 @@ func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*Ac
 	return ar, BuildResponse(rp), nil
 }
 
+// OutgoingOAuthConnection section
+
+// GetOutgoingOAuthConnections retrieves the outgoing OAuth connections.
+func (c *Client4) GetOutgoingOAuthConnections(ctx context.Context, fromID string, limit int) ([]*OutgoingOAuthConnection, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var connections []*OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&connections); err != nil {
+		return nil, nil, NewAppError("GetOutgoingOAuthConnections", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return connections, BuildResponse(r), nil
+}
+
+// GetOutgoingOAuthConnection retrieves the outgoing OAuth connection with the given ID.
+func (c *Client4) GetOutgoingOAuthConnection(ctx context.Context, id string) (*OutgoingOAuthConnection, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionRoute(id), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var connection *OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&connection); err != nil {
+		return nil, nil, NewAppError("GetOutgoingOAuthConnection", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return connection, BuildResponse(r), nil
+}
+
 // Elasticsearch Section
 
 // TestElasticsearch will attempt to connect to the configured Elasticsearch server and return OK if configured.
@@ -8794,4 +8836,20 @@ func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*
 	defer closeBody(r)
 
 	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var userLimits UserLimits
+	if r.StatusCode == http.StatusNotModified {
+		return &userLimits, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&userLimits); err != nil {
+		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &userLimits, BuildResponse(r), nil
 }

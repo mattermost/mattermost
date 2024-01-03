@@ -286,7 +286,6 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                                 previewMessageLink={localizeMessage('edit_channel_header.previewHeader', 'Edit Header')}
                             />
                         </div>
-                        <br/>
                         {this.renderError()}
                     </div>
                 </Modal.Body>

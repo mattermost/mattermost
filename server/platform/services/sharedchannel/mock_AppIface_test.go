@@ -314,6 +314,30 @@ func (_m *MockAppIface) NotifySharedChannelUserUpdate(user *model.User) {
 	_m.Called(user)
 }
 
+// OnSharedChannelsSyncMsg provides a mock function with given fields: msg, rc
+func (_m *MockAppIface) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	ret := _m.Called(msg, rc)
+
+	var r0 model.SyncResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) (model.SyncResponse, error)); ok {
+		return rf(msg, rc)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) model.SyncResponse); ok {
+		r0 = rf(msg, rc)
+	} else {
+		r0 = ret.Get(0).(model.SyncResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SyncMsg, *model.RemoteCluster) error); ok {
+		r1 = rf(msg, rc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PatchChannelModerationsForChannel provides a mock function with given fields: c, channel, channelModerationsPatch
 func (_m *MockAppIface) PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	ret := _m.Called(c, channel, channelModerationsPatch)

@@ -8,6 +8,12 @@ import {extractPluginConfiguration} from './plugin_setting_extraction';
 function getFullExample(): PluginConfiguration {
     return {
         id: '',
+        action: {
+            buttonText: 'some button text',
+            onClick: () => 1,
+            text: 'some text',
+            title: 'some title',
+        },
         sections: [
             {
                 settings: [
@@ -68,6 +74,7 @@ function getFullExample(): PluginConfiguration {
                 ],
                 title: 'title 2',
                 onSubmit: () => 2,
+                disabled: true,
             },
         ],
         uiName: 'some name',
@@ -97,6 +104,32 @@ describe('plugin setting extraction', () => {
         res = extractPluginConfiguration(config, pluginId);
         expect(res).toBeTruthy();
         expect(res!.id).toBe(pluginId);
+    });
+
+    it('action gets properly added', () => {
+        const config = getFullExample();
+        const res = extractPluginConfiguration(config, 'PluginId');
+        expect(res).toBeTruthy();
+        expect(res?.action).toBeTruthy();
+        expect(res?.action?.buttonText).toBe(config.action?.buttonText);
+        expect(res?.action?.text).toBe(config.action?.text);
+        expect(res?.action?.title).toBe(config.action?.title);
+        expect(res?.action?.onClick).toBe(config.action?.onClick);
+    });
+
+    it('sections get properly added', () => {
+        const config = getFullExample();
+        const res = extractPluginConfiguration(config, 'PluginId');
+        expect(res).toBeTruthy();
+        expect(res?.sections).toHaveLength(2);
+        expect(res?.sections[0].disabled).toBe(config.sections[0].disabled);
+        expect(res?.sections[0].title).toBe(config.sections[0].title);
+        expect(res?.sections[0].onSubmit).toBe(config.sections[0].onSubmit);
+        expect(res?.sections[0].settings).toHaveLength(config.sections[0].settings.length);
+        expect(res?.sections[1].disabled).toBe(config.sections[1].disabled);
+        expect(res?.sections[1].title).toBe(config.sections[1].title);
+        expect(res?.sections[1].onSubmit).toBe(config.sections[1].onSubmit);
+        expect(res?.sections[1].settings).toHaveLength(config.sections[1].settings.length);
     });
 
     it('reject configs without name', () => {
@@ -231,6 +264,32 @@ describe('plugin setting extraction', () => {
         const res = extractPluginConfiguration(config, 'PluginId');
         expect(res).toBeTruthy();
         expect(res?.sections[0].settings).toHaveLength(1);
+    });
+
+    it('filter out ill defined action', () => {
+        let config: any = getFullExample();
+        delete config.action?.buttonText;
+        let res = extractPluginConfiguration(config, 'PluginId');
+        expect(res).toBeTruthy();
+        expect(res?.action).toBeFalsy();
+
+        config = getFullExample();
+        delete config.action?.title;
+        res = extractPluginConfiguration(config, 'PluginId');
+        expect(res).toBeTruthy();
+        expect(res?.action).toBeFalsy();
+
+        config = getFullExample();
+        delete config.action?.text;
+        res = extractPluginConfiguration(config, 'PluginId');
+        expect(res).toBeTruthy();
+        expect(res?.action).toBeFalsy();
+
+        config = getFullExample();
+        delete config.action?.onClick;
+        res = extractPluginConfiguration(config, 'PluginId');
+        expect(res).toBeTruthy();
+        expect(res?.action).toBeFalsy();
     });
 
     it('(future proof) filter out extra config arguments', () => {
