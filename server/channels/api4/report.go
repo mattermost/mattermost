@@ -15,6 +15,7 @@ import (
 
 func (api *API) InitReports() {
 	api.BaseRoutes.Reports.Handle("/users", api.APISessionRequired(getUsersForReporting)).Methods("GET")
+	api.BaseRoutes.Reports.Handle("/users/count", api.APISessionRequired(getUserCountForReporting)).Methods("GET")
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -82,6 +83,45 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if jsonErr := json.NewEncoder(w).Encode(userReports); jsonErr != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
+	}
+}
+
+func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
+		return
+	}
+
+	teamFilter := r.URL.Query().Get("team_filter")
+	if !(teamFilter == "" || model.IsValidId(teamFilter)) {
+		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_team_filter", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	hideActive := r.URL.Query().Get("hide_active") == "true"
+	hideInactive := r.URL.Query().Get("hide_inactive") == "true"
+	if hideActive && hideInactive {
+		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_active_filter", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	options := &model.UserReportOptions{
+		Team:         teamFilter,
+		Role:         r.URL.Query().Get("role_filter"),
+		HasNoTeam:    r.URL.Query().Get("has_no_team") == "true",
+		HideActive:   hideActive,
+		HideInactive: hideInactive,
+	}
+	options.PopulateDateRange(time.Now())
+
+	count, err := c.App.GetUserCountForReport(options)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	if jsonErr := json.NewEncoder(w).Encode(count); jsonErr != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
 	}
 }

@@ -2268,6 +2268,43 @@ func (us SqlUserStore) RefreshPostStatsForUsers() error {
 	return nil
 }
 
+func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptions, isPostgres bool) sq.SelectBuilder {
+	query = applyRoleFilter(query, filter.Role, isPostgres)
+	if filter.HasNoTeam {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
+	} else if filter.Team != "" {
+		query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.DeleteAt = 0)").
+			Where(sq.Eq{"tm.TeamId": filter.Team})
+	}
+	if filter.HideActive {
+		query = query.Where(sq.Gt{"u.DeleteAt": 0})
+	}
+	if filter.HideInactive {
+		query = query.Where(sq.Eq{"u.DeleteAt": 0})
+	}
+
+	return query
+}
+
+func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	query := us.getQueryBuilder().
+		Select("COUNT(u.Id)").
+		From("Users u").
+		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)"))
+
+	query = applyUserReportFilter(query, filter, us.DriverName() == model.DatabaseDriverPostgres)
+	queryStr, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "user_count_report_tosql")
+	}
+	var v int64
+	err = us.GetReplicaX().Get(&v, queryStr, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count Users for report")
+	}
+	return v, nil
+}
+
 func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
 	selectColumns := []string{"u.Id", "u.LastLogin", "MAX(s.LastActivityAt) AS LastStatusAt"}
@@ -2364,19 +2401,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		}
 	}
 
-	query = applyRoleFilter(query, filter.Role, isPostgres)
-	if filter.HasNoTeam {
-		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
-	} else if filter.Team != "" {
-		query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.DeleteAt = 0)").
-			Where(sq.Eq{"tm.TeamId": filter.Team})
-	}
-	if filter.HideActive {
-		query = query.Where(sq.Gt{"u.DeleteAt": 0})
-	}
-	if filter.HideInactive {
-		query = query.Where(sq.Eq{"u.DeleteAt": 0})
-	}
+	query = applyUserReportFilter(query, filter, isPostgres)
 
 	parentQuery := query
 	// If we're going a page back...

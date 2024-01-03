@@ -494,6 +494,7 @@ type UserStore interface {
 	InsertUsers(users []*model.User) error
 	RefreshPostStatsForUsers() error
 	GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error)
+	GetUserCountForReport(filter *model.UserReportOptions) (int64, error)
 }
 
 type BotStore interface {
