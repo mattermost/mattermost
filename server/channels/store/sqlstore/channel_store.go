@@ -1935,6 +1935,12 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 		return nil, err
 	}
 
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
 	// Make the where clause first since it'll be used multiple times
 	whereClause := sq.Or{}
 	for _, member := range members {
@@ -1961,18 +1967,8 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 		builder = builder.Set("NotifyProps", jsonExpr)
 	}
 
-	sqlUpdate, args, err := builder.Where(whereClause).ToSql()
+	result, err := transaction.ExecBuilder(builder.Where(whereClause))
 	if err != nil {
-		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps_ToSQL")
-	}
-
-	transaction, err := s.GetMasterX().Beginx()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
-	if result, err := transaction.Exec(sqlUpdate, args...); err != nil {
 		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Failed to update ChannelMembers")
 	} else if count, _ := result.RowsAffected(); count != int64(len(members)) {
 		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Unable to update all ChannelMembers, some must not exist")
@@ -1988,8 +1984,6 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 	var dbMembers []*channelMemberWithSchemeRoles
 	if err := transaction.Select(&dbMembers, selectSQL, selectArgs...); err != nil {
 		return nil, errors.Wrapf(err, "PatchMultipleMembersNotifyProps: Failed to get updated ChannelMembers")
-	} else if len(dbMembers) != len(members) {
-		return nil, errors.New("PatchMultipleMembersNotifyProps: Unable to get updated ChannelMembers")
 	}
 
 	if err := transaction.Commit(); err != nil {

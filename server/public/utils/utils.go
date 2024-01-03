@@ -12,18 +12,3 @@ func Contains[T comparable](slice []T, item T) bool {
 	}
 	return false
 }
-
-func RemoveDuplicates[T comparable](slice []T) []T {
-	var result []T
-	seen := make(map[T]bool)
-	for _, item := range slice {
-		if seen[item] {
-			continue
-		}
-
-		result = append(result, item)
-		seen[item] = true
-	}
-
-	return result
-}
