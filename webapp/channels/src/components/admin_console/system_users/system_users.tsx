@@ -18,10 +18,7 @@ import {Constants, UserSearchOptions, SearchUserTeamFilter} from 'utils/constant
 import {getUserOptionsFromFilter, searchUserOptionsFromFilter} from 'utils/filter_users';
 
 import RevokeSessionsButton from './revoke_sessions_button';
-import SystemUsersFilterRole from './system_users_filter_role';
-import SystemUsersFilterTeam from './system_users_filter_team';
 import SystemUsersList from './system_users_list';
-import SystemUsersSearch from './system_users_search';
 
 // TODO remove this when the new admin console is fully implemented
 
@@ -317,7 +314,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__container'>
-                        <div className='system-users__filter-row'>
+                        {/* <div className='system-users__filter-row'>
                             <SystemUsersSearch
                                 value={this.props.searchTerm}
                                 onChange={this.handleSearchFiltersChange}
@@ -334,7 +331,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                                 onChange={this.handleSearchFiltersChange}
                                 onFilter={this.onFilter}
                             />
-                        </div>
+                        </div> */}
                         <SystemUsersList/>
                     </div>
                 </div>

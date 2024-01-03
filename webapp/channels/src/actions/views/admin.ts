@@ -50,23 +50,6 @@ export function getUserReports(options = {} as UserReportOptions): ActionFunc<Us
             return {error: error as ServerError};
         }
 
-        // const adminConsoleUserManagementActions = [];
-        // if ('page_size' in options) {
-        //     adminConsoleUserManagementActions.push(setAdminConsoleUsersManagementPageSize(options.page_size));
-        // }
-
-        // if (options.sort_column?.length) {
-        //     adminConsoleUserManagementActions.push(setAdminConsoleUsersManagementSortColumn(options.sort_column));
-        // }
-
-        // if (options?.sort_direction?.length) {
-        //     adminConsoleUserManagementActions.push(setAdminConsoleUsersManagementSortOrder(options.sort_direction));
-        // }
-
-        // if (adminConsoleUserManagementActions.length) {
-        //     dispatch(batchActions(adminConsoleUserManagementActions));
-        // }
-
         return {data};
     };
 }

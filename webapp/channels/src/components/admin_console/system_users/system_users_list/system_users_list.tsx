@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES} from 'components/admin_console/list_table';
+import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef} from 'components/admin_console/list_table';
 
 import {imageURLForUser} from 'utils/utils';
@@ -58,7 +58,7 @@ function SystemUsersList(props: Props) {
     const history = useHistory();
 
     const [userReports, setUserReports] = useState<UserReport[]>([]);
-    const [isLoading, setIsLoading] = useState(false);
+    const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
 
     const columns: Array<ColumnDef<SystemUsersRow, any>> = useMemo(
         () => [
@@ -213,7 +213,7 @@ function SystemUsersList(props: Props) {
 
     useEffect(() => {
         async function fetchUserReportsWithOptions(pageSize?: PaginationState['pageSize'], sortColumn?: SortingState[0]['id'], sortIsDescending?: SortingState[0]['desc']) {
-            setIsLoading(true);
+            setLoadingState(LoadingStates.Loading);
 
             const options: UserReportOptions = {
                 page_size: pageSize || PAGE_SIZES[0],
@@ -221,21 +221,18 @@ function SystemUsersList(props: Props) {
                 ...getSortDirectionForOptions(sortIsDescending),
             };
 
-            const {data, error} = await props.getUserReports(options) as ActionResult<UserReport[], ServerError>;
+            const {data} = await props.getUserReports(options) as ActionResult<UserReport[], ServerError>;
 
             if (data) {
                 if (data.length > 0) {
                     setUserReports(data);
                 } else {
-                    //TODO handle empty data
+                    setUserReports([]);
                 }
+                setLoadingState(LoadingStates.Loaded);
             } else {
-                //TODO handle error
-                // eslint-disable-next-line no-console
-                console.log('error', error);
+                setLoadingState(LoadingStates.Failed);
             }
-
-            setIsLoading(false);
         }
 
         fetchUserReportsWithOptions(props.pageSize, props.sortColumn, props.sortIsDescending);
@@ -296,12 +293,12 @@ function SystemUsersList(props: Props) {
         meta: {
             tableId: 'systemUsersTable',
             tableCaption: formatMessage({id: 'admin.system_users.list.caption', defaultMessage: 'System Users'}),
-            isLoading,
+            loadingState,
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,
-            hasAdditionalPaginationAtTop: true,
-            totalRowInfo: 'X Users',
+            hasAdditionalPaginationAtTop: false,
+            totalRowInfo: '',
         } as TableMeta,
         getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
         getSortedRowModel: getSortedRowModel<SystemUsersRow>(),
