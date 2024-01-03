@@ -6615,6 +6615,10 @@
     "translation": "Unable to save the token."
   },
   {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Failed to fetch user count."
+  },
+  {
     "id": "app.report.get_user_report.store_error",
     "translation": "Failed to fetch user report."
   },
