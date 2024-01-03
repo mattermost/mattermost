@@ -67,6 +67,7 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		HasNoTeam:    r.URL.Query().Get("has_no_team") == "true",
 		HideActive:   hideActive,
 		HideInactive: hideInactive,
+		SearchTerm:   r.URL.Query().Get("search_term"),
 	}
 	options.PopulateDateRange(time.Now())
 
@@ -112,6 +113,7 @@ func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request
 		HasNoTeam:    r.URL.Query().Get("has_no_team") == "true",
 		HideActive:   hideActive,
 		HideInactive: hideInactive,
+		SearchTerm:   r.URL.Query().Get("search_term"),
 	}
 	options.PopulateDateRange(time.Now())
 

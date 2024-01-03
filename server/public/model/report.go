@@ -82,6 +82,7 @@ type UserReportOptions struct {
 	HasNoTeam    bool
 	HideActive   bool
 	HideInactive bool
+	SearchTerm   string
 }
 
 func (u *UserReportOptions) IsValid() *AppError {

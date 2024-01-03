@@ -6541,4 +6541,26 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 		require.Len(t, userReport, 15)
 	})
+
+	t.Run("should filter on search term", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			SearchTerm: "username_1",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 26)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			SearchTerm: "username_2",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 11)
+	})
 }

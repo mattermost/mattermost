@@ -2283,6 +2283,10 @@ func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptio
 		query = query.Where(sq.Eq{"u.DeleteAt": 0})
 	}
 
+	if strings.TrimSpace(filter.SearchTerm) != "" {
+		query = generateSearchQuery(query, strings.Fields(sanitizeSearchTerm(filter.SearchTerm, "*")), UserSearchTypeAll, isPostgres)
+	}
+
 	return query
 }
 

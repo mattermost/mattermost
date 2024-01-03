@@ -81,6 +81,11 @@
           description: If true, show only users that are active. Cannot be used at the same time as "hide_active"
           schema:
             type: boolean
+        - name: search_term
+          in: query
+          description: A filtering search term that allows filtering by Username, FirstName, LastName, Nickname or Email
+          schema:
+            type: string
       responses:
         "200":
           description: User page retrieval successful
@@ -139,6 +144,11 @@
           description: If true, show only users that are active. Cannot be used at the same time as "hide_active"
           schema:
             type: boolean
+        - name: search_term
+          in: query
+          description: A filtering search term that allows filtering by Username, FirstName, LastName, Nickname or Email
+          schema:
+            type: string
       responses:
         "200":
           description: User count retrieval successful
