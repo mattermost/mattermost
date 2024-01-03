@@ -23,6 +23,8 @@ import SystemUsersFilterTeam from './system_users_filter_team';
 import SystemUsersList from './system_users_list';
 import SystemUsersSearch from './system_users_search';
 
+// TODO remove this when the new admin console is fully implemented
+
 const USER_ID_LENGTH = 26;
 const USERS_PER_PAGE = 50;
 
