@@ -79,7 +79,7 @@ describe('Move Thread', () => {
         cy.visit(`/${testTeam.name}/channels/${dmChannel.name}`);
     });
 
-    it('Move root post from DM', () => {
+    it('MM-T5512_1 Move root post from DM', () => {
         // # Check if ... button is visible in last post right side
         cy.get(`#CENTER_button_${testPost.id}`).should('not.be.visible');
 
@@ -144,7 +144,7 @@ describe('Move Thread', () => {
         });
     });
 
-    it('Should not be able to move post from DM if configured off', () => {
+    it('MM-T5512_2 Should not be able to move post from DM if configured off', () => {
         cy.apiUpdateConfig({
             WranglerSettings: {
                 MoveThreadFromDirectMessageChannelEnable: false,
