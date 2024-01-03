@@ -11,9 +11,7 @@
 // Group: @channels @enterprise @elasticsearch @incoming_webhook @not_cloud
 
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
-import {
-    enableElasticSearch,
-} from '../elasticsearch_autocomplete/helpers';
+import {enableElasticSearch} from '../../autocomplete/helpers';
 
 describe('Incoming webhook', () => {
     let testTeam;
@@ -49,19 +47,30 @@ describe('Incoming webhook', () => {
 
         const payload = {
             title: 'Title',
-            attachments: [{
-                type: 'slack_attachment',
-                color: '#7CD197',
-                fields: [{short: false, title: 'Area', value: 'This is a test post from the Integrations tab of release testing that will be deleted by someone who has the admin level permissions to do so.'}],
-                text: `${id} This is the text of the attachment. This text should be searchable. Findme.`,
-            }],
+            attachments: [
+                {
+                    type: 'slack_attachment',
+                    color: '#7CD197',
+                    fields: [
+                        {
+                            short: false,
+                            title: 'Area',
+                            value: 'This is a test post from the Integrations tab of release testing that will be deleted by someone who has the admin level permissions to do so.',
+                        },
+                    ],
+                    text: `${id} This is the text of the attachment. This text should be searchable. Findme.`,
+                },
+            ],
         };
 
         cy.visit(`/${testTeam.name}/channels/${testChannel.name}`);
 
         cy.postIncomingWebhook({url: incomingWebhook.url, data: payload});
 
-        cy.get('#searchBox').wait(TIMEOUTS.HALF_SEC).typeWithForce('findme').typeWithForce('{enter}');
+        cy.get('#searchBox').
+            wait(TIMEOUTS.HALF_SEC).
+            typeWithForce('findme').
+            typeWithForce('{enter}');
 
         cy.get('#search-items-container').within(() => {
             cy.get('.attachment__body').should('contain', id);
