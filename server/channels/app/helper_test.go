@@ -4,7 +4,11 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -723,4 +727,25 @@ func NewTestId() string {
 
 func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 	return th.App.NewPluginAPI(th.Context, manifest)
+}
+
+func DecodeJSON[T any](o any, result *T) *T {
+	var r io.Reader
+	switch v := o.(type) {
+	case string:
+		r = strings.NewReader(v)
+	case []byte:
+		r = bytes.NewReader(v)
+	case io.Reader:
+		r = v
+	default:
+		panic(fmt.Sprintf("Unable to decode JSON from %v", v))
+	}
+
+	err := json.NewDecoder(r).Decode(result)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
 }
