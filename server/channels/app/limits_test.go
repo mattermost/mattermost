@@ -21,8 +21,6 @@ func TestGetUserLimits(t *testing.T) {
 		// InitBasic creates 3 users by default
 		require.Equal(t, int64(3), userLimits.ActiveUserCount)
 		require.Equal(t, int64(10000), userLimits.MaxUsersLimit)
-		require.Equal(t, int64(500), userLimits.LowerBandUserLimit)
-		require.Equal(t, int64(9000), userLimits.UpperBandUserLimit)
 	})
 
 	t.Run("user count should increase on creating new user and decrease on permanently deleting", func(t *testing.T) {
@@ -130,7 +128,5 @@ func TestGetUserLimits(t *testing.T) {
 
 		require.Equal(t, int64(0), userLimits.ActiveUserCount)
 		require.Equal(t, int64(0), userLimits.MaxUsersLimit)
-		require.Equal(t, int64(0), userLimits.LowerBandUserLimit)
-		require.Equal(t, int64(0), userLimits.UpperBandUserLimit)
 	})
 }

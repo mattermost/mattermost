@@ -104,8 +104,8 @@ describe('Category muting', () => {
                 last_post_at: 0,
                 purpose: '',
                 scheme_id: '',
-                last_root_post_at: 0,
                 update_at: 0,
+                last_root_post_at: 0,
             })).then((channel: Cypress.Channel) => {
                 // # And then invite us to it
                 cy.wrap(client.addToChannel(testUser.id, channel.id));
