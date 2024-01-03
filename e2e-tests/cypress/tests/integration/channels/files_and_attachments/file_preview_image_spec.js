@@ -106,10 +106,10 @@ describe('Upload Files - Image', () => {
 
     it('MM-T2264_7 - WEBP', () => {
         const properties = {
-            filePath: '../../../WEBP.webp',
+            filePath: 'mm_file_testing/Images/WEBP.webp',
             fileName: 'WEBP.webp',
-            originalWidth: 400,
-            originalHeight: 479,
+            originalWidth: 640,
+            originalHeight: 426,
             mimeType: 'image/webp',
         };
 
