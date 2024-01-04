@@ -38,12 +38,9 @@ export function setGlobalItem(name: string, value: any) {
 }
 
 export function removeGlobalItem(name: string) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: StorageTypes.REMOVE_GLOBAL_ITEM,
-            data: {name},
-        });
-        return {data: true};
+    return {
+        type: StorageTypes.REMOVE_GLOBAL_ITEM,
+        data: {name},
     };
 }
 

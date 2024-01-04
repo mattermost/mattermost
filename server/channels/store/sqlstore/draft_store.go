@@ -369,7 +369,6 @@ func (s *SqlDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, us
 			Where("d.ChannelId = dd.ChannelId").
 			Where("d.RootId = dd.RootId").
 			Suffix("AND (d.RootId IN (SELECT Id FROM Posts WHERE DeleteAt <> 0) OR NOT EXISTS (SELECT 1 FROM Posts WHERE Posts.Id = d.RootId))")
-
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		builder = s.getQueryBuilder().
 			Delete("Drafts d").
