@@ -411,7 +411,7 @@ export class InvitationModal extends React.PureComponent<Props, State> {
             <Modal
                 id='invitationModal'
                 data-testid='invitationModal'
-                dialogClassName='a11y__modal'
+                dialogClassName='a11y__modal modal--overflow'
                 className='InvitationModal'
                 show={this.state.show}
                 onHide={this.handleHide}
