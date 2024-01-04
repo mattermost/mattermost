@@ -1,4 +1,4 @@
-.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
+.PHONY: build package run stop run-client run-server run-haserver stop-haserver stop-client stop-server restart restart-server restart-client restart-haserver start-docker update-docker clean-dist clean nuke check-style check-client-style check-server-style check-unit-tests test dist run-client-tests setup-run-client-tests cleanup-run-client-tests test-client build-linux build-osx build-freebsd build-windows package-prep package-linux package-osx package-windows internal-test-web-client vet run-server-for-web-client-tests diff-config prepackaged-plugins prepackaged-binaries test-server test-server-ee test-server-quick test-server-race test-mmctl-unit test-mmctl-e2e test-mmctl test-mmctl-coverage mmctl-build mmctl-docs new-migration migrations-extract test-public mocks-public
 
 ROOT := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 
@@ -125,6 +125,8 @@ DIST_PATH_LIN_AMD64=$(DIST_ROOT)/linux_amd64/mattermost
 DIST_PATH_LIN_ARM64=$(DIST_ROOT)/linux_arm64/mattermost
 DIST_PATH_OSX_AMD64=$(DIST_ROOT)/osx_amd64/mattermost
 DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
+DIST_PATH_FREEBSD_AMD64=$(DIST_ROOT)/freebsd_amd64/mattermost
+DIST_PATH_FREEBSD_ARM64=$(DIST_ROOT)/freebsd_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
