@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile} from '@mattermost/types/users';
@@ -30,6 +31,7 @@ export type Props = {
     users: UserProfile[];
     excludeUsers: { [userId: string]: UserProfile };
     includeUsers: { [userId: string]: UserProfile };
+    intl: IntlShape;
     onAddCallback: (users: UserProfile[]) => void;
     onExited: () => void;
 
@@ -55,7 +57,7 @@ function searchUsersToAdd(users: Record<string, UserProfile>, term: string): Rec
     return filterProfiles(profileListToMap(filteredProfilesList), {});
 }
 
-export default class AddUsersToRoleModal extends React.PureComponent<Props, State> {
+export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -248,6 +250,7 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
                         key='addUsersToRoleKey'
                         options={options}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         ariaLabelRenderer={this.renderAriaLabel}
                         values={this.state.values}
                         valueRenderer={this.renderValue}
@@ -270,3 +273,5 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
         );
     };
 }
+
+export default injectIntl(AddUsersToRoleModal);
