@@ -729,7 +729,7 @@ func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 	return th.App.NewPluginAPI(th.Context, manifest)
 }
 
-func DecodeJSON[T any](o any, result *T) *T {
+func decodeJSON[T any](o any, result *T) *T {
 	var r io.Reader
 	switch v := o.(type) {
 	case string:

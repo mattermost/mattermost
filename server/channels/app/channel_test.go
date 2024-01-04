@@ -2764,7 +2764,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		received := <-messages1
 		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
 
-		member := DecodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		member := decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
 		assert.Equal(t, user1.Id, member.UserId)
 		assert.Equal(t, channel1.Id, member.ChannelId)
 		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
@@ -2775,7 +2775,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		received = <-messages1
 		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
 
-		member = DecodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		member = decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
 		assert.Equal(t, user1.Id, member.UserId)
 		assert.Equal(t, channel2.Id, member.ChannelId)
 		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
@@ -2786,7 +2786,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		received = <-messages2
 		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
 
-		member = DecodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		member = decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
 		assert.Equal(t, user2.Id, member.UserId)
 		assert.Equal(t, channel1.Id, member.ChannelId)
 		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
