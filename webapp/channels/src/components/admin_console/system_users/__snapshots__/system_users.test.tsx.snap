@@ -24,26 +24,6 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
     <div
       className="admin-console__container"
     >
-      <div
-        className="system-users__filter-row"
-      >
-        <SystemUsersSearch
-          onChange={[Function]}
-          onSearch={[Function]}
-          value=""
-        />
-        <SystemUsersFilterTeam
-          onChange={[Function]}
-          onFilter={[Function]}
-          options={Array []}
-          value=""
-        />
-        <SystemUsersFilterRole
-          onChange={[Function]}
-          onFilter={[Function]}
-          value=""
-        />
-      </div>
       <Connect(SystemUsersList) />
     </div>
   </div>

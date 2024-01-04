@@ -314,24 +314,6 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__container'>
-                        {/* <div className='system-users__filter-row'>
-                            <SystemUsersSearch
-                                value={this.props.searchTerm}
-                                onChange={this.handleSearchFiltersChange}
-                                onSearch={this.onSearch}
-                            />
-                            <SystemUsersFilterTeam
-                                options={this.props.teams}
-                                value={this.props.teamId}
-                                onChange={this.handleSearchFiltersChange}
-                                onFilter={this.onFilter}
-                            />
-                            <SystemUsersFilterRole
-                                value={this.props.filter}
-                                onChange={this.handleSearchFiltersChange}
-                                onFilter={this.onFilter}
-                            />
-                        </div> */}
                         <SystemUsersList/>
                     </div>
                 </div>

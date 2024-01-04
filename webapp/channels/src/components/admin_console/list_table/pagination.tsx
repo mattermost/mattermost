@@ -6,15 +6,9 @@ import {useIntl} from 'react-intl';
 
 import type {TableMeta} from './list_table';
 
-type Props = Pick<
-TableMeta,
-| 'onPreviousPageClick'
-| 'onNextPageClick'
-| 'disablePrevPage'
-| 'disableNextPage'
-| 'isLoading'
-| 'paginationInfo'
->;
+interface Props extends Pick<TableMeta, 'onPreviousPageClick' | 'onNextPageClick' | 'disablePrevPage' | 'disableNextPage' | 'paginationInfo'> {
+    isLoading?: boolean;
+}
 
 export function Pagination(props: Props) {
     const {formatMessage} = useIntl();
