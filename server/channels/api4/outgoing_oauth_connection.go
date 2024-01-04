@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 
+	"github.com/mattermost/logr/v2"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -25,6 +26,7 @@ func (api *API) InitOutgoingOAuthConnection() {
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(getOutgoingOAuthConnection)).Methods("GET")
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(updateOutgoingOAuthConnection)).Methods("PUT")
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(deleteOutgoingOAuthConnection)).Methods("DELETE")
+	api.BaseRoutes.OutgoingOAuthConnections.Handle("validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods("POST")
 }
 
 // checkOutgoingOAuthConnectionReadPermissions checks if the user has the permissions to read outgoing oauth connections.
@@ -327,4 +329,46 @@ func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	auditRec.Success()
 
 	ReturnStatusOK(w)
+}
+
+// validateOutgoingOAuthConnectionCredentials validates the credentials of an outgoing oauth connection by requesting a token
+// with the provided connection configuration. If the credentials are valid, the request will return a 200 status code and
+// if the credentials are invalid, the request will return a 400 status code.
+func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("validateOutgoingOAuthConnectionCredentials", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	c.LogAudit("attempt")
+
+	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+		return
+	}
+
+	service, ok := ensureOutgoingOAuthConnectionInterface(c, whereOutgoingOAuthConnection)
+	if !ok {
+		return
+	}
+
+	var inputConnection model.OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	audit.AddEventParameterAuditable(auditRec, "outgoing_oauth_connection", &inputConnection)
+
+	resultStatusCode := http.StatusOK
+
+	// Try to retrieve a token with the provided credentials
+	// do not store the token, just check if the credentials are valid and the request can be made
+	_, err := service.RetrieveTokenForConnection(c.AppContext, &inputConnection)
+	if err != nil {
+		c.Logger.Error("Failed to retrieve token while validating outgoing oauth connection", logr.Err(err))
+		resultStatusCode = err.StatusCode
+	}
+
+	auditRec.Success()
+	auditRec.AddEventResultState(&inputConnection)
+	auditRec.AddEventObjectType("outgoing_oauth_connection")
+
+	w.WriteHeader(resultStatusCode)
 }

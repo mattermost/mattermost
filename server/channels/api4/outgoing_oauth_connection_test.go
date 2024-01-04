@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -999,5 +1000,145 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 
 		require.Equal(t, http.StatusCreated, httpRecorder.Code)
 		require.NotEmpty(t, httpRecorder.Body.String())
+	})
+}
+
+func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
+	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
+	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
+	license.Id = "test-license-id"
+	th.App.Srv().SetLicense(license)
+	defer th.App.Srv().RemoveLicense()
+
+	// Run a server to fake the valid and invalid requests made to the oauth server
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch strings.TrimSpace(r.URL.Path) {
+		case "/valid":
+			w.WriteHeader(http.StatusOK)
+		case "/invalid":
+			w.WriteHeader(http.StatusBadRequest)
+		default:
+			http.NotFoundHandler().ServeHTTP(w, r)
+		}
+	}))
+	t.Cleanup(func() {
+		server.Close()
+	})
+
+	t.Run("no permissions", func(t *testing.T) {
+		c := &Context{}
+		c.AppContext = th.Context
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		req, err := http.NewRequest("POST", "/", nil)
+		if err != nil {
+			t.Error(err)
+		}
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
+		httpRecorder := httptest.NewRecorder()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			validateOutgoingOAuthConnectionCredentials(c, w, r)
+		})
+
+		handler.ServeHTTP(httpRecorder, req)
+
+		require.Equal(t, http.StatusForbidden, c.Err.StatusCode)
+	})
+
+	t.Run("invalid", func(t *testing.T) {
+		conn := newOutgoingOAuthConnection()
+		conn.CreatorId = model.NewId()
+		conn.OAuthTokenURL = server.URL + "/invalid"
+
+		c := &Context{}
+		c.AppContext = th.Context
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: conn.CreatorId,
+			Roles:  model.SystemUserRoleId,
+		}
+		c.AppContext = th.Context.WithSession(&session)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.OutgoingOAuthConnectionManagementPermission.Id, model.SystemUserRoleId)
+
+		body := &bytes.Buffer{}
+		require.NoError(t, json.NewEncoder(body).Encode(conn))
+		req, err := http.NewRequest("POST", "/", body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, "error", http.StatusBadRequest))
+
+		httpRecorder := httptest.NewRecorder()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			validateOutgoingOAuthConnectionCredentials(c, w, r)
+		})
+
+		handler.ServeHTTP(httpRecorder, req)
+
+		require.Equal(t, http.StatusBadRequest, httpRecorder.Code)
+	})
+
+	t.Run("success", func(t *testing.T) {
+		conn := newOutgoingOAuthConnection()
+		conn.CreatorId = model.NewId()
+		conn.OAuthTokenURL = server.URL + "/valid"
+
+		c := &Context{}
+		c.AppContext = th.Context
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: conn.CreatorId,
+			Roles:  model.SystemUserRoleId,
+		}
+		c.AppContext = th.Context.WithSession(&session)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.OutgoingOAuthConnectionManagementPermission.Id, model.SystemUserRoleId)
+
+		body := &bytes.Buffer{}
+		require.NoError(t, json.NewEncoder(body).Encode(conn))
+
+		req, err := http.NewRequest("POST", "/", body)
+		if err != nil {
+			t.Error(err)
+		}
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, nil)
+
+		httpRecorder := httptest.NewRecorder()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			validateOutgoingOAuthConnectionCredentials(c, w, r)
+		})
+
+		handler.ServeHTTP(httpRecorder, req)
+
+		require.Equal(t, http.StatusOK, httpRecorder.Code)
 	})
 }
