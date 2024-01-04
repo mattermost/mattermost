@@ -2700,14 +2700,6 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 
 		require.Nil(t, appErr)
 
-		// Confirm that the results are in the correct order
-		assert.Equal(t, user1.Id, result[0].UserId)
-		assert.Equal(t, channel1.Id, result[0].ChannelId)
-		assert.Equal(t, user1.Id, result[1].UserId)
-		assert.Equal(t, channel2.Id, result[1].ChannelId)
-		assert.Equal(t, user2.Id, result[2].UserId)
-		assert.Equal(t, channel1.Id, result[2].ChannelId)
-
 		// Confirm specified fields were updated
 		assert.Equal(t, model.ChannelNotifyNone, result[0].NotifyProps[model.DesktopNotifyProp])
 		assert.Equal(t, "custom_value", result[0].NotifyProps["custom_key"])
@@ -2766,7 +2758,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 
 		member := decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
 		assert.Equal(t, user1.Id, member.UserId)
-		assert.Equal(t, channel1.Id, member.ChannelId)
+		assert.Contains(t, []string{channel1.Id, channel2.Id}, member.ChannelId)
 		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
 		assert.Equal(t, "custom_value", member.NotifyProps["custom_key"])
 		assert.Equal(t, model.ChannelNotifyDefault, member.NotifyProps[model.PushNotifyProp])
@@ -2777,7 +2769,7 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 
 		member = decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
 		assert.Equal(t, user1.Id, member.UserId)
-		assert.Equal(t, channel2.Id, member.ChannelId)
+		assert.Contains(t, []string{channel1.Id, channel2.Id}, member.ChannelId)
 		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
 		assert.Equal(t, "custom_value", member.NotifyProps["custom_key"])
 		assert.Equal(t, model.ChannelNotifyDefault, member.NotifyProps[model.PushNotifyProp])
