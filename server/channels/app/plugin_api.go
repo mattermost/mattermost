@@ -271,7 +271,7 @@ func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*m
 }
 
 func (api *PluginAPI) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
-	pref, err := api.app.GetPreferenceByCategoryAndNameForUser(userID, category, name)
+	pref, err := api.app.GetPreferenceByCategoryAndNameForUser(api.ctx, userID, category, name)
 	if err != nil {
 		return model.Preference{}, err
 	}
