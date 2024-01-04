@@ -2311,7 +2311,7 @@ func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (i
 
 func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
-	selectColumns := []string{"u.Id", "u.LastLogin", "MAX(s.LastActivityAt) AS LastStatusAt"}
+	selectColumns := []string{"u.Id", "u.LastLogin", "u.DeleteAt", "u.MfaActive", "u.AuthService", "MAX(s.LastActivityAt) AS LastStatusAt"}
 	for _, column := range model.UserReportSortColumns {
 		selectColumns = append(selectColumns, "u."+column)
 	}

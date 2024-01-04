@@ -72,6 +72,9 @@ type UserReport struct {
 	CreateAt    int64  `json:"create_at,omitempty"`
 	DisplayName string `json:"display_name"`
 	Roles       string `json:"roles"`
+	DeleteAt    int64  `json:"delete_at"`
+	AuthService string `json:"auth_service"`
+	MfaActive   bool   `json:"mfa_active,omitempty"`
 	UserPostStats
 }
 
@@ -106,6 +109,9 @@ func (u *UserReportQuery) ToReport() *UserReport {
 		CreateAt:      u.CreateAt,
 		DisplayName:   u.GetDisplayName(ShowNicknameFullName),
 		Roles:         u.Roles,
+		DeleteAt:      u.DeleteAt,
+		AuthService:   u.AuthService,
+		MfaActive:     u.MfaActive,
 		UserPostStats: u.UserPostStats,
 	}
 }
