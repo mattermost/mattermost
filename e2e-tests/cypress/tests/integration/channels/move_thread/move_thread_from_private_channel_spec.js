@@ -66,7 +66,7 @@ describe('Move thread', () => {
         });
     });
 
-    it('Move root post from private channel', () => {
+    it('MM-T5511_1 Move root post from private channel', () => {
         // # Check if ... button is visible in last post right side
         cy.get(`#CENTER_button_${testPost.id}`).should('not.be.visible');
 
@@ -131,7 +131,7 @@ describe('Move thread', () => {
         });
     });
 
-    it('Should not be able to move post from private channel if configured off', () => {
+    it('MM-T5511_2 Should not be able to move post from private channel if configured off', () => {
         cy.apiUpdateConfig({
             WranglerSettings: {
                 MoveThreadFromPrivateChannelEnable: false,

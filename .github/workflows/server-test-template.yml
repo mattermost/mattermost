@@ -19,15 +19,16 @@ jobs:
   choose-runner:
     runs-on: ubuntu-latest
     outputs:
-      runner: ${{ steps.step1.outputs.runner }}
+      runner: ${{ steps.determine-runner.outputs.runner }}
     steps:
-      - name: Check branch
-        id: step1
+      - name: test/check-if-contributor-pr
+        id: determine-runner
         run: |
-          if [ ${{ github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }} ]; then
-            echo "runner=ubuntu-latest-8-cores" >> "$GITHUB_OUTPUT"
-          else
-            echo "runner=ubuntu-latest" >> "$GITHUB_OUTPUT"
+          if ${{ github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
+            then
+              echo "runner=ubuntu-latest-8-cores" >> "$GITHUB_OUTPUT"
+            else
+              echo "runner=ubuntu-22.04" >> "$GITHUB_OUTPUT"
           fi
   test:
     needs: choose-runner
@@ -35,7 +36,6 @@ jobs:
     runs-on: ${{ needs.choose-runner.outputs.runner }}
     env:
       COMPOSE_PROJECT_NAME: ghactions
-      BUILD_IMAGE: mattermost/mattermost-build-server:20230904_golang-1.20.7
     steps:
       - name: Checkout mattermost project
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -56,6 +56,8 @@ jobs:
           docker compose --ansi never exec -T minio sh -c 'mkdir -p /data/mattermost-test';
           docker compose --ansi never ps
       - name: Run Tests
+        env:
+          BUILD_IMAGE: mattermost/mattermost-build-server:${{ steps.go.outputs.GO_VERSION }}
         run: |
           if [[ ${{ github.ref_name }} == 'master' ]]; then
             export RACE_MODE="-race"
