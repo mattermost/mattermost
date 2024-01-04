@@ -850,7 +850,9 @@ describe('components/advanced_create_post', () => {
             ],
         };
 
-        instance.draftsForChannel[currentChannelProp.id] = uploadsInProgressDraft;
+        const channelId = 'another_channel_id';
+
+        instance.draftsForChannel[channelId] = uploadsInProgressDraft;
 
         wrapper.setProps({draft: uploadsInProgressDraft});
         const fileInfos = [TestHelper.getFileInfoMock({id: 'a'})];
@@ -862,10 +864,9 @@ describe('components/advanced_create_post', () => {
             ],
         };
 
-        instance.handleFileUploadComplete(fileInfos, clientIds, currentChannelProp.id);
+        instance.handleFileUploadComplete(fileInfos, clientIds, channelId);
 
-        jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, expectedDraft, currentChannelProp.id);
+        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + channelId, expectedDraft, channelId);
     });
 
     it('check for handleUploadError callback', () => {
@@ -945,7 +946,7 @@ describe('components/advanced_create_post', () => {
 
         jest.advanceTimersByTime(Constants.SAVE_DRAFT_TIMEOUT);
         expect(setDraft).toHaveBeenCalledTimes(1);
-        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draftProp, currentChannelProp.id, false);
+        expect(setDraft).toHaveBeenCalledWith(StoragePrefixes.DRAFT + currentChannelProp.id, draftProp, currentChannelProp.id);
         expect(instance.handleFileUploadChange).toHaveBeenCalledTimes(1);
     });
 

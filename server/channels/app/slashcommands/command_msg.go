@@ -9,7 +9,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -54,7 +53,7 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 
 	userProfile, nErr := a.Srv().Store().User().GetByUsername(targetUsername)
 	if nErr != nil {
-		mlog.Error(nErr.Error())
+		c.Logger().Error(nErr.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.missing.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
@@ -64,7 +63,7 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 
 	canSee, err := a.UserCanSeeOtherUser(c, args.UserId, userProfile.Id)
 	if err != nil {
-		mlog.Error(err.Error())
+		c.Logger().Error(err.Error())
 		return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 	if !canSee {
@@ -74,7 +73,7 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 	// Find the channel based on this user
 	channelName := model.GetDMNameFromIds(args.UserId, userProfile.Id)
 
-	targetChannelId := ""
+	targetChannelID := ""
 	if channel, channelErr := a.Srv().Store().Channel().GetByName(args.TeamId, channelName, true); channelErr != nil {
 		var nfErr *store.ErrNotFound
 		if errors.As(channelErr, &nfErr) {
@@ -84,22 +83,22 @@ func (*msgProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArgs
 
 			var directChannel *model.Channel
 			if directChannel, err = a.GetOrCreateDirectChannel(c, args.UserId, userProfile.Id); err != nil {
-				mlog.Error(err.Error())
+				c.Logger().Error(err.Error())
 				return &model.CommandResponse{Text: args.T(err.Id), ResponseType: model.CommandResponseTypeEphemeral}
 			}
-			targetChannelId = directChannel.Id
+			targetChannelID = directChannel.Id
 		} else {
-			mlog.Error(channelErr.Error())
+			c.Logger().Error(channelErr.Error())
 			return &model.CommandResponse{Text: args.T("api.command_msg.dm_fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 		}
 	} else {
-		targetChannelId = channel.Id
+		targetChannelID = channel.Id
 	}
 
 	if parsedMessage != "" {
 		post := &model.Post{}
 		post.Message = parsedMessage
-		post.ChannelId = targetChannelId
+		post.ChannelId = targetChannelID
 		post.UserId = args.UserId
 		if _, err = a.CreatePostMissingChannel(c, post, true, true); err != nil {
 			return &model.CommandResponse{Text: args.T("api.command_msg.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
