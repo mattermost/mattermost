@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -31,7 +30,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 		printer.Clean()
 
 		err := exportListCmdF(s.th.Client, &cobra.Command{}, nil)
-		s.Require().EqualError(err, "failed to list exports: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to list exports: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -85,7 +84,7 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 		printer.Clean()
 
 		err := exportDeleteCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
-		s.Require().EqualError(err, "failed to delete export: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to delete export: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -131,7 +130,7 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		err := exportCreateCmdF(s.th.Client, &cobra.Command{}, nil)
-		s.Require().EqualError(err, "failed to create export process job: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to create export process job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -264,9 +263,9 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 
-		expected, err := ioutil.ReadFile(exportFilePath)
+		expected, err := os.ReadFile(exportFilePath)
 		s.Require().Nil(err)
-		actual, err := ioutil.ReadFile(downloadPath)
+		actual, err := os.ReadFile(downloadPath)
 		s.Require().Nil(err)
 
 		s.Require().Equal(expected, actual)
@@ -292,7 +291,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		s.Require().Nil(appErr)
 
 		err := exportJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job1.Id})
-		s.Require().EqualError(err, "failed to get export job: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to get export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -301,7 +300,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		printer.Clean()
 
 		err := exportJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
-		s.Require().ErrorContains(err, "failed to get export job: : Unable to get the job.")
+		s.Require().ErrorContains(err, "failed to get export job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -329,7 +328,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		cmd.Flags().Bool("all", false, "")
 
 		err := exportJobListCmdF(s.th.Client, cmd, nil)
-		s.Require().EqualError(err, "failed to get jobs: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to get jobs: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -402,7 +401,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		time.Sleep(time.Millisecond)
 
 		err := exportJobCancelCmdF(s.th.Client, cmd, []string{job.Id})
-		s.Require().EqualError(err, "failed to get export job: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to get export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -413,7 +412,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		cmd := &cobra.Command{}
 
 		err := exportJobCancelCmdF(c, cmd, []string{model.NewId()})
-		s.Require().ErrorContains(err, "failed to get export job: : Unable to get the job.")
+		s.Require().ErrorContains(err, "failed to get export job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})

@@ -9,6 +9,9 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path"
+	"path/filepath"
+	"strconv"
 	"strings"
 	"text/template"
 	"time"
@@ -108,6 +111,8 @@ func init() {
 	ImportValidateCmd.Flags().Bool("ignore-attachments", false, "Don't check if the attached files are present in the archive")
 	ImportValidateCmd.Flags().Bool("check-server-duplicates", true, "Set to false to ignore teams, channels, and users already present on the server")
 
+	ImportProcessCmd.Flags().Bool("bypass-upload", false, "If this is set, the file is not processed from the server, but rather directly read from the filesystem. Works only in --local mode.")
+
 	ImportListCmd.AddCommand(
 		ImportListAvailableCmd,
 		ImportListIncompleteCmd,
@@ -176,6 +181,11 @@ func importListAvailableCmdF(c client.Client, command *cobra.Command, args []str
 func importUploadCmdF(c client.Client, command *cobra.Command, args []string) error {
 	filepath := args[0]
 
+	isLocal, _ := command.Flags().GetBool("local")
+	if isLocal {
+		printer.PrintWarning("In --local mode, you don't need to upload the file to server any more. Directly use the import process command and pass the export file.")
+	}
+
 	file, err := os.Open(filepath)
 	if err != nil {
 		return fmt.Errorf("failed to open import file: %w", err)
@@ -240,10 +250,32 @@ func importUploadCmdF(c client.Client, command *cobra.Command, args []string) er
 func importProcessCmdF(c client.Client, command *cobra.Command, args []string) error {
 	importFile := args[0]
 
+	isLocal, _ := command.Flags().GetBool("local")
+	bypassUpload, _ := command.Flags().GetBool("bypass-upload")
+	if bypassUpload {
+		if isLocal {
+			// in local mode, we tell the server to directly read from this file.
+			if _, err := os.Stat(importFile); errors.Is(err, os.ErrNotExist) {
+				return fmt.Errorf("file %s doesn't exist. NOTE: If this file was uploaded to the server via mmctl import upload, please omit the --bypass-upload flag to revert to old behavior.", importFile)
+			}
+			// If it's not an absolute path, then we make it
+			if !path.IsAbs(importFile) {
+				var err2 error
+				importFile, err2 = filepath.Abs(importFile)
+				if err2 != nil {
+					return fmt.Errorf("error is getting the absolute path to %s: %w", importFile, err2)
+				}
+			}
+		} else {
+			printer.PrintWarning("--bypass-upload has no effect in non-local mode.")
+		}
+	}
+
 	job, _, err := c.CreateJob(context.TODO(), &model.Job{
 		Type: model.JobTypeImportProcess,
 		Data: map[string]string{
 			"import_file": importFile,
+			"local_mode":  strconv.FormatBool(isLocal && bypassUpload),
 		},
 	})
 	if err != nil {

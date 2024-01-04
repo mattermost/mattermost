@@ -6,6 +6,8 @@ package storetest
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -28,7 +30,7 @@ func cleanupStatusStore(t *testing.T, s SqlStore) {
 	require.NoError(t, execerr)
 }
 
-func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
+func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	users, err := ss.User().GetAll()
 	require.NoError(t, err, "failed cleaning up test users")
 
@@ -37,68 +39,69 @@ func TestUserStore(t *testing.T, ss store.Store, s SqlStore) {
 		require.NoError(t, err, "failed cleaning up test user %s", u.Username)
 	}
 
-	t.Run("IsEmpty", func(t *testing.T) { testIsEmpty(t, ss) })
-	t.Run("Count", func(t *testing.T) { testCount(t, ss) })
-	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, ss, s) })
-	t.Run("AnalyticsActiveCountForPeriod", func(t *testing.T) { testUserStoreAnalyticsActiveCountForPeriod(t, ss, s) })
-	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, ss) })
-	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, ss) })
-	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, ss) })
-	t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, ss) })
-	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, ss) })
-	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, ss) })
-	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, ss) })
-	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, ss) })
-	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, ss) })
-	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, ss) })
-	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, ss) })
-	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, ss) })
-	t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, ss) })
-	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, ss, s) })
-	t.Run("GetProfilesInChannelByAdmin", func(t *testing.T) { testUserStoreGetProfilesInChannelByAdmin(t, ss, s) })
-	t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, ss) })
-	t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, ss) })
-	t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, ss) })
-	t.Run("GetProfilesByIds", func(t *testing.T) { testUserStoreGetProfilesByIds(t, ss) })
-	t.Run("GetProfileByGroupChannelIdsForUser", func(t *testing.T) { testUserStoreGetProfileByGroupChannelIdsForUser(t, ss) })
-	t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, ss) })
-	t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, ss) })
-	t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, ss) })
-	t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, ss) })
-	t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, ss) })
-	t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, ss) })
-	t.Run("UpdatePassword", func(t *testing.T) { testUserStoreUpdatePassword(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testUserStoreDelete(t, ss) })
-	t.Run("UpdateAuthData", func(t *testing.T) { testUserStoreUpdateAuthData(t, ss) })
-	t.Run("ResetAuthDataToEmailForUsers", func(t *testing.T) { testUserStoreResetAuthDataToEmailForUsers(t, ss) })
-	t.Run("UserUnreadCount", func(t *testing.T) { testUserUnreadCount(t, ss) })
-	t.Run("UpdateMfaSecret", func(t *testing.T) { testUserStoreUpdateMfaSecret(t, ss) })
-	t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, ss) })
-	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, ss, s) })
-	t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, ss) })
-	t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, ss) })
-	t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, ss) })
-	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, ss) })
-	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, ss) })
-	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, ss) })
-	t.Run("SearchInGroup", func(t *testing.T) { testUserStoreSearchInGroup(t, ss) })
-	t.Run("SearchNotInGroup", func(t *testing.T) { testUserStoreSearchNotInGroup(t, ss) })
-	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, ss) })
-	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, ss) })
-	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, ss) })
-	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, ss) })
-	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetTeamGroupUsers(t, ss) })
-	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, ss) })
-	t.Run("PromoteGuestToUser", func(t *testing.T) { testUserStorePromoteGuestToUser(t, ss) })
-	t.Run("DemoteUserToGuest", func(t *testing.T) { testUserStoreDemoteUserToGuest(t, ss) })
-	t.Run("DeactivateGuests", func(t *testing.T) { testDeactivateGuests(t, ss) })
-	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, ss) })
-	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, ss) })
-	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, ss) })
-	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, ss) })
+	t.Run("IsEmpty", func(t *testing.T) { testIsEmpty(t, rctx, ss) })
+	t.Run("Count", func(t *testing.T) { testCount(t, rctx, ss) })
+	t.Run("AnalyticsActiveCount", func(t *testing.T) { testUserStoreAnalyticsActiveCount(t, rctx, ss, s) })
+	t.Run("AnalyticsActiveCountForPeriod", func(t *testing.T) { testUserStoreAnalyticsActiveCountForPeriod(t, rctx, ss, s) })
+	t.Run("AnalyticsGetInactiveUsersCount", func(t *testing.T) { testUserStoreAnalyticsGetInactiveUsersCount(t, rctx, ss) })
+	t.Run("AnalyticsGetSystemAdminCount", func(t *testing.T) { testUserStoreAnalyticsGetSystemAdminCount(t, rctx, ss) })
+	t.Run("AnalyticsGetGuestCount", func(t *testing.T) { testUserStoreAnalyticsGetGuestCount(t, rctx, ss) })
+	t.Run("AnalyticsGetExternalUsers", func(t *testing.T) { testUserStoreAnalyticsGetExternalUsers(t, rctx, ss) })
+	t.Run("Save", func(t *testing.T) { testUserStoreSave(t, rctx, ss) })
+	t.Run("Update", func(t *testing.T) { testUserStoreUpdate(t, rctx, ss) })
+	t.Run("UpdateUpdateAt", func(t *testing.T) { testUserStoreUpdateUpdateAt(t, rctx, ss) })
+	t.Run("UpdateFailedPasswordAttempts", func(t *testing.T) { testUserStoreUpdateFailedPasswordAttempts(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testUserStoreGet(t, rctx, ss) })
+	t.Run("GetAllUsingAuthService", func(t *testing.T) { testGetAllUsingAuthService(t, rctx, ss) })
+	t.Run("GetAllProfiles", func(t *testing.T) { testUserStoreGetAllProfiles(t, rctx, ss) })
+	t.Run("GetProfiles", func(t *testing.T) { testUserStoreGetProfiles(t, rctx, ss) })
+	t.Run("GetProfilesInChannel", func(t *testing.T) { testUserStoreGetProfilesInChannel(t, rctx, ss) })
+	t.Run("GetProfilesInChannelByStatus", func(t *testing.T) { testUserStoreGetProfilesInChannelByStatus(t, rctx, ss, s) })
+	t.Run("GetProfilesInChannelByAdmin", func(t *testing.T) { testUserStoreGetProfilesInChannelByAdmin(t, rctx, ss, s) })
+	t.Run("GetProfilesWithoutTeam", func(t *testing.T) { testUserStoreGetProfilesWithoutTeam(t, rctx, ss) })
+	t.Run("GetAllProfilesInChannel", func(t *testing.T) { testUserStoreGetAllProfilesInChannel(t, rctx, ss) })
+	t.Run("GetProfilesNotInChannel", func(t *testing.T) { testUserStoreGetProfilesNotInChannel(t, rctx, ss) })
+	t.Run("GetProfilesByIds", func(t *testing.T) { testUserStoreGetProfilesByIds(t, rctx, ss) })
+	t.Run("GetProfileByGroupChannelIdsForUser", func(t *testing.T) { testUserStoreGetProfileByGroupChannelIdsForUser(t, rctx, ss) })
+	t.Run("GetProfilesByUsernames", func(t *testing.T) { testUserStoreGetProfilesByUsernames(t, rctx, ss) })
+	t.Run("GetSystemAdminProfiles", func(t *testing.T) { testUserStoreGetSystemAdminProfiles(t, rctx, ss) })
+	t.Run("GetByEmail", func(t *testing.T) { testUserStoreGetByEmail(t, rctx, ss) })
+	t.Run("GetByAuthData", func(t *testing.T) { testUserStoreGetByAuthData(t, rctx, ss) })
+	t.Run("GetByUsername", func(t *testing.T) { testUserStoreGetByUsername(t, rctx, ss) })
+	t.Run("GetForLogin", func(t *testing.T) { testUserStoreGetForLogin(t, rctx, ss) })
+	t.Run("UpdatePassword", func(t *testing.T) { testUserStoreUpdatePassword(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testUserStoreDelete(t, rctx, ss) })
+	t.Run("UpdateAuthData", func(t *testing.T) { testUserStoreUpdateAuthData(t, rctx, ss) })
+	t.Run("ResetAuthDataToEmailForUsers", func(t *testing.T) { testUserStoreResetAuthDataToEmailForUsers(t, rctx, ss) })
+	t.Run("UserUnreadCount", func(t *testing.T) { testUserUnreadCount(t, rctx, ss) })
+	t.Run("UpdateMfaSecret", func(t *testing.T) { testUserStoreUpdateMfaSecret(t, rctx, ss) })
+	t.Run("UpdateMfaActive", func(t *testing.T) { testUserStoreUpdateMfaActive(t, rctx, ss) })
+	t.Run("GetRecentlyActiveUsersForTeam", func(t *testing.T) { testUserStoreGetRecentlyActiveUsersForTeam(t, rctx, ss, s) })
+	t.Run("GetNewUsersForTeam", func(t *testing.T) { testUserStoreGetNewUsersForTeam(t, rctx, ss) })
+	t.Run("Search", func(t *testing.T) { testUserStoreSearch(t, rctx, ss) })
+	t.Run("SearchNotInChannel", func(t *testing.T) { testUserStoreSearchNotInChannel(t, rctx, ss) })
+	t.Run("SearchInChannel", func(t *testing.T) { testUserStoreSearchInChannel(t, rctx, ss) })
+	t.Run("SearchNotInTeam", func(t *testing.T) { testUserStoreSearchNotInTeam(t, rctx, ss) })
+	t.Run("SearchWithoutTeam", func(t *testing.T) { testUserStoreSearchWithoutTeam(t, rctx, ss) })
+	t.Run("SearchInGroup", func(t *testing.T) { testUserStoreSearchInGroup(t, rctx, ss) })
+	t.Run("SearchNotInGroup", func(t *testing.T) { testUserStoreSearchNotInGroup(t, rctx, ss) })
+	t.Run("GetProfilesNotInTeam", func(t *testing.T) { testUserStoreGetProfilesNotInTeam(t, rctx, ss) })
+	t.Run("ClearAllCustomRoleAssignments", func(t *testing.T) { testUserStoreClearAllCustomRoleAssignments(t, rctx, ss) })
+	t.Run("GetAllAfter", func(t *testing.T) { testUserStoreGetAllAfter(t, rctx, ss) })
+	t.Run("GetUsersBatchForIndexing", func(t *testing.T) { testUserStoreGetUsersBatchForIndexing(t, rctx, ss) })
+	t.Run("GetTeamGroupUsers", func(t *testing.T) { testUserStoreGetTeamGroupUsers(t, rctx, ss) })
+	t.Run("GetChannelGroupUsers", func(t *testing.T) { testUserStoreGetChannelGroupUsers(t, rctx, ss) })
+	t.Run("PromoteGuestToUser", func(t *testing.T) { testUserStorePromoteGuestToUser(t, rctx, ss) })
+	t.Run("DemoteUserToGuest", func(t *testing.T) { testUserStoreDemoteUserToGuest(t, rctx, ss) })
+	t.Run("DeactivateGuests", func(t *testing.T) { testDeactivateGuests(t, rctx, ss) })
+	t.Run("ResetLastPictureUpdate", func(t *testing.T) { testUserStoreResetLastPictureUpdate(t, rctx, ss) })
+	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, rctx, ss) })
+	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
+	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
+	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss) })
 }
 
-func testUserStoreSave(t *testing.T, ss store.Store) {
+func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	maxUsersPerTeam := 50
 
@@ -170,7 +173,7 @@ func testUserStoreSave(t *testing.T, ss store.Store) {
 	require.Error(t, nErr, "should be the limit")
 }
 
-func testUserStoreUpdate(t *testing.T, ss store.Store) {
+func testUserStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
 		Email: MakeEmail(),
 	}
@@ -190,21 +193,21 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
-	_, err = ss.User().Update(u1, false)
+	_, err = ss.User().Update(rctx, u1, false)
 	require.NoError(t, err)
 
 	missing := &model.User{}
-	_, err = ss.User().Update(missing, false)
+	_, err = ss.User().Update(rctx, missing, false)
 	require.Error(t, err, "Update should have failed because of missing key")
 
 	newId := &model.User{
 		Id: model.NewId(),
 	}
-	_, err = ss.User().Update(newId, false)
+	_, err = ss.User().Update(rctx, newId, false)
 	require.Error(t, err, "Update should have failed because id change")
 
 	u2.Email = MakeEmail()
-	_, err = ss.User().Update(u2, false)
+	_, err = ss.User().Update(rctx, u2, false)
 	require.Error(t, err, "Update should have failed because you can't modify AD/LDAP fields")
 
 	u3 := &model.User{
@@ -219,12 +222,12 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	u3.Email = MakeEmail()
-	userUpdate, err := ss.User().Update(u3, false)
+	userUpdate, err := ss.User().Update(rctx, u3, false)
 	require.NoError(t, err, "Update should not have failed")
 	assert.Equal(t, oldEmail, userUpdate.New.Email, "Email should not have been updated as the update is not trusted")
 
 	u3.Email = MakeEmail()
-	userUpdate, err = ss.User().Update(u3, true)
+	userUpdate, err = ss.User().Update(rctx, u3, true)
 	require.NoError(t, err, "Update should not have failed")
 	assert.NotEqual(t, oldEmail, userUpdate.New.Email, "Email should have been updated as the update is trusted")
 
@@ -254,13 +257,13 @@ func testUserStoreUpdate(t *testing.T, ss store.Store) {
 	}
 	maxPostSize := ss.Post().GetMaxPostSize()
 	u4.NotifyProps[model.AutoResponderMessageNotifyProp] = strings.Repeat("a", maxPostSize+1)
-	_, err = ss.User().Update(&u4, false)
+	_, err = ss.User().Update(rctx, &u4, false)
 	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 	err = ss.User().UpdateNotifyProps(u4.Id, u4.NotifyProps)
 	require.Error(t, err, "auto responder message size should not be greater than maxPostSize")
 }
 
-func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
+func testUserStoreUpdateUpdateAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
@@ -280,7 +283,7 @@ func testUserStoreUpdateUpdateAt(t *testing.T, ss store.Store) {
 	require.Less(t, u1.UpdateAt, user.UpdateAt, "UpdateAt not updated correctly")
 }
 
-func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
+func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
@@ -297,7 +300,7 @@ func testUserStoreUpdateFailedPasswordAttempts(t *testing.T, ss store.Store) {
 	require.Equal(t, 3, user.FailedAttempts, "FailedAttempts not updated correctly")
 }
 
-func testUserStoreGet(t *testing.T, ss store.Store) {
+func testUserStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
 		Email: MakeEmail(),
 	}
@@ -345,7 +348,7 @@ func testUserStoreGet(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetAllUsingAuthService(t *testing.T, ss store.Store) {
+func testGetAllUsingAuthService(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -413,7 +416,7 @@ func sanitized(user *model.User) *model.User {
 	return clonedUser
 }
 
-func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
+func testUserStoreGetAllProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u1" + model.NewId(),
@@ -673,7 +676,7 @@ func testUserStoreGetAllProfiles(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
+func testUserStoreGetProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -842,7 +845,7 @@ func testUserStoreGetProfiles(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
+func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -936,7 +939,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	require.NoError(t, nErr)
 
 	u4.DeleteAt = 1
-	_, err = ss.User().Update(u4, true)
+	_, err = ss.User().Update(rctx, u4, true)
 	require.NoError(t, err)
 
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
@@ -1036,7 +1039,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s SqlStore) {
+func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -1114,7 +1117,7 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, ss store.Store, s Sq
 	})
 }
 
-func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s SqlStore) {
+func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -1210,7 +1213,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 	require.NoError(t, nErr)
 
 	u4.DeleteAt = 1
-	_, err = ss.User().Update(u4, true)
+	_, err = ss.User().Update(rctx, u4, true)
 	require.NoError(t, err)
 
 	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
@@ -1275,7 +1278,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, ss store.Store, s S
 	})
 }
 
-func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
+func testUserStoreGetProfilesWithoutTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -1342,7 +1345,7 @@ func testUserStoreGetProfilesWithoutTeam(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
+func testUserStoreGetAllProfilesInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -1468,7 +1471,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, ss store.Store) {
 	ss.User().InvalidateProfilesInChannelCache(c2.Id)
 }
 
-func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
+func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -1630,7 +1633,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
+func testUserStoreGetProfilesByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -1717,7 +1720,7 @@ func testUserStoreGetProfilesByIds(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Store) {
+func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: "u1" + model.NewId(),
@@ -1839,7 +1842,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, ss store.Stor
 	}
 }
 
-func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
+func testUserStoreGetProfilesByUsernames(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	team2Id := model.NewId()
 
@@ -1909,7 +1912,7 @@ func testUserStoreGetProfilesByUsernames(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
+func testUserStoreGetSystemAdminProfiles(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -1959,7 +1962,7 @@ func testUserStoreGetSystemAdminProfiles(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
+func testUserStoreGetByEmail(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -2026,7 +2029,7 @@ func testUserStoreGetByEmail(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
+func testUserStoreGetByAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	auth1 := model.NewId()
 	auth3 := model.NewId()
@@ -2106,7 +2109,7 @@ func testUserStoreGetByAuthData(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
+func testUserStoreGetByUsername(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -2177,7 +2180,7 @@ func testUserStoreGetByUsername(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
+func testUserStoreGetForLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	auth := model.NewId()
 	auth2 := model.NewId()
@@ -2280,7 +2283,7 @@ func testUserStoreGetForLogin(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreUpdatePassword(t *testing.T, ss store.Store) {
+func testUserStoreUpdatePassword(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
@@ -2301,7 +2304,7 @@ func testUserStoreUpdatePassword(t *testing.T, ss store.Store) {
 	require.Equal(t, user.Password, hashedPassword, "Password was not updated correctly")
 }
 
-func testUserStoreDelete(t *testing.T, ss store.Store) {
+func testUserStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
@@ -2314,7 +2317,7 @@ func testUserStoreDelete(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
+func testUserStoreUpdateAuthData(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1 := &model.User{}
@@ -2338,7 +2341,7 @@ func testUserStoreUpdateAuthData(t *testing.T, ss store.Store) {
 	require.Equal(t, "", user.Password, "Password was not cleared properly")
 }
 
-func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
+func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	user := &model.User{}
 	user.Username = "user1" + model.NewId()
 	user.Email = MakeEmail()
@@ -2376,7 +2379,7 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
 
 	// delete user
 	user.DeleteAt = model.GetMillisForTime(time.Now())
-	ss.User().Update(user, true)
+	ss.User().Update(rctx, user, true)
 	// without deleted user
 	numAffected, err = ss.User().ResetAuthDataToEmailForUsers(model.UserAuthServiceSaml, nil, false, true)
 	require.NoError(t, err)
@@ -2387,7 +2390,7 @@ func testUserStoreResetAuthDataToEmailForUsers(t *testing.T, ss store.Store) {
 	require.Equal(t, 1, numAffected)
 }
 
-func testUserUnreadCount(t *testing.T, ss store.Store) {
+func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	c1 := model.Channel{}
@@ -2456,7 +2459,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	m1.ChannelId = c2.Id
 	m2.ChannelId = c2.Id
 
-	_, nErr = ss.Channel().SaveDirectChannel(&c2, &m1, &m2)
+	_, nErr = ss.Channel().SaveDirectChannel(rctx, &c2, &m1, &m2)
 	require.NoError(t, nErr, "couldn't save direct channel")
 
 	p1 := model.Post{}
@@ -2517,7 +2520,7 @@ func testUserUnreadCount(t *testing.T, ss store.Store) {
 	require.Equal(t, int64(2), badge, "should have 2 unread messages for that channel")
 }
 
-func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
+func testUserStoreUpdateMfaSecret(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(&u1)
@@ -2532,7 +2535,7 @@ func testUserStoreUpdateMfaSecret(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
+func testUserStoreUpdateMfaActive(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(&u1)
@@ -2552,7 +2555,7 @@ func testUserStoreUpdateMfaActive(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 }
 
-func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s SqlStore) {
+func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	cleanupStatusStore(t, s)
 
 	teamId := model.NewId()
@@ -2628,7 +2631,7 @@ func testUserStoreGetRecentlyActiveUsersForTeam(t *testing.T, ss store.Store, s 
 	})
 }
 
-func testUserStoreGetNewUsersForTeam(t *testing.T, ss store.Store) {
+func testUserStoreGetNewUsersForTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 	teamId2 := model.NewId()
 
@@ -2727,13 +2730,13 @@ func assertUsers(t *testing.T, expected, actual []*model.User) {
 	}
 }
 
-func testUserStoreSearch(t *testing.T, ss store.Store) {
+func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 		Roles:     "system_user system_admin",
 	}
 	_, err := ss.User().Save(u1)
@@ -2741,7 +2744,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_user system_user_manager",
 	}
@@ -2750,7 +2753,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_guest",
 	}
@@ -2864,6 +2867,7 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	for _, testCase := range testCases {
 		t.Run(testCase.Description, func(t *testing.T) {
 			users, err := ss.User().Search(
+				rctx,
 				testCase.TeamId,
 				testCase.Term,
 				testCase.Options,
@@ -2874,20 +2878,20 @@ func testUserStoreSearch(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
+func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -2895,7 +2899,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -3100,13 +3104,13 @@ func testUserStoreSearchNotInChannel(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
+func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 		Roles:     "system_user system_admin",
 	}
 	_, err := ss.User().Save(u1)
@@ -3114,7 +3118,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_user",
 	}
@@ -3123,7 +3127,7 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 		Roles:    "system_user",
@@ -3334,20 +3338,20 @@ func testUserStoreSearchInChannel(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
+func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3355,7 +3359,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -3372,7 +3376,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	u4 := &model.User{
-		Username: "simon" + model.NewId(),
+		Username: "simon" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
@@ -3381,7 +3385,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
 
 	u5 := &model.User{
-		Username:  "yu" + model.NewId(),
+		Username:  "yu" + NewTestId(),
 		FirstName: "En",
 		LastName:  "Yu",
 		Nickname:  "enyu",
@@ -3392,7 +3396,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u5.Id)) }()
 
 	u6 := &model.User{
-		Username:  "underscore" + model.NewId(),
+		Username:  "underscore" + NewTestId(),
 		FirstName: "Du_",
 		LastName:  "_DE",
 		Nickname:  "lodash",
@@ -3526,20 +3530,20 @@ func testUserStoreSearchNotInTeam(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
+func testUserStoreSearchWithoutTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3547,7 +3551,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -3631,20 +3635,20 @@ func testUserStoreSearchWithoutTeam(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
+func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3652,7 +3656,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u3)
@@ -3667,21 +3671,21 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3696,7 +3700,7 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	u3.DeleteAt = 1
-	_, err = ss.User().Update(u3, true)
+	_, err = ss.User().Update(rctx, u3, true)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -3774,20 +3778,20 @@ func testUserStoreSearchInGroup(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
+func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3795,7 +3799,7 @@ func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u3)
@@ -3810,21 +3814,21 @@ func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3839,7 +3843,7 @@ func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 
 	u3.DeleteAt = 1
-	_, err = ss.User().Update(u3, true)
+	_, err = ss.User().Update(rctx, u3, true)
 	require.NoError(t, err)
 
 	testCases := []struct {
@@ -3906,7 +3910,7 @@ func testUserStoreSearchNotInGroup(t *testing.T, ss store.Store) {
 	}
 }
 
-func testCount(t *testing.T, ss store.Store) {
+func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Regular
 	teamId := model.NewId()
 	channelId := model.NewId()
@@ -4266,7 +4270,7 @@ func testCount(t *testing.T, ss store.Store) {
 	}
 }
 
-func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore) {
+func testUserStoreAnalyticsActiveCount(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	cleanupStatusStore(t, s)
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
@@ -4350,7 +4354,7 @@ func testUserStoreAnalyticsActiveCount(t *testing.T, ss store.Store, s SqlStore)
 	assert.Equal(t, int64(4), count)
 }
 
-func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s SqlStore) {
+func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	cleanupStatusStore(t, s)
 
 	// Create 5 users statuses u0, u1, u2, u3, u4.
@@ -4432,7 +4436,7 @@ func testUserStoreAnalyticsActiveCountForPeriod(t *testing.T, ss store.Store, s 
 	assert.Equal(t, int64(2), count)
 }
 
-func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
+func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(u1)
@@ -4454,7 +4458,7 @@ func testUserStoreAnalyticsGetInactiveUsersCount(t *testing.T, ss store.Store) {
 	require.Equal(t, count, newCount-1, "Expected 1 more inactive users but found otherwise.")
 }
 
-func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
+func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	countBefore, err := ss.User().AnalyticsGetSystemAdminCount()
 	require.NoError(t, err)
 
@@ -4481,7 +4485,7 @@ func testUserStoreAnalyticsGetSystemAdminCount(t *testing.T, ss store.Store) {
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of system admins.")
 }
 
-func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
+func testUserStoreAnalyticsGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	countBefore, err := ss.User().AnalyticsGetGuestCount()
 	require.NoError(t, err)
 
@@ -4517,7 +4521,7 @@ func testUserStoreAnalyticsGetGuestCount(t *testing.T, ss store.Store) {
 	require.Equal(t, countBefore+1, result, "Did not get the expected number of guests.")
 }
 
-func testUserStoreAnalyticsGetExternalUsers(t *testing.T, ss store.Store) {
+func testUserStoreAnalyticsGetExternalUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	localHostDomain := "mattermost.com"
 	result, err := ss.User().AnalyticsGetExternalUsers(localHostDomain)
 	require.NoError(t, err)
@@ -4555,7 +4559,7 @@ func testUserStoreAnalyticsGetExternalUsers(t *testing.T, ss store.Store) {
 	assert.True(t, result)
 }
 
-func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
+func testUserStoreGetProfilesNotInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	team, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team",
 		Name:        NewTestId(),
@@ -4662,9 +4666,9 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	// Ensure update at timestamp changes
 	time.Sleep(time.Millisecond)
 
-	e := ss.Team().RemoveMember(teamId, u1.Id)
+	e := ss.Team().RemoveMember(rctx, teamId, u1.Id)
 	require.NoError(t, e)
-	e = ss.Team().RemoveMember(teamId, u2.Id)
+	e = ss.Team().RemoveMember(rctx, teamId, u2.Id)
 	require.NoError(t, e)
 
 	u1.UpdateAt, err = ss.User().UpdateUpdateAt(u1.Id)
@@ -4761,7 +4765,7 @@ func testUserStoreGetProfilesNotInTeam(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
+func testUserStoreClearAllCustomRoleAssignments(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
@@ -4815,7 +4819,7 @@ func testUserStoreClearAllCustomRoleAssignments(t *testing.T, ss store.Store) {
 	assert.Equal(t, "", r4.Roles)
 }
 
-func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
+func testUserStoreGetAllAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
@@ -4866,7 +4870,7 @@ func testUserStoreGetAllAfter(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
+func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss store.Store) {
 	// Set up all the objects needed
 	t1, err := ss.Team().Save(&model.Team{
 		DisplayName: "Team1",
@@ -4903,6 +4907,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	time.Sleep(time.Millisecond)
 
@@ -4912,6 +4917,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		UserId: u2.Id,
 		TeamId: t1.Id,
@@ -4938,6 +4944,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		UserId:   u3.Id,
 		TeamId:   t1.Id,
@@ -4971,7 +4978,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 		ChannelId:   cDM.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	cDM, nErr = ss.Channel().SaveDirectChannel(cDM, cm1, cm2)
+	cDM, nErr = ss.Channel().SaveDirectChannel(rctx, cDM, cm1, cm2)
 	require.NoError(t, nErr)
 
 	// Getting all users
@@ -5001,7 +5008,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, ss store.Store) {
 	assert.Len(t, res2List, 0)
 }
 
-func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
+func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	// create team
 	id := model.NewId()
 	team, err := ss.Team().Save(&model.Team{
@@ -5116,14 +5123,14 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(2)
 
 	// delete team membership of allowed user
-	err = ss.Team().RemoveMember(team.Id, userGroupA.Id)
+	err = ss.Team().RemoveMember(rctx, team.Id, userGroupA.Id)
 	require.NoError(t, err)
 
 	// ensure removed allowed member still returned by query
 	requireNUsers(2)
 }
 
-func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
+func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	// create channel
 	id := model.NewId()
 	channel, nErr := ss.Channel().Save(&model.Channel{
@@ -5208,7 +5215,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 
 	// update team to be group-constrained
 	channel.GroupConstrained = model.NewBool(true)
-	_, nErr = ss.Channel().Update(channel)
+	_, nErr = ss.Channel().Update(rctx, channel)
 	require.NoError(t, nErr)
 
 	// still returns user (being group-constrained has no effect)
@@ -5238,16 +5245,14 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, ss store.Store) {
 	requireNUsers(2)
 
 	// delete team membership of allowed user
-	err = ss.Channel().RemoveMember(channel.Id, userGroupA.Id)
+	err = ss.Channel().RemoveMember(rctx, channel.Id, userGroupA.Id)
 	require.NoError(t, err)
 
 	// ensure removed allowed member still returned by query
 	requireNUsers(2)
 }
 
-func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	// create users
 	t.Run("Must do nothing with regular user", func(t *testing.T) {
 		id := model.NewId()
@@ -5284,7 +5289,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_user", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5329,7 +5334,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user system_admin", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5385,7 +5390,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5425,7 +5430,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5470,7 +5475,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user custom_role", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5536,7 +5541,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId1, user1.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId1, user1.Id)
 		require.NoError(t, nErr)
 		require.False(t, updatedTeamMember.SchemeGuest)
 		require.True(t, updatedTeamMember.SchemeUser)
@@ -5550,7 +5555,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, nErr := ss.Team().GetMember(c, teamId2, user2.Id)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId2, user2.Id)
 		require.NoError(t, nErr)
 		require.True(t, notUpdatedTeamMember.SchemeGuest)
 		require.False(t, notUpdatedTeamMember.SchemeUser)
@@ -5562,9 +5567,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
-	c := request.TestContext(t)
-
+func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Store) {
 	// create users
 	t.Run("Must do nothing with guest", func(t *testing.T) {
 		id := model.NewId()
@@ -5599,7 +5602,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.Equal(t, "system_guest", updatedUser.Roles)
 		require.True(t, user.UpdateAt < updatedUser.UpdateAt)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, updatedUser.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, updatedUser.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5642,7 +5645,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5694,7 +5697,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5732,7 +5735,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5775,7 +5778,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId, user.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId, user.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5839,7 +5842,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_guest", updatedUser.Roles)
 
-		updatedTeamMember, nErr := ss.Team().GetMember(c, teamId1, user1.Id)
+		updatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId1, user1.Id)
 		require.NoError(t, nErr)
 		require.True(t, updatedTeamMember.SchemeGuest)
 		require.False(t, updatedTeamMember.SchemeUser)
@@ -5853,7 +5856,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, "system_user", notUpdatedUser.Roles)
 
-		notUpdatedTeamMember, nErr := ss.Team().GetMember(c, teamId2, user2.Id)
+		notUpdatedTeamMember, nErr := ss.Team().GetMember(rctx, teamId2, user2.Id)
 		require.NoError(t, nErr)
 		require.False(t, notUpdatedTeamMember.SchemeGuest)
 		require.True(t, notUpdatedTeamMember.SchemeUser)
@@ -5865,7 +5868,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, ss store.Store) {
 	})
 }
 
-func testDeactivateGuests(t *testing.T, ss store.Store) {
+func testDeactivateGuests(t *testing.T, rctx request.CTX, ss store.Store) {
 	// create users
 	t.Run("Must disable all guests and no regular user or already deactivated users", func(t *testing.T) {
 		guest1Random := model.NewId()
@@ -5943,7 +5946,7 @@ func testDeactivateGuests(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
+func testUserStoreResetLastPictureUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	startTime := model.GetMillis()
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
@@ -5976,7 +5979,7 @@ func testUserStoreResetLastPictureUpdate(t *testing.T, ss store.Store) {
 	assert.Less(t, user2.LastPictureUpdate, -startTime)
 }
 
-func testGetKnownUsers(t *testing.T, ss store.Store) {
+func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	teamId := model.NewId()
 
 	u1, err := ss.User().Save(&model.User{
@@ -6107,7 +6110,7 @@ func testGetKnownUsers(t *testing.T, ss store.Store) {
 	})
 }
 
-func testIsEmpty(t *testing.T, ss store.Store) {
+func testIsEmpty(t *testing.T, rctx request.CTX, ss store.Store) {
 	ok, err := ss.User().IsEmpty(false)
 	require.NoError(t, err)
 	require.True(t, ok)
@@ -6157,7 +6160,7 @@ func testIsEmpty(t *testing.T, ss store.Store) {
 	require.True(t, ok)
 }
 
-func testGetUsersWithInvalidEmails(t *testing.T, ss store.Store) {
+func testGetUsersWithInvalidEmails(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1, err := ss.User().Save(&model.User{
 		Email:    "ben@invalid.mattermost.com",
 		Username: "u1" + model.NewId(),
@@ -6171,7 +6174,7 @@ func testGetUsersWithInvalidEmails(t *testing.T, ss store.Store) {
 	assert.Len(t, users, 1)
 }
 
-func testUpdateLastLogin(t *testing.T, ss store.Store) {
+func testUpdateLastLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	_, err := ss.User().Save(&u1)
@@ -6184,4 +6187,358 @@ func testUpdateLastLogin(t *testing.T, ss store.Store) {
 	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(1234567890), user.LastLogin)
+}
+
+func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
+	numRegularUsers := 90
+	numSysAdmins := 10
+	numInactiveUsers := 15
+	numUsers := numRegularUsers + numSysAdmins + numInactiveUsers
+
+	numPostsPerUser := 10
+
+	now := time.Now()
+
+	users := make([]*model.User, numUsers)
+	for i := 0; i < numUsers; i++ {
+		user := &model.User{Username: fmt.Sprintf("username_%d", i), DeleteAt: 0}
+		user.Email = MakeEmail()
+
+		if i >= numRegularUsers && i < numRegularUsers+numSysAdmins {
+			user.Roles = "system"
+		}
+
+		if i >= numRegularUsers+numSysAdmins {
+			user.DeleteAt = now.UnixMilli()
+		}
+
+		user, err := ss.User().Save(user)
+		require.NoError(t, err)
+		users[i] = user
+	}
+
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Username < users[j].Username
+	})
+
+	// cleanup users after the test
+	defer func() {
+		for _, user := range users {
+			require.NoError(t, ss.User().PermanentDelete(user.Id))
+		}
+	}()
+
+	for _, user := range users {
+		for i := 0; i < numPostsPerUser; i++ {
+			post := model.Post{UserId: user.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
+			_, err := ss.Post().Save(&post)
+			require.NoError(t, err)
+		}
+	}
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: model.NewId(),
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Team().SaveMember(&model.TeamMember{UserId: users[0].Id, TeamId: team.Id}, 100)
+	require.NoError(t, err)
+
+	_, err = ss.Team().SaveMember(&model.TeamMember{UserId: users[1].Id, TeamId: team.Id}, 100)
+	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, ss.Team().RemoveMember(rctx, team.Id, users[0].Id))
+		require.NoError(t, ss.Team().RemoveMember(rctx, team.Id, users[1].Id))
+		require.NoError(t, ss.Team().PermanentDelete(team.Id))
+	}()
+
+	err = ss.User().RefreshPostStatsForUsers()
+	require.NoError(t, err)
+
+	t.Run("should return info for all the users", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Len(t, userReport, 50)
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[0].Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, users[1].Username, userReport[1].Username)
+
+		require.NotNil(t, userReport[2])
+		require.Equal(t, users[2].Username, userReport[2].Username)
+	})
+
+	t.Run("should return in the correct order", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				SortDesc:   true,
+				PageSize:   50,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Len(t, userReport, 50)
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[numUsers-1].Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, users[numUsers-2].Username, userReport[1].Username)
+
+		require.NotNil(t, userReport[2])
+		require.Equal(t, users[numUsers-3].Username, userReport[2].Username)
+	})
+
+	t.Run("should fail on invalid sort column", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "FakeColumn",
+				SortDesc:   true,
+				PageSize:   50,
+			},
+		})
+		require.Error(t, err)
+		require.Nil(t, userReport)
+	})
+
+	t.Run("should only return amount of users in page", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   2,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 2, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[0].Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, users[1].Username, userReport[1].Username)
+	})
+
+	t.Run("should return correct paging", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				Direction:       "down",
+				PageSize:        50,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 50, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[11].Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				SortDesc:        true,
+				Direction:       "down",
+				PageSize:        50,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 10, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[9].Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				Direction:       "up",
+				PageSize:        50,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 10, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[0].Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				SortDesc:        true,
+				Direction:       "up",
+				PageSize:        50,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 50, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[60].Username, userReport[0].Username)
+	})
+
+	t.Run("should return accurate post stats for various date ranges", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		require.Equal(t, numPostsPerUser, *userReport[0].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[0].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, numPostsPerUser, *userReport[1].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[1].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, numPostsPerUser, *userReport[2].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[2].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    now.AddDate(0, 0, -2).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		require.Equal(t, 3, *userReport[0].TotalPosts)
+		require.Equal(t, 3, *userReport[0].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 3, *userReport[1].TotalPosts)
+		require.Equal(t, 3, *userReport[1].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 3, *userReport[2].TotalPosts)
+		require.Equal(t, 3, *userReport[2].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				EndAt:      now.AddDate(0, 0, -2).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		require.Equal(t, 7, *userReport[0].TotalPosts)
+		require.Equal(t, 7, *userReport[0].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 7, *userReport[1].TotalPosts)
+		require.Equal(t, 7, *userReport[1].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 7, *userReport[2].TotalPosts)
+		require.Equal(t, 7, *userReport[2].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    now.AddDate(0, 0, -3).UnixMilli(),
+				EndAt:      now.AddDate(0, 0, -2).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		require.Equal(t, 1, *userReport[0].TotalPosts)
+		require.Equal(t, 1, *userReport[0].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 1, *userReport[1].TotalPosts)
+		require.Equal(t, 1, *userReport[1].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 1, *userReport[2].TotalPosts)
+		require.Equal(t, 1, *userReport[2].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
+	})
+
+	t.Run("should filter on roles", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			Role: "system",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 10)
+	})
+
+	t.Run("should filter on teams", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			HasNoTeam: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+		require.Equal(t, users[2].Id, userReport[0].Id)
+		require.Equal(t, users[3].Id, userReport[1].Id)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			Team: team.Id,
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 2)
+		require.Equal(t, users[0].Id, userReport[0].Id)
+		require.Equal(t, users[1].Id, userReport[1].Id)
+	})
+
+	t.Run("should filter on activation", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			HideInactive: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			HideActive: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 15)
+	})
 }

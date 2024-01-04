@@ -115,7 +115,7 @@ Cypress.Commands.add('uiGetRecentMentionButton', () => {
 });
 
 Cypress.Commands.add('uiGetSavedPostButton', () => {
-    return cy.findByRole('button', {name: 'Saved posts'}).should('be.visible');
+    return cy.findByRole('button', {name: 'Saved messages'}).should('be.visible');
 });
 
 Cypress.Commands.add('uiGetSettingsButton', () => {
