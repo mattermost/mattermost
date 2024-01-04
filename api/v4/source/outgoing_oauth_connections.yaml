@@ -138,3 +138,35 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
+  /api/v4/oauth/outgoing_connections/validate:
+    post:
+      tags:
+        - oauth
+        - outgoing_connections
+        - outgoing_oauth_connections
+      summary: Validate a connection configuration
+      description: >
+        Validate an outgoing OAuth connection.
+
+        __Minimum server version__: 9.5
+      operationId: ValidateOutgoingOAuthConnection
+      requestBody:
+        description: Outgoing OAuth connection to validate
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/OutgoingOAuthConnectionPostItem"
+      responses:
+        "200":
+          description: The connection configuration is valid.
+        "400":
+          description: The connection configuration is invalid.
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "500":
+          $ref: "#/components/responses/InternalServerError"
+        "501":
+          $ref: "#/components/responses/NotImplemented"
