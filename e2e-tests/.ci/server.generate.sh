@@ -287,7 +287,7 @@ generate_env_files() {
   export BUILD_ID=${BUILD_ID:-$BUILD_ID_DEFAULT}
   export CI_BASE_URL="${CI_BASE_URL:-localhost}"
   export REPO=mattermost # Static, but declared here for making generate_test_cycle.js easier to run
-  export HEADLESS=true   # Static, but declaSet here for making generate_test_cycle.js easier to run
+  export HEADLESS=true   # Static, but declared here for making generate_test_cycle.js easier to run
   case "$TEST" in
   cypress)
     mme2e_log "Cypress: Generating .env.cypress"
