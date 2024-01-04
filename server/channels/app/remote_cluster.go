@@ -39,6 +39,7 @@ func (a *App) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (re
 	rc = &model.RemoteCluster{
 		Name:        opts.Displayname,
 		DisplayName: opts.Displayname,
+		SiteURL:     model.SiteURLPlugin + opts.PluginID, // require a unique siteurl
 		Token:       model.NewId(),
 		CreatorId:   opts.CreatorID,
 		PluginID:    opts.PluginID,
