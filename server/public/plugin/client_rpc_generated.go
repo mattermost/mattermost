@@ -1018,6 +1018,40 @@ func (s *hooksRPCServer) OnSharedChannelsPing(args *Z_OnSharedChannelsPingArgs, 
 	return nil
 }
 
+func init() {
+	hookNameToId["PreferencesHaveChanged"] = PreferencesHaveChangedID
+}
+
+type Z_PreferencesHaveChangedArgs struct {
+	A *Context
+	B []model.Preference
+}
+
+type Z_PreferencesHaveChangedReturns struct {
+}
+
+func (g *hooksRPCClient) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
+	_args := &Z_PreferencesHaveChangedArgs{c, preferences}
+	_returns := &Z_PreferencesHaveChangedReturns{}
+	if g.implemented[PreferencesHaveChangedID] {
+		if err := g.client.Call("Plugin.PreferencesHaveChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call PreferencesHaveChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) PreferencesHaveChanged(args *Z_PreferencesHaveChangedArgs, returns *Z_PreferencesHaveChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		PreferencesHaveChanged(c *Context, preferences []model.Preference)
+	}); ok {
+		hook.PreferencesHaveChanged(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook PreferencesHaveChanged called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }

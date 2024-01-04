@@ -280,15 +280,15 @@ func (api *PluginAPI) GetPreferenceForUser(userID, category, name string) (model
 }
 
 func (api *PluginAPI) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
-	return api.app.GetPreferencesForUser(userID)
+	return api.app.GetPreferencesForUser(api.ctx, userID)
 }
 
 func (api *PluginAPI) UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
-	return api.app.UpdatePreferences(userID, preferences)
+	return api.app.UpdatePreferences(api.ctx, userID, preferences)
 }
 
 func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
-	return api.app.DeletePreferences(userID, preferences)
+	return api.app.DeletePreferences(api.ctx, userID, preferences)
 }
 
 func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
