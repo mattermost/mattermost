@@ -49,6 +49,12 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION")
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
@@ -68,6 +74,13 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 	t.Run("license but no feature flag returns 501", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
