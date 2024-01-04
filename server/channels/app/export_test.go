@@ -104,7 +104,7 @@ func TestExportUserChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
-	exportData, appErr := th.App.buildUserChannelMemberships(user.Id, team.Id, false)
+	exportData, appErr := th.App.buildUserChannelMemberships(th.Context, user.Id, team.Id, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
@@ -672,7 +672,7 @@ func TestBuildPostReplies(t *testing.T) {
 	createPostWithAttachments := func(th *TestHelper, n int, rootID string) *model.Post {
 		var fileIDs []string
 		for i := 0; i < n; i++ {
-			info, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
+			info, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
 				CreatorId: th.BasicUser.Id,
 				Name:      fmt.Sprintf("file%d", i),
 				Path:      fmt.Sprintf("/data/file%d", i),

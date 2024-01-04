@@ -1,0 +1,29 @@
+{
+    "ServiceSettings": {
+        "EnableOAuthServiceProvider": true,
+        "EnableDeveloper": false,
+        "EnableGifPicker": true
+    },
+    "SqlSettings": {
+        "DriverName": "postgres",
+        "DataSource": "postgres://mmuser:mostest@localhost/mattermost_test?sslmode=disable\u0026connect_timeout=10\u0026binary_parameters=yes",
+        "AtRestEncryptKey": ""
+    },
+    "FileSettings": {
+        "DriverName": "local",
+        "Directory": "/mm/mattermost-data",
+        "PublicLinkSalt": ""
+    },
+    "EmailSettings": {
+        "SMTPServer": "",
+        "SMTPPort": "",
+        "PushNotificationContents": "generic"
+    },
+    "ElasticsearchSettings": {
+        "ConnectionUrl": ""
+    },
+    "PluginSettings": {
+        "EnableUploads": true,
+        "PluginStates": {}
+    }
+}

@@ -23,7 +23,7 @@ const (
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
 	MaxRetries                   = 3
-	MaxPostsPerSync              = 12 // a bit more than one typical screenfull of posts
+	MaxPostsPerSync              = 50 // a bit more than 4 typical screenfulls of posts
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
@@ -63,6 +63,7 @@ type AppIface interface {
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	InvalidateCacheForUser(userID string)
 	NotifySharedChannelUserUpdate(user *model.User)
+	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -108,7 +109,7 @@ func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error)
 // Start is called by the server on server start-up.
 func (scs *Service) Start() error {
 	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
+	if rcs == nil || !rcs.Active() {
 		return errors.New("Shared Channel Service cannot activate: requires Remote Cluster Service")
 	}
 
@@ -128,7 +129,7 @@ func (scs *Service) Start() error {
 // Shutdown is called by the server on server shutdown.
 func (scs *Service) Shutdown() error {
 	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
+	if rcs == nil || !rcs.Active() {
 		return errors.New("Shared Channel Service cannot shutdown: requires Remote Cluster Service")
 	}
 
