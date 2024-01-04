@@ -1923,7 +1923,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 }
 
 // PatchMultipleMembersNotifyProps updates the NotifyProps of multiple channel members at once without modifying
-// unspecified fields. Like UpdateMemberNotifyProps, it doesn't modify the LastUpdateAt of affected rows.
+// unspecified fields.
 //
 // Note that the returned array may not be in the same order as the provided IDs.
 func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
@@ -1966,6 +1966,8 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 		// WHERE ...
 		builder = builder.Set("NotifyProps", jsonExpr)
 	}
+
+	builder = builder.Set("LastUpdateAt", model.GetMillis())
 
 	result, err := transaction.ExecBuilder(builder.Where(whereClause))
 	if err != nil {

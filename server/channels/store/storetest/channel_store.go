@@ -3329,6 +3329,9 @@ func testChannelPatchMultipleMembersNotifyProps(t *testing.T, rctx request.CTX, 
 		require.Equal(t, model.ChannelAutoFollowThreadsOff, original3.NotifyProps[model.ChannelAutoFollowThreads])
 		require.Equal(t, "", original3.NotifyProps["test_key"])
 
+		// Sleep for 1ms to ensure that the LastUpdateAt will change
+		time.Sleep(1 * time.Millisecond)
+
 		// Save the channel members
 		updated, err := ss.Channel().PatchMultipleMembersNotifyProps(
 			[]*model.ChannelMemberIdentifier{
@@ -3367,6 +3370,11 @@ func testChannelPatchMultipleMembersNotifyProps(t *testing.T, rctx request.CTX, 
 		assert.Equal(t, original1.NotifyProps[model.DesktopNotifyProp], updated[0].NotifyProps[model.DesktopNotifyProp])
 		assert.Equal(t, original2.NotifyProps[model.DesktopNotifyProp], updated[1].NotifyProps[model.DesktopNotifyProp])
 		assert.Equal(t, original3.NotifyProps[model.DesktopNotifyProp], updated[2].NotifyProps[model.DesktopNotifyProp])
+
+		// Ensure that LastUpdateAt was updated
+		assert.Greater(t, updated[0].LastUpdateAt, original1.LastUpdateAt)
+		assert.Greater(t, updated[1].LastUpdateAt, original2.LastUpdateAt)
+		assert.Greater(t, updated[2].LastUpdateAt, original3.LastUpdateAt)
 	})
 
 	t.Run("should not allow saving invalid notify props", func(t *testing.T) {
