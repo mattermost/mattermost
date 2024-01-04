@@ -26,7 +26,7 @@ func (api *API) InitOutgoingOAuthConnection() {
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(getOutgoingOAuthConnection)).Methods("GET")
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(updateOutgoingOAuthConnection)).Methods("PUT")
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(deleteOutgoingOAuthConnection)).Methods("DELETE")
-	api.BaseRoutes.OutgoingOAuthConnections.Handle("validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods("POST")
+	api.BaseRoutes.OutgoingOAuthConnections.Handle("/validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods("POST")
 }
 
 // checkOutgoingOAuthConnectionReadPermissions checks if the user has the permissions to read outgoing oauth connections.
