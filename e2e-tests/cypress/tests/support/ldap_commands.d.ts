@@ -45,6 +45,11 @@ declare namespace Cypress {
         doLDAPLogout(settings: object = {}): Chainable<void>;
 
         /**
+         * visitLDAPSettings is a task that navigates to LDAP settings Page
+         */
+        visitLDAPSettings(): Chainable<void>;
+
+        /**
         * waitForLdapSyncCompletion is a task that runs recursively
         * until getLdapSyncJobStatus completes or timeouts.
         * @param {number} start - start time of the job.
