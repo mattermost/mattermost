@@ -16,17 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
-// Deprecated: Use GenericStoreResult instead.
-type StoreResult struct {
-	Data any
-
-	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
-	NErr error
-}
-
-// GenericStoreResult is a type safe version of StoreResult.
-// Once all the code is migrated to use GenericStoreResult, it should be renamed to StoreResult.
-type GenericStoreResult[T any] struct {
+type StoreResult[T any] struct {
 	Data T
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.

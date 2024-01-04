@@ -1456,18 +1456,18 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 }
 
 func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	ihc := make(chan store.GenericStoreResult[[]*model.IncomingWebhook], 1)
-	ohc := make(chan store.GenericStoreResult[[]*model.OutgoingWebhook], 1)
+	ihc := make(chan store.StoreResult[[]*model.IncomingWebhook], 1)
+	ohc := make(chan store.StoreResult[[]*model.OutgoingWebhook], 1)
 
 	go func() {
 		webhooks, err := a.Srv().Store().Webhook().GetIncomingByChannel(channel.Id)
-		ihc <- store.GenericStoreResult[[]*model.IncomingWebhook]{Data: webhooks, NErr: err}
+		ihc <- store.StoreResult[[]*model.IncomingWebhook]{Data: webhooks, NErr: err}
 		close(ihc)
 	}()
 
 	go func() {
 		outgoingHooks, err := a.Srv().Store().Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
-		ohc <- store.GenericStoreResult[[]*model.OutgoingWebhook]{Data: outgoingHooks, NErr: err}
+		ohc <- store.StoreResult[[]*model.OutgoingWebhook]{Data: outgoingHooks, NErr: err}
 		close(ohc)
 	}()
 
@@ -2265,16 +2265,16 @@ func (a *App) GetChannelUnread(c request.CTX, channelID, userID string) (*model.
 }
 
 func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	userChan := make(chan store.GenericStoreResult[*model.User], 1)
-	memberChan := make(chan store.GenericStoreResult[*model.ChannelMember], 1)
+	userChan := make(chan store.StoreResult[*model.User], 1)
+	memberChan := make(chan store.StoreResult[*model.ChannelMember], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
+		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 	go func() {
 		member, err := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, userID)
-		memberChan <- store.GenericStoreResult[*model.ChannelMember]{Data: member, NErr: err}
+		memberChan <- store.StoreResult[*model.ChannelMember]{Data: member, NErr: err}
 		close(memberChan)
 	}()
 
@@ -2366,24 +2366,24 @@ func (a *App) postJoinTeamMessage(c request.CTX, user *model.User, channel *mode
 }
 
 func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {
-	sc := make(chan store.GenericStoreResult[*model.Channel], 1)
+	sc := make(chan store.StoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(channelID, true)
-		sc <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
+		sc <- store.StoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(sc)
 	}()
 
-	uc := make(chan store.GenericStoreResult[*model.User], 1)
+	uc := make(chan store.StoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		uc <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
+		uc <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uc)
 	}()
 
-	mcc := make(chan store.GenericStoreResult[int64], 1)
+	mcc := make(chan store.StoreResult[int64], 1)
 	go func() {
 		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.GenericStoreResult[int64]{Data: count, NErr: err}
+		mcc <- store.StoreResult[int64]{Data: count, NErr: err}
 		close(mcc)
 	}()
 
