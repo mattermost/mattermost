@@ -872,7 +872,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         autoFocus={true}
                         isClearable={false}
                         isMulti={true}
-                        styles={customKeywordsWithNotificationStyles}
+                        styles={customKeywordsSelectorStyles}
                         className='multiInput'
                         placeholder=''
                         components={{
@@ -965,7 +965,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         autoFocus={true}
                         isClearable={false}
                         isMulti={true}
-                        styles={customKeywordsWithNotificationStyles}
+                        styles={customKeywordsSelectorStyles}
                         className='multiInput'
                         placeholder=''
                         components={{
@@ -1395,7 +1395,27 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     }
 }
 
-const customKeywordsWithNotificationStyles: ReactSelectStyles = {
+const customKeywordsSelectorStyles: ReactSelectStyles = {
+    control: ((baseStyles) => ({
+        ...baseStyles,
+        backgroundColor: 'var(--center-channel-bg)',
+        border: '1px solid rgba(var(--center-channel-color-rgb), 0.16);',
+        ':hover': {
+            borderColor: 'rgba(var(--center-channel-color-rgb), 0.48);',
+        },
+    })),
+    multiValue: ((baseStyles) => ({
+        ...baseStyles,
+        background: 'rgba(var(--center-channel-color-rgb), 0.08)',
+    })),
+    multiValueLabel: ((baseStyles) => ({
+        ...baseStyles,
+        color: 'var(--center-channel-color);',
+    })),
+    input: ((baseStyles) => ({
+        ...baseStyles,
+        color: 'var(--center-channel-color)',
+    })),
     indicatorSeparator: ((indicatorSeperatorStyles) => ({
         ...indicatorSeperatorStyles,
         display: 'none',
@@ -1403,8 +1423,10 @@ const customKeywordsWithNotificationStyles: ReactSelectStyles = {
     multiValueRemove: ((multiValueRemoveStyles) => ({
         ...multiValueRemoveStyles,
         cursor: 'pointer',
+        color: 'rgba(var(--center-channel-color-rgb),0.32);',
         ':hover': {
             backgroundColor: 'rgba(var(--center-channel-color-rgb), 0.16)',
+            color: 'rgba(var(--center-channel-color-rgb), 0.56);',
         },
     })),
 };

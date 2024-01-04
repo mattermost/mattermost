@@ -263,7 +263,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <CheckboxCheckedIcon />
+      <Memo(CheckboxCheckedIcon) />
     </button>
   </td>
   <td>
@@ -273,7 +273,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <CheckboxCheckedIcon />
+      <Memo(CheckboxCheckedIcon) />
     </button>
   </td>
 </tr>
@@ -307,7 +307,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelModeration Should ma
       onClick={[Function]}
       type="button"
     >
-      <CheckboxCheckedIcon />
+      <Memo(CheckboxCheckedIcon) />
     </button>
   </td>
 </tr>

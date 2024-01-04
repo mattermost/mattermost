@@ -7,11 +7,13 @@ import {Provider} from 'react-redux';
 
 import LoadingImagePreview from 'components/loading_image_preview';
 import SizeAwareImage from 'components/size_aware_image';
+import type {Props} from 'components/size_aware_image';
 
 import mockStore from 'tests/test_store';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/SizeAwareImage', () => {
-    const baseProps = {
+    const baseProps: Props = {
         dimensions: {
             height: 200,
             width: 300,
@@ -21,9 +23,9 @@ describe('components/SizeAwareImage', () => {
         getFilePublicLink: jest.fn().mockReturnValue(Promise.resolve({data: {link: 'https://example.com/image.png'}})),
         src: 'https://example.com/image.png',
         className: 'class',
-        fileInfo: {
+        fileInfo: TestHelper.getFileInfoMock({
             name: 'photo-1533709752211-118fcaf03312',
-        },
+        }),
         enablePublicLink: true,
     };
 
@@ -69,11 +71,11 @@ describe('components/SizeAwareImage', () => {
     test('should render a mini preview when showLoader is true and preview is set', () => {
         const props = {
             ...baseProps,
-            fileInfo: {
+            fileInfo: TestHelper.getFileInfoMock({
                 ...baseProps.fileInfo,
                 mime_type: 'mime_type',
                 mini_preview: 'mini_preview',
-            },
+            }),
         };
 
         const wrapper = mount(<Provider store={store}><SizeAwareImage {...props}/></Provider>);
@@ -108,17 +110,22 @@ describe('components/SizeAwareImage', () => {
         const height = 123;
         const width = 1234;
 
-        const wrapper = shallow(<SizeAwareImage {...baseProps}/>);
+        const wrapper = shallow<SizeAwareImage>(<SizeAwareImage {...baseProps}/>);
 
-        wrapper.find('img').prop('onLoad')({target: {naturalHeight: height, naturalWidth: width}});
+        wrapper.find('img')?.prop('onLoad')?.({target: {naturalHeight: height, naturalWidth: width}} as unknown as React.SyntheticEvent<HTMLImageElement>);
         expect(wrapper.state('loaded')).toBe(true);
         expect(baseProps.onImageLoaded).toHaveBeenCalledWith({height, width});
     });
 
     test('should call onImageLoadFail when image load fails and should have svg', () => {
         const wrapper = mount(<Provider store={store}><SizeAwareImage {...baseProps}/></Provider>);
-
-        wrapper.find(SizeAwareImage).find('img').prop('onError')();
+        const errorEvent = {
+            target: {},
+            currentTarget: {},
+            preventDefault: () => {},
+            stopPropagation: () => {},
+        } as React.SyntheticEvent<HTMLImageElement>;
+        wrapper.find(SizeAwareImage).find('img').prop('onError')?.(errorEvent);
 
         expect(wrapper.find(SizeAwareImage).state('error')).toBe(true);
         expect(wrapper.find(SizeAwareImage).find('svg').exists()).toEqual(true);
@@ -147,7 +154,7 @@ describe('components/SizeAwareImage', () => {
 
         expect(wrapper.find('div.small-image__container').exists()).toEqual(true);
         expect(wrapper.find('div.small-image__container').prop('className')).
-            toEqual('small-image__container cursor--pointer a11y--active');
+            toEqual('small-image__container cursor--pointer a11y--active small-image__container--min-width');
     });
 
     test('should properly set container div width', () => {
