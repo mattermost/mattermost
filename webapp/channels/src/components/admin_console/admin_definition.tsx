@@ -540,7 +540,6 @@ const AdminDefinition: AdminDefinitionType = {
                 searchableStrings: [
                     ['admin.system_users.title', {siteName: ''}],
                 ],
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUsers',
@@ -549,7 +548,6 @@ const AdminDefinition: AdminDefinitionType = {
             },
             system_user_detail: {
                 url: 'user_management/user/:user_id',
-                isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 isHidden: it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.USER_MANAGEMENT.USERS)),
                 schema: {
                     id: 'SystemUserDetail',
@@ -3118,7 +3116,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.POSTS)),
-                                it.configIsFalse('ServiceSettings', 'EnableLatex'),
+                                it.stateIsFalse('ServiceSettings.EnableLatex'),
                             ),
                         },
                         {

@@ -103,6 +103,15 @@ func (c *Client4) boolString(value bool) string {
 	return "false"
 }
 
+func (c *Client4) ArrayFromJSON(data io.Reader) []string {
+	var objmap []string
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make([]string, 0)
+	}
+	return objmap
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)
@@ -1918,6 +1927,54 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptionsAPI) ([]*UserReport, *Response, error) {
+	values := url.Values{}
+	if options.SortColumn != "" {
+		values.Set("sort_column", options.SortColumn)
+	}
+	if options.PageSize > 0 {
+		values.Set("page_size", strconv.Itoa(options.PageSize))
+	}
+	if options.Team != "" {
+		values.Set("team_filter", options.Team)
+	}
+	if options.HideActive {
+		values.Set("hide_active", "true")
+	}
+	if options.HideInactive {
+		values.Set("hide_inactive", "true")
+	}
+	if options.SortDesc {
+		values.Set("sort_direction", "desc")
+	}
+	if options.LastSortColumnValue != "" {
+		values.Set("last_column_value", options.LastSortColumnValue)
+	}
+	if options.LastUserId != "" {
+		values.Set("last_id", options.LastUserId)
+	}
+	if options.Role != "" {
+		values.Set("role_filter", options.Role)
+	}
+	if options.HasNoTeam {
+		values.Set("has_no_team", "true")
+	}
+	if options.DateRange != "" {
+		values.Set("date_range", options.DateRange)
+	}
+
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/report?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*UserReport
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsersForReporting", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // Bots section
 
 // CreateBot creates a bot in the system based on the provided bot struct.
@@ -3069,7 +3126,7 @@ func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // GetPinnedPosts gets a list of pinned posts.
@@ -5736,7 +5793,7 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -7810,7 +7867,7 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
@@ -7824,7 +7881,7 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
@@ -8284,7 +8341,7 @@ func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) {
@@ -8293,7 +8350,7 @@ func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) DeleteExport(ctx context.Context, name string) (*Response, error) {
