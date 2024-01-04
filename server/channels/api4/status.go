@@ -203,7 +203,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, &recentCustomStatus); err != nil {
+	if err := c.App.RemoveRecentCustomStatus(c.AppContext, c.Params.UserId, &recentCustomStatus); err != nil {
 		c.Err = err
 		return
 	}
