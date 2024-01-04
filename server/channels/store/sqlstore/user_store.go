@@ -2344,7 +2344,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 	// no need to apply any filtering and pagination if there are no
 	// previous element ID and value provided.
 	if filter.FromId != "" && filter.FromColumnValue != "" {
-		if (filter.Direction == "up" && !filter.SortDesc) || (filter.Direction == "down" && filter.SortDesc) {
+		if (filter.Direction == "prev" && !filter.SortDesc) || (filter.Direction == "next" && filter.SortDesc) {
 			sortDirection = "DESC"
 
 			query = query.Where(sq.Or{
@@ -2413,7 +2413,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 	// The way pagination works, we get the previous page's rows
 	// in reverse order. So, we use parent query on it to
 	// reverse the order in database itself.
-	if filter.Direction == "up" {
+	if filter.Direction == "prev" {
 		reverseSortDirection := "ASC"
 		if sortDirection == "ASC" {
 			reverseSortDirection = "DESC"

@@ -24,7 +24,7 @@ var (
 
 type ReportingBaseOptions struct {
 	SortDesc        bool
-	Direction       string // Accepts only "up" or "down"
+	Direction       string // Accepts only "prev" or "next"
 	PageSize        int
 	SortColumn      string
 	FromColumnValue string

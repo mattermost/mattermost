@@ -29,9 +29,9 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		sortColumn = r.URL.Query().Get("sort_column")
 	}
 
-	direction := "down"
-	if r.URL.Query().Get("direction") == "up" {
-		direction = "up"
+	direction := "next"
+	if r.URL.Query().Get("direction") == "prev" {
+		direction = "prev"
 	}
 
 	pageSize := 50
