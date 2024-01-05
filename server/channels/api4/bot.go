@@ -93,7 +93,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameterAuditable(auditRec, "bot", botPatch)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -211,7 +211,7 @@ func updateBotActive(c *Context, w http.ResponseWriter, active bool) {
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameter(auditRec, "enable", active)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
@@ -245,7 +245,7 @@ func assignBot(c *Context, w http.ResponseWriter, _ *http.Request) {
 	audit.AddEventParameter(auditRec, "id", botUserId)
 	audit.AddEventParameter(auditRec, "user_id", userId)
 
-	if err := c.App.SessionHasPermissionToManageBot(*c.AppContext.Session(), botUserId); err != nil {
+	if err := c.App.SessionHasPermissionToManageBot(c.AppContext, *c.AppContext.Session(), botUserId); err != nil {
 		c.Err = err
 		return
 	}
