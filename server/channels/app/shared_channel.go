@@ -19,8 +19,8 @@ var (
 
 func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
 	// check that channel exists.
-	if _, err := a.GetChannel(c, channelId); err != nil {
-		return fmt.Errorf("cannot share this channel: %w", err)
+	if _, appErr := a.GetChannel(c, channelId); appErr != nil {
+		return fmt.Errorf("cannot share this channel: %w", appErr)
 	}
 
 	// Check channel is not already shared.
