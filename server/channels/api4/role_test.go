@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 func TestGetAllRoles(t *testing.T) {
@@ -176,10 +177,12 @@ func TestGetRolesByNames(t *testing.T) {
 
 	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
 		// Invalid role name should error.
+		mlog.Debug("HERE")
 		_, resp, err := client.GetRolesByNames(context.Background(), []string{model.NewId(), model.NewId(), "!!!!!!"})
 		require.Error(t, err)
 		CheckBadRequestStatus(t, resp)
 
+		mlog.Debug("THERE")
 		// Empty/whitespace rolenames should be ignored.
 		_, _, err = client.GetRolesByNames(context.Background(), []string{model.NewId(), model.NewId(), "", "    "})
 		require.NoError(t, err)
