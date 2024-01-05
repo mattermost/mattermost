@@ -120,11 +120,6 @@ export type ViewsState = {
         popoverSearch: string;
         channelMembersRhsSearch: string;
         modalFilters: ModalFilters;
-        systemUsersSearch: {
-            term: string;
-            team: string;
-            filter: string;
-        };
         userGridSearch: {
             term: string;
             filters: {

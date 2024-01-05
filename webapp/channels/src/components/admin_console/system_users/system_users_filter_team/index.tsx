@@ -7,14 +7,14 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {SearchUserTeamFilter} from 'utils/constants';
-
 type Props = {
     options?: Team[];
     value?: string;
     onChange: ({searchTerm, teamId, filter}: {searchTerm?: string; teamId?: string; filter?: string}) => void;
     onFilter: ({teamId, filter}: {teamId?: string; filter?: string}) => Promise<void>;
 };
+
+// Repurpose for the new filter
 
 function SystemUsersFilterTeam(props: Props) {
     const {formatMessage} = useIntl();
@@ -38,13 +38,13 @@ function SystemUsersFilterTeam(props: Props) {
                 value={props.value}
                 onChange={handleChange}
             >
-                <option value={SearchUserTeamFilter.ALL_USERS}>
+                <option>
                     {formatMessage({
                         id: 'admin.system_users.allUsers',
                         defaultMessage: 'All Users',
                     })}
                 </option>
-                <option value={SearchUserTeamFilter.NO_TEAM}>
+                <option>
                     {formatMessage({
                         id: 'admin.system_users.noTeams',
                         defaultMessage: 'No Teams',

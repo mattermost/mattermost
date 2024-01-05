@@ -14,6 +14,8 @@ type Props = {
     onSearch: (value: string) => void;
 };
 
+// Repurpose for the new search
+
 function SystemUsersSearch(props: Props) {
     const {formatMessage} = useIntl();
 

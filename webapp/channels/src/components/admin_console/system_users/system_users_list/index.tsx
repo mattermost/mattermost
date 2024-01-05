@@ -5,25 +5,29 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import type {ServerError} from '@mattermost/types/errors';
 import {UserReportSortColumns, ReportSortDirection} from '@mattermost/types/reports';
 import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
 import type {UserProfile} from '@mattermost/types/users';
-
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef} from 'components/admin_console/list_table';
 
 import {imageURLForUser} from 'utils/utils';
 
-import SystemUsersActions from '../system_users_list_actions';
+import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
-import type {PropsFromRedux} from './index';
+import SystemUsersActions from '../system_users_list_actions';
 
 import './system_users_list.scss';
 
-type Props = PropsFromRedux;
+type Props = {
+    currentUserRoles: UserProfile['roles'];
+    tablePropertySortColumn: AdminConsoleUserManagementTableProperties['sortColumn'];
+    tablePropertySortIsDescending: AdminConsoleUserManagementTableProperties['sortIsDescending'];
+    tablePropertyPageSize: AdminConsoleUserManagementTableProperties['pageSize'];
+    getUserReports: (options?: UserReportOptions) => Promise<{data: UserReport[]}>;
+    setAdminConsoleUsersManagementTableProperties: (properties: Partial<AdminConsoleUserManagementTableProperties>) => void;
+};
 
 type SystemUsersRow = {
     id: UserProfile['id'];
@@ -200,7 +204,7 @@ function SystemUsersList(props: Props) {
                         rowIndex={info.cell.row.index}
                         tableId={tableId}
                         userRoles={info.row.original.roles}
-                        currentUserRoles={props.currentUser.roles}
+                        currentUserRoles={props.currentUserRoles}
                     />
                 ),
                 enableHiding: false,
@@ -208,7 +212,7 @@ function SystemUsersList(props: Props) {
                 enableSorting: false,
             },
         ],
-        [props.currentUser.roles],
+        [props.currentUserRoles],
     );
 
     useEffect(() => {
@@ -221,7 +225,7 @@ function SystemUsersList(props: Props) {
                 ...getSortDirectionForOptions(sortIsDescending),
             };
 
-            const {data} = await props.getUserReports(options) as ActionResult<UserReport[], ServerError>;
+            const {data} = await props.getUserReports(options);
 
             if (data) {
                 if (data.length > 0) {
@@ -235,8 +239,8 @@ function SystemUsersList(props: Props) {
             }
         }
 
-        fetchUserReportsWithOptions(props.pageSize, props.sortColumn, props.sortIsDescending);
-    }, [props.pageSize, props.sortColumn, props.sortIsDescending]);
+        fetchUserReportsWithOptions(props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending);
+    }, [props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending]);
 
     function handleRowClick(userId: SystemUsersRow['id']) {
         if (userId.length !== 0) {
@@ -255,10 +259,10 @@ function SystemUsersList(props: Props) {
     }
 
     function handleSortingChange(updateFn: (currentSortingState: SortingState) => SortingState) {
-        const currentSortingState = [{id: props.sortColumn, desc: props.sortIsDescending}];
+        const currentSortingState = [{id: props.tablePropertySortColumn, desc: props.tablePropertySortIsDescending}];
         const [updatedSortingState] = updateFn(currentSortingState);
 
-        if (props.sortColumn !== updatedSortingState.id) {
+        if (props.tablePropertySortColumn !== updatedSortingState.id) {
             // If we are clicking on a new column, we want to sort in descending order
             updatedSortingState.desc = false;
         }
@@ -270,7 +274,7 @@ function SystemUsersList(props: Props) {
     }
 
     function handlePaginationChange(updateFn: (currentPaginationState: PaginationState) => PaginationState) {
-        const currentPaginationState = {pageIndex: 0, pageSize: props.pageSize};
+        const currentPaginationState = {pageIndex: 0, pageSize: props.tablePropertyPageSize};
         const updatedPaginationState = updateFn(currentPaginationState);
 
         props.setAdminConsoleUsersManagementTableProperties({
@@ -279,12 +283,12 @@ function SystemUsersList(props: Props) {
     }
 
     const sortingTableState = [{
-        id: props?.sortColumn ?? ColumnNames.displayName,
-        desc: props?.sortIsDescending ?? false,
+        id: props?.tablePropertySortColumn ?? ColumnNames.displayName,
+        desc: props?.tablePropertySortIsDescending ?? false,
     }];
     const paginationTableState = {
         pageIndex: 0, // We are using cursor based pagination so this is always 0
-        pageSize: props?.pageSize ?? PAGE_SIZES[0],
+        pageSize: props?.tablePropertyPageSize ?? PAGE_SIZES[0],
     };
 
     const table = useReactTable({
