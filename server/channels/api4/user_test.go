@@ -22,7 +22,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/testutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mail"
@@ -5510,6 +5512,9 @@ func TestLoginErrorMessage(t *testing.T) {
 	})
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_email_username")
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Login failed because of invalid password.")
+	_, err = io.Copy(io.Discard, th.LogBuffer) // Clear log buffer
+	require.NoError(t, err)
 
 	// Email enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5518,6 +5523,9 @@ func TestLoginErrorMessage(t *testing.T) {
 	})
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_email")
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Login failed because of invalid password.")
+	_, err = io.Copy(io.Discard, th.LogBuffer) // Clear log buffer
+	require.NoError(t, err)
 
 	// Username enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5526,6 +5534,9 @@ func TestLoginErrorMessage(t *testing.T) {
 	})
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_username")
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join.")
+	_, err = io.Copy(io.Discard, th.LogBuffer) // Clear log buffer
+	require.NoError(t, err)
 
 	// SAML/SSO enabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -5550,6 +5561,10 @@ func TestLoginErrorMessage(t *testing.T) {
 	})
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_sso")
+
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join.")
+	_, err = io.Copy(io.Discard, th.LogBuffer) // Clear log buffer
+	require.NoError(t, err)
 }
 
 func TestLoginLockout(t *testing.T) {
