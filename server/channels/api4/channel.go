@@ -713,11 +713,20 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		c.Err = model.NewAppError("getChannelsMemberCount", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
-	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIds, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+
+  channels, err := c.App.GetChannels(c.AppContext, channelIDs)
+	if err != nil {
+		c.Err = err
 		return
 	}
 
+	for _, channel := range channels {
+		if !c.App.HasPermissionToReadChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
+	}
+  
 	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, channelIds)
 	if appErr != nil {
 		c.Err = appErr
