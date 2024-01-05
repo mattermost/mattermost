@@ -164,9 +164,18 @@ func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) SetDefaults() {
 // ToURLValues converts the filter to url.Values
 func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) ToURLValues() url.Values {
 	v := url.Values{}
-	v.Set("limit", fmt.Sprintf("%d", oaf.Limit))
-	v.Set("offset_id", oaf.OffsetId)
-	v.Set("audience", oaf.Audience)
+
+	if oaf.Limit > 0 {
+		v.Set("limit", fmt.Sprintf("%d", oaf.Limit))
+	}
+
+	if oaf.OffsetId != "" {
+		v.Set("offset_id", oaf.OffsetId)
+	}
+
+	if oaf.Audience != "" {
+		v.Set("audience", oaf.Audience)
+	}
 	return v
 }
 
