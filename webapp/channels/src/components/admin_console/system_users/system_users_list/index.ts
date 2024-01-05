@@ -6,7 +6,7 @@ import {connect} from 'react-redux';
 
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {getUserReports, setAdminConsoleUsersManagementPageSize, setAdminConsoleUsersManagementSortColumn, setAdminConsoleUsersManagementSortOrder} from 'actions/views/admin';
+import {getUserReports, setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 import {getAdminConsoleUserManagementDetails} from 'selectors/views/admin';
 
 import type {GlobalState} from 'types/store';
@@ -27,9 +27,7 @@ function mapStateToProps(state: GlobalState) {
 
 const mapDispatchToProps = ({
     getUserReports,
-    setAdminConsoleUsersManagementSortColumn,
-    setAdminConsoleUsersManagementSortOrder,
-    setAdminConsoleUsersManagementPageSize,
+    setAdminConsoleUsersManagementTableProperties,
 });
 
 const connector = connect(mapStateToProps, mapDispatchToProps);

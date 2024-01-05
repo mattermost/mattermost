@@ -263,15 +263,19 @@ function SystemUsersList(props: Props) {
             updatedSortingState.desc = false;
         }
 
-        props.setAdminConsoleUsersManagementSortColumn(updatedSortingState.id);
-        props.setAdminConsoleUsersManagementSortOrder(updatedSortingState.desc);
+        props.setAdminConsoleUsersManagementTableProperties({
+            sortColumn: updatedSortingState.id,
+            sortIsDescending: updatedSortingState.desc,
+        });
     }
 
     function handlePaginationChange(updateFn: (currentPaginationState: PaginationState) => PaginationState) {
         const currentPaginationState = {pageIndex: 0, pageSize: props.pageSize};
         const updatedPaginationState = updateFn(currentPaginationState);
 
-        props.setAdminConsoleUsersManagementPageSize(updatedPaginationState.pageSize);
+        props.setAdminConsoleUsersManagementTableProperties({
+            pageSize: updatedPaginationState.pageSize,
+        });
     }
 
     const sortingTableState = [{
