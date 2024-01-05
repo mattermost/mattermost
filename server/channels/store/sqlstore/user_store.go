@@ -2288,25 +2288,45 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		)
 	}
 
-	sortColumnValue := filter.SortColumn
+	sortDirection := "ASC"
 	if filter.SortDesc {
-		sortColumnValue += " DESC"
+		sortDirection = "DESC"
 	}
 
 	query := us.getQueryBuilder().
 		Select(selectColumns...).
 		From("Users u").
 		LeftJoin("Status s ON s.UserId = u.Id").
-		Where(sq.Or{
-			sq.Gt{filter.SortColumn: filter.LastSortColumnValue},
-			sq.And{
-				sq.Eq{filter.SortColumn: filter.LastSortColumnValue},
-				sq.Gt{"u.Id": filter.LastUserId},
-			},
-		}).
 		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
-		GroupBy("u.Id").
-		OrderBy(sortColumnValue, "u.Id")
+		GroupBy("u.Id")
+
+	// no need to apply any filtering and pagination if there are no
+	// previous element ID and value provided.
+	if filter.FromId != "" && filter.FromColumnValue != "" {
+		if (filter.Direction == "up" && !filter.SortDesc) || (filter.Direction == "down" && filter.SortDesc) {
+			sortDirection = "DESC"
+
+			query = query.Where(sq.Or{
+				sq.Lt{filter.SortColumn: filter.FromColumnValue},
+				sq.And{
+					sq.Eq{filter.SortColumn: filter.FromColumnValue},
+					sq.Lt{"u.Id": filter.FromId},
+				},
+			})
+		} else {
+			sortDirection = "ASC"
+
+			query = query.Where(sq.Or{
+				sq.Gt{filter.SortColumn: filter.FromColumnValue},
+				sq.And{
+					sq.Eq{filter.SortColumn: filter.FromColumnValue},
+					sq.Gt{"u.Id": filter.FromId},
+				},
+			})
+		}
+	}
+
+	query = query.OrderBy(filter.SortColumn+" "+sortDirection, "u.Id")
 
 	if filter.PageSize > 0 {
 		query = query.Limit(uint64(filter.PageSize))
@@ -2358,8 +2378,26 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		query = query.Where(sq.Eq{"u.DeleteAt": 0})
 	}
 
+	parentQuery := query
+	// If we're going a page back...
+	//
+	// The way pagination works, we get the previous page's rows
+	// in reverse order. So, we use parent query on it to
+	// reverse the order in database itself.
+	if filter.Direction == "up" {
+		reverseSortDirection := "ASC"
+		if sortDirection == "ASC" {
+			reverseSortDirection = "DESC"
+		}
+
+		parentQuery = us.getQueryBuilder().
+			Select("*").
+			FromSelect(query, "data").
+			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
+	}
+
 	userResults := []*model.UserReportQuery{}
-	err := us.GetReplicaX().SelectBuilder(&userResults, query)
+	err := us.GetReplicaX().SelectBuilder(&userResults, parentQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get users for reporting")
 	}

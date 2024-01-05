@@ -524,7 +524,7 @@ func TestPatchTeam(t *testing.T) {
 	patch.CompanyName = model.NewString("Other company name")
 	patch.AllowOpenInvite = model.NewBool(true)
 
-	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestId(), patch)
+	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestID(), patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -2162,11 +2162,11 @@ func TestAddTeamMember(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddTeamMember(context.Background(), GenerateTestId(), otherUser.Id)
+	_, resp, err = client.AddTeamMember(context.Background(), GenerateTestID(), otherUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, err = client.AddTeamMember(context.Background(), team.Id, GenerateTestId())
+	_, resp, err = client.AddTeamMember(context.Background(), team.Id, GenerateTestID())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -2257,7 +2257,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.App.DeleteToken(token)
 
 	// invalid team id
-	testId := GenerateTestId()
+	testId := GenerateTestID()
 	token = model.NewToken(
 		app.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": testId}),
@@ -2531,18 +2531,18 @@ func TestAddTeamMembers(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddTeamMembers(context.Background(), GenerateTestId(), userList)
+	_, resp, err = client.AddTeamMembers(context.Background(), GenerateTestID(), userList)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	testUserList := append(userList, GenerateTestId())
+	testUserList := append(userList, GenerateTestID())
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, testUserList)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// Test with many users.
 	for i := 0; i < 260; i++ {
-		testUserList = append(testUserList, GenerateTestId())
+		testUserList = append(testUserList, GenerateTestID())
 	}
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, testUserList)
 	require.Error(t, err)

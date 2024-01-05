@@ -44,6 +44,8 @@ func (api *API) InitPost() {
 
 	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(acknowledgePost)).Methods("POST")
 	api.BaseRoutes.PostForUser.Handle("/ack", api.APISessionRequired(unacknowledgePost)).Methods("DELETE")
+
+	api.BaseRoutes.Post.Handle("/move", api.APISessionRequired(moveThread)).Methods("POST")
 }
 
 func createPost(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -1126,6 +1128,83 @@ func unacknowledgePost(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	ReturnStatusOK(w)
+}
+
+func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequirePostId()
+	if c.Err != nil {
+		return
+	}
+
+	if !c.App.Config().FeatureFlags.MoveThreadsEnabled {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.disabled.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	var moveThreadParams model.MoveThreadParams
+	if jsonErr := json.NewDecoder(r.Body).Decode(&moveThreadParams); jsonErr != nil {
+		c.SetInvalidParamWithErr("post", jsonErr)
+		return
+	}
+
+	auditRec := c.MakeAuditRecord("moveThread", audit.Fail)
+	defer c.LogAuditRecWithLevel(auditRec, app.LevelContent)
+	audit.AddEventParameter(auditRec, "original_post_id", c.Params.PostId)
+	audit.AddEventParameter(auditRec, "to_channel_id", moveThreadParams.ChannelId)
+
+	user, err := c.App.GetUser(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	// If there are no configured PermittedWranglerRoles, skip the check
+	userHasRole := len(c.App.Config().WranglerSettings.PermittedWranglerRoles) == 0
+	for _, role := range c.App.Config().WranglerSettings.PermittedWranglerRoles {
+		if user.IsInRole(role) {
+			userHasRole = true
+			break
+		}
+	}
+
+	// Sysadmins are always permitted
+	if !userHasRole && !user.IsSystemAdmin() {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, "", http.StatusForbidden)
+		return
+	}
+
+	userHasEmailDomain := len(c.App.Config().WranglerSettings.AllowedEmailDomain) == 0
+	for _, domain := range c.App.Config().WranglerSettings.AllowedEmailDomain {
+		if user.EmailDomain() == domain {
+			userHasEmailDomain = true
+			break
+		}
+	}
+
+	if !userHasEmailDomain && !user.IsSystemAdmin() {
+		c.Err = model.NewAppError("moveThread", "api.post.move_thread.no_permission", nil, fmt.Sprintf("User: %+v", user), http.StatusForbidden)
+		return
+	}
+
+	sourcePost, err := c.App.GetPostIfAuthorized(c.AppContext, c.Params.PostId, c.AppContext.Session(), false)
+	if err != nil {
+		c.Err = err
+		if err.Id == "app.post.cloud.get.app_error" {
+			w.Header().Set(model.HeaderFirstInaccessiblePostTime, "1")
+		}
+
+		return
+	}
+
+	err = c.App.MoveThread(c.AppContext, c.Params.PostId, sourcePost.ChannelId, moveThreadParams.ChannelId, user)
+	if err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
 
 	ReturnStatusOK(w)
 }
