@@ -122,17 +122,17 @@ func (s *SearchUserStore) autocompleteUsersInChannelByEngine(engine searchengine
 		return nil, err
 	}
 
-	uchan := make(chan store.GenericStoreResult[[]*model.User], 1)
+	uchan := make(chan store.StoreResult[[]*model.User], 1)
 	go func() {
 		users, nErr := s.UserStore.GetProfileByIds(context.Background(), uchanIds, nil, false)
-		uchan <- store.GenericStoreResult[[]*model.User]{Data: users, NErr: nErr}
+		uchan <- store.StoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(uchan)
 	}()
 
-	nuchan := make(chan store.GenericStoreResult[[]*model.User], 1)
+	nuchan := make(chan store.StoreResult[[]*model.User], 1)
 	go func() {
 		users, nErr := s.UserStore.GetProfileByIds(context.Background(), nuchanIds, nil, false)
-		nuchan <- store.GenericStoreResult[[]*model.User]{Data: users, NErr: nErr}
+		nuchan <- store.StoreResult[[]*model.User]{Data: users, NErr: nErr}
 		close(nuchan)
 	}()
 

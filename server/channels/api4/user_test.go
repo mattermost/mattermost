@@ -3089,7 +3089,7 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 		Value:    model.ShowUsername,
 	}
 
-	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	err = th.App.UpdatePreferences(th.Context, th.SystemAdminUser.Id, model.Preferences{preference})
 	assert.Nil(t, err)
 
 	t.Run("Returns users in group in right order for username", func(t *testing.T) {
@@ -3099,7 +3099,7 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	})
 
 	preference.Value = model.ShowNicknameFullName
-	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	err = th.App.UpdatePreferences(th.Context, th.SystemAdminUser.Id, model.Preferences{preference})
 	assert.Nil(t, err)
 
 	t.Run("Returns users in group in right order for nickname", func(t *testing.T) {
