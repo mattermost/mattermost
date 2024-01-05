@@ -810,9 +810,9 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		return false, err
 	}
 
-	userIDs, nErr := a.Srv().Store().Channel().GetAllChannelMemberIdsByChannelId(post.ChannelId)
-	if nErr != nil {
-		return false, model.NewAppError("publishWebsocketEventForPermalinkPost", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	channelMembers, err := a.GetChannelMembersPage(c, post.ChannelId, 0, 10000000)
+	if err != nil {
+		return false, err
 	}
 
 	permalinkPreviewedChannel, err := a.GetChannel(c, previewedPost.ChannelId)
@@ -827,19 +827,19 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	originalEmbeds := post.Metadata.Embeds
 	originalProps := post.GetProps()
 	permalinkPreviewedPost := post.GetPreviewPost()
-	for _, userID := range userIDs {
+	for _, cm := range channelMembers {
 		if permalinkPreviewedPost != nil {
 			post.Metadata.Embeds = originalEmbeds
 			post.SetProps(originalProps)
 		}
 
-		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, userID)
+		postForUser := a.sanitizePostMetadataForUserAndChannel(c, post, permalinkPreviewedPost, permalinkPreviewedChannel, cm.UserId)
 
 		// Using DeepCopy here to avoid a race condition
 		// between publishing the event and setting the "post" data value below.
 		messageCopy := message.DeepCopy()
 		broadcastCopy := messageCopy.GetBroadcast()
-		broadcastCopy.UserId = userID
+		broadcastCopy.UserId = cm.UserId
 		messageCopy.SetBroadcast(broadcastCopy)
 
 		postJSON, jsonErr := postForUser.ToJSON()
@@ -1294,7 +1294,7 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
 	var member *model.ChannelMember
 	var err *model.AppError
-	if member, err = a.Srv().getChannelMemberOnly(c, channelID, userID); err != nil {
+	if member, err = a.GetChannelMember(c, channelID, userID); err != nil {
 		return nil, err
 	} else if member.LastViewedAt == 0 {
 		return model.NewPostList(), nil
@@ -1870,9 +1870,9 @@ func (a *App) countThreadMentions(c request.CTX, user *model.User, post *model.P
 // countMentionsFromPost returns the number of posts in the post's channel that mention the user after and including the
 // given post.
 func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model.Post) (int, int, int, *model.AppError) {
-	channel, appErr := a.GetChannel(c, post.ChannelId)
-	if appErr != nil {
-		return 0, 0, 0, appErr
+	channel, err := a.GetChannel(c, post.ChannelId)
+	if err != nil {
+		return 0, 0, 0, err
 	}
 
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
@@ -1893,15 +1893,15 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 		return count, countRoot, urgentCount, nil
 	}
 
-	members, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
+	channelMember, err := a.GetChannelMember(c, channel.Id, user.Id)
 	if err != nil {
-		return 0, 0, 0, model.NewAppError("countMentionsFromPost", "app.channel.count_posts_since.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return 0, 0, 0, err
 	}
 
 	keywords := MentionKeywords{}
 	keywords.AddUser(
 		user,
-		members[user.Id],
+		channelMember.NotifyProps,
 		&model.Status{Status: model.StatusOnline}, // Assume the user is online since they would've triggered this
 		true, // Assume channel mentions are always allowed for simplicity
 	)
@@ -1911,9 +1911,9 @@ func (a *App) countMentionsFromPost(c request.CTX, user *model.User, post *model
 	// A mapping of thread root IDs to whether or not a post in that thread mentions the user
 	mentionedByThread := make(map[string]bool)
 
-	thread, appErr := a.GetPostThread(post.Id, model.GetPostsOptions{}, user.Id)
-	if appErr != nil {
-		return 0, 0, 0, appErr
+	thread, err := a.GetPostThread(post.Id, model.GetPostsOptions{}, user.Id)
+	if err != nil {
+		return 0, 0, 0, err
 	}
 
 	count := 0
