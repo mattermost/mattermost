@@ -1865,6 +1865,9 @@ func login(c *Context, w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
+		// Log the error before masking it to ensure it's at least in the logs.
+		c.LogErrorByCode(c.Err)
+
 		config := c.App.Config()
 		enableUsername := *config.EmailSettings.EnableSignInWithUsername
 		enableEmail := *config.EmailSettings.EnableSignInWithEmail

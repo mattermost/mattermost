@@ -367,7 +367,15 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Handle errors that have occurred
 	if c.Err != nil {
 		c.Err.RequestId = c.AppContext.RequestId()
-		c.LogErrorByCode(c.Err)
+
+		// Don't log masked errors from user login. The login handler already logged the unmasked ones.
+		if c.Err.Id != "api.user.login.invalid_credentials_sso" &&
+			c.Err.Id != "api.user.login.invalid_credentials_username" &&
+			c.Err.Id != "api.user.login.invalid_credentials_email" &&
+			c.Err.Id != "api.user.login.invalid_credentials_email_username" {
+			c.LogErrorByCode(c.Err)
+		}
+
 		// The locale translation needs to happen after we have logged it.
 		// We don't want the server logs to be translated as per user locale.
 		c.Err.Translate(c.AppContext.T)
