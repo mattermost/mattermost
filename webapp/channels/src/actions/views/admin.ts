@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
-
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserReportOptions, UserReport} from '@mattermost/types/reports';
 
@@ -25,38 +23,16 @@ export function setNeedsLoggedInLimitReachedCheck(data: boolean) {
 /**
  * Action to set the properties of the admin console user management table. Only pass the properties you want to set/modify. If you pass no properties, the table properties will be cleared.
  */
-export function setAdminConsoleUsersManagementTableProperties(data?: Partial<AdminConsoleUserManagementTableProperties>): ActionFunc<boolean> {
-    return (dispatch) => {
-        const actions = [];
-        if (data && 'sortColumn' in data) {
-            actions.push({
-                type: ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_COLUMN,
-                data: data.sortColumn,
-            });
-        }
+export function setAdminConsoleUsersManagementTableProperties(data?: Partial<AdminConsoleUserManagementTableProperties>) {
+    if (!data) {
+        return {
+            type: ActionTypes.CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES,
+        };
+    }
 
-        if (data && 'sortIsDescending' in data) {
-            actions.push({
-                type: ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_ORDER,
-                data: data.sortIsDescending,
-            });
-        }
-
-        if (data && 'pageSize' in data) {
-            actions.push({
-                type: ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_PAGE_SIZE,
-                data: data.pageSize,
-            });
-        }
-
-        if (actions.length === 0) {
-            dispatch({
-                type: ActionTypes.CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES,
-            });
-        } else {
-            dispatch(batchActions(actions));
-        }
-        return {data: true};
+    return {
+        type: ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES,
+        data,
     };
 }
 

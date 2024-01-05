@@ -64,21 +64,8 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
 
 export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: GenericAction) {
     switch (action.type) {
-    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_COLUMN:
-        return {
-            ...state,
-            sortColumn: action.data,
-        };
-    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_ORDER:
-        return {
-            ...state,
-            sortIsDescending: action.data,
-        };
-    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_PAGE_SIZE:
-        return {
-            ...state,
-            pageSize: action.data,
-        };
+    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES:
+        return {...state, ...action.data};
     case ActionTypes.CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES:
         return adminConsoleUserManagementTablePropertiesInitialState;
     default:
