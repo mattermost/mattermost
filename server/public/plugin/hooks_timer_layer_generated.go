@@ -264,3 +264,9 @@ func (hooks *hooksTimerLayer) OnSharedChannelsPing(rc *model.RemoteCluster) bool
 	hooks.recordTime(startTime, "OnSharedChannelsPing", true)
 	return _returnsA
 }
+
+func (hooks *hooksTimerLayer) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
+	startTime := timePkg.Now()
+	hooks.hooksImpl.PreferencesHaveChanged(c, preferences)
+	hooks.recordTime(startTime, "PreferencesHaveChanged", true)
+}
