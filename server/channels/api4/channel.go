@@ -708,13 +708,13 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	channelIds, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil {
-		c.Err = model.NewAppError("getChannelsMemberCount", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+	channelIDs, sortErr := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if sortErr != nil {
+		c.Err = model.NewAppError("getChannelsMemberCount", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(sortErr)
 		return
 	}
 
-  channels, err := c.App.GetChannels(c.AppContext, channelIDs)
+	channels, err := c.App.GetChannels(c.AppContext, channelIDs)
 	if err != nil {
 		c.Err = err
 		return
@@ -726,8 +726,8 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 			return
 		}
 	}
-  
-	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, channelIds)
+
+	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
 	if appErr != nil {
 		c.Err = appErr
 		return
