@@ -186,8 +186,7 @@ func (b *S3FileBackend) s3New(isCloud bool) (*s3.Client, error) {
 	}
 
 	if b.trace {
-		s3Tracer := s3Trace{}
-		s3Clnt.TraceOn(&s3Tracer)
+		s3Clnt.TraceOn(&s3Trace{})
 	}
 
 	return s3Clnt, nil
