@@ -8176,27 +8176,27 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
-    "translation": ""
+    "translation": "There was an error while deleting the outgoing oauth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
-    "translation": ""
+    "translation": "There was an error retrieving the outgoing oauth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
-    "translation": ""
+    "translation": "The outgoing oauth connection was not found."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
-    "translation": ""
+    "translation": "There was an error retrieving the outgoing oauth connections."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": ""
+    "translation": "There was an error saving the outgoing oauth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": ""
+    "translation": "There was an error updating the outgoing oauth connection."
   },
   {
     "id": "ent.saml.attribute.app_error",
