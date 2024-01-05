@@ -8175,6 +8175,30 @@
     "translation": "Username already used by another Mattermost user."
   },
   {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": ""
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": ""
+  },
+  {
     "id": "ent.saml.attribute.app_error",
     "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
