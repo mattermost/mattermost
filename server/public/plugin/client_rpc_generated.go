@@ -1703,6 +1703,37 @@ func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_Get
 	return nil
 }
 
+type Z_GetPreferenceForUserArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_GetPreferenceForUserReturns struct {
+	A model.Preference
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
+	_args := &Z_GetPreferenceForUserArgs{userID, category, name}
+	_returns := &Z_GetPreferenceForUserReturns{}
+	if err := g.client.Call("Plugin.GetPreferenceForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPreferenceForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPreferenceForUser(args *Z_GetPreferenceForUserArgs, returns *Z_GetPreferenceForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPreferenceForUser(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetPreferenceForUser called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetPreferencesForUserArgs struct {
 	A string
 }
