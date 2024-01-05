@@ -63,19 +63,6 @@ function modalFilters(state: ViewsState['search']['modalFilters'] = {}, action: 
     }
 }
 
-function systemUsersSearch(state: Partial<ViewsState['search']['systemUsersSearch']> = {}, action: GenericAction) {
-    switch (action.type) {
-    case SearchTypes.SET_SYSTEM_USERS_SEARCH: {
-        return action.data;
-    }
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
-}
-
 function userGridSearch(state: Partial<ViewsState['search']['userGridSearch']> = {}, action: GenericAction) {
     switch (action.type) {
     case SearchTypes.SET_USER_GRID_SEARCH: {
@@ -142,7 +129,6 @@ export default combineReducers({
     popoverSearch,
     channelMembersRhsSearch,
     modalFilters,
-    systemUsersSearch,
     userGridSearch,
     teamListSearch,
     channelListSearch,

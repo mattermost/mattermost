@@ -13,6 +13,8 @@ type Props = {
     onFilter: ({teamId, filter}: {teamId?: string; filter?: string}) => Promise<void>;
 };
 
+// Repurpose for the new filter
+
 function SystemUsersFilterRole(props: Props) {
     const {formatMessage} = useIntl();
 
