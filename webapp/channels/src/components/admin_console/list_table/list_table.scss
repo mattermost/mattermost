@@ -144,6 +144,11 @@ table.adminConsoleListTable {
                 td.pinned {
                     background-color: $sysCenterChannelColorWith8Alpha;
                 }
+
+                td.noRows {
+                    background-color: var(--sys-center-channel-bg);
+                    cursor: default;
+                }
             }
 
             td {
@@ -203,6 +208,10 @@ table.adminConsoleListTable {
                         }
                     }
                 }
+
+                &.noRows {
+                    text-align: center;
+                }
             }
         }
     }
@@ -237,7 +246,7 @@ table.adminConsoleListTable {
         justify-content: center;
 
         & > .react-select {
-            min-width: 64px;
+            min-width: 72px;
             margin: 0 6px;
 
             .react-select__value-container {

@@ -1,43 +1,41 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {GlobalState} from '@mattermost/types/store';
-import type {UserProfile} from '@mattermost/types/users';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {getUser} from 'mattermost-redux/actions/users';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import {getUserReports, setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
+import {adminConsoleUserManagementTablePropertiesInitialState} from 'reducers/views/admin';
+import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
-import {getNonBotUsers} from './selectors';
+import type {GlobalState} from 'types/store';
+
 import SystemUsersList from './system_users_list';
 
-type Actions = {
-    getUser: (id: string) => UserProfile;
-};
+function mapStateToProps(state: GlobalState) {
+    const currentUser = getCurrentUser(state);
+    const tableProperties = getAdminConsoleUserManagementTableProperties(state);
+    const sortColumn = tableProperties?.sortColumn ?? adminConsoleUserManagementTablePropertiesInitialState.sortColumn;
+    const sortIsDescending = tableProperties?.sortIsDescending ?? adminConsoleUserManagementTablePropertiesInitialState.sortIsDescending;
+    const pageSize = tableProperties?.pageSize ?? adminConsoleUserManagementTablePropertiesInitialState.pageSize;
 
-type Props = {
-    loading: boolean;
-    teamId: string;
-    term: string;
-    filter: string;
-}
-
-function mapStateToProps(state: GlobalState, ownProps: Props) {
-    const users = getNonBotUsers(state, ownProps.loading, ownProps.teamId, ownProps.term, ownProps.filter);
     return {
-        users,
+        currentUser,
+        sortColumn,
+        sortIsDescending,
+        pageSize,
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
-    return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
-            getUser,
-        }, dispatch),
-    };
-}
+const mapDispatchToProps = ({
+    getUserReports,
+    setAdminConsoleUsersManagementTableProperties,
+});
 
-export default connect(mapStateToProps, mapDispatchToProps)(SystemUsersList);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(SystemUsersList);

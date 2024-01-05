@@ -12,10 +12,11 @@ import type {IndicatorContainerProps, ValueType} from 'react-select';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 
-import {Pagination} from './pagination';
+// import {Pagination} from './pagination';
 
 import './list_table.scss';
 
@@ -47,10 +48,17 @@ export type PageSizeOption = {
     value: number;
 };
 
+export enum LoadingStates {
+    Loading = 'loading',
+    Loaded = 'loaded',
+    Failed = 'failed',
+}
+
 export type TableMeta = {
     tableId: string;
     tableCaption?: string;
-    isLoading?: boolean;
+    loadingState?: LoadingStates;
+    emptyDataMessage?: ReactNode;
     onRowClick?: (row: string) => void;
     disablePrevPage?: boolean;
     disableNextPage?: boolean;
@@ -111,24 +119,27 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         }
     }
 
+    const colcount = props.table.getAllColumns().length;
+    const rowCount = props.table.getRowModel().rows.length;
+
     return (
         <>
-            <div className='adminConsoleListTabletOptionalHead'>
+            {/* <div className='adminConsoleListTabletOptionalHead'>
                 {tableMeta.totalRowInfo}
                 {tableMeta.hasAdditionalPaginationAtTop && (
                     <Pagination
                         disablePrevPage={tableMeta.disablePrevPage}
                         disableNextPage={tableMeta.disableNextPage}
-                        isLoading={tableMeta.isLoading}
+                        isLoading={tableMeta.loadingState === LoadingStates.Loading}
                         onPreviousPageClick={tableMeta.onPreviousPageClick}
                         onNextPageClick={tableMeta.onNextPageClick}
                         paginationInfo={tableMeta.paginationInfo}
                     />
                 )}
-            </div>
+            </div> */}
             <table
                 id={tableMeta.tableId}
-                aria-colcount={props.table.getAllColumns().length}
+                aria-colcount={colcount}
                 aria-describedby={`${tableMeta.tableId}-headerId`} // Set this id to the table header so that the title describes the table
                 className={classNames(
                     'adminConsoleListTable',
@@ -151,6 +162,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                         [SORTABLE_CLASS]: header.column.getCanSort(),
                                         [PINNED_CLASS]: header.column.getCanPin(),
                                     })}
+                                    disabled={header.column.getCanSort() && tableMeta.loadingState === LoadingStates.Loading}
                                     onClick={header.column.getToggleSortingHandler()}
                                 >
                                     {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
@@ -227,6 +239,47 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             ))}
                         </tr>
                     ))}
+
+                    {/* State where it is initially loading the data */}
+                    {(rowCount === 0 && tableMeta.loadingState === LoadingStates.Loading) && (
+                        <tr>
+                            <td
+                                colSpan={colcount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                <LoadingSpinner
+                                    text={formatMessage({id: 'adminConsole.list.table.genericLoading', defaultMessage: 'Loading'})}
+                                />
+                            </td>
+                        </tr>
+                    )}
+
+                    {/* State where there is no data */}
+                    {(rowCount === 0 && tableMeta.loadingState === LoadingStates.Loaded) && (
+                        <tr>
+                            <td
+                                colSpan={colcount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                {tableMeta.emptyDataMessage || formatMessage({id: 'adminConsole.list.table.genericNoData', defaultMessage: 'No data'})}
+                            </td>
+                        </tr>
+                    )}
+
+                    {/* State where there is an error loading the data */}
+                    {tableMeta.loadingState === LoadingStates.Failed && (
+                        <tr>
+                            <td
+                                colSpan={colcount}
+                                className='noRows'
+                                disabled={true}
+                            >
+                                {formatMessage({id: 'adminConsole.list.table.genericError', defaultMessage: 'There was an error loading the data, please try again'})}
+                            </td>
+                        </tr>
+                    )}
                 </tbody>
                 <tfoot>
                     {props.table.getFooterGroups().map((footerGroup) => (
@@ -273,7 +326,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                             options={pageSizeOptions}
                             value={selectedPageSize}
                             onChange={handlePageSizeChange}
-                            isDisabled={tableMeta.isLoading}
+                            isDisabled={tableMeta.loadingState === LoadingStates.Loading}
                             components={{
                                 IndicatorSeparator: null,
                                 IndicatorsContainer,
@@ -285,14 +338,16 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         />
                     </div>
                 )}
-                <Pagination
+
+                {/* TODO will implement next */}
+                {/* <Pagination
                     disablePrevPage={tableMeta.disablePrevPage}
                     disableNextPage={tableMeta.disableNextPage}
-                    isLoading={tableMeta.isLoading}
+                    isLoading={tableMeta.loadingState === LoadingStates.Loading}
                     onPreviousPageClick={tableMeta.onPreviousPageClick}
                     onNextPageClick={tableMeta.onNextPageClick}
                     paginationInfo={tableMeta.paginationInfo}
-                />
+                /> */}
             </div>
         </>
     );

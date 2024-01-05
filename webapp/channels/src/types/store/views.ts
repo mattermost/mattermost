@@ -19,6 +19,12 @@ export type ModalFilters = {
     team_roles?: string[];
 };
 
+export type AdminConsoleUserManagementTableProperties = {
+    sortColumn: string;
+    sortIsDescending: boolean;
+    pageSize: number;
+};
+
 export type ViewsState = {
     admin: {
         navigationBlock: {
@@ -27,6 +33,7 @@ export type ViewsState = {
             showNavigationPrompt: boolean;
         };
         needsLoggedInLimitReachedCheck: boolean;
+        adminConsoleUserManagementTableProperties: AdminConsoleUserManagementTableProperties;
     };
 
     announcementBar: {

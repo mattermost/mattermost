@@ -13,54 +13,18 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
           "siteName": "Site name",
         }
       }
-    />
+    >
+      <Component />
+    </MemoizedFormattedMessage>
     <RevokeSessionsButton />
   </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
     <div
-      className="admin-console__content"
+      className="admin-console__container"
     >
-      <div
-        className="more-modal__list member-list-holder"
-      >
-        <div
-          className="system-users__filter-row"
-        >
-          <SystemUsersSearch
-            onChange={[Function]}
-            onSearch={[Function]}
-            value=""
-          />
-          <SystemUsersFilterTeam
-            onChange={[Function]}
-            onFilter={[Function]}
-            options={Array []}
-            value=""
-          />
-          <SystemUsersFilterRole
-            onChange={[Function]}
-            onFilter={[Function]}
-            value=""
-          />
-        </div>
-        <Connect(SystemUsersList)
-          enableUserAccessTokens={false}
-          experimentalEnableAuthenticationTransfer={false}
-          filter=""
-          loading={true}
-          mfaEnabled={false}
-          nextPage={[Function]}
-          onTermChange={[Function]}
-          search={[Function]}
-          teamId=""
-          teams={Array []}
-          term=""
-          total={0}
-          usersPerPage={50}
-        />
-      </div>
+      <Connect(SystemUsersList) />
     </div>
   </div>
 </div>
