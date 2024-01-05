@@ -374,7 +374,7 @@ func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.SaveSharedChannel(c, &model.SharedChannel{
+		_, err := th.App.ShareChannel(c, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,

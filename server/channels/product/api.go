@@ -207,9 +207,9 @@ type SystemService interface {
 //
 // The service shall be registered via app.PreferencesKey service key.
 type PreferencesService interface {
-	GetPreferencesForUser(userID string) (model.Preferences, *model.AppError)
-	UpdatePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
-	DeletePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
+	GetPreferencesForUser(c request.CTX, userID string) (model.Preferences, *model.AppError)
+	UpdatePreferencesForUser(c request.CTX, userID string, preferences model.Preferences) *model.AppError
+	DeletePreferencesForUser(c request.CTX, userID string, preferences model.Preferences) *model.AppError
 }
 
 // SessionService is the API for accessing the session.

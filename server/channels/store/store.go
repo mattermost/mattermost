@@ -16,17 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
-// Deprecated: Use GenericStoreResult instead.
-type StoreResult struct {
-	Data any
-
-	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
-	NErr error
-}
-
-// GenericStoreResult is a type safe version of StoreResult.
-// Once all the code is migrated to use GenericStoreResult, it should be renamed to StoreResult.
-type GenericStoreResult[T any] struct {
+type StoreResult[T any] struct {
 	Data T
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
@@ -493,6 +483,7 @@ type UserStore interface {
 	GetUsersWithInvalidEmails(page int, perPage int, restrictedDomains string) ([]*model.User, error)
 	InsertUsers(users []*model.User) error
 	RefreshPostStatsForUsers() error
+	GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error)
 }
 
 type BotStore interface {
@@ -542,6 +533,7 @@ type RemoteClusterStore interface {
 	Update(rc *model.RemoteCluster) (*model.RemoteCluster, error)
 	Delete(remoteClusterId string) (bool, error)
 	Get(remoteClusterId string) (*model.RemoteCluster, error)
+	GetByPluginID(pluginID string) (*model.RemoteCluster, error)
 	GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error)
 	UpdateTopics(remoteClusterId string, topics string) (*model.RemoteCluster, error)
 	SetLastPingAt(remoteClusterId string) error
