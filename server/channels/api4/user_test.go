@@ -5534,7 +5534,7 @@ func TestLoginErrorMessage(t *testing.T) {
 	})
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_username")
-	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join.")
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Unable to find an existing account matching your login ID.")
 	_, err = io.Copy(io.Discard, th.LogBuffer) // Clear log buffer
 	require.NoError(t, err)
 
@@ -5562,7 +5562,7 @@ func TestLoginErrorMessage(t *testing.T) {
 	_, _, err = th.Client.Login(context.Background(), th.BasicUser.Email, "wrong")
 	CheckErrorID(t, err, "api.user.login.invalid_credentials_sso")
 
-	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join.")
+	testlib.AssertLog(t, th.LogBuffer, mlog.LvlDebug.Name, "Unable to find an existing account matching your login ID.")
 	_, err = io.Copy(io.Discard, th.LogBuffer) // Clear log buffer
 	require.NoError(t, err)
 }

@@ -10064,7 +10064,7 @@
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
-    "translation": "Unable to find an existing account matching your credentials. This team may require an invite from the team owner to join."
+    "translation": "Unable to find an existing account matching your login ID."
   },
   {
     "id": "system.message.name",
