@@ -2469,7 +2469,7 @@ func TestUpdateUserActive(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
-		resp, err = th.Client.UpdateUserActive(context.Background(), GenerateTestId(), true)
+		resp, err = th.Client.UpdateUserActive(context.Background(), GenerateTestID(), true)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 
@@ -3089,7 +3089,7 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 		Value:    model.ShowUsername,
 	}
 
-	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	err = th.App.UpdatePreferences(th.Context, th.SystemAdminUser.Id, model.Preferences{preference})
 	assert.Nil(t, err)
 
 	t.Run("Returns users in group in right order for username", func(t *testing.T) {
@@ -3099,7 +3099,7 @@ func TestGetUsersInGroupByDisplayName(t *testing.T) {
 	})
 
 	preference.Value = model.ShowNicknameFullName
-	err = th.App.UpdatePreferences(th.SystemAdminUser.Id, model.Preferences{preference})
+	err = th.App.UpdatePreferences(th.Context, th.SystemAdminUser.Id, model.Preferences{preference})
 	assert.Nil(t, err)
 
 	t.Run("Returns users in group in right order for nickname", func(t *testing.T) {
@@ -3672,7 +3672,7 @@ func TestVerifyUserEmail(t *testing.T) {
 	_, err = th.Client.VerifyUserEmail(context.Background(), token.Token)
 	require.NoError(t, err)
 
-	resp, err := th.Client.VerifyUserEmail(context.Background(), GenerateTestId())
+	resp, err := th.Client.VerifyUserEmail(context.Background(), GenerateTestID())
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 

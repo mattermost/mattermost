@@ -38,11 +38,11 @@ const (
 
 func (a *App) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoji, multiPartImageData *multipart.Form) (*model.Emoji, *model.AppError) {
 	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return nil, model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if *a.Config().FileSettings.DriverName == "" {
-		return nil, model.NewAppError("GetEmoji", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
 	}
 
 	// wipe the emoji id so that existing emojis can't get overwritten
@@ -56,11 +56,11 @@ func (a *App) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoj
 	}
 
 	if emoji.CreatorId != sessionUserId {
-		return nil, model.NewAppError("createEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.create.other_user.app_error", nil, "", http.StatusForbidden)
 	}
 
 	if existingEmoji, err := a.Srv().Store().Emoji().GetByName(c, emoji.Name, true); err == nil && existingEmoji != nil {
-		return nil, model.NewAppError("createEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.create.duplicate.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
 
 	imageData := multiPartImageData.File["image"]
@@ -68,11 +68,18 @@ func (a *App) CreateEmoji(c request.CTX, sessionUserId string, emoji *model.Emoj
 		return nil, model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": "createEmoji"}, "", http.StatusBadRequest)
 	}
 
-	if appErr := a.UploadEmojiImage(c, emoji.Id, imageData[0]); appErr != nil {
+	filename := imageData[0].Filename
+	file, err := imageData[0].Open()
+	if err != nil {
+		return nil, model.NewAppError("CreateEmoji", "api.emoji.upload.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+	defer file.Close()
+
+	if appErr := a.uploadEmojiImage(c, emoji.Id, filename, file); appErr != nil {
 		return nil, appErr
 	}
 
-	emoji, err := a.Srv().Store().Emoji().Save(emoji)
+	emoji, err = a.Srv().Store().Emoji().Save(emoji)
 	if err != nil {
 		return nil, model.NewAppError("CreateEmoji", "app.emoji.create.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
@@ -96,26 +103,9 @@ func (a *App) GetEmojiList(c request.CTX, page, perPage int, sort string) ([]*mo
 	return list, nil
 }
 
-func (a *App) UploadEmojiImage(c request.CTX, id string, imageData *multipart.FileHeader) *model.AppError {
-	if !*a.Config().ServiceSettings.EnableCustomEmoji {
-		return model.NewAppError("UploadEmojiImage", "api.emoji.disabled.app_error", nil, "", http.StatusForbidden)
-	}
-
-	if *a.Config().FileSettings.DriverName == "" {
-		return model.NewAppError("UploadEmojiImage", "api.emoji.storage.app_error", nil, "", http.StatusForbidden)
-	}
-
-	file, err := imageData.Open()
-	if err != nil {
-		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.open.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-	}
-	defer file.Close()
-
-	buf := bytes.NewBuffer(nil)
-	io.Copy(buf, file)
-
+func (a *App) uploadEmojiImage(c request.CTX, id string, filename string, file io.ReadSeeker) *model.AppError {
 	// make sure the file is an image and is within the required dimensions
-	config, _, err := image.DecodeConfig(bytes.NewReader(buf.Bytes()))
+	config, _, err := image.DecodeConfig(file)
 	if err != nil {
 		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.image.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 	}
@@ -127,37 +117,40 @@ func (a *App) UploadEmojiImage(c request.CTX, id string, imageData *multipart.Fi
 		}, "", http.StatusBadRequest)
 	}
 
-	if config.Width > MaxEmojiWidth || config.Height > MaxEmojiHeight {
-		data := buf.Bytes()
-		newbuf := bytes.NewBuffer(nil)
-		info, err := getInfoForBytes(imageData.Filename, bytes.NewReader(data), len(data))
+	_, err = file.Seek(0, io.SeekStart)
+	if err != nil {
+		return model.NewAppError("uploadEmojiImage", "api.emoji.upload.seek.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	if config.Width <= MaxEmojiWidth && config.Height <= MaxEmojiHeight {
+		// No need to resize the image
+		_, appErr := a.WriteFile(file, getEmojiImagePath(id))
+		return appErr
+	}
+
+	// Create a buffer for the resized image
+	buf := &bytes.Buffer{}
+
+	info := model.NewInfo(filename)
+	if info.MimeType == "image/gif" {
+		g, err := gif.DecodeAll(file)
 		if err != nil {
-			return err
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 
-		if info.MimeType == "image/gif" {
-			gif_data, err := gif.DecodeAll(bytes.NewReader(data))
-			if err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_decode_error", nil, "", http.StatusBadRequest).Wrap(err)
-			}
+		resizeEmojiGif(g)
+		if err := gif.EncodeAll(buf, g); err != nil {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
+	} else {
+		img, _, err := image.Decode(file)
+		if err != nil {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest).Wrap(err)
+		}
 
-			resized_gif := resizeEmojiGif(gif_data)
-			if err := gif.EncodeAll(newbuf, resized_gif); err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.gif_encode_error", nil, "", http.StatusBadRequest).Wrap(err)
-			}
-
-			buf = newbuf
-		} else {
-			img, _, err := image.Decode(bytes.NewReader(data))
-			if err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.decode_error", nil, "", http.StatusBadRequest).Wrap(err)
-			}
-
-			resizedImg := resizeEmoji(img, config.Width, config.Height)
-			if err := a.ch.imgEncoder.EncodePNG(newbuf, resizedImg); err != nil {
-				return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest).Wrap(err)
-			}
-			buf = newbuf
+		resizedImg := resizeEmoji(img, config.Width, config.Height)
+		if err := a.ch.imgEncoder.EncodePNG(buf, resizedImg); err != nil {
+			return model.NewAppError("uploadEmojiImage", "api.emoji.upload.large_image.encode_error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -314,7 +307,7 @@ func (a *App) GetEmojiStaticURL(c request.CTX, emojiName string) (string, *model
 	}
 }
 
-func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {
+func resizeEmojiGif(gifImg *gif.GIF) {
 	// Create a new RGBA image to hold the incremental frames.
 	firstFrame := gifImg.Image[0].Bounds()
 	b := image.Rect(0, 0, firstFrame.Dx(), firstFrame.Dy())
@@ -331,7 +324,6 @@ func resizeEmojiGif(gifImg *gif.GIF) *gif.GIF {
 	// Set new gif width and height
 	gifImg.Config.Width = resizedImage.Bounds().Dx()
 	gifImg.Config.Height = resizedImage.Bounds().Dy()
-	return gifImg
 }
 
 func getEmojiImagePath(id string) string {

@@ -21,8 +21,9 @@
 
         #searchIcon {
             position: absolute;
-            top: 16px;
-            left: 46px;
+            z-index: 1;
+            top: 15px;
+            left: 42px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             pointer-events: none;
         }
@@ -106,7 +107,7 @@
     }
 
     .modal-body {
-        padding: 15px 0 0;
+        padding: 0;
 
         .filtered-user-list {
             height: 500px;
@@ -213,7 +214,7 @@
     .modal-header {
         .GenericModal__header {
             display: flex;
-            width: 95%;
+            width: 100%;
             align-items: center;
             justify-content: space-between;
             padding-right: 4px;
