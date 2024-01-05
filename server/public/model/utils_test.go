@@ -120,6 +120,7 @@ func TestAppErrorSerialize(t *testing.T) {
 	t.Run("Junk", func(t *testing.T) {
 		rerr := AppErrorFromJSON(strings.NewReader("<html><body>This is a broken test</body></html>"))
 		require.ErrorContains(t, rerr, "failed to decode JSON payload into AppError")
+		require.ErrorContains(t, rerr, "<html><body>This is a broken test</body></html>")
 	})
 
 	t.Run("Normal", func(t *testing.T) {
