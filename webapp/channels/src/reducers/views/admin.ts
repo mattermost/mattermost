@@ -56,13 +56,13 @@ export function needsLoggedInLimitReachedCheck(state = false, action: GenericAct
     }
 }
 
-const adminConsoleUserManagementTablePropertiesInitialState: AdminConsoleUserManagementTableProperties = {
+export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsoleUserManagementTableProperties = {
     sortColumn: '',
     sortIsDescending: false,
     pageSize: 0,
 };
 
-export function adminConsoleUserManagement(state = adminConsoleUserManagementTablePropertiesInitialState, action: GenericAction) {
+export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: GenericAction) {
     switch (action.type) {
     case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_SORT_COLUMN:
         return {
@@ -89,5 +89,5 @@ export function adminConsoleUserManagement(state = adminConsoleUserManagementTab
 export default combineReducers({
     navigationBlock,
     needsLoggedInLimitReachedCheck,
-    adminConsoleUserManagement,
+    adminConsoleUserManagementTableProperties,
 });
