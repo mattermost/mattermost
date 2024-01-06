@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Channel, ChannelSearchOpts, ChannelWithTeamData} from '@mattermost/types/channels';
 
@@ -22,6 +23,7 @@ type Props = {
     searchTerm: string;
     onModalDismissed?: () => void;
     onChannelsSelected?: (channels: ChannelWithTeamData[]) => void;
+    intl: IntlShape;
     groupID: string;
     actions: {
         loadChannels: (page?: number, perPage?: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, excludePolicyConstrained?: boolean) => Promise<{data: ChannelWithTeamData[]}>;
@@ -43,7 +45,7 @@ type State = {
 
 const CHANNELS_PER_PAGE = 50;
 
-export default class ChannelSelectorModal extends React.PureComponent<Props, State> {
+export class ChannelSelectorModal extends React.PureComponent<Props, State> {
     searchTimeoutId = 0;
     selectedItemRef = React.createRef<HTMLDivElement>();
 
@@ -187,7 +189,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
                 </div>
                 <div className='more-modal__actions'>
                     <div className='more-modal__actions--round'>
-                        <i className='fa fa-plus'/>
+                        <i className='icon icon-plus'/>
                     </div>
                 </div>
             </div>
@@ -245,6 +247,7 @@ export default class ChannelSelectorModal extends React.PureComponent<Props, Sta
                         key='addChannelsToSchemeKey'
                         options={options}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         selectedItemRef={this.selectedItemRef}
                         values={values}
                         valueRenderer={this.renderValue}
@@ -278,3 +281,5 @@ function compareChannels(a: Channel, b: Channel) {
     const bName = b.name.toUpperCase();
     return aName.localeCompare(bName);
 }
+
+export default injectIntl(ChannelSelectorModal);

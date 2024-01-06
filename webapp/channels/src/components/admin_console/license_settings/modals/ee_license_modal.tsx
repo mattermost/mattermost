@@ -39,6 +39,7 @@ const EELicenseModal: React.FC<Props> = (props: Props): JSX.Element | null => {
     // Note: DO NOT LOCALISE THESE STRINGS. Legally we can not since the license is in English.
     return (
         <GenericModal
+            compassDesign={true}
             className={'EELicenseModal'}
             show={show}
             id='EELicenseModal'

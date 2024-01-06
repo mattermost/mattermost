@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -82,7 +83,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         }
     };
 
-    handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
         e.preventDefault();
 
         this.props.actions.openModal({

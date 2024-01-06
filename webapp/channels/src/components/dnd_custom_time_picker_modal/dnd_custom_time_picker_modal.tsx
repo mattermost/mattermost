@@ -237,6 +237,7 @@ export default class DndCustomTimePicker extends React.PureComponent<Props, Stat
         return (
             <CompassThemeProvider theme={this.props.theme}>
                 <GenericModal
+                    compassDesign={true}
                     ariaLabel={localizeMessage('dnd_custom_time_picker_modal.defaultMsg', 'Disable notifications until')}
                     onExited={this.props.onExited}
                     modalHeaderText={modalHeaderText}

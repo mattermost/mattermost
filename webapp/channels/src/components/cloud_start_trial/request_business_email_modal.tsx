@@ -102,6 +102,7 @@ const RequestBusinessEmailModal = (
     return (
         <GenericModal
             className='RequestBusinessEmailModal'
+            compassDesign={true}
             id='RequestBusinessEmailModal'
             onExited={handleOnClose}
         >

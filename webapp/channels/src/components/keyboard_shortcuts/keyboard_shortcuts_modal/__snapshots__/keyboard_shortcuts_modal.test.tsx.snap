@@ -35,6 +35,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal 1`] = `
   >
     <ModalHeader
       bsClass="modal-header"
+      className="divider"
       closeButton={true}
       closeLabel="Close"
     >
@@ -677,6 +678,7 @@ exports[`components/KeyboardShortcutsModal should match snapshot modal with Call
   >
     <ModalHeader
       bsClass="modal-header"
+      className="divider"
       closeButton={true}
       closeLabel="Close"
     >

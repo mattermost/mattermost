@@ -4,12 +4,15 @@
 /* eslint-disable @mattermost/use-external-link */
 
 import classNames from 'classnames';
-import PropTypes from 'prop-types';
 import React from 'react';
+import type {KeyboardEvent, MouseEvent, SyntheticEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compass-icons/components';
+import type {FileInfo} from '@mattermost/types/files';
+import type {PostImage} from '@mattermost/types/posts';
 
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
@@ -23,83 +26,103 @@ const MIN_IMAGE_SIZE = 48;
 const MIN_IMAGE_SIZE_FOR_INTERNAL_BUTTONS = 100;
 const MAX_IMAGE_HEIGHT = 350;
 
+export type Props = {
+
+    /*
+    * The source URL of the image
+    */
+    src: string;
+
+    /*
+    * dimensions object to create empty space required to prevent scroll pop
+    */
+    dimensions?: Partial<PostImage>;
+    fileInfo?: FileInfo;
+
+    /**
+    * fileURL of the original image
+    */
+    fileURL?: string;
+
+    alt?: string;
+    height?: string;
+    width?: string;
+    title?: string;
+
+    /*
+    * Boolean value to pass for showing a loader when image is being loaded
+    */
+    showLoader?: boolean;
+
+    /*
+    * A callback that is called as soon as the image component has a height value
+    */
+    onImageLoaded?: ({height, width}: {height: number; width: number}) => void;
+
+    /*
+    * A callback that is called when image load fails
+    */
+    onImageLoadFail?: () => void;
+
+    /*
+    * Fetch the onClick function
+    */
+    onClick?: (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLImageElement | HTMLDivElement>), link?: string) => void;
+
+    /*
+    * css classes that can added to the img as well as parent div on svg for placeholder
+    */
+    className?: string;
+
+    /*
+    * Enables the logic of surrounding small images with a bigger container div for better click/tap targeting
+    */
+    handleSmallImageContainer?: boolean;
+
+    /**
+    * Enables copy URL functionality through a button on image hover.
+    */
+    enablePublicLink?: boolean;
+
+    /**
+    * Action to fetch public link of an image from server.
+    */
+    getFilePublicLink?: () => ActionFunc;
+
+    /*
+    * Prevents display of utility buttons when image in a location that makes them inappropriate
+    */
+    hideUtilities?: boolean;
+}
+
+type State = {
+    loaded: boolean;
+    isSmallImage: boolean;
+    linkCopiedRecently: boolean;
+    linkCopyInProgress: boolean;
+    error: boolean;
+    imageWidth: number;
+}
+
 // SizeAwareImage is a component used for rendering images where the dimensions of the image are important for
 // ensuring that the page is laid out correctly.
-export default class SizeAwareImage extends React.PureComponent {
-    static propTypes = {
+export default class SizeAwareImage extends React.PureComponent<Props, State> {
+    public heightTimeout = 0;
+    public mounted = false;
+    public timeout: NodeJS.Timeout|null = null;
 
-        /*
-         * The source URL of the image
-         */
-        src: PropTypes.string.isRequired,
-
-        /*
-         * dimensions object to create empty space required to prevent scroll pop
-         */
-        dimensions: PropTypes.object,
-        fileInfo: PropTypes.object,
-
-        /**
-         * fileURL of the original image
-         */
-        fileURL: PropTypes.string,
-
-        /*
-         * Boolean value to pass for showing a loader when image is being loaded
-         */
-        showLoader: PropTypes.bool,
-
-        /*
-         * A callback that is called as soon as the image component has a height value
-         */
-        onImageLoaded: PropTypes.func,
-
-        /*
-         * A callback that is called when image load fails
-         */
-        onImageLoadFail: PropTypes.func,
-
-        /*
-         * Fetch the onClick function
-         */
-        onClick: PropTypes.func,
-
-        /*
-         * css classes that can added to the img as well as parent div on svg for placeholder
-         */
-        className: PropTypes.string,
-
-        /*
-         * Enables the logic of surrounding small images with a bigger container div for better click/tap targeting
-         */
-        handleSmallImageContainer: PropTypes.bool,
-
-        /**
-         * Enables copy URL functionality through a button on image hover.
-         */
-        enablePublicLink: PropTypes.bool,
-
-        /**
-         * Action to fetch public link of an image from server.
-         */
-        getFilePublicLink: PropTypes.func,
-
-        /*
-         * Prevents display of utility buttons when image in a location that makes them inappropriate
-         */
-        hideUtilities: PropTypes.bool,
-    };
-
-    constructor(props) {
+    constructor(props: Props) {
         super(props);
         const {dimensions} = props;
 
         this.state = {
             loaded: false,
             isSmallImage: this.dimensionsAvailable(dimensions) ? this.isSmallImage(
-                dimensions.width, dimensions.height) : false,
+                dimensions?.width ?? 0, dimensions?.height ?? 0) : false,
             linkCopiedRecently: false,
             linkCopyInProgress: false,
+            error: false,
+            imageWidth: 0,
         };
 
         this.heightTimeout = 0;
@@ -113,17 +136,17 @@ export default class SizeAwareImage extends React.PureComponent {
         this.mounted = false;
     }
 
-    dimensionsAvailable = (dimensions) => {
+    dimensionsAvailable = (dimensions?: Partial<PostImage>) => {
         return dimensions && dimensions.width && dimensions.height;
     };
 
-    isSmallImage = (width, height) => {
+    isSmallImage = (width: number, height: number) => {
         return width < MIN_IMAGE_SIZE || height < MIN_IMAGE_SIZE;
     };
 
-    handleLoad = (event) => {
+    handleLoad = (event: SyntheticEvent<HTMLImageElement, Event>) => {
         if (this.mounted) {
-            const image = event.target;
+            const image = event.target as HTMLImageElement;
             const isSmallImage = this.isSmallImage(image.naturalWidth, image.naturalHeight);
             this.setState({
                 loaded: true,
@@ -147,13 +170,13 @@ export default class SizeAwareImage extends React.PureComponent {
         }
     };
 
-    handleImageClick = (e) => {
+    handleImageClick = (e: MouseEvent<HTMLImageElement>) => {
         this.props.onClick?.(e, this.props.src);
     };
 
-    onEnterKeyDown = (e) => {
+    onEnterKeyDown = (e: KeyboardEvent<HTMLImageElement>) => {
         if (e.key === 'Enter') {
-            this.handleImageClick(e);
+            this.props.onClick?.(e, this.props.src);
         }
     };
 
@@ -197,7 +220,7 @@ export default class SizeAwareImage extends React.PureComponent {
             <img
                 {...props}
                 aria-label={ariaLabelImage}
-                tabIndex='0'
+                tabIndex={0}
                 onClick={this.handleImageClick}
                 onKeyDown={this.onEnterKeyDown}
                 className={
@@ -387,9 +410,9 @@ export default class SizeAwareImage extends React.PureComponent {
         let fallback;
 
         if (this.dimensionsAvailable(dimensions) && !this.state.loaded) {
-            const ratio = dimensions.height > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / dimensions.height : 1;
-            const height = dimensions.height * ratio;
-            const width = dimensions.width * ratio;
+            const ratio = (dimensions?.height ?? 0) > MAX_IMAGE_HEIGHT ? MAX_IMAGE_HEIGHT / (dimensions?.height ?? 1) : 1;
+            const height = (dimensions?.height ?? 0) * ratio;
+            const width = (dimensions?.width ?? 0) * ratio;
 
             const miniPreview = getFileMiniPreviewUrl(fileInfo);
 
@@ -397,13 +420,13 @@ export default class SizeAwareImage extends React.PureComponent {
                 fallback = (
                     <div
                         className={`image-loading__container ${this.props.className}`}
-                        style={{maxWidth: dimensions.width}}
+                        style={{maxWidth: dimensions?.width}}
                     >
                         <img
                             aria-label={ariaLabelImage}
                             className={this.props.className}
                             src={miniPreview}
-                            tabIndex='0'
+                            tabIndex={0}
                             height={height}
                             width={width}
                         />
@@ -454,7 +477,7 @@ export default class SizeAwareImage extends React.PureComponent {
         }, 1500);
     };
 
-    copyLinkToAsset = () => {
+    copyLinkToAsset = async () => {
         // if linkCopyInProgress is true return
         if (this.state.linkCopyInProgress !== true) {
             // set linkCopyInProgress to true to prevent multiple api calls
@@ -468,11 +491,12 @@ export default class SizeAwareImage extends React.PureComponent {
             }
 
             // copying public link to clipboard
-            this.props.getFilePublicLink().then((data) => {
-                const fileURL = data.data.link;
+            if (this.props.getFilePublicLink) {
+                const data: any = await this.props.getFilePublicLink();
+                const fileURL = data.data?.link;
                 copyToClipboard(fileURL ?? '');
                 this.startCopyTimer();
-            });
+            }
         }
     };
 

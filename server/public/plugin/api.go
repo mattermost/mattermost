@@ -166,6 +166,13 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError)
 
+	// GetPreferenceForUser gets a single preference for a user.
+	//
+	// @tag User
+	// @tag Preference
+	// Minimum server version: 9.5
+	GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError)
+
 	// GetPreferencesForUser gets a user's preferences.
 	//
 	// @tag User

@@ -8,15 +8,16 @@ import {RHSStates} from 'utils/constants';
 
 import type {RhsState} from 'types/store/rhs';
 
-import Header from './search_results_header';
+import SearchResultsHeader from './search_results_header';
 
 describe('search_results_header', () => {
     test('should display back button when the parent is channel info', () => {
         renderWithContext(
-            <Header
+            <SearchResultsHeader
                 previousRhsState={RHSStates.CHANNEL_INFO as RhsState}
                 canGoBack={true}
                 isExpanded={false}
+                channelId='channel_id'
                 actions={{
                     closeRightHandSide: jest.fn(),
                     toggleRhsExpanded: jest.fn(),
@@ -24,17 +25,18 @@ describe('search_results_header', () => {
                 }}
             >
                 {'Title'}
-            </Header>,
+            </SearchResultsHeader>,
         );
 
         expect(screen.getByLabelText('Back Icon')).toBeInTheDocument();
     });
     test('should NOT diplay expand when the parent is channel info', () => {
         renderWithContext(
-            <Header
+            <SearchResultsHeader
                 previousRhsState={RHSStates.CHANNEL_INFO as RhsState}
                 canGoBack={true}
                 isExpanded={false}
+                channelId='channel_id'
                 actions={{
                     closeRightHandSide: jest.fn(),
                     toggleRhsExpanded: jest.fn(),
@@ -42,17 +44,18 @@ describe('search_results_header', () => {
                 }}
             >
                 {'Title'}
-            </Header>,
+            </SearchResultsHeader>,
         );
 
         expect(screen.queryByLabelText('Expand Sidebar Icon')).not.toBeInTheDocument();
     });
     test('should diplay expand when the parent is NOT channel info', () => {
         renderWithContext(
-            <Header
+            <SearchResultsHeader
                 previousRhsState={RHSStates.FLAG as RhsState}
                 canGoBack={true}
                 isExpanded={false}
+                channelId='channel_id'
                 actions={{
                     closeRightHandSide: jest.fn(),
                     toggleRhsExpanded: jest.fn(),
@@ -60,7 +63,7 @@ describe('search_results_header', () => {
                 }}
             >
                 {'Title'}
-            </Header>,
+            </SearchResultsHeader>,
         );
 
         expect(screen.getByLabelText('Expand Sidebar Icon')).toBeInTheDocument();

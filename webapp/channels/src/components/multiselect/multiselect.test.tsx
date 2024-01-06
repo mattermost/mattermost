@@ -3,6 +3,7 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import type {IntlShape} from 'react-intl';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
@@ -27,6 +28,7 @@ describe('components/multiselect/multiselect', () => {
         handleDelete: jest.fn(),
         handleInput: jest.fn(),
         handleSubmit: jest.fn(),
+        intl: {} as IntlShape,
         optionRenderer: element,
         options: users,
         perPage: 5,
@@ -35,11 +37,14 @@ describe('components/multiselect/multiselect', () => {
         users,
         valueRenderer: element as any,
         values: [{id: 'id', label: 'label', value: 'value'}],
+        valueWithImage: false,
     };
 
     test('should match snapshot', () => {
         const wrapper = shallow(
-            <MultiSelect {...baseProps}/>,
+            <MultiSelect
+                {...baseProps}
+            />,
         );
 
         expect(wrapper).toMatchSnapshot();
@@ -47,7 +52,9 @@ describe('components/multiselect/multiselect', () => {
 
     test('should match snapshot for page 2', () => {
         const wrapper = shallow(
-            <MultiSelect {...baseProps}/>,
+            <MultiSelect
+                {...baseProps}
+            />,
         );
 
         wrapper.find('.filter-control__next').simulate('click');

@@ -19,7 +19,7 @@ func newValidOutgoingOAuthConnection() *OutgoingOAuthConnection {
 		ClientId:      NewId(),
 		ClientSecret:  NewId(),
 		OAuthTokenURL: "https://nowhere.com/oauth/token",
-		GrantType:     "client_credentials",
+		GrantType:     OutgoingOAuthConnectionGrantTypeClientCredentials,
 		CreateAt:      GetMillis(),
 		UpdateAt:      GetMillis(),
 		Audiences:     []string{"https://nowhere.com"},
@@ -46,6 +46,17 @@ func TestOutgoingOAuthConnectionIsValid(t *testing.T) {
 			item: func() *OutgoingOAuthConnection {
 				oa := newValidOutgoingOAuthConnection()
 				oa.Id = ""
+				return oa
+			},
+			assert: func(t *testing.T, oa *OutgoingOAuthConnection) {
+				require.Error(t, oa.IsValid())
+			},
+		},
+		{
+			name: "empty name",
+			item: func() *OutgoingOAuthConnection {
+				oa := newValidOutgoingOAuthConnection()
+				oa.Name = ""
 				return oa
 			},
 			assert: func(t *testing.T, oa *OutgoingOAuthConnection) {
@@ -307,6 +318,7 @@ func TestOutgoingOAuthConnectionSanitize(t *testing.T) {
 	oa := newValidOutgoingOAuthConnection()
 	oa.Sanitize()
 
+	require.Empty(t, oa.ClientId)
 	require.Empty(t, oa.ClientSecret)
 	require.Empty(t, oa.CredentialsUsername)
 	require.Empty(t, oa.CredentialsPassword)

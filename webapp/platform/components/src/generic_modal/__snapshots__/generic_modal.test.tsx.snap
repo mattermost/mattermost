@@ -62,6 +62,7 @@ exports[`GenericModal should match snapshot for base case 1`] = `
                   class="GenericModal__header"
                 >
                   <h1
+                    class="modal-title"
                     id="genericModalLabel"
                   >
                     Modal Header Text

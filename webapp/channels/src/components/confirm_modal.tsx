@@ -169,7 +169,7 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 aria-labelledby='confirmModalLabel'
                 aria-describedby='confirmModalBody'
             >
-                <Modal.Header closeButton={false}>
+                <Modal.Header closeButton={true}>
                     <Modal.Title
                         componentClass='h1'
                         id='confirmModalLabel'

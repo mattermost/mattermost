@@ -5,7 +5,6 @@ import classNames from 'classnames';
 import React, {useCallback} from 'react';
 
 import Timestamp from 'components/timestamp';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 
 import UserDetails from './user_details';
 
@@ -77,7 +76,7 @@ const ListItem = React.forwardRef((props: Props, ref?: React.Ref<HTMLDivElement>
 
             <div className='more-modal__actions'>
                 <div className='more-modal__actions--round'>
-                    <AddIcon/>
+                    <i className='icon icon-plus'/>
                 </div>
             </div>
         </div>

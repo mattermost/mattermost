@@ -1813,17 +1813,17 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		testUser := th.CreateUser()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
-		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
+		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, testUser.Id, tutorialStepPref.Name)
 
-		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
+		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(th.Context, testUser.Id, model.PreferenceRecommendedNextSteps)
 		require.Nil(t, appErr)
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
 
-		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
+		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
 		require.Nil(t, appErr)
 		assert.Equal(t, "GMasDM", gmASdmNoticeViewedPref.Name)
 		assert.Equal(t, "true", gmASdmNoticeViewedPref.Value)
@@ -1835,17 +1835,17 @@ func TestCreateUserWithInitialPreferences(t *testing.T) {
 		testUser := th.CreateGuest()
 		defer th.App.PermanentDeleteUser(th.Context, testUser)
 
-		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
+		tutorialStepPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategoryTutorialSteps, testUser.Id)
 		require.Nil(t, appErr)
 		assert.Equal(t, testUser.Id, tutorialStepPref.Name)
 
-		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(testUser.Id, model.PreferenceRecommendedNextSteps)
+		recommendedNextStepsPref, appErr := th.App.GetPreferenceByCategoryForUser(th.Context, testUser.Id, model.PreferenceRecommendedNextSteps)
 		require.Nil(t, appErr)
 		assert.Equal(t, model.PreferenceRecommendedNextSteps, recommendedNextStepsPref[0].Category)
 		assert.Equal(t, "hide", recommendedNextStepsPref[0].Name)
 		assert.Equal(t, "false", recommendedNextStepsPref[0].Value)
 
-		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
+		gmASdmNoticeViewedPref, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, testUser.Id, model.PreferenceCategorySystemNotice, "GMasDM")
 		require.Nil(t, appErr)
 		assert.Equal(t, "GMasDM", gmASdmNoticeViewedPref.Name)
 		assert.Equal(t, "true", gmASdmNoticeViewedPref.Value)

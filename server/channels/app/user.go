@@ -1604,17 +1604,17 @@ func (a *App) UpdateUserRolesWithUser(c request.CTX, user *model.User, newRoles 
 	}
 
 	user.Roles = newRoles
-	uchan := make(chan store.GenericStoreResult[*model.UserUpdate], 1)
+	uchan := make(chan store.StoreResult[*model.UserUpdate], 1)
 	go func() {
 		userUpdate, err := a.Srv().Store().User().Update(c, user, true)
-		uchan <- store.GenericStoreResult[*model.UserUpdate]{Data: userUpdate, NErr: err}
+		uchan <- store.StoreResult[*model.UserUpdate]{Data: userUpdate, NErr: err}
 		close(uchan)
 	}()
 
-	schan := make(chan store.GenericStoreResult[string], 1)
+	schan := make(chan store.StoreResult[string], 1)
 	go func() {
 		id, err := a.Srv().Store().Session().UpdateRoles(user.Id, newRoles)
-		schan <- store.GenericStoreResult[string]{Data: id, NErr: err}
+		schan <- store.StoreResult[string]{Data: id, NErr: err}
 		close(schan)
 	}()
 

@@ -60,13 +60,14 @@ type Channels struct {
 	// previously fetched notices
 	cachedNotices model.ProductNotices
 
-	AccountMigration einterfaces.AccountMigrationInterface
-	Compliance       einterfaces.ComplianceInterface
-	DataRetention    einterfaces.DataRetentionInterface
-	MessageExport    einterfaces.MessageExportInterface
-	Saml             einterfaces.SamlInterface
-	Notification     einterfaces.NotificationInterface
-	Ldap             einterfaces.LdapInterface
+	AccountMigration        einterfaces.AccountMigrationInterface
+	Compliance              einterfaces.ComplianceInterface
+	DataRetention           einterfaces.DataRetentionInterface
+	MessageExport           einterfaces.MessageExportInterface
+	Saml                    einterfaces.SamlInterface
+	Notification            einterfaces.NotificationInterface
+	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
+	Ldap                    einterfaces.LdapInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -175,6 +176,9 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	}
 	if notificationInterface != nil {
 		ch.Notification = notificationInterface(New(ServerConnector(ch)))
+	}
+	if outgoingOauthConnectionInterface != nil {
+		ch.OutgoingOAuthConnection = outgoingOauthConnectionInterface(New(ServerConnector(ch)))
 	}
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))

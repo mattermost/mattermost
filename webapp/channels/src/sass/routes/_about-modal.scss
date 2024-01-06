@@ -7,61 +7,9 @@
     }
 
     .about-modal {
-        .modal-content {
-            .modal-header {
-                display: flex;
-                align-items: center;
-                padding: 20px 25px;
-                border: none;
-                border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
-                background: transparent;
-                color: inherit;
-
-                .close {
-                    right: 15px;
-                    color: inherit;
-                    font-size: 30px;
-                    font-weight: normal;
-                    opacity: 0.5;
-                }
-
-                .more-modal__image {
-                    margin-right: 12px;
-                }
-
-                .modal-title {
-                    color: inherit;
-                    font-size: 17px;
-                    font-weight: 600;
-                }
-
-                .icon {
-                    position: relative;
-                    top: 1px;
-                    margin: 0 5px 0 8px;
-
-                    svg {
-                        width: 14px;
-                        height: 14px;
-                        opacity: 0.8;
-                    }
-                }
-            }
-        }
-
         .modal-body {
             max-height: calc(100vh - 220px);
-            padding: 15px 25px;
-        }
-
-        .modal-footer {
-            .btn {
-                height: 40px;
-                padding: 0 20px;
-                border-radius: 4px;
-                font-size: 14px;
-                font-weight: 600;
-            }
+            padding: 16px 32px;
         }
 
         label {

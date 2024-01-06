@@ -1658,6 +1658,18 @@
     "translation": "Multi-factor authentication is required on this server."
   },
   {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "There was an error while listing outgoing OAuth connections."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
     "id": "api.context.permissions.app_error",
     "translation": "You do not have the appropriate permissions."
   },
@@ -8157,6 +8169,30 @@
   {
     "id": "ent.migration.migratetosaml.username_already_used_by_other_user",
     "translation": "Username already used by another Mattermost user."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "There was an error while deleting the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "The outgoing oauth connection was not found."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connections."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "There was an error saving the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "There was an error updating the outgoing oauth connection."
   },
   {
     "id": "ent.saml.attribute.app_error",

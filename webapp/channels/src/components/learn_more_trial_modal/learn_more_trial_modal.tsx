@@ -29,8 +29,6 @@ import LearnMoreTrialModalStep from './learn_more_trial_modal_step';
 import type {LearnMoreTrialModalStepProps} from './learn_more_trial_modal_step';
 import StartTrialBtn from './start_trial_btn';
 
-import './learn_more_trial_modal.scss';
-
 type Props = {
     onClose?: () => void;
     onExited: () => void;
@@ -190,6 +188,7 @@ const LearnMoreTrialModal = (
 
     return (
         <GenericModal
+            compassDesign={true}
             className='LearnMoreTrialModal'
             id='learnMoreTrialModal'
             onExited={handleOnClose}

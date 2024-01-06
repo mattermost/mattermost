@@ -57,6 +57,7 @@ const (
 	ServeMetricsID                            = 39
 	OnSharedChannelsSyncMsgID                 = 40
 	OnSharedChannelsPingID                    = 41
+	PreferencesHaveChangedID                  = 42
 	TotalHooksID                              = iota
 )
 
@@ -354,4 +355,11 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.5
 	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+
+	// PreferencesHaveChanged is invoked after one or more of a user's preferences have changed.
+	// Note that this method will be called for preferences changed by plugins, including the plugin that changed
+	// the preferences.
+	//
+	// Minimum server version: 9.5
+	PreferencesHaveChanged(c *Context, preferences []model.Preference)
 }

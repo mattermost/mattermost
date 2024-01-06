@@ -43,46 +43,46 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 	isCRTAllowed := *a.Config().ServiceSettings.CollapsedThreads != model.CollapsedThreadsDisabled
 
-	pchan := make(chan store.GenericStoreResult[map[string]*model.User], 1)
+	pchan := make(chan store.StoreResult[map[string]*model.User], 1)
 	go func() {
 		props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
-		pchan <- store.GenericStoreResult[map[string]*model.User]{Data: props, NErr: err}
+		pchan <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 		close(pchan)
 	}()
 
-	cmnchan := make(chan store.GenericStoreResult[map[string]model.StringMap], 1)
+	cmnchan := make(chan store.StoreResult[map[string]model.StringMap], 1)
 	go func() {
 		props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-		cmnchan <- store.GenericStoreResult[map[string]model.StringMap]{Data: props, NErr: err}
+		cmnchan <- store.StoreResult[map[string]model.StringMap]{Data: props, NErr: err}
 		close(cmnchan)
 	}()
 
-	var gchan chan store.GenericStoreResult[map[string]*model.Group]
+	var gchan chan store.StoreResult[map[string]*model.Group]
 	if a.allowGroupMentions(c, post) {
-		gchan = make(chan store.GenericStoreResult[map[string]*model.Group], 1)
+		gchan = make(chan store.StoreResult[map[string]*model.Group], 1)
 		go func() {
 			groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
-			gchan <- store.GenericStoreResult[map[string]*model.Group]{Data: groupsMap, NErr: err}
+			gchan <- store.StoreResult[map[string]*model.Group]{Data: groupsMap, NErr: err}
 			close(gchan)
 		}()
 	}
 
-	var fchan chan store.GenericStoreResult[[]*model.FileInfo]
+	var fchan chan store.StoreResult[[]*model.FileInfo]
 	if len(post.FileIds) != 0 {
-		fchan = make(chan store.GenericStoreResult[[]*model.FileInfo], 1)
+		fchan = make(chan store.StoreResult[[]*model.FileInfo], 1)
 		go func() {
 			fileInfos, err := a.Srv().Store().FileInfo().GetForPost(post.Id, true, false, true)
-			fchan <- store.GenericStoreResult[[]*model.FileInfo]{Data: fileInfos, NErr: err}
+			fchan <- store.StoreResult[[]*model.FileInfo]{Data: fileInfos, NErr: err}
 			close(fchan)
 		}()
 	}
 
-	var tchan chan store.GenericStoreResult[[]string]
+	var tchan chan store.StoreResult[[]string]
 	if isCRTAllowed && post.RootId != "" {
-		tchan = make(chan store.GenericStoreResult[[]string], 1)
+		tchan = make(chan store.StoreResult[[]string], 1)
 		go func() {
 			followers, err := a.Srv().Store().Thread().GetThreadFollowers(post.RootId, true)
-			tchan <- store.GenericStoreResult[[]string]{Data: followers, NErr: err}
+			tchan <- store.StoreResult[[]string]{Data: followers, NErr: err}
 			close(tchan)
 		}()
 	}
@@ -627,26 +627,26 @@ func (a *App) RemoveNotifications(c request.CTX, post *model.Post, channel *mode
 			team = &model.Team{}
 		}
 
-		pCh := make(chan store.GenericStoreResult[map[string]*model.User], 1)
+		pCh := make(chan store.StoreResult[map[string]*model.User], 1)
 		go func() {
 			props, err := a.Srv().Store().User().GetAllProfilesInChannel(context.Background(), channel.Id, true)
-			pCh <- store.GenericStoreResult[map[string]*model.User]{Data: props, NErr: err}
+			pCh <- store.StoreResult[map[string]*model.User]{Data: props, NErr: err}
 			close(pCh)
 		}()
 
-		cmnCh := make(chan store.GenericStoreResult[map[string]model.StringMap], 1)
+		cmnCh := make(chan store.StoreResult[map[string]model.StringMap], 1)
 		go func() {
 			props, err := a.Srv().Store().Channel().GetAllChannelMembersNotifyPropsForChannel(channel.Id, true)
-			cmnCh <- store.GenericStoreResult[map[string]model.StringMap]{Data: props, NErr: err}
+			cmnCh <- store.StoreResult[map[string]model.StringMap]{Data: props, NErr: err}
 			close(cmnCh)
 		}()
 
-		var gCh chan store.GenericStoreResult[map[string]*model.Group]
+		var gCh chan store.StoreResult[map[string]*model.Group]
 		if a.allowGroupMentions(c, post) {
-			gCh = make(chan store.GenericStoreResult[map[string]*model.Group], 1)
+			gCh = make(chan store.StoreResult[map[string]*model.Group], 1)
 			go func() {
 				groupsMap, err := a.getGroupsAllowedForReferenceInChannel(channel, team)
-				gCh <- store.GenericStoreResult[map[string]*model.Group]{Data: groupsMap, NErr: err}
+				gCh <- store.StoreResult[map[string]*model.Group]{Data: groupsMap, NErr: err}
 				close(gCh)
 			}()
 		}

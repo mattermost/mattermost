@@ -114,7 +114,7 @@ describe('components/post_view/MessageAttachment', () => {
             <MessageAttachment {...props}/>,
         );
 
-        wrapper.instance().showModal({preventDefault: () => {}}, 'https://example.com/image.png');
+        wrapper.instance().showModal({preventDefault: () => {}} as unknown as React.KeyboardEvent<HTMLImageElement> | React.MouseEvent<HTMLElement, MouseEvent>, 'https://example.com/image.png');
         expect(props.actions.openModal).toHaveBeenCalledTimes(1);
     });
 

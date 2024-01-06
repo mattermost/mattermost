@@ -46,6 +46,7 @@ export default class DeleteCategoryModal extends React.PureComponent<Props, Stat
     render() {
         return (
             <GenericModal
+                compassDesign={true}
                 ariaLabel={localizeMessage('delete_category_modal.deleteCategory', 'Delete this category?')}
                 onExited={this.props.onExited}
                 modalHeaderText={(

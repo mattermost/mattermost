@@ -1230,16 +1230,16 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeO
 	}
 	offset := options.PerPage * options.Page
 
-	rpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
+	rpc := make(chan store.StoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		rpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
+		rpc <- store.StoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(rpc)
 	}()
-	cpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
+	cpc := make(chan store.StoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		cpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
+		cpc <- store.StoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(cpc)
 	}()
 
@@ -2769,7 +2769,7 @@ func (s *SqlPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.
 
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
+	pchan := make(chan store.StoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// remove any unquoted term that contains only non-alphanumeric chars
@@ -2781,7 +2781,7 @@ func (s *SqlPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := s.search(teamId, userId, params, false, false)
-			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
+			pchan <- store.StoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 

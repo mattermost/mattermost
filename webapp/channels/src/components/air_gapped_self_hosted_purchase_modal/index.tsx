@@ -20,6 +20,7 @@ export default function AirGappedSelfHostedPurhcaseModal() {
         <GenericModal
             onExited={close}
             show={true}
+            compassDesign={true}
             className='air-gapped-purchase-modal'
         >
             <div className='content'>

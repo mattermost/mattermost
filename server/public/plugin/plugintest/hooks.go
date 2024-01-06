@@ -359,6 +359,11 @@ func (_m *Hooks) OnWebSocketDisconnect(webConnID string, userID string) {
 	_m.Called(webConnID, userID)
 }
 
+// PreferencesHaveChanged provides a mock function with given fields: c, preferences
+func (_m *Hooks) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
+	_m.Called(c, preferences)
+}
+
 // ReactionHasBeenAdded provides a mock function with given fields: c, reaction
 func (_m *Hooks) ReactionHasBeenAdded(c *plugin.Context, reaction *model.Reaction) {
 	_m.Called(c, reaction)
