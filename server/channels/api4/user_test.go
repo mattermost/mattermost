@@ -2340,13 +2340,15 @@ func TestPermanentDeleteAllUsers(t *testing.T) {
 	})
 
 	t.Run("The endpoint should permanently delete all users", func(t *testing.T) {
-		// Basic user creates a team and a channel
-		team, appErr := th.App.CreateTeamWithUser(th.Context, &model.Team{
+		appErr := th.App.PermanentDeleteTeamId(th.Context, th.BasicTeam.Id)
+		require.Nil(t, appErr)
+
+		team, appErr := th.App.CreateTeam(th.Context, &model.Team{
 			DisplayName: "User Created Team",
 			Name:        "user-created-team",
 			Email:       "usercreatedteam@test.com",
 			Type:        model.TeamOpen,
-		}, th.BasicUser.Id)
+		})
 		require.Nil(t, appErr)
 
 		channel, appErr := th.App.CreateChannelWithUser(th.Context, &model.Channel{
