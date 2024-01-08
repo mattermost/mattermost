@@ -15,7 +15,6 @@ import type {ActionFunc} from 'mattermost-redux/types/actions';
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
 import AnnouncementBarController from 'components/announcement_bar';
 import BackstageNavbar from 'components/backstage/components/backstage_navbar';
-import DelinquencyModal from 'components/delinquency_modal';
 import DiscardChangesModal from 'components/discard_changes_modal';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
@@ -229,7 +228,6 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
                     </Highlight>
                 </div>
                 {discardChangesModal}
-                <DelinquencyModal/>
                 <ModalController/>
             </>
         );

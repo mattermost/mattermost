@@ -14,7 +14,6 @@ import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
 import AnnouncementBar from './default_announcement_bar';
-import NotifyAdminDowngradeDelinquencyBar from './notify_admin_downgrade_delinquency_bar';
 import OverageUsersBanner from './overage_users_banner';
 import PaymentAnnouncementBar from './payment_announcement_bar';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
@@ -89,9 +88,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
             cloudRenewalAnnouncementBar = (
                 <CloudAnnualRenewalAnnouncementBar/>
-            );
-            notifyAdminDowngradeDelinquencyBar = (
-                <NotifyAdminDowngradeDelinquencyBar/>
             );
             toPaidPlanNudgeBannerDismissable = (<ToPaidPlanBannerDismissable/>);
         }
