@@ -1138,7 +1138,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FeatureFlags.MoveThreadsEnabled {
+	if !c.App.Config().FeatureFlags.MoveThreadsEnabled || c.App.License() == nil {
 		c.Err = model.NewAppError("moveThread", "api.post.move_thread.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}
