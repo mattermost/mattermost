@@ -52,7 +52,7 @@ const translations = defineMessages({
     AllowedDomains: {
         id: 'general_tab.allowedDomains',
         defaultMessage: 'Allow only users with a specific email domain to join this team',
-    }
+    },
 });
 
 type Props = PropsFromRedux & OwnProps;
