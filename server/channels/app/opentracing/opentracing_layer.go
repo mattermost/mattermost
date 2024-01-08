@@ -1438,6 +1438,28 @@ func (a *OpenTracingAppLayer) CheckWebConn(userID string, connectionID string) *
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CleanupReportChunks")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.CleanupReportChunks(format, prefix, numberOfChunks)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) ClearChannelMembersCache(c request.CTX, channelID string) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ClearChannelMembersCache")
