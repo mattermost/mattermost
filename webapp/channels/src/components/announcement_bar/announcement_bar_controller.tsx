@@ -70,7 +70,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let cloudTrialEndAnnouncementBar = null;
         let cloudDelinquencyAnnouncementBar = null;
         let cloudRenewalAnnouncementBar = null;
-        let notifyAdminDowngradeDelinquencyBar = null;
+        const notifyAdminDowngradeDelinquencyBar = null;
         const toYearlyNudgeBannerDismissable = null;
         let toPaidPlanNudgeBannerDismissable = null;
         if (this.props.license?.Cloud === 'true') {
