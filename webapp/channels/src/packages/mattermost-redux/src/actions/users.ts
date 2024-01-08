@@ -550,7 +550,7 @@ export function createTermsOfService(text: string): ActionFunc {
     });
 }
 
-export function getUser(id: string): ActionFunc {
+export function getUser(id: string): ActionFunc<UserProfile, ServerError> {
     return bindClientFunc({
         clientFunc: Client4.getUser,
         onSuccess: UserTypes.RECEIVED_PROFILE,
