@@ -107,7 +107,7 @@ export function loadRolesIfNeeded(roles: Iterable<string>): ActionFunc {
 
             for (let i = 0; i < newRolesArray.length; i += General.MAX_GET_ROLES_BY_NAMES) {
                 const chunk = newRolesArray.slice(i, i + General.MAX_GET_ROLES_BY_NAMES);
-                getRolesRequests.push(getRolesByNames(chunk)(dispatch, getState));
+                getRolesRequests.push(dispatch(getRolesByNames(chunk)));
             }
 
             const result = await Promise.all(getRolesRequests);

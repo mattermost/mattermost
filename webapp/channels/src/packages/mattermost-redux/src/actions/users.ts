@@ -158,8 +158,8 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
         });
 
         if (missingIds.length > 0) {
-            getStatusesByIds(missingIds)(dispatch, getState);
-            return getProfilesByIds(missingIds)(dispatch, getState);
+            dispatch(getStatusesByIds(missingIds));
+            return dispatch(getProfilesByIds(missingIds));
         }
 
         return {data: []};
@@ -182,7 +182,7 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
         });
 
         if (missingUsernames.length > 0) {
-            return getProfilesByUsernames(missingUsernames)(dispatch, getState);
+            return dispatch(getProfilesByUsernames(missingUsernames));
         }
 
         return {data: []};
@@ -587,8 +587,8 @@ export function getUserByEmail(email: string): ActionFunc {
 // statuses, we are only making one call for 75 ids.
 // We could maybe clean it up somewhat by storing the array of ids in redux state possbily?
 let ids: string[] = [];
-const debouncedGetStatusesByIds = debounce(async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-    getStatusesByIds([...new Set(ids)])(dispatch, getState);
+const debouncedGetStatusesByIds = debounce(async (dispatch: DispatchFunc) => {
+    dispatch(getStatusesByIds([...new Set(ids)]));
 }, 20, false, () => {
     ids = [];
 });
@@ -888,7 +888,7 @@ export function startPeriodicStatusUpdates(): ActionFunc {
                     return;
                 }
 
-                getStatusesByIds(userIds)(dispatch, getState);
+                dispatch(getStatusesByIds(userIds));
             },
             General.STATUS_INTERVAL,
         );

@@ -130,7 +130,7 @@ export function createDirectChannel(userId: string, otherUserId: string): Action
             {user_id: userId, category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: created.id, value: new Date().getTime().toString()},
         ];
 
-        savePreferences(userId, preferences)(dispatch);
+        dispatch(savePreferences(userId, preferences));
 
         dispatch(batchActions([
             {
@@ -602,7 +602,7 @@ export function getChannelMembers(channelId: string, page = 0, perPage: number =
         }
 
         const userIds = channelMembers.map((cm) => cm.user_id);
-        getMissingProfilesByIds(userIds)(dispatch, getState);
+        dispatch(getMissingProfilesByIds(userIds));
 
         dispatch({
             type: ChannelTypes.RECEIVED_CHANNEL_MEMBERS,
@@ -769,7 +769,7 @@ export function updateApproximateViewTime(channelId: string): ActionFunc {
             const preferences = [
                 {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_APPROXIMATE_VIEW_TIME, name: channelId, value: new Date().getTime().toString()},
             ];
-            savePreferences(currentUserId, preferences)(dispatch);
+            dispatch(savePreferences(currentUserId, preferences));
         }
         return {data: true};
     };
@@ -1375,8 +1375,8 @@ export function getMyChannelMember(channelId: string) {
 }
 
 export function loadMyChannelMemberAndRole(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const result = await getMyChannelMember(channelId)(dispatch, getState) as ActionResult;
+    return async (dispatch: DispatchFunc) => {
+        const result = await dispatch(getMyChannelMember(channelId));
         const roles = result.data?.roles.split(' ');
         if (roles && roles.length > 0) {
             dispatch(loadRolesIfNeeded(roles));

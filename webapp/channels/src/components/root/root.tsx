@@ -292,7 +292,7 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.props.actions.migrateRecentEmojis();
-        loadRecentlyUsedCustomEmojis()(store.dispatch, store.getState);
+        store.dispatch(loadRecentlyUsedCustomEmojis());
 
         const iosDownloadLink = getConfig(store.getState()).IosAppDownloadLink;
         const androidDownloadLink = getConfig(store.getState()).AndroidAppDownloadLink;

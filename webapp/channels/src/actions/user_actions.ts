@@ -227,10 +227,10 @@ export function loadNewDMIfNeeded(channelId: string) {
             const pref = getBool(state, Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, false);
             if (pref === false) {
                 const now = Utils.getTimestamp();
-                savePreferences(currentUserId, [
+                doDispatch(savePreferences(currentUserId, [
                     {user_id: currentUserId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: userId, value: 'true'},
                     {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: channelId, value: now.toString()},
-                ])(doDispatch);
+                ]));
                 loadProfilesForDM();
                 return {data: true};
             }
@@ -243,7 +243,7 @@ export function loadNewDMIfNeeded(channelId: string) {
         if (channel) {
             result = checkPreference(channel);
         } else {
-            result = await getChannelAndMyMember(channelId)(doDispatch, doGetState) as ActionResult;
+            result = await doDispatch(getChannelAndMyMember(channelId));
             if (result.data) {
                 result = checkPreference(result.data.channel);
             }
@@ -269,7 +269,7 @@ export function loadNewGMIfNeeded(channelId: string) {
 
         const channel = getChannel(state, channelId);
         if (!channel) {
-            await getChannelAndMyMember(channelId)(doDispatch, doGetState);
+            await doDispatch(getChannelAndMyMember(channelId));
         }
         return checkPreference();
     };
@@ -406,13 +406,13 @@ export async function loadProfilesForDM() {
     }
 
     if (newPreferences.length > 0) {
-        savePreferences(currentUserId, newPreferences)(dispatch);
+        dispatch(savePreferences(currentUserId, newPreferences));
     }
 
     if (profilesToLoad.length > 0) {
-        await UserActions.getProfilesByIds(profilesToLoad)(dispatch, getState);
+        await dispatch(UserActions.getProfilesByIds(profilesToLoad));
     }
-    await loadCustomEmojisForCustomStatusesByUserIds(profileIds)(dispatch, getState);
+    await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
 export function autocompleteUsersInTeam(username: string) {
@@ -431,9 +431,9 @@ export function autocompleteUsers(username: string) {
 }
 
 export function autoResetStatus() {
-    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc): Promise<{data: UserStatus}> => {
+    return async (doDispatch: DispatchFunc): Promise<{data: UserStatus}> => {
         const {currentUserId} = getState().entities.users;
-        const {data: userStatus} = await (UserActions.getStatus(currentUserId)(doDispatch, doGetState) as Promise<{data: UserStatus}>);
+        const {data: userStatus} = await doDispatch(UserActions.getStatus(currentUserId));
 
         if (userStatus.status === UserStatuses.OUT_OF_OFFICE || !userStatus.manual) {
             return {data: userStatus};
@@ -442,7 +442,7 @@ export function autoResetStatus() {
         const autoReset = getBool(getState(), PreferencesRedux.CATEGORY_AUTO_RESET_MANUAL_STATUS, currentUserId, false);
 
         if (autoReset) {
-            UserActions.setStatus({user_id: currentUserId, status: 'online'})(doDispatch, doGetState);
+            doDispatch(UserActions.setStatus({user_id: currentUserId, status: 'online'}));
             return {data: userStatus};
         }
 

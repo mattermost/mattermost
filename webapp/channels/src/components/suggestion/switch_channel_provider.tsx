@@ -480,7 +480,7 @@ export default class SwitchChannelProvider extends Provider {
             usersAsync = Client4.autocompleteUsers(channelPrefix, '', '');
         }
 
-        const channelsAsync = searchAllChannels(channelPrefix, {nonAdminSearch: true})(store.dispatch, store.getState);
+        const channelsAsync = store.dispatch(searchAllChannels(channelPrefix, {nonAdminSearch: true}));
 
         let usersFromServer;
         let channelsFromServer;

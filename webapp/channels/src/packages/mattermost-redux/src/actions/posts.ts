@@ -720,7 +720,7 @@ export function flagPost(postId: string) {
 
         Client4.trackEvent('action', 'action_posts_flag');
 
-        return savePreferences(currentUserId, [preference])(dispatch);
+        return dispatch(savePreferences(currentUserId, [preference]));
     };
 }
 
@@ -1103,11 +1103,11 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const promises: any[] = [];
     if (userIdsToLoad.size > 0) {
-        promises.push(getProfilesByIds(Array.from(userIdsToLoad))(dispatch, getState));
+        promises.push(dispatch(getProfilesByIds(Array.from(userIdsToLoad))));
     }
 
     if (statusesToLoad.size > 0) {
-        promises.push(getStatusesByIds(Array.from(statusesToLoad))(dispatch, getState));
+        promises.push(dispatch(getStatusesByIds(Array.from(statusesToLoad))));
     }
 
     // Profiles of users mentioned in the posts
@@ -1116,7 +1116,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
     if (usernamesAndGroupsToLoad.size > 0) {
         // We need to load the profiles synchronously to filter them
         // out of the groups to check
-        const getProfilesPromise = getProfilesByUsernames(Array.from(usernamesAndGroupsToLoad))(dispatch, getState);
+        const getProfilesPromise = dispatch(getProfilesByUsernames(Array.from(usernamesAndGroupsToLoad)));
         promises.push(getProfilesPromise);
 
         const {data} = await getProfilesPromise as ActionResult<UserProfile[]>;
@@ -1131,7 +1131,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
                 per_page: 60,
                 include_member_count: true,
             };
-            promises.push(searchGroups(groupParams)(dispatch, getState));
+            promises.push(dispatch(searchGroups(groupParams)));
         });
     }
 
@@ -1296,7 +1296,7 @@ export function unflagPost(postId: string) {
 
         Client4.trackEvent('action', 'action_posts_unflag');
 
-        return deletePreferences(currentUserId, [preference])(dispatch, getState);
+        return dispatch(deletePreferences(currentUserId, [preference]));
     };
 }
 

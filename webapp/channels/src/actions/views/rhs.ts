@@ -130,7 +130,7 @@ export function selectPostCardFromRightHandSideSearch(post: Post) {
 export function selectPostFromRightHandSideSearchByPostId(postId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const post = getPost(getState(), postId);
-        return selectPostFromRightHandSideSearch(post)(dispatch, getState);
+        return dispatch(selectPostFromRightHandSideSearch(post));
     };
 }
 
@@ -614,39 +614,39 @@ export function openRHSSearch() {
 export function openAtPrevious(previous: any) { // TODO Could not find the proper type. Seems to be in several props around
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         if (!previous) {
-            return openRHSSearch()(dispatch);
+            return dispatch(openRHSSearch());
         }
 
         if (previous.isChannelInfo) {
             const currentChannelId = getCurrentChannelId(getState());
-            return showChannelInfo(currentChannelId)(dispatch);
+            return dispatch(showChannelInfo(currentChannelId));
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
-            return showChannelMembers(currentChannelId)(dispatch, getState);
+            return dispatch(showChannelMembers(currentChannelId));
         }
         if (previous.isMentionSearch) {
-            return showMentions()(dispatch, getState);
+            return dispatch(showMentions());
         }
         if (previous.isPinnedPosts) {
-            return showPinnedPosts()(dispatch, getState);
+            return dispatch(showPinnedPosts());
         }
         if (previous.isFlaggedPosts) {
-            return showFlaggedPosts()(dispatch, getState);
+            return dispatch(showFlaggedPosts());
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post ? selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)(dispatch, getState) : openRHSSearch()(dispatch);
+            return post ? dispatch(selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
-            return post ? selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)(dispatch, getState) : openRHSSearch()(dispatch);
+            return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.searchVisible) {
-            return showSearchResults()(dispatch, getState);
+            return dispatch(showSearchResults());
         }
 
-        return openRHSSearch()(dispatch);
+        return dispatch(openRHSSearch());
     };
 }
 
