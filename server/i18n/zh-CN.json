@@ -3847,11 +3847,11 @@
   },
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
-    "translation": "无效团队设置中每频道最大通知数。必须是正整数。"
+    "translation": "团队设置中的每频道最大通知数无效。必须是正整数。"
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
-    "translation": "团队设置中每团队的最大用户数无效。必须是正整数。"
+    "translation": "团队设置中的每团队最大用户数无效。必须是正整数。"
   },
   {
     "id": "model.config.is_valid.message_export.batch_size.app_error",
@@ -8455,7 +8455,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "检查共享频道是否存在时出错：{{.Error}}"
+    "translation": "检查共享频道 {{.ChannelID}} 是否存在时出错：{{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -10120,5 +10120,57 @@
   {
     "id": "app.post.move_thread_command.direct_or_group.one_message",
     "translation": "一条消息已被移动到私信/群组消息\n"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "无法邀请远端，因为频道 {{.ChannelID}} 未共享。"
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "对话移动已禁用"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "您没有移动此话题的权限。"
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "无法通过名称获取过多的角色。每次只能请求 {{.MaxNames}} 个角色。"
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "获取用户数量失败"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动至私信/群组消息\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "无法移动话题"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "此对话移动自其他频道"
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "移动话题设置中的域名无效"
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "提供的日期区间无效。"
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "提供的排序列无效。"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "一个包含 {{.NumMessages}} 条消息的对话已被移动：{{.Link}}\n"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "服务设置中的对外集成请求超时无效。必须是正整数。"
   }
 ]
