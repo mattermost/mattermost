@@ -270,3 +270,17 @@ func (hooks *hooksTimerLayer) PreferencesHaveChanged(c *Context, preferences []m
 	hooks.hooksImpl.PreferencesHaveChanged(c, preferences)
 	hooks.recordTime(startTime, "PreferencesHaveChanged", true)
 }
+
+func (hooks *hooksTimerLayer) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	startTime := timePkg.Now()
+	_returnsA := hooks.hooksImpl.OnSharedChannelsAttachmentSyncMsg(fi, post, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsAttachmentSyncMsg", _returnsA == nil)
+	return _returnsA
+}
+
+func (hooks *hooksTimerLayer) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := hooks.hooksImpl.OnSharedChannelsProfileImageSyncMsg(user, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsProfileImageSyncMsg", _returnsB == nil)
+	return _returnsA, _returnsB
+}

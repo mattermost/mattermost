@@ -311,6 +311,20 @@ func (_m *Hooks) OnSendDailyTelemetry() {
 	_m.Called()
 }
 
+// OnSharedChannelsAttachmentSyncMsg provides a mock function with given fields: fi, post, rc
+func (_m *Hooks) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	ret := _m.Called(fi, post, rc)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.FileInfo, *model.Post, *model.RemoteCluster) error); ok {
+		r0 = rf(fi, post, rc)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // OnSharedChannelsPing provides a mock function with given fields: rc
 func (_m *Hooks) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
 	ret := _m.Called(rc)
@@ -323,6 +337,30 @@ func (_m *Hooks) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
 	}
 
 	return r0
+}
+
+// OnSharedChannelsProfileImageSyncMsg provides a mock function with given fields: user, rc
+func (_m *Hooks) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+	ret := _m.Called(user, rc)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.User, *model.RemoteCluster) (int64, error)); ok {
+		return rf(user, rc)
+	}
+	if rf, ok := ret.Get(0).(func(*model.User, *model.RemoteCluster) int64); ok {
+		r0 = rf(user, rc)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.User, *model.RemoteCluster) error); ok {
+		r1 = rf(user, rc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
 }
 
 // OnSharedChannelsSyncMsg provides a mock function with given fields: msg, rc

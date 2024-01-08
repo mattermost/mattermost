@@ -151,6 +151,14 @@ type PreferencesHaveChangedIFace interface {
 	PreferencesHaveChanged(c *Context, preferences []model.Preference)
 }
 
+type OnSharedChannelsAttachmentSyncMsgIFace interface {
+	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+}
+
+type OnSharedChannelsProfileImageSyncMsgIFace interface {
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error)
+}
+
 type HooksAdapter struct {
 	implemented  map[int]struct{}
 	productHooks any
@@ -470,6 +478,24 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has PreferencesHaveChanged method but does not implement plugin.PreferencesHaveChanged interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements OnSharedChannelsAttachmentSyncMsg interface.
+	tt = reflect.TypeOf((*OnSharedChannelsAttachmentSyncMsgIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[OnSharedChannelsAttachmentSyncMsgID] = struct{}{}
+	} else if _, ok := ft.MethodByName("OnSharedChannelsAttachmentSyncMsg"); ok {
+		return nil, errors.New("hook has OnSharedChannelsAttachmentSyncMsg method but does not implement plugin.OnSharedChannelsAttachmentSyncMsg interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements OnSharedChannelsProfileImageSyncMsg interface.
+	tt = reflect.TypeOf((*OnSharedChannelsProfileImageSyncMsgIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[OnSharedChannelsProfileImageSyncMsgID] = struct{}{}
+	} else if _, ok := ft.MethodByName("OnSharedChannelsProfileImageSyncMsg"); ok {
+		return nil, errors.New("hook has OnSharedChannelsProfileImageSyncMsg method but does not implement plugin.OnSharedChannelsProfileImageSyncMsg interface")
+	}
+
 	return a, nil
 }
 
@@ -776,5 +802,23 @@ func (a *HooksAdapter) PreferencesHaveChanged(c *Context, preferences []model.Pr
 	}
 
 	a.productHooks.(PreferencesHaveChangedIFace).PreferencesHaveChanged(c, preferences)
+
+}
+
+func (a *HooksAdapter) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	if _, ok := a.implemented[OnSharedChannelsAttachmentSyncMsgID]; !ok {
+		panic("product hooks must implement OnSharedChannelsAttachmentSyncMsg")
+	}
+
+	return a.productHooks.(OnSharedChannelsAttachmentSyncMsgIFace).OnSharedChannelsAttachmentSyncMsg(fi, post, rc)
+
+}
+
+func (a *HooksAdapter) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+	if _, ok := a.implemented[OnSharedChannelsProfileImageSyncMsgID]; !ok {
+		panic("product hooks must implement OnSharedChannelsProfileImageSyncMsg")
+	}
+
+	return a.productHooks.(OnSharedChannelsProfileImageSyncMsgIFace).OnSharedChannelsProfileImageSyncMsg(user, rc)
 
 }
