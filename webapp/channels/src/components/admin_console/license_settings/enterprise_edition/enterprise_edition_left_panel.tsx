@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import type {ReactNode, RefObject} from 'react';
+import type {RefObject} from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -45,10 +45,6 @@ export interface EnterpriseEditionProps {
 }
 
 export const messages = defineMessages({
-    notice: {
-        id: 'admin.license.notices.enterprise',
-        defaultMessage: 'This software is offered under a commercial license. See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.',
-    },
     keyRemove: {id: 'admin.license.keyRemove', defaultMessage: 'Remove license and downgrade to Mattermost Free'},
 });
 
@@ -187,27 +183,22 @@ const EnterpriseEditionLeftPanel = ({
                 }
             </div>
             <div className='license-notices'>
+                {/* This notice should not be translated */}
                 {upgradedFromTE ? <>
                     <p>
-                        {
-                            formatMessage({
-                                id: 'admin.license.notices.upgrade',
-                                defaultMessage: 'When using Mattermost Enterprise Edition, the software is offered under a commercial license. See <a>here</a> for “Enterprise Edition License” for details. See NOTICE.txt for information about open source software used in the system.',
-                            }, {
-                                a: (chunk: ReactNode[]) => (
-                                    <a
-                                        role='button'
-                                        onClick={openEELicenseModal}
-                                        className='openEELicenseModal'
-                                    >
-                                        {chunk}
-                                    </a>
-                                ),
-                            })
-                        }
+                        {'When using Mattermost Enterprise Edition, the software is offered under a commercial license. See '}
+                        <a
+                            role='button'
+                            onClick={openEELicenseModal}
+                            className='openEELicenseModal'
+                        >
+                            {'here'}
+                        </a>
+                        {' for “Enterprise Edition License” for details. '}
+                        {'See NOTICE.txt for information about open source software used in the system.'}
                     </p>
                 </> : <p>
-                    {formatMessage(messages.notice)}
+                    {'This software is offered under a commercial license.\n\nSee ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.'}
                 </p>
                 }
             </div>

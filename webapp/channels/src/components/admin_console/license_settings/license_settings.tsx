@@ -69,7 +69,6 @@ export const searchableStrings = [
     licenseSettingsStarterEditionMessages.key,
     enterpriseEditionLeftPanelMessages.keyRemove,
     messages.title,
-    enterpriseEditionLeftPanelMessages.notice,
 ];
 
 type State = {
