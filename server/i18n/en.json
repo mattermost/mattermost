@@ -6243,6 +6243,10 @@
     "translation": "Encountered filesystem error."
   },
   {
+    "id": "app.plugin.filesystem_info.app_error",
+    "translation": "Encountered a filesystem error during plugin extraction."
+  },
+  {
     "id": "app.plugin.flag_managed.app_error",
     "translation": "Unable to set plugin as managed by the file store."
   },
