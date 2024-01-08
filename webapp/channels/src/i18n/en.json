@@ -3630,7 +3630,7 @@
   "gather_intent.feedback_saved": "Thanks for sharing feedback!",
   "general_button.close": "Close",
   "general_button.esc": "Esc",
-  "general_tab.AllowedDomains": "Allow only users with a specific email domain to join this team",
+  "general_tab.allowedDomains": "Allow only users with a specific email domain to join this team",
   "general_tab.allowedDomains.ariaLabel": "Allowed Domains",
   "general_tab.AllowedDomainsExample": "corp.mattermost.com, mattermost.com",
   "general_tab.AllowedDomainsInfo": "When enabled, users can only join the team if their email matches a specific domain (e.g. \"mattermost.org\")",

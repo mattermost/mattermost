@@ -18,7 +18,7 @@ const translations = defineMessages({
         defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")',
     },
     AllowedDomains: {
-        id: 'general_tab.AllowedDomains',
+        id: 'general_tab.allowedDomains',
         defaultMessage: 'Allow only users with a specific email domain to join this team',
     },
 });
