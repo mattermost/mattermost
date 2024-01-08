@@ -19,6 +19,7 @@ type BatchReportWorkerAppIFace interface {
 	SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError
 	CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError
 	SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError
+	CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError
 }
 
 type BatchReportWorker[T BatchReportWorkerAppIFace] struct {
@@ -139,6 +140,10 @@ func (worker *BatchReportWorker[T]) complete(rctx request.CTX, job *model.Job) e
 	if appErr = worker.app.SendReportToUser(rctx, requestingUserId, job.Id, worker.reportFormat); appErr != nil {
 		return appErr
 	}
+
+	go func() {
+		worker.app.CleanupReportChunks(worker.reportFormat, job.Id, fileCount)
+	}()
 
 	return nil
 }

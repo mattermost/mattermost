@@ -37,11 +37,7 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 
 	w.Flush()
 	_, appErr := a.WriteFile(&buf, makeFilePath(prefix, count, "csv"))
-	if appErr != nil {
-		return appErr
-	}
-
-	return nil
+	return appErr
 }
 
 func (a *App) CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError {
@@ -76,43 +72,52 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 		if _, err = a.AppendFile(bytes.NewReader(chunk), filePath); err != nil {
 			return err
 		}
-		if err = a.RemoveFile(chunkFilePath); err != nil {
-			return err
-		}
 	}
 
 	return nil
 }
 
 func (a *App) SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError {
-	a.Srv().Go(func() {
-		systemBot, err := a.GetSystemBot()
-		if err != nil {
-			rctx.Logger().Error("Failed to post batch export finished message", mlog.Err(err))
-			return
-		}
+	systemBot, err := a.GetSystemBot()
+	if err != nil {
+		return err
+	}
 
-		channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), userID, systemBot.UserId)
-		if err != nil {
-			rctx.Logger().Error("Failed to post batch export finished message", mlog.Err(err))
-			return
-		}
+	channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), userID, systemBot.UserId)
+	if err != nil {
+		return err
+	}
 
-		post := &model.Post{
-			ChannelId: channel.Id,
-			Message:   i18n.T("app.report.send_report_to_user.export_finished", map[string]string{"Link": a.GetSiteURL() + "/api/v4/reports/export/" + jobId + "?format=" + format}),
-			Type:      model.PostTypeAdminReport,
-			UserId:    systemBot.UserId,
-			Props: model.StringInterface{
-				"reportId": jobId,
-				"format":   format,
-			},
-		}
+	post := &model.Post{
+		ChannelId: channel.Id,
+		Message:   i18n.T("app.report.send_report_to_user.export_finished", map[string]string{"Link": a.GetSiteURL() + "/api/v4/reports/export/" + jobId + "?format=" + format}),
+		Type:      model.PostTypeAdminReport,
+		UserId:    systemBot.UserId,
+		Props: model.StringInterface{
+			"reportId": jobId,
+			"format":   format,
+		},
+	}
 
-		if _, err := a.CreatePost(rctx, post, channel, false, true); err != nil {
-			rctx.Logger().Error("Failed to post batch export finished message", mlog.Err(err))
+	_, err = a.CreatePost(rctx, post, channel, false, true)
+	return err
+}
+
+func (a *App) CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError {
+	switch format {
+	case "csv":
+		return a.cleanupCSVChunks(prefix, numberOfChunks)
+	}
+	return model.NewAppError("CompileReportChunks", "app.compile_report_chunks.unsupported_format", nil, "", http.StatusBadRequest)
+}
+
+func (a *App) cleanupCSVChunks(prefix string, numberOfChunks int) *model.AppError {
+	for i := 0; i < numberOfChunks; i++ {
+		chunkFilePath := makeFilePath(prefix, i, "csv")
+		if err := a.RemoveFile(chunkFilePath); err != nil {
+			return err
 		}
-	})
+	}
 
 	return nil
 }
