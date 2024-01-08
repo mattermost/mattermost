@@ -340,7 +340,7 @@ function SystemUsersList(props: Props) {
     }];
     const paginationTableState = {
         pageIndex: props?.tablePropertyPageIndex ?? 0,
-        pageSize: props?.tablePropertyPageSize ?? PAGE_SIZES[0],
+        pageSize: props?.tablePropertyPageSize || PAGE_SIZES[0],
     };
 
     const table = useReactTable({
@@ -359,6 +359,7 @@ function SystemUsersList(props: Props) {
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,
+            paginationInfo: getPaginationInfo(paginationTableState.pageIndex, paginationTableState.pageSize, userReports.length, 0),
             hasAdditionalPaginationAtTop: false,
             totalRowInfo: '',
         } as TableMeta,
@@ -424,9 +425,21 @@ function getColumnValue(row: UserReport, sortColumn: AdminConsoleUserManagementT
         return row.email;
     case ColumnNames.createAt:
         return String(row.create_at);
-    default: // TODO: this should be display name, we might need to work out what this means case-by-case
+    default:
         return row.username;
     }
+}
+
+function getPaginationInfo(pageIndex: number, pageSize: number, currentLength: number, totalUserCount: number): React.ReactNode {
+    if (!currentLength) {
+        return null;
+    }
+
+    return (
+        <span>
+            {`Showing ${(pageIndex * pageSize) + 1} - ${(pageIndex * pageSize) + currentLength} of ${totalUserCount} users`}
+        </span>
+    );
 }
 
 export default SystemUsersList;
