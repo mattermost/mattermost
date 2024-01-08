@@ -521,7 +521,7 @@ func (h *Hub) Start() {
 				}
 
 				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
-					if webConn := connIndex.byConnectionId[connID]; webConn != nil {
+					if webConn := connIndex.ForConnection(connID); webConn != nil {
 						broadcast(webConn)
 						continue
 					}
@@ -637,7 +637,22 @@ func (i *hubConnectionIndex) Has(wc *WebConn) bool {
 
 // ForUser returns all connections for a user ID.
 func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
-	return i.byUserId[id]
+	// Fast path if there is only one or fewer connection.
+	if len(i.byUserId[id]) <= 1 {
+		return i.byUserId[id]
+	}
+	// If there are multiple connections per user,
+	// then we have to return a clone of the slice
+	// to allow connIndex.Remove to be safely called while
+	// iterating the slice.
+	conns := make([]*WebConn, len(i.byUserId[id]))
+	copy(conns, i.byUserId[id])
+	return conns
+}
+
+// ForConnection returns the connection from its ID.
+func (i *hubConnectionIndex) ForConnection(id string) *WebConn {
+	return i.byConnectionId[id]
 }
 
 // All returns the full webConn index.

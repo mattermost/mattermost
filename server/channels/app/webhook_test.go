@@ -19,7 +19,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -380,6 +379,37 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 		require.Equal(t, model.WebsocketEventPosted, ev.EventType())
 		assert.Equal(t, false, ev.GetData()["set_online"])
 	})
+}
+
+func TestCreateWebhookPostLinks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, err)
+	defer th.App.DeleteIncomingWebhook(hook.Id)
+
+	for name, tc := range map[string]struct {
+		input          string
+		expectedOutput string
+	}{
+		"if statement": {
+			input:          "`if(status_int < QUERY_UNKNOWN || status_int >= QUERY_STATUS_MAX)`",
+			expectedOutput: "`if(status_int < QUERY_UNKNOWN || status_int >= QUERY_STATUS_MAX)`",
+		},
+		"angle bracket link": {
+			input:          "<https://mattermost.com|Mattermost>",
+			expectedOutput: "[Mattermost](https://mattermost.com)",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "")
+			require.Nil(t, err)
+			require.Equal(t, tc.expectedOutput, post.Message)
+		})
+	}
 }
 
 func TestSplitWebhookPost(t *testing.T) {
@@ -756,7 +786,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.NoError(t, err)
 
-		assert.NotNil(t, resp)
+		require.NotNil(t, resp)
 		assert.NotNil(t, resp.Text)
 		assert.Equal(t, "Hello, World!", *resp.Text)
 	})
@@ -804,14 +834,32 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 		defer close(releaseHandler)
 
-		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 500 * time.Millisecond
-		defer func() {
-			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
-		}()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+		})
 
 		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
 		require.Error(t, err)
 		require.IsType(t, &url.Error{}, err)
+	})
+
+	t.Run("with a slow response, long timeout configured", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(1 * time.Second)
+
+			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		}))
+		defer server.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
+		})
+
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		assert.NotNil(t, resp.Text)
+		assert.Equal(t, "Hello, World!", *resp.Text)
 	})
 
 	t.Run("without response", func(t *testing.T) {
