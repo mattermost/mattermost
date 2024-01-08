@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Product, CloudCustomer, Limits, InvoiceLineItem} from '@mattermost/types/cloud';
+import type {CloudCustomer} from '@mattermost/types/cloud';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {CloudProducts, CloudLinks} from 'utils/constants';
-import {hasSomeLimits} from 'utils/limits';
+import {CloudLinks} from 'utils/constants';
 
 export function isCustomerCardExpired(customer?: CloudCustomer): boolean {
     if (!customer) {
@@ -31,34 +30,11 @@ export function openExternalPricingLink() {
     window.open(CloudLinks.PRICING, '_blank');
 }
 
-export function isCloudFreePlan(product: Product | undefined, limits: Limits): boolean {
-    return product?.sku === CloudProducts.STARTER && hasSomeLimits(limits);
-}
-
 export const FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS = 30;
 
 export function daysToExpiration(expirationDate: number): number {
-    const now = new Date(1764969209 * 1000);
+    const now = new Date();
     const expiration = new Date(expirationDate);
     const diff = expiration.getTime() - now.getTime();
     return Math.ceil(diff / (1000 * 3600 * 24));
-}
-
-export function buildInvoiceSummaryPropsFromLineItems(lineItems: InvoiceLineItem[]) {
-    let fullCharges = lineItems.filter((item) => item.type === 'full');
-    const partialCharges = lineItems.filter((item) => item.type === 'partial');
-    if (!partialCharges.length && !fullCharges.length) {
-        fullCharges = lineItems;
-    }
-    let hasMore = 0;
-    if (fullCharges.length > 5) {
-        hasMore = fullCharges.length - 5;
-        fullCharges = fullCharges.slice(0, 5);
-    }
-
-    return {
-        fullCharges,
-        partialCharges,
-        hasMore,
-    };
 }
