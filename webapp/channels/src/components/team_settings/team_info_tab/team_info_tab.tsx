@@ -54,7 +54,7 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
     const [loading, setLoading] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
     const [nameClientError, setNameClientError] = useState<BaseSettingItemProps['error'] | undefined>();
-    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
+    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const {formatMessage} = useIntl();
 
     const handleNameDescriptionSubmit = useCallback(async (): Promise<boolean> => {
@@ -103,7 +103,7 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
     }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setHasChangeTabError]);
 
     const handleClose = useCallback(() => {
-        setSaveChangesPanelState('saving');
+        setSaveChangesPanelState('editing');
         setHasChanges(false);
         setHasChangeTabError(false);
     }, [setHasChangeTabError, setHasChanges]);
@@ -143,7 +143,7 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
             } else {
                 setTeamIconFile(file);
                 setImageClientError(undefined);
-                setSaveChangesPanelState('saving');
+                setSaveChangesPanelState('editing');
                 setHasChanges(true);
             }
         } else {
@@ -154,13 +154,13 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
 
     const handleNameChanges = useCallback((name: string) => {
         setHasChanges(true);
-        setSaveChangesPanelState('saving');
+        setSaveChangesPanelState('editing');
         setName(name);
     }, [setHasChanges]);
 
     const handleDescriptionChanges = useCallback((description: string) => {
         setHasChanges(true);
-        setSaveChangesPanelState('saving');
+        setSaveChangesPanelState('editing');
         setDescription(description);
     }, [setHasChanges]);
 
