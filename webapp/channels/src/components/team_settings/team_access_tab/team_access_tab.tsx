@@ -62,7 +62,7 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
     const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team?.allowed_domains));
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains?.length > 0);
     const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team?.allow_open_invite ?? false);
-    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
+    const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const [inviteIdError, setInviteIdError] = useState<BaseSettingItemProps['error'] | undefined>();
     const {formatMessage} = useIntl();
 
@@ -102,17 +102,17 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
 
     const updateAllowedDomains = useCallback((domain: string) => {
         setHasChanges(true);
-        setSaveChangesPanelState('saving');
+        setSaveChangesPanelState('editing');
         setAllowedDomains((prev) => [...prev, domain]);
     }, [setHasChanges]);
     const updateOpenInvite = useCallback((value: boolean) => {
         setHasChanges(true);
-        setSaveChangesPanelState('saving');
+        setSaveChangesPanelState('editing');
         setAllowOpenInvite(value);
     }, [setHasChanges]);
     const handleOnChangeDomains = useCallback((allowedDomainsOptions?: SelectTextInputOption[] | null) => {
         setHasChanges(true);
-        setSaveChangesPanelState('saving');
+        setSaveChangesPanelState('editing');
         setAllowedDomains(allowedDomainsOptions?.map((domain) => domain.value) || []);
     }, [setHasChanges]);
     const handleRegenerateInviteId = useCallback(async () => {
@@ -136,7 +136,7 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
     }, []);
 
     const handleClose = useCallback(() => {
-        setSaveChangesPanelState('saving');
+        setSaveChangesPanelState('editing');
         setHasChanges(false);
         setHasChangeTabError(false);
     }, [setHasChangeTabError, setHasChanges]);

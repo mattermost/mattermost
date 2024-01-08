@@ -9,7 +9,7 @@ import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
 import './save_changes_panel.scss';
 
-export type SaveChangesPanelState = 'saving' | 'saved' | 'error';
+export type SaveChangesPanelState = 'editing' | 'saved' | 'error' | undefined;
 
 type Props = {
     handleSubmit: () => void;
@@ -18,14 +18,14 @@ type Props = {
     tabChangeError?: boolean;
     state: SaveChangesPanelState;
 }
-function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeError = false, state = 'saving'}: Props) {
+function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeError = false, state = 'editing'}: Props) {
     const panelClassName = classNames('mm-save-changes-panel', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const messageClassName = classNames('mm-save-changes-panel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const saveButtonClassName = classNames('mm-save-changes-panel__save-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
 
     const generateMessage = () => {
-        if (tabChangeError || state === 'saving') {
+        if (tabChangeError || state === 'editing') {
             return (
                 <FormattedMessage
                     id='saveChangesPanel.message'
