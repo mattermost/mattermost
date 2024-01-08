@@ -22,9 +22,12 @@ const (
 	RemoteNameMinLength      = 1
 	RemoteNameMaxLength      = 64
 
+<<<<<<< HEAD
 	SiteURLPending = "pending_"
 	SiteURLPlugin  = "plugin_"
 
+=======
+>>>>>>> upstream/master
 	BitflagOptionAutoShareDMs Bitmask = 1 << iota // Any new DM/GM is automatically shared
 	BitflagOptionAutoInvited                      // Remote is automatically invited to all shared channels
 )
