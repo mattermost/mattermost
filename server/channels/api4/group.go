@@ -832,7 +832,7 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 	}
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		return nil, c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
+		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
 	}
 
 	opts := model.GroupSearchOpts{
@@ -928,7 +928,7 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 	}
 
 	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
-		c.Err = c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
+		c.Err = model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
 		return
 	}
 
