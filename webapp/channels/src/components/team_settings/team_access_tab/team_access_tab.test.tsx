@@ -27,7 +27,6 @@ describe('components/TeamSettings', () => {
         team: TestHelper.getTeamMock({id: 'team_id'}),
         closeModal: jest.fn(),
         actions: baseActions,
-        canInviteTeamMembers: true,
         hasChanges: true,
         hasChangeTabError: false,
         setHasChanges: jest.fn(),

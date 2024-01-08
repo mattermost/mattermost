@@ -1,38 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useEffect, useState} from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import React, {useCallback, useState} from 'react';
+import {useIntl} from 'react-intl';
 
-import {RefreshIcon} from '@mattermost/compass-icons/components';
-import type {Team} from '@mattermost/types/teams';
-
-import Input from 'components/widgets/inputs/input/input';
-import BaseSettingItem, {type BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 import ModalSection from 'components/widgets/modals/components/modal_section';
 import SaveChangesPanel, {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
 
 import AllowedDomainsSelect from './allowed_domains_select';
+import InviteSectionInput from './invite_section_input';
 import OpenInvite from './open_invite';
 
 import type {PropsFromRedux, OwnProps} from '.';
 
 import './team_access_tab.scss';
-
-const translations = defineMessages({
-    OpenInviteDescriptionError: {
-        id: 'team_settings.openInviteDescription.error',
-        defaultMessage: 'There was an error generating the invite code, please try again',
-    },
-    CodeTitle: {
-        id: 'general_tab.codeTitle',
-        defaultMessage: 'Invite Code',
-    },
-    CodeLongDesc: {
-        id: 'general_tab.codeLongDesc',
-        defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.',
-    },
-});
 
 const generateAllowedDomainOptions = (allowedDomains?: string) => {
     if (!allowedDomains || allowedDomains.length === 0) {
@@ -44,17 +25,11 @@ const generateAllowedDomainOptions = (allowedDomains?: string) => {
 
 type Props = PropsFromRedux & OwnProps;
 
-const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, team, actions}: Props) => {
-    const [inviteId, setInviteId] = useState<Team['invite_id']>(team?.invite_id ?? '');
+const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, team, actions}: Props) => {
     const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team?.allowed_domains));
     const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team?.allow_open_invite ?? false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
-    const [inviteIdError, setInviteIdError] = useState<BaseSettingItemProps['error'] | undefined>();
     const {formatMessage} = useIntl();
-
-    useEffect(() => {
-        setInviteId(team?.invite_id || '');
-    }, [team?.invite_id]);
 
     const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
         const {error} = await actions.patchTeam({
@@ -88,18 +63,6 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
         setSaveChangesPanelState('editing');
         setAllowOpenInvite(value);
     }, [setHasChanges]);
-    const handleRegenerateInviteId = useCallback(async () => {
-        const {data, error} = await actions.regenerateTeamInviteId(team?.id || '');
-
-        if (data?.invite_id) {
-            setInviteId(data.invite_id);
-            return;
-        }
-
-        if (error) {
-            setInviteIdError(translations.OpenInviteDescriptionError);
-        }
-    }, [actions, team?.id]);
 
     const handleClose = useCallback(() => {
         setSaveChangesPanelState('editing');
@@ -131,43 +94,6 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
         setSaveChangesPanelState('saved');
         setHasChangeTabError(false);
     }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setHasChangeTabError]);
-
-    let inviteSection;
-    if (canInviteTeamMembers) {
-        const inviteSectionInput = (
-            <div
-                data-testid='teamInviteContainer'
-                id='teamInviteContainer'
-            >
-                <Input
-                    id='teamInviteId'
-                    type='text'
-                    value={inviteId}
-                    maxLength={32}
-                />
-                <button
-                    data-testid='regenerateButton'
-                    id='regenerateButton'
-                    className='btn btn-tertiary'
-                    onClick={handleRegenerateInviteId}
-                >
-                    <RefreshIcon/>
-                    {formatMessage({id: 'general_tab.regenerate', defaultMessage: 'Regenerate'})}
-                </button>
-            </div>
-        );
-
-        inviteSection = (
-            <BaseSettingItem
-                className='access-invite-section'
-                title={translations.CodeTitle}
-                description={translations.CodeLongDesc}
-                content={inviteSectionInput}
-                error={inviteIdError}
-                descriptionAboveContent={true}
-            />
-        );
-    }
 
     return (
         <ModalSection
@@ -214,7 +140,10 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
                             setAllowOpenInvite={updateOpenInvite}
                         />
                         <div className='divider-light'/>
-                        {team?.group_constrained ? undefined : inviteSection}
+                        {team?.group_constrained ?
+                            undefined :
+                            <InviteSectionInput regenerateTeamInviteId={actions.regenerateTeamInviteId}/>
+                        }
                         {hasChanges ?
                             <SaveChangesPanel
                                 handleCancel={handleCancel}

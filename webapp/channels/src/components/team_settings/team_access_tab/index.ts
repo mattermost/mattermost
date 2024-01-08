@@ -8,12 +8,8 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {getTeam, patchTeam, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
-import {Permissions} from 'mattermost-redux/constants';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {patchTeam, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
 import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import type {GlobalState} from 'types/store/index';
 
 import TeamAccessTab from './team_access_tab';
 
@@ -27,16 +23,7 @@ export type OwnProps = {
     collapseModal: () => void;
 };
 
-function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
-    const canInviteTeamMembers = haveITeamPermission(state, ownProps.team?.id || '', Permissions.INVITE_USER);
-
-    return {
-        canInviteTeamMembers,
-    };
-}
-
 type Actions = {
-    getTeam: (teamId: string) => Promise<ActionResult>;
     patchTeam: (team: Partial<Team>) => Promise<ActionResult>;
     regenerateTeamInviteId: (teamId: string) => Promise<ActionResult>;
 };
@@ -44,14 +31,13 @@ type Actions = {
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
         actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
-            getTeam,
             patchTeam,
             regenerateTeamInviteId,
         }, dispatch),
     };
 }
 
-const connector = connect(mapStateToProps, mapDispatchToProps);
+const connector = connect(null, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
