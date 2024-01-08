@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {EventHandler, ReactNode, MouseEvent} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -9,19 +10,41 @@ import './admin_panel.scss';
 type Props = {
     id?: string;
     className?: string;
-    onHeaderClick?: React.EventHandler<React.MouseEvent>;
-    titleId: string;
-    titleDefault: string;
-    subtitleId: string;
-    subtitleDefault: string;
+    onHeaderClick?: EventHandler<MouseEvent>;
+    title?: ReactNode;
+    subtitle?: ReactNode;
+    button?: ReactNode;
+    children?: ReactNode;
+
+    /**
+     * @deprecated pass title as string or React node
+     */
+    titleId?: string;
+
+    /**
+     * @deprecated pass title as string or React node
+     */
+    titleDefault?: string;
+
+    /**
+     * @deprecated pass substitle as string or React node
+     */
+    subtitleId?: string;
+
+    /**
+     * @deprecated pass substitle as string or React node
+     */
+    subtitleDefault?: string;
+
+    /**
+     * @deprecated pass substitle as string or React node
+     */
     subtitleValues?: any;
-    button?: React.ReactNode;
-    children?: React.ReactNode;
 };
 
-const AdminPanel: React.FC<Props> = (props: Props) => (
+const AdminPanel = (props: Props) => (
     <div
-        className={'AdminPanel clearfix ' + props.className}
+        className={'AdminPanel clearfix ' + (props.className || '')}
         id={props.id}
     >
         <div
@@ -30,17 +53,21 @@ const AdminPanel: React.FC<Props> = (props: Props) => (
         >
             <div>
                 <h3>
-                    <FormattedMessage
-                        id={props.titleId}
-                        defaultMessage={props.titleDefault}
-                    />
+                    {props.title ? props.title : (
+                        <FormattedMessage
+                            id={props.titleId}
+                            defaultMessage={props.titleDefault}
+                        />
+                    )}
                 </h3>
                 <div className='mt-2'>
-                    <FormattedMessage
-                        id={props.subtitleId}
-                        defaultMessage={props.subtitleDefault}
-                        values={props.subtitleValues}
-                    />
+                    {props.subtitle ? props.subtitle : (
+                        <FormattedMessage
+                            id={props.subtitleId}
+                            defaultMessage={props.subtitleDefault}
+                            values={props.subtitleValues}
+                        />
+                    )}
                 </div>
             </div>
             {props.button &&
@@ -52,9 +79,5 @@ const AdminPanel: React.FC<Props> = (props: Props) => (
         {props.children}
     </div>
 );
-
-AdminPanel.defaultProps = {
-    className: '',
-};
 
 export default AdminPanel;

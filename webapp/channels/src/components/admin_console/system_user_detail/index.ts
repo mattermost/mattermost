@@ -3,17 +3,12 @@
 
 import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {GlobalState} from '@mattermost/types/store';
-import type {TeamMembership} from '@mattermost/types/teams';
 
 import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive, getUser, patchUser} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
@@ -26,29 +21,6 @@ function mapStateToProps(state: GlobalState) {
         mfaEnabled: config.EnableMultifactorAuthentication === 'true',
     };
 }
-
-// type Actions = {
-//     updateUserActive: (userId: string, active: boolean) => Promise<{error: ServerError}>;
-//     setNavigationBlocked: (blocked: boolean) => void;
-//     addUserToTeam: (teamId: string, userId?: string) => Promise<{data: TeamMembership; error?: any}>;
-// }
-
-// function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
-//     const apiActions = bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
-//         getUser,
-//         updateUserActive,
-//         addUserToTeam,
-//     }, dispatch);
-//     const uiActions = bindActionCreators({
-//         setNavigationBlocked,
-//     }, dispatch);
-
-//     const props = {
-//         actions: Object.assign(apiActions, uiActions),
-//     };
-
-//     return props;
-// }
 
 const mapDispatchToProps = {
     getUser,

@@ -3,10 +3,8 @@
 
 import React from 'react';
 import type {ChangeEvent, MouseEvent} from 'react';
-import {Overlay} from 'react-bootstrap';
 import type {WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, injectIntl} from 'react-intl';
-import {Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -15,7 +13,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
-import {adminResetMfa, adminResetEmail} from 'actions/admin_actions.jsx';
+import {adminResetMfa} from 'actions/admin_actions.jsx';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -25,7 +23,6 @@ import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
-import Tooltip from 'components/tooltip';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AtIcon from 'components/widgets/icons/at_icon';
@@ -33,8 +30,6 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 
 import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 import {toTitleCase} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
@@ -55,15 +50,15 @@ export type State = {
     teamIds: Array<Team['id']>;
     loading: boolean;
     searching: boolean;
-    showPasswordModal: boolean;
-    showDeactivateMemberModal: boolean;
     saveNeeded: boolean;
     saving: boolean;
     serverError: string | null;
     errorTooltip: boolean;
     customComponentWrapperClass: string;
-    addTeamOpen: boolean;
     refreshTeams: boolean;
+    showResetPasswordModal: boolean;
+    showDeactivateMemberModal: boolean;
+    showTeamSelectorModal: boolean;
 }
 
 class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, State> {
@@ -86,14 +81,14 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
             teamIds: [],
             loading: false,
             searching: false,
-            showPasswordModal: false,
+            showResetPasswordModal: false,
             showDeactivateMemberModal: false,
             saveNeeded: false,
             saving: false,
             serverError: null,
             errorTooltip: false,
             customComponentWrapperClass: '',
-            addTeamOpen: false,
+            showTeamSelectorModal: false,
             refreshTeams: true,
             error: null,
         };
@@ -104,21 +99,24 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
     getUser = async (userId: UserProfile['id']) => {
         this.setState({loading: true});
 
-        console.log('userId: ', userId);
-
         try {
-            const {data} = await this.props.getUser(userId);
+            const {data, error} = await this.props.getUser(userId);
             if (data) {
                 this.setState({
                     user: data,
                     emailField: data.email, // Set emailField to the email of the user for editing purposes
+                    loading: false,
                 });
+            } else {
+                throw new Error(error);
             }
-            this.setState({loading: false});
-            console.log('data: ', data);
         } catch (error) {
-            this.setState({loading: false});
-            console.log('error: ', error);
+            console.log('SystemUserDetails-getUser: ', error); // eslint-disable-line no-console
+
+            this.setState({
+                loading: false,
+                error: this.props.intl.formatMessage({id: 'admin.user_item.userNotFound', defaultMessage: 'Cannot load User'}),
+            });
         }
     };
 
@@ -142,7 +140,7 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
     };
 
     openAddTeam = (): void => {
-        this.setState({addTeamOpen: true});
+        this.setState({showTeamSelectorModal: true});
     };
 
     addTeams = (teams: Team[]): void => {
@@ -154,7 +152,7 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
     };
 
     closeAddTeam = (): void => {
-        this.setState({addTeamOpen: false});
+        this.setState({showTeamSelectorModal: false});
     };
 
     handleActivateUser = async () => {
@@ -184,11 +182,11 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
     };
 
     toggleOpenModalResetPassword = () => {
-        this.setState({showPasswordModal: true});
+        this.setState({showResetPasswordModal: true});
     };
 
     toggleCloseModalResetPassword = () => {
-        this.setState({showPasswordModal: false});
+        this.setState({showResetPasswordModal: false});
     };
 
     handleDeactivateMember = (): void => {
@@ -241,7 +239,7 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
         });
 
         try {
-            const {data} = await this.props.patchUser(updatedUser);
+            const {data, error} = await this.props.patchUser(updatedUser);
             if (data) {
                 this.setState({
                     user: data,
@@ -250,10 +248,14 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
                     saving: false,
                     saveNeeded: false,
                 });
+            } else {
+                throw new Error(error);
             }
         } catch (err) {
+            console.error('SystemUserDetails-handleSubmit', err); // eslint-disable-line no-console
+
             this.setState({
-                error: err.message ? err.message : err,
+                error: this.props.intl.formatMessage({id: 'admin.user_item.userUpdateFailed', defaultMessage: 'Failed to update user'}),
                 saving: false,
                 saveNeeded: false,
             });
@@ -263,16 +265,6 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
     };
 
     renderDeactivateMemberModal = (user: UserProfile): React.ReactNode => {
-        const title = (
-            <FormattedMessage
-                id='deactivate_member_modal.title'
-                defaultMessage='Deactivate {username}'
-                values={{
-                    username: user.username,
-                }}
-            />
-        );
-
         let warning;
         if (user.auth_service !== '' && user.auth_service !== Constants.EMAIL_SERVICE) {
             warning = (
@@ -293,28 +285,33 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
                     id='deactivate_member_modal.desc'
                     defaultMessage='This action deactivates {username}. They will be logged out and not have access to any teams or channels on this system. Are you sure you want to deactivate {username}?'
                     values={{
-                        username: user.username,
+                        username: user?.username ?? '',
                     }}
                 />
                 {warning}
             </div>
         );
 
-        const confirmButtonClass = 'btn btn-danger';
-        const deactivateMemberButton = (
-            <FormattedMessage
-                id='deactivate_member_modal.deactivate'
-                defaultMessage='Deactivate'
-            />
-        );
-
         return (
             <ConfirmModal
                 show={this.state.showDeactivateMemberModal}
-                title={title}
+                title={
+                    <FormattedMessage
+                        id='deactivate_member_modal.title'
+                        defaultMessage='Deactivate {username}'
+                        values={{
+                            username: user?.username ?? '',
+                        }}
+                    />
+                }
                 message={message}
-                confirmButtonClass={confirmButtonClass}
-                confirmButtonText={deactivateMemberButton}
+                confirmButtonClass={'btn btn-danger'}
+                confirmButtonText={
+                    <FormattedMessage
+                        id='deactivate_member_modal.deactivate'
+                        defaultMessage='Deactivate'
+                    />
+                }
                 onConfirm={this.handleDeactivateMember}
                 onCancel={this.toggleCloseModalDeactivateMember}
             />
@@ -347,14 +344,6 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
     }
 
     render(): React.ReactNode {
-        let deactivateMemberModal;
-
-        // if (!user.id) {
-        //     return (
-        //         <Redirect to={{pathname: '/admin_console/user_management/users'}}/>
-        //     );
-        // }
-
         // TODO - add this back in
         // if (user.id) {
         //     deactivateMemberModal = this.renderDeactivateMemberModal(user);
@@ -461,10 +450,18 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
                             }
                         />
                         <AdminPanel
-                            subtitleId={t('admin.userManagement.userDetail.teamsSubtitle')}
-                            subtitleDefault={'Teams to which this user belongs'}
-                            titleId={t('admin.userManagement.userDetail.teamsTitle')}
-                            titleDefault={'Team Membership'}
+                            title={
+                                <FormattedMessage
+                                    id='admin.userManagement.userDetail.teamsTitle'
+                                    defaultMessage='Team Membership'
+                                />
+                            }
+                            subtitle={
+                                <FormattedMessage
+                                    id='admin.userManagement.userDetail.teamsSubtitle'
+                                    defaultMessage='Teams to which this user belongs'
+                                />
+                            }
                             button={(
                                 <div className='add-team-button'>
                                     <button
@@ -493,32 +490,42 @@ class SystemUserDetail extends React.PureComponent<Props & RouteComponentProps, 
                         saving={this.state.saving}
                         disabled={!this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
                     <div
                         className='error-message'
-                        ref={this.errorMessageRef}
                     >
-                        <FormError error={this.state.serverError}/>
+                        <FormError error={this.state.error}/>
                     </div>
-                    <Overlay
-                        show={this.state.errorTooltip}
-                        placement='top'
-                        target={this.errorMessageRefCurrent}
-                    >
-                        <Tooltip id='error-tooltip' >
-                            {this.state.serverError}
-                        </Tooltip>
-                    </Overlay>
                 </div>
                 <ResetPasswordModal
+                    show={this.state.showResetPasswordModal}
                     user={this.state.user}
-                    show={this.state.showPasswordModal}
                     onModalSubmit={this.toggleCloseModalResetPassword}
                     onModalDismissed={this.toggleCloseModalResetPassword}
                 />
-                {deactivateMemberModal}
-                {this.state.addTeamOpen &&
+                <ConfirmModal
+                    show={this.state.showDeactivateMemberModal}
+                    title={
+                        <FormattedMessage
+                            id='deactivate_member_modal.title'
+                            defaultMessage='Deactivate {username}'
+                            values={{
+                                username: this.state.user?.username ?? '',
+                            }}
+                        />
+                    }
+                    // message={message}
+                    confirmButtonClass='btn btn-danger'
+                    confirmButtonText={
+                        <FormattedMessage
+                            id='deactivate_member_modal.deactivate'
+                            defaultMessage='Deactivate'
+                        />
+                    }
+                    onConfirm={this.handleDeactivateMember}
+                    onCancel={this.toggleCloseModalDeactivateMember}
+                />
+                {this.state.showTeamSelectorModal &&
                     <TeamSelectorModal
                         onModalDismissed={this.closeAddTeam}
                         onTeamsSelected={this.addTeams}
