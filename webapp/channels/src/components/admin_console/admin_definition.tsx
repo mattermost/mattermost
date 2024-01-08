@@ -7,7 +7,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
-import type {CloudState, Product, Limits} from '@mattermost/types/cloud';
+import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -221,8 +221,6 @@ export const it = {
         if (!productId) {
             return false;
         }
-        const limits = cloud.limits || {};
-        const subscriptionProduct = cloud.products?.[productId];
         return cloud?.subscription?.is_free_trial === 'true';
     },
     userHasReadPermissionOnResource: (key: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],

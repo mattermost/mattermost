@@ -7,12 +7,11 @@ import {trackEvent} from 'actions/telemetry_actions';
 
 import {CloudLinks} from 'utils/constants';
 
-
-export function buildInvoiceSummaryPropsFromLineItems(line_items: InvoiceLineItem[]) {
-    let fullCharges = line_items.filter((item) => item.type === 'full');
-    const partialCharges = line_items.filter((item) => item.type === 'partial');
+export function buildInvoiceSummaryPropsFromLineItems(lineItems: InvoiceLineItem[]) {
+    let fullCharges = lineItems.filter((item) => item.type === 'full');
+    const partialCharges = lineItems.filter((item) => item.type === 'partial');
     if (!partialCharges.length && !fullCharges.length) {
-        fullCharges = line_items;
+        fullCharges = lineItems;
     }
     let hasMoreLineItems = 0;
     if (fullCharges.length > 5) {
