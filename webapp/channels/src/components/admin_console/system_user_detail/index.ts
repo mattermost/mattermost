@@ -18,7 +18,7 @@ function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
 
     return {
-        mfaEnabled: config.EnableMultifactorAuthentication === 'true',
+        mfaEnabled: config?.EnableMultifactorAuthentication === 'true' || false,
     };
 }
 
