@@ -289,7 +289,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 
 			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
 			exportedPrefs := make(map[string]*string)
-			allPrefs, err := a.GetPreferencesForUser(user.Id)
+			allPrefs, err := a.GetPreferencesForUser(ctx, user.Id)
 			if err != nil {
 				return profilePictures, err
 			}
@@ -342,7 +342,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
 			// Do the Team Memberships.
-			members, err := a.buildUserTeamAndChannelMemberships(user.Id, includeArchivedChannels)
+			members, err := a.buildUserTeamAndChannelMemberships(ctx, user.Id, includeArchivedChannels)
 			if err != nil {
 				return profilePictures, err
 			}
@@ -358,7 +358,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 	return profilePictures, nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(c request.CTX, userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
 	var memberships []imports.UserTeamImportData
 
 	members, err := a.Srv().Store().Team().GetTeamMembersForExport(userID)
@@ -376,7 +376,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string, includeArchivedC
 		memberData := ImportUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
-		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId, includeArchivedChannels)
+		channelMembers, err := a.buildUserChannelMemberships(c, userID, member.TeamId, includeArchivedChannels)
 		if err != nil {
 			return nil, err
 		}
@@ -395,14 +395,14 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string, includeArchivedC
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userID string, teamID string, includeArchivedChannels bool) (*[]imports.UserChannelImportData, *model.AppError) {
+func (a *App) buildUserChannelMemberships(c request.CTX, userID string, teamID string, includeArchivedChannels bool) (*[]imports.UserChannelImportData, *model.AppError) {
 	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID, includeArchivedChannels)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	category := model.PreferenceCategoryFavoriteChannel
-	preferences, err := a.GetPreferenceByCategoryForUser(userID, category)
+	preferences, err := a.GetPreferenceByCategoryForUser(c, userID, category)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		return nil, err
 	}
