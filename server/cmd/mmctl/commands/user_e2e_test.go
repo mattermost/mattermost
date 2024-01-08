@@ -896,11 +896,11 @@ func (s *MmctlE2ETestSuite) TestDeleteAllUserCmd() {
 		cmd.Flags().BoolVar(&confirm, "confirm", confirm, "confirm")
 
 		// delete the basicTeam
-		err := deleteTeamsCmdF(s.th.LocalClient, cmd, []string{s.th.BasicTeam.Id})
-		s.Require().Nil(err)
+		appErr := s.th.App.PermanentDeleteTeamId(s.th.Context, s.th.BasicTeam.Id)
+		s.Require().Nil(appErr)
 
 		// delete all users only works on local mode
-		err = deleteAllUsersCmdF(s.th.LocalClient, cmd, []string{})
+		err := deleteAllUsersCmdF(s.th.LocalClient, cmd, []string{})
 		s.Require().Nil(err)
 		s.Len(printer.GetLines(), 1)
 		s.Len(printer.GetErrorLines(), 0)
