@@ -10,15 +10,15 @@ import {type SaveChangesPanelState} from 'components/widgets/modals/components/s
 
 const translations = defineMessages({
     AllowedDomainsTitle: {
-        id: 'general_tab.allowedDomainsTitle',
+        id: 'general_tab.AllowedDomainsTitle',
         defaultMessage: 'Users with a specific email domain',
     },
     AllowedDomainsInfo: {
-        id: 'general_tab.allowedDomainsInfo',
+        id: 'general_tab.AllowedDomainsInfo',
         defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")',
     },
     AllowedDomains: {
-        id: 'general_tab.allowedDomains',
+        id: 'general_tab.AllowedDomains',
         defaultMessage: 'Allow only users with a specific email domain to join this team',
     },
 });
