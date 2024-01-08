@@ -25,11 +25,9 @@ describe('components/TeamSettings', () => {
     };
     const defaultProps: ComponentProps<typeof AccessTab> = {
         team: TestHelper.getTeamMock({id: 'team_id'}),
-        maxFileSize: 50,
         closeModal: jest.fn(),
         actions: baseActions,
         canInviteTeamMembers: true,
-        isMobileView: false,
         hasChanges: true,
         hasChangeTabError: false,
         setHasChanges: jest.fn(),
