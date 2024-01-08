@@ -11,7 +11,6 @@ import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {trackEvent} from 'actions/telemetry_actions';
-import {openModal, closeModal as closeModalAction} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
@@ -21,8 +20,6 @@ import CompassThemeProvider from 'components/compass_theme_provider/compass_them
 import {ModalIdentifiers, Preferences, TELEMETRY_CATEGORIES} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-
-import {FreemiumModal} from './freemium_modal';
 
 import './delinquency_modal.scss';
 
@@ -40,27 +37,6 @@ const DelinquencyModal = (props: DelinquencyModalProps) => {
     const {closeModal, onExited, planName, isAdminConsole} = props;
     const openPurchaseModal = useOpenCloudPurchaseModal({isDelinquencyModal: true});
     const theme = useSelector(getTheme);
-
-    const handleShowFremium = () => {
-        trackEvent(TELEMETRY_CATEGORIES.CLOUD_DELINQUENCY, 'clicked_stay_on_freemium');
-        closeModal();
-        dispatch(savePreferences(currentUser.id, [{
-            category: Preferences.DELINQUENCY_MODAL_CONFIRMED,
-            name: ModalIdentifiers.DELINQUENCY_MODAL_DOWNGRADE,
-            user_id: currentUser.id,
-            value: 'stayOnFremium',
-        }]));
-        dispatch(openModal({
-            dialogType: FreemiumModal,
-            modalId: ModalIdentifiers.CLOUD_LIMITS_DOWNGRADE,
-            dialogProps: {
-                onExited,
-                onClose: () => dispatch(closeModalAction(ModalIdentifiers.CLOUD_LIMITS_DOWNGRADE)),
-                isAdminConsole,
-                planName,
-            },
-        }));
-    };
 
     const handleClose = () => {
         closeModal();
@@ -123,17 +99,6 @@ const DelinquencyModal = (props: DelinquencyModalProps) => {
                 </FormattedMessage>
             </Modal.Body>
             <Modal.Footer className={'DelinquencyModal__footer '}>
-                <button
-                    className={'DelinquencyModal__footer--secondary'}
-                    id={'stayOnFremium'}
-                    onClick={handleShowFremium}
-                >
-                    <FormattedMessage
-                        id='cloud_delinquency.modal.stay_on_freemium'
-                        defaultMessage='Stay on Free'
-                    />
-                </button>
-
                 <button
                     className={'DelinquencyModal__footer--primary'}
                     id={'updanteBillingFromDeliquencyModal'}

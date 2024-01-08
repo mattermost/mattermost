@@ -56,14 +56,6 @@ export const PlanDetailsTopElements = ({
             />
         );
         break;
-    case CloudProducts.STARTER:
-        productName = (
-            <FormattedMessage
-                id='admin.billing.subscription.planDetails.productName.cloudFree'
-                defaultMessage='Cloud Free'
-            />
-        );
-        break;
     default:
         productName = (
             <FormattedMessage

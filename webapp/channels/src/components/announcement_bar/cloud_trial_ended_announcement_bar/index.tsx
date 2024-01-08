@@ -15,7 +15,6 @@ import {
 } from 'mattermost-redux/selectors/entities/users';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
-import useGetLimits from 'components/common/hooks/useGetLimits';
 import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 
@@ -32,7 +31,6 @@ import type {GlobalState} from 'types/store';
 import AnnouncementBar from '../default_announcement_bar';
 
 const CloudTrialEndAnnouncementBar: React.FC = () => {
-    const limits = useGetLimits();
     const subscription = useGetSubscription();
     const getCategory = makeGetCategory();
     const dispatch = useDispatch();
@@ -48,11 +46,6 @@ const CloudTrialEndAnnouncementBar: React.FC = () => {
 
     const shouldShowBanner = () => {
         if (!subscription || !subscriptionProduct) {
-            return false;
-        }
-
-        // Make sure limits are loaded before showing banner
-        if (!limits || !limits[1]) {
             return false;
         }
 

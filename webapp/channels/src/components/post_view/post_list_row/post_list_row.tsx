@@ -13,7 +13,6 @@ import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
 import type {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 
-import CenterMessageLock from 'components/center_message_lock';
 import PostComponent from 'components/post';
 import ChannelIntroMessage from 'components/post_view/channel_intro_message/';
 import CombinedUserActivityPost from 'components/post_view/combined_user_activity_post';
@@ -121,15 +120,6 @@ export default class PostListRow extends React.PureComponent<PostListRowProps> {
                     newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                     channelId={this.props.channelId}
                     lastViewedAt={this.props.lastViewedAt}
-                />
-            );
-        }
-
-        if (this.props.exceededLimitChannelId) {
-            return (
-                <CenterMessageLock
-                    channelId={this.props.exceededLimitChannelId}
-                    firstInaccessiblePostTime={this.props.firstInaccessiblePostTime}
                 />
             );
         }

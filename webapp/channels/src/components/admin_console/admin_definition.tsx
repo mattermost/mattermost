@@ -7,7 +7,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
-import type {CloudState, Product, Limits} from '@mattermost/types/cloud';
+import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -32,7 +32,6 @@ import TeamAnalytics from 'components/analytics/team_analytics';
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {isCloudFreePlan} from 'utils/cloud_utils';
 import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isCloudLicense} from 'utils/license_utils';
@@ -41,7 +40,6 @@ import {getSiteURL} from 'utils/url';
 import * as DefinitionConstants from './admin_definition_constants';
 import Audits from './audits';
 import BillingHistory from './billing/billing_history';
-import BillingSubscriptions from './billing/billing_subscriptions';
 import CompanyInfo from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import PaymentInfo from './billing/payment_info';
@@ -213,7 +211,6 @@ export const it = {
     cloudLicensed: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicenced && isCloudLicense(license)),
     licensedForFeature: (feature: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license[feature] === 'true'),
     licensedForSku: (skuName: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && license.SkuShortName === skuName),
-    licensedForCloudStarter: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense) => Boolean(license?.IsLicensed && isCloudLicense(license) && license.SkuShortName === LicenseSkus.Starter),
     hidePaymentInfo: (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState) => {
         if (!cloud) {
             return true;
@@ -222,10 +219,7 @@ export const it = {
         if (!productId) {
             return false;
         }
-        const limits = cloud.limits || {};
-        const subscriptionProduct = cloud.products?.[productId];
-        const isCloudFreeProduct = isCloudFreePlan(subscriptionProduct, limits as Limits);
-        return cloud?.subscription?.is_free_trial === 'true' || isCloudFreeProduct;
+        return cloud?.subscription?.is_free_trial === 'true';
     },
     userHasReadPermissionOnResource: (key: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
     userHasReadPermissionOnSomeResources: (key: string | {[key: string]: string}) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
@@ -5595,7 +5589,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'openidType',
                             label: t('admin.openid.select'),
                             label_default: 'Select service provider:',
-                            isHelpHidden: it.all(it.stateEquals('openidType', Constants.OPENID_SERVICE), it.licensedForCloudStarter),
+                            isHelpHidden: it.stateEquals('openidType', Constants.OPENID_SERVICE),
                             options: [
                                 {
                                     value: 'off',
@@ -5843,7 +5837,7 @@ const AdminDefinition: AdminDefinitionType = {
                             placeholder_default: 'Custom Button Name',
                             help_text: t('admin.openid.buttonTextDesc'),
                             help_text_default: 'The text that will show on the login button.',
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE))),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5854,7 +5848,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: t('admin.openid.buttonColorDesc'),
                             help_text_default: 'Specify the color of the OpenID login button for white labeling purposes. Use a hex code with a #-sign before the code.',
                             help_text_markdown: false,
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE))),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5867,7 +5861,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text: t('admin.openid.discoveryEndpointDesc'),
                             help_text_default: 'Enter the URL of the discovery document of the OpenID Connect provider you want to connect with.',
                             help_text_markdown: false,
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE))),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5879,7 +5873,7 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_default: 'Obtaining the Client ID differs across providers. Please check you provider\'s documentation',
                             placeholder: t('admin.openid.clientIdExample'),
                             placeholder_default: 'E.g.: "adf3sfa2-ag3f-sn4n-ids0-sh1hdax192qq"',
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE))),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
@@ -5891,14 +5885,14 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_default: 'Obtaining the Client Secret differs across providers. Please check you provider\'s documentation',
                             placeholder: t('admin.openid.clientSecretExample'),
                             placeholder_default: 'E.g.: "H8sz0Az-dDs2p15-7QzD231"',
-                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE)), it.licensedForCloudStarter),
+                            isHidden: it.any(it.not(it.stateEquals('openidType', Constants.OPENID_SERVICE))),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                         {
                             type: 'custom',
                             key: 'OpenIDCustomFeatureDiscovery',
                             component: OpenIDCustomFeatureDiscovery,
-                            isHidden: it.not(it.all(it.stateEquals('openidType', Constants.OPENID_SERVICE), it.licensedForCloudStarter)),
+                            isHidden: it.not(it.all(it.stateEquals('openidType', Constants.OPENID_SERVICE))),
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.OPENID)),
                         },
                     ],

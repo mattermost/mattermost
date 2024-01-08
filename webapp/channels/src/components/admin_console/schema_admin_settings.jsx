@@ -729,14 +729,7 @@ export default class SchemaAdminSettings extends React.PureComponent {
     };
 
     handleChange = (id, value, confirm = false, doSubmit = false, warning = false) => {
-        let saveNeeded = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
-
-        // Exception: Since OpenId-Custom is treated as feature discovery for Cloud Starter licenses, save button is disabled.
-        const isCloudStarter = this.props.license.Cloud === 'true' && this.props.license.SkuShortName === 'starter';
-        if (id === 'openidType' && value === 'openid' && isCloudStarter) {
-            saveNeeded = false;
-        }
-
+        const saveNeeded = this.state.saveNeeded === 'permissions' ? 'both' : 'config';
         const clientWarning = warning === false ? this.state.clientWarning : warning;
 
         let confirmNeededId = confirm ? id : this.state.confirmNeededId;

@@ -32,7 +32,6 @@ import AccessProblem from 'components/access_problem';
 import AnnouncementBarController from 'components/announcement_bar';
 import AppBar from 'components/app_bar/app_bar';
 import {makeAsyncComponent} from 'components/async_load';
-import CloudEffects from 'components/cloud_effects';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
 import OpenPricingModalPost from 'components/custom_open_pricing_modal_post_renderer';
@@ -581,7 +580,6 @@ export default class Root extends React.PureComponent<Props, State> {
                         <AnnouncementBarController/>
                         <SystemNotice/>
                         <GlobalHeader/>
-                        <CloudEffects/>
                         <TeamSidebar/>
                         <DelinquencyModalController/>
                         <Switch>

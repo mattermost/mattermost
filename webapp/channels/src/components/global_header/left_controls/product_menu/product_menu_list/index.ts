@@ -7,7 +7,7 @@ import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {Permissions} from 'mattermost-redux/constants';
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {
     getConfig,
     getFirstAdminVisitMarketplaceStatus,
@@ -28,7 +28,6 @@ import {getIsMobileView} from 'selectors/views/browser';
 
 import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps} from 'components/onboarding_tasks';
 
-import {CloudProducts} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
 import type {ModalData} from 'types/actions';
@@ -63,17 +62,15 @@ function mapStateToProps(state: GlobalState) {
 
     const subscription = getCloudSubscription(state);
     const license = getLicense(state);
-    const subscriptionProduct = getSubscriptionProduct(state);
 
     const isCloud = isCloudLicense(license);
-    const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
     const isCloudFreeTrial = isCloud && subscription?.is_free_trial === 'true';
 
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
     const isSelfHostedFreeTrial = license.IsTrial === 'true';
 
-    const isStarterFree = isCloudStarterFree || isSelfHostedStarter;
+    const isStarterFree = isSelfHostedStarter;
     const isFreeTrial = isCloudFreeTrial || isSelfHostedFreeTrial;
 
     return {

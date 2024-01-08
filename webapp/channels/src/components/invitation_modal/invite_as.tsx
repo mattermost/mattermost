@@ -6,9 +6,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
-import {getSubscriptionProduct, checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
+import {checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
@@ -19,7 +18,7 @@ import InvitationModal from 'components/invitation_modal';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
 import {FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS} from 'utils/cloud_utils';
-import {CloudProducts, LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
+import {LicenseSkus, ModalIdentifiers, MattermostFeatures} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -41,7 +40,6 @@ export type Props = {
 export default function InviteAs(props: Props) {
     const {formatMessage} = useIntl();
     const license = useSelector(getLicense);
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const dispatch = useDispatch<DispatchFunc>();
 
     useEffect(() => {
@@ -49,14 +47,12 @@ export default function InviteAs(props: Props) {
     }, []);
 
     const subscription = useSelector((state: GlobalState) => state.entities.cloud.subscription);
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);
     const config = useSelector(getConfig);
 
-    const isCloudStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
     const isEnterpriseReady = config.BuildEnterpriseReady === 'true';
     const isSelfHostedStarter = isEnterpriseReady && license.IsLicensed === 'false';
-    const isStarter = isCloudStarter || isSelfHostedStarter;
+    const isStarter = isSelfHostedStarter;
 
     let extraGuestLegend = true;
     let guestDisabledClass = '';
@@ -84,7 +80,7 @@ export default function InviteAs(props: Props) {
         if (isFreeTrial) {
             ctaExtraContentMsg = formatMessage({id: 'free.professional_feature.professional', defaultMessage: 'Professional feature'});
         } else {
-            ctaExtraContentMsg = (hasPriorTrial || cloudFreeDeprecated) ? formatMessage({id: 'free.professional_feature.upgrade', defaultMessage: 'Upgrade'}) : formatMessage({id: 'free.professional_feature.try_free', defaultMessage: 'Professional feature- try it out free'});
+            ctaExtraContentMsg = (hasPriorTrial) ? formatMessage({id: 'free.professional_feature.upgrade', defaultMessage: 'Upgrade'}) : formatMessage({id: 'free.professional_feature.try_free', defaultMessage: 'Professional feature- try it out free'});
         }
 
         const restrictedIndicator = (

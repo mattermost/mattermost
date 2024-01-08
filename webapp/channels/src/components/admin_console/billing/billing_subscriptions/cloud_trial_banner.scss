@@ -1,6 +1,0 @@
-@import 'utils/mixins';
-
-.upgradeLink {
-    @include primary-button;
-    @include button-medium;
-}

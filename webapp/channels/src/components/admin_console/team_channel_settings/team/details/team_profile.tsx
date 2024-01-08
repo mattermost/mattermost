@@ -2,27 +2,15 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import {noop} from 'lodash';
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
-
-import {openModal} from 'actions/views/modals';
-
-import useGetUsage from 'components/common/hooks/useGetUsage';
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import OverlayTrigger from 'components/overlay_trigger';
-import PricingModal from 'components/pricing_modal';
-import Tooltip from 'components/tooltip';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
-import {ModalIdentifiers} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {imageURLForTeam, localizeMessage} from 'utils/utils';
 
@@ -33,27 +21,10 @@ type Props = {
     isArchived: boolean;
     onToggleArchive: () => void;
     isDisabled?: boolean;
-    saveNeeded?: boolean;
 }
 
-export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, saveNeeded}: Props) {
+export function TeamProfile({team, isArchived, onToggleArchive, isDisabled}: Props) {
     const teamIconUrl = imageURLForTeam(team);
-    const usageDeltas = useGetUsageDeltas();
-    const dispatch = useDispatch();
-    const usage = useGetUsage();
-    const license = useSelector(getLicense);
-
-    const [overrideRestoreDisabled, setOverrideRestoreDisabled] = useState(false);
-    const [restoreDisabled, setRestoreDisabled] = useState(usageDeltas.teams.teamsLoaded && usageDeltas.teams.active >= 0 && isArchived);
-
-    useEffect(() => {
-        setRestoreDisabled(license.Cloud === 'true' && usageDeltas.teams.teamsLoaded && usageDeltas.teams.active >= 0 && isArchived && !overrideRestoreDisabled && !saveNeeded);
-    }, [usageDeltas, isArchived, overrideRestoreDisabled, saveNeeded, license]);
-
-    // If in a cloud context and the teams usage hasn't loaded, don't render anything to prevent weird flashes on the screen
-    if (license.Cloud === 'true' && !usage.teams.teamsLoaded) {
-        return null;//
-    }
 
     let archiveBtnID: string;
     let archiveBtnDefault: string;
@@ -66,73 +37,12 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
     }
 
     const toggleArchive = () => {
-        setOverrideRestoreDisabled(true);
         onToggleArchive();
     };
     const button = () => {
-        if (restoreDisabled) {
-            return (
-                <OverlayTrigger
-                    delay={400}
-                    placement='bottom'
-                    disabled={!restoreDisabled}
-                    overlay={
-                        <Tooltip id='sharedTooltip'>
-                            <div className={'tooltip-title'}>
-                                <FormattedMessage
-                                    id={'workspace_limits.teams_limit_reached.upgrade_to_unarchive'}
-                                    defaultMessage={'Upgrade to Unarchive'}
-                                />
-                            </div>
-                            <div className={'tooltip-body'}>
-                                <FormattedMessage
-                                    id={'workspace_limits.teams_limit_reached.tool_tip'}
-                                    defaultMessage={'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'}
-                                />
-                            </div>
-                        </Tooltip>
-                    }
-                >
-                    {/* OverlayTrigger doesn't play nicely with `disabled` buttons, because the :hover events don't fire. This is a workaround to ensure the popover appears see: https://github.com/react-bootstrap/react-bootstrap/issues/1588*/}
-                    <div
-                        className={'disabled-overlay-wrapper'}
-                    >
-                        <button
-                            type='button'
-                            disabled={restoreDisabled}
-                            style={{pointerEvents: 'none'}}
-                            className={
-                                classNames(
-                                    'btn',
-                                    'btn-danger',
-                                    'ArchiveButton',
-                                    {ArchiveButton___archived: isArchived},
-                                    {ArchiveButton___unarchived: !isArchived},
-                                    {disabled: isDisabled},
-                                    'cloud-limits-disabled',
-                                )
-                            }
-                            onClick={noop}
-                        >
-                            {isArchived ? (
-                                <i className='icon icon-archive-arrow-up-outline'/>
-                            ) : (
-                                <i className='icon icon-archive-outline'/>
-                            )}
-                            <FormattedMessage
-                                id={archiveBtnID}
-                                defaultMessage={archiveBtnDefault}
-                            />
-                        </button>
-                    </div>
-                </OverlayTrigger>
-
-            );
-        }
         return (
             <button
                 type='button'
-                disabled={restoreDisabled}
                 className={
                     classNames(
                         'btn',
@@ -199,28 +109,6 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                     </div>
                     <div className='AdminChannelDetails_archiveContainer'>
                         {button()}
-                        {restoreDisabled &&
-                            <button
-                                onClick={() => {
-                                    dispatch(openModal({
-                                        modalId: ModalIdentifiers.PRICING_MODAL,
-                                        dialogType: PricingModal,
-                                    }));
-                                }}
-                                type='button'
-                                className={
-                                    classNames(
-                                        'btn',
-                                        'btn-secondary',
-                                        'upgrade-options-button',
-                                    )
-                                }
-                            >
-                                <FormattedMessage
-                                    id={'workspace_limits.teams_limit_reached.view_upgrade_options'}
-                                    defaultMessage={'View upgrade options'}
-                                />
-                            </button>}
                     </div>
                 </div>
             </div>

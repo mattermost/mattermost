@@ -14,7 +14,6 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {setAddChannelDropdown} from 'actions/views/add_channel_dropdown';
 import {isAddChannelDropdownOpen} from 'selectors/views/add_channel_dropdown';
 
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
 import MainMenu from 'components/main_menu';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -102,7 +101,6 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const showCreateTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
     const showInviteTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.INVITE_PEOPLE);
-    const usageDeltas = useGetUsageDeltas();
     const isAddChannelOpen = useSelector(isAddChannelDropdownOpen);
     const theme = useSelector(getTheme);
     const openAddChannelOpen = useCallback((open: boolean) => {
@@ -140,7 +138,6 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
                         </SidebarHeading>
                         <MainMenu
                             id='sidebarDropdownMenu'
-                            usageDeltaTeams={usageDeltas.teams.active}
                         />
                     </MenuWrapper>
                 </OverlayTrigger>

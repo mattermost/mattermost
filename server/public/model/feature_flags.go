@@ -36,8 +36,6 @@ type FeatureFlags struct {
 
 	OnboardingTourTips bool
 
-	DeprecateCloudFree bool
-
 	CloudReverseTrial bool
 
 	EnableExportDirectDownload bool
@@ -61,7 +59,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.AppsEnabled = true
 	f.NormalizeLdapDNs = false
 	f.CallsEnabled = true
-	f.DeprecateCloudFree = false
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
