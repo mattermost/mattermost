@@ -3,6 +3,7 @@
 
 import type {Channel} from '@mattermost/types/channels';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+import type {CursorPaginationDirection} from '@mattermost/types/reports';
 import type {Team} from '@mattermost/types/teams';
 import type {UserThread} from '@mattermost/types/threads';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
@@ -23,6 +24,10 @@ export type AdminConsoleUserManagementTableProperties = {
     sortColumn: string;
     sortIsDescending: boolean;
     pageSize: number;
+    pageIndex: number;
+    userId: string;
+    columnValue: string;
+    direction: CursorPaginationDirection;
 };
 
 export type ViewsState = {

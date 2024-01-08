@@ -3,6 +3,8 @@
 
 import {combineReducers} from 'redux';
 
+import {CursorPaginationDirection} from '@mattermost/types/reports';
+
 import {UserTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
@@ -60,6 +62,10 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     sortColumn: '',
     sortIsDescending: false,
     pageSize: 0,
+    pageIndex: 0,
+    direction: CursorPaginationDirection.down,
+    userId: '',
+    columnValue: '',
 };
 
 export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: GenericAction) {

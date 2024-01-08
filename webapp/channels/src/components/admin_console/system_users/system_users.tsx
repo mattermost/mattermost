@@ -37,6 +37,10 @@ function SystemUsers(props: Props) {
                         tablePropertySortColumn={props.tablePropertySortColumn}
                         tablePropertySortIsDescending={props.tablePropertySortIsDescending}
                         tablePropertyPageSize={props.tablePropertyPageSize}
+                        tablePropertyPageIndex={props.tablePropertyPageIndex}
+                        tablePropertyDirection={props.tablePropertyDirection}
+                        tablePropertyFromColumnValue={props.tablePropertyFromColumnValue}
+                        tablePropertyFromId={props.tablePropertyFromId}
                         getUserReports={props.getUserReports as any}
                         setAdminConsoleUsersManagementTableProperties={props.setAdminConsoleUsersManagementTableProperties}
                     />

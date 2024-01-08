@@ -30,6 +30,10 @@ function mapStateToProps(state: GlobalState) {
     const sortColumn = tableProperties?.sortColumn ?? adminConsoleUserManagementTablePropertiesInitialState.sortColumn;
     const sortIsDescending = tableProperties?.sortIsDescending ?? adminConsoleUserManagementTablePropertiesInitialState.sortIsDescending;
     const pageSize = tableProperties?.pageSize ?? adminConsoleUserManagementTablePropertiesInitialState.pageSize;
+    const pageIndex = tableProperties?.pageIndex ?? adminConsoleUserManagementTablePropertiesInitialState.pageIndex;
+    const direction = tableProperties?.direction ?? adminConsoleUserManagementTablePropertiesInitialState.direction;
+    const fromId = tableProperties?.userId ?? adminConsoleUserManagementTablePropertiesInitialState.userId;
+    const fromColumnValue = tableProperties?.columnValue ?? adminConsoleUserManagementTablePropertiesInitialState.columnValue;
 
     return {
         siteName,
@@ -40,6 +44,10 @@ function mapStateToProps(state: GlobalState) {
         tablePropertySortColumn: sortColumn,
         tablePropertySortIsDescending: sortIsDescending,
         tablePropertyPageSize: pageSize,
+        tablePropertyPageIndex: pageIndex,
+        tablePropertyDirection: direction,
+        tablePropertyFromId: fromId,
+        tablePropertyFromColumnValue: fromColumnValue,
     };
 }
 
