@@ -3569,6 +3569,41 @@ components:
         state:
           description: The current state of the installation
           type: string
+    UserLimits:
+      type: object
+      properties:
+        maxUsersLimit:
+          description: The maximum number of users allowed on server
+          type: integer
+          format: int64
+        activeUserCount:
+          description: The number of active users in the server
+          type: integer
+          format: int64
+  # Outgoing OAuth Connections
+    OutgoingOAuthConnectionGetItem:
+      type: object
+      properties:
+        id:
+          description: The unique identifier for the outgoing OAuth connection.
+          type: string
+        name:
+          description: The name of the outgoing OAuth connection.
+          type: string
+        create_at:
+          description: The time in milliseconds the outgoing OAuth connection was created.
+          type: integer
+          format: int64
+        update_at:
+          description: The time in milliseconds the outgoing OAuth connection was last updated.
+          type: integer
+          format: int64
+        grant_type:
+          description: The grant type of the outgoing OAuth connection.
+          type: string
+        audiences:
+          description: The audiences of the outgoing OAuth connection.
+          type: string
 externalDocs:
   description: Find out more about Mattermost
   url: 'https://about.mattermost.com'

@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/ProfilePopover should disable start call button when user is in another call 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -14,9 +14,6 @@ exports[`components/ProfilePopover should disable start call button when user is
   isMobileView={false}
   isUserInCall={true}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -349,11 +346,11 @@ exports[`components/ProfilePopover should disable start call button when user is
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should hide add-to-channel option if not on team 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -365,9 +362,6 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
   isInCurrentTeam={false}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -619,11 +613,11 @@ exports[`components/ProfilePopover should hide add-to-channel option if not on t
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -635,9 +629,6 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -974,11 +965,11 @@ exports[`components/ProfilePopover should match snapshot 1`] = `
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -990,9 +981,6 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -1347,11 +1335,11 @@ exports[`components/ProfilePopover should match snapshot for shared user 1`] = `
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot when calls are disabled 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -1363,9 +1351,6 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -1668,11 +1653,11 @@ exports[`components/ProfilePopover should match snapshot when calls are disabled
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with custom status 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={
     Object {
       "duration": "today",
@@ -1691,9 +1676,6 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -2068,11 +2050,11 @@ exports[`components/ProfilePopover should match snapshot with custom status 1`] 
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with custom status expired 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={
     Object {
       "duration": "today",
@@ -2091,9 +2073,6 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -2430,11 +2409,11 @@ exports[`components/ProfilePopover should match snapshot with custom status expi
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with custom status not set but can set 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -2446,9 +2425,6 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -2720,11 +2696,11 @@ exports[`components/ProfilePopover should match snapshot with custom status not 
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with last active display 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={true}
   id="user-profile-popover"
@@ -2736,9 +2712,6 @@ exports[`components/ProfilePopover should match snapshot with last active displa
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -3075,11 +3048,11 @@ exports[`components/ProfilePopover should match snapshot with last active displa
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should match snapshot with no last active display because it is disabled 1`] = `
-<Popover
+<Memo(Popover)
   customStatus={null}
   enableLastActiveTime={false}
   id="user-profile-popover"
@@ -3091,9 +3064,6 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
   isInCurrentTeam={true}
   isMobileView={false}
   lastActivityTimestamp={1632146562846}
-  placement="right"
-  popoverSize="sm"
-  popoverStyle="info"
   teammateNameDisplay="username"
   timestampUnits={
     Array [
@@ -3405,7 +3375,7 @@ exports[`components/ProfilePopover should match snapshot with no last active dis
     onFocus={[Function]}
     tabIndex={0}
   />
-</Popover>
+</Memo(Popover)>
 `;
 
 exports[`components/ProfilePopover should show the start call button when isCallsDefaultEnabledOnAllChannels, isCallsCanBeDisabledOnSpecificChannels is false and callsChannelState.enabled is true 1`] = `
@@ -3649,7 +3619,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
       }
       userId="0"
     >
-      <Popover
+      <Memo(Popover)
         customStatus={null}
         enableLastActiveTime={true}
         id="user-profile-popover"
@@ -3662,9 +3632,6 @@ exports[`components/ProfilePopover should show the start call button when isCall
         isInCurrentTeam={true}
         isMobileView={false}
         lastActivityTimestamp={1632146562846}
-        placement="right"
-        popoverSize="sm"
-        popoverStyle="info"
         teammateNameDisplay="username"
         timestampUnits={
           Array [
@@ -4508,7 +4475,7 @@ exports[`components/ProfilePopover should show the start call button when isCall
             </div>
           </div>
         </Popover>
-      </Popover>
+      </Memo(Popover)>
     </ProfilePopover>
   </injectIntl(ProfilePopover)>
 </Provider>

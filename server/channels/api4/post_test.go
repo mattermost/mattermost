@@ -733,8 +733,10 @@ func TestCreatePostWithOutgoingHook_no_content_type(t *testing.T) {
 func TestMoveThread(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_MOVETHREADSENABLED", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_MOVETHREADSENABLED")
-	th := Setup(t).InitBasic()
+	th := SetupEnterprise(t).InitBasic()
 	defer th.TearDown()
+
+	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
 
 	client := th.Client
 
@@ -949,13 +951,6 @@ func TestMoveThread(t *testing.T) {
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 		require.NotNil(t, posts)
-		// There should be 3 posts, the system join message for the user who moved it joining the channel, and the two posts in the thread
-		// require.Equal(t, 3, len(posts.Posts))
-		fmt.Println(posts.Order)
-		for _, p := range posts.Order {
-			fmt.Println(posts.Posts[p].Id)
-			fmt.Println(posts.Posts[p].Message)
-		}
 		require.Equal(t, "This thread was moved from another channel", posts.Posts[posts.Order[0]].Message)
 		require.Equal(t, newPost2.Message, posts.Posts[posts.Order[1]].Message)
 		require.Equal(t, newPost.Message, posts.Posts[posts.Order[2]].Message)
@@ -1514,7 +1509,7 @@ func TestPatchPost(t *testing.T) {
 
 	t.Run("unknown post", func(t *testing.T) {
 		patch := &model.PostPatch{}
-		_, resp, err := client.PatchPost(context.Background(), GenerateTestId(), patch)
+		_, resp, err := client.PatchPost(context.Background(), GenerateTestID(), patch)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -1634,7 +1629,7 @@ func TestPinPost(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = client.PinPost(context.Background(), GenerateTestId())
+	resp, err = client.PinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1664,7 +1659,7 @@ func TestUnpinPost(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = client.UnpinPost(context.Background(), GenerateTestId())
+	resp, err = client.UnpinPost(context.Background(), GenerateTestID())
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1920,7 +1915,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, _, err = client.GetFlaggedPostsForUserInChannel(context.Background(), user.Id, GenerateTestId(), 0, 10)
+	rpl, _, err = client.GetFlaggedPostsForUserInChannel(context.Background(), user.Id, GenerateTestID(), 0, 10)
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
@@ -1948,7 +1943,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
-	rpl, _, err = client.GetFlaggedPostsForUserInTeam(context.Background(), user.Id, GenerateTestId(), 0, 10)
+	rpl, _, err = client.GetFlaggedPostsForUserInTeam(context.Background(), user.Id, GenerateTestID(), 0, 10)
 	require.NoError(t, err)
 	require.Empty(t, rpl.Posts)
 
@@ -2028,7 +2023,7 @@ func TestGetFlaggedPostsForUser(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetFlaggedPostsForUser(context.Background(), GenerateTestId(), 0, 10)
+	_, resp, err = client.GetFlaggedPostsForUser(context.Background(), GenerateTestID(), 0, 10)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -4273,7 +4268,7 @@ func TestAcknowledgePost(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AcknowledgePost(context.Background(), GenerateTestId(), th.BasicUser.Id)
+	_, resp, err = client.AcknowledgePost(context.Background(), GenerateTestID(), th.BasicUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -4313,7 +4308,7 @@ func TestUnacknowledgePost(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	resp, err = client.UnacknowledgePost(context.Background(), GenerateTestId(), th.BasicUser.Id)
+	resp, err = client.UnacknowledgePost(context.Background(), GenerateTestID(), th.BasicUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 

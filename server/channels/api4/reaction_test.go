@@ -79,7 +79,7 @@ func TestSaveReaction(t *testing.T) {
 	})
 
 	t.Run("react-to-not-existing-post-id", func(t *testing.T) {
-		reaction.PostId = GenerateTestId()
+		reaction.PostId = GenerateTestID()
 
 		_, resp, err := client.SaveReaction(context.Background(), reaction)
 		require.Error(t, err)
@@ -96,7 +96,7 @@ func TestSaveReaction(t *testing.T) {
 
 	t.Run("react-as-not-existing-user-id", func(t *testing.T) {
 		reaction.PostId = postId
-		reaction.UserId = GenerateTestId()
+		reaction.UserId = GenerateTestID()
 
 		_, resp, err := client.SaveReaction(context.Background(), reaction)
 		require.Error(t, err)
@@ -254,7 +254,7 @@ func TestGetReactions(t *testing.T) {
 	})
 
 	t.Run("get-reactions-of-not-existing-post-id", func(t *testing.T) {
-		_, resp, err := client.GetReactions(context.Background(), GenerateTestId())
+		_, resp, err := client.GetReactions(context.Background(), GenerateTestID())
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 	})
@@ -375,7 +375,7 @@ func TestDeleteReaction(t *testing.T) {
 	})
 
 	t.Run("delete-reaction-from-not-existing-post-id", func(t *testing.T) {
-		r1.PostId = GenerateTestId()
+		r1.PostId = GenerateTestID()
 		resp, err := client.DeleteReaction(context.Background(), r1)
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
@@ -391,7 +391,7 @@ func TestDeleteReaction(t *testing.T) {
 
 	t.Run("delete-reaction-from-not-existing-user-id", func(t *testing.T) {
 		r1.PostId = postId
-		r1.UserId = GenerateTestId()
+		r1.UserId = GenerateTestID()
 
 		resp, err := client.DeleteReaction(context.Background(), r1)
 		require.Error(t, err)
