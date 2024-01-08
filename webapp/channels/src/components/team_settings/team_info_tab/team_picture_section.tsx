@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {type ChangeEvent, useRef, useState, useEffect} from 'react';
-import {useIntl} from 'react-intl';
+import React, {type ChangeEvent, useRef, useState, useEffect, useCallback} from 'react';
+import {defineMessages, useIntl} from 'react-intl';
 
 import {TrashCanOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
@@ -15,6 +15,18 @@ import Constants from 'utils/constants';
 import * as FileUtils from 'utils/file_utils';
 import {imageURLForTeam} from 'utils/utils';
 import './team_picture_section.scss';
+
+const translations = defineMessages({
+    Title: {
+        id: 'setting_picture.title',
+        defaultMessage: 'Team Icon',
+    },
+    Profile: {
+        id: 'setting_picture.help.profile',
+        defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}',
+        values: {max: '50MB'},
+    },
+});
 
 type Props = {
     team?: Team;
@@ -34,18 +46,12 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
 
     const teamImageSource = imageURLForTeam(team || {} as Team);
 
-    useEffect(() => {
-        if (file) {
-            setPicture(file);
-        }
-    }, [file]);
-
-    const handleInputFile = () => {
+    const handleInputFile = useCallback(() => {
         if (selectInput.current) {
             selectInput.current.value = '';
             selectInput.current.click();
         }
-    };
+    }, []);
 
     const editIcon = () => {
         return (
@@ -124,6 +130,12 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
         }
     };
 
+    useEffect(() => {
+        if (file) {
+            setPicture(file);
+        }
+    }, [file]);
+
     const removeImageButton = () => {
         if (file || teamImageSource) {
             return (
@@ -153,12 +165,8 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
 
     return (
         <BaseSettingItem
-            title={{id: 'setting_picture.title', defaultMessage: 'Team Icon'}}
-            description={teamImageSource ? undefined : {
-                id: 'setting_picture.help.profile',
-                defaultMessage: 'Upload a picture in BMP, JPG, JPEG, or PNG format. Maximum file size: {max}',
-                values: {max: '50MB'},
-            }}
+            title={translations.Title}
+            description={teamImageSource ? undefined : translations.Profile}
             content={teamPictureSection}
             className='picture-setting-item'
             error={clientError}

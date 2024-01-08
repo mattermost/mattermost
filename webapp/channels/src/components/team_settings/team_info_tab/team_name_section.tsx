@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {ChangeEvent} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -12,16 +12,27 @@ import BaseSettingItem, {type BaseSettingItemProps} from 'components/widgets/mod
 
 import Constants from 'utils/constants';
 
+const translations = defineMessages({
+    TeamInfo: {
+        id: 'general_tab.teamInfo',
+        defaultMessage: 'Team info',
+    },
+    TeamNameInfo: {
+        id: 'general_tab.teamNameInfo',
+        defaultMessage: 'This name will appear on your sign-in screen and at the top of the left sidebar.',
+    },
+});
+
 type Props = {
     handleNameChanges: (name: string) => void;
     name?: Team['display_name'];
     clientError: BaseSettingItemProps['error'];
 };
 
-const TeamNameSection = (props: Props) => {
+const TeamNameSection = ({clientError, handleNameChanges, name}: Props) => {
     const {formatMessage} = useIntl();
 
-    const updateName = (e: ChangeEvent<HTMLInputElement>) => props.handleNameChanges(e.target.value);
+    const updateName = useCallback((e: ChangeEvent<HTMLInputElement>) => handleNameChanges(e.target.value), [handleNameChanges]);
 
     const nameSectionInput = (
         <Input
@@ -30,17 +41,17 @@ const TeamNameSection = (props: Props) => {
             type='text'
             maxLength={Constants.MAX_TEAMNAME_LENGTH}
             onChange={updateName}
-            value={props.name}
+            value={name}
             label={formatMessage({id: 'general_tab.teamName', defaultMessage: 'Team Name'})}
         />
     );
 
     return (
         <BaseSettingItem
-            title={{id: 'general_tab.teamInfo', defaultMessage: 'Team info'}}
-            description={{id: 'general_tab.teamNameInfo', defaultMessage: 'This name will appear on your sign-in screen and at the top of the left sidebar.'}}
+            title={translations.TeamInfo}
+            description={translations.TeamNameInfo}
             content={nameSectionInput}
-            error={props.clientError}
+            error={clientError}
         />
     );
 };

@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import type {ChangeEvent} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -22,11 +22,34 @@ import type {PropsFromRedux, OwnProps} from '.';
 import './team_info_tab.scss';
 
 const ACCEPTED_TEAM_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/bmp'];
+const translations = defineMessages({
+    Required: {
+        id: 'general_tab.required',
+        defaultMessage: 'This field is required',
+    },
+    TeamNameRestrictions: {
+        id: 'general_tab.teamNameRestrictions',
+        defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
+        values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
+    },
+    TeamIconInvalidFileType: {
+        id: 'general_tab.teamIconInvalidFileType',
+        defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons',
+    },
+    TeamIconTooLarge: {
+        id: 'general_tab.teamIconTooLarge',
+        defaultMessage: 'Unable to upload team icon. File is too large.',
+    },
+    TeamIconError: {
+        id: 'general_tab.teamIconError',
+        defaultMessage: 'An error occurred while selecting the image.',
+    },
+});
 type Props = PropsFromRedux & OwnProps;
 
-const InfoTab = (props: Props) => {
-    const [name, setName] = useState<Team['display_name']>(props.team?.display_name ?? '');
-    const [description, setDescription] = useState<Team['description']>(props.team?.description ?? '');
+const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasChangeTabError, setHasChangeTabError, setHasChanges, actions}: Props) => {
+    const [name, setName] = useState<Team['display_name']>(team?.display_name ?? '');
+    const [description, setDescription] = useState<Team['description']>(team?.description ?? '');
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
     const [loading, setLoading] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
@@ -34,45 +57,41 @@ const InfoTab = (props: Props) => {
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
     const {formatMessage} = useIntl();
 
-    const handleNameDescriptionSubmit = async (): Promise<boolean> => {
-        if (name?.trim() === props.team?.display_name && description === props.team?.description) {
+    const handleNameDescriptionSubmit = useCallback(async (): Promise<boolean> => {
+        if (name?.trim() === team?.display_name && description === team?.description) {
             return true;
         }
 
         if (!name) {
-            setNameClientError({id: 'general_tab.required', defaultMessage: 'This field is required'});
+            setNameClientError(translations.Required);
             return false;
         } else if (name.length < Constants.MIN_TEAMNAME_LENGTH) {
-            setNameClientError({
-                id: 'general_tab.teamNameRestrictions',
-                defaultMessage: 'Team Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description.',
-                values: {min: Constants.MIN_TEAMNAME_LENGTH, max: Constants.MAX_TEAMNAME_LENGTH},
-            });
+            setNameClientError(translations.TeamNameRestrictions);
             return false;
         }
         setNameClientError(undefined);
-        const {error} = await props.actions.patchTeam({id: props.team?.id, display_name: name, description});
+        const {error} = await actions.patchTeam({id: team?.id, display_name: name, description});
         if (error) {
             return false;
         }
         return true;
-    };
+    }, [actions, description, name, team?.description, team?.display_name, team?.id]);
 
-    const handleTeamIconSubmit = async (): Promise<boolean> => {
+    const handleTeamIconSubmit = useCallback(async (): Promise<boolean> => {
         if (!teamIconFile) {
             return true;
         }
         setLoading(true);
         setImageClientError(undefined);
-        const {error} = await props.actions.setTeamIcon(props.team?.id || '', teamIconFile);
+        const {error} = await actions.setTeamIcon(team?.id || '', teamIconFile);
         setLoading(false);
         if (error) {
             return false;
         }
         return true;
-    };
+    }, [actions, team?.id, teamIconFile]);
 
-    const handleSaveChanges = async () => {
+    const handleSaveChanges = useCallback(async () => {
         const nameDescriptionSuccess = await handleNameDescriptionSubmit();
         const teamIconSuccess = await handleTeamIconSubmit();
         if (!teamIconSuccess || !nameDescriptionSuccess) {
@@ -80,87 +99,78 @@ const InfoTab = (props: Props) => {
             return;
         }
         setSaveChangesPanelState('saved');
-        props.setHasChangeTabError(false);
-    };
+        setHasChangeTabError(false);
+    }, [handleNameDescriptionSubmit, handleTeamIconSubmit, setHasChangeTabError]);
 
-    const handleCancel = () => {
-        setName(props.team?.display_name ?? props.team?.name ?? '');
-        setDescription(props.team?.description ?? '');
+    const handleClose = useCallback(() => {
+        setSaveChangesPanelState('saving');
+        setHasChanges(false);
+        setHasChangeTabError(false);
+    }, [setHasChangeTabError, setHasChanges]);
+
+    const handleCancel = useCallback(() => {
+        setName(team?.display_name ?? team?.name ?? '');
+        setDescription(team?.description ?? '');
         setTeamIconFile(undefined);
         setImageClientError(undefined);
         setNameClientError(undefined);
         handleClose();
-    };
+    }, [handleClose, team?.description, team?.display_name, team?.name]);
 
-    const handleClose = () => {
-        setSaveChangesPanelState('saving');
-        props.setHasChanges(false);
-        props.setHasChangeTabError(false);
-    };
-
-    const handleTeamIconRemove = async () => {
+    const handleTeamIconRemove = useCallback(async () => {
         setLoading(true);
         setImageClientError(undefined);
         setTeamIconFile(undefined);
         handleClose();
 
-        const {error} = await props.actions.removeTeamIcon(props.team?.id || '');
+        const {error} = await actions.removeTeamIcon(team?.id || '');
         setLoading(false);
         if (error) {
             setSaveChangesPanelState('error');
-            props.setHasChanges(true);
-            props.setHasChangeTabError(true);
+            setHasChanges(true);
+            setHasChangeTabError(true);
         }
-    };
+    }, [actions, handleClose, setHasChangeTabError, setHasChanges, team?.id]);
 
-    const updateTeamIcon = (e: ChangeEvent<HTMLInputElement>) => {
+    const updateTeamIcon = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         if (e && e.target && e.target.files && e.target.files[0]) {
             const file = e.target.files[0];
 
             if (!ACCEPTED_TEAM_IMAGE_TYPES.includes(file.type)) {
-                setImageClientError({
-                    id: 'general_tab.teamIconInvalidFileType',
-                    defaultMessage: 'Only BMP, JPG or PNG images may be used for team icons',
-                });
-            } else if (file.size > props.maxFileSize) {
-                setImageClientError({
-                    id: 'general_tab.teamIconTooLarge',
-                    defaultMessage: 'Unable to upload team icon. File is too large.',
-                });
+                setImageClientError(translations.TeamIconInvalidFileType);
+            } else if (file.size > maxFileSize) {
+                setImageClientError(translations.TeamIconTooLarge);
             } else {
                 setTeamIconFile(file);
                 setImageClientError(undefined);
                 setSaveChangesPanelState('saving');
-                props.setHasChanges(true);
+                setHasChanges(true);
             }
         } else {
             setTeamIconFile(undefined);
-            setImageClientError({
-                id: 'general_tab.teamIconError',
-                defaultMessage: 'An error occurred while selecting the image.',
-            });
+            setImageClientError(translations.TeamIconError);
         }
-    };
+    }, [maxFileSize, setHasChanges]);
 
-    const handleNameChanges = (name: string) => {
-        props.setHasChanges(true);
+    const handleNameChanges = useCallback((name: string) => {
+        setHasChanges(true);
         setSaveChangesPanelState('saving');
         setName(name);
-    };
+    }, [setHasChanges]);
 
-    const handleDescriptionChanges = (description: string) => {
-        props.setHasChanges(true);
+    const handleDescriptionChanges = useCallback((description: string) => {
+        setHasChanges(true);
         setSaveChangesPanelState('saving');
         setDescription(description);
-    };
+    }, [setHasChanges]);
 
-    const collapseModal = () => {
-        if (props.hasChanges) {
-            props.setHasChangeTabError(true);
+    const handleCollapseModal = useCallback(() => {
+        if (hasChanges) {
+            setHasChangeTabError(true);
             return;
         }
-        props.collapseModal();
-    };
+        collapseModal();
+    }, [collapseModal, hasChanges, setHasChangeTabError]);
 
     const modalSectionContent = (
         <>
@@ -170,7 +180,7 @@ const InfoTab = (props: Props) => {
                     type='button'
                     className='close'
                     data-dismiss='modal'
-                    onClick={props.closeModal}
+                    onClick={closeModal}
                 >
                     <span aria-hidden='true'>{'×'}</span>
                 </button>
@@ -182,7 +192,7 @@ const InfoTab = (props: Props) => {
                                 id: 'generic_icons.collapse',
                                 defaultMessage: 'Collapes Icon',
                             })}
-                            onClick={collapseModal}
+                            onClick={handleCollapseModal}
                         />
                     </div>
                     <span>{formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}</span>
@@ -201,20 +211,20 @@ const InfoTab = (props: Props) => {
                     />
                 </div>
                 <TeamPictureSection
-                    team={props.team}
+                    team={team}
                     file={teamIconFile}
                     disabled={loading}
                     onFileChange={updateTeamIcon}
                     onRemove={handleTeamIconRemove}
-                    teamName={props.team?.display_name ?? props.team?.name}
+                    teamName={team?.display_name ?? team?.name}
                     clientError={imageClientError}
                 />
-                {props.hasChanges ?
+                {hasChanges ?
                     <SaveChangesPanel
                         handleCancel={handleCancel}
                         handleSubmit={handleSaveChanges}
                         handleClose={handleClose}
-                        tabChangeError={props.hasChangeTabError}
+                        tabChangeError={hasChangeTabError}
                         state={saveChangesPanelState}
                     /> : undefined}
             </div>

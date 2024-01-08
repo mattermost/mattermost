@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useEffect, useState} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
 import type {Team} from '@mattermost/types/teams';
@@ -28,6 +28,33 @@ const generateAllowedDomainOptions = (allowedDomains?: string) => {
     return domainList.map((domain) => domain.trim());
 };
 
+const translations = defineMessages({
+    OpenInviteDescriptionError: {
+        id: 'team_settings.openInviteDescription.error',
+        defaultMessage: 'There was an error generating the invite code, please try again',
+    },
+    CodeTitle: {
+        id: 'general_tab.codeTitle',
+        defaultMessage: 'Invite Code',
+    },
+    CodeLongDesc: {
+        id: 'general_tab.codeLongDesc',
+        defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.',
+    },
+    AllowedDomainsTitle: {
+        id: 'general_tab.allowedDomainsTitle',
+        defaultMessage: 'Users with a specific email domain',
+    },
+    AllowedDomainsInfo: {
+        id: 'general_tab.allowedDomainsInfo',
+        defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")',
+    },
+    AllowedDomains: {
+        id: 'general_tab.allowedDomains',
+        defaultMessage: 'Allow only users with a specific email domain to join this team',
+    }
+});
+
 type Props = PropsFromRedux & OwnProps;
 
 const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, team, actions}: Props) => {
@@ -43,7 +70,7 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
         setInviteId(team?.invite_id || '');
     }, [team?.invite_id]);
 
-    const handleAllowedDomainsSubmit = async (): Promise<boolean> => {
+    const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
         if (allowedDomains.length === 0) {
             return true;
         }
@@ -55,9 +82,9 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
             return false;
         }
         return true;
-    };
+    }, [actions, allowedDomains, team?.id]);
 
-    const handleOpenInviteSubmit = async (): Promise<boolean> => {
+    const handleOpenInviteSubmit = useCallback(async (): Promise<boolean> => {
         if (allowOpenInvite === team?.allow_open_invite) {
             return true;
         }
@@ -71,7 +98,7 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
             return false;
         }
         return true;
-    };
+    }, [actions, allowOpenInvite, team?.allow_open_invite, team?.id]);
 
     const updateAllowedDomains = useCallback((domain: string) => {
         setHasChanges(true);
@@ -97,7 +124,7 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
         }
 
         if (error) {
-            setInviteIdError({id: 'team_settings.openInviteDescription.error', defaultMessage: 'There was an error generating the invite code, please try again'});
+            setInviteIdError(translations.OpenInviteDescriptionError);
         }
     }, [actions, team?.id]);
 
@@ -167,8 +194,8 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
         inviteSection = (
             <BaseSettingItem
                 className='access-invite-section'
-                title={{id: 'general_tab.codeTitle', defaultMessage: 'Invite Code'}}
-                description={{id: 'general_tab.codeLongDesc', defaultMessage: 'The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.'}}
+                title={translations.CodeTitle}
+                description={translations.CodeLongDesc}
                 content={inviteSectionInput}
                 error={inviteIdError}
                 descriptionAboveContent={true}
@@ -181,10 +208,10 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
             <CheckboxSettingItem
                 data-testid='allowedDomainsCheckbox'
                 className='access-allowed-domains-section'
-                title={{id: 'general_tab.allowedDomainsTitle', defaultMessage: 'Users with a specific email domain'}}
-                description={{id: 'general_tab.allowedDomainsInfo', defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")'}}
+                title={translations.AllowedDomainsTitle}
+                description={translations.AllowedDomainsInfo}
                 descriptionAboveContent={true}
-                inputFieldData={{title: {id: 'general_tab.allowedDomains', defaultMessage: 'Allow only users with a specific email domain to join this team'}, name: 'name'}}
+                inputFieldData={{title: translations.AllowedDomains, name: 'name'}}
                 inputFieldValue={showAllowedDomains}
                 handleChange={handleEnableAllowedDomains}
             />

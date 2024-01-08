@@ -3,7 +3,7 @@
 
 import React, {useCallback} from 'react';
 import type {ChangeEvent} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -11,6 +11,13 @@ import Input from 'components/widgets/inputs/input/input';
 import BaseSettingItem, {type BaseSettingItemProps} from 'components/widgets/modals/components/base_setting_item';
 
 import Constants from 'utils/constants';
+
+const translations = defineMessages({
+    TeamDescriptionInfo: {
+        id: 'general_tab.teamDescriptionInfo',
+        defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.',
+    },
+});
 
 type Props = {
     handleDescriptionChanges: (name: string) => void;
@@ -40,7 +47,7 @@ const TeamDescriptionSection = ({handleDescriptionChanges, clientError, descript
 
     return (
         <BaseSettingItem
-            description={{id: 'general_tab.teamDescriptionInfo', defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'}}
+            description={translations.TeamDescriptionInfo}
             content={descriptionSectionInput}
             className='description-setting-item'
             error={clientError}

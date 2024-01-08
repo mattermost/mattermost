@@ -27,8 +27,6 @@ describe('components/TeamSettings', () => {
         team: TestHelper.getTeamMock({id: 'team_id', name: 'team_name', display_name: 'team_display_name', description: 'team_description'}),
         maxFileSize: 50,
         actions: baseActions,
-        canInviteTeamMembers: true,
-        isMobileView: false,
         hasChanges: true,
         hasChangeTabError: false,
         setHasChanges: jest.fn(),
