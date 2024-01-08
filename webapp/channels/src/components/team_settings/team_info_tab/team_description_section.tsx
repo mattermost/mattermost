@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 import type {ChangeEvent} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -18,10 +18,12 @@ type Props = {
     clientError?: BaseSettingItemProps['error'];
 };
 
-const TeamDescriptionSection = (props: Props) => {
+const TeamDescriptionSection = ({handleDescriptionChanges, clientError, description}: Props) => {
     const {formatMessage} = useIntl();
 
-    const updateDescription = (e: ChangeEvent<HTMLInputElement>) => props.handleDescriptionChanges(e.target.value);
+    const updateDescription = useCallback((e: ChangeEvent<HTMLInputElement>) => {
+        handleDescriptionChanges(e.target.value);
+    }, [handleDescriptionChanges]);
 
     const descriptionSectionInput = (
         <Input
@@ -31,7 +33,7 @@ const TeamDescriptionSection = (props: Props) => {
             type='textarea'
             maxLength={Constants.MAX_TEAMDESCRIPTION_LENGTH}
             onChange={updateDescription}
-            value={props.description}
+            value={description}
             label={formatMessage({id: 'general_tab.teamDescription', defaultMessage: 'Description'})}
         />
     );
@@ -41,7 +43,7 @@ const TeamDescriptionSection = (props: Props) => {
             description={{id: 'general_tab.teamDescriptionInfo', defaultMessage: 'Team description provides additional information to help users select the right team. Maximum of 50 characters.'}}
             content={descriptionSectionInput}
             className='description-setting-item'
-            error={props.clientError}
+            error={clientError}
         />
     );
 };

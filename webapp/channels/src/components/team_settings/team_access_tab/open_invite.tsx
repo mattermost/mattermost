@@ -21,7 +21,7 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
             <p id='groupConstrainedContent' >{
                 formatMessage({
                     id: 'team_settings.openInviteDescription.groupConstrained',
-                    defaultMessage: 'members of this team are added and removed by linked groups. <link>Learn More</link>',
+                    defaultMessage: 'Members of this team are added and removed by linked groups. <link>Learn More</link>',
                 }, {
                     link: (msg: React.ReactNode) => (
                         <ExternalLink
@@ -50,7 +50,7 @@ const OpenInvite = ({isGroupConstrained, allowOpenInvite, setAllowOpenInvite}: P
             className='access-invite-domains-section'
             inputFieldData={{title: {id: 'general_tab.openInviteTitle', defaultMessage: 'Allow only users with a specific email domain to join this team'}, name: 'name'}}
             inputFieldValue={allowOpenInvite}
-            handleChange={(e) => setAllowOpenInvite(e)}
+            handleChange={setAllowOpenInvite}
             title={{id: 'general_tab.openInviteText', defaultMessage: 'Users on this server'}}
             description={{id: 'general_tab.openInviteDesc', defaultMessage: 'When enabled, a link to this team will be included on the landing page allowing anyone with an account to join this team. Changing this setting will create a new invitation link and invalidate the previous link.'}}
             descriptionAboveContent={true}

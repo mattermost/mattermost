@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState, useRef} from 'react';
+import React, {useState, useRef, useCallback} from 'react';
 import {Modal, type ModalBody} from 'react-bootstrap';
 import ReactDOM from 'react-dom';
 import {useIntl} from 'react-intl';
@@ -14,7 +14,7 @@ type Props = {
     onExited: () => void;
 }
 
-const TeamSettingsModal = (props: Props) => {
+const TeamSettingsModal = ({onExited}: Props) => {
     const [activeTab, setActiveTab] = useState('info');
     const [show, setShow] = useState<boolean>(true);
     const [hasChanges, setHasChanges] = useState<boolean>(false);
@@ -22,7 +22,7 @@ const TeamSettingsModal = (props: Props) => {
     const modalBodyRef = useRef<ModalBody>(null);
     const {formatMessage} = useIntl();
 
-    const updateTab = (tab: string) => {
+    const updateTab = useCallback((tab: string) => {
         if (hasChanges) {
             setHasChangeTabError(true);
             return;
@@ -30,22 +30,22 @@ const TeamSettingsModal = (props: Props) => {
         setActiveTab(tab);
         setHasChanges(false);
         setHasChangeTabError(false);
-    };
+    }, [hasChanges]);
 
-    const handleHide = () => setShow(false);
+    const handleHide = useCallback(() => setShow(false), []);
 
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setActiveTab('info');
         setHasChanges(false);
         setHasChangeTabError(false);
-        props.onExited();
-    };
+        onExited();
+    }, [onExited]);
 
-    const handleCollapse = () => {
+    const handleCollapse = useCallback(() => {
         const el = ReactDOM.findDOMNode(modalBodyRef.current) as HTMLDivElement;
         el?.closest('.modal-dialog')!.classList.remove('display--content');
         setActiveTab('');
-    };
+    }, []);
 
     const tabs = [
         {name: 'info', uiName: formatMessage({id: 'team_settings_modal.infoTab', defaultMessage: 'Info'}), icon: 'icon icon-information-outline', iconTitle: formatMessage({id: 'generic_icons.info', defaultMessage: 'Info Icon'})},

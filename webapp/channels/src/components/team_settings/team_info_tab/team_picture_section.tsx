@@ -26,19 +26,19 @@ type Props = {
     clientError?: BaseSettingItemProps['error'];
 };
 
-const TeamPictureSection = (props: Props) => {
+const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRemove, clientError}: Props) => {
     const selectInput = useRef<HTMLInputElement>(null);
     const [image, setImage] = useState<string>('');
     const [orientationStyles, setOrientationStyles] = useState<{transform: string; transformOrigin: string}>();
     const {formatMessage} = useIntl();
 
-    const teamImageSource = imageURLForTeam(props.team || {} as Team);
+    const teamImageSource = imageURLForTeam(team || {} as Team);
 
     useEffect(() => {
-        if (props.file) {
-            setPicture(props.file);
+        if (file) {
+            setPicture(file);
         }
-    }, [props.file]);
+    }, [file]);
 
     const handleInputFile = () => {
         if (selectInput.current) {
@@ -55,14 +55,14 @@ const TeamPictureSection = (props: Props) => {
                     ref={selectInput}
                     className='hidden'
                     accept={Constants.ACCEPT_STATIC_IMAGE}
-                    disabled={props.disabled}
+                    disabled={disabled}
                     type='file'
-                    onChange={props.onFileChange}
+                    onChange={onFileChange}
                     aria-hidden={true}
                     tabIndex={-1}
                 />
                 <span
-                    disabled={props.disabled}
+                    disabled={disabled}
                     onClick={handleInputFile}
                 >
                     <EditIcon/>
@@ -72,7 +72,7 @@ const TeamPictureSection = (props: Props) => {
     };
 
     const teamImage = () => {
-        if (props.file) {
+        if (file) {
             const imageStyles = {
                 backgroundImage: 'url(' + image + ')',
                 backgroundSize: 'cover',
@@ -103,7 +103,7 @@ const TeamPictureSection = (props: Props) => {
                 <span
                     onClick={handleInputFile}
                     className='team-picture-section__team-name'
-                >{props.teamName ? props.teamName.charAt(0).toUpperCase() + props.teamName?.charAt(1) : ''}</span>
+                >{teamName ? teamName.charAt(0).toUpperCase() + teamName?.charAt(1) : ''}</span>
             </div>
         );
     };
@@ -125,10 +125,10 @@ const TeamPictureSection = (props: Props) => {
     };
 
     const removeImageButton = () => {
-        if (props.file || teamImageSource) {
+        if (file || teamImageSource) {
             return (
                 <button
-                    onClick={props.onRemove}
+                    onClick={onRemove}
                     data-testid='removeImageButton'
                     className='style--none picture-setting-item__remove-button'
                 >
@@ -161,7 +161,7 @@ const TeamPictureSection = (props: Props) => {
             }}
             content={teamPictureSection}
             className='picture-setting-item'
-            error={props.clientError}
+            error={clientError}
         />
     );
 };

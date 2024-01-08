@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 
 import {RefreshIcon} from '@mattermost/compass-icons/components';
@@ -20,35 +20,35 @@ import type {PropsFromRedux, OwnProps} from '.';
 
 import './team_access_tab.scss';
 
+const generateAllowedDomainOptions = (allowedDomains?: string) => {
+    if (!allowedDomains || allowedDomains.length === 0) {
+        return [];
+    }
+    const domainList = allowedDomains.includes(',') ? allowedDomains.split(',') : [allowedDomains];
+    return domainList.map((domain) => domain.trim());
+};
+
 type Props = PropsFromRedux & OwnProps;
 
-const AccessTab = (props: Props) => {
-    const generateAllowedDomainOptions = (allowedDomains?: string) => {
-        if (!allowedDomains || allowedDomains.length === 0) {
-            return [];
-        }
-        const domainList = allowedDomains.includes(',') ? allowedDomains.split(',') : [allowedDomains];
-        return domainList.map((domain) => domain.trim());
-    };
-
-    const [inviteId, setInviteId] = useState<Team['invite_id']>(props.team?.invite_id ?? '');
-    const [allowedDomains, setAllowedDomains] = useState<string[]>(generateAllowedDomainOptions(props.team?.allowed_domains));
+const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, team, actions}: Props) => {
+    const [inviteId, setInviteId] = useState<Team['invite_id']>(team?.invite_id ?? '');
+    const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team?.allowed_domains));
     const [showAllowedDomains, setShowAllowedDomains] = useState<boolean>(allowedDomains?.length > 0);
-    const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(props.team?.allow_open_invite ?? false);
+    const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team?.allow_open_invite ?? false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>('saving');
     const [inviteIdError, setInviteIdError] = useState<BaseSettingItemProps['error'] | undefined>();
     const {formatMessage} = useIntl();
 
     useEffect(() => {
-        setInviteId(props.team?.invite_id || '');
-    }, [props.team?.invite_id]);
+        setInviteId(team?.invite_id || '');
+    }, [team?.invite_id]);
 
     const handleAllowedDomainsSubmit = async (): Promise<boolean> => {
         if (allowedDomains.length === 0) {
             return true;
         }
-        const {error} = await props.actions.patchTeam({
-            id: props.team?.id,
+        const {error} = await actions.patchTeam({
+            id: team?.id,
             allowed_domains: allowedDomains.length === 1 ? allowedDomains[0] : allowedDomains.join(', '),
         });
         if (error) {
@@ -58,38 +58,38 @@ const AccessTab = (props: Props) => {
     };
 
     const handleOpenInviteSubmit = async (): Promise<boolean> => {
-        if (allowOpenInvite === props.team?.allow_open_invite) {
+        if (allowOpenInvite === team?.allow_open_invite) {
             return true;
         }
         const data = {
-            id: props.team?.id,
+            id: team?.id,
             allow_open_invite: allowOpenInvite,
         };
 
-        const {error} = await props.actions.patchTeam(data);
+        const {error} = await actions.patchTeam(data);
         if (error) {
             return false;
         }
         return true;
     };
 
-    const updateAllowedDomains = (domain: string) => {
-        props.setHasChanges(true);
+    const updateAllowedDomains = useCallback((domain: string) => {
+        setHasChanges(true);
         setSaveChangesPanelState('saving');
         setAllowedDomains((prev) => [...prev, domain]);
-    };
-    const updateOpenInvite = (value: boolean) => {
-        props.setHasChanges(true);
+    }, [setHasChanges]);
+    const updateOpenInvite = useCallback((value: boolean) => {
+        setHasChanges(true);
         setSaveChangesPanelState('saving');
         setAllowOpenInvite(value);
-    };
-    const handleOnChangeDomains = (allowedDomainsOptions?: SelectTextInputOption[] | null) => {
-        props.setHasChanges(true);
+    }, [setHasChanges]);
+    const handleOnChangeDomains = useCallback((allowedDomainsOptions?: SelectTextInputOption[] | null) => {
+        setHasChanges(true);
         setSaveChangesPanelState('saving');
         setAllowedDomains(allowedDomainsOptions?.map((domain) => domain.value) || []);
-    };
-    const handleRegenerateInviteId = async () => {
-        const {data, error} = await props.actions.regenerateTeamInviteId(props.team?.id || '');
+    }, [setHasChanges]);
+    const handleRegenerateInviteId = useCallback(async () => {
+        const {data, error} = await actions.regenerateTeamInviteId(team?.id || '');
 
         if (data?.invite_id) {
             setInviteId(data.invite_id);
@@ -99,36 +99,36 @@ const AccessTab = (props: Props) => {
         if (error) {
             setInviteIdError({id: 'team_settings.openInviteDescription.error', defaultMessage: 'There was an error generating the invite code, please try again'});
         }
-    };
+    }, [actions, team?.id]);
 
-    const handleEnableAllowedDomains = (enabled: boolean) => {
+    const handleEnableAllowedDomains = useCallback((enabled: boolean) => {
         setShowAllowedDomains(enabled);
         if (!enabled) {
             setAllowedDomains([]);
         }
-    };
+    }, []);
 
-    const handleCancel = () => {
-        setAllowedDomains(generateAllowedDomainOptions(props.team?.allowed_domains));
-        setAllowOpenInvite(props.team?.allow_open_invite ?? false);
-        handleClose();
-    };
-
-    const handleClose = () => {
+    const handleClose = useCallback(() => {
         setSaveChangesPanelState('saving');
-        props.setHasChanges(false);
-        props.setHasChangeTabError(false);
-    };
+        setHasChanges(false);
+        setHasChangeTabError(false);
+    }, [setHasChangeTabError, setHasChanges]);
 
-    const collapseModal = () => {
-        if (props.hasChanges) {
-            props.setHasChangeTabError(true);
+    const handleCancel = useCallback(() => {
+        setAllowedDomains(generateAllowedDomainOptions(team?.allowed_domains));
+        setAllowOpenInvite(team?.allow_open_invite ?? false);
+        handleClose();
+    }, [handleClose, team?.allow_open_invite, team?.allowed_domains]);
+
+    const collapseModalHandler = useCallback(() => {
+        if (hasChanges) {
+            setHasChangeTabError(true);
             return;
         }
-        props.collapseModal();
-    };
+        collapseModal();
+    }, [collapseModal, hasChanges, setHasChangeTabError]);
 
-    const handleSaveChanges = async () => {
+    const handleSaveChanges = useCallback(async () => {
         const allowedDomainSuccess = await handleAllowedDomainsSubmit();
         const openInviteSuccess = await handleOpenInviteSubmit();
         if (!allowedDomainSuccess || !openInviteSuccess) {
@@ -136,11 +136,11 @@ const AccessTab = (props: Props) => {
             return;
         }
         setSaveChangesPanelState('saved');
-        props.setHasChangeTabError(false);
-    };
+        setHasChangeTabError(false);
+    }, [handleAllowedDomainsSubmit, handleOpenInviteSubmit, setHasChangeTabError]);
 
     let inviteSection;
-    if (props.canInviteTeamMembers) {
+    if (canInviteTeamMembers) {
         const inviteSectionInput = (
             <div
                 data-testid='teamInviteContainer'
@@ -213,7 +213,7 @@ const AccessTab = (props: Props) => {
                             type='button'
                             className='close'
                             data-dismiss='modal'
-                            onClick={props.closeModal}
+                            onClick={closeModal}
                         >
                             <span aria-hidden='true'>{'×'}</span>
                         </button>
@@ -225,28 +225,28 @@ const AccessTab = (props: Props) => {
                                         id: 'generic_icons.collapse',
                                         defaultMessage: 'Collapes Icon',
                                     })}
-                                    onClick={collapseModal}
+                                    onClick={collapseModalHandler}
                                 />
                             </div>
                             <span>{formatMessage({id: 'team_settings_modal.title', defaultMessage: 'Team Settings'})}</span>
                         </h4>
                     </div>
                     <div className='modal-access-tab-content user-settings'>
-                        {props.team?.group_constrained ? undefined : allowedDomainsSection}
+                        {team?.group_constrained ? undefined : allowedDomainsSection}
                         <div className='divider-light'/>
                         <OpenInvite
-                            isGroupConstrained={props.team?.group_constrained}
+                            isGroupConstrained={team?.group_constrained}
                             allowOpenInvite={allowOpenInvite}
                             setAllowOpenInvite={updateOpenInvite}
                         />
                         <div className='divider-light'/>
-                        {props.team?.group_constrained ? undefined : inviteSection}
-                        {props.hasChanges ?
+                        {team?.group_constrained ? undefined : inviteSection}
+                        {hasChanges ?
                             <SaveChangesPanel
                                 handleCancel={handleCancel}
                                 handleSubmit={handleSaveChanges}
                                 handleClose={handleClose}
-                                tabChangeError={props.hasChangeTabError}
+                                tabChangeError={hasChangeTabError}
                                 state={saveChangesPanelState}
                             /> : undefined}
                     </div>

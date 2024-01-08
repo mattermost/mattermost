@@ -10,11 +10,8 @@ import type {Team} from '@mattermost/types/teams';
 
 import {getTeam, patchTeam, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
 import {Permissions} from 'mattermost-redux/constants';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
-
-import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store/index';
 
@@ -31,15 +28,10 @@ export type OwnProps = {
 };
 
 function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
-    const config = getConfig(state);
-    const maxFileSize = parseInt(config.MaxFileSize ?? '', 10);
-
     const canInviteTeamMembers = haveITeamPermission(state, ownProps.team?.id || '', Permissions.INVITE_USER);
 
     return {
-        maxFileSize,
         canInviteTeamMembers,
-        isMobileView: getIsMobileView(state),
     };
 }
 

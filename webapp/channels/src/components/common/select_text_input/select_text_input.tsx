@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback, useMemo} from 'react';
 import type {CSSProperties, KeyboardEventHandler} from 'react';
 import CreatableSelect from 'react-select/creatable';
 
@@ -63,10 +63,10 @@ const styles = {
     }),
 };
 
-const SelectTextInput = (props: Props) => {
+const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, isClearable, description}: Props) => {
     const [inputValue, setInputValue] = React.useState('');
 
-    const handleKeyDown: KeyboardEventHandler = (event) => {
+    const handleKeyDown: KeyboardEventHandler = useCallback((event) => {
         if (!inputValue) {
             return;
         }
@@ -74,33 +74,37 @@ const SelectTextInput = (props: Props) => {
         case ' ':
         case ',':
             // do not add the value if already exists
-            if (props.value?.includes(inputValue.trim())) {
+            if (value?.includes(inputValue.trim())) {
                 return;
             }
-            props.handleNewSelection(inputValue);
+            handleNewSelection(inputValue);
             setInputValue('');
             event.preventDefault();
         }
-    };
+    }, [value, inputValue, handleNewSelection]);
+
+    const selectValues = useMemo(() => {
+        return value.map((singleValue) => ({label: singleValue, value: singleValue}));
+    }, [value]);
 
     return (
         <>
             <CreatableSelect
-                id={props.id}
+                id={id}
                 className='select-text-input'
                 styles={styles}
                 components={components}
-                isClearable={props.isClearable}
-                onChange={(value) => props.onChange(value as SelectTextInputOption[])}
+                isClearable={isClearable}
+                onChange={useCallback((value) => onChange(value as SelectTextInputOption[]), [onChange])}
                 inputValue={inputValue}
                 isMulti={true}
                 menuIsOpen={false}
-                onInputChange={(newValue) => setInputValue(newValue)}
+                onInputChange={setInputValue}
                 onKeyDown={handleKeyDown}
-                placeholder={props.placeholder}
-                value={props.value.map((singleValue) => ({label: singleValue, value: singleValue}))}
+                placeholder={placeholder}
+                value={selectValues}
             />
-            {props.description ? <p className='select-text-description'>{props.description}</p> : undefined}
+            {description ? <p className='select-text-description'>{description}</p> : undefined}
         </>
     );
 };
