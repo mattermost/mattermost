@@ -1049,14 +1049,16 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 			c.Err = bookmarkErr
 			return
 		}
+
+		w.Header().Set(model.HeaderEtagServer, channels.Etag())
 		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
-	}
-
-	w.Header().Set(model.HeaderEtagServer, channels.Etag())
-	if err := json.NewEncoder(w).Encode(channels); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	} else {
+		w.Header().Set(model.HeaderEtagServer, channels.Etag())
+		if err := json.NewEncoder(w).Encode(channels); err != nil {
+			c.Logger.Warn("Error while writing response", mlog.Err(err))
+		}
 	}
 }
 
