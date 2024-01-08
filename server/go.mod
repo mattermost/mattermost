@@ -1,8 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.21
-
-toolchain go1.21.0
+go 1.20
 
 require (
 	code.sajari.com/docconv v1.3.8
