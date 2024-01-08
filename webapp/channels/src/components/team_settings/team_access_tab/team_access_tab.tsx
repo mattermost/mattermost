@@ -71,9 +71,6 @@ const AccessTab = ({canInviteTeamMembers, closeModal, collapseModal, hasChangeTa
     }, [team?.invite_id]);
 
     const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
-        if (allowedDomains.length === 0) {
-            return true;
-        }
         const {error} = await actions.patchTeam({
             id: team?.id,
             allowed_domains: allowedDomains.length === 1 ? allowedDomains[0] : allowedDomains.join(', '),
