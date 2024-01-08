@@ -5,7 +5,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import {UserReportSortColumns, ReportSortDirection} from '@mattermost/types/reports';
+import {UserReportSortColumns, ReportSortDirection, CursorPaginationDirection} from '@mattermost/types/reports';
 import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -43,6 +43,12 @@ type SystemUsersRow = {
     total_posts?: number;
 };
 
+type Cursor = {
+    userId?: string;
+    columnValue?: string;
+    direction?: CursorPaginationDirection;
+}
+
 enum ColumnNames {
     displayName = 'displayNameColumn',
     email = 'emailColumn',
@@ -63,6 +69,7 @@ function SystemUsersList(props: Props) {
 
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
+    const [cursor, setCursor] = useState<Cursor>({direction: CursorPaginationDirection.down});
 
     const columns: Array<ColumnDef<SystemUsersRow, any>> = useMemo(
         () => [
@@ -216,13 +223,19 @@ function SystemUsersList(props: Props) {
     );
 
     useEffect(() => {
-        async function fetchUserReportsWithOptions(pageSize?: PaginationState['pageSize'], sortColumn?: SortingState[0]['id'], sortIsDescending?: SortingState[0]['desc']) {
+        async function fetchUserReportsWithOptions(tableOptions?: {
+            pageSize?: PaginationState['pageSize'];
+            sortColumn?: SortingState[0]['id'];
+            sortIsDescending?: SortingState[0]['desc'];
+            cursor?: Cursor;
+        }) {
             setLoadingState(LoadingStates.Loading);
 
             const options: UserReportOptions = {
-                page_size: pageSize || PAGE_SIZES[0],
-                ...getSortColumnForOptions(sortColumn),
-                ...getSortDirectionForOptions(sortIsDescending),
+                page_size: tableOptions?.pageSize || PAGE_SIZES[0],
+                ...getSortColumnForOptions(tableOptions?.sortColumn),
+                ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
+                ...getCursorValuesForOptions(tableOptions?.cursor),
             };
 
             const {data} = await props.getUserReports(options);
@@ -239,8 +252,13 @@ function SystemUsersList(props: Props) {
             }
         }
 
-        fetchUserReportsWithOptions(props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending);
-    }, [props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending]);
+        fetchUserReportsWithOptions({
+            pageSize: props.tablePropertyPageSize,
+            sortColumn: props.tablePropertySortColumn,
+            sortIsDescending: props.tablePropertySortIsDescending,
+            cursor,
+        });
+    }, [props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending, cursor]);
 
     function handleRowClick(userId: SystemUsersRow['id']) {
         if (userId.length !== 0) {
@@ -249,13 +267,27 @@ function SystemUsersList(props: Props) {
     }
 
     function handlePreviousPageClick() {
-        // eslint-disable-next-line no-console
-        console.log('previous page click');
+        if (!userReports.length) {
+            return;
+        }
+
+        setCursor({
+            direction: CursorPaginationDirection.up,
+            userId: userReports[0].id,
+            columnValue: userReports[0].username,
+        });
     }
 
     function handleNextPageClick() {
-        // eslint-disable-next-line no-console
-        console.log('next page click');
+        if (!userReports.length) {
+            return;
+        }
+
+        setCursor({
+            direction: CursorPaginationDirection.down,
+            userId: userReports[userReports.length - 1].id, 
+            columnValue: userReports[userReports.length - 1].username,
+        });
     }
 
     function handleSortingChange(updateFn: (currentSortingState: SortingState) => SortingState) {
@@ -302,6 +334,8 @@ function SystemUsersList(props: Props) {
             tableId: 'systemUsersTable',
             tableCaption: formatMessage({id: 'admin.system_users.list.caption', defaultMessage: 'System Users'}),
             loadingState,
+            disablePrevPage: typeof cursor.userId == 'undefined',
+            disableNextPage: userReports.length < paginationTableState.pageSize,
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,
@@ -361,6 +395,14 @@ function getSortDirectionForOptions(desc?: SortingState[0]['desc']): Pick<UserRe
 
     return {
         sort_direction: sortDirection,
+    };
+}
+
+function getCursorValuesForOptions(cursor?: Cursor): Partial<Pick<UserReportOptions, 'from_column_value' | 'from_id' |'direction'>> {
+    return {
+        from_column_value: cursor?.columnValue,
+        from_id: cursor?.userId,
+        direction: cursor?.direction,
     };
 }
 
