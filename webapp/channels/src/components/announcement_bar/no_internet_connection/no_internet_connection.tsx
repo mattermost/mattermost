@@ -17,6 +17,7 @@ type NoInternetConnectionProps = {
 const NoInternetConnection: React.FC<NoInternetConnectionProps> = (props: NoInternetConnectionProps) => {
     return (
         <GenericModal
+            compassDesign={true}
             onExited={props.onExited}
             modalHeaderText=''
         >

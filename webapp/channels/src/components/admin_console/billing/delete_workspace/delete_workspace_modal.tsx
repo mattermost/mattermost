@@ -187,6 +187,7 @@ export default function DeleteWorkspaceModal(props: Props) {
 
     return (
         <GenericModal
+            compassDesign={true}
             className='DeleteWorkspaceModal'
             onExited={handleClickCancel}
         >

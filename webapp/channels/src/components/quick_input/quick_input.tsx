@@ -197,7 +197,7 @@ export class QuickInput extends React.PureComponent<Props> {
         );
 
         const showClearButton = this.props.onClear && (clearableWithoutValue || (clearable && value));
-        return (<div>
+        return (<div className='input-wrapper'>
             {inputElement}
             {showClearButton &&
             <div

@@ -41,10 +41,10 @@ exports[`components/SizeAwareImage should load download and copy link buttons wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
-        tabIndex="0"
+        tabIndex={0}
       />
       <span
-        className="image-preview-utility-buttons-container"
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
         <OverlayTrigger
           className="hidden-xs"
@@ -167,10 +167,10 @@ exports[`components/SizeAwareImage should match snapshot when handleSmallImageCo
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
-        tabIndex="0"
+        tabIndex={0}
       />
       <span
-        className="image-preview-utility-buttons-container"
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
         <OverlayTrigger
           className="hidden-xs"
@@ -306,10 +306,10 @@ exports[`components/SizeAwareImage should render a placeholder and has loader wh
         onKeyDown={[Function]}
         onLoad={[Function]}
         src="https://example.com/image.png"
-        tabIndex="0"
+        tabIndex={0}
       />
       <span
-        className="image-preview-utility-buttons-container"
+        className="image-preview-utility-buttons-container image-preview-utility-buttons-container--small-image"
       >
         <OverlayTrigger
           className="hidden-xs"

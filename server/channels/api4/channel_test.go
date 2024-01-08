@@ -4634,7 +4634,9 @@ func TestGetChannelsMemberCount(t *testing.T) {
 	client := th.Client
 
 	channel1 := th.CreatePublicChannel()
-	channel2 := th.CreatePublicChannel()
+	channel2 := th.CreatePrivateChannel()
+	channel3 := th.CreatePrivateChannel()
+	th.RemoveUserFromChannel(th.BasicUser, channel3)
 
 	user1 := th.CreateUser()
 	user2 := th.CreateUser()
@@ -4669,7 +4671,7 @@ func TestGetChannelsMemberCount(t *testing.T) {
 	})
 
 	t.Run("Should fail due to permissions", func(t *testing.T) {
-		_, resp, err := client.GetChannelsMemberCount(context.Background(), []string{"junk"})
+		_, resp, err := client.GetChannelsMemberCount(context.Background(), []string{channel3.Id})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
@@ -4691,6 +4693,13 @@ func TestGetChannelsMemberCount(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("Should not fail for public channels that the user is not a member of", func(t *testing.T) {
+		th.LoginBasic2()
+		channelIDs := []string{channel1.Id}
+		_, _, err := client.GetChannelsMemberCount(context.Background(), channelIDs)
+		require.NoError(t, err)
 	})
 }
 

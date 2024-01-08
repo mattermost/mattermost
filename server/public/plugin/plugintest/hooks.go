@@ -311,6 +311,44 @@ func (_m *Hooks) OnSendDailyTelemetry() {
 	_m.Called()
 }
 
+// OnSharedChannelsPing provides a mock function with given fields: rc
+func (_m *Hooks) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	ret := _m.Called(rc)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.RemoteCluster) bool); ok {
+		r0 = rf(rc)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// OnSharedChannelsSyncMsg provides a mock function with given fields: msg, rc
+func (_m *Hooks) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	ret := _m.Called(msg, rc)
+
+	var r0 model.SyncResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) (model.SyncResponse, error)); ok {
+		return rf(msg, rc)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) model.SyncResponse); ok {
+		r0 = rf(msg, rc)
+	} else {
+		r0 = ret.Get(0).(model.SyncResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SyncMsg, *model.RemoteCluster) error); ok {
+		r1 = rf(msg, rc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // OnWebSocketConnect provides a mock function with given fields: webConnID, userID
 func (_m *Hooks) OnWebSocketConnect(webConnID string, userID string) {
 	_m.Called(webConnID, userID)
@@ -319,6 +357,11 @@ func (_m *Hooks) OnWebSocketConnect(webConnID string, userID string) {
 // OnWebSocketDisconnect provides a mock function with given fields: webConnID, userID
 func (_m *Hooks) OnWebSocketDisconnect(webConnID string, userID string) {
 	_m.Called(webConnID, userID)
+}
+
+// PreferencesHaveChanged provides a mock function with given fields: c, preferences
+func (_m *Hooks) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
+	_m.Called(c, preferences)
 }
 
 // ReactionHasBeenAdded provides a mock function with given fields: c, reaction
