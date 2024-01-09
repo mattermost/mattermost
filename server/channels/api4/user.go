@@ -2767,7 +2767,7 @@ func saveUserTermsOfService(c *Context, w http.ResponseWriter, r *http.Request) 
 		audit.AddEventParameterAuditable(auditRec, "user", user)
 	}
 
-	if _, appErr := c.App.GetTermsOfService(termsOfServiceId); err != nil {
+	if _, appErr := c.App.GetTermsOfService(termsOfServiceId); appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -3095,7 +3095,7 @@ func migrateAuthToLDAP(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
-		if appErr := migrate.MigrateToLdap(c.AppContext, from, matchField, force, false); err != nil {
+		if appErr := migrate.MigrateToLdap(c.AppContext, from, matchField, force, false); appErr != nil {
 			c.Err = model.NewAppError("api.migrateAuthToLdap", "api.migrate_to_saml.error", nil, appErr.Error(), http.StatusInternalServerError)
 			return
 		}
@@ -3158,7 +3158,7 @@ func migrateAuthToSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if migrate := c.App.AccountMigration(); migrate != nil {
-		if appErr := migrate.MigrateToSaml(c.AppContext, from, usersMap, auto, false); err != nil {
+		if appErr := migrate.MigrateToSaml(c.AppContext, from, usersMap, auto, false); appErr != nil {
 			c.Err = model.NewAppError("api.migrateAuthToSaml", "api.migrate_to_saml.error", nil, appErr.Error(), http.StatusInternalServerError)
 			return
 		}
