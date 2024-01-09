@@ -1226,3 +1226,21 @@ export default class PluginRegistry {
         return id;
     });
 }
+
+// const p = new PluginRegistry('id');
+
+type Positional = (component: DPluginComponentProp['component']) => string;
+type Named = (args: DPluginComponentProp) => string;
+
+type RegisterActionAfterChannelCreation = Positional & Named;
+
+// const Y: X = p.registerActionAfterChannelCreation;
+
+const yep: RegisterActionAfterChannelCreation = (...args: [DPluginComponentProp] | [DPluginComponentProp['component']]) => (
+    `${Boolean(args)}`
+);
+
+yep(() => React.createElement('div'));
+yep({component: () => React.createElement('div')});
+
+// p.registerActionAfterChannelCreation(Y);

@@ -24,8 +24,7 @@ import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-import InstalledOutgoingOAuthConnection from './installed_outgoing_oauth_connection';
-import {matchesFilter} from './installed_outgoing_oauth_connection/installed_outgoing_oauth_connection';
+import InstalledOutgoingOAuthConnection, {matchesFilter} from './installed_outgoing_oauth_connection';
 
 type Props = {
     team: {name: string};

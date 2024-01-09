@@ -5,7 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 
 import DeleteIntegrationLink from 'components/integrations/delete_integration_link';
-import InstalledOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/installed_outgoing_oauth_connection/installed_outgoing_oauth_connection';
+import InstalledOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/installed_outgoing_oauth_connection';
 
 describe('components/integrations/InstalledOutgoingOAuthConnection', () => {
     const FAKE_SECRET = '***************';

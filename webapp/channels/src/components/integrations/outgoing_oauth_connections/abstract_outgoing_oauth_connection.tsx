@@ -62,8 +62,21 @@ const useOutgoingOAuthForm = (connection: OutgoingOAuthConnection): [State, (sta
     }], [state]);
 };
 
+const initialState: OutgoingOAuthConnection = {
+    id: '',
+    name: 'some name',
+    creator_id: '',
+    create_at: 0,
+    update_at: 0,
+    client_id: 'some id',
+    client_secret: 'some secret',
+    oauth_token_url: 'https://tokenurl.com',
+    grant_type: 'client_credentials',
+    audiences: ['https://audience.com'],
+};
+
 export default function AbstractOutgoingOAuthConnection(props: Props) {
-    const [state, setState] = useOutgoingOAuthForm(props.initialConnection || {} as OutgoingOAuthConnection);
+    const [state, setState] = useOutgoingOAuthForm(props.initialConnection || initialState as OutgoingOAuthConnection);
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
