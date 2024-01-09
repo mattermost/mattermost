@@ -44,7 +44,7 @@ type Props = {
 
 const AdminPanel = (props: Props) => (
     <div
-        className={'AdminPanel clearfix ' + (props.className || '')}
+        className={'AdminPanel clearfix ' + props.className}
         id={props.id}
     >
         <div
@@ -79,5 +79,9 @@ const AdminPanel = (props: Props) => (
         {props.children}
     </div>
 );
+
+AdminPanel.defaultProps = {
+    className: '',
+};
 
 export default AdminPanel;

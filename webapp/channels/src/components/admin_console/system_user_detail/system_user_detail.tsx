@@ -11,9 +11,8 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
-
-import {adminResetMfa} from 'actions/admin_actions.jsx';
 
 import AdminUserCard from 'components/admin_console/admin_user_card/admin_user_card';
 import BlockableLink from 'components/admin_console/blockable_link';
@@ -28,6 +27,7 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import AtIcon from 'components/widgets/icons/at_icon';
 import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
 import {toTitleCase} from 'utils/utils';
@@ -36,11 +36,11 @@ import type {PropsFromRedux} from './index';
 
 import './system_user_detail.scss';
 
-type Params = {
+export type Params = {
     user_id?: UserProfile['id'];
 };
 
-type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps;
+export type Props = PropsFromRedux & RouteComponentProps<Params> & WrappedComponentProps;
 
 export type State = {
     user?: UserProfile;
@@ -57,7 +57,7 @@ export type State = {
     showTeamSelectorModal: boolean;
 };
 
-class SystemUserDetail extends PureComponent<Props, State> {
+export class SystemUserDetail extends PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
         this.state = {
@@ -79,7 +79,7 @@ class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({isLoading: true});
 
         try {
-            const {data, error} = await this.props.getUser(userId);
+            const {data, error} = await this.props.getUser(userId) as ActionResult<UserProfile, ServerError>;
             if (data) {
                 this.setState({
                     user: data,
@@ -87,7 +87,7 @@ class SystemUserDetail extends PureComponent<Props, State> {
                     isLoading: false,
                 });
             } else {
-                throw new Error(error);
+                throw new Error(error ? error.message : 'Unknown error');
             }
         } catch (error) {
             console.log('SystemUserDetails-getUser: ', error); // eslint-disable-line no-console
@@ -131,7 +131,7 @@ class SystemUserDetail extends PureComponent<Props, State> {
         return authenticationTextField;
     }
 
-    componentDidMount(): void {
+    componentDidMount() {
         const userId = this.props.match.params.user_id ?? '';
         if (userId.length !== 0) {
             // We dont have to handle the case of userId being empty here because the redirect will take care of it from the parent components
@@ -139,44 +139,84 @@ class SystemUserDetail extends PureComponent<Props, State> {
         }
     }
 
-    setTeamsData = (teams: TeamMembership[]): void => {
+    handleTeamsLoaded = (teams: TeamMembership[]) => {
         const teamIds = teams.map((team) => team.team_id);
         this.setState({teams});
         this.setState({teamIds});
         this.setState({refreshTeams: false});
     };
 
-    addTeams = (teams: Team[]): void => {
+    handleAddUserToTeams = (teams: Team[]) => {
+        if (!this.state.user) {
+            return;
+        }
+
         const promises = [];
         for (const team of teams) {
-            promises.push(
-                this.props.actions.addUserToTeam(team.id, this.props.user.id),
-            );
+            promises.push(this.props.addUserToTeam(team.id, this.state.user.id));
         }
         Promise.all(promises).finally(() =>
             this.setState({refreshTeams: true}),
         );
     };
 
-    closeAddTeam = (): void => {
-        this.setState({showTeamSelectorModal: false});
-    };
-
     handleActivateUser = async () => {
+        if (!this.state.user) {
+            return;
+        }
+
         try {
-            const {error} = await this.props.updateUserActive(
-                this.state.user.id,
-                true,
-            );
+            const {error} = await this.props.updateUserActive(this.state.user.id, true) as ActionResult<boolean, ServerError>;
             if (error) {
                 throw new Error(error.message);
             }
+
+            await this.getUser(this.state.user.id);
         } catch (err) {
-            this.setState({error: err});
+            console.error('SystemUserDetails-handleActivateUser', err); // eslint-disable-line no-console
+
+            this.setState({error: this.props.intl.formatMessage({id: 'admin.user_item.userActivateFailed', defaultMessage: 'Failed to activate user'})});
+        }
+    };
+
+    handleDeactivateMember = async () => {
+        if (!this.state.user) {
+            return;
         }
 
-        // this.props.updateUserActive(this.props.user.id, true).
-        //     then((data) => this.onUpdateActiveResult(data.error));
+        try {
+            const {error} = await this.props.updateUserActive(this.state.user.id, false) as ActionResult<boolean, ServerError>;
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            await this.getUser(this.state.user.id);
+        } catch (err) {
+            console.error('SystemUserDetails-handleDeactivateMember', err); // eslint-disable-line no-console
+
+            this.setState({error: this.props.intl.formatMessage({id: 'admin.user_item.userDeactivateFailed', defaultMessage: 'Failed to deactivate user'})});
+        }
+
+        this.toggleCloseModalDeactivateMember();
+    };
+
+    handleRemoveMFA = async () => {
+        if (!this.state.user) {
+            return;
+        }
+
+        try {
+            const {error} = await this.props.updateUserMfa(this.state.user.id, false) as ActionResult<boolean, ServerError>;
+            if (error) {
+                throw new Error(error.message);
+            }
+
+            await this.getUser(this.state.user.id);
+        } catch (err) {
+            console.error('SystemUserDetails-handleRemoveMFA', err); // eslint-disable-line no-console
+
+            this.setState({error: this.props.intl.formatMessage({id: 'admin.user_item.userMFARemoveFailed', defaultMessage: 'Failed to remove user\'s MFA'})});
+        }
     };
 
     handleEmailChange = (event: ChangeEvent<HTMLInputElement>) => {
@@ -219,7 +259,7 @@ class SystemUserDetail extends PureComponent<Props, State> {
         });
 
         try {
-            const {data, error} = await this.props.patchUser(updatedUser);
+            const {data, error} = await this.props.patchUser(updatedUser) as ActionResult<UserProfile, ServerError>;
             if (data) {
                 this.setState({
                     user: data,
@@ -229,7 +269,7 @@ class SystemUserDetail extends PureComponent<Props, State> {
                     isSaveNeeded: false,
                 });
             } else {
-                throw new Error(error);
+                throw new Error(error ? error.message : 'Unknown error');
             }
         } catch (err) {
             console.error('SystemUserDetails-handleSubmit', err); // eslint-disable-line no-console
@@ -252,7 +292,7 @@ class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({showDeactivateMemberModal: true});
     };
 
-    toggleCloseModalDeactivateMember = (): void => {
+    toggleCloseModalDeactivateMember = () => {
         this.setState({showDeactivateMemberModal: false});
     };
 
@@ -268,27 +308,8 @@ class SystemUserDetail extends PureComponent<Props, State> {
         this.setState({showTeamSelectorModal: true});
     };
 
-    // TODO: Refetch user data after deactivation
-    handleDeactivateMember = (): void => {
-        this.props.
-            updateUserActive(this.state.user.id, false).
-            then((data) => this.onUpdateActiveResult(data.error));
-        this.setState({showDeactivateMemberModal: false});
-    };
-
-    onUpdateActiveResult = (error: ServerError): void => {
-        if (error) {
-            this.setState({error});
-        }
-    };
-
-    // TODO: add error handler function
-    handleResetMfa = (
-        e: React.MouseEvent<HTMLButtonElement, MouseEvent>,
-    ): void => {
-        e.preventDefault();
-        // TODO: Dont use adminResetMfa
-        adminResetMfa(this.props.user.id, null, null);
+    toggleCloseTeamSelectorModal = () => {
+        this.setState({showTeamSelectorModal: false});
     };
 
     render() {
@@ -308,6 +329,8 @@ class SystemUserDetail extends PureComponent<Props, State> {
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
+
+                        {/* User details */}
                         <AdminUserCard
                             user={this.state.user}
                             isLoading={this.state.isLoading}
@@ -357,7 +380,18 @@ class SystemUserDetail extends PureComponent<Props, State> {
                                             defaultMessage='Reset Password'
                                         />
                                     </button>
-                                    {this.state?.user?.delete_at !== 0 && (
+                                    {this.state.user?.mfa_active && (
+                                        <button
+                                            className='btn btn-secondary'
+                                            onClick={this.handleRemoveMFA}
+                                        >
+                                            <FormattedMessage
+                                                id='admin.user_item.resetMfa'
+                                                defaultMessage='Remove MFA'
+                                            />
+                                        </button>
+                                    )}
+                                    {this.state.user?.delete_at !== 0 && (
                                         <button
                                             className='btn btn-secondary'
                                             onClick={this.handleActivateUser}
@@ -368,7 +402,7 @@ class SystemUserDetail extends PureComponent<Props, State> {
                                             />
                                         </button>
                                     )}
-                                    {this.state?.user?.delete_at === 0 && (
+                                    {this.state.user?.delete_at === 0 && (
                                         <button
                                             className='btn btn-secondary btn-danger'
                                             onClick={this.toggleOpenModalDeactivateMember}
@@ -379,20 +413,11 @@ class SystemUserDetail extends PureComponent<Props, State> {
                                             />
                                         </button>
                                     )}
-                                    {this.state?.user?.mfa_active && (
-                                        <button
-                                            className='btn btn-secondary btn-danger'
-                                            onClick={this.handleResetMfa}
-                                        >
-                                            <FormattedMessage
-                                                id='admin.user_item.resetMfa'
-                                                defaultMessage='Remove MFA'
-                                            />
-                                        </button>
-                                    )}
                                 </>
                             }
                         />
+
+                        {/* User's team details */}
                         <AdminPanel
                             title={
                                 <FormattedMessage
@@ -422,18 +447,27 @@ class SystemUserDetail extends PureComponent<Props, State> {
                                 </div>
                             }
                         >
-                            <TeamList
-                                userId={this.state?.user?.id}
-                                userDetailCallback={this.setTeamsData}
-                                refreshTeams={this.state.refreshTeams}
-                            />
+                            {this.state.isLoading && (
+                                <div className='teamlistLoading'>
+                                    <LoadingSpinner/>
+                                </div>
+                            )}
+                            {!this.state.isLoading && this.state.user?.id && (
+                                <TeamList
+                                    userId={this.state.user.id}
+                                    userDetailCallback={this.handleTeamsLoaded}
+                                    refreshTeams={this.state.refreshTeams}
+                                />
+                            )}
                         </AdminPanel>
                     </div>
                 </div>
+
+                {/* Footer */}
                 <div className='admin-console-save'>
                     <SaveButton
                         saving={this.state.isSaving}
-                        disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.error !== null}
+                        disabled={!this.state.isSaveNeeded || this.state.isLoading || this.state.error !== null || this.state.isSaving}
                         onClick={this.handleSubmit}
                     />
                     <div className='error-message'>
@@ -492,8 +526,8 @@ class SystemUserDetail extends PureComponent<Props, State> {
                 />
                 {this.state.showTeamSelectorModal && (
                     <TeamSelectorModal
-                        onModalDismissed={this.closeAddTeam}
-                        onTeamsSelected={this.addTeams}
+                        onModalDismissed={this.toggleCloseTeamSelectorModal}
+                        onTeamsSelected={this.handleAddUserToTeams}
                         alreadySelected={this.state.teamIds}
                         excludeGroupConstrained={true}
                     />

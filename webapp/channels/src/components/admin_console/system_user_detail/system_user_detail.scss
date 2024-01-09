@@ -4,18 +4,18 @@
             display: block;
             font-weight: unset;
 
-            > span:nth-child(1){
+            > span:nth-child(1) {
                 display: block;
-                font-size: 12px;
-                font-weight: bold;
                 margin-top: 12px;
                 margin-bottom: 6px;
+                font-size: 12px;
+                font-weight: bold;
             }
 
             > span:nth-child(2) {
                 vertical-align: middle;
             }
- 
+
             input {
                 display: inline-block;
                 max-width: 320px;
@@ -30,27 +30,11 @@
             fill: rgba(var(--sys-color-sidebar-text-rgb), 0.6);
         }
     }
-}
 
-.SystemUserDetail .add-team-button {
-    position: relative;
-    margin-left: 10px;
-}
-
-.SystemUserDetail .team-btn__content {
-    opacity: 1;
-}
-
-.SystemUserDetail__error {
-    padding-top: 8px;
-    padding-left: 15px;
-}
-
-.SystemUserDetail__actions-menu-icon svg {
-    width: 18px;
-    color: rgb(51, 51, 51);
-}
-
-.SystemUserDetail .MenuItem .SystemUserDetail__action-remove-team {
-    color: #8b0008;
+    .teamlistLoading {
+        display: flex;
+        min-height: 20vh;
+        align-items: center;
+        justify-content: center;
+    }
 }
