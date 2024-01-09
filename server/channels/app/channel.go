@@ -2063,6 +2063,21 @@ func (s *Server) getChannelMember(c request.CTX, channelID string, userID string
 	return channelMember, nil
 }
 
+func (s *Server) getChannelMemberOnly(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
+	channelMember, err := s.Store().Channel().GetMemberOnly(c.Context(), channelID, userID)
+	if err != nil {
+		var nfErr *store.ErrNotFound
+		switch {
+		case errors.As(err, &nfErr):
+			return nil, model.NewAppError("getChannelMemberOnly", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
+		default:
+			return nil, model.NewAppError("getChannelMemberOnly", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return channelMember, nil
+}
+
 func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
 	channelMembers, err := a.Srv().Store().Channel().GetMembers(channelID, page*perPage, perPage)
 	if err != nil {
