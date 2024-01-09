@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -1298,7 +1299,12 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 }
 
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	return api.app.ShareChannel(api.ctx, sc)
+	scShared, err := api.app.ShareChannel(api.ctx, sc)
+	if errors.Is(err, ErrChannelAlreadyShared) {
+		// sharing an already shared channel is not an error; treat as idempotent and return the existing shared channel
+		return api.app.GetSharedChannel(sc.ChannelId)
+	}
+	return scShared, err
 }
 
 func (api *PluginAPI) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
