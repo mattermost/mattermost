@@ -4,7 +4,8 @@
 import React from 'react';
 import type {RefObject} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Group, GroupsWithCount, SyncablePatch} from '@mattermost/types/groups';
 import {SyncableType} from '@mattermost/types/groups';
@@ -25,6 +26,7 @@ type GroupValue = Value & {member_count?: number};
 type Props = {
     currentTeamName: string;
     currentTeamId: string;
+    intl: IntlShape;
     searchTerm: string;
     groups: Group[];
 
@@ -53,7 +55,7 @@ type State = {
     loadingGroups: boolean;
 }
 
-export default class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
+export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
     private searchTimeoutId: number;
     private readonly selectedItemRef: RefObject<HTMLDivElement>;
 
@@ -299,6 +301,7 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
                         key='addGroupsToTeamKey'
                         options={groupsOptionsToShow}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         selectedItemRef={this.selectedItemRef}
                         values={this.state.values}
                         valueRenderer={this.renderValue}
@@ -321,3 +324,4 @@ export default class AddGroupsToTeamModal extends React.PureComponent<Props, Sta
         );
     }
 }
+export default injectIntl(AddGroupsToTeamModal);

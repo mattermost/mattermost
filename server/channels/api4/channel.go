@@ -698,9 +698,17 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	channelIDs := model.ArrayFromJSON(r.Body)
-	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIDs, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
+	channels, err := c.App.GetChannels(c.AppContext, channelIDs)
+	if err != nil {
+		c.Err = err
 		return
+	}
+
+	for _, channel := range channels {
+		if !c.App.HasPermissionToReadChannel(c.AppContext, c.AppContext.Session().UserId, channel) {
+			c.SetPermissionError(model.PermissionReadChannel)
+			return
+		}
 	}
 
 	channelsMemberCount, err := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
