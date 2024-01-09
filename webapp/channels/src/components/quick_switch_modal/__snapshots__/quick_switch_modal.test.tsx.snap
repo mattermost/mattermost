@@ -92,13 +92,6 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
               "latestComplete": true,
               "latestPrefix": "",
               "requestStarted": false,
-              "store": Object {
-                "@@observable": [Function],
-                "dispatch": [Function],
-                "getState": [Function],
-                "replaceReducer": [Function],
-                "subscribe": [Function],
-              },
             },
           ]
         }
