@@ -874,21 +874,6 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 	})
 
 	t.Run("with auth token", func(t *testing.T) {
-		var currentFlagValue bool
-
-		th.App.UpdateConfig(func(cfg *model.Config) {
-			currentFlagValue = cfg.FeatureFlags.OutgoingOAuthConnections
-			cfg.FeatureFlags.OutgoingOAuthConnections = true
-		})
-		th.App.Srv().SetLicense(model.NewTestLicense("outgoing_oauth_connections"))
-
-		t.Cleanup(func() {
-			th.App.UpdateConfig(func(cfg *model.Config) {
-				cfg.FeatureFlags.OutgoingOAuthConnections = currentFlagValue
-			})
-			th.App.Srv().SetLicense(nil)
-		})
-
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			io.Copy(w, strings.NewReader(fmt.Sprintf(`{"text":"%s"}`, r.Header.Get("Authorization"))))
 		}))

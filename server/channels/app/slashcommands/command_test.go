@@ -17,6 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 type InfiniteReader struct {
@@ -458,6 +460,48 @@ func TestDoCommandRequest(t *testing.T) {
 
 		require.NotNil(t, resp)
 		assert.Equal(t, "Hello, World!", resp.Text)
+	})
+
+	t.Run("with a url that matches an outgoing oauth connection", func(t *testing.T) {
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		defer func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		}()
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
+		serverCommand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
+		}))
+		defer serverCommand.Close()
+
+		connection := &model.OutgoingOAuthConnection{
+			Id:            model.NewId(),
+			Name:          "test",
+			ClientId:      "test",
+			ClientSecret:  "test",
+			CreatorId:     model.NewId(),
+			OAuthTokenURL: "fake",
+			GrantType:     model.OutgoingOAuthConnectionGrantTypeClientCredentials,
+			Audiences: model.StringArray{
+				serverCommand.URL,
+			},
+		}
+
+		outgoingOauthIface.Mock.On("GetConnectionForAudience", mock.Anything, serverCommand.URL).Return(connection, nil)
+		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
+		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", mock.Anything, connection).Return(&model.OutgoingOAuthConnectionToken{
+			AccessToken: "token",
+			TokenType:   "type",
+		}, nil)
+
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: serverCommand.URL}, url.Values{})
+		require.Nil(t, err)
+
+		require.NotNil(t, resp)
+		// Ensure that the Authorization header was set correctly by reading the body from the command response
+		// which was set to the Authorization header by the command handler.
+		assert.Equal(t, "type token", resp.Text)
 	})
 }
 
