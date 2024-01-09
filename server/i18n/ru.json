@@ -8241,7 +8241,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Ошибка при проверке существования общего канала: {{.Error}}"
+    "translation": "Ошибка при проверке существования общего канала {{.ChannelID}}: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -10170,5 +10170,53 @@
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
     "translation": "Указанный столбец сортировки недействителен."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Невозможно приглашение абонента, поскольку канал {{.ChannelID}} не является общим."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "При составлении списка исходящих OAuth-соединений произошла ошибка."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Недопустимые входные параметры."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Эта функция ограничена флагом функции."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Невозможно получить такое количество ролей по имени. Одновременно можно запросить только {{.MaxNames}} ролей."
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Не удалось получить количество пользователей"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Произошла ошибка при удалении исходящего oauth-соединения."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Возникла ошибка при получении исходящего oauth-соединения."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Исходящее соединение oauth не найдено."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Возникла ошибка при получении исходящих oauth-соединений."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Произошла ошибка при сохранении исходящего oauth-соединения."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Произошла ошибка при обновлении исходящего oauth-соединения."
   }
 ]
