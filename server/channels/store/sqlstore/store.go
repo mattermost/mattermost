@@ -52,7 +52,7 @@ const (
 	// 9.6.3 would be 90603.
 	minimumRequiredPostgresVersion = 110000
 	// major*1000 + minor*100 + patch
-	minimumRequiredMySQLVersion    = 8000
+	minimumRequiredMySQLVersion = 8000
 
 	migrationsDirectionUp   migrationDirection = "up"
 	migrationsDirectionDown migrationDirection = "down"
