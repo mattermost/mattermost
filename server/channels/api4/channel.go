@@ -522,7 +522,6 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-
 	const maxGroupUsers = 7
 	userIds, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil {
@@ -1473,7 +1472,7 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 	if err != nil {
 		c.Err = model.NewAppError("getChannelMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
-	} else if len(userIds) == 0 || len(channelIds) > maxListSize {
+	} else if len(userIds) == 0 || len(userIds) > maxListSize {
 		c.SetInvalidParam("user_ids")
 		return
 	}
