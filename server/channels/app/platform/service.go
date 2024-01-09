@@ -323,11 +323,10 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	ps.AddLicenseListener(func(oldLicense, newLicense *model.License) {
-		if (oldLicense == nil && newLicense == nil) || !ps.startMetrics {
-			return
-		}
+		wasLicensed := (oldLicense != nil && *oldLicense.Features.Metrics) || (model.BuildNumber == "dev")
+		isLicensed := (newLicense != nil && *newLicense.Features.Metrics) || (model.BuildNumber == "dev")
 
-		if oldLicense != nil && newLicense != nil && *oldLicense.Features.Metrics == *newLicense.Features.Metrics {
+		if wasLicensed == isLicensed || !ps.startMetrics {
 			return
 		}
 
