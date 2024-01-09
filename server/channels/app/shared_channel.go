@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
@@ -325,11 +326,13 @@ func (a *App) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluste
 func (a *App) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
 	pluginsEnvironment := a.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
+		a.Log().Error("Ping for shared channels cannot get plugins env")
 		return false
 	}
 
 	pluginHooks, err := pluginsEnvironment.HooksForPlugin(rc.PluginID)
 	if err != nil {
+		a.Log().Error("Ping for shared channels cannot get plugin hooks", mlog.String("plugin_id", rc.PluginID), mlog.Err(err))
 		return false
 	}
 

@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -27,6 +28,7 @@ type UserProfileValue = Value & UserProfile;
 type Props = {
     team: Team;
     users: UserProfile[];
+    intl: IntlShape;
     filterExcludeGuests?: boolean;
     excludeUsers: { [userId: string]: UserProfile };
     includeUsers: { [userId: string]: UserProfile };
@@ -50,7 +52,7 @@ type State = {
     filterOptions: {[key: string]: any};
 }
 
-export default class AddUsersToTeamModal extends React.PureComponent<Props, State> {
+export class AddUsersToTeamModal extends React.PureComponent<Props, State> {
     selectedItemRef: React.RefObject<HTMLDivElement>;
 
     public constructor(props: Props) {
@@ -239,6 +241,7 @@ export default class AddUsersToTeamModal extends React.PureComponent<Props, Stat
                         key='addUsersToTeamKey'
                         options={options}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         selectedItemRef={this.selectedItemRef}
                         ariaLabelRenderer={this.renderAriaLabel}
                         values={this.state.values}
@@ -262,3 +265,5 @@ export default class AddUsersToTeamModal extends React.PureComponent<Props, Stat
         );
     };
 }
+
+export default injectIntl(AddUsersToTeamModal);
