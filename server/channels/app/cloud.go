@@ -266,3 +266,50 @@ func (a *App) SendSubscriptionHistoryEvent(userID string) (*model.SubscriptionHi
 	}
 	return a.Cloud().CreateOrUpdateSubscriptionHistoryEvent(userID, int(userCount))
 }
+
+func (a *App) DoSubscriptionRenewalCheck() {
+	if !a.License().IsCloud() || !a.Config().FeatureFlags.CloudAnnualRenewals {
+		return
+	}
+
+	subscription, err := a.Cloud().GetSubscription("")
+	if err != nil {
+		a.Log().Error("Error getting subscription", mlog.Err(err))
+		return
+	}
+
+	if subscription == nil {
+		a.Log().Error("Subscription not found")
+		return
+	}
+
+	var emailFunc func(email, locale, siteURL string) error
+
+	// TODO: check if the email has already been sent for each day in case something happens on the 60th day where it doesn't send, so it will send on the 59th
+	if subscription.DaysToExpiration() == 60 {
+		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail60
+	} else if subscription.DaysToExpiration() == 30 {
+		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail30
+	} else if true {
+		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail7
+	}
+
+	if emailFunc == nil {
+		return
+	}
+
+	sysAdmins, aErr := a.getSysAdminsEmailRecipients()
+	if aErr != nil {
+		a.Log().Error("Error getting sys admins", mlog.Err(aErr))
+		return
+	}
+
+	for _, admin := range sysAdmins {
+		err = emailFunc(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
+		if err != nil {
+			a.Log().Error("Error sending renewal email", mlog.Err(err))
+		}
+	}
+
+	// TODO: Save value in Systems table so this isn't sent multiple times
+}

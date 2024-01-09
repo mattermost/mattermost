@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"strings"
+	"time"
 )
 
 const (
@@ -182,6 +183,12 @@ type Subscription struct {
 	BillingType             string   `json:"billing_type"`
 	CancelAt                *int64   `json:"cancel_at"`
 	WillRenew               string   `json:"will_renew"`
+}
+
+func (s *Subscription) DaysToExpiration() int64 {
+	now := time.Now().UnixMilli()
+	daysToExpiry := (s.EndAt - now) / (1000 * 60 * 60 * 24)
+	return daysToExpiry
 }
 
 // Subscription History model represents true up event in a yearly subscription
