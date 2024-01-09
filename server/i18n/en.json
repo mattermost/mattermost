@@ -1186,6 +1186,10 @@
     "translation": "Secure connection {{.RemoteId}} {{.Result}}."
   },
   {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Could not confirm invitation: {{.Error}}"
+  },
+  {
     "id": "api.command_remote.decode_invitation.error",
     "translation": "Could not decode invitation: {{.Error}}"
   },
@@ -2371,6 +2375,10 @@
   {
     "id": "api.outgoing_webhook.disabled.app_error",
     "translation": "Outgoing webhooks have been disabled by the system admin."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "An error occurred while parsing the payload."
   },
   {
     "id": "api.plugin.install.download_failed.app_error",
@@ -8739,12 +8747,36 @@
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
   {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "File retention days and file retention hours cannot both be 0."
+  },
+  {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "File retention must be one day or longer."
+    "translation": "File retention days cannot be less than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "File retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "File retention days and file retention hours cannot both be greater than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Message retention days and message retention hours cannot both be 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Message retention must be one day or longer."
+    "translation": "Message retention days cannot be less than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Message retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Message retention days and message retention hours cannot both be greater than 0."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -8925,6 +8957,10 @@
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
     "translation": "Invalid maximum notifications per channel for team settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",

@@ -7,8 +7,6 @@ import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
 import {
-    favoriteChannel,
-    unfavoriteChannel,
     updateChannelNotifyProps,
 } from 'mattermost-redux/actions/channels';
 import {getCustomEmojisInText} from 'mattermost-redux/actions/emojis';
@@ -16,12 +14,10 @@ import {General} from 'mattermost-redux/constants';
 import {
     getCurrentChannel,
     getMyCurrentChannelMembership,
-    isCurrentChannelFavorite,
     isCurrentChannelMuted,
     getCurrentChannelStats,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
 import {
     displayLastActiveLabel,
@@ -101,14 +97,12 @@ function makeMapStateToProps() {
             gmMembers,
             rhsState: getRhsState(state),
             rhsOpen: getIsRhsOpen(state),
-            isFavorite: isCurrentChannelFavorite(state),
             isReadOnly: false,
             isMuted: isCurrentChannelMuted(state),
             isQuickSwitcherOpen: isModalOpen(state, ModalIdentifiers.QUICK_SWITCH),
             hasGuests: stats.guest_count > 0,
             pinnedPostsCount: stats.pinnedpost_count,
             hasMoreThanOneTeam,
-            teammateNameDisplaySetting: getTeammateNameDisplaySetting(state),
             currentRelativeTeamUrl: getCurrentRelativeTeamUrl(state),
             announcementBarCount: getAnnouncementBarCount(state),
             customStatus,
@@ -125,8 +119,6 @@ function makeMapStateToProps() {
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators<ActionCreatorsMapObject<Action>, Props['actions']>({
-        favoriteChannel,
-        unfavoriteChannel,
         showPinnedPosts,
         showChannelFiles,
         closeRightHandSide,

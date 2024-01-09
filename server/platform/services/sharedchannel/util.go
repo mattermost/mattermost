@@ -105,6 +105,10 @@ func mungEmail(remotename string, maxLen int) string {
 }
 
 func isConflictError(err error) (string, bool) {
+	if err == nil {
+		return "", false
+	}
+
 	var errConflict *store.ErrConflict
 	if errors.As(err, &errConflict) {
 		return strings.ToLower(errConflict.Resource), true
@@ -116,4 +120,13 @@ func isConflictError(err error) (string, bool) {
 		return strings.ToLower(field), true
 	}
 	return "", false
+}
+
+func isNotFoundError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	var errNotFound *store.ErrNotFound
+	return errors.As(err, &errNotFound)
 }
