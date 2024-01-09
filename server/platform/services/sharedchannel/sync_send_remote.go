@@ -79,7 +79,22 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	}
 
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
-	if err != nil {
+	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
+		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
+		scr = &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         task.channelID,
+			CreatorId:         rc.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc.RemoteId,
+			LastPostCreateAt:  model.GetMillis(),
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		if scr, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			return fmt.Errorf("cannot auto-create shared channel remote (channel_id=%s, remote_id=%s): %w", task.channelID, rc.RemoteId, err)
+		}
+	} else if err != nil {
 		return err
 	}
 
