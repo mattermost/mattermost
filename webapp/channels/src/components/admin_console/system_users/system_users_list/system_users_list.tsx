@@ -7,8 +7,6 @@ import {FormattedMessage} from 'react-intl';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {getUserAccessTokensForUser} from 'mattermost-redux/actions/users';
-
 import ManageRolesModal from 'components/admin_console/manage_roles_modal';
 import ManageTeamsModal from 'components/admin_console/manage_teams_modal';
 import ManageTokensModal from 'components/admin_console/manage_tokens_modal';
@@ -364,7 +362,6 @@ export default class SystemUsersList extends React.PureComponent<Props, State> {
                     user={this.state.user}
                     show={this.state.showManageTokensModal}
                     onModalDismissed={this.doManageTokensDismiss}
-                    actions={{getUserAccessTokensForUser}}
                 />
                 <ResetPasswordModal
                     user={this.state.user}
