@@ -221,8 +221,8 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                         {
                             this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText && this.props.modalButtonDefaultText &&
                             <button
-                                className='upgrade-button'
                                 onClick={this.props.onButtonClick}
+                                disabled={this.props.ctaDisabled}
                             >
                                 <FormattedMessage
                                     id={this.props.modalButtonText}
@@ -233,7 +233,6 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                         {
                             this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
                             <button
-                                className='upgrade-button'
                                 onClick={this.props.onButtonClick}
                                 disabled={this.props.ctaDisabled}
                             >
