@@ -103,6 +103,15 @@ func (c *Client4) boolString(value bool) string {
 	return "false"
 }
 
+func (c *Client4) ArrayFromJSON(data io.Reader) []string {
+	var objmap []string
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make([]string, 0)
+	}
+	return objmap
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)
@@ -3136,7 +3145,7 @@ func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // GetPinnedPosts gets a list of pinned posts.
@@ -5818,7 +5827,7 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -7969,7 +7978,7 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
@@ -7983,7 +7992,7 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
@@ -8443,7 +8452,7 @@ func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) {
@@ -8452,7 +8461,7 @@ func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) DeleteExport(ctx context.Context, name string) (*Response, error) {

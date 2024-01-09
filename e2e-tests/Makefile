@@ -25,9 +25,11 @@ stop-server: generate-server
 	bash ./.ci/server.stop.sh
 restart-server: stop-server start-server
 
-.PHONY: start-dashboard stop-dashboard
+.PHONY: start-dashboard generate-test-cycle stop-dashboard
 start-dashboard:
 	bash ./.ci/dashboard.start.sh
+generate-test-cycle: requirecmd-node generate-server
+	bash ./.ci/dashboard.generate_test_cycle.sh
 stop-dashboard:
 	bash ./.ci/dashboard.stop.sh
 
