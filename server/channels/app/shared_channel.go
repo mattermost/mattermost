@@ -15,23 +15,21 @@ import (
 )
 
 var (
-	errNotFound = errors.New("not found")
+	errNotFound             = errors.New("not found")
+	ErrChannelAlreadyShared = errors.New("channel is already shared")
 )
 
 func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
 	// check that channel exists.
-	if _, err := a.GetChannel(c, channelId); err != nil {
-		return fmt.Errorf("cannot share this channel: %w", err)
+	if _, appErr := a.GetChannel(c, channelId); appErr != nil {
+		return fmt.Errorf("cannot find channel: %w", appErr)
 	}
 
 	// Check channel is not already shared.
 	if _, err := a.GetSharedChannel(channelId); err == nil {
-		var errNotFound *store.ErrNotFound
-		if errors.As(err, &errNotFound) {
-			return fmt.Errorf("channel is already shared: %w", err)
-		}
-		return fmt.Errorf("cannot find channel: %w", err)
+		return ErrChannelAlreadyShared
 	}
+
 	return nil
 }
 
