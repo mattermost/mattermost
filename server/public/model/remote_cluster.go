@@ -22,7 +22,8 @@ const (
 	RemoteNameMinLength      = 1
 	RemoteNameMaxLength      = 64
 
-	BitflagOptionAutoShareDMs Bitmask = 1 << iota
+	BitflagOptionAutoShareDMs Bitmask = 1 << iota // Any new DM/GM is automatically shared
+	BitflagOptionAutoInvited                      // Remote is automatically invited to all shared channels
 )
 
 var (
@@ -30,6 +31,18 @@ var (
 )
 
 type Bitmask uint32
+
+func (bm *Bitmask) IsBitSet(flag Bitmask) bool {
+	return *bm != 0
+}
+
+func (bm *Bitmask) SetBit(flag Bitmask) {
+	*bm |= flag
+}
+
+func (bm *Bitmask) UnsetBit(flag Bitmask) {
+	*bm &= ^flag
+}
 
 type RemoteCluster struct {
 	RemoteId     string  `json:"remote_id"`
@@ -105,15 +118,15 @@ func (rc *RemoteCluster) IsValid() *AppError {
 }
 
 func (rc *RemoteCluster) IsOptionFlagSet(flag Bitmask) bool {
-	return rc.Options&flag != 0
+	return rc.Options.IsBitSet(flag)
 }
 
 func (rc *RemoteCluster) SetOptionFlag(flag Bitmask) {
-	rc.Options |= flag
+	rc.Options.SetBit(flag)
 }
 
 func (rc *RemoteCluster) UnsetOptionFlag(flag Bitmask) {
-	rc.Options &= ^flag
+	rc.Options.UnsetBit(flag)
 }
 
 func IsValidRemoteName(s string) bool {
@@ -340,4 +353,5 @@ type RemoteClusterQueryFilter struct {
 	CreatorId      string
 	OnlyConfirmed  bool
 	PluginID       string
+	RequireOptions Bitmask
 }

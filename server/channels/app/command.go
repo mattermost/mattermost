@@ -369,24 +369,24 @@ func (a *App) tryExecuteCustomCommand(c request.CTX, args *model.CommandArgs, tr
 		return nil, nil, model.NewAppError("ExecuteCommand", "api.command.disabled.app_error", nil, "", http.StatusNotImplemented)
 	}
 
-	chanChan := make(chan store.GenericStoreResult[*model.Channel], 1)
+	chanChan := make(chan store.StoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(args.ChannelId, true)
-		chanChan <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
+		chanChan <- store.StoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(chanChan)
 	}()
 
-	teamChan := make(chan store.GenericStoreResult[*model.Team], 1)
+	teamChan := make(chan store.StoreResult[*model.Team], 1)
 	go func() {
 		team, err := a.Srv().Store().Team().Get(args.TeamId)
-		teamChan <- store.GenericStoreResult[*model.Team]{Data: team, NErr: err}
+		teamChan <- store.StoreResult[*model.Team]{Data: team, NErr: err}
 		close(teamChan)
 	}()
 
-	userChan := make(chan store.GenericStoreResult[*model.User], 1)
+	userChan := make(chan store.StoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), args.UserId)
-		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
+		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 
@@ -485,8 +485,22 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
-	// TODO: check if the URL is contained in any outgoing oauth connection.
-	// If so, authenticate using the first matching connection to retrieve the access token.
+	var accessToken *model.OutgoingOAuthConnectionToken
+
+	// Retrieve an access token from a connection if one exists to use for the webhook request
+	if a.OutgoingOAuthConnections() != nil {
+		connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(rctx, cmd.URL)
+		if err != nil {
+			a.Log().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
+		}
+
+		if connection != nil {
+			accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(rctx, connection)
+			if err != nil {
+				a.Log().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
+			}
+		}
+	}
 
 	// Prepare the request
 	var req *http.Request
@@ -509,7 +523,14 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Token "+cmd.Token)
+	if cmd.Token != "" {
+		req.Header.Set("Authorization", "Token "+cmd.Token)
+	}
+
+	if accessToken != nil {
+		req.Header.Set("Authorization", accessToken.AsHeaderValue())
+	}
+
 	if cmd.Method == model.CommandMethodPost {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}

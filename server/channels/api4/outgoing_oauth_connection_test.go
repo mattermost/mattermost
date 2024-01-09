@@ -66,7 +66,10 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
+		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
+			Limit: 10,
+		}
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), filters)
 		require.Error(t, err)
 		require.Nil(t, connections)
 		require.Equal(t, 501, response.StatusCode)
@@ -96,14 +99,17 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
+		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
+			Limit: 10,
+		}
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), filters)
 		require.Error(t, err)
 		require.Nil(t, connections)
 		require.Equal(t, 501, response.StatusCode)
 	})
 }
 
-func TestClientListOutgoingOAutConnection(t *testing.T) {
+func TestClientListOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -125,7 +131,10 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connection, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
+		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
+			Limit: 10,
+		}
+		connection, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), filters)
 		require.Error(t, err)
 		require.Nil(t, connection)
 		require.Equal(t, http.StatusForbidden, response.StatusCode)
@@ -148,7 +157,10 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
+		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
+			Limit: 10,
+		}
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), filters)
 		require.NoError(t, err)
 
 		require.Equal(t, 200, response.StatusCode)
@@ -179,7 +191,11 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 1, "knowhere.com")
+		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
+			Limit:    1,
+			Audience: "knowhere.com",
+		}
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), filters)
 		require.NoError(t, err)
 
 		require.Equal(t, 200, response.StatusCode)
@@ -210,7 +226,10 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), "", 10, "")
+		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
+			Limit: 10,
+		}
+		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), filters)
 		require.NoError(t, err)
 
 		require.Equal(t, 200, response.StatusCode)
@@ -219,7 +238,7 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 	})
 }
 
-func TestClientGetOutgoingOauthConnection(t *testing.T) {
+func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()

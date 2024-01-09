@@ -87,7 +87,7 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.client_secret.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if oa.OAuthTokenURL == "" || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
+	if !IsValidHTTPURL(oa.OAuthTokenURL) || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.oauth_token_url.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
@@ -164,9 +164,18 @@ func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) SetDefaults() {
 // ToURLValues converts the filter to url.Values
 func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) ToURLValues() url.Values {
 	v := url.Values{}
-	v.Set("limit", fmt.Sprintf("%d", oaf.Limit))
-	v.Set("offset_id", oaf.OffsetId)
-	v.Set("audience", oaf.Audience)
+
+	if oaf.Limit > 0 {
+		v.Set("limit", fmt.Sprintf("%d", oaf.Limit))
+	}
+
+	if oaf.OffsetId != "" {
+		v.Set("offset_id", oaf.OffsetId)
+	}
+
+	if oaf.Audience != "" {
+		v.Set("audience", oaf.Audience)
+	}
 	return v
 }
 

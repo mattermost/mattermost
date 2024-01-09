@@ -7,6 +7,8 @@ import (
 	"database/sql"
 	"fmt"
 
+	sq "github.com/mattermost/squirrel"
+
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -84,7 +86,7 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 	}
 
 	if filters.Audience != "" {
-		query = query.Where("Audiences LIKE ?", fmt.Sprint("%", filters.Audience, "%"))
+		query = query.Where(sq.Like{"Audiences": fmt.Sprint("%", filters.Audience, "%")})
 	}
 
 	if err := s.GetReplicaX().SelectBuilder(&conns, query); err != nil {
