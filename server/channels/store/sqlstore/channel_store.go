@@ -1126,16 +1126,26 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannelMemberIdsByChannelId(channelID string) ([]string, error) {
-	userIDs := []string{}
-	err := s.GetReplicaX().Select(&userIDs, `SELECT UserId
-		FROM ChannelMembers
-		WHERE ChannelId=?`, channelID)
+func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
+	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
+		"ChannelId": channelID,
+	}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetAllChannelMembersById_ToSql")
+	}
+
+	dbMembers := channelMemberWithSchemeRolesList{}
+	err = s.GetReplicaX().Select(&dbMembers, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelID=%s", channelID)
 	}
 
-	return userIDs, nil
+	res := make([]string, len(dbMembers))
+	for i, member := range dbMembers.ToModel() {
+		res[i] = member.UserId
+	}
+
+	return res, nil
 }
 
 func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
@@ -1935,12 +1945,6 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 		return nil, err
 	}
 
-	transaction, err := s.GetMasterX().Beginx()
-	if err != nil {
-		return nil, errors.Wrap(err, "begin_transaction")
-	}
-	defer finalizeTransactionX(transaction, &err)
-
 	// Make the where clause first since it'll be used multiple times
 	whereClause := sq.Or{}
 	for _, member := range members {
@@ -1969,7 +1973,17 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 
 	builder = builder.Set("LastUpdateAt", model.GetMillis())
 
-	result, err := transaction.ExecBuilder(builder.Where(whereClause))
+	builder = builder.Where(whereClause)
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	transaction.trace = true
+
+	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
 		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Failed to update ChannelMembers")
 	} else if count, _ := result.RowsAffected(); count != int64(len(members)) {
@@ -2136,33 +2150,6 @@ func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID
 	}
 
 	return dbMember.ToModel(), nil
-}
-
-func (s SqlChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
-	var dbMember model.ChannelMember
-	if err := s.DBXFromContext(ctx).Get(&dbMember, `SELECT ChannelId,
-		UserId,
-		Roles,
-		LastViewedAt,
-		MsgCount,
-		MentionCount,
-		MentionCountRoot,
-		COALESCE(UrgentMentionCount, 0) AS UrgentMentionCount,
-		MsgCountRoot,
-		NotifyProps,
-		LastUpdateAt,
-		SchemeUser,
-		SchemeAdmin,
-		SchemeGuest
-		FROM ChannelMembers
-		WHERE ChannelId=? AND UserId=?`, channelID, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
-		}
-		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s and userId=%s", channelID, userID)
-	}
-
-	return &dbMember, nil
 }
 
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {

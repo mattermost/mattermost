@@ -247,10 +247,6 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, nErr)
 	require.Len(t, members, 2, "should have saved 2 members")
 
-	userIDs, nErr := ss.Channel().GetAllChannelMemberIdsByChannelId(o1.Id)
-	require.NoError(t, nErr)
-	require.ElementsMatch(t, []string{u1.Id, u2.Id}, userIDs)
-
 	_, nErr = ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
 	require.Error(t, nErr, "shouldn't be a able to update from save")
 
@@ -286,10 +282,6 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	members, nErr = ss.Channel().GetMembers(o1.Id, 0, 100)
 	require.NoError(t, nErr)
 	require.Len(t, members, 1, "should have saved just 1 member")
-
-	userIDs, nErr = ss.Channel().GetAllChannelMemberIdsByChannelId(o1.Id)
-	require.NoError(t, nErr)
-	require.ElementsMatch(t, []string{u1.Id}, userIDs)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")
@@ -7613,10 +7605,6 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 	assert.NoError(t, err)
 	assert.Len(t, d1, 3)
 
-	userIDs, nErr := ss.Channel().GetAllChannelMemberIdsByChannelId(c1.Id)
-	require.NoError(t, nErr)
-	require.ElementsMatch(t, []string{u1.Id, u2.Id, u3.Id}, userIDs)
-
 	// Deactivate users 1 & 2.
 	u1.DeleteAt = model.GetMillis()
 	u2.DeleteAt = model.GetMillis()
@@ -7633,10 +7621,6 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 	assert.NoError(t, err)
 	assert.Len(t, d2, 1)
 	assert.Equal(t, u3.Id, d2[0].UserId)
-
-	userIDs, nErr = ss.Channel().GetAllChannelMemberIdsByChannelId(c1.Id)
-	require.NoError(t, nErr)
-	require.ElementsMatch(t, []string{u3.Id}, userIDs)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")

@@ -739,7 +739,7 @@ func decodeJSON[T any](o any, result *T) *T {
 	case io.Reader:
 		r = v
 	default:
-		panic(fmt.Sprintf("Unable to decode JSON from %v", v))
+		panic(fmt.Sprintf("Unable to decode JSON from %T (%v)", v, v))
 	}
 
 	err := json.NewDecoder(r).Decode(result)
