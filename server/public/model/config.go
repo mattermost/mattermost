@@ -214,6 +214,8 @@ const (
 	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
 	DataRetentionSettingsDefaultRetentionIdsBatchSize          = 100
 
+	OutgoingIntegrationRequestsDefaultTimeout = 30
+
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
 	PluginSettingsDefaultEnableMarketplace = true
@@ -226,6 +228,7 @@ const (
 	ComplianceExportTypeGlobalrelayZip = "globalrelay-zip"
 	GlobalrelayCustomerTypeA9          = "A9"
 	GlobalrelayCustomerTypeA10         = "A10"
+	GlobalrelayCustomerTypeCustom      = "CUSTOM"
 
 	ClientSideCertCheckPrimaryAuth   = "primary"
 	ClientSideCertCheckSecondaryAuth = "secondary"
@@ -308,6 +311,7 @@ type ServiceSettings struct {
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableCommands                      *bool    `access:"integrations_integration_management"`
+	OutgoingIntegrationRequestsTimeout  *int64   `access:"integrations_integration_management"` // In seconds.
 	EnablePostUsernameOverride          *bool    `access:"integrations_integration_management"`
 	EnablePostIconOverride              *bool    `access:"integrations_integration_management"`
 	GoogleDeveloperKey                  *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
@@ -398,6 +402,7 @@ type ServiceSettings struct {
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
+	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -506,6 +511,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOutgoingWebhooks == nil {
 		s.EnableOutgoingWebhooks = NewBool(true)
+	}
+
+	if s.OutgoingIntegrationRequestsTimeout == nil {
+		s.OutgoingIntegrationRequestsTimeout = NewInt64(OutgoingIntegrationRequestsDefaultTimeout)
 	}
 
 	if s.ConnectionSecurity == nil {
@@ -899,6 +908,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.RefreshPostStatsRunTime == nil {
 		s.RefreshPostStatsRunTime = NewString("00:00")
+	}
+
+	if s.MaximumPayloadSizeBytes == nil {
+		s.MaximumPayloadSizeBytes = NewInt64(100000)
 	}
 }
 
@@ -3107,12 +3120,59 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 }
 
+type WranglerSettings struct {
+	PermittedWranglerRoles                   []string
+	AllowedEmailDomain                       []string
+	MoveThreadMaxCount                       *int64
+	MoveThreadToAnotherTeamEnable            *bool
+	MoveThreadFromPrivateChannelEnable       *bool
+	MoveThreadFromDirectMessageChannelEnable *bool
+	MoveThreadFromGroupMessageChannelEnable  *bool
+}
+
+func (w *WranglerSettings) SetDefaults() {
+	if w.PermittedWranglerRoles == nil {
+		w.PermittedWranglerRoles = make([]string, 0)
+	}
+	if w.AllowedEmailDomain == nil {
+		w.AllowedEmailDomain = make([]string, 0)
+	}
+	if w.MoveThreadMaxCount == nil {
+		w.MoveThreadMaxCount = NewInt64(100)
+	}
+	if w.MoveThreadToAnotherTeamEnable == nil {
+		w.MoveThreadToAnotherTeamEnable = NewBool(false)
+	}
+	if w.MoveThreadFromPrivateChannelEnable == nil {
+		w.MoveThreadFromPrivateChannelEnable = NewBool(false)
+	}
+	if w.MoveThreadFromDirectMessageChannelEnable == nil {
+		w.MoveThreadFromDirectMessageChannelEnable = NewBool(false)
+	}
+	if w.MoveThreadFromGroupMessageChannelEnable == nil {
+		w.MoveThreadFromGroupMessageChannelEnable = NewBool(false)
+	}
+}
+
+func (w *WranglerSettings) IsValid() *AppError {
+	validDomainRegex := regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$`)
+	for _, domain := range w.AllowedEmailDomain {
+		if !validDomainRegex.MatchString(domain) && domain != "localhost" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.move_thread.domain_invalid.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 type GlobalRelayMessageExportSettings struct {
-	CustomerType      *string `access:"compliance_compliance_export"` // must be either A9 or A10, dictates SMTP server url
-	SMTPUsername      *string `access:"compliance_compliance_export"`
-	SMTPPassword      *string `access:"compliance_compliance_export"`
-	EmailAddress      *string `access:"compliance_compliance_export"` // the address to send messages to
-	SMTPServerTimeout *int    `access:"compliance_compliance_export"`
+	CustomerType         *string `access:"compliance_compliance_export"` // must be either A9, A10 or CUSTOM, dictates SMTP server url
+	SMTPUsername         *string `access:"compliance_compliance_export"`
+	SMTPPassword         *string `access:"compliance_compliance_export"`
+	EmailAddress         *string `access:"compliance_compliance_export"` // the address to send messages to
+	SMTPServerTimeout    *int    `access:"compliance_compliance_export"`
+	CustomSMTPServerName *string `access:"compliance_compliance_export"`
+	CustomSMTPPort       *string `access:"compliance_compliance_export"`
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -3130,6 +3190,12 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
 		s.SMTPServerTimeout = NewInt(1800)
+	}
+	if s.CustomSMTPServerName == nil {
+		s.CustomSMTPServerName = NewString("")
+	}
+	if s.CustomSMTPPort == nil {
+		s.CustomSMTPPort = NewString("25")
 	}
 }
 
@@ -3396,6 +3462,7 @@ type Config struct {
 	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
+	WranglerSettings          WranglerSettings
 }
 
 func (o *Config) Auditable() map[string]interface{} {
@@ -3511,6 +3578,7 @@ func (o *Config) SetDefaults() {
 	}
 	o.ImportSettings.SetDefaults()
 	o.ExportSettings.SetDefaults()
+	o.WranglerSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -3601,6 +3669,11 @@ func (o *Config) IsValid() *AppError {
 	if appErr := o.ImportSettings.isValid(); appErr != nil {
 		return appErr
 	}
+
+	if appErr := o.WranglerSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
 	return nil
 }
 
@@ -3910,6 +3983,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		}
 	}
 
+	if *s.MaximumPayloadSizeBytes <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_payload_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.ReadTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.read_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -3948,6 +4025,10 @@ func (s *ServiceSettings) isValid() *AppError {
 	portInt, err := strconv.Atoi(port)
 	if err != nil || !isValidHost || portInt < 0 || portInt > math.MaxUint16 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.OutgoingIntegrationRequestsTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.outgoing_integrations_request_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.ExperimentalGroupUnreadChannels != GroupUnreadChannelsDisabled &&
@@ -4105,8 +4186,10 @@ func (s *MessageExportSettings) isValid() *AppError {
 		if *s.ExportFormat == ComplianceExportTypeGlobalrelay {
 			if s.GlobalRelaySettings == nil {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.config_missing.app_error", nil, "", http.StatusBadRequest)
-			} else if s.GlobalRelaySettings.CustomerType == nil || (*s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA9 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA10) {
+			} else if s.GlobalRelaySettings.CustomerType == nil || (*s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA9 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA10 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeCustom) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type.app_error", nil, "", http.StatusBadRequest)
+			} else if *s.GlobalRelaySettings.CustomerType == GlobalrelayCustomerTypeCustom && ((s.GlobalRelaySettings.CustomSMTPServerName == nil || *s.GlobalRelaySettings.CustomSMTPServerName == "") || (s.GlobalRelaySettings.CustomSMTPPort == nil || *s.GlobalRelaySettings.CustomSMTPPort == "")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error", nil, "", http.StatusBadRequest)
 			} else if s.GlobalRelaySettings.EmailAddress == nil || !strings.Contains(*s.GlobalRelaySettings.EmailAddress, "@") {
 				// validating email addresses is hard - just make sure it contains an '@' sign
 				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address

@@ -9,6 +9,7 @@ import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/bill
 import {ToYearlyNudgeBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_yearly_nudge_banner';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
+import CloudAnnualRenewalAnnouncementBar from './cloud_annual_renewal';
 import CloudDelinquencyAnnouncementBar from './cloud_delinquency';
 import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
@@ -70,6 +71,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let cloudTrialAnnouncementBar = null;
         let cloudTrialEndAnnouncementBar = null;
         let cloudDelinquencyAnnouncementBar = null;
+        let cloudRenewalAnnouncementBar = null;
         let notifyAdminDowngradeDelinquencyBar = null;
         let toYearlyNudgeBannerDismissable = null;
         let toPaidPlanNudgeBannerDismissable = null;
@@ -85,6 +87,9 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
             cloudDelinquencyAnnouncementBar = (
                 <CloudDelinquencyAnnouncementBar/>
+            );
+            cloudRenewalAnnouncementBar = (
+                <CloudAnnualRenewalAnnouncementBar/>
             );
             notifyAdminDowngradeDelinquencyBar = (
                 <NotifyAdminDowngradeDelinquencyBar/>
@@ -108,6 +113,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {cloudTrialAnnouncementBar}
                 {cloudTrialEndAnnouncementBar}
                 {cloudDelinquencyAnnouncementBar}
+                {cloudRenewalAnnouncementBar}
                 {notifyAdminDowngradeDelinquencyBar}
                 {toYearlyNudgeBannerDismissable}
                 {toPaidPlanNudgeBannerDismissable}

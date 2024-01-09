@@ -162,7 +162,7 @@
         "ConsoleJson": true,
         "EnableColor": false,
         "EnableFile": true,
-        "FileLevel": "INFO",
+        "FileLevel": "DEBUG",
         "FileJson": true,
         "FileLocation": "",
         "EnableWebhookDebugging": true,

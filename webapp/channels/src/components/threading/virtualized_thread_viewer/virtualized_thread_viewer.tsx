@@ -44,6 +44,7 @@ type Props = {
     lastViewedAt: number;
     newMessagesSeparatorActions: PluginComponent[];
     inputPlaceholder?: string;
+    fromSuppressed?: boolean;
 }
 
 type State = {
@@ -357,7 +358,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
             return (
                 <CreateComment
                     placeholder={this.props.inputPlaceholder}
-                    focusOnMount={!this.props.isThreadView && (this.state.userScrolledToBottom || (!this.state.userScrolled && this.getInitialPostIndex() === 0))}
+                    focusOnMount={!this.props.fromSuppressed && !this.props.isThreadView && (this.state.userScrolledToBottom || (!this.state.userScrolled && this.getInitialPostIndex() === 0))}
                     isThreadView={this.props.isThreadView}
                     latestPostId={this.props.lastPost.id}
                     ref={this.postCreateContainerRef}

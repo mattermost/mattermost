@@ -10,6 +10,8 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {Action} from 'mattermost-redux/types/actions';
 
+import {getPluginUserSettings} from 'selectors/plugins';
+
 import type {GlobalState} from 'types/store';
 
 import UserSettingsModal from './user_settings_modal';
@@ -25,6 +27,7 @@ function mapStateToProps(state: GlobalState) {
         currentUser: getCurrentUser(state),
         sendEmailNotifications,
         requireEmailVerification,
+        pluginSettings: getPluginUserSettings(state),
     };
 }
 

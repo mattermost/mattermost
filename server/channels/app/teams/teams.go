@@ -179,7 +179,7 @@ func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *mod
 		return nil, false, MaxMemberCountError
 	}
 
-	member, nErr := ts.store.UpdateMember(tm)
+	member, nErr := ts.store.UpdateMember(c, tm)
 	if nErr != nil {
 		return nil, false, nErr
 	}
@@ -189,7 +189,7 @@ func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *mod
 
 // RemoveTeamMember removes the team member from the team. This method sends
 // the websocket message before actually removing so the user being removed gets it.
-func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
+func (ts *TeamService) RemoveTeamMember(rctx request.CTX, teamMember *model.TeamMember) error {
 	/*
 		MM-43850: send leave_team event to user using `ReliableClusterSend` to improve safety
 	*/
@@ -212,7 +212,7 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
 
-	if _, nErr := ts.store.UpdateMember(teamMember); nErr != nil {
+	if _, nErr := ts.store.UpdateMember(rctx, teamMember); nErr != nil {
 		return nErr
 	}
 

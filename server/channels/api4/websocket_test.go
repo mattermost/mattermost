@@ -417,8 +417,39 @@ func TestWebSocketStatuses(t *testing.T) {
 	require.True(t, awayHit, "didn't get away event")
 
 	time.Sleep(500 * time.Millisecond)
+}
 
-	WebSocketClient.Close()
+func TestWebSocketPresence(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	wsClient, err := th.CreateWebSocketClient()
+	require.NoError(t, err)
+	defer wsClient.Close()
+	wsClient.Listen()
+
+	resp := <-wsClient.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk, "should have responded OK to authentication challenge")
+
+	wsClient.UpdateActiveChannel("chID")
+	resp = <-wsClient.ResponseChannel
+	require.Nil(t, resp.Error)
+	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
+
+	wsClient.UpdateActiveTeam("teamID")
+	resp = <-wsClient.ResponseChannel
+	require.Nil(t, resp.Error)
+	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
+
+	wsClient.UpdateActiveThread(true, "threadID")
+	resp = <-wsClient.ResponseChannel
+	require.Nil(t, resp.Error)
+	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
+
+	wsClient.UpdateActiveThread(false, "threadID")
+	resp = <-wsClient.ResponseChannel
+	require.Nil(t, resp.Error)
+	require.Equal(t, resp.SeqReply, wsClient.Sequence-1, "bad sequence number")
 }
 
 func TestWebSocketUpgrade(t *testing.T) {
