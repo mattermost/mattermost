@@ -550,7 +550,7 @@ export function createTermsOfService(text: string): ActionFunc {
     });
 }
 
-export function getUser(id: string): ActionFunc {
+export function getUser(id: string): ActionFunc<UserProfile, ServerError> {
     return bindClientFunc({
         clientFunc: Client4.getUser,
         onSuccess: UserTypes.RECEIVED_PROFILE,
@@ -930,7 +930,7 @@ export function updateMe(user: Partial<UserProfile>): ActionFunc<Partial<UserPro
     };
 }
 
-export function patchUser(user: UserProfile): ActionFunc {
+export function patchUser(user: UserProfile): ActionFunc<UserProfile, ServerError> {
     return async (dispatch: DispatchFunc) => {
         let data: UserProfile;
         try {
@@ -963,7 +963,7 @@ export function updateUserRoles(userId: string, roles: string): ActionFunc {
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFunc {
+export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFunc<boolean, ServerError> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);
@@ -999,7 +999,7 @@ export function updateUserPassword(userId: string, currentPassword: string, newP
     };
 }
 
-export function updateUserActive(userId: string, active: boolean): ActionFunc {
+export function updateUserActive(userId: string, active: boolean): ActionFunc<boolean, ServerError> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         try {
             await Client4.updateUserActive(userId, active);
