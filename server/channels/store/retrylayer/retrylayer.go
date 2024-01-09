@@ -1748,11 +1748,11 @@ func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string) 
 
 }
 
-func (s *RetryLayerChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetMemberOnly(ctx, channelID, userID)
+		result, err := s.ChannelStore.GetMemberLastViewedAt(ctx, channelID, userID)
 		if err == nil {
 			return result, nil
 		}

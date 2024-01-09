@@ -1461,10 +1461,10 @@ func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string) 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMemberOnly(ctx, channelID, userID)
+	result, err := s.ChannelStore.GetMemberLastViewedAt(ctx, channelID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1472,7 +1472,7 @@ func (s *TimerLayerChannelStore) GetMemberOnly(ctx context.Context, channelID st
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberOnly", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberLastViewedAt", success, elapsed)
 	}
 	return result, err
 }

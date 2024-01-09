@@ -227,9 +227,7 @@ type ChannelStore interface {
 	UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error)
 	GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
-	// GetMemberOnly is a lite version of GetMember where it does not join
-	// with the different schemes tables.
-	GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
+	GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)

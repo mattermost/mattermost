@@ -1292,15 +1292,15 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.PrevPostId = prevPostId
 }
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
-	var member *model.ChannelMember
+	var lastViewedAt int64
 	var err *model.AppError
-	if member, err = a.Srv().getChannelMemberOnly(c, channelID, userID); err != nil {
+	if lastViewedAt, err = a.Srv().getChannelMemberLastViewedAt(c, channelID, userID); err != nil {
 		return nil, err
-	} else if member.LastViewedAt == 0 {
+	} else if lastViewedAt == 0 {
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, member.LastViewedAt, collapsedThreads)
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, lastViewedAt, collapsedThreads)
 	if err != nil {
 		return nil, err
 	} else if lastUnreadPostId == "" {

@@ -2060,31 +2060,18 @@ func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
-	var dbMember model.ChannelMember
-	if err := s.DBXFromContext(ctx).Get(&dbMember, `SELECT ChannelId,
-		UserId,
-		Roles,
-		LastViewedAt,
-		MsgCount,
-		MentionCount,
-		MentionCountRoot,
-		COALESCE(UrgentMentionCount, 0) AS UrgentMentionCount,
-		MsgCountRoot,
-		NotifyProps,
-		LastUpdateAt,
-		SchemeUser,
-		SchemeAdmin,
-		SchemeGuest
+func (s SqlChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
+	var lastViewedAt int64
+	if err := s.DBXFromContext(ctx).Get(&lastViewedAt, `SELECT COALESCE(LastViewedAt, 0) AS LastViewedAt
 		FROM ChannelMembers
 		WHERE ChannelId=? AND UserId=?`, channelID, userID); err != nil {
 		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
+			return 0, store.NewErrNotFound("LastViewedAt", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
 		}
-		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s and userId=%s", channelID, userID)
+		return 0, errors.Wrapf(err, "failed to get lastViewedAt with channelId=%s and userId=%s", channelID, userID)
 	}
 
-	return &dbMember, nil
+	return lastViewedAt, nil
 }
 
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {

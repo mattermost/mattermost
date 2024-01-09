@@ -1572,16 +1572,16 @@ func (s *OpenTracingLayerChannelStore) GetMemberForPost(postID string, userID st
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+func (s *OpenTracingLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberOnly")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberLastViewedAt")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetMemberOnly(ctx, channelID, userID)
+	result, err := s.ChannelStore.GetMemberLastViewedAt(ctx, channelID, userID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

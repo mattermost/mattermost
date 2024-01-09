@@ -1314,21 +1314,19 @@ func (_m *ChannelStore) GetMemberForPost(postID string, userID string) (*model.C
 	return r0, r1
 }
 
-// GetMemberOnly provides a mock function with given fields: ctx, channelID, userID
-func (_m *ChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+// GetMemberLastViewedAt provides a mock function with given fields: ctx, channelID, userID
+func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
 	ret := _m.Called(ctx, channelID, userID)
 
-	var r0 *model.ChannelMember
+	var r0 int64
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) (*model.ChannelMember, error)); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
 		return rf(ctx, channelID, userID)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string, string) *model.ChannelMember); ok {
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
 		r0 = rf(ctx, channelID, userID)
 	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.ChannelMember)
-		}
+		r0 = ret.Get(0).(int64)
 	}
 
 	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
