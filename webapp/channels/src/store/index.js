@@ -22,9 +22,21 @@ window.Observable = Observable;
 
 const localForage = extendPrototype(baseLocalForage);
 
-export default function configureStore(preloadedState) {
+export default function configureStore(preloadedState, testPluginReducerKeys) {
+    let testReducers;
+    if (testPluginReducerKeys) {
+        const newReducers = {};
+        testPluginReducerKeys.forEach((v) => {
+            newReducers[v] = (state = null) => state;
+        });
+
+        testReducers = {
+            ...appReducers,
+            ...newReducers,
+        };
+    }
     const store = configureServiceStore({
-        appReducers,
+        appReducers: testReducers || appReducers,
         getAppReducers,
         preloadedState,
     });

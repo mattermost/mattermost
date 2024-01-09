@@ -4814,6 +4814,7 @@
   "setting_picture.select": "Select",
   "setting_picture.uploading": "Uploading...",
   "shared_channel_indicator.tooltip": "Shared with trusted organizations",
+  "shared_user_indicator.aria_label": "shared user indicator",
   "shared_user_indicator.tooltip": "From a trusted organization",
   "shortcuts.browser.channel_next": "Forward in history:\tAlt|Right",
   "shortcuts.browser.channel_next.mac": "Forward in history:\t⌘|]",

@@ -94,8 +94,8 @@ const CallButton = ({
 
     if (
         !isCallsEnabled ||
-            callsDMChannelState?.enabled === false ||
-            (!isCallsDefaultEnabledOnAllChannels && !isCallsCanBeDisabledOnSpecificChannels && callsChannelState?.enabled === false)
+        callsDMChannelState?.enabled === false ||
+        (!isCallsDefaultEnabledOnAllChannels && !isCallsCanBeDisabledOnSpecificChannels && callsChannelState?.enabled === false)
     ) {
         return null;
     }

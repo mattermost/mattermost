@@ -49,7 +49,7 @@ const AddToChannel = ({
         handleCloseModals();
     }, [hide, handleCloseModals]);
 
-    if (canManageAnyChannelMembersInCurrentTeam && !isInCurrentTeam) {
+    if (!canManageAnyChannelMembersInCurrentTeam || !isInCurrentTeam) {
         return null;
     }
     const addToChannelMessage = formatMessage({

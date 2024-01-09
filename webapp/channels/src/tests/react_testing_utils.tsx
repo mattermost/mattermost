@@ -26,6 +26,7 @@ export type FullContextOptions = {
     intlMessages?: Record<string, string>;
     locale?: string;
     useMockedStore?: boolean;
+    pluginReducers?: string[];
 }
 
 export const renderWithContext = (
@@ -39,7 +40,7 @@ export const renderWithContext = (
         useMockedStore: partialOptions?.useMockedStore ?? false,
     };
 
-    const testStore = configureOrMockStore(initialState, options.useMockedStore);
+    const testStore = configureOrMockStore(initialState, options.useMockedStore, partialOptions?.pluginReducers);
 
     // Store these in an object so that they can be maintained through rerenders
     const renderState = {
@@ -99,8 +100,8 @@ export const renderWithContext = (
     };
 };
 
-function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean) {
-    let testStore = configureStore(initialState);
+function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, testReducers?: string[]) {
+    let testStore = configureStore(initialState, testReducers);
     if (useMockedStore) {
         testStore = mockStore(testStore.getState());
     }
