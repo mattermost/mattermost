@@ -8396,7 +8396,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Fout tijdens het controleren of een gedeeld kanaal bestaat: {{.Error}}"
+    "translation": "Fout bij het controleren of gedeeld kanaal {{.ChannelID}} bestaat: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -10180,5 +10180,9 @@
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Ongeldig domein voor de instellingen van het verplaatsen van draadjes"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Kan externe niet uitnodigen omdat kanaal {{.ChannelID}} niet wordt gedeeld."
   }
 ]
