@@ -90,7 +90,7 @@ const Organization = (props: Props) => {
 
         if (name) {
             const {error, newTeam} = await props.createTeam(name);
-            if (error !== null || newTeam === null) {
+            if (error !== null || newTeam == null) {
                 props.setInviteId('');
                 setApiCallError();
                 return;

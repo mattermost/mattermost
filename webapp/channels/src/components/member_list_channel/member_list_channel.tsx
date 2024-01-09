@@ -128,7 +128,7 @@ export default class MemberListChannel extends React.PureComponent<Props, State>
     };
 
     nextPage = (page: number) => {
-        this.props.actions.loadProfilesAndTeamMembersAndChannelMembers(page + 1, USERS_PER_PAGE, undefined, undefined, {active: true});
+        this.props.actions.loadProfilesAndTeamMembersAndChannelMembers(page + 1, USERS_PER_PAGE, '', '', {active: true});
     };
 
     handleSearch = (term: string) => {

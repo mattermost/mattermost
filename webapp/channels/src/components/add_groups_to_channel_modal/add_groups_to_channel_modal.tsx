@@ -100,7 +100,7 @@ export class AddGroupsToChannelModal extends React.PureComponent<Props, State> {
             this.searchTimeoutId = window.setTimeout(
                 async () => {
                     this.setGroupsLoadingState(true);
-                    await this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, searchTerm, null, null, true);
+                    await this.props.actions.getGroupsNotAssociatedToChannel(this.props.currentChannelId, searchTerm, undefined, undefined, true);
                     this.setGroupsLoadingState(false);
                 },
                 Constants.SEARCH_TIMEOUT_MILLISECONDS,
