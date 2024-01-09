@@ -549,7 +549,7 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, msg.ChannelId)
 	}
 
-	if rc.PluginID != "" {
+	if rc.IsPlugin() {
 		return scs.sendSyncMsgToPlugin(msg, rc, f)
 	}
 

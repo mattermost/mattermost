@@ -22,6 +22,9 @@ const (
 	RemoteNameMinLength      = 1
 	RemoteNameMaxLength      = 64
 
+	SiteURLPending = "pending_"
+	SiteURLPlugin  = "plugin_"
+
 	BitflagOptionAutoShareDMs Bitmask = 1 << iota // Any new DM/GM is automatically shared
 	BitflagOptionAutoInvited                      // Remote is automatically invited to all shared channels
 )
@@ -149,6 +152,32 @@ func (rc *RemoteCluster) PreUpdate() {
 
 func (rc *RemoteCluster) IsOnline() bool {
 	return rc.LastPingAt > GetMillis()-RemoteOfflineAfterMillis
+}
+
+func (rc *RemoteCluster) IsConfirmed() bool {
+	if rc.IsPlugin() {
+		return true // local plugins are automatically confirmed
+	}
+
+	if rc.SiteURL != "" && !strings.HasPrefix(rc.SiteURL, SiteURLPending) {
+		return true // empty or pending siteurl are not confirmed
+	}
+	return false
+}
+
+func (rc *RemoteCluster) IsPlugin() bool {
+	if rc.PluginID != "" || strings.HasPrefix(rc.SiteURL, SiteURLPlugin) {
+		return true // local plugins are automatically confirmed
+	}
+	return false
+}
+
+func (rc *RemoteCluster) GetSiteURL() string {
+	siteURL := rc.SiteURL
+	if strings.HasPrefix(siteURL, SiteURLPending) || strings.HasPrefix(siteURL, SiteURLPlugin) {
+		siteURL = ""
+	}
+	return siteURL
 }
 
 // fixTopics ensures all topics are separated by one, and only one, space.
