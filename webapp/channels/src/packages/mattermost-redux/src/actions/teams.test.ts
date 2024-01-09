@@ -881,7 +881,7 @@ describe('Actions.Teams', () => {
             post('/teams/search').
             reply(200, [TestHelper.basicTeam, userTeam]);
 
-        await store.dispatch(Actions.searchTeams('test', {page: 0}));
+        await store.dispatch(Actions.searchTeams('test', {page: 0, per_page: 1}));
 
         const moreRequest = store.getState().requests.teams.getTeams;
         if (moreRequest.status === RequestStatus.FAILURE) {
