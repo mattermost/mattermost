@@ -132,7 +132,7 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	auditRec := c.MakeAuditRecord("deauthorizeOAuthApp", audit.Fail)
+	auditRec := c.MakeAuditRecord("authorizeOAuthPage", audit.Fail)
 	auditRec.AddMeta("client_id", authRequest.ClientId)
 	auditRec.AddMeta("scope", authRequest.Scope)
 	defer c.LogAuditRec(auditRec)
