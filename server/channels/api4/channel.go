@@ -1770,7 +1770,7 @@ func addChannelMember(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	isNewMembership := false
-	if _, appErr = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); err != nil {
+	if _, appErr = c.App.GetChannelMember(c.AppContext, member.ChannelId, member.UserId); appErr != nil {
 		if appErr.Id == app.MissingChannelMemberError {
 			isNewMembership = true
 		} else {

@@ -1563,7 +1563,7 @@ func updateUserActive(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if _, appErr = c.App.UpdateActive(c.AppContext, user, active); err != nil {
+	if _, appErr = c.App.UpdateActive(c.AppContext, user, active); appErr != nil {
 		c.Err = appErr
 	}
 
@@ -1677,7 +1677,7 @@ func updateUserMfa(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	c.LogAudit("attempt")
 
-	if appErr := c.App.UpdateMfa(c.AppContext, activate, c.Params.UserId, code); err != nil {
+	if appErr := c.App.UpdateMfa(c.AppContext, activate, c.Params.UserId, code); appErr != nil {
 		c.Err = appErr
 		return
 	}
