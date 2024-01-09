@@ -270,6 +270,15 @@ func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*m
 	return api.app.GetUsersInTeam(options)
 }
 
+func (api *PluginAPI) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
+	pref, err := api.app.GetPreferenceByCategoryAndNameForUser(api.ctx, userID, category, name)
+	if err != nil {
+		return model.Preference{}, err
+	}
+
+	return *pref, nil
+}
+
 func (api *PluginAPI) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
 	return api.app.GetPreferencesForUser(api.ctx, userID)
 }

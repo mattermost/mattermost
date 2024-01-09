@@ -87,7 +87,7 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.client_secret.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if oa.OAuthTokenURL == "" || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
+	if !IsValidHTTPURL(oa.OAuthTokenURL) || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.oauth_token_url.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 

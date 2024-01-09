@@ -108,7 +108,7 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 	})
 }
 
-func TestClientListOutgoingOAutConnection(t *testing.T) {
+func TestClientListOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
@@ -237,7 +237,7 @@ func TestClientListOutgoingOAutConnection(t *testing.T) {
 	})
 }
 
-func TestClientGetOutgoingOauthConnection(t *testing.T) {
+func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
 	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
