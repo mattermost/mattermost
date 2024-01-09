@@ -630,7 +630,6 @@
   "bots.manage.edit.title": "Opdater",
   "channel_header.channelMembers": "Medlemmer",
   "channel_members_modal.members": " Medlemmer",
-  "channel_notifications.levels.none": "Ingen",
   "create_post.send_message": "Send en besked",
   "edit_command.update": "Opdater",
   "edit_post.time_limit_modal.option_label_time_limit.postinput": "sekunder efter postet",

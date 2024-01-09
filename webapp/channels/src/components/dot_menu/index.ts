@@ -29,6 +29,7 @@ import {
     markPostAsUnread,
 } from 'actions/post_actions';
 import {openModal} from 'actions/views/modals';
+import {makeCanWrangler} from 'selectors/posts';
 import {getIsMobileView} from 'selectors/views/browser';
 
 import {isArchivedChannel} from 'utils/channel_utils';
@@ -58,6 +59,7 @@ type Props = {
 
 function makeMapStateToProps() {
     const getThreadOrSynthetic = makeGetThreadOrSynthetic();
+    const canWrangler = makeCanWrangler();
 
     return function mapStateToProps(state: GlobalState, ownProps: Props) {
         const {post} = ownProps;
@@ -123,6 +125,7 @@ function makeMapStateToProps() {
             isMobileView: getIsMobileView(state),
             timezone: getCurrentTimezone(state),
             isMilitaryTime,
+            canMove: canWrangler(state, channel.type, threadReplyCount),
         };
     };
 }
