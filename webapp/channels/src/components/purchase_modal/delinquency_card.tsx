@@ -21,7 +21,7 @@ type DelinquencyCardProps = {
 };
 
 export default function DelinquencyCard(props: DelinquencyCardProps) {
-    const seeHowBillingWorks = (
+    const handleSeeHowBillingWorksClick = (
         e: React.MouseEvent<HTMLAnchorElement, MouseEvent>,
     ) => {
         e.preventDefault();
@@ -31,6 +31,18 @@ export default function DelinquencyCard(props: DelinquencyCardProps) {
         );
         window.open(CloudLinks.DELINQUENCY_DOCS, '_blank');
     };
+
+    const seeHowBillingWorks = (
+        <a onClick={handleSeeHowBillingWorksClick}>
+            <FormattedMessage
+                defaultMessage={'See how billing works.'}
+                id={
+                    'admin.billing.subscription.howItWorks'
+                }
+            />
+        </a>
+    );
+
     return (
         <div className='PlanCard'>
             <div
@@ -80,18 +92,7 @@ export default function DelinquencyCard(props: DelinquencyCardProps) {
                             }
                             id={'cloud_delinquency.cc_modal.disclaimer'}
                             values={{
-                                seeHowBillingWorks: (
-                                    <a onClick={seeHowBillingWorks}>
-                                        <FormattedMessage
-                                            defaultMessage={
-                                                'See how billing works.'
-                                            }
-                                            id={
-                                                'admin.billing.subscription.howItWorks'
-                                            }
-                                        />
-                                    </a>
-                                ),
+                                seeHowBillingWorks,
                             }}
                         />
                     )}
@@ -106,16 +107,7 @@ export default function DelinquencyCard(props: DelinquencyCardProps) {
                             values={{
                                 cost: `$${props.cost}`,
                                 users: props.users,
-                                seeHowBillingWorks: (
-                                    <a onClick={seeHowBillingWorks}>
-                                        <FormattedMessage
-                                            defaultMessage={'See how billing works.'}
-                                            id={
-                                                'admin.billing.subscription.howItWorks'
-                                            }
-                                        />
-                                    </a>
-                                ),
+                                seeHowBillingWorks,
                             }}
                         />
                     )}

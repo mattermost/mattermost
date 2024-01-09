@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
-import * as AdminActions from 'mattermost-redux/actions/admin';
+import {getConfig as adminGetConfig} from 'mattermost-redux/actions/admin';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
@@ -45,10 +45,13 @@ const CloudAnnualRenewalAnnouncementBar = () => {
     const currentUserId = useSelector(getCurrentUserId);
     const hasDismissed60DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_60_DAY}_${getCurrentYearAsString()}`)) === 'true';
     const hasDismissed30DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_30_DAY}_${getCurrentYearAsString()}`)) === 'true';
-    const cloudAnnualRenewalsEnabled = useSelector(getConfig).FeatureFlags?.CloudAnnualRenewals;
+    const config = useSelector(getConfig);
+    const cloudAnnualRenewalsEnabled = config.FeatureFlags?.CloudAnnualRenewals;
 
     useEffect(() => {
-        dispatch(AdminActions.getConfig());
+        if (!config || !config.FeatureFlags) {
+            dispatch(adminGetConfig());
+        }
     }, []);
 
     const daysUntilExpiration = useMemo(() => {
