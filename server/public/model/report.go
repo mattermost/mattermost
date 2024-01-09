@@ -66,15 +66,7 @@ type UserReportQuery struct {
 }
 
 type UserReport struct {
-	Id          string `json:"id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	CreateAt    int64  `json:"create_at,omitempty"`
-	DisplayName string `json:"display_name"`
-	Roles       string `json:"roles"`
-	DeleteAt    int64  `json:"delete_at"`
-	AuthService string `json:"auth_service"`
-	MfaActive   bool   `json:"mfa_active,omitempty"`
+	User
 	UserPostStats
 }
 
@@ -103,15 +95,7 @@ func (u *UserReportOptions) IsValid() *AppError {
 
 func (u *UserReportQuery) ToReport() *UserReport {
 	return &UserReport{
-		Id:            u.Id,
-		Username:      u.Username,
-		Email:         u.Email,
-		CreateAt:      u.CreateAt,
-		DisplayName:   u.GetDisplayName(ShowNicknameFullName),
-		Roles:         u.Roles,
-		DeleteAt:      u.DeleteAt,
-		AuthService:   u.AuthService,
-		MfaActive:     u.MfaActive,
+		User:          u.User,
 		UserPostStats: u.UserPostStats,
 	}
 }

@@ -2291,12 +2291,18 @@ func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptio
 }
 
 func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
 	query := us.getQueryBuilder().
 		Select("COUNT(u.Id)").
-		From("Users u").
-		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)"))
+		From("Users u")
 
-	query = applyUserReportFilter(query, filter, us.DriverName() == model.DatabaseDriverPostgres)
+	if isPostgres {
+		query = query.LeftJoin("Bots ON u.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+	} else {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)"))
+	}
+
+	query = applyUserReportFilter(query, filter, isPostgres)
 	queryStr, args, err := query.ToSql()
 	if err != nil {
 		return 0, errors.Wrap(err, "user_count_report_tosql")
@@ -2311,10 +2317,7 @@ func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (i
 
 func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
-	selectColumns := []string{"u.Id", "u.LastLogin", "u.DeleteAt", "u.MfaActive", "u.AuthService", "MAX(s.LastActivityAt) AS LastStatusAt"}
-	for _, column := range model.UserReportSortColumns {
-		selectColumns = append(selectColumns, "u."+column)
-	}
+	selectColumns := []string{"u.*", "MAX(s.LastActivityAt) AS LastStatusAt"}
 	if isPostgres {
 		selectColumns = append(selectColumns,
 			"MAX(ps.LastPostDate) AS LastPostDate",

@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"strconv"
 	"time"
 
@@ -24,52 +25,13 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	sortColumn := "Username"
-	if r.URL.Query().Get("sort_column") != "" {
-		sortColumn = r.URL.Query().Get("sort_column")
-	}
-
-	direction := "next"
-	if r.URL.Query().Get("direction") == "prev" {
-		direction = "prev"
-	}
-
-	pageSize := 50
-	if pageSizeStr, err := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64); err == nil {
-		pageSize = int(pageSizeStr)
-	}
-
-	teamFilter := r.URL.Query().Get("team_filter")
-	if !(teamFilter == "" || model.IsValidId(teamFilter)) {
-		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_team_filter", nil, "", http.StatusBadRequest)
+	baseOptions := fillReportingBaseOptions(r.URL.Query())
+	options, err := fillUserReportOptions(r.URL.Query())
+	if err != nil {
+		c.Err = err
 		return
 	}
-
-	hideActive := r.URL.Query().Get("hide_active") == "true"
-	hideInactive := r.URL.Query().Get("hide_inactive") == "true"
-	if hideActive && hideInactive {
-		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_active_filter", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	options := &model.UserReportOptions{
-		ReportingBaseOptions: model.ReportingBaseOptions{
-			Direction:       direction,
-			SortColumn:      sortColumn,
-			SortDesc:        r.URL.Query().Get("sort_direction") == "desc",
-			PageSize:        pageSize,
-			FromColumnValue: r.URL.Query().Get("from_column_value"),
-			FromId:          r.URL.Query().Get("from_id"),
-			DateRange:       r.URL.Query().Get("date_range"),
-		},
-		Team:         teamFilter,
-		Role:         r.URL.Query().Get("role_filter"),
-		HasNoTeam:    r.URL.Query().Get("has_no_team") == "true",
-		HideActive:   hideActive,
-		HideInactive: hideInactive,
-		SearchTerm:   r.URL.Query().Get("search_term"),
-	}
-	options.PopulateDateRange(time.Now())
+	options.ReportingBaseOptions = baseOptions
 
 	// Don't allow fetching more than 100 users at a time from the normal query endpoint
 	if options.PageSize <= 0 || options.PageSize > model.ReportingMaxPageSize {
@@ -94,28 +56,11 @@ func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	teamFilter := r.URL.Query().Get("team_filter")
-	if !(teamFilter == "" || model.IsValidId(teamFilter)) {
-		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_team_filter", nil, "", http.StatusBadRequest)
+	options, err := fillUserReportOptions(r.URL.Query())
+	if err != nil {
+		c.Err = err
 		return
 	}
-
-	hideActive := r.URL.Query().Get("hide_active") == "true"
-	hideInactive := r.URL.Query().Get("hide_inactive") == "true"
-	if hideActive && hideInactive {
-		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_active_filter", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	options := &model.UserReportOptions{
-		Team:         teamFilter,
-		Role:         r.URL.Query().Get("role_filter"),
-		HasNoTeam:    r.URL.Query().Get("has_no_team") == "true",
-		HideActive:   hideActive,
-		HideInactive: hideInactive,
-		SearchTerm:   r.URL.Query().Get("search_term"),
-	}
-	options.PopulateDateRange(time.Now())
 
 	count, err := c.App.GetUserCountForReport(options)
 	if err != nil {
@@ -126,4 +71,56 @@ func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request
 	if jsonErr := json.NewEncoder(w).Encode(count); jsonErr != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
 	}
+}
+
+func fillReportingBaseOptions(values url.Values) model.ReportingBaseOptions {
+	sortColumn := "Username"
+	if values.Get("sort_column") != "" {
+		sortColumn = values.Get("sort_column")
+	}
+
+	direction := "next"
+	if values.Get("direction") == "prev" {
+		direction = "prev"
+	}
+
+	pageSize := 50
+	if pageSizeStr, err := strconv.ParseInt(values.Get("page_size"), 10, 64); err == nil {
+		pageSize = int(pageSizeStr)
+	}
+
+	return model.ReportingBaseOptions{
+		Direction:       direction,
+		SortColumn:      sortColumn,
+		SortDesc:        values.Get("sort_direction") == "desc",
+		PageSize:        pageSize,
+		FromColumnValue: values.Get("from_column_value"),
+		FromId:          values.Get("from_id"),
+		DateRange:       values.Get("date_range"),
+	}
+}
+
+func fillUserReportOptions(values url.Values) (*model.UserReportOptions, *model.AppError) {
+	teamFilter := values.Get("team_filter")
+	if !(teamFilter == "" || model.IsValidId(teamFilter)) {
+		return nil, model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_team_filter", nil, "", http.StatusBadRequest)
+	}
+
+	hideActive := values.Get("hide_active") == "true"
+	hideInactive := values.Get("hide_inactive") == "true"
+	if hideActive && hideInactive {
+		return nil, model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_active_filter", nil, "", http.StatusBadRequest)
+	}
+
+	options := &model.UserReportOptions{
+
+		Team:         teamFilter,
+		Role:         values.Get("role_filter"),
+		HasNoTeam:    values.Get("has_no_team") == "true",
+		HideActive:   hideActive,
+		HideInactive: hideInactive,
+		SearchTerm:   values.Get("search_term"),
+	}
+	options.PopulateDateRange(time.Now())
+	return options, nil
 }
