@@ -184,6 +184,18 @@ func TestGetRolesByNames(t *testing.T) {
 		_, _, err = client.GetRolesByNames(context.Background(), []string{model.NewId(), model.NewId(), "", "    "})
 		require.NoError(t, err)
 	})
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		// too many roles should error with bad request
+		roles := []string{}
+		for i := 0; i < GetRolesByNamesMax+10; i++ {
+			roles = append(roles, role1.Name)
+		}
+
+		_, resp, err := client.GetRolesByNames(context.Background(), roles)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
+	})
 }
 
 func TestPatchRole(t *testing.T) {

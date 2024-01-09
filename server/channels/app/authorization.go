@@ -14,15 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
-	permissionsStr := "permission="
-	for _, permission := range permissions {
-		permissionsStr += permission.Id
-		permissionsStr += ","
-	}
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
-}
-
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
 	if session.IsUnrestricted() {
 		return true
@@ -92,6 +83,7 @@ func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session
 	}
 
 	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
+
 	var channelRoles []string
 	if err == nil {
 		if roles, ok := ids[channelID]; ok {
@@ -268,22 +260,17 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 		return false
 	}
 
-	// We call GetAllChannelMembersForUser instead of just getting
-	// a single member from the DB, because it's cache backed
-	// and this is a very frequent call.
-	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(askingUserId, true, true)
-	var channelRoles []string
+	channelMember, err := a.GetChannelMember(c, channelID, askingUserId)
 	if err == nil {
-		if roles, ok := ids[channelID]; ok {
-			channelRoles = strings.Fields(roles)
-			if a.RolesGrantPermission(channelRoles, permission.Id) {
-				return true
-			}
+		roles := channelMember.GetRoles()
+		if a.RolesGrantPermission(roles, permission.Id) {
+			return true
 		}
 	}
 
-	channel, appErr := a.GetChannel(c, channelID)
-	if appErr == nil {
+	var channel *model.Channel
+	channel, err = a.GetChannel(c, channelID)
+	if err == nil {
 		return a.HasPermissionToTeam(c, askingUserId, channel.TeamId, permission)
 	}
 
@@ -360,7 +347,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
-			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
+			return model.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
 		}
 	} else {
 		if !a.SessionHasPermissionTo(session, model.PermissionManageOthersBots) {
@@ -369,7 +356,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
-			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
+			return model.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
 		}
 	}
 

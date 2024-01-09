@@ -33,6 +33,7 @@ export const PostTypes = {
     ADD_BOT_TEAMS_CHANNELS: 'add_bot_teams_channels' as PostType,
     SYSTEM_WARN_METRIC_STATUS: 'warn_metric_status' as PostType,
     REMINDER: 'reminder' as PostType,
+    WRANGLER: 'system_wrangler' as PostType,
     GM_CONVERTED_TO_CHANNEL: 'system_gm_to_channel' as PostType,
 };
 

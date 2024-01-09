@@ -276,7 +276,8 @@ export function createPost(post: Post, files: any[] = []) {
                     error.server_error_id === 'api.post.create_post.town_square_read_only' ||
                     error.server_error_id === 'plugin.message_will_be_posted.dismiss_post'
                 ) {
-                    actions.push(removePost(data) as any);
+                    // RemovePost is a Thunk, and not handled by batchActions
+                    dispatch(removePost(data));
                 } else {
                     actions.push(receivedPost(data, crtEnabled));
                 }
@@ -1255,6 +1256,23 @@ export function selectPost(postId: string) {
             type: PostTypes.RECEIVED_POST_SELECTED,
             data: postId,
         });
+
+        return {data: true};
+    };
+}
+
+export function moveThread(postId: string, channelId: string) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        try {
+            await Client4.moveThread(postId, channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: PostTypes.MOVE_POST_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: PostTypes.MOVE_POST_SUCCESS});
 
         return {data: true};
     };
