@@ -22,7 +22,7 @@ import {
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
@@ -79,8 +79,8 @@ export function loadProfilesAndReloadChannelMembers(page: number, perPage?: numb
     };
 }
 
-export function loadProfilesAndTeamMembers(page: number, perPage: number, teamId: string, options?: Record<string, any>) {
-    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function loadProfilesAndTeamMembers(page: number, perPage: number, teamId: string, options?: Record<string, any>): NewActionFuncAsync {
+    return async (doDispatch, doGetState) => {
         const newTeamId = teamId || getCurrentTeamId(doGetState());
         const {data} = await doDispatch(UserActions.getProfilesInTeam(newTeamId, page, perPage, '', options));
         if (data) {
@@ -122,8 +122,8 @@ export function searchProfilesAndChannelMembers(term: string, options: Record<st
     };
 }
 
-export function loadProfilesAndTeamMembersAndChannelMembers(page: number, perPage: number, teamId: string, channelId: string, options?: {active?: boolean}) {
-    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function loadProfilesAndTeamMembersAndChannelMembers(page: number, perPage: number, teamId: string, channelId: string, options?: {active?: boolean}): NewActionFuncAsync {
+    return async (doDispatch, doGetState) => {
         const state = doGetState();
         const teamIdParam = teamId || getCurrentTeamId(state);
         const channelIdParam = channelId || getCurrentChannelId(state);

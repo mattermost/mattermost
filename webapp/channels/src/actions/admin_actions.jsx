@@ -117,6 +117,10 @@ export async function applyIPFilters(ipList, success, error) {
     }
 }
 
+/**
+ * @param {string | null} clientId
+ * @returns {ActionResult<OAuthApp>}
+ */
 export function getOAuthAppInfo(clientId) {
     return bindClientFunc({
         clientFunc: Client4.getOAuthAppInfo,
@@ -124,6 +128,10 @@ export function getOAuthAppInfo(clientId) {
     });
 }
 
+/**
+ * @param {*}
+ * @returns {ActionResult<{redirect: string}>}
+ */
 export function allowOAuth2({responseType, clientId, redirectUri, state, scope}) {
     return bindClientFunc({
         clientFunc: Client4.authorizeOAuthApp,

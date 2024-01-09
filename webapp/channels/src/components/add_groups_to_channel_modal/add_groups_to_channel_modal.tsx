@@ -10,7 +10,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {Group, SyncablePatch} from '@mattermost/types/groups';
 import {SyncableType} from '@mattermost/types/groups';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
@@ -38,12 +38,12 @@ export type Props = {
     onAddCallback?: (groupIDs: string[]) => void;
 
     actions: {
-        getGroupsNotAssociatedToChannel: (channelID: string, q?: string, page?: number | null, perPage?: number | null, filterParentTeamPermitted?: boolean) => Promise<ActionFunc>;
-        setModalSearchTerm: (term: string) => { type: string; data: string};
-        linkGroupSyncable: (groupID: string, syncableID: string, syncableType: string, patch: Partial<SyncablePatch>) => Promise<{error?: ServerError; data?: null}>;
-        getAllGroupsAssociatedToChannel: (channelID: string, filterAllowReference: boolean, includeMemberCount: boolean) => ActionFunc;
-        getTeam: (teamId: string) => ActionFunc;
-        getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => ActionFunc;
+        getGroupsNotAssociatedToChannel: (channelID: string, q?: string, page?: number, perPage?: number, filterParentTeamPermitted?: boolean) => Promise<ActionResult>;
+        setModalSearchTerm: (term: string) => void;
+        linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
+        getAllGroupsAssociatedToChannel: (channelID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;
+        getTeam: (teamId: string) => Promise<ActionResult>;
+        getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;
     };
 }
 

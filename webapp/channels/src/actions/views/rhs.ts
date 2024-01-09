@@ -24,7 +24,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
@@ -72,10 +72,10 @@ function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, prev
 
 export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const action = {
+        const action: AnyAction = {
             type: ActionTypes.UPDATE_RHS_STATE,
             state: rhsState,
-        } as GenericAction;
+        };
 
         if ([
             RHSStates.PIN,
@@ -393,7 +393,7 @@ export function showPinnedPosts(channelId?: string) {
 }
 
 export function showChannelFiles(channelId: string) {
-    return async (dispatch: (action: Action, getState?: GetStateFunc | null) => Promise<ActionResult|[ActionResult, ActionResult]>, getState: GetStateFunc) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const teamId = getCurrentTeamId(state);
 

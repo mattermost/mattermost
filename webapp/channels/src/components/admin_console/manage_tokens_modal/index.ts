@@ -3,12 +3,11 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getUserAccessTokensForUser} from 'mattermost-redux/actions/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
@@ -30,7 +29,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             getUserAccessTokensForUser,
         }, dispatch),
     };

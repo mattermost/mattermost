@@ -139,9 +139,9 @@ export type Actions = {
     getFirstAdminSetupComplete: () => Promise<ActionResult>;
     getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
     migrateRecentEmojis: () => void;
-    loadConfigAndMe: () => Promise<{data: boolean}>;
+    loadConfigAndMe: () => Promise<ActionResult>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
-    initializeProducts: () => Promise<void[]>;
+    initializeProducts: () => Promise<ActionResult[]>;
 }
 
 type Props = {

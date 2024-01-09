@@ -51,7 +51,7 @@ type Props = {
     experimentalEnableAuthenticationTransfer: boolean;
 
     actions: {
-        getUser: (id: string) => UserProfile;
+        getUser: (id: string) => void;
     };
 };
 

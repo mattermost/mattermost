@@ -31,7 +31,7 @@ import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError} from './errors';
@@ -391,8 +391,8 @@ export function resetCreatePostRequest() {
     return {type: PostTypes.CREATE_POST_RESET_REQUEST};
 }
 
-export function deletePost(post: ExtendedPost) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deletePost(post: ExtendedPost): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const delPost = {...post};
         if (!post.root_id && isCollapsedThreadsEnabled(state)) {
@@ -614,8 +614,8 @@ export function addReaction(postId: string, emojiName: string) {
     };
 }
 
-export function removeReaction(postId: string, emojiName: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removeReaction(postId: string, emojiName: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
         try {

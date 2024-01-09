@@ -5,8 +5,9 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
 import type {DeepPartial} from '@mattermost/types/utilities';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS, DAYS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
@@ -27,7 +28,7 @@ type ValueType = {
 type Props = {
     config: DeepPartial<AdminConfig>;
     actions: {
-        updateConfig: (config: Record<string, any>) => Promise<{ data?: AdminConfig; error?: ServerError }>;
+        updateConfig: (config: Record<string, any>) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
 };

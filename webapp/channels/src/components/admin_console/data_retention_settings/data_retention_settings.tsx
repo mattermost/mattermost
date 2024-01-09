@@ -38,11 +38,11 @@ type Props = {
     customPolicies: DataRetentionCustomPolicies;
     customPoliciesCount: number;
     actions: {
-        getDataRetentionCustomPolicies: (page: number) => Promise<{ data: DataRetentionCustomPolicies }>;
-        createJob: (job: JobTypeBase) => Promise<{ data: any }>;
-        getJobsByType: (job: JobType) => Promise<{ data: any}>;
+        getDataRetentionCustomPolicies: (page: number) => Promise<ActionResult>;
+        createJob: (job: JobTypeBase) => Promise<ActionResult>;
+        getJobsByType: (job: JobType) => Promise<ActionResult>;
         deleteDataRetentionCustomPolicy: (id: string) => Promise<ActionResult>;
-        updateConfig: (config: Record<string, any>) => Promise<{ data: any}>;
+        updateConfig: (config: Record<string, any>) => Promise<ActionResult>;
     };
 };
 

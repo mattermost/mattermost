@@ -4,9 +4,10 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import UserGridName from 'components/admin_console/user_grid/user_grid_name';
@@ -30,13 +31,10 @@ export type Props = {
     onAddCallback: (users: UserProfile[]) => void;
     onRemoveCallback: (user: UserProfile) => void;
     actions: {
-        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
-            data?: UsersStats;
-            error?: ServerError;
-        }>;
-        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<any>;
-        searchProfiles: (term: string, options: any) => Promise<any>;
-        setUserGridSearch: (term: string) => Promise<any>;
+        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<ActionResult<UsersStats>>;
+        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<ActionResult>;
+        searchProfiles: (term: string, options: any) => Promise<ActionResult>;
+        setUserGridSearch: (term: string) => void;
     };
     readOnly?: boolean;
 }
