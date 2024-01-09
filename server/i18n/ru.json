@@ -1733,7 +1733,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Ограничения Команды на домене {{.Domain}} запрещены в настройках системы. Пожалуйста, обратитесь к системному администратору."
+    "translation": "Ограничения Команды на домене {{ .Domain }} запрещены в настройках системы. Пожалуйста, обратитесь к системному администратору."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -1745,7 +1745,7 @@
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "Вы отключили свою учетную запись на {{.SiteURL}}."
+    "translation": "Вы отключили свою учетную запись на {{ .SiteURL }}."
   },
   {
     "id": "api.templates.deactivate_body.title",
@@ -1825,7 +1825,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Многофакторная аутентификация была добавлена в вашу учетную запись на {{.SiteURL }}."
+    "translation": "Многофакторная аутентификация была добавлена в вашу учетную запись на {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -1837,7 +1837,7 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Многофакторная аутентификация была удалена из вашей учетной записи на {{.SiteURL}}."
+    "translation": "Многофакторная аутентификация была удалена из вашей учетной записи на {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_deactivated_body.title",
@@ -1845,7 +1845,7 @@
   },
   {
     "id": "api.templates.password_change_body.info",
-    "translation": "Ваш пароль был обновлен для {{.TeamDisplayName}} в {{.TeamURL}} {{.Method}}."
+    "translation": "Ваш пароль был обновлен для {{.TeamDisplayName}} в {{ .TeamURL }} {{.Method}}."
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -1889,7 +1889,7 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "В ваш аккаунт добавлен токен доступа для {{.SiteURL}}. Его можно использовать для доступа к {{.SiteName}} с вашей учетной записью."
+    "translation": "В ваш аккаунт добавлен токен доступа для {{ .SiteURL }}. Его можно использовать для доступа к {{.SiteName}} с вашей учетной записью."
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -1901,7 +1901,7 @@
   },
   {
     "id": "api.templates.username_change_body.info",
-    "translation": "Ваш e-mail адрес для {{.TeamDisplayName}} был изменен на {{.NewEmail}}."
+    "translation": "Ваш e-mail адрес для {{.TeamDisplayName}} был изменен на {{.NewUsername}}."
   },
   {
     "id": "api.templates.username_change_body.title",
@@ -2861,7 +2861,7 @@
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Новое групповое сообщение в {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Новое групповое сообщение в {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3889,7 +3889,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "GlobalRelaySettings.CustomerType экспорта сообщений должен быть установлен в 'A9' или 'A10'."
+    "translation": "Для экспорта сообщений GlobalRelaySettings.CustomerType должен быть установлен в 'A9', 'A10' или 'CUSTOM'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -3937,7 +3937,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "URL эмитента поставщика учетных данных должен являться корректным URL и начинаться с http:// или https://."
+    "translation": "URL-адрес эмитента поставщика услуг идентификации не может быть пустой строкой."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4793,7 +4793,7 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Удаление из канала запрещено следующим пользователям из-за ограничений группы: {{.UserIDs}}"
+    "translation": "Удаление из канала запрещено следующим пользователям из-за ограничений группы: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_user_from_channel.app_error",
@@ -5193,7 +5193,7 @@
   },
   {
     "id": "api.post.check_for_out_of_channel_groups_mentions.message.one",
-    "translation": "@{{.Usernames}} не уведомлены этим упоминанием, потому что они не являются участниками канала. Они не могут быть добавлены в канал, потому что они не являются участниками связанных групп. Чтобы добавить их в канал, они должны быть добавлены в связанные группы."
+    "translation": "@{{.Username}} не уведомлены этим упоминанием, потому что они не являются участниками канала. Они не могут быть добавлены в канал, потому что они не являются участниками связанных групп. Чтобы добавить их в канал, они должны быть добавлены в связанные группы."
   },
   {
     "id": "api.push_notification.disabled.app_error",
@@ -5829,15 +5829,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Версия 116+"
+    "translation": "Версия 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Версия 116+"
+    "translation": "Версия 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Версия 102+"
+    "translation": "Версия 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -6797,11 +6797,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
+    "translation": "Запрос на контакт с Mattermost. В моей команде сейчас 500 пользователей, и я рассматриваю Mattermost Enterprise Edition.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "запрос Mattermost Свяжитесь с нами. У моей команды сейчас {{.Limit}} пользователей, и я рассматриваю Mattermost Корпоративная редакция.\n"
+    "translation": "Запрос на контакт с Mattermost. В моей команде сейчас 200 пользователей, и я рассматриваю Mattermost Enterprise Edition.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -7685,7 +7685,7 @@
   },
   {
     "id": "app.upload.upload_data.first_part_too_small.app_error",
-    "translation": "Не удалось загрузить данные. Первая часть должна быть как минимум {{.Размер}} байт."
+    "translation": "Не удалось загрузить данные. Первая часть должна быть как минимум {{.Size}} байт."
   },
   {
     "id": "app.upload.upload_data.concurrent.app_error",
@@ -9157,7 +9157,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost - это платформа с открытым исходным кодом для безопасного общения, сотрудничества и организации работы между командами с использованием различных инструментов.\nMattermost состоит из трех ключевых инструментов:\n\n**Channels** - Каналы - оставайтесь всегда на связи со своей командой посредством 1:1 и групповых чатов.\n**[Playbooks](/playbooks)** - Сценарии - создавайте и настраивайте повторяющиеся процессы для достижения конкретных и предсказуемых результатов.\n**[Boards](/boards)** - Доски - управляйте проектами и задачами с использованием досок Kanban, чтобы помочь вашей команде достичь ключевых вех.\n\n[Посмотреть документацию и руководства]({{.HelpLink}})"
+    "translation": "Mattermost - это платформа с открытым исходным кодом для безопасного общения, сотрудничества и организации работы между командами с использованием различных инструментов.\nMattermost состоит из двух ключевых инструментов:\n\n**Channels** - Каналы - оставайтесь всегда на связи со своей командой посредством 1:1 и групповых чатов.\n**[Playbooks](/playbooks)** - Сценарии - создавайте и настраивайте повторяющиеся процессы для достижения конкретных и предсказуемых результатов.\n\n[Посмотреть документацию и руководства]({{.HelpLink}})"
   },
   {
     "id": "api.cloud.teams_limit_reached.restore",
@@ -9974,5 +9974,141 @@
   {
     "id": "api.command_invite.user_already_in_channel.overflow",
     "translation": "{{.FirstUser}} и {{.Others}} другие уже находятся в канале."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Недопустимый формат: {{.Error}}"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Невозможно получить такое количество эмодзи по имени. Одновременно может быть запрошено только {{.MaxNames}} эмодзи."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Не удалось разобрать JSON: {{.Error}}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Изменение IP-фильтрации для рабочего пространства"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} изменил настройки IP-фильтрации для рабочей области по адресу URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Не удалось обновить временную метку последнего входа в систему"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Не удалось разобрать подпуть SiteURL"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Недопустимый идентификатор клиента."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Некорректный секрет клиента."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "При применении IP-фильтров произошла ошибка"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "При получении IP-фильтров произошла ошибка"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "При получении IP-адреса клиента произошла ошибка"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP-фильтрация на этом сервере недоступна"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Изменения в IP-фильтрах рабочей области"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Связаться со службой поддержки"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Отправить письмо по адресу {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Возникают проблемы с доступом к рабочему пространству?"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "URL-адрес некоторой аудитории указан неверно."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Неверный тип гранта."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "\"Создано в\" должно быть корректным временем."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Недопустимый идентификатор автора."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Аудитория не должна быть пустой."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Недопустимый идентификатор."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Некорректное имя."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Некорректный url oauth токена."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Неверный пароль."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "\"Обновлено в\" должно быть корректным временем."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Был достигнут лимит реакций для этого поста."
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Посмотреть изменения"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Войдите в клиентский портал, чтобы сбросить IP фильтрацию"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Невозможно скрыть как активных, так и неактивных пользователей."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Указан неверный идентификатор команды."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Не удалось обновить пользовательский статус. Эмодзи с указанным именем не существует."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Если у GlobalRelaySettings.CustomerType выставлено значение 'CUSTOM', то должны быть установлены GlobalRelaySettings.CustomSMTPServerName и GlobalRelaySettings.CustomSMTPPort."
   }
 ]

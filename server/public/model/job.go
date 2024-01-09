@@ -37,6 +37,7 @@ const (
 	JobTypeS3PathMigration              = "s3_path_migration"
 	JobTypeCleanupDesktopTokens         = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration   = "delete_empty_drafts_migration"
+	JobTypeRefreshPostStats             = "refresh_post_stats"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"
@@ -68,6 +69,7 @@ var AllJobTypes = [...]string{
 	JobTypeLastAccessiblePost,
 	JobTypeLastAccessibleFile,
 	JobTypeCleanupDesktopTokens,
+	JobTypeRefreshPostStats,
 }
 
 type Job struct {

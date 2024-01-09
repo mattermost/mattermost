@@ -4,7 +4,6 @@
 package email
 
 import (
-	"bytes"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
@@ -32,7 +32,8 @@ type TestHelper struct {
 	BasicUser2   *model.User
 
 	SystemAdminUser *model.User
-	LogBuffer       *bytes.Buffer
+
+	Context request.CTX
 }
 
 func Setup(tb testing.TB) *TestHelper {
@@ -132,8 +133,8 @@ func setupTestHelper(s store.Store, tb testing.TB) *TestHelper {
 		service:     service,
 		configStore: configStore,
 		store:       s,
-		LogBuffer:   &bytes.Buffer{},
 		workspace:   tempWorkspace,
+		Context:     request.TestContext(tb),
 	}
 }
 

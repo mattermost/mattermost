@@ -22,7 +22,7 @@ export type ValueType = {
     value: string;
 }
 
-type Props<T> = Omit<SelectProps<T>, 'onChange'> & {
+type Props<T extends ValueType> = Omit<SelectProps<T>, 'onChange'> & {
     value?: T;
     legend?: string;
     error?: string;

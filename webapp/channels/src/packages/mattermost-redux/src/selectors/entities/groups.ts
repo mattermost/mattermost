@@ -125,11 +125,16 @@ export function getAssociatedGroupsForReference(state: GlobalState, teamId: stri
     if (team && team.group_constrained && channel && channel.group_constrained) {
         const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
         const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
-        groupsForReference = groupsFromChannel.concat(groupsFromTeam.filter((item) => groupsFromChannel.indexOf(item) < 0));
+        const customGroups = getAllCustomGroups(state);
+        groupsForReference = groupsFromChannel.concat(groupsFromTeam.filter((item) => groupsFromChannel.indexOf(item) < 0), customGroups);
     } else if (team && team.group_constrained) {
-        groupsForReference = getGroupsAssociatedToTeamForReference(state, teamId);
+        const customGroups = getAllCustomGroups(state);
+        const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
+        groupsForReference = [...customGroups, ...groupsFromTeam];
     } else if (channel && channel.group_constrained) {
-        groupsForReference = getGroupsAssociatedToChannelForReference(state, channelId);
+        const customGroups = getAllCustomGroups(state);
+        const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
+        groupsForReference = [...customGroups, ...groupsFromChannel];
     } else {
         groupsForReference = getAllAssociatedGroupsForReference(state, false);
     }
@@ -256,6 +261,14 @@ export const getAllGroupsForReferenceByName: (state: GlobalState) => Record<stri
         }
 
         return groupsByName;
+    },
+);
+
+export const getAllCustomGroups: (state: GlobalState) => Group[] = createSelector(
+    'getAllCustomGroups',
+    getAllGroups,
+    (groups) => {
+        return Object.entries(groups).filter((entry) => (entry[1].allow_reference && entry[1].delete_at === 0 && entry[1].source === GroupSource.Custom)).map((entry) => entry[1]);
     },
 );
 

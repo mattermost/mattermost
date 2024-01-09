@@ -163,6 +163,42 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 	assert.Equal(t, publicFilesPath, publicFilesFolderInTest)
 }
 
+func TestPluginAPIGetUserPreference(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	err := api.UpdatePreferencesForUser(th.BasicUser.Id, []model.Preference{
+		{
+			UserId:   th.BasicUser.Id,
+			Category: model.PreferenceCategoryDisplaySettings,
+			Name:     model.PreferenceNameUseMilitaryTime,
+			Value:    "true",
+		},
+		{
+			UserId:   th.BasicUser.Id,
+			Category: "test_category",
+			Name:     "test_key",
+			Value:    "test_value",
+		},
+	})
+	require.Nil(t, err)
+
+	preference, err := api.GetPreferenceForUser(th.BasicUser.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime)
+
+	require.Nil(t, err)
+	assert.Equal(t, model.PreferenceCategoryDisplaySettings, preference.Category)
+	assert.Equal(t, model.PreferenceNameUseMilitaryTime, preference.Name)
+	assert.Equal(t, "true", preference.Value)
+
+	preference, err = api.GetPreferenceForUser(th.BasicUser.Id, "test_category", "test_key")
+
+	require.Nil(t, err)
+	assert.Equal(t, "test_category", preference.Category)
+	assert.Equal(t, "test_key", preference.Name)
+	assert.Equal(t, "test_value", preference.Value)
+}
+
 func TestPluginAPIGetUserPreferences(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -513,7 +549,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, user1)
 
 	custom := &model.CustomStatus{
-		Emoji: ":tada:",
+		Emoji: "tada",
 		Text:  "honk",
 	}
 
@@ -564,7 +600,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 		th.App.RemoveFile(info.Path)
 	}()
 
@@ -593,7 +629,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo1.Id)
 		th.App.RemoveFile(fileInfo1.Path)
 	}()
 
@@ -607,7 +643,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo2.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo2.Id)
 		th.App.RemoveFile(fileInfo2.Path)
 	}()
 
@@ -621,7 +657,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo3.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo3.Id)
 		th.App.RemoveFile(fileInfo3.Path)
 	}()
 
@@ -1354,7 +1390,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	fileInfo, err := api.UploadFile(data, channelID, filename)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id)
 		th.App.RemoveFile(fileInfo.Path)
 	}()
 
@@ -2304,4 +2340,64 @@ func TestSendPushNotification(t *testing.T) {
 		}
 	}
 	assert.Equal(t, 6, numMessages)
+}
+
+func TestPluginServeMetrics(t *testing.T) {
+	th := Setup(t, StartMetrics)
+	defer th.TearDown()
+
+	var prevEnable *bool
+	var prevAddress *string
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		prevEnable = cfg.MetricsSettings.Enable
+		prevAddress = cfg.MetricsSettings.ListenAddress
+		cfg.MetricsSettings.Enable = model.NewBool(true)
+		cfg.MetricsSettings.ListenAddress = model.NewString(":30067")
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.MetricsSettings.Enable = prevEnable
+		cfg.MetricsSettings.ListenAddress = prevAddress
+	})
+
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_serve_metrics_plugin", "main.go")
+
+	pluginCode, err := os.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("http://localhost%s/plugins/%s/metrics", *th.App.Config().MetricsSettings.ListenAddress, pluginID)
+	req, err := http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "METRICS", string(body))
+
+	reqURL = fmt.Sprintf("http://localhost%s/plugins/%s/metrics/subpath", *th.App.Config().MetricsSettings.ListenAddress, pluginID)
+	req, err = http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err = io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "METRICS SUBPATH", string(body))
 }

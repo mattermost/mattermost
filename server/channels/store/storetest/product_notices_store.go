@@ -9,16 +9,17 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestProductNoticesStore(t *testing.T, ss store.Store) {
-	t.Run("TestAddViewed", func(t *testing.T) { testAddViewed(t, ss) })
-	t.Run("TestUpdateViewed", func(t *testing.T) { testUpdateViewed(t, ss) })
-	t.Run("TestClearOld", func(t *testing.T) { testClearOld(t, ss) })
+func TestProductNoticesStore(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("TestAddViewed", func(t *testing.T) { testAddViewed(t, rctx, ss) })
+	t.Run("TestUpdateViewed", func(t *testing.T) { testUpdateViewed(t, rctx, ss) })
+	t.Run("TestClearOld", func(t *testing.T) { testClearOld(t, rctx, ss) })
 }
 
-func testAddViewed(t *testing.T, ss store.Store) {
+func testAddViewed(t *testing.T, rctx request.CTX, ss store.Store) {
 	notices := []string{"noticeA", "noticeB"}
 	defer ss.ProductNotices().Clear(notices)
 
@@ -32,7 +33,7 @@ func testAddViewed(t *testing.T, ss store.Store) {
 	require.Len(t, res, 2)
 }
 
-func testUpdateViewed(t *testing.T, ss store.Store) {
+func testUpdateViewed(t *testing.T, rctx request.CTX, ss store.Store) {
 	noticesA := []string{"noticeA", "noticeB"}
 	noticesB := []string{"noticeB", "noticeC"}
 	defer ss.ProductNotices().Clear(noticesA)
@@ -57,7 +58,7 @@ func testUpdateViewed(t *testing.T, ss store.Store) {
 	require.GreaterOrEqual(t, res[1].Timestamp, res[0].Timestamp)
 }
 
-func testClearOld(t *testing.T, ss store.Store) {
+func testClearOld(t *testing.T, rctx request.CTX, ss store.Store) {
 	noticesA := []string{"noticeA", "noticeB"}
 	defer ss.ProductNotices().Clear(noticesA)
 	// mark two notices

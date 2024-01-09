@@ -21,11 +21,11 @@ type syncTask struct {
 	remoteID   string
 	AddedAt    time.Time
 	retryCount int
-	retryMsg   *syncMsg
+	retryMsg   *model.SyncMsg
 	schedule   time.Time
 }
 
-func newSyncTask(channelID string, remoteID string, retryMsg *syncMsg) syncTask {
+func newSyncTask(channelID string, remoteID string, retryMsg *model.SyncMsg) syncTask {
 	var retryID string
 	if retryMsg != nil {
 		retryID = retryMsg.Id
@@ -248,6 +248,16 @@ func (scs *Service) processTask(task syncTask) error {
 		if err != nil {
 			return err
 		}
+
+		// add all remotes that have the autoinvited option.
+		filter = model.RemoteClusterQueryFilter{
+			RequireOptions: model.BitflagOptionAutoInvited,
+		}
+		remotesAutoInvited, err := scs.server.GetStore().RemoteCluster().GetAll(filter)
+		if err != nil {
+			return err
+		}
+		remotes = append(remotes, remotesAutoInvited...)
 	} else {
 		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID)
 		if err != nil {
@@ -302,7 +312,7 @@ func (scs *Service) handlePostError(postId string, task syncTask, rc *model.Remo
 		return
 	}
 
-	syncMsg := newSyncMsg(task.channelID)
+	syncMsg := model.NewSyncMsg(task.channelID)
 	syncMsg.Posts = []*model.Post{post}
 
 	scs.addTask(newSyncTask(task.channelID, task.remoteID, syncMsg))
@@ -349,8 +359,10 @@ func (scs *Service) updateCursorForRemote(scrId string, rc *model.RemoteCluster,
 	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "updated cursor for remote",
 		mlog.String("remote_id", rc.RemoteId),
 		mlog.String("remote", rc.DisplayName),
-		mlog.Int64("last_post_update_at", cursor.LastPostUpdateAt),
-		mlog.String("last_post_id", cursor.LastPostId),
+		mlog.Int("last_post_create_at", cursor.LastPostCreateAt),
+		mlog.String("last_post_create_id", cursor.LastPostCreateID),
+		mlog.Int("last_post_update_at", cursor.LastPostUpdateAt),
+		mlog.String("last_post_update_id", cursor.LastPostUpdateID),
 	)
 }
 

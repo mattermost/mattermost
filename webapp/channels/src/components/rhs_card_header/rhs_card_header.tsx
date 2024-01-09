@@ -29,7 +29,7 @@ type Props = {
 };
 
 class RhsCardHeader extends React.PureComponent<Props> {
-    handleBack = (e: React.MouseEvent<HTMLAnchorElement>): void => {
+    handleBack = (e: React.MouseEvent<HTMLButtonElement>): void => {
         e.preventDefault();
 
         switch (this.props.previousRhsState) {
@@ -74,7 +74,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToFlaggedTooltip'
-                        defaultMessage='Back to saved posts'
+                        defaultMessage='Back to saved messages'
                     />
                 </Tooltip>
             );
@@ -84,7 +84,7 @@ class RhsCardHeader extends React.PureComponent<Props> {
                 <Tooltip id='backToResultsTooltip'>
                     <FormattedMessage
                         id='rhs_header.backToPinnedTooltip'
-                        defaultMessage='Back to pinned posts'
+                        defaultMessage='Back to pinned messages'
                     />
                 </Tooltip>
             );
@@ -135,16 +135,15 @@ class RhsCardHeader extends React.PureComponent<Props> {
                     placement='top'
                     overlay={backToResultsTooltip}
                 >
-                    <a
-                        href='#'
+                    <button
+                        className='sidebar--right__back btn btn-icon btn-sm'
                         onClick={this.handleBack}
-                        className='sidebar--right__back'
+                        aria-label={this.props.intl.formatMessage({id: 'rhs_header.back.icon', defaultMessage: 'Back Icon'})}
                     >
                         <i
                             className='icon icon-arrow-back-ios'
-                            aria-label={this.props.intl.formatMessage({id: 'generic_icons.back', defaultMessage: 'Back Icon'})}
                         />
-                    </a>
+                    </button>
                 </OverlayTrigger>
             );
         }

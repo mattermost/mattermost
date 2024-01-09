@@ -106,6 +106,7 @@ type User struct {
 	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+	LastLogin              int64     `json:"last_login,omitempty"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
@@ -611,6 +612,7 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
+	u.LastLogin = 0
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
@@ -1004,4 +1006,18 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
+}
+
+func (u *User) EmailDomain() string {
+	at := strings.LastIndex(u.Email, "@")
+	// at >= 0 holds true and this is not checked here. It holds true, because during signup we run `mail.ParseAddress(email)`
+	return u.Email[at+1:]
+}
+
+type UserPostStats struct {
+	LastLogin    int64  `json:"last_login_at,omitempty"`
+	LastStatusAt *int64 `json:"last_status_at,omitempty"`
+	LastPostDate *int64 `json:"last_post_date,omitempty"`
+	DaysActive   *int   `json:"days_active,omitempty"`
+	TotalPosts   *int   `json:"total_posts,omitempty"`
 }

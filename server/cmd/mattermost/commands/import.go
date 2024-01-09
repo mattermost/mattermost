@@ -57,6 +57,8 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	}
 	defer a.Srv().Shutdown()
 
+	rctx := request.EmptyContext(a.Log())
+
 	if len(args) != 2 {
 		return errors.New("Incorrect number of arguments.")
 	}
@@ -79,7 +81,7 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("Running Slack Import. This may take a long time for large teams or teams with many messages.")
 
-	importErr, log := a.SlackImport(request.EmptyContext(a.Log()), fileReader, fileInfo.Size(), team.Id)
+	importErr, log := a.SlackImport(rctx, fileReader, fileInfo.Size(), team.Id)
 
 	if importErr != nil {
 		return err
@@ -92,10 +94,10 @@ func slackImportCmdF(command *cobra.Command, args []string) error {
 	CommandPrettyPrintln("Finished Slack Import.")
 	CommandPrettyPrintln("")
 
-	auditRec := a.MakeAuditRecord("slackImport", audit.Success)
+	auditRec := a.MakeAuditRecord(rctx, "slackImport", audit.Success)
 	auditRec.AddMeta("team", team)
 	auditRec.AddMeta("file", args[1])
-	a.LogAuditRec(auditRec, nil)
+	a.LogAuditRec(rctx, auditRec, nil)
 
 	return nil
 }
@@ -106,6 +108,8 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Srv().Shutdown()
+
+	rctx := request.EmptyContext(a.Log())
 
 	apply, err := command.Flags().GetBool("apply")
 	if err != nil {
@@ -152,7 +156,7 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	CommandPrettyPrintln("")
 
-	if err, lineNumber := a.BulkImportWithPath(request.EmptyContext(a.Log()), fileReader, nil, !apply, workers, importPath); err != nil {
+	if err, lineNumber := a.BulkImportWithPath(rctx, fileReader, nil, !apply, workers, importPath); err != nil {
 		CommandPrintErrorln(err.Error())
 		if lineNumber != 0 {
 			CommandPrintErrorln(fmt.Sprintf("Error occurred on data file line %v", lineNumber))
@@ -162,9 +166,9 @@ func bulkImportCmdF(command *cobra.Command, args []string) error {
 
 	if apply {
 		CommandPrettyPrintln("Finished Bulk Import.")
-		auditRec := a.MakeAuditRecord("bulkImport", audit.Success)
+		auditRec := a.MakeAuditRecord(rctx, "bulkImport", audit.Success)
 		auditRec.AddMeta("file", args[0])
-		a.LogAuditRec(auditRec, nil)
+		a.LogAuditRec(rctx, auditRec, nil)
 	} else {
 		CommandPrettyPrintln("Validation complete. You can now perform the import by rerunning this command with the --apply flag.")
 	}

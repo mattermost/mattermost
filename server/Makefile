@@ -17,9 +17,9 @@ else
 	export IS_LINUX =
 endif
 
-# Detect M1/M2 Macs and set a flag.
+# Detect Apple Silicon and set a flag.
 ifeq ($(shell uname)/$(shell uname -m),Darwin/arm64)
-  M1_MAC = true
+  ARM_BASED_MAC = true
 endif
 
 define LICENSE_HEADER
@@ -33,6 +33,7 @@ IS_CI ?= false
 BUILD_NUMBER ?= $(BUILD_NUMBER:)
 BUILD_DATE = $(shell date -u)
 BUILD_HASH = $(shell git rev-parse HEAD)
+BUILD_TAGS =
 
 
 # Docker
@@ -73,6 +74,7 @@ ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
 	BUILD_ENTERPRISE_READY = true
 	BUILD_TYPE_NAME = enterprise
 	BUILD_HASH_ENTERPRISE = $(shell cd $(BUILD_ENTERPRISE_DIR) && git rev-parse HEAD)
+	BUILD_TAGS += enterprise
   else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
@@ -80,6 +82,16 @@ ifneq ($(wildcard $(BUILD_ENTERPRISE_DIR)/.),)
 else
 	BUILD_ENTERPRISE_READY = false
 	BUILD_TYPE_NAME = team
+endif
+
+# Clean up the old means of importing enterprise source, if it exists
+ifneq ($(wildcard channels/imports/imports.go),)
+	IGNORE := $(shell rm -f channels/imports/imports.go)
+endif
+
+# Source available, already included with enterprise but also available during development.
+ifeq ($(BUILD_NUMBER),dev)
+	BUILD_TAGS += sourceavailable
 endif
 
 # Webapp
@@ -99,8 +111,8 @@ GOFLAGS ?= $(GOFLAGS:)
 # We need to export GOBIN to allow it to be set
 # for processes spawned from the Makefile
 export GOBIN ?= $(PWD)/bin
-GO=go
-DELVE=dlv
+GO ?= go
+DELVE ?= dlv
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildNumber=$(BUILD_NUMBER)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)"
 LDFLAGS += -X "github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)"
@@ -138,15 +150,15 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.21.0
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.22.2
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.6
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.7
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v3.2.5
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.0.1
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
@@ -155,16 +167,6 @@ PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
 PLUGIN_PACKAGES += focalboard-v7.11.4
-
-# Prepares the enterprise build if exists. The IGNORE stuff is a hack to get the Makefile to execute the commands outside a target
-ifeq ($(BUILD_ENTERPRISE_READY),true)
-	IGNORE:=$(shell echo Enterprise build selected, preparing)
-	IGNORE:=$(shell rm -f channels/imports/imports.go)
-	IGNORE:=$(shell cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go channels/imports/)
-	IGNORE:=$(shell rm -f enterprise)
-else
-	IGNORE:=$(shell rm -f channels/imports/imports.go)
-endif
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -202,8 +204,8 @@ ifneq ("$(wildcard ./docker-compose.override.yaml)","")
   DOCKER_COMPOSE_OVERRIDE=-f docker-compose.override.yaml
 endif
 
-ifeq ($(M1_MAC),true)
-  $(info M1 detected, applying elasticsearch override)
+ifeq ($(ARM_BASED_MAC),true)
+  $(info Apple Silicon detected, applying elasticsearch override)
   DOCKER_COMPOSE_OVERRIDE := -f docker-compose.makefile.m1.yml $(DOCKER_COMPOSE_OVERRIDE)
 endif
 
@@ -390,9 +392,6 @@ layers: app-layers store-layers pluginapi
 
 generated: mocks layers
 
-check-prereqs: ## Checks prerequisite software status.
-	./scripts/prereq-check.sh
-
 check-prereqs-enterprise: setup-go-work ## Checks prerequisite software status for enterprise.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
 	./scripts/prereq-check-enterprise.sh
@@ -425,14 +424,10 @@ test-compile: gotestsum ## Compile tests.
 	done
 
 modules-tidy:
-	@if [ -f "channels/imports/imports.go" ]; then \
-		mv channels/imports/imports.go channels/imports/imports.go.orig; \
-	fi;
+	mv enterprise/external_imports.go enterprise/external_imports.go.orig
 	-$(GO) mod tidy
 	-cd public && $(GO) mod tidy
-	@if [ -f "channels/imports/imports.go.orig" ]; then \
-		mv channels/imports/imports.go.orig channels/imports/imports.go; \
-	fi;
+	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 
 test-server-pre: check-prereqs-enterprise start-docker gotestsum ## Runs tests.
 ifeq ($(BUILD_ENTERPRISE_READY),true)
@@ -583,7 +578,7 @@ run-server: setup-go-work prepackaged-binaries validate-go-version start-docker 
 	@echo Running mattermost for development
 
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) $(RUN_IN_BACKGROUND)
 
 debug-server: start-docker ## Compile and start server using delve.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
@@ -592,7 +587,8 @@ debug-server: start-docker ## Compile and start server using delve.
 		-X \"github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)\"\
 		-X github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)\
 		-X github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'\
+		-tags '$(BUILD_TAGS)'"
 
 debug-server-headless: start-docker ## Debug server from within an IDE like VSCode or IntelliJ.
 	mkdir -p $(BUILD_WEBAPP_DIR)/channels/dist/files
@@ -601,13 +597,14 @@ debug-server-headless: start-docker ## Debug server from within an IDE like VSCo
 		-X \"github.com/mattermost/mattermost/server/public/model.BuildDate=$(BUILD_DATE)\"\
 		-X github.com/mattermost/mattermost/server/public/model.BuildHash=$(BUILD_HASH)\
 		-X github.com/mattermost/mattermost/server/public/model.BuildHashEnterprise=$(BUILD_HASH_ENTERPRISE)\
-		-X github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'"
+		-X github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=$(BUILD_ENTERPRISE_READY)'\
+		-tags '$(BUILD_TAGS)'"
 
 run-cli: start-docker ## Runs CLI.
 	@echo Running mattermost for development
 	@echo Example should be like 'make ARGS="-version" run-cli'
 
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) ${ARGS}
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) ${ARGS}
 
 run-client: client ## Runs the webapp.
 	@echo Running mattermost client for development
@@ -623,7 +620,7 @@ run-client-fullmap: client ## Legacy alias to run-client
 
 	cd $(BUILD_WEBAPP_DIR) && $(MAKE) run
 
-run: check-prereqs run-server run-client ## Runs the server and webapp.
+run: run-server run-client ## Runs the server and webapp.
 
 run-fullmap: run-server run-client ## Legacy alias to run
 
@@ -667,7 +664,7 @@ restart-client: | stop-client run-client ## Restarts the webapp.
 
 run-job-server: ## Runs the background job server.
 	@echo Running job server for development
-	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' $(PLATFORM_FILES) jobserver &
+	$(GO) run $(GOFLAGS) -ldflags '$(LDFLAGS)' -tags '$(BUILD_TAGS)' $(PLATFORM_FILES) jobserver &
 
 config-ldap: ## Configures LDAP.
 	@echo Setting up configuration for local LDAP
@@ -733,8 +730,8 @@ update-dependencies: ## Uses go get -u to update all the dependencies while hold
 	@echo Updating Dependencies
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	@echo Enterprise repository detected, temporarily removing imports.go
-	rm -f channels/imports/imports.go
+	@echo Enterprise repository detected, temporarily removing external_imports.go
+	mv enterprise/external_imports.go enterprise/external_imports.go.orig
 endif
 
 	# Update all dependencies (does not update across major versions)
@@ -744,7 +741,7 @@ endif
 	$(GO) mod tidy
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
-	cp $(BUILD_ENTERPRISE_DIR)/imports/imports.go channels/imports/
+	mv enterprise/external_imports.go.orig enterprise/external_imports.go
 endif
 
 vet: ## Run mattermost go vet specific checks

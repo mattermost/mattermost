@@ -945,7 +945,7 @@ func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
 
 	if group.Source == model.GroupSourceLdap {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
 		}
 	}
 
@@ -1130,7 +1130,7 @@ func searchUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profiles, appErr := c.App.SearchUsers(&props, options)
+	profiles, appErr := c.App.SearchUsers(c.AppContext, &props, options)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1206,7 +1206,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 			)
 			return
 		}
-		result, err := c.App.AutocompleteUsersInChannel(teamId, channelId, name, options)
+		result, err := c.App.AutocompleteUsersInChannel(c.AppContext, teamId, channelId, name, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -1215,7 +1215,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 		autocomplete.Users = result.InChannel
 		autocomplete.OutOfChannel = result.OutOfChannel
 	} else if teamId != "" {
-		result, err := c.App.AutocompleteUsersInTeam(teamId, name, options)
+		result, err := c.App.AutocompleteUsersInTeam(c.AppContext, teamId, name, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -1223,7 +1223,7 @@ func autocompleteUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		autocomplete.Users = result.InTeam
 	} else {
-		result, err := c.App.SearchUsersInTeam("", name, options)
+		result, err := c.App.SearchUsersInTeam(c.AppContext, "", name, options)
 		if err != nil {
 			c.Err = err
 			return
@@ -2298,7 +2298,7 @@ func getUserAudits(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	audits, err := c.App.GetAuditsPage(c.Params.UserId, c.Params.Page, c.Params.PerPage)
+	audits, err := c.App.GetAuditsPage(c.AppContext, c.Params.UserId, c.Params.Page, c.Params.PerPage)
 	if err != nil {
 		c.Err = err
 		return
