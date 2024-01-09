@@ -381,5 +381,5 @@ type Hooks interface {
 	// The cursor will be advanced based on the timestamp returned if no error is returned.
 	//
 	// Minimum server version: 9.5
-	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error)
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 }

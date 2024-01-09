@@ -278,9 +278,9 @@ func (hooks *hooksTimerLayer) OnSharedChannelsAttachmentSyncMsg(fi *model.FileIn
 	return _returnsA
 }
 
-func (hooks *hooksTimerLayer) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+func (hooks *hooksTimerLayer) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
 	startTime := timePkg.Now()
-	_returnsA, _returnsB := hooks.hooksImpl.OnSharedChannelsProfileImageSyncMsg(user, rc)
-	hooks.recordTime(startTime, "OnSharedChannelsProfileImageSyncMsg", _returnsB == nil)
-	return _returnsA, _returnsB
+	_returnsA := hooks.hooksImpl.OnSharedChannelsProfileImageSyncMsg(user, rc)
+	hooks.recordTime(startTime, "OnSharedChannelsProfileImageSyncMsg", _returnsA == nil)
+	return _returnsA
 }

@@ -340,27 +340,17 @@ func (_m *Hooks) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
 }
 
 // OnSharedChannelsProfileImageSyncMsg provides a mock function with given fields: user, rc
-func (_m *Hooks) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+func (_m *Hooks) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
 	ret := _m.Called(user, rc)
 
-	var r0 int64
-	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.User, *model.RemoteCluster) (int64, error)); ok {
-		return rf(user, rc)
-	}
-	if rf, ok := ret.Get(0).(func(*model.User, *model.RemoteCluster) int64); ok {
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.User, *model.RemoteCluster) error); ok {
 		r0 = rf(user, rc)
 	} else {
-		r0 = ret.Get(0).(int64)
+		r0 = ret.Error(0)
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.User, *model.RemoteCluster) error); ok {
-		r1 = rf(user, rc)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
+	return r0
 }
 
 // OnSharedChannelsSyncMsg provides a mock function with given fields: msg, rc

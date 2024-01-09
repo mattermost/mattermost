@@ -1099,11 +1099,10 @@ type Z_OnSharedChannelsProfileImageSyncMsgArgs struct {
 }
 
 type Z_OnSharedChannelsProfileImageSyncMsgReturns struct {
-	A int64
-	B error
+	A error
 }
 
-func (g *hooksRPCClient) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+func (g *hooksRPCClient) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
 	_args := &Z_OnSharedChannelsProfileImageSyncMsgArgs{user, rc}
 	_returns := &Z_OnSharedChannelsProfileImageSyncMsgReturns{}
 	if g.implemented[OnSharedChannelsProfileImageSyncMsgID] {
@@ -1111,15 +1110,15 @@ func (g *hooksRPCClient) OnSharedChannelsProfileImageSyncMsg(user *model.User, r
 			g.log.Error("RPC call OnSharedChannelsProfileImageSyncMsg to plugin failed.", mlog.Err(err))
 		}
 	}
-	return _returns.A, _returns.B
+	return _returns.A
 }
 
 func (s *hooksRPCServer) OnSharedChannelsProfileImageSyncMsg(args *Z_OnSharedChannelsProfileImageSyncMsgArgs, returns *Z_OnSharedChannelsProfileImageSyncMsgReturns) error {
 	if hook, ok := s.impl.(interface {
-		OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error)
+		OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	}); ok {
-		returns.A, returns.B = hook.OnSharedChannelsProfileImageSyncMsg(args.A, args.B)
-		returns.B = encodableError(returns.B)
+		returns.A = hook.OnSharedChannelsProfileImageSyncMsg(args.A, args.B)
+		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("Hook OnSharedChannelsProfileImageSyncMsg called but not implemented."))
 	}

@@ -420,23 +420,17 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 		return
 	}
 
+	if rc.IsPlugin() {
+		scs.sendProfileImageToPlugin(user, channelID, rc)
+		return
+	}
+
 	ctx, cancel := context.WithTimeout(context.Background(), ProfileImageSyncTimeout)
 	defer cancel()
 
 	rcs.SendProfileImage(ctx, user.Id, rc, scs.app, func(userId string, rc *model.RemoteCluster, resp *remotecluster.Response, err error) {
 		if resp.IsSuccess() {
-			scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Users profile image synchronized",
-				mlog.String("remote_id", rc.RemoteId),
-				mlog.String("user_id", user.Id),
-			)
-
-			if err2 := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(user.Id, channelID, rc.RemoteId); err2 != nil {
-				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error updating users LastSyncTime after profile image update",
-					mlog.String("remote_id", rc.RemoteId),
-					mlog.String("user_id", user.Id),
-					mlog.Err(err2),
-				)
-			}
+			scs.sendProfileImageSuccess(user.Id, channelID, rc)
 			return
 		}
 
@@ -446,4 +440,30 @@ func (scs *Service) syncProfileImage(user *model.User, channelID string, rc *mod
 			mlog.Err(err),
 		)
 	})
+}
+
+func (scs *Service) sendProfileImageToPlugin(user *model.User, channelID string, rc *model.RemoteCluster) {
+	if err := scs.app.OnSharedChannelsProfileImageSyncMsg(user, rc); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error synchronizing users profile image for plugin",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("user_id", user.Id),
+			mlog.Err(err),
+		)
+	}
+	scs.sendProfileImageSuccess(user.Id, channelID, rc)
+}
+
+func (scs *Service) sendProfileImageSuccess(userID string, channelID string, rc *model.RemoteCluster) {
+	scs.server.Log().Log(mlog.LvlSharedChannelServiceDebug, "Users profile image synchronized",
+		mlog.String("remote_id", rc.RemoteId),
+		mlog.String("user_id", userID),
+	)
+
+	if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, channelID, rc.RemoteId); err != nil {
+		scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Error updating users LastSyncTime after profile image update",
+			mlog.String("remote_id", rc.RemoteId),
+			mlog.String("user_id", userID),
+			mlog.Err(err),
+		)
+	}
 }

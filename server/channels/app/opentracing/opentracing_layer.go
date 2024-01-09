@@ -12838,7 +12838,7 @@ func (a *OpenTracingAppLayer) OnSharedChannelsPing(rc *model.RemoteCluster) bool
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+func (a *OpenTracingAppLayer) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.OnSharedChannelsProfileImageSyncMsg")
 
@@ -12850,14 +12850,14 @@ func (a *OpenTracingAppLayer) OnSharedChannelsProfileImageSyncMsg(user *model.Us
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.OnSharedChannelsProfileImageSyncMsg(user, rc)
+	resultVar0 := a.app.OnSharedChannelsProfileImageSyncMsg(user, rc)
 
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
 		ext.Error.Set(span, true)
 	}
 
-	return resultVar0, resultVar1
+	return resultVar0
 }
 
 func (a *OpenTracingAppLayer) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {

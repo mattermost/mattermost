@@ -349,10 +349,10 @@ func (a *App) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.
 
 // OnSharedChannelsProfileImageSyncMsg is called by the Shared Channels service for a registered plugin when a user's
 // profile image needs to be synchronized.
-func (a *App) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+func (a *App) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
 	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
 	if err != nil {
-		return 0, fmt.Errorf("cannot deliver user profile image sync msg to plugin %s: %w", rc.PluginID, err)
+		return fmt.Errorf("cannot deliver user profile image sync msg to plugin %s: %w", rc.PluginID, err)
 	}
 
 	return pluginHooks.OnSharedChannelsProfileImageSyncMsg(user, rc)

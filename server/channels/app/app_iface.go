@@ -277,7 +277,7 @@ type AppIface interface {
 	OnSharedChannelsPing(rc *model.RemoteCluster) bool
 	// OnSharedChannelsProfileImageSyncMsg is called by the Shared Channels service for a registered plugin when a user's
 	// profile image needs to be synchronized.
-	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error)
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	// OnSharedChannelsSyncMsg is called by the Shared Channels service for a registered plugin when there is new content
 	// that needs to be synchronized.
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)

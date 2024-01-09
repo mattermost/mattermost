@@ -65,7 +65,7 @@ type AppIface interface {
 	NotifySharedChannelUserUpdate(user *model.User)
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
 	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
-	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error)
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.

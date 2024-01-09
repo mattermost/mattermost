@@ -156,7 +156,7 @@ type OnSharedChannelsAttachmentSyncMsgIFace interface {
 }
 
 type OnSharedChannelsProfileImageSyncMsgIFace interface {
-	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error)
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 }
 
 type HooksAdapter struct {
@@ -814,7 +814,7 @@ func (a *HooksAdapter) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, pos
 
 }
 
-func (a *HooksAdapter) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) (int64, error) {
+func (a *HooksAdapter) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
 	if _, ok := a.implemented[OnSharedChannelsProfileImageSyncMsgID]; !ok {
 		panic("product hooks must implement OnSharedChannelsProfileImageSyncMsg")
 	}
