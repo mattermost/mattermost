@@ -288,7 +288,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       <SettingsGroup
         id="globalRelaySettings"
       >
-        <RadioSetting
+        <Memo(RadioSetting)
           disabled={true}
           helpText={
             <Memo(MemoizedFormattedMessage)
@@ -315,6 +315,10 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
               Object {
                 "text": "A10/Type 10",
                 "value": "A10",
+              },
+              Object {
+                "text": "Custom",
+                "value": "CUSTOM",
               },
             ]
           }
@@ -729,7 +733,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       <SettingsGroup
         id="globalRelaySettings"
       >
-        <RadioSetting
+        <Memo(RadioSetting)
           disabled={false}
           helpText={
             <Memo(MemoizedFormattedMessage)
@@ -756,6 +760,10 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
               Object {
                 "text": "A10/Type 10",
                 "value": "A10",
+              },
+              Object {
+                "text": "Custom",
+                "value": "CUSTOM",
               },
             ]
           }

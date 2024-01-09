@@ -74,6 +74,47 @@ func TestConfigEmptySiteName(t *testing.T) {
 	require.Equal(t, *c1.TeamSettings.SiteName, TeamSettingsDefaultSiteName)
 }
 
+func TestServiceSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		ServiceSettings ServiceSettings
+		ExpectError     bool
+	}{
+		"empty": {
+			ServiceSettings: ServiceSettings{},
+			ExpectError:     false,
+		},
+		"OutgoingIntegrationRequestsTimeout is negative": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(-1),
+			},
+			ExpectError: true,
+		},
+		"OutgoingIntegrationRequestsTimeout is zero": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(0),
+			},
+			ExpectError: true,
+		},
+		"OutgoingIntegrationRequestsTimeout is positiv": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(1),
+			},
+			ExpectError: false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.ServiceSettings.SetDefaults(false)
+
+			appErr := test.ServiceSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, appErr)
+			} else {
+				assert.Nil(t, appErr)
+			}
+		})
+	}
+}
+
 func TestConfigEnableDeveloper(t *testing.T) {
 	testCases := []struct {
 		Description     string
@@ -141,6 +182,24 @@ func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
 
 	require.Equal(t, *c1.SamlSettings.SignatureAlgorithm, testAlgorithm)
 	require.Equal(t, *c1.SamlSettings.CanonicalAlgorithm, testAlgorithm)
+}
+
+func TestWranglerSettingsIsValid(t *testing.T) {
+	// // Test valid domains
+	w := &WranglerSettings{
+		AllowedEmailDomain: []string{"example.com", "subdomain.example.com"},
+	}
+	if err := w.IsValid(); err != nil {
+		t.Errorf("Expected no error for valid domains, but got %v", err)
+	}
+
+	// Test invalid domains
+	w = &WranglerSettings{
+		AllowedEmailDomain: []string{"example", "example..com", "example-.com", "-example.com", "example.com.", "example.com-"},
+	}
+	if err := w.IsValid(); err == nil {
+		t.Errorf("Expected error for invalid domains, but got none")
+	}
 }
 
 func TestConfigIsValidDefaultAlgorithms(t *testing.T) {

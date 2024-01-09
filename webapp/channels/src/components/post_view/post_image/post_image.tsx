@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 
 import type {Post, PostImage as PostImageMetadata} from '@mattermost/types/posts';
 
@@ -23,7 +24,7 @@ interface Props {
 }
 
 export default class PostImage extends React.PureComponent<Props> {
-    showModal = (e: React.MouseEvent, link: string) => {
+    showModal = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLElement>), link = '') => {
         e.preventDefault();
 
         this.props.actions.openModal({

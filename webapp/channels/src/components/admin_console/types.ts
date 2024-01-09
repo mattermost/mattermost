@@ -45,6 +45,14 @@ type AdminDefinitionSettingBanner = AdminDefinitionSettingBase & {
     banner_type: 'info' | 'warning';
 }
 
+type AdminDefinitionSettingRole = AdminDefinitionSettingBase & {
+    type: 'roles';
+    multiple?: boolean;
+    help_text?: string;
+    help_text_default?: string;
+    help_text_markdown?: boolean;
+}
+
 type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     type: 'text' | 'bool' | 'longtext' | 'number' | 'color';
     help_text?: string | JSX.Element;
@@ -55,6 +63,7 @@ type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     disabled_help_text_default?: string;
     disabled_help_text_markdown?: boolean;
     placeholder?: string;
+    multiple?: boolean;
     placeholder_default?: string;
     validate?: Validator;
     setFromMetadataField?: string;
@@ -155,7 +164,7 @@ export type AdminDefinitionSetting = AdminDefinitionSettingCustom |
 AdminDefinitionSettingInput | AdminDefinitionSettingGenerated |
 AdminDefinitionSettingBanner | AdminDefinitionSettingDropdown |
 AdminDefinitionSettingButton | AdminDefinitionSettingFileUpload |
-AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage;
+AdminDefinitionSettingJobsTable | AdminDefinitionSettingLanguage | AdminDefinitionSettingRole;
 
 type AdminDefinitionConfigSchemaSettings = {
     id: string;

@@ -21,24 +21,43 @@ const (
 	RemoteOfflineAfterMillis = 1000 * 60 * 5 // 5 minutes
 	RemoteNameMinLength      = 1
 	RemoteNameMaxLength      = 64
+
+	BitflagOptionAutoShareDMs Bitmask = 1 << iota // Any new DM/GM is automatically shared
+	BitflagOptionAutoInvited                      // Remote is automatically invited to all shared channels
 )
 
 var (
 	validRemoteNameChars = regexp.MustCompile(`^[a-zA-Z0-9\.\-\_]+$`)
 )
 
+type Bitmask uint32
+
+func (bm *Bitmask) IsBitSet(flag Bitmask) bool {
+	return *bm != 0
+}
+
+func (bm *Bitmask) SetBit(flag Bitmask) {
+	*bm |= flag
+}
+
+func (bm *Bitmask) UnsetBit(flag Bitmask) {
+	*bm &= ^flag
+}
+
 type RemoteCluster struct {
-	RemoteId     string `json:"remote_id"`
-	RemoteTeamId string `json:"remote_team_id"`
-	Name         string `json:"name"`
-	DisplayName  string `json:"display_name"`
-	SiteURL      string `json:"site_url"`
-	CreateAt     int64  `json:"create_at"`
-	LastPingAt   int64  `json:"last_ping_at"`
-	Token        string `json:"token"`
-	RemoteToken  string `json:"remote_token"`
-	Topics       string `json:"topics"`
-	CreatorId    string `json:"creator_id"`
+	RemoteId     string  `json:"remote_id"`
+	RemoteTeamId string  `json:"remote_team_id"`
+	Name         string  `json:"name"`
+	DisplayName  string  `json:"display_name"`
+	SiteURL      string  `json:"site_url"`
+	CreateAt     int64   `json:"create_at"`
+	LastPingAt   int64   `json:"last_ping_at"`
+	Token        string  `json:"token"`
+	RemoteToken  string  `json:"remote_token"`
+	Topics       string  `json:"topics"`
+	CreatorId    string  `json:"creator_id"`
+	PluginID     string  `json:"plugin_id"` // non-empty when sync message are to be delivered via plugin API
+	Options      Bitmask `json:"options"`   // bit-flag set of options
 }
 
 func (rc *RemoteCluster) Auditable() map[string]interface{} {
@@ -51,6 +70,8 @@ func (rc *RemoteCluster) Auditable() map[string]interface{} {
 		"create_at":      rc.CreateAt,
 		"last_ping_at":   rc.LastPingAt,
 		"creator_id":     rc.CreatorId,
+		"plugin_id":      rc.PluginID,
+		"options":        rc.Options,
 	}
 }
 
@@ -94,6 +115,18 @@ func (rc *RemoteCluster) IsValid() *AppError {
 		return NewAppError("RemoteCluster.IsValid", "model.cluster.is_valid.id.app_error", nil, "creator_id="+rc.CreatorId, http.StatusBadRequest)
 	}
 	return nil
+}
+
+func (rc *RemoteCluster) IsOptionFlagSet(flag Bitmask) bool {
+	return rc.Options.IsBitSet(flag)
+}
+
+func (rc *RemoteCluster) SetOptionFlag(flag Bitmask) {
+	rc.Options.SetBit(flag)
+}
+
+func (rc *RemoteCluster) UnsetOptionFlag(flag Bitmask) {
+	rc.Options.UnsetBit(flag)
 }
 
 func IsValidRemoteName(s string) bool {
@@ -319,4 +352,6 @@ type RemoteClusterQueryFilter struct {
 	Topic          string
 	CreatorId      string
 	OnlyConfirmed  bool
+	PluginID       string
+	RequireOptions Bitmask
 }

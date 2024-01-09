@@ -32,6 +32,8 @@ interface State extends BaseState {
     globalRelaySMTPUsername: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPUsername'];
     globalRelaySMTPPassword: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPPassword'];
     globalRelayEmailAddress: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['EmailAddress'];
+    globalRelayCustomSMTPServerName: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomSMTPServerName'];
+    globalRelayCustomSMTPPort: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['CustomSMTPPort'];
     globalRelaySMTPServerTimeout: AdminConfig['MessageExportSettings']['GlobalRelaySettings']['SMTPServerTimeout'];
 }
 
@@ -47,6 +49,8 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
                 SMTPUsername: this.state.globalRelaySMTPUsername,
                 SMTPPassword: this.state.globalRelaySMTPPassword,
                 EmailAddress: this.state.globalRelayEmailAddress,
+                CustomSMTPServerName: this.state.globalRelayCustomSMTPServerName,
+                CustomSMTPPort: this.state.globalRelayCustomSMTPPort,
                 SMTPServerTimeout: this.state.globalRelaySMTPServerTimeout,
             };
         }
@@ -63,6 +67,8 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
             globalRelaySMTPPassword: '',
             globalRelayEmailAddress: '',
             globalRelaySMTPServerTimeout: 0,
+            globalRelayCustomSMTPServerName: '',
+            globalRelayCustomSMTPPort: '',
             saveNeeded: false,
             saving: false,
             serverError: null,
@@ -73,6 +79,8 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
             state.globalRelaySMTPUsername = config.MessageExportSettings.GlobalRelaySettings.SMTPUsername;
             state.globalRelaySMTPPassword = config.MessageExportSettings.GlobalRelaySettings.SMTPPassword;
             state.globalRelayEmailAddress = config.MessageExportSettings.GlobalRelaySettings.EmailAddress;
+            state.globalRelayCustomSMTPServerName = config.MessageExportSettings.GlobalRelaySettings.CustomSMTPServerName;
+            state.globalRelayCustomSMTPPort = config.MessageExportSettings.GlobalRelaySettings.CustomSMTPPort;
         }
         return state;
     }
@@ -148,6 +156,7 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
                     values={[
                         {value: 'A9', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.a9.description', 'A9/Type 9')},
                         {value: 'A10', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.a10.description', 'A10/Type 10')},
+                        {value: 'CUSTOM', text: Utils.localizeMessage('admin.complianceExport.globalRelayCustomerType.custom.description', 'Custom')},
                     ]}
                     label={
                         <FormattedMessage
@@ -237,12 +246,66 @@ export default class MessageExportSettings extends AdminSettings<BaseProps, Stat
                 />
             );
 
+            const globalRelaySMTPServerName = (
+                <TextSetting
+                    id='globalRelayCustomSMTPServerName'
+                    label={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomSMTPServerName.title'
+                            defaultMessage='SMTP Server Name:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelayCustomSMTPServerName.example', 'E.g.: "feeds.globalrelay.com"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomSMTPServerName.description'
+                            defaultMessage='The SMTP server name that will receive your Global Relay EML.'
+                        />
+                    }
+                    value={this.state.globalRelayCustomSMTPServerName ? this.state.globalRelayCustomSMTPServerName : ''}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomSMTPServerName')}
+                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
+                />
+            );
+
+            const globalRelaySMTPPort = (
+                <TextSetting
+                    id='globalRelayCustomSMTPPort'
+                    label={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomSMTPPort.title'
+                            defaultMessage='SMTP Server Port:'
+                        />
+                    }
+                    placeholder={Utils.localizeMessage('admin.complianceExport.globalRelayCustomSMTPPort.example', 'E.g.: "25"')}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.complianceExport.globalRelayCustomSMTPPort.description'
+                            defaultMessage='The SMTP server port that will receive your Global Relay EML.'
+                        />
+                    }
+                    value={this.state.globalRelayCustomSMTPPort ? this.state.globalRelayCustomSMTPPort : ''}
+                    onChange={this.handleChange}
+                    setByEnv={this.isSetByEnv('DataRetentionSettings.GlobalRelaySettings.CustomSMTPPort')}
+                    disabled={this.props.isDisabled || !this.state.enableComplianceExport}
+                />
+            );
+
             globalRelaySettings = (
                 <SettingsGroup id={'globalRelaySettings'} >
                     {globalRelayCustomerType}
                     {globalRelaySMTPUsername}
                     {globalRelaySMTPPassword}
                     {globalRelayEmail}
+                    {
+                        this.state.globalRelayCustomerType === 'CUSTOM' &&
+                        globalRelaySMTPServerName
+                    }
+                    {
+                        this.state.globalRelayCustomerType === 'CUSTOM' &&
+                        globalRelaySMTPPort
+                    }
                 </SettingsGroup>
             );
         }
