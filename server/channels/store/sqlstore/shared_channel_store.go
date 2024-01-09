@@ -674,10 +674,10 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 
 	squery, args, err := s.getQueryBuilder().
 		Select(sharedChannelUserFields("")...).
-		From("SharedChannelUsers").
-		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
-		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteID}).
-		Where(sq.Eq{"SharedChannelUsers.ChannelId": channelID}).
+		From("SharedChannelUsers AS scu").
+		Where(sq.Eq{"scu.UserId": userID}).
+		Where(sq.Eq{"scu.ChannelId": channelID}).
+		Where(sq.Eq{"scu.RemoteId": remoteID}).
 		ToSql()
 
 	if err != nil {
@@ -761,25 +761,26 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 // UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.
 func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
 	var query string
+	// squirrel cannot handle the difference in syntax for update with join
 	if s.DriverName() == model.DatabaseDriverPostgres {
 		query = `
 		UPDATE
 			SharedChannelUsers AS scu
 		SET
-			LastSyncAt = GREATEST(Users.UpdateAt, Users.LastPictureUpdate)
+			LastSyncAt = GREATEST(u.UpdateAt, u.LastPictureUpdate)
 		FROM
-			Users
+			Users AS u
 		WHERE
-			Users.Id = scu.UserId AND scu.UserId = ? AND scu.ChannelId = ? AND scu.RemoteId = ?
+			u.Id = scu.UserId AND scu.UserId = ? AND scu.ChannelId = ? AND scu.RemoteId = ?
 		`
 	} else if s.DriverName() == model.DatabaseDriverMysql {
 		query = `
 		UPDATE
 			SharedChannelUsers AS scu
 		INNER JOIN
-			Users ON scu.UserId = Users.Id
+			Users AS u ON u.Id = scu.UserId
 		SET
-			LastSyncAt = GREATEST(Users.UpdateAt, Users.LastPictureUpdate)
+			LastSyncAt = GREATEST(u.UpdateAt, u.LastPictureUpdate)
 		WHERE
 			scu.UserId = ? AND scu.ChannelId = ? AND scu.RemoteId = ?
 		`
@@ -787,18 +788,10 @@ func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID str
 		return errors.New("unsupported DB driver " + s.DriverName())
 	}
 
-	result, err := s.GetMasterX().Exec(query, userID, channelID, remoteID)
+	_, err := s.GetMasterX().Exec(query, userID, channelID, remoteID)
 	if err != nil {
 		return fmt.Errorf("failed to update LastSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
 			userID, channelID, remoteID, err)
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to determine rows affected")
-	}
-	if count == 0 {
-		return fmt.Errorf("SharedChannelUser not found: userId=%s, channelId=%s, remoteId=%s", userID, channelID, remoteID)
 	}
 	return nil
 }
