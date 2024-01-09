@@ -4923,18 +4923,18 @@ func testGetMemberLastViewedAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, nErr)
 
 	m1 := &model.ChannelMember{
-		ChannelId:   c1.Id,
-		UserId:      userId,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		ChannelId:    c1.Id,
+		UserId:       userId,
+		NotifyProps:  model.GetDefaultChannelNotifyProps(),
 		LastViewedAt: int64(100),
 	}
 	_, err := ss.Channel().SaveMember(m1)
 	require.NoError(t, err)
 
 	m2 := &model.ChannelMember{
-		ChannelId:   c2.Id,
-		UserId:      userId,
-		NotifyProps: model.GetDefaultChannelNotifyProps(),
+		ChannelId:    c2.Id,
+		UserId:       userId,
+		NotifyProps:  model.GetDefaultChannelNotifyProps(),
 		LastViewedAt: int64(200),
 	}
 	_, err = ss.Channel().SaveMember(m2)
