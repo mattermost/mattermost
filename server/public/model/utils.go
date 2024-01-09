@@ -545,8 +545,8 @@ func StringInterfaceToJSON(objmap map[string]any) string {
 func StringInterfaceFromJSON(data io.Reader, maxBytes int64) (map[string]any, error) {
 	var objmap map[string]any
 
-	lr := io.LimitedReader{N: maxBytes, R: data}
-	err := json.NewDecoder(&lr).Decode(&objmap)
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&objmap)
 	if err != nil || objmap == nil {
 		return nil, err
 	}
