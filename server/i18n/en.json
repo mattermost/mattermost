@@ -1186,6 +1186,10 @@
     "translation": "Secure connection {{.RemoteId}} {{.Result}}."
   },
   {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Could not confirm invitation: {{.Error}}"
+  },
+  {
     "id": "api.command_remote.decode_invitation.error",
     "translation": "Could not decode invitation: {{.Error}}"
   },
