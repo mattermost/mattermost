@@ -8743,12 +8743,36 @@
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
   {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "File retention days and file retention hours cannot both be 0."
+  },
+  {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "File retention must be one day or longer."
+    "translation": "File retention days cannot be less than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "File retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "File retention days and file retention hours cannot both be greater than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Message retention days and message retention hours cannot both be 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Message retention must be one day or longer."
+    "translation": "Message retention days cannot be less than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Message retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Message retention days and message retention hours cannot both be greater than 0."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
