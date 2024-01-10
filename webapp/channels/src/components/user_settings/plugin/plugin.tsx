@@ -6,6 +6,7 @@ import {useIntl} from 'react-intl';
 
 import type {PluginConfiguration} from 'types/plugins/user_settings';
 
+import PluginAction from './plugin_action';
 import PluginSetting from './plugin_setting';
 
 import SettingDesktopHeader from '../setting_desktop_header';
@@ -42,6 +43,7 @@ const PluginTab = ({
             />
             <div className='user-settings'>
                 <SettingDesktopHeader text={headerText}/>
+                <PluginAction action={settings.action}/>
                 <div className='divider-dark first'/>
                 {settings.sections.map(
                     (v) =>

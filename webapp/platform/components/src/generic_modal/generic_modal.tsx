@@ -164,7 +164,10 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
         const headerText = this.props.modalHeaderText && (
             <div className='GenericModal__header'>
-                <h1 id='genericModalLabel'>
+                <h1
+                    id='genericModalLabel'
+                    className='modal-title'
+                >
                     {this.props.modalHeaderText}
                 </h1>
                 {this.props.headerButton}

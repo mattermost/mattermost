@@ -112,6 +112,7 @@ const PluginSetting = ({
             title={section.title}
             updateSection={updateSection}
             describe={minDescribe}
+            isDisabled={section.disabled}
         />
     );
 };

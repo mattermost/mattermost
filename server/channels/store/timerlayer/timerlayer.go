@@ -927,10 +927,10 @@ func (s *TimerLayerChannelStore) GetAll(teamID string) ([]*model.Channel, error)
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, error) {
+func (s *TimerLayerChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetAllChannelMemberIdsByChannelId(id)
+	result, err := s.ChannelStore.GetAllChannelMembersById(id)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -938,7 +938,7 @@ func (s *TimerLayerChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllChannelMemberIdsByChannelId", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetAllChannelMembersById", success, elapsed)
 	}
 	return result, err
 }
@@ -1467,22 +1467,6 @@ func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string) 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberForPost", success, elapsed)
-	}
-	return result, err
-}
-
-func (s *TimerLayerChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
-	start := time.Now()
-
-	result, err := s.ChannelStore.GetMemberOnly(ctx, channelID, userID)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberOnly", success, elapsed)
 	}
 	return result, err
 }
@@ -7023,6 +7007,22 @@ func (s *TimerLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFil
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetAll", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
+	start := time.Now()
+
+	result, err := s.RemoteClusterStore.GetByPluginID(pluginID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("RemoteClusterStore.GetByPluginID", success, elapsed)
 	}
 	return result, err
 }

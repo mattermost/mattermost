@@ -2205,42 +2205,6 @@
     }
 }
 
-#restorePostModal {
-    .modal-body {
-        max-height: calc(100vh - 128px - 61px - 88px);
-
-        .GenericModal__header {
-            padding-top: 0;
-        }
-    }
-
-    .modal-content {
-        padding-top: 44px;
-    }
-
-    .modal-footer {
-        padding-top: 28px;
-        text-align: center;
-    }
-
-    .GenericModal__button {
-        margin: 0 4px;
-
-        &.cancel-button {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            border-radius: 4px;
-        }
-    }
-}
-
-.edit-post-history__restore__modal__header {
-    text-align: center;
-
-    span {
-        font-size: 22px;
-    }
-}
-
 .edit-post-history__restore__modal__content {
     padding: 16px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
