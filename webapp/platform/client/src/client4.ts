@@ -134,7 +134,7 @@ import {
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
 } from '@mattermost/types/users';
-import {UserReport} from '@mattermost/types/reports';
+import {UserReport, UserReportFilter} from '@mattermost/types/reports';
 import {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {ProductNotices} from '@mattermost/types/product_notices';
 import {
@@ -996,6 +996,14 @@ export default class Client4 {
         const queryString = buildQueryString(filter);
         return this.doFetch<UserReport[]>(
             `${this.getReportsRoute()}/users${queryString}`,
+            {method: 'get'},
+        );
+    }
+
+    getUserCountForReporting = (filter: UserReportFilter) => {
+        const queryString = buildQueryString(filter);
+        return this.doFetch<number>(
+            `${this.getReportsRoute()}/users/count${queryString}`,
             {method: 'get'},
         );
     }
