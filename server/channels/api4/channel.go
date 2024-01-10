@@ -1033,7 +1033,7 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	if c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
+	if !c.Params.IncludeBookmarks && c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
 		return
 	}
 
@@ -1050,7 +1050,6 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 			return
 		}
 
-		w.Header().Set(model.HeaderEtagServer, channels.Etag())
 		if err := json.NewEncoder(w).Encode(channelsWithBookmarks); err != nil {
 			c.Logger.Warn("Error while writing response", mlog.Err(err))
 		}
