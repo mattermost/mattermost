@@ -3,13 +3,12 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {getCloudSubscription} from 'mattermost-redux/actions/cloud';
 import {checkHadPriorTrial, getCloudCustomer} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import type {Action, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -18,7 +17,6 @@ import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_clou
 import {LicenseSkus} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 
-import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
 
 import FeatureDiscovery from './feature_discovery';
@@ -42,15 +40,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    getPrevTrialLicense: () => void;
-    getCloudSubscription: () => void;
-    openModal: <P>(modalData: ModalData<P>) => void;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             getPrevTrialLicense,
             getCloudSubscription,
             openModal,

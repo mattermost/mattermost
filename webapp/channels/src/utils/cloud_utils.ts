@@ -1,11 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CloudCustomer} from '@mattermost/types/cloud';
+import type {CloudCustomer, InvoiceLineItem} from '@mattermost/types/cloud';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
 import {CloudLinks} from 'utils/constants';
+
+export function buildInvoiceSummaryPropsFromLineItems(lineItems: InvoiceLineItem[]) {
+    let fullCharges = lineItems.filter((item) => item.type === 'full');
+    const partialCharges = lineItems.filter((item) => item.type === 'partial');
+    if (!partialCharges.length && !fullCharges.length) {
+        fullCharges = lineItems;
+    }
+    let hasMoreLineItems = 0;
+    if (fullCharges.length > 5) {
+        hasMoreLineItems = fullCharges.length - 5;
+        fullCharges = fullCharges.slice(0, 5);
+    }
+
+    return {partialCharges, fullCharges, hasMore: hasMoreLineItems};
+}
 
 export function isCustomerCardExpired(customer?: CloudCustomer): boolean {
     if (!customer) {

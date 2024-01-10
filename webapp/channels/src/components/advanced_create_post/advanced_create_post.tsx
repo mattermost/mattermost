@@ -168,10 +168,10 @@ export type Props = {
         addMessageIntoHistory: (message: string) => void;
 
         // func called for navigation through messages by Up arrow
-        moveHistoryIndexBack: (index: string) => Promise<void>;
+        moveHistoryIndexBack: (index: string) => Promise<ActionResult>;
 
         // func called for navigation through messages by Down arrow
-        moveHistoryIndexForward: (index: string) => Promise<void>;
+        moveHistoryIndexForward: (index: string) => Promise<ActionResult>;
 
         submitReaction: (postId: string, action: string, emojiName: string) => void;
 
@@ -188,10 +188,10 @@ export type Props = {
         clearDraftUploads: () => void;
 
         //hooks called before a message is sent to the server
-        runMessageWillBePostedHooks: (originalPost: Post) => ActionResult;
+        runMessageWillBePostedHooks: (originalPost: Post) => Promise<ActionResult<Post>>;
 
         //hooks called before a slash command is sent to the server
-        runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => ActionResult;
+        runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => Promise<ActionResult>;
 
         // func called for setting drafts
         setDraft: (name: string, value: PostDraft | null, draftChannelId: string, save?: boolean) => void;
@@ -205,19 +205,19 @@ export type Props = {
         //Function to open a modal
         openModal: <P>(modalData: ModalData<P>) => void;
 
-        executeCommand: (message: string, args: CommandArgs) => ActionResult;
+        executeCommand: (message: string, args: CommandArgs) => Promise<ActionResult>;
 
         //Function to get the users timezones in the channel
-        getChannelTimezones: (channelId: string) => ActionResult;
+        getChannelTimezones: (channelId: string) => Promise<ActionResult<string[]>>;
         scrollPostListToBottom: () => void;
 
         //Function to set or unset emoji picker for last message
-        emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
+        emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
 
         getChannelMemberCountsByGroup: (channelId: string) => void;
 
         //Function used to advance the tutorial forward
-        savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
 
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
     };
@@ -734,7 +734,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         await this.doSubmit(e);
     };
 
-    sendMessage = async (originalPost: Post) => {
+    sendMessage = async (originalPost: Post): Promise<ActionResult> => {
         const {
             actions,
             currentChannel,
@@ -782,7 +782,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return hookResult;
         }
 
-        post = hookResult.data;
+        post = hookResult.data!;
 
         actions.onSubmitPost(post, draft.fileInfos);
         actions.scrollPostListToBottom();

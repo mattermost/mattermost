@@ -115,16 +115,16 @@ export type Props = {
     onResetHistoryIndex: () => void;
 
     // Called when navigating back through comment message history
-    moveHistoryIndexBack: (index: string) => Promise<void>;
+    moveHistoryIndexBack: (index: string) => Promise<ActionResult>;
 
     // Called when navigating forward through comment message history
-    moveHistoryIndexForward: (index: string) => Promise<void>;
+    moveHistoryIndexForward: (index: string) => Promise<ActionResult>;
 
     // Called to initiate editing the user's latest post
-    onEditLatestPost: () => ActionResult;
+    onEditLatestPost: () => ActionResult<boolean>;
 
     // Function to get the users timezones in the channel
-    getChannelTimezones: (channelId: string) => Promise<ActionResult>;
+    getChannelTimezones: (channelId: string) => Promise<ActionResult<string[]>>;
 
     // Reset state of createPost request
     resetCreatePostRequest: () => void;
@@ -151,7 +151,7 @@ export type Props = {
     selectedPostFocussedAt: number;
 
     // Function to set or unset emoji picker for last message
-    emitShortcutReactToLastPostFrom: (location: string) => void;
+    emitShortcutReactToLastPostFrom: (location: keyof typeof Constants.Locations) => void;
 
     // Determines if the current user can send special channel mentions
     useChannelMentions: boolean;
@@ -175,10 +175,10 @@ export type Props = {
     focusOnMount?: boolean;
     isThreadView?: boolean;
     openModal: <P>(modalData: ModalData<P>) => void;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
+    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     useCustomGroupMentions: boolean;
     isFormattingBarHidden: boolean;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
+    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<ActionResult>;
     postEditorActions: PluginComponent[];
     placeholder?: string;
 }
