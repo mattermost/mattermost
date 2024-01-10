@@ -41,7 +41,7 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
@@ -98,8 +98,8 @@ export function loadIfNecessaryAndSwitchToChannelById(channelId: string) {
     };
 }
 
-export function switchToChannel(channel: Channel & {userId?: string}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function switchToChannel(channel: Channel & {userId?: string}): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const selectedTeamId = channel.team_id;
         const teamUrl = selectedTeamId ? `/${getTeam(state, selectedTeamId).name}` : getCurrentRelativeTeamUrl(state);
@@ -234,8 +234,8 @@ export function autocompleteUsersInChannel(prefix: string, channelId: string) {
     };
 }
 
-export function loadUnreads(channelId: string, prefetch = false) {
-    return async (dispatch: DispatchFunc) => {
+export function loadUnreads(channelId: string, prefetch = false): NewActionFuncAsync<{atLatestMessage: boolean; atOldestMessage: boolean}> {
+    return async (dispatch) => {
         const time = Date.now();
         if (prefetch) {
             dispatch({
@@ -259,13 +259,13 @@ export function loadUnreads(channelId: string, prefetch = false) {
                 atOldestmessage: false,
             };
         }
-        dispatch(loadCustomStatusEmojisForPostList(data.posts));
+        dispatch(loadCustomStatusEmojisForPostList(data!.posts));
 
         const actions = [];
         actions.push({
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,
-            amount: data.order.length,
+            amount: data!.order.length,
         });
 
         if (prefetch) {
@@ -276,7 +276,7 @@ export function loadUnreads(channelId: string, prefetch = false) {
             });
         }
 
-        if (data.next_post_id === '') {
+        if (data!.next_post_id === '') {
             actions.push({
                 type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
                 channelId,
@@ -286,8 +286,8 @@ export function loadUnreads(channelId: string, prefetch = false) {
 
         dispatch(batchActions(actions));
         return {
-            atLatestMessage: data.next_post_id === '',
-            atOldestmessage: data.prev_post_id === '',
+            atLatestMessage: data!.next_post_id === '',
+            atOldestmessage: data!.prev_post_id === '',
         };
     };
 }
@@ -460,8 +460,8 @@ export function syncPostsInChannel(channelId: string, since: number, prefetch = 
     };
 }
 
-export function prefetchChannelPosts(channelId: string, jitter: number) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function prefetchChannelPosts(channelId: string, jitter?: number): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const recentPostIdInChannel = getMostRecentPostIdInChannel(state, channelId);
 
