@@ -5,6 +5,9 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
+
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -80,6 +83,10 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 
 	if filters.OffsetId != "" {
 		query = query.Where("Id > ?", filters.OffsetId)
+	}
+
+	if filters.Audience != "" {
+		query = query.Where(sq.Like{"Audiences": fmt.Sprint("%", filters.Audience, "%")})
 	}
 
 	if err := s.GetReplicaX().SelectBuilder(&conns, query); err != nil {
