@@ -483,9 +483,11 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "file", info)
 
-	if info.CreatorId == model.BookmarkFileOwner && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
 	} else if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
@@ -518,9 +520,11 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId == model.BookmarkFileOwner && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
 	} else if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
@@ -564,12 +568,17 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "file", info)
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
 
-	if info.PostId == "" {
+	if info.PostId == "" && info.CreatorId != model.BookmarkFileOwner {
 		c.Err = model.NewAppError("getPublicLink", "api.file.get_public_link.no_post.app_error", nil, "file_id="+info.Id, http.StatusBadRequest)
 		return
 	}
@@ -597,9 +606,11 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId == model.BookmarkFileOwner && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
-		c.SetPermissionError(model.PermissionReadChannelContent)
-		return
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
 	} else if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
@@ -634,7 +645,12 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	if info.CreatorId == model.BookmarkFileOwner {
+		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent) {
+			c.SetPermissionError(model.PermissionReadChannelContent)
+			return
+		}
+	} else if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}

@@ -3203,7 +3203,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/wrangler',
                 title: t('admin.sidebar.move_thread'),
                 title_default: 'Move Thread (Beta)',
-                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled')),
+                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled'), it.not(it.licensed)),
                 schema: {
                     id: 'WranglerSettings',
                     name: t('admin.site.move_thread'),
@@ -6203,6 +6203,50 @@ const AdminDefinition: AdminDefinitionType = {
                             help_text_markdown: false,
                             isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
                             isHidden: it.licensedForFeature('Cloud'),
+                        },
+                        {
+                            type: 'number',
+                            key: 'ServiceSettings.OutgoingIntegrationRequestsTimeout',
+                            label: t('admin.service.integrationRequestTitle'),
+                            label_default: 'Integration request timeout: ',
+                            help_text: t('admin.service.integrationRequestDesc'),
+                            help_text_default: 'The number of seconds to wait for Integration requests. That includes <slashCommands>Slash Commands</slashCommands>, <outgoingWebhooks>Outgoing Webhooks</outgoingWebhooks>, <interactiveMessages>Interactive Messages</interactiveMessages> and <interactiveDialogs>Interactive Dialogs</interactiveDialogs>.',
+                            help_text_values: {
+                                slashCommands: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DeveloperLinks.CUSTOM_SLASH_COMMANDS}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                                outgoingWebhooks: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DeveloperLinks.OUTGOING_WEBHOOKS}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                                interactiveMessages: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DeveloperLinks.INTERACTIVE_MESSAGES}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                                interactiveDialogs: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DeveloperLinks.INTERACTIVE_DIALOGS}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
                         },
                         {
                             type: 'bool',

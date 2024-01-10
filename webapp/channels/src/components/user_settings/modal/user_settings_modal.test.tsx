@@ -18,7 +18,7 @@ import UserSettingsModal from './index';
 type Props = ComponentProps<typeof UserSettingsModal>;
 
 const baseProps: Props = {
-    isContentProductSettings: false,
+    isContentProductSettings: true,
     onExited: jest.fn(),
 };
 
@@ -37,6 +37,40 @@ describe('do first render to avoid other testing issues', () => {
     // completly renders. This makes it so further tests go properly
     // through.
     renderWithContext(<UserSettingsModal {...baseProps}/>, baseState);
+});
+
+describe('plugin tabs are only rendered on content product settings', () => {
+    it('plugin tabs are properly rendered', async () => {
+        const uiName1 = 'plugin_a';
+        const uiName2 = 'plugin_b';
+        const state: DeepPartial<GlobalState> = {
+            plugins: {
+                userSettings: {
+                    plugin_a: {
+                        id: 'plugin_a',
+                        sections: [],
+                        uiName: uiName1,
+                    },
+                    plugin_b: {
+                        id: 'plugin_b',
+                        sections: [],
+                        uiName: uiName2,
+                    },
+                },
+            },
+        };
+
+        renderWithContext(
+            <UserSettingsModal
+                {...baseProps}
+                isContentProductSettings={false}
+            />,
+            mergeObjects(baseState, state),
+        );
+
+        expect(screen.queryByText(uiName1)).not.toBeInTheDocument();
+        expect(screen.queryByText(uiName2)).not.toBeInTheDocument();
+    });
 });
 
 describe('tabs are properly rendered', () => {

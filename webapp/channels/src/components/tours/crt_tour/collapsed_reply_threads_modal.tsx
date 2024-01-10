@@ -71,6 +71,7 @@ function CollapsedReplyThreadsModal(props: Props) {
 
     return (
         <GenericModal
+            compassDesign={true}
             className='CollapsedReplyThreadsModal productNotices'
             id={ModalIdentifiers.COLLAPSED_REPLY_THREADS_MODAL}
             onExited={props.onExited}

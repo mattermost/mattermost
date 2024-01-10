@@ -797,7 +797,7 @@ func TestCreateGroupChannel(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	require.Nil(t, rgc)
 
-	_, resp, err = client.CreateGroupChannel(context.Background(), []string{user.Id, user2.Id, user3.Id, GenerateTestId()})
+	_, resp, err = client.CreateGroupChannel(context.Background(), []string{user.Id, user2.Id, user3.Id, GenerateTestID()})
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -1238,7 +1238,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	require.Len(t, channels, 1, "should return 1 channel")
 	require.Equal(t, output[0], channels[0].DisplayName, "missing channel")
 
-	input = append(input, GenerateTestId())
+	input = append(input, GenerateTestID())
 	input = append(input, th.BasicChannel2.Id)
 	input = append(input, th.BasicPrivateChannel.Id)
 	output = append(output, th.BasicChannel2.DisplayName)
@@ -1252,7 +1252,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 		require.Equal(t, output[i], c.DisplayName, "missing channel")
 	}
 
-	_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), GenerateTestId(), input)
+	_, resp, err := client.GetPublicChannelsByIdsForTeam(context.Background(), GenerateTestID(), input)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -1264,7 +1264,7 @@ func TestGetPublicChannelsByIdsForTeam(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{GenerateTestId()})
+	_, resp, err = client.GetPublicChannelsByIdsForTeam(context.Background(), teamId, []string{GenerateTestID()})
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -2205,7 +2205,7 @@ func TestDeleteChannel(t *testing.T) {
 		require.Nilf(t, appErr, "Expected nil, Got %v", appErr)
 		require.True(t, ch.DeleteAt != 0, "should have returned one with a populated DeleteAt.")
 
-		post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestId() + "a"}
+		post1 := &model.Post{ChannelId: publicChannel1.Id, Message: "a" + GenerateTestID() + "a"}
 		_, resp, _ := client.CreatePost(context.Background(), post1)
 		require.NotNil(t, resp, "expected response to not be nil")
 
@@ -2266,7 +2266,7 @@ func TestDeleteChannel(t *testing.T) {
 		CheckUnauthorizedStatus(t, resp)
 
 		c.Logout(context.Background())
-		resp, err = c.DeleteChannel(context.Background(), GenerateTestId())
+		resp, err = c.DeleteChannel(context.Background(), GenerateTestID())
 		require.Error(t, err)
 		CheckUnauthorizedStatus(t, resp)
 
@@ -3042,7 +3042,7 @@ func TestGetPinnedPosts(t *testing.T) {
 	posts, resp, _ = client.GetPinnedPosts(context.Background(), channel.Id, resp.Etag)
 	CheckEtag(t, posts, resp)
 
-	_, resp, err = client.GetPinnedPosts(context.Background(), GenerateTestId(), "")
+	_, resp, err = client.GetPinnedPosts(context.Background(), GenerateTestID(), "")
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -3339,7 +3339,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Equal(t, privateChannel.Id, cm.ChannelId, "should have returned exact channel")
 	require.Equal(t, user2.Id, cm.UserId, "should have returned exact user added to private channel")
 
-	post := &model.Post{ChannelId: publicChannel.Id, Message: "a" + GenerateTestId() + "a"}
+	post := &model.Post{ChannelId: publicChannel.Id, Message: "a" + GenerateTestID() + "a"}
 	rpost, _, err := client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
 
@@ -3353,7 +3353,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddChannelMemberWithRootId(context.Background(), publicChannel.Id, user.Id, GenerateTestId())
+	_, resp, err = client.AddChannelMemberWithRootId(context.Background(), publicChannel.Id, user.Id, GenerateTestID())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -3366,7 +3366,7 @@ func TestAddChannelMember(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 	require.Nil(t, cm, "should return nothing")
 
-	_, resp, err = client.AddChannelMember(context.Background(), publicChannel.Id, GenerateTestId())
+	_, resp, err = client.AddChannelMember(context.Background(), publicChannel.Id, GenerateTestID())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -3374,7 +3374,7 @@ func TestAddChannelMember(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddChannelMember(context.Background(), GenerateTestId(), user2.Id)
+	_, resp, err = client.AddChannelMember(context.Background(), GenerateTestID(), user2.Id)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -4923,7 +4923,9 @@ func TestGetChannelsMemberCount(t *testing.T) {
 	client := th.Client
 
 	channel1 := th.CreatePublicChannel()
-	channel2 := th.CreatePublicChannel()
+	channel2 := th.CreatePrivateChannel()
+	channel3 := th.CreatePrivateChannel()
+	th.RemoveUserFromChannel(th.BasicUser, channel3)
 
 	user1 := th.CreateUser()
 	user2 := th.CreateUser()
@@ -4958,7 +4960,7 @@ func TestGetChannelsMemberCount(t *testing.T) {
 	})
 
 	t.Run("Should fail due to permissions", func(t *testing.T) {
-		_, resp, err := client.GetChannelsMemberCount(context.Background(), []string{"junk"})
+		_, resp, err := client.GetChannelsMemberCount(context.Background(), []string{channel3.Id})
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
@@ -4980,6 +4982,13 @@ func TestGetChannelsMemberCount(t *testing.T) {
 		require.Error(t, err)
 		CheckForbiddenStatus(t, resp)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
+	})
+
+	t.Run("Should not fail for public channels that the user is not a member of", func(t *testing.T) {
+		th.LoginBasic2()
+		channelIDs := []string{channel1.Id}
+		_, _, err := client.GetChannelsMemberCount(context.Background(), channelIDs)
+		require.NoError(t, err)
 	})
 }
 

@@ -716,14 +716,14 @@ func (th *TestHelper) CreateChannelWithClient(client *model.Client4, channelType
 	return th.CreateChannelWithClientAndTeam(client, channelType, th.BasicTeam.Id)
 }
 
-func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, channelType model.ChannelType, teamId string) *model.Channel {
+func (th *TestHelper) CreateChannelWithClientAndTeam(client *model.Client4, channelType model.ChannelType, teamID string) *model.Channel {
 	id := model.NewId()
 
 	channel := &model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        GenerateTestChannelName(),
 		Type:        channelType,
-		TeamId:      teamId,
+		TeamId:      teamID,
 	}
 
 	rchannel, _, err := client.CreateChannel(context.Background(), channel)
@@ -1027,7 +1027,7 @@ func GenerateTestAppName() string {
 	return "fakeoauthapp" + model.NewRandomString(10)
 }
 
-func GenerateTestId() string {
+func GenerateTestID() string {
 	return model.NewId()
 }
 

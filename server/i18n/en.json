@@ -1238,6 +1238,10 @@
     "translation": "Secure connection {{.RemoteId}} {{.Result}}."
   },
   {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Could not confirm invitation: {{.Error}}"
+  },
+  {
     "id": "api.command_remote.decode_invitation.error",
     "translation": "Could not decode invitation: {{.Error}}"
   },
@@ -1442,6 +1446,10 @@
     "translation": "Cannot invite secure connection to a shared channel originating somewhere else."
   },
   {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Cannot invite remote because channel {{.ChannelID}} is not shared."
+  },
+  {
     "id": "api.command_share.channel_remote_id_not_exists",
     "translation": "Shared channel secure connection `{{.RemoteId}}` does not exist for this channel."
   },
@@ -1459,7 +1467,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Error while checking if shared channel exists: {{.Error}}"
+    "translation": "Error while checking if shared channel {{.ChannelID}} exists: {{.Error}}"
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -1706,6 +1714,18 @@
     "translation": "Multi-factor authentication is required on this server."
   },
   {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "There was an error while listing outgoing OAuth connections."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
     "id": "api.context.permissions.app_error",
     "translation": "You do not have the appropriate permissions."
   },
@@ -1903,6 +1923,10 @@
   {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
@@ -2405,6 +2429,10 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.payload.parse.error",
+    "translation": "An error occurred while parsing the payload."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -2729,6 +2757,10 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -6127,6 +6159,10 @@
     "translation": "No license present"
   },
   {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Failed to get user count"
+  },
+  {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "Could not update last login timestamp"
   },
@@ -8227,6 +8263,30 @@
     "translation": "Username already used by another Mattermost user."
   },
   {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "There was an error while deleting the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "The outgoing oauth connection was not found."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connections."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "There was an error saving the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "There was an error updating the outgoing oauth connection."
+  },
+  {
     "id": "ent.saml.attribute.app_error",
     "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
@@ -8348,7 +8408,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -8815,12 +8875,36 @@
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
   {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "File retention days and file retention hours cannot both be 0."
+  },
+  {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "File retention must be one day or longer."
+    "translation": "File retention days cannot be less than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "File retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "File retention days and file retention hours cannot both be greater than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Message retention days and message retention hours cannot both be 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Message retention must be one day or longer."
+    "translation": "Message retention days cannot be less than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Message retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Message retention days and message retention hours cannot both be greater than 0."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -9003,6 +9087,10 @@
     "translation": "Invalid maximum notifications per channel for team settings. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Invalid maximum users per team for team settings. Must be a positive number."
   },
@@ -9053,6 +9141,10 @@
   {
     "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
     "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",

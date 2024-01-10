@@ -288,7 +288,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       <SettingsGroup
         id="globalRelaySettings"
       >
-        <RadioSetting
+        <Memo(RadioSetting)
           disabled={true}
           helpText={
             <Memo(MemoizedFormattedMessage)
@@ -733,7 +733,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       <SettingsGroup
         id="globalRelaySettings"
       >
-        <RadioSetting
+        <Memo(RadioSetting)
           disabled={false}
           helpText={
             <Memo(MemoizedFormattedMessage)

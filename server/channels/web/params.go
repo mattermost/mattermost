@@ -93,6 +93,7 @@ type Params struct {
 	GroupSource               model.GroupSource
 	FilterHasMember           string
 	IncludeChannelMemberCount string
+	OutgoingOAuthConnectionID string
 
 	//Bookmarks
 	ChannelBookmarkId string
@@ -150,6 +151,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.GroupId = props["group_id"]
 	params.RemoteId = props["remote_id"]
 	params.InvoiceId = props["invoice_id"]
+	params.OutgoingOAuthConnectionID = props["outgoing_oauth_connection_id"]
 	params.ChannelBookmarkId = props["bookmark_id"]
 	params.Scope = query.Get("scope")
 
