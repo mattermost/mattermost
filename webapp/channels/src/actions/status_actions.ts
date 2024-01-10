@@ -8,7 +8,7 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, DispatchFunc, GetStateFunc, NewActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
@@ -49,8 +49,8 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc {
     };
 }
 
-export function loadStatusesForProfilesList(users: UserProfile[] | null) {
-    return (dispatch: DispatchFunc) => {
+export function loadStatusesForProfilesList(users: UserProfile[] | null): NewActionFunc<boolean> {
+    return (dispatch) => {
         if (users == null) {
             return {data: false};
         }
