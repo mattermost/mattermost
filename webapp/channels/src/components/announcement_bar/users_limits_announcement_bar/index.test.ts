@@ -74,4 +74,15 @@ describe('shouldShowUserLimitsAnnouncementBar', () => {
 
         expect(shouldShowUserLimitsAnnouncementBar(props)).toBe(false);
     });
+
+    test('should not show for licensed server even if user count is greater than max users limit', () => {
+        const props = {
+            ...defaultProps,
+            isLicensed: true,
+            activeUserCount: 101,
+            maxUsersLimit: 100,
+        };
+
+        expect(shouldShowUserLimitsAnnouncementBar(props)).toBe(false);
+    });
 });
