@@ -3,7 +3,6 @@
 
 import type {ServerError} from '@mattermost/types/errors';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions.js';
 import {isDirectChannel, isGroupChannel, sortChannelsByTypeListAndDisplayName} from 'mattermost-redux/utils/channel_utils';
 
 import {getCurrentLocale} from 'selectors/i18n';
@@ -32,9 +31,12 @@ function itemToTerm(isAtSearch: boolean, item: { type: string; display_name: str
     return item.name;
 }
 
+type SearchChannelAutocomplete = (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
+
 export default class SearchChannelProvider extends Provider {
-    autocompleteChannelsForSearch: any;
-    constructor(channelSearchFunc: (term: string, success: (channels: Channel[]) => void, error: (err: ServerError) => void) => ActionFunc) {
+    autocompleteChannelsForSearch: SearchChannelAutocomplete;
+
+    constructor(channelSearchFunc: SearchChannelAutocomplete) {
         super();
         this.autocompleteChannelsForSearch = channelSearchFunc;
     }

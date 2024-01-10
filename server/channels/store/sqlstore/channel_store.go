@@ -1126,16 +1126,26 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannelMemberIdsByChannelId(channelID string) ([]string, error) {
-	userIDs := []string{}
-	err := s.GetReplicaX().Select(&userIDs, `SELECT UserId
-		FROM ChannelMembers
-		WHERE ChannelId=?`, channelID)
+func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
+	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
+		"ChannelId": channelID,
+	}).ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "GetAllChannelMembersById_ToSql")
+	}
+
+	dbMembers := channelMemberWithSchemeRolesList{}
+	err = s.GetReplicaX().Select(&dbMembers, sql, args...)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelID=%s", channelID)
 	}
 
-	return userIDs, nil
+	res := make([]string, len(dbMembers))
+	for i, member := range dbMembers.ToModel() {
+		res[i] = member.UserId
+	}
+
+	return res, nil
 }
 
 func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
@@ -2060,33 +2070,6 @@ func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID
 	return dbMember.ToModel(), nil
 }
 
-func (s SqlChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
-	var dbMember model.ChannelMember
-	if err := s.DBXFromContext(ctx).Get(&dbMember, `SELECT ChannelId,
-		UserId,
-		Roles,
-		LastViewedAt,
-		MsgCount,
-		MentionCount,
-		MentionCountRoot,
-		COALESCE(UrgentMentionCount, 0) AS UrgentMentionCount,
-		MsgCountRoot,
-		NotifyProps,
-		LastUpdateAt,
-		SchemeUser,
-		SchemeAdmin,
-		SchemeGuest
-		FROM ChannelMembers
-		WHERE ChannelId=? AND UserId=?`, channelID, userID); err != nil {
-		if err == sql.ErrNoRows {
-			return nil, store.NewErrNotFound("ChannelMember", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
-		}
-		return nil, errors.Wrapf(err, "failed to get ChannelMember with channelId=%s and userId=%s", channelID, userID)
-	}
-
-	return &dbMember, nil
-}
-
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	allChannelMembersForUserCache.Remove(userId)
 	allChannelMembersForUserCache.Remove(userId + "_deleted")
@@ -2124,7 +2107,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 	return false
 }
 
-func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeArchivedChannels bool) (*model.ChannelMember, error) {
 	var dbMember channelMemberWithSchemeRoles
 	query := `
 		SELECT
@@ -2164,6 +2147,10 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 			ChannelMembers.UserId = ?
 		AND
 			Posts.Id = ?`
+
+	if !includeArchivedChannels {
+		query += " AND Channels.DeleteAt = 0"
+	}
 	if err := s.GetReplicaX().Get(&dbMember, query, userId, postId); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with postId=%s and userId=%s", postId, userId)
 	}

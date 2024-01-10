@@ -4,20 +4,20 @@
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
 
 import {getTeam, patchTeam, removeTeamIcon, setTeamIcon} from 'mattermost-redux/actions/teams';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import type {GlobalState} from 'types/store/index';
 
 import TeamInfoTab from './team_info_tab';
 
 export type OwnProps = {
-    team?: Team & { last_team_icon_update?: number };
+    team: Team & { last_team_icon_update?: number };
     hasChanges: boolean;
     hasChangeTabError: boolean;
     setHasChanges: (hasChanges: boolean) => void;
@@ -35,16 +35,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    getTeam: (teamId: string) => Promise<ActionResult>;
-    patchTeam: (team: Partial<Team>) => Promise<ActionResult>;
-    removeTeamIcon: (teamId: string) => Promise<ActionResult>;
-    setTeamIcon: (teamId: string, teamIconFile: File) => Promise<ActionResult>;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             getTeam,
             patchTeam,
             removeTeamIcon,
