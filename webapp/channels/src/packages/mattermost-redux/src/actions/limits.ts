@@ -9,10 +9,10 @@ import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentUserRoles} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
 
-export function getUsersLimits(): ActionFunc<UsersLimits, ServerError> {
+export function getUsersLimits(): NewActionFuncAsync<UsersLimits> {
     return async (dispatch, getState) => {
         const roles = getCurrentUserRoles(getState());
         const amIAdmin = isAdmin(roles);
