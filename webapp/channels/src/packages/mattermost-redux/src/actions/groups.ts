@@ -4,19 +4,20 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import type {GroupPatch, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GetGroupsParams, GetGroupsForUserParams} from '@mattermost/types/groups';
+import type {GroupPatch, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GetGroupsParams, GetGroupsForUserParams, Group, GroupsWithCount, GroupStats} from '@mattermost/types/groups';
 import {SyncableType, GroupSource} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {ChannelTypes, GroupTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
-export function linkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function linkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.linkGroupSyncable(groupID, syncableID, syncableType, patch);
@@ -47,8 +48,8 @@ export function linkGroupSyncable(groupID: string, syncableID: string, syncableT
     };
 }
 
-export function unlinkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function unlinkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.unlinkGroupSyncable(groupID, syncableID, syncableType);
         } catch (error) {
@@ -82,8 +83,8 @@ export function unlinkGroupSyncable(groupID: string, syncableID: string, syncabl
     };
 }
 
-export function getGroupSyncables(groupID: string, syncableType: SyncableType): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getGroupSyncables(groupID: string, syncableType: SyncableType): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getGroupSyncables(groupID, syncableType);
@@ -113,8 +114,8 @@ export function getGroupSyncables(groupID: string, syncableType: SyncableType): 
     };
 }
 
-export function patchGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function patchGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.patchGroupSyncable(groupID, syncableID, syncableType, patch);
@@ -146,7 +147,7 @@ export function patchGroupSyncable(groupID: string, syncableID: string, syncable
     };
 }
 
-export function getGroup(id: string, includeMemberCount = false): ActionFunc {
+export function getGroup(id: string, includeMemberCount = false): NewActionFuncAsync<Group> {
     return bindClientFunc({
         clientFunc: Client4.getGroup,
         onSuccess: [GroupTypes.RECEIVED_GROUP],
@@ -154,10 +155,10 @@ export function getGroup(id: string, includeMemberCount = false): ActionFunc {
             id,
             includeMemberCount,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getGroups(opts: GetGroupsParams): ActionFunc {
+export function getGroups(opts: GetGroupsParams): NewActionFuncAsync<Group[]> {
     return bindClientFunc({
         clientFunc: async (opts) => {
             const result = await Client4.getGroups(opts);
@@ -167,10 +168,10 @@ export function getGroups(opts: GetGroupsParams): ActionFunc {
         params: [
             opts,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getGroupsNotAssociatedToTeam(teamID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, source = GroupSource.Ldap): ActionFunc {
+export function getGroupsNotAssociatedToTeam(teamID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, source = GroupSource.Ldap): NewActionFuncAsync<Group[]> {
     return bindClientFunc({
         clientFunc: Client4.getGroupsNotAssociatedToTeam,
         onSuccess: [GroupTypes.RECEIVED_GROUPS],
@@ -181,10 +182,10 @@ export function getGroupsNotAssociatedToTeam(teamID: string, q = '', page = 0, p
             perPage,
             source,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getGroupsNotAssociatedToChannel(channelID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, filterParentTeamPermitted = false, source = GroupSource.Ldap): ActionFunc {
+export function getGroupsNotAssociatedToChannel(channelID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, filterParentTeamPermitted = false, source = GroupSource.Ldap): NewActionFuncAsync<Group[]> {
     return bindClientFunc({
         clientFunc: Client4.getGroupsNotAssociatedToChannel,
         onSuccess: [GroupTypes.RECEIVED_GROUPS],
@@ -196,10 +197,10 @@ export function getGroupsNotAssociatedToChannel(channelID: string, q = '', page 
             filterParentTeamPermitted,
             source,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getAllGroupsAssociatedToTeam(teamID: string, filterAllowReference = false, includeMemberCount = false): ActionFunc {
+export function getAllGroupsAssociatedToTeam(teamID: string, filterAllowReference = false, includeMemberCount = false): NewActionFuncAsync<GroupsWithCount> {
     return bindClientFunc({
         clientFunc: async (param1, param2, param3) => {
             const result = await Client4.getAllGroupsAssociatedToTeam(param1, param2, param3);
@@ -212,7 +213,7 @@ export function getAllGroupsAssociatedToTeam(teamID: string, filterAllowReferenc
             filterAllowReference,
             includeMemberCount,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getAllGroupsAssociatedToChannelsInTeam(teamID: string, filterAllowReference = false): ActionFunc {
@@ -229,7 +230,7 @@ export function getAllGroupsAssociatedToChannelsInTeam(teamID: string, filterAll
     });
 }
 
-export function getAllGroupsAssociatedToChannel(channelID: string, filterAllowReference = false, includeMemberCount = false): ActionFunc {
+export function getAllGroupsAssociatedToChannel(channelID: string, filterAllowReference = false, includeMemberCount = false): NewActionFuncAsync<GroupsWithCount> {
     return bindClientFunc({
         clientFunc: async (param1, param2, param3) => {
             const result = await Client4.getAllGroupsAssociatedToChannel(param1, param2, param3);
@@ -242,10 +243,10 @@ export function getAllGroupsAssociatedToChannel(channelID: string, filterAllowRe
             filterAllowReference,
             includeMemberCount,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getGroupsAssociatedToTeam(teamID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, filterAllowReference = false): ActionFunc {
+export function getGroupsAssociatedToTeam(teamID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, filterAllowReference = false): NewActionFuncAsync<{groups: Group[]; totalGroupCount: number}> {
     return bindClientFunc({
         clientFunc: async (param1, param2, param3, param4, param5) => {
             const result = await Client4.getGroupsAssociatedToTeam(param1, param2, param3, param4, param5);
@@ -259,10 +260,10 @@ export function getGroupsAssociatedToTeam(teamID: string, q = '', page = 0, perP
             perPage,
             filterAllowReference,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getGroupsAssociatedToChannel(channelID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, filterAllowReference = false): ActionFunc {
+export function getGroupsAssociatedToChannel(channelID: string, q = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT, filterAllowReference = false): NewActionFuncAsync<{groups: Group[]; totalGroupCount: number}> {
     return bindClientFunc({
         clientFunc: async (param1, param2, param3, param4, param5) => {
             const result = await Client4.getGroupsAssociatedToChannel(param1, param2, param3, param4, param5);
@@ -276,10 +277,10 @@ export function getGroupsAssociatedToChannel(channelID: string, q = '', page = 0
             perPage,
             filterAllowReference,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function patchGroup(groupID: string, patch: GroupPatch | CustomGroupPatch): ActionFunc {
+export function patchGroup(groupID: string, patch: GroupPatch | CustomGroupPatch): NewActionFuncAsync<Group> {
     return bindClientFunc({
         clientFunc: Client4.patchGroup,
         onSuccess: [GroupTypes.PATCHED_GROUP],
@@ -287,7 +288,7 @@ export function patchGroup(groupID: string, patch: GroupPatch | CustomGroupPatch
             groupID,
             patch,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getGroupsByUserId(userID: string): ActionFunc {
@@ -300,7 +301,7 @@ export function getGroupsByUserId(userID: string): ActionFunc {
     });
 }
 
-export function getGroupsByUserIdPaginated(opts: GetGroupsForUserParams): ActionFunc {
+export function getGroupsByUserIdPaginated(opts: GetGroupsForUserParams): NewActionFuncAsync<Group[]> {
     return bindClientFunc({
         clientFunc: async (opts) => {
             const result = await Client4.getGroups(opts);
@@ -310,21 +311,21 @@ export function getGroupsByUserIdPaginated(opts: GetGroupsForUserParams): Action
         params: [
             opts,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getGroupStats(groupID: string): ActionFunc {
+export function getGroupStats(groupID: string): NewActionFuncAsync<GroupStats> {
     return bindClientFunc({
         clientFunc: Client4.getGroupStats,
         onSuccess: [GroupTypes.RECEIVED_GROUP_STATS],
         params: [
             groupID,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function createGroupWithUserIds(group: GroupCreateWithUserIds): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function createGroupWithUserIds(group: GroupCreateWithUserIds): NewActionFuncAsync<Group> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.createGroupWithUserIds(group);
@@ -341,8 +342,8 @@ export function createGroupWithUserIds(group: GroupCreateWithUserIds): ActionFun
     };
 }
 
-export function addUsersToGroup(groupId: string, userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function addUsersToGroup(groupId: string, userIds: string[]): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.addUsersToGroup(groupId, userIds);
@@ -363,8 +364,8 @@ export function addUsersToGroup(groupId: string, userIds: string[]): ActionFunc 
     };
 }
 
-export function removeUsersFromGroup(groupId: string, userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removeUsersFromGroup(groupId: string, userIds: string[]): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.removeUsersFromGroup(groupId, userIds);
@@ -385,8 +386,8 @@ export function removeUsersFromGroup(groupId: string, userIds: string[]): Action
     };
 }
 
-export function searchGroups(params: GroupSearchParams): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchGroups(params: GroupSearchParams): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.searchGroups(params);
@@ -410,8 +411,8 @@ export function searchGroups(params: GroupSearchParams): ActionFunc {
     };
 }
 
-export function archiveGroup(groupId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function archiveGroup(groupId: string): NewActionFuncAsync<Group> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.archiveGroup(groupId);
@@ -432,8 +433,8 @@ export function archiveGroup(groupId: string): ActionFunc {
     };
 }
 
-export function restoreGroup(groupId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function restoreGroup(groupId: string): NewActionFuncAsync<Group> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.restoreGroup(groupId);
@@ -454,8 +455,8 @@ export function restoreGroup(groupId: string): ActionFunc {
     };
 }
 
-export function createGroupTeamsAndChannels(userID: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function createGroupTeamsAndChannels(userID: string): NewActionFuncAsync<{user_id: string}> {
+    return async (dispatch, getState) => {
         try {
             await Client4.createGroupTeamsAndChannels(userID);
         } catch (error) {

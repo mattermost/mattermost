@@ -36,10 +36,10 @@ type Props = {
     channelsToAdd: Record<string, ChannelWithTeamData>;
 
     actions: {
-        searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<{ data: ChannelWithTeamData[] }>;
-        getDataRetentionCustomPolicyChannels: (id: string, page: number, perPage: number) => Promise<{ data: ChannelWithTeamData[] }>;
-        setChannelListSearch: (term: string) => ActionResult;
-        setChannelListFilters: (filters: ChannelSearchOpts) => ActionResult;
+        searchChannels: (id: string, term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
+        getDataRetentionCustomPolicyChannels: (id: string, page: number, perPage: number) => Promise<ActionResult>;
+        setChannelListSearch: (term: string) => void;
+        setChannelListFilters: (filters: ChannelSearchOpts) => void;
     };
 }
 

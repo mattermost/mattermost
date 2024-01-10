@@ -3,9 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {ServerError} from '@mattermost/types/errors';
+import type {Dispatch} from 'redux';
 
 import {
     canManageAnyChannelMembersInCurrentTeam,
@@ -22,7 +20,6 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {displayLastActiveLabel, getCurrentUserId, getLastActiveTimestampUnits, getLastActivityForUserId, getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -35,7 +32,6 @@ import {isAnyModalOpen} from 'selectors/views/modals';
 
 import {getDirectChannelName} from 'utils/utils';
 
-import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
 
 import ProfilePopover from './profile_popover';
@@ -122,16 +118,9 @@ function makeMapStateToProps() {
     };
 }
 
-type Actions = {
-    openModal: <P>(modalData: ModalData<P>) => void;
-    closeModal: (modalId: string) => void;
-    openDirectChannelToUserId: (userId?: string) => Promise<{error: ServerError}>;
-    getMembershipForEntities: (teamId: string, userId: string, channelId?: string) => Promise<void>;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             closeModal,
             openDirectChannelToUserId,
             openModal,
