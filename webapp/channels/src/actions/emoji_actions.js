@@ -3,8 +3,10 @@
 
 import * as EmojiActions from 'mattermost-redux/actions/emojis';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
-import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
+import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
+import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {getEmojiMap, getRecentEmojisData, getRecentEmojisNames, isCustomEmojiEnabled} from 'selectors/emojis';
@@ -140,6 +142,35 @@ export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
     };
 }
 
+export function loadCustomEmojisForRecentCustomStatuses() {
+    return (dispatch, getState) => {
+        const state = getState();
+        const customEmojiEnabled = isCustomEmojiEnabled(state);
+        const customStatusEnabled = isCustomStatusEnabled(state);
+        if (!customEmojiEnabled || !customStatusEnabled) {
+            return {data: false};
+        }
+
+        const recentCustomStatusesValue = get(state, ReduxPreferences.CATEGORY_CUSTOM_STATUS, ReduxPreferences.NAME_RECENT_CUSTOM_STATUSES);
+        if (!recentCustomStatusesValue) {
+            return {data: false};
+        }
+
+        const recentCustomStatuses = JSON.parse(recentCustomStatusesValue);
+        const emojisToLoad = new Set();
+
+        for (const customStatus of recentCustomStatuses) {
+            if (!customStatus || !customStatus.emoji) {
+                continue;
+            }
+
+            emojisToLoad.add(customStatus.emoji);
+        }
+
+        return dispatch(loadCustomEmojisIfNeeded(Array.from(emojisToLoad)));
+    };
+}
+
 export function loadCustomEmojisIfNeeded(emojis) {
     return (dispatch, getState) => {
         if (!emojis || emojis.length === 0) {
@@ -153,7 +184,7 @@ export function loadCustomEmojisIfNeeded(emojis) {
         }
 
         const systemEmojis = EmojiIndicesByAlias;
-        const customEmojisByName = getCustomEmojisByName(state);
+        const customEmojisByName = selectCustomEmojisByName(state);
         const nonExistentCustomEmoji = state.entities.emojis.nonExistentEmoji;
         const emojisToLoad = [];
 

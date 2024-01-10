@@ -41,7 +41,7 @@ export const renderWithIntlAndStore = (component: React.ReactNode | React.ReactN
     );
 };
 
-export const renderWithFullContext = (component: React.ReactNode | React.ReactNodeArray, initialState: DeepPartial<GlobalState> = {}, locale = 'en') => {
+export const renderWithFullContext = (component: React.ReactNode | React.ReactNodeArray, initialState: DeepPartial<GlobalState> = {}, locale = 'en', intlMessages?: Record<string, string>) => {
     // We use a redux-mock-store store for testing, but we set up a real store to ensure the initial state is complete
     const testState = configureStore(initialState).getState();
 
@@ -49,6 +49,7 @@ export const renderWithFullContext = (component: React.ReactNode | React.ReactNo
     const renderState = {
         component,
         history: createBrowserHistory(),
+        intlMessages,
         locale,
         state: testState,
         store: mockStore(testState),
@@ -62,6 +63,7 @@ export const renderWithFullContext = (component: React.ReactNode | React.ReactNo
                 <Router history={renderState.history}>
                     <IntlProvider
                         locale={renderState.locale}
+                        messages={renderState.intlMessages}
                     >
                         {renderState.component}
                     </IntlProvider>
