@@ -10168,5 +10168,53 @@
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
     "translation": "Die angegebene Sortierspalte ist nicht gültig."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Beim Auflisten ausgehender OAuth-Verbindungen ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ungültige Eingabeparameter."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Diese Funktion wird durch ein Feature Flag eingeschränkt."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Es ist nicht möglich, so viele Rollen nach Namen zu erhalten. Es können nur {{.MaxNames}} Rollen auf einmal angefordert werden."
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Benutzeranzahl konnte nicht ermittelt werden"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Beim Löschen der ausgehenden oauth-Verbindung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Es ist ein Fehler beim Abrufen der ausgehenden Oauth-Verbindung aufgetreten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Die ausgehende oauth-Verbindung wurde nicht gefunden."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Es ist ein Fehler beim Abrufen der ausgehenden Oauth-Verbindung aufgetreten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Es ist ein Fehler beim Speichern der ausgehenden Oauth-Verbindung aufgetreten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Es ist ein Fehler bei der Aktualisierung der ausgehenden Oauth-Verbindung aufgetreten."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Die Gegenstelle kann nicht eingeladen werden, da der Kanal {{.ChannelID}} nicht geteilt wird."
   }
 ]
