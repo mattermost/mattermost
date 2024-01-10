@@ -12,8 +12,9 @@ import type {
     IntlShape} from 'react-intl';
 import {Provider} from 'react-redux';
 
-import type {StatusOK} from '@mattermost/types/client4';
 import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
 
@@ -78,12 +79,7 @@ export type Props = {
     intl: IntlShape;
     isContentProductSettings: boolean;
     actions: {
-        sendVerificationEmail: (email: string) => Promise<{
-            data: StatusOK;
-            error: {
-                err: string;
-            };
-        }>;
+        sendVerificationEmail: (email: string) => Promise<ActionResult>;
     };
     pluginSettings: {[pluginId: string]: PluginConfiguration};
 }
