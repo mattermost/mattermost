@@ -7033,7 +7033,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Błąd podczas sprawdzania, czy istnieje udostępniony kanał: {{.Error}}"
+    "translation": "Błąd podczas sprawdzania, czy współdzielony kanał {{.ChannelID}} istnieje: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -10170,5 +10170,53 @@
   {
     "id": "model.user_report_options.is_valid.invalid_sort_column",
     "translation": "Podana kolumna sortowania jest nieprawidłowa."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Nie można zaprosić zdalnych, ponieważ kanał {{.ChannelID}} nie jest udostępniony."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Wystąpił błąd podczas wyświetlania wychodzących połączeń OAuth."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Nieprawidłowe parametry wejściowe."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Ta funkcja jest ograniczona przez flagę funkcji."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Nie można uzyskać tylu ról według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} ról."
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Nie udało się uzyskać liczby użytkowników"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Wystąpił błąd podczas usuwania wychodzącego połączenia oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Wystąpił błąd podczas pobierania wychodzącego połączenia oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Nie znaleziono wychodzącego połączenia oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Wystąpił błąd podczas pobierania wychodzących połączeń oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Wystąpił błąd podczas zapisywania wychodzącego połączenia oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Wystąpił błąd aktualizacji wychodzącego połączenia oauth."
   }
 ]
