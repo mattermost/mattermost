@@ -4,14 +4,16 @@
 import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {GroupPatch, SyncablePatch, GroupCreateWithUserIds, CustomGroupPatch, GroupSearchParams, GetGroupsParams, GetGroupsForUserParams, Group, GroupsWithCount, GroupStats} from '@mattermost/types/groups';
 import {SyncableType, GroupSource} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {ChannelTypes, GroupTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
-import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -216,7 +218,7 @@ export function getAllGroupsAssociatedToTeam(teamID: string, filterAllowReferenc
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getAllGroupsAssociatedToChannelsInTeam(teamID: string, filterAllowReference = false): ActionFunc {
+export function getAllGroupsAssociatedToChannelsInTeam(teamID: string, filterAllowReference = false): NewActionFuncAsync<{groups: RelationOneToOne<Channel, Group>}> {
     return bindClientFunc({
         clientFunc: async (param1, param2) => {
             const result = await Client4.getAllGroupsAssociatedToChannelsInTeam(param1, param2);
@@ -227,7 +229,7 @@ export function getAllGroupsAssociatedToChannelsInTeam(teamID: string, filterAll
             teamID,
             filterAllowReference,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getAllGroupsAssociatedToChannel(channelID: string, filterAllowReference = false, includeMemberCount = false): NewActionFuncAsync<GroupsWithCount> {
@@ -291,14 +293,14 @@ export function patchGroup(groupID: string, patch: GroupPatch | CustomGroupPatch
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getGroupsByUserId(userID: string): ActionFunc {
+export function getGroupsByUserId(userID: string): NewActionFuncAsync<Group[]> {
     return bindClientFunc({
         clientFunc: Client4.getGroupsByUserId,
         onSuccess: [GroupTypes.RECEIVED_MY_GROUPS],
         params: [
             userID,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getGroupsByUserIdPaginated(opts: GetGroupsForUserParams): NewActionFuncAsync<Group[]> {

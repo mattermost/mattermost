@@ -1321,10 +1321,10 @@ export function enableUserAccessToken(tokenId: string): NewActionFuncAsync {
     };
 }
 
-export function getKnownUsers(): ActionFunc {
+export function getKnownUsers(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.getKnownUsers,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function clearUserAccessTokens(): ActionFunc {
