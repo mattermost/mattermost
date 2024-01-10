@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import FormError from 'components/form_error';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
@@ -26,8 +28,8 @@ type Props = {
         search: string;
     };
     actions: {
-        getOAuthAppInfo: (clientId: string | null) => Promise<{data: OAuthApp; error?: Error}>;
-        allowOAuth2: (params: Params) => Promise<{data?: any; error?: Error}>;
+        getOAuthAppInfo: (clientId: string | null) => Promise<ActionResult<OAuthApp>>;
+        allowOAuth2: (params: Params) => Promise<ActionResult<{redirect: string}>>;
     };
 }
 

@@ -30,9 +30,7 @@ const mapDispatchToProps = {
     addUserToTeam,
     setNavigationBlocked,
 };
-
 const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
-
-export default connect(mapStateToProps, mapDispatchToProps)(SystemUserDetail);
+export default connector(SystemUserDetail);
