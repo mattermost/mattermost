@@ -24,7 +24,6 @@ import RemoveFromTeamButton from './remove_from_team_button';
 export type Props = {
     locale: string;
     user?: UserProfile;
-    onHide: () => void;
     onExited: () => void;
     actions: {
         getTeamMembersForUser: (userId: string) => Promise<ActionResult>;
@@ -34,7 +33,7 @@ export type Props = {
     };
 }
 
-const ManageTeamsModal = ({locale, onHide, onExited, user, actions}: Props) => {
+const ManageTeamsModal = ({locale, onExited, user, actions}: Props) => {
     const [error, setError] = React.useState<JSX.Element | null>(null);
     const [teams, setTeams] = React.useState<Team[] | null>(null);
     const [teamMembers, setTeamMembers] = React.useState<TeamMembership[] | null>(null);
@@ -55,7 +54,6 @@ const ManageTeamsModal = ({locale, onHide, onExited, user, actions}: Props) => {
 
     const onModalDismissed = () => {
         setShow(false);
-        onHide();
     };
 
     const loadTeamsAndTeamMembers = async (user: UserProfile) => {

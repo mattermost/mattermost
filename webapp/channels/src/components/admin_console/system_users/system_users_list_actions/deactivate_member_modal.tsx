@@ -19,11 +19,11 @@ import Constants from 'utils/constants';
 
 type Props = {
     user: UserProfile;
-    onHide: () => void;
+    onExited: () => void;
     onError: (error: ServerError) => void;
 }
 
-export default function DeactivateMemberModal({user, onHide, onError}: Props) {
+export default function DeactivateMemberModal({user, onExited, onError}: Props) {
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
     const bots = useSelector(getExternalBotAccounts);
@@ -40,7 +40,6 @@ export default function DeactivateMemberModal({user, onHide, onError}: Props) {
 
     function closeModal() {
         setShow(false);
-        onHide();
     }
 
     const title = (
@@ -164,6 +163,7 @@ export default function DeactivateMemberModal({user, onHide, onError}: Props) {
             confirmButtonText={deactivateMemberButton}
             onConfirm={deactivateMember}
             onCancel={closeModal}
+            onExited={onExited}
         />
     );
 }

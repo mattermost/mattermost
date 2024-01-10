@@ -28,7 +28,6 @@ type State = {
 export type Props = {
     user?: UserProfile;
     currentUserId: string;
-    onHide: (user: UserProfile) => void;
     onExited: () => void;
     passwordConfig: PasswordConfig;
     actions: {
@@ -97,7 +96,6 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
             return;
         }
         this.setState({show: false});
-        this.props.onHide(this.props.user);
     };
 
     private doCancel = (): void => {
@@ -106,7 +104,6 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
             serverErrorNewPass: null,
             serverErrorCurrentPass: null,
         });
-        this.props.onExited();
     };
 
     public render(): JSX.Element {
@@ -179,6 +176,7 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
                 dialogClassName='a11y__modal'
                 show={this.state.show}
                 onHide={this.doCancel}
+                onExited={this.props.onExited}
                 role='dialog'
                 aria-labelledby='resetPasswordModalLabel'
             >

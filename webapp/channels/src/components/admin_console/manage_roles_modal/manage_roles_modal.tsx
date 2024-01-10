@@ -28,7 +28,6 @@ export type Props = {
 
     // defining custom function type instead of using React.MouseEventHandler
     // to make the event optional
-    onHide: () => void;
     onExited: () => void;
     actions: {
         updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
@@ -125,9 +124,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
     };
 
     onHide = () => {
-        this.setState({show: false}, () => {
-            this.props.onHide();
-        });
+        this.setState({show: false});
     };
 
     handleSave = async () => {
@@ -150,7 +147,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         this.trackRoleChanges(roles, this.props.user!.roles);
 
         if (isSuccess(result)) {
-            this.props.onExited();
+            this.onHide();
         } else {
             this.handleError(
                 <FormattedMessage
@@ -379,7 +376,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
                     <button
                         type='button'
                         className='btn btn-tertiary'
-                        onClick={this.props.onExited}
+                        onClick={this.onHide}
                     >
                         <FormattedMessage
                             id='admin.manage_roles.cancel'

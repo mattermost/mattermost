@@ -20,7 +20,6 @@ type State = {
 type Props = {
     user?: UserProfile;
     currentUserId: string;
-    onHide: (user?: UserProfile) => void;
     onExited: () => void;
     actions: {
         patchUser: (user: UserProfile) => Promise<ActionResult>;
@@ -109,14 +108,14 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
             return;
         }
 
-        this.props.onHide(this.props.user);
+        this.setState({show: false});
     };
 
     private doCancel = (): void => {
         this.setState({
+            show: false,
             error: null,
         });
-        this.props.onExited();
     };
 
     public render(): JSX.Element {
@@ -139,6 +138,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
                 dialogClassName='a11y__modal'
                 show={this.state.show}
                 onHide={this.doCancel}
+                onExited={this.props.onExited}
                 role='dialog'
                 aria-labelledby='resetEmailModalLabel'
                 data-testid='resetEmailModal'

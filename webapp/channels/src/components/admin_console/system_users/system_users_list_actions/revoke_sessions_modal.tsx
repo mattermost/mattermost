@@ -17,11 +17,11 @@ import ConfirmModal from 'components/confirm_modal';
 type Props = {
     user: UserProfile;
     currentUser: UserProfile;
-    onHide: () => void;
+    onExited: () => void;
     onError: (error: ServerError) => void;
 }
 
-export default function RevokeSessionsModal({user, currentUser, onHide, onError}: Props) {
+export default function RevokeSessionsModal({user, currentUser, onExited, onError}: Props) {
     const [show, setShow] = useState(true);
     const dispatch = useDispatch();
 
@@ -37,7 +37,6 @@ export default function RevokeSessionsModal({user, currentUser, onHide, onError}
 
     function close() {
         setShow(false);
-        onHide();
     }
 
     const title = (
@@ -76,6 +75,7 @@ export default function RevokeSessionsModal({user, currentUser, onHide, onError}
             confirmButtonText={revokeUserButtonButton}
             onConfirm={confirm}
             onCancel={close}
+            onExited={onExited}
         />
     );
 }

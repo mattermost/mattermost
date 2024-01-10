@@ -29,7 +29,6 @@ export type Props = {
      */
     userAccessTokens?: Record<string, UserAccessToken>;
 
-    onHide: () => void;
     onExited: () => void;
     actions: {
 
@@ -69,9 +68,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
     };
 
     private onModalDismissed = () => {
-        this.setState({show: false}, () => {
-            this.props.onHide();
-        });
+        this.setState({show: false});
     };
 
     private renderContents = (): JSX.Element => {

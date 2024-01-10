@@ -14,11 +14,11 @@ import ConfirmModal from 'components/confirm_modal';
 
 type Props = {
     user: UserProfile;
-    onHide: () => void;
+    onExited: () => void;
     onError: (error: ServerError) => void;
 }
 
-export default function DemoteToGuestModal({user, onHide, onError}: Props) {
+export default function DemoteToGuestModal({user, onExited, onError}: Props) {
     const [show, setShow] = useState(true);
     const dispatch = useDispatch();
 
@@ -32,7 +32,6 @@ export default function DemoteToGuestModal({user, onHide, onError}: Props) {
 
     function close() {
         setShow(false);
-        onHide();
     }
 
     const title = (
@@ -71,6 +70,7 @@ export default function DemoteToGuestModal({user, onHide, onError}: Props) {
             confirmButtonText={demoteGuestButton}
             onConfirm={confirm}
             onCancel={close}
+            onExited={onExited}
         />
     );
 }
