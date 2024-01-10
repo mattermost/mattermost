@@ -36,7 +36,7 @@ func TestGetTrueUpProfile(t *testing.T) {
 		require.NotNil(t, err)
 		require.True(t, strings.Contains(err.Error(), "True up review requires a license"))
 	})
-	t.Run("happy path - git returns correct mau and activated users", func(t *testing.T) {
+	t.Run("happy path - returns correct mau and activated users", func(t *testing.T) {
 		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
 		profile, err := th.App.GetTrueUpProfile()
