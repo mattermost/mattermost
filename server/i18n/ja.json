@@ -2943,7 +2943,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "対話型ダイアログのJSONをエンコードする際にエラーが発生しました。"
+    "translation": "Interactive DialogのJSONをエンコードする際にエラーが発生しました。"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3367,27 +3367,27 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "対話型ダイアログのトリガーIDをbase64でデコードできませんでした。"
+    "translation": "Interactive DialogのTrigger IDをbase64でデコードできませんでした。"
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "対話型ダイアログのトリガーIDが期限切れです。トリガーIDは最大{{.Duration}}有効です。"
+    "translation": "Interactive DialogのTrigger IDが期限切れです。トリガーIDは最大{{.Duration}}有効です。"
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "対話型ダイアログに必要なデータであるトリガーIDが含まれていません。"
+    "translation": "Interactive Dialogに必要なデータであるTrigger IDが含まれていません。"
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "対話型ダイアログにおけるトリガIDのbase64署名のデコードに失敗しました。"
+    "translation": "Interactive DialogにおけるTrigger IDのbase64署名のデコードに失敗しました。"
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "対話型ダイアログのトリガーIDの署名検証に失敗しました。"
+    "translation": "Interactive DialogのTrigger IDの署名検証に失敗しました。"
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "対話型ダイアログに対して生成されたトリガーIDに署名できませんでした。"
+    "translation": "Interactive Dialogに対して生成されたTrigger IDに署名できませんでした。"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -4935,7 +4935,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "対話型ダイアログにおけるトリガIDのbase64署名のデコードに失敗しました。"
+    "translation": "Interactive DialogにおけるTrigger Dのbase64署名のデコードに失敗しました。"
   },
   {
     "id": "groups.unsupported_syncable_type",
