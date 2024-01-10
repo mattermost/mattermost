@@ -8,11 +8,13 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
 
@@ -283,15 +285,48 @@ func (a *App) DoSubscriptionRenewalCheck() {
 		return
 	}
 
+	sysVar, err := a.Srv().Store().System().GetByName(model.CloudRenewalEmail)
+	if err != nil {
+		// We only care about the error if it wasn't a not found error
+		if _, ok := err.(*store.ErrNotFound); !ok {
+			a.Log().Error(err.Error())
+		}
+	}
+
+	prevSentEmail := int64(0)
+	if sysVar != nil {
+		// We don't care about parse errors because it's possible the value is empty, and we've already defaulted to 0
+		prevSentEmail, _ = strconv.ParseInt(sysVar.Value, 10, 64)
+	}
+
+	if subscription.WillRenew == "true" {
+		// They've already completed the renewal process so no need to email them.
+		// We can zero out the system variable so that this process will work again next year
+		if prevSentEmail != 0 {
+			sysVar.Value = "0"
+			err = a.Srv().Store().System().SaveOrUpdate(sysVar)
+			if err != nil {
+				a.Log().Error("Error saving system variable", mlog.Err(err))
+			}
+		}
+		return
+	}
+
 	var emailFunc func(email, locale, siteURL string) error
 
-	// TODO: check if the email has already been sent for each day in case something happens on the 60th day where it doesn't send, so it will send on the 59th
-	if subscription.DaysToExpiration() == 60 {
+	daysToExpiration := subscription.DaysToExpiration()
+
+	// Only send the email if within the period and it's not already been sent
+	// This allows the email to send on day 59 if for whatever reason it was unable to on day 60
+	if daysToExpiration <= 60 && daysToExpiration > 30 && prevSentEmail != 60 {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail60
-	} else if subscription.DaysToExpiration() == 30 {
+		prevSentEmail = 60
+	} else if daysToExpiration <= 30 && daysToExpiration > 7 && prevSentEmail != 30 {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail30
-	} else if true {
+		prevSentEmail = 30
+	} else if daysToExpiration <= 7 && daysToExpiration > 3 && prevSentEmail != 7 {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail7
+		prevSentEmail = 7
 	}
 
 	if emailFunc == nil {
@@ -311,5 +346,13 @@ func (a *App) DoSubscriptionRenewalCheck() {
 		}
 	}
 
-	// TODO: Save value in Systems table so this isn't sent multiple times
+	updatedSysVar := &model.System{
+		Name:  model.CloudRenewalEmail,
+		Value: strconv.FormatInt(prevSentEmail, 10),
+	}
+
+	err = a.Srv().Store().System().SaveOrUpdate(updatedSysVar)
+	if err != nil {
+		a.Log().Error("Error saving system variable", mlog.Err(err))
+	}
 }
