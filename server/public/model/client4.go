@@ -9012,6 +9012,10 @@ func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*
 
 func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
 	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
 	var userLimits UserLimits
 	if r.StatusCode == http.StatusNotModified {
 		return &userLimits, BuildResponse(r), nil
