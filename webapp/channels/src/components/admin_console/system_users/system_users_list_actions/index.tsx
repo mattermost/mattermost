@@ -126,6 +126,8 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
                     if (error) {
                         onError(error);
                     }
+
+                    // TODO: add callback to update the user's active status
                 }}
             />}
 
@@ -143,6 +145,8 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
                     dispatch(openModal({
                         modalId: ModalIdentifiers.DEACTIVATE_MEMBER_MODAL,
                         dialogType: DeactivateMemberModal,
+
+                        // TODO: add callback to update the user's active status
                         dialogProps: {user, onError},
                     }));
                 }}
@@ -161,6 +165,8 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
                     dispatch(openModal({
                         modalId: ModalIdentifiers.MANAGE_ROLES_MODAL,
                         dialogType: ManageRolesModal,
+
+                        // TODO: add callback to update the user's role
                         dialogProps: {user},
                     }));
                 }}
@@ -229,7 +235,9 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
                     />
                 }
                 onClick={() => {
-                    adminResetMfa(user.id, null, onError);
+                    adminResetMfa(user.id, null, onError).then(() => {
+                        // TODO: update the user so this item doesn't appear
+                    });
                 }}
             />}
 
@@ -246,6 +254,8 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
                     dispatch(openModal({
                         modalId: ModalIdentifiers.RESET_PASSWORD_MODAL,
                         dialogType: ResetPasswordModal,
+
+                        // TODO: add callback to switch the user's auth service
                         dialogProps: {user},
                     }));
                 }}
@@ -264,6 +274,8 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
                     dispatch(openModal({
                         modalId: ModalIdentifiers.RESET_EMAIL_MODAL,
                         dialogType: ResetEmailModal,
+
+                        // TODO: add callback to update the user's email address
                         dialogProps: {user},
                     }));
                 }}
@@ -282,6 +294,8 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
                     dispatch(openModal({
                         modalId: ModalIdentifiers.PROMOTE_TO_MEMBER_MODAL,
                         dialogType: PromoteToMemberModal,
+
+                        // TODO: add callback to update the user's role
                         dialogProps: {user, onError},
                     }));
                 }}
@@ -299,6 +313,8 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
                     dispatch(openModal({
                         modalId: ModalIdentifiers.DEMOTE_TO_GUEST_MODAL,
                         dialogType: DemoteToGuestModal,
+
+                        // TODO: add callback to update the user's role
                         dialogProps: {user, onError},
                     }));
                 }}
