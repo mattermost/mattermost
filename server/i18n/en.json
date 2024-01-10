@@ -1694,6 +1694,10 @@
     "translation": "Invalid input parameters."
   },
   {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "There was an error while validating the outgoing OAuth connection credentials."
+  },
+  {
     "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
     "translation": "Couldn't retrieve credentials with the specified connection configuration."
   },
