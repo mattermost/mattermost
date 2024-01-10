@@ -11,6 +11,7 @@ import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
 import {getDataRetentionCustomPolicies as fetchDataRetentionCustomPolicies, deleteDataRetentionCustomPolicy, updateConfig} from 'mattermost-redux/actions/admin';
 import {createJob, getJobsByType} from 'mattermost-redux/actions/jobs';
 import {getDataRetentionCustomPolicies, getDataRetentionCustomPoliciesCount} from 'mattermost-redux/selectors/entities/admin';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
@@ -28,10 +29,14 @@ type Actions = {
 function mapStateToProps(state: GlobalState) {
     const customPolicies = getDataRetentionCustomPolicies(state);
     const customPoliciesCount = getDataRetentionCustomPoliciesCount(state);
+    const globalMessageRetentionHours = getConfig(state).DataRetentionMessageRetentionHours;
+    const globalFileRetentionHours = getConfig(state).DataRetentionFileRetentionHours;
 
     return {
         customPolicies,
         customPoliciesCount,
+        globalMessageRetentionHours,
+        globalFileRetentionHours,
     };
 }
 
