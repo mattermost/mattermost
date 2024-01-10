@@ -17,7 +17,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {
     isFromWebhook,
     isSystemMessage,
@@ -37,8 +37,8 @@ export type NewPostMessageProps = {
     team_id: string;
 }
 
-export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const rootPost = PostSelectors.getPost(state, post.root_id);
         if (post.root_id && !rootPost) {
@@ -77,7 +77,7 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             dispatch(setThreadRead(post));
         }
 
-        return dispatch(sendDesktopNotification(post, websocketMessageProps) as unknown as ActionFunc);
+        return dispatch(sendDesktopNotification(post, websocketMessageProps));
     };
 }
 
@@ -125,9 +125,9 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
     return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id, post.channel_id, websocketMessageProps.mentions, fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
 }
 
-export function setThreadRead(post: Post) {
+export function setThreadRead(post: Post): NewActionFunc {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
 
         const thread = getThread(state, post.root_id);

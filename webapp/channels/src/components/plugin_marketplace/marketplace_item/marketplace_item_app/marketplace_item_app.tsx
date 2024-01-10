@@ -6,6 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {MarketplaceLabel} from '@mattermost/types/marketplace';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {localizeMessage} from 'utils/utils';
@@ -28,7 +30,7 @@ export type MarketplaceItemAppProps = {
     trackEvent: (category: string, event: string, props?: unknown) => void;
 
     actions: {
-        installApp: (id: string) => Promise<boolean>;
+        installApp: (id: string) => Promise<ActionResult<boolean>>;
         closeMarketplaceModal: () => void;
     };
 };
@@ -40,7 +42,7 @@ export default class MarketplaceItemApp extends React.PureComponent <Marketplace
         });
 
         this.props.actions.installApp(this.props.id).then((res) => {
-            if (res) {
+            if (res.data) {
                 this.props.actions.closeMarketplaceModal();
             }
         });

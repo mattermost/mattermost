@@ -874,8 +874,8 @@ export function searchProfiles(term: string, options: any = {}): NewActionFuncAs
 }
 
 let statusIntervalId: NodeJS.Timeout|null;
-export function startPeriodicStatusUpdates(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function startPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTODO remove me
+    return async (dispatch, getState) => {
         if (statusIntervalId) {
             clearInterval(statusIntervalId);
         }
@@ -902,7 +902,7 @@ export function startPeriodicStatusUpdates(): ActionFunc {
     };
 }
 
-export function stopPeriodicStatusUpdates(): ActionFunc {
+export function stopPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTODO These status actions are unused
     return async () => {
         if (statusIntervalId) {
             clearInterval(statusIntervalId);

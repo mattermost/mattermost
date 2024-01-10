@@ -6,8 +6,6 @@ import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {requestCloudTrial, validateWorkspaceBusinessEmail, getCloudLimits} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal, closeModal} from 'actions/views/modals';
@@ -52,7 +50,7 @@ const CloudStartTrialButton = ({
     disabled = false,
 }: CloudStartTrialBtnProps) => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const subscription = useGetSubscription();
     const [openBusinessEmailModal, setOpenBusinessEmailModal] = useState(false);
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);
@@ -86,7 +84,7 @@ const CloudStartTrialButton = ({
             return TrialLoadStatus.Failed;
         }
 
-        const subscriptionUpdated = await dispatch(requestCloudTrial('start_cloud_trial_btn', subscription?.id as string, (email || '')));
+        const {data: subscriptionUpdated} = await dispatch(requestCloudTrial('start_cloud_trial_btn', subscription?.id as string, (email || '')));
         if (!subscriptionUpdated) {
             setLoadStatus(TrialLoadStatus.Failed);
             return TrialLoadStatus.Failed;

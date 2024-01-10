@@ -8,7 +8,7 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc, NewActionFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
@@ -16,8 +16,8 @@ import {Constants} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-export function loadStatusesForChannelAndSidebar(): ActionFunc {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadStatusesForChannelAndSidebar(): NewActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const statusesToLoad: Record<string, true> = {};
 
@@ -66,8 +66,8 @@ export function loadStatusesForProfilesList(users: UserProfile[] | null): NewAct
     };
 }
 
-export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | null) {
-    return (dispatch: DispatchFunc) => {
+export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | null): NewActionFunc {
+    return (dispatch) => {
         if (users == null) {
             return {data: false};
         }
@@ -85,8 +85,8 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
     };
 }
 
-export function loadStatusesByIds(userIds: string[]) {
-    return (dispatch: DispatchFunc) => {
+export function loadStatusesByIds(userIds: string[]): NewActionFunc {
+    return (dispatch) => {
         if (userIds.length === 0) {
             return {data: false};
         }
@@ -97,8 +97,8 @@ export function loadStatusesByIds(userIds: string[]) {
     };
 }
 
-export function loadProfilesMissingStatus(users: UserProfile[]) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesMissingStatus(users: UserProfile[]): NewActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const statuses = state.entities.users.statuses;
 
@@ -118,8 +118,8 @@ export function loadProfilesMissingStatus(users: UserProfile[]) {
 
 let intervalId: NodeJS.Timeout;
 
-export function startPeriodicStatusUpdates() {
-    return (dispatch: DispatchFunc) => {
+export function startPeriodicStatusUpdates(): NewActionFunc { // HARRISONTODO These status actions are unused
+    return (dispatch) => {
         clearInterval(intervalId);
 
         intervalId = setInterval(
@@ -128,9 +128,11 @@ export function startPeriodicStatusUpdates() {
             },
             Constants.STATUS_INTERVAL,
         );
+
+        return {data: true};
     };
 }
 
-export function stopPeriodicStatusUpdates() {
+export function stopPeriodicStatusUpdates() { // HARRISONTODO These status actions are unused
     clearInterval(intervalId);
 }

@@ -47,8 +47,8 @@ import type {GlobalState} from 'types/store';
 import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';
 
-export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let websocketMessageProps = {};
         const state = getState();
         if (msg) {
@@ -355,7 +355,7 @@ export function markMostRecentPostInChannelAsUnread(channelId: string) {
 }
 
 // Action called by DeletePostModal when the post is deleted
-export function deleteAndRemovePost(post: Post): NewActionFuncAsync<boolean> {
+export function deleteAndRemovePost(post: Post): NewActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const {error} = await dispatch(PostActions.deletePost(post));
         if (error) {

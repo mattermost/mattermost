@@ -53,17 +53,20 @@ const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
     return user.notify_props?.desktop_notification_sound ? user.notify_props.desktop_notification_sound : 'Bing';
 };
 
+/**
+ * @returns {NewActionFuncAsync}
+ */
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 
         if ((currentUserId === post.user_id && post.props.from_webhook !== 'true')) {
-            return;
+            return {data: false};
         }
 
         if (isSystemMessage(post) && !isUserAddedInChannel(post, currentUserId)) {
-            return;
+            return {data: false};
         }
 
         let userFromPost = getUser(state, post.user_id);
@@ -94,7 +97,7 @@ export function sendDesktopNotification(post, msgProps) {
         const isCrtReply = isCollapsedThreadsEnabled(state) && post.root_id !== '';
 
         if (!member || isChannelMuted(member) || userStatus === UserStatuses.DND || userStatus === UserStatuses.OUT_OF_OFFICE) {
-            return;
+            return {data: false};
         }
 
         const channelNotifyProp = member?.notify_props?.desktop || NotificationLevels.DEFAULT;
@@ -109,7 +112,7 @@ export function sendDesktopNotification(post, msgProps) {
         }
 
         if (notifyLevel === NotificationLevels.NONE) {
-            return;
+            return {data: false};
         } else if (channel.type === 'G' && notifyLevel === NotificationLevels.MENTION) {
             // Compose the whole text in the message, including interactive messages.
             let text = post.message;
@@ -183,13 +186,13 @@ export function sendDesktopNotification(post, msgProps) {
             }
 
             if (!isExplicitlyMentioned) {
-                return;
+                return {data: false};
             }
         } else if (notifyLevel === NotificationLevels.MENTION && mentions.indexOf(user.id) === -1 && msgProps.channel_type !== Constants.DM_CHANNEL) {
-            return;
+            return {data: false};
         } else if (isCrtReply && notifyLevel === NotificationLevels.ALL && followers.indexOf(currentUserId) === -1) {
             // if user is not following the thread don't notify
-            return;
+            return {data: false};
         }
 
         const config = getConfig(state);
@@ -293,7 +296,7 @@ export function sendDesktopNotification(post, msgProps) {
         const hookResult = await dispatch(runDesktopNotificationHooks(post, msgProps, channel, teamId, args));
         if (hookResult.error) {
             dispatch(logError(hookResult.error));
-            return;
+            return {data: false};
         }
 
         let silent = false;
@@ -307,6 +310,8 @@ export function sendDesktopNotification(post, msgProps) {
                 NotificationSounds.ding(soundName);
             }
         }
+
+        return {data: notify};
     };
 }
 

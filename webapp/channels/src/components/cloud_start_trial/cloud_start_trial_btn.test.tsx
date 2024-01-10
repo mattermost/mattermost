@@ -84,7 +84,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
 
     test('should handle on click and change button text on SUCCESSFUL trial request', async () => {
         const mockOnClick = jest.fn();
-        const requestTrialFn: () => () => Promise<any> = () => () => Promise.resolve(true);
+        const requestTrialFn = () => () => Promise.resolve({data: true});
         jest.spyOn(cloudActions, 'requestCloudTrial').mockImplementation(requestTrialFn);
 
         let wrapper: ReactWrapper<any>;
@@ -118,7 +118,7 @@ describe('components/cloud_start_trial_btn/cloud_start_trial_btn', () => {
 
     test('should handle on click and change button text on FAILED trial request', async () => {
         const mockOnClick = jest.fn();
-        const requestTrialFn: () => () => Promise<any> = () => () => Promise.resolve(true);
+        const requestTrialFn = () => () => Promise.resolve({data: true});
         jest.spyOn(cloudActions, 'requestCloudTrial').mockImplementation(requestTrialFn);
 
         let wrapper: ReactWrapper<any>;

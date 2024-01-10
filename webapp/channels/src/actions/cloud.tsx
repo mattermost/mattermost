@@ -10,7 +10,7 @@ import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -120,9 +120,9 @@ export function subscribeCloudSubscription(
     };
 }
 
-export function requestCloudTrial(page: string, subscriptionId: string, email = ''): ActionFunc {
+export function requestCloudTrial(page: string, subscriptionId: string, email = ''): NewActionFuncAsync<boolean> {
     trackEvent('api', 'api_request_cloud_trial_license', {from_page: page});
-    return async (dispatch: DispatchFunc): Promise<any> => {
+    return async (dispatch) => {
         try {
             const newSubscription = await Client4.requestCloudTrial(subscriptionId, email);
             dispatch({
@@ -130,9 +130,9 @@ export function requestCloudTrial(page: string, subscriptionId: string, email = 
                 data: newSubscription.data,
             });
         } catch (error) {
-            return false;
+            return {data: false};
         }
-        return true;
+        return {data: true};
     };
 }
 
@@ -160,8 +160,8 @@ export function validateWorkspaceBusinessEmail() {
     };
 }
 
-export function getCloudLimits(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getCloudLimits(): NewActionFuncAsync {
+    return async (dispatch) => {
         try {
             dispatch({
                 type: CloudTypes.CLOUD_LIMITS_REQUEST,
@@ -177,14 +177,14 @@ export function getCloudLimits(): ActionFunc {
             dispatch({
                 type: CloudTypes.CLOUD_LIMITS_FAILED,
             });
-            return error;
+            return {error};
         }
-        return true;
+        return {data: true};
     };
 }
 
-export function getMessagesUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getMessagesUsage(): NewActionFuncAsync {
+    return async (dispatch) => {
         try {
             const result = await Client4.getPostsUsage();
             if (result) {
@@ -194,14 +194,14 @@ export function getMessagesUsage(): ActionFunc {
                 });
             }
         } catch (error) {
-            return error;
+            return {error};
         }
-        return true;
+        return {data: true};
     };
 }
 
-export function getFilesUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getFilesUsage(): NewActionFuncAsync {
+    return async (dispatch) => {
         try {
             const result = await Client4.getFilesUsage();
 
@@ -214,14 +214,14 @@ export function getFilesUsage(): ActionFunc {
                 });
             }
         } catch (error) {
-            return error;
+            return {error};
         }
         return {data: true};
     };
 }
 
-export function getTeamsUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getTeamsUsage(): NewActionFuncAsync {
+    return async (dispatch) => {
         try {
             const result = await Client4.getTeamsUsage();
             if (result) {
@@ -231,25 +231,25 @@ export function getTeamsUsage(): ActionFunc {
                 });
             }
         } catch (error) {
-            return error;
+            return {error};
         }
         return {data: false};
     };
 }
 
-export function deleteWorkspace(deletionRequest: WorkspaceDeletionRequest) {
+export function deleteWorkspace(deletionRequest: WorkspaceDeletionRequest): NewActionFuncAsync {
     return async () => {
         try {
             await Client4.deleteWorkspace(deletionRequest);
         } catch (error) {
-            return error;
+            return {error};
         }
-        return true;
+        return {data: true};
     };
 }
 
-export function retryFailedCloudFetches() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function retryFailedCloudFetches(): NewActionFunc {
+    return (dispatch, getState) => {
         const errors = getCloudErrors(getState());
         if (Object.keys(errors).length === 0) {
             return {data: true};

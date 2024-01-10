@@ -18,7 +18,7 @@ describe('components/MarketplaceItemApp', () => {
             installing: false,
             trackEvent: jest.fn(() => {}),
             actions: {
-                installApp: jest.fn(async () => Promise.resolve(true)),
+                installApp: jest.fn(async () => Promise.resolve({data: true})),
                 closeMarketplaceModal: jest.fn(() => {}),
             },
         };

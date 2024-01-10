@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {AnyAction, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -26,7 +26,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             loadCommandsAndProfilesForTeam,
