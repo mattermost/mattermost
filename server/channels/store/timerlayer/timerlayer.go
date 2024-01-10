@@ -10709,6 +10709,22 @@ func (s *TimerLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetUserCountForReport(filter)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUserCountForReport", success, elapsed)
+	}
+	return result, err
+}
+
 func (s *TimerLayerUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	start := time.Now()
 
