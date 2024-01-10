@@ -1288,25 +1288,25 @@ func (_m *ChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID st
 	return r0, r1
 }
 
-// GetMemberForPost provides a mock function with given fields: postID, userID
-func (_m *ChannelStore) GetMemberForPost(postID string, userID string) (*model.ChannelMember, error) {
-	ret := _m.Called(postID, userID)
+// GetMemberForPost provides a mock function with given fields: postID, userID, includeArchivedChannels
+func (_m *ChannelStore) GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error) {
+	ret := _m.Called(postID, userID, includeArchivedChannels)
 
 	var r0 *model.ChannelMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.ChannelMember, error)); ok {
-		return rf(postID, userID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) (*model.ChannelMember, error)); ok {
+		return rf(postID, userID, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.ChannelMember); ok {
-		r0 = rf(postID, userID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.ChannelMember); ok {
+		r0 = rf(postID, userID, includeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(postID, userID)
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(postID, userID, includeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
