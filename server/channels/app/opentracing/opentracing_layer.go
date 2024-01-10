@@ -3894,6 +3894,21 @@ func (a *OpenTracingAppLayer) DoPostActionWithCookie(c request.CTX, postID strin
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) DoSubscriptionRenewalCheck() {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoSubscriptionRenewalCheck")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	a.app.DoSubscriptionRenewalCheck()
+}
+
 func (a *OpenTracingAppLayer) DoSystemConsoleRolesCreationMigration() {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.DoSystemConsoleRolesCreationMigration")
