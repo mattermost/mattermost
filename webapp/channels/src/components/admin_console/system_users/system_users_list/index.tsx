@@ -21,7 +21,7 @@ import SystemUsersActions from '../system_users_list_actions';
 import './system_users_list.scss';
 
 type Props = {
-    currentUserRoles: UserProfile['roles'];
+    currentUser: UserProfile;
     tablePropertySortColumn: AdminConsoleUserManagementTableProperties['sortColumn'];
     tablePropertySortIsDescending: AdminConsoleUserManagementTableProperties['sortIsDescending'];
     tablePropertyPageSize: AdminConsoleUserManagementTableProperties['pageSize'];
@@ -187,10 +187,10 @@ function SystemUsersList(props: Props) {
                 }),
                 cell: (info: CellContext<UserReport, null>) => (
                     <SystemUsersActions
+                        user={info.row.original}
                         rowIndex={info.cell.row.index}
                         tableId={tableId}
-                        userRoles={info.row.original.roles}
-                        currentUserRoles={props.currentUserRoles}
+                        currentUser={props.currentUser}
                     />
                 ),
                 enableHiding: false,
@@ -198,7 +198,7 @@ function SystemUsersList(props: Props) {
                 enableSorting: false,
             },
         ],
-        [props.currentUserRoles],
+        [props.currentUser],
     );
 
     useEffect(() => {

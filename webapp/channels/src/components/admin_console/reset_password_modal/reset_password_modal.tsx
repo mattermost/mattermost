@@ -20,6 +20,7 @@ interface PasswordConfig {
 }
 
 type State = {
+    show: boolean;
     serverErrorNewPass: React.ReactNode;
     serverErrorCurrentPass: React.ReactNode;
 }
@@ -27,9 +28,8 @@ type State = {
 export type Props = {
     user?: UserProfile;
     currentUserId: string;
-    show: boolean;
-    onModalSubmit: (user?: UserProfile) => void;
-    onModalDismissed: () => void;
+    onHide: (user: UserProfile) => void;
+    onExited: () => void;
     passwordConfig: PasswordConfig;
     actions: {
         updateUserPassword: (userId: string, currentPassword: string, password: string) => Promise<ActionResult>;
@@ -39,14 +39,12 @@ export type Props = {
 export default class ResetPasswordModal extends React.PureComponent<Props, State> {
     private currentPasswordRef: React.RefObject<HTMLInputElement>;
     private passwordRef: React.RefObject<HTMLInputElement>;
-    public static defaultProps: Partial<Props> = {
-        show: false,
-    };
 
     public constructor(props: Props) {
         super(props);
 
         this.state = {
+            show: true,
             serverErrorNewPass: null,
             serverErrorCurrentPass: null,
         };
@@ -98,15 +96,17 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
             this.setState({serverErrorCurrentPass: result.error.message});
             return;
         }
-        this.props.onModalSubmit(this.props.user);
+        this.setState({show: false});
+        this.props.onHide(this.props.user);
     };
 
     private doCancel = (): void => {
         this.setState({
+            show: false,
             serverErrorNewPass: null,
             serverErrorCurrentPass: null,
         });
-        this.props.onModalDismissed();
+        this.props.onExited();
     };
 
     public render(): JSX.Element {
@@ -177,7 +177,7 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
         return (
             <Modal
                 dialogClassName='a11y__modal'
-                show={this.props.show}
+                show={this.state.show}
                 onHide={this.doCancel}
                 role='dialog'
                 aria-labelledby='resetPasswordModalLabel'

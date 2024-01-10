@@ -33,7 +33,7 @@ function SystemUsers(props: Props) {
             <div className='admin-console__wrapper'>
                 <div className='admin-console__container'>
                     <SystemUsersList
-                        currentUserRoles={props.currentUserRoles}
+                        currentUser={props.currentUser}
                         tablePropertySortColumn={props.tablePropertySortColumn}
                         tablePropertySortIsDescending={props.tablePropertySortIsDescending}
                         tablePropertyPageSize={props.tablePropertyPageSize}

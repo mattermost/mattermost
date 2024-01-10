@@ -20,11 +20,6 @@ import {DeveloperLinks} from 'utils/constants';
 export type Props = {
 
     /**
-     * Set to render the modal
-     */
-    show: boolean;
-
-    /**
      * The user the roles are being managed for
      */
     user?: UserProfile;
@@ -34,10 +29,8 @@ export type Props = {
      */
     userAccessTokens?: Record<string, UserAccessToken>;
 
-    /**
-     * Function called when modal is dismissed
-     */
-    onModalDismissed: (e?: React.MouseEvent<HTMLButtonElement>) => void;
+    onHide: () => void;
+    onExited: () => void;
     actions: {
 
         /**
@@ -48,6 +41,7 @@ export type Props = {
 };
 
 type State = {
+    show: boolean;
     error: string | null;
 }
 
@@ -55,6 +49,7 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
     public constructor(props: Props) {
         super(props);
         this.state = {
+            show: true,
             error: null,
         };
     }
@@ -70,6 +65,12 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
     private handleError = (error: string): void => {
         this.setState({
             error,
+        });
+    };
+
+    private onModalDismissed = () => {
+        this.setState({show: false}, () => {
+            this.props.onHide();
         });
     };
 
@@ -188,8 +189,9 @@ export default class ManageTokensModal extends React.PureComponent<Props, State>
     public render = (): JSX.Element => {
         return (
             <Modal
-                show={this.props.show}
-                onHide={this.props.onModalDismissed}
+                show={this.state.show}
+                onHide={this.onModalDismissed}
+                onExited={this.props.onExited}
                 dialogClassName='a11y__modal manage-teams'
                 role='dialog'
                 aria-labelledby='manageTokensModalLabel'
