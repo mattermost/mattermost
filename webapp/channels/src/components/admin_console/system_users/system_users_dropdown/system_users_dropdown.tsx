@@ -737,7 +737,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
                         </SystemPermissionGate>
                         <SystemPermissionGate permissions={[Permissions.SYSCONSOLE_WRITE_USERMANAGEMENT_GROUPS]}>
                             <Menu.ItemAction
-                                show={user.auth_service === Constants.LDAP_SERVICE}
+                                show={user.auth_service === Constants.LDAP_SERVICE || (user.auth_service === Constants.SAML_SERVICE && config.SamlSettings?.EnableSyncWithLdap)}
                                 onClick={this.handleShowCreateGroupSyncableMembershipsModal}
                                 text={Utils.localizeMessage('admin.user_item.createGroupTeamChannelMemberships', 'Re-sync user via LDAP groups')}
                             />
