@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {Popover as BSPopover} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import Popover from 'components/widgets/popover';
@@ -46,7 +47,7 @@ interface Props {
 }
 
 export default class SearchSuggestionList extends SuggestionList {
-    popoverRef: React.RefObject<Popover>;
+    popoverRef: React.RefObject<BSPopover>;
     itemsContainerRef: React.RefObject<HTMLDivElement>;
     suggestionReadOut: React.RefObject<HTMLDivElement>;
     currentLabel: string;

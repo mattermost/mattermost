@@ -11,6 +11,7 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {adminResetMfa, adminResetEmail} from 'actions/admin_actions.jsx';
@@ -42,9 +43,9 @@ export type Props = {
     mfaEnabled: boolean;
     isDisabled?: boolean;
     actions: {
-        updateUserActive: (userId: string, active: boolean) => Promise<{error: ServerError}>;
+        updateUserActive: (userId: string, active: boolean) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
-        addUserToTeam: (teamId: string, userId?: string) => Promise<{data: TeamMembership; error?: any}>;
+        addUserToTeam: (teamId: string, userId: string) => Promise<unknown>;
     };
 }
 

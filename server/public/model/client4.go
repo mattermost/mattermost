@@ -103,6 +103,15 @@ func (c *Client4) boolString(value bool) string {
 	return "false"
 }
 
+func (c *Client4) ArrayFromJSON(data io.Reader) []string {
+	var objmap []string
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make([]string, 0)
+	}
+	return objmap
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)
@@ -164,6 +173,10 @@ func (c *Client4) ClearOAuthToken() {
 
 func (c *Client4) usersRoute() string {
 	return "/users"
+}
+
+func (c *Client4) reportsRoute() string {
+	return "/reports"
 }
 
 func (c *Client4) userRoute(userId string) string {
@@ -467,6 +480,14 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
+func (c *Client4) outgoingOAuthConnectionsRoute() string {
+	return "/oauth/outgoing_connections"
+}
+
+func (c *Client4) outgoingOAuthConnectionRoute(id string) string {
+	return fmt.Sprintf("/oauth/outgoing_connections/%s", id)
+}
+
 func (c *Client4) jobsRoute() string {
 	return "/jobs"
 }
@@ -561,6 +582,10 @@ func (c *Client4) ipFiltersRoute() string {
 
 func (c *Client4) permissionsRoute() string {
 	return "/permissions"
+}
+
+func (c *Client4) limitsRoute() string {
+	return "/limits"
 }
 
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
@@ -1918,8 +1943,11 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
-func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptionsAPI) ([]*UserReport, *Response, error) {
+func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptions) ([]*UserReport, *Response, error) {
 	values := url.Values{}
+	if options.Direction != "" {
+		values.Set("direction", options.Direction)
+	}
 	if options.SortColumn != "" {
 		values.Set("sort_column", options.SortColumn)
 	}
@@ -1938,11 +1966,11 @@ func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportO
 	if options.SortDesc {
 		values.Set("sort_direction", "desc")
 	}
-	if options.LastSortColumnValue != "" {
-		values.Set("last_column_value", options.LastSortColumnValue)
+	if options.FromColumnValue != "" {
+		values.Set("from_column_value", options.FromColumnValue)
 	}
-	if options.LastUserId != "" {
-		values.Set("last_id", options.LastUserId)
+	if options.FromId != "" {
+		values.Set("from_id", options.FromId)
 	}
 	if options.Role != "" {
 		values.Set("role_filter", options.Role)
@@ -1954,7 +1982,7 @@ func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportO
 		values.Set("date_range", options.DateRange)
 	}
 
-	r, err := c.DoAPIGet(ctx, c.usersRoute()+"/report?"+values.Encode(), "")
+	r, err := c.DoAPIGet(ctx, c.reportsRoute()+"/users?"+values.Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -3117,7 +3145,7 @@ func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // GetPinnedPosts gets a list of pinned posts.
@@ -5799,7 +5827,7 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -5990,6 +6018,36 @@ func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*Ac
 	}
 
 	return ar, BuildResponse(rp), nil
+}
+
+// OutgoingOAuthConnection section
+
+// GetOutgoingOAuthConnections retrieves the outgoing OAuth connections.
+func (c *Client4) GetOutgoingOAuthConnections(ctx context.Context, fromID string, limit int) ([]*OutgoingOAuthConnection, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var connections []*OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&connections); err != nil {
+		return nil, nil, NewAppError("GetOutgoingOAuthConnections", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return connections, BuildResponse(r), nil
+}
+
+// GetOutgoingOAuthConnection retrieves the outgoing OAuth connection with the given ID.
+func (c *Client4) GetOutgoingOAuthConnection(ctx context.Context, id string) (*OutgoingOAuthConnection, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionRoute(id), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var connection *OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&connection); err != nil {
+		return nil, nil, NewAppError("GetOutgoingOAuthConnection", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return connection, BuildResponse(r), nil
 }
 
 // Elasticsearch Section
@@ -7873,7 +7931,7 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
@@ -7887,7 +7945,7 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
@@ -8347,7 +8405,7 @@ func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) {
@@ -8356,7 +8414,7 @@ func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) DeleteExport(ctx context.Context, name string) (*Response, error) {
@@ -8787,4 +8845,20 @@ func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*
 	defer closeBody(r)
 
 	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var userLimits UserLimits
+	if r.StatusCode == http.StatusNotModified {
+		return &userLimits, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&userLimits); err != nil {
+		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &userLimits, BuildResponse(r), nil
 }

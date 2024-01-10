@@ -3,19 +3,20 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Role} from '@mattermost/types/roles';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterProfilesStartingWithTerm, profileListToMap, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
@@ -31,12 +32,13 @@ export type Props = {
     users: UserProfile[];
     excludeUsers: { [userId: string]: UserProfile };
     includeUsers: { [userId: string]: UserProfile };
+    intl: IntlShape;
     onAddCallback: (users: UserProfile[]) => void;
     onExited: () => void;
 
     actions: {
-        getProfiles: (page: number, perPage?: number, options?: Record<string, any>) => Promise<{ data: UserProfile[] }>;
-        searchProfiles: (term: string, options?: Record<string, any>) => Promise<{ data: UserProfile[] }>;
+        getProfiles: (page: number, perPage?: number, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
+        searchProfiles: (term: string, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
     };
 }
 
@@ -56,7 +58,7 @@ function searchUsersToAdd(users: Record<string, UserProfile>, term: string): Rec
     return filterProfiles(profileListToMap(filteredProfilesList), {});
 }
 
-export default class AddUsersToRoleModal extends React.PureComponent<Props, State> {
+export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
 
@@ -86,7 +88,7 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
         const search = term !== '';
         if (search) {
             const {data} = await this.props.actions.searchProfiles(term, {replace: true});
-            data.forEach((user) => {
+            data!.forEach((user) => {
                 if (!user.is_bot) {
                     searchResults.push(user);
                 }
@@ -134,7 +136,9 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
                 </div>
                 <div className='more-modal__actions'>
                     <div className='more-modal__actions--round'>
-                        <AddIcon/>
+                        <i
+                            className='icon icon-plus'
+                        />
                     </div>
                 </div>
             </div>
@@ -247,6 +251,7 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
                         key='addUsersToRoleKey'
                         options={options}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         ariaLabelRenderer={this.renderAriaLabel}
                         values={this.state.values}
                         valueRenderer={this.renderValue}
@@ -269,3 +274,5 @@ export default class AddUsersToRoleModal extends React.PureComponent<Props, Stat
         );
     };
 }
+
+export default injectIntl(AddUsersToRoleModal);

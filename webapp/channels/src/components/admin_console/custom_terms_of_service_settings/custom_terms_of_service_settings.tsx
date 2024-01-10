@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {TermsOfService} from '@mattermost/types/terms_of_service';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import AdminSettings from 'components/admin_console/admin_settings';
 import type {BaseProps, BaseState} from 'components/admin_console/admin_settings';
 import BooleanSetting from 'components/admin_console/boolean_setting';
@@ -19,8 +21,8 @@ import {Constants} from 'utils/constants';
 
 type Props = BaseProps & {
     actions: {
-        getTermsOfService: () => Promise<{data: TermsOfService}>;
-        createTermsOfService: (text: string) => Promise<{data: TermsOfService; error?: Error}>;
+        getTermsOfService: () => Promise<ActionResult<TermsOfService>>;
+        createTermsOfService: (text: string) => Promise<ActionResult<TermsOfService>>;
     };
     config: AdminConfig;
     license: ClientLicense;
