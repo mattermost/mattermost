@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -270,16 +271,25 @@ func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*m
 	return api.app.GetUsersInTeam(options)
 }
 
+func (api *PluginAPI) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
+	pref, err := api.app.GetPreferenceByCategoryAndNameForUser(api.ctx, userID, category, name)
+	if err != nil {
+		return model.Preference{}, err
+	}
+
+	return *pref, nil
+}
+
 func (api *PluginAPI) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
-	return api.app.GetPreferencesForUser(userID)
+	return api.app.GetPreferencesForUser(api.ctx, userID)
 }
 
 func (api *PluginAPI) UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
-	return api.app.UpdatePreferences(userID, preferences)
+	return api.app.UpdatePreferences(api.ctx, userID, preferences)
 }
 
 func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
-	return api.app.DeletePreferences(userID, preferences)
+	return api.app.DeletePreferences(api.ctx, userID, preferences)
 }
 
 func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
@@ -1289,7 +1299,12 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 }
 
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	return api.app.ShareChannel(api.ctx, sc)
+	scShared, err := api.app.ShareChannel(api.ctx, sc)
+	if errors.Is(err, ErrChannelAlreadyShared) {
+		// sharing an already shared channel is not an error; treat as idempotent and return the existing shared channel
+		return api.app.GetSharedChannel(sc.ChannelId)
+	}
+	return scShared, err
 }
 
 func (api *PluginAPI) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {

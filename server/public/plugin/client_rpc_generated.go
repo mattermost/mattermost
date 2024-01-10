@@ -1018,6 +1018,40 @@ func (s *hooksRPCServer) OnSharedChannelsPing(args *Z_OnSharedChannelsPingArgs, 
 	return nil
 }
 
+func init() {
+	hookNameToId["PreferencesHaveChanged"] = PreferencesHaveChangedID
+}
+
+type Z_PreferencesHaveChangedArgs struct {
+	A *Context
+	B []model.Preference
+}
+
+type Z_PreferencesHaveChangedReturns struct {
+}
+
+func (g *hooksRPCClient) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
+	_args := &Z_PreferencesHaveChangedArgs{c, preferences}
+	_returns := &Z_PreferencesHaveChangedReturns{}
+	if g.implemented[PreferencesHaveChangedID] {
+		if err := g.client.Call("Plugin.PreferencesHaveChanged", _args, _returns); err != nil {
+			g.log.Error("RPC call PreferencesHaveChanged to plugin failed.", mlog.Err(err))
+		}
+	}
+
+}
+
+func (s *hooksRPCServer) PreferencesHaveChanged(args *Z_PreferencesHaveChangedArgs, returns *Z_PreferencesHaveChangedReturns) error {
+	if hook, ok := s.impl.(interface {
+		PreferencesHaveChanged(c *Context, preferences []model.Preference)
+	}); ok {
+		hook.PreferencesHaveChanged(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook PreferencesHaveChanged called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -1665,6 +1699,37 @@ func (s *apiRPCServer) GetUsersInTeam(args *Z_GetUsersInTeamArgs, returns *Z_Get
 		returns.A, returns.B = hook.GetUsersInTeam(args.A, args.B, args.C)
 	} else {
 		return encodableError(fmt.Errorf("API GetUsersInTeam called but not implemented."))
+	}
+	return nil
+}
+
+type Z_GetPreferenceForUserArgs struct {
+	A string
+	B string
+	C string
+}
+
+type Z_GetPreferenceForUserReturns struct {
+	A model.Preference
+	B *model.AppError
+}
+
+func (g *apiRPCClient) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
+	_args := &Z_GetPreferenceForUserArgs{userID, category, name}
+	_returns := &Z_GetPreferenceForUserReturns{}
+	if err := g.client.Call("Plugin.GetPreferenceForUser", _args, _returns); err != nil {
+		log.Printf("RPC call to GetPreferenceForUser API failed: %s", err.Error())
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *apiRPCServer) GetPreferenceForUser(args *Z_GetPreferenceForUserArgs, returns *Z_GetPreferenceForUserReturns) error {
+	if hook, ok := s.impl.(interface {
+		GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError)
+	}); ok {
+		returns.A, returns.B = hook.GetPreferenceForUser(args.A, args.B, args.C)
+	} else {
+		return encodableError(fmt.Errorf("API GetPreferenceForUser called but not implemented."))
 	}
 	return nil
 }
