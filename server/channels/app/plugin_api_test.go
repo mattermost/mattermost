@@ -513,7 +513,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, user1)
 
 	custom := &model.CustomStatus{
-		Emoji: ":tada:",
+		Emoji: "tada",
 		Text:  "honk",
 	}
 
