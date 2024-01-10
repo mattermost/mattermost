@@ -8,11 +8,11 @@ import type {IntlShape} from 'react-intl';
 
 import {AccountOutlineIcon, AccountPlusOutlineIcon, CloseIcon, EmoticonHappyOutlineIcon, PhoneInTalkIcon, SendIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
 import type {UserCustomStatus, UserProfile} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername, isGuest, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -167,8 +167,8 @@ export interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Po
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
-        openDirectChannelToUserId: (userId?: string) => Promise<{error: ServerError}>;
-        getMembershipForEntities: (teamId: string, userId: string, channelId?: string) => Promise<void>;
+        openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
+        getMembershipForEntities: (teamId: string, userId: string, channelId?: string) => void;
     };
     intl: IntlShape;
     lastActivityTimestamp: number;
@@ -282,7 +282,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
             return;
         }
         this.setState({loadingDMChannel: user.id});
-        actions.openDirectChannelToUserId(user.id).then((result: {error: ServerError}) => {
+        actions.openDirectChannelToUserId(user.id).then((result: ActionResult) => {
             if (!result.error) {
                 if (this.props.isMobileView) {
                     GlobalActions.emitCloseRightHandSide();

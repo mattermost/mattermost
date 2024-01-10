@@ -24,11 +24,20 @@ export enum ReportDuration {
 }
 
 export enum CursorPaginationDirection {
-    'up' = 'up',
-    'down' = 'down',
+    'prev' = 'prev',
+    'next' = 'next',
 }
 
-export type UserReportOptions = {
+export type UserReportFilter = {
+    role_filter?: string,
+    has_no_team?: boolean,
+    team_filter?: string,
+    hide_active?: boolean,
+    hide_inactive?: boolean,
+    searchTerm?: string,
+}
+
+export type UserReportOptions = UserReportFilter & {
     page_size?: number;
 
     // Following are optional sort parameters
@@ -63,20 +72,9 @@ export type UserReportOptions = {
      * The duration to filter by. Use the ReportDuration enum.
      */
     date_range?: ReportDuration;
-    role_filter?: string;
-    team_filter?: string;
-    has_no_team?: boolean;
-    hide_active?: boolean;
-    hide_inactive?: boolean;
 };
 
-export type UserReport = {
-    id: UserProfile['id'];
-    username: UserProfile['username'];
-    email: UserProfile['email'];
-    create_at: UserProfile['create_at'];
-    display_name: string;
-    roles: UserProfile['roles'];
+export type UserReport = UserProfile & {
     last_login_at: number;
 	last_status_at?: number;
 	last_post_date?: number;

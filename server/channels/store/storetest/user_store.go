@@ -6336,7 +6336,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn:      "Username",
-				Direction:       "down",
+				Direction:       "next",
 				PageSize:        50,
 				FromColumnValue: users[10].Username,
 				FromId:          users[10].Id,
@@ -6353,7 +6353,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn:      "Username",
 				SortDesc:        true,
-				Direction:       "down",
+				Direction:       "next",
 				PageSize:        50,
 				FromColumnValue: users[10].Username,
 				FromId:          users[10].Id,
@@ -6369,7 +6369,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn:      "Username",
-				Direction:       "up",
+				Direction:       "prev",
 				PageSize:        50,
 				FromColumnValue: users[10].Username,
 				FromId:          users[10].Id,
@@ -6386,7 +6386,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn:      "Username",
 				SortDesc:        true,
-				Direction:       "up",
+				Direction:       "prev",
 				PageSize:        50,
 				FromColumnValue: users[10].Username,
 				FromId:          users[10].Id,
@@ -6540,5 +6540,27 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 		require.Len(t, userReport, 15)
+	})
+
+	t.Run("should filter on search term", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			SearchTerm: "username_1",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 26)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			SearchTerm: "username_2",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 11)
 	})
 }
