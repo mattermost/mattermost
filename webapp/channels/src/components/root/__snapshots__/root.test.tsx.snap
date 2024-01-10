@@ -98,7 +98,6 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <GlobalHeader />
       <CloudEffectsWrapper />
       <withRouter(Connect(TeamSidebar)) />
-      <DelinquencyModalController />
       <Switch>
         <Route
           key="productwithpublic-public"
