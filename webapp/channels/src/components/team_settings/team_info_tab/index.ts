@@ -10,7 +10,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import {getTeam, patchTeam, removeTeamIcon, setTeamIcon} from 'mattermost-redux/actions/teams';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import type {GlobalState} from 'types/store/index';
 

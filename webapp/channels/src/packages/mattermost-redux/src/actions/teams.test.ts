@@ -753,7 +753,7 @@ describe('Actions.Teams', () => {
         });
         await store.dispatch(loadMe());
 
-        const state = store.getState();
+        let state = store.getState();
         expect(state.entities.teams.teams[team!.id].invite_id).toEqual('');
 
         const imageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
