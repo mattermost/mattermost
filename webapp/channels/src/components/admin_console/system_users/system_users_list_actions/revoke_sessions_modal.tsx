@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {revokeAllSessionsForUser} from 'mattermost-redux/actions/users';
@@ -17,9 +18,10 @@ type Props = {
     user: UserProfile;
     currentUser: UserProfile;
     onHide: () => void;
+    onError: (error: ServerError) => void;
 }
 
-export default function RevokeSessionsModal({user, currentUser, onHide}: Props) {
+export default function RevokeSessionsModal({user, currentUser, onHide, onError}: Props) {
     const [show, setShow] = useState(true);
     const dispatch = useDispatch();
 

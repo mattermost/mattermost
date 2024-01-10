@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {createGroupTeamsAndChannels} from 'mattermost-redux/actions/groups';
@@ -14,9 +15,10 @@ import ConfirmModal from 'components/confirm_modal';
 type Props = {
     user: UserProfile;
     onHide: () => void;
+    onError: (error: ServerError) => void;
 }
 
-export default function CreateGroupSyncablesMembershipsModal({user, onHide}: Props) {
+export default function CreateGroupSyncablesMembershipsModal({user, onHide, onError}: Props) {
     const [show, setShow] = useState(true);
     const dispatch = useDispatch();
 

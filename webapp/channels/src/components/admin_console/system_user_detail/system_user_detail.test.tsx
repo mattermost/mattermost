@@ -21,6 +21,7 @@ describe('components/admin_console/system_user_detail', () => {
         updateUserActive: jest.fn(),
         setNavigationBlocked: jest.fn(),
         addUserToTeam: jest.fn(),
+        openModal: jest.fn(),
         intl: {
             formatMessage: jest.fn(),
         } as MockIntl,

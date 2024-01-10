@@ -157,11 +157,6 @@ exports[`components/admin_console/system_user_detail should match default snapsh
       />
     </div>
   </div>
-  <Connect(ResetPasswordModal)
-    onModalDismissed={[Function]}
-    onModalSubmit={[Function]}
-    show={false}
-  />
   <ConfirmModal
     confirmButtonClass="btn btn-danger"
     confirmButtonText={
@@ -367,11 +362,6 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
       />
     </div>
   </div>
-  <Connect(ResetPasswordModal)
-    onModalDismissed={[Function]}
-    onModalSubmit={[Function]}
-    show={false}
-  />
   <ConfirmModal
     confirmButtonClass="btn btn-danger"
     confirmButtonText={

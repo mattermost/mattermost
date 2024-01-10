@@ -5,6 +5,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
+import type {ServerError} from '@mattermost/types/errors';
 import {UserReportSortColumns, ReportSortDirection} from '@mattermost/types/reports';
 import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
 import type {UserProfile} from '@mattermost/types/users';
@@ -49,6 +50,12 @@ function SystemUsersList(props: Props) {
 
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
+
+    function onError(error: ServerError) {
+        // TODO: Some kind of error handling for actions
+        // eslint-disable-next-line no-console
+        console.error(error);
+    }
 
     const columns: Array<ColumnDef<UserReport, any>> = useMemo(
         () => [
@@ -191,6 +198,7 @@ function SystemUsersList(props: Props) {
                         rowIndex={info.cell.row.index}
                         tableId={tableId}
                         currentUser={props.currentUser}
+                        onError={onError}
                     />
                 ),
                 enableHiding: false,

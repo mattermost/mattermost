@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {updateUserActive} from 'mattermost-redux/actions/users';
@@ -19,19 +20,21 @@ import Constants from 'utils/constants';
 type Props = {
     user: UserProfile;
     onHide: () => void;
+    onError: (error: ServerError) => void;
 }
 
-export default function DeactivateMemberModal({user, onHide}: Props) {
+export default function DeactivateMemberModal({user, onHide, onError}: Props) {
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
     const bots = useSelector(getExternalBotAccounts);
     const siteURL = config.ServiceSettings?.SiteURL;
     const [show, setShow] = useState(true);
 
-    function deactivateMember() {
-        dispatch(updateUserActive(user.id, false)).then(({error}) => {
-            // TODO: error handling?
-        });
+    async function deactivateMember() {
+        const {error} = await dispatch(updateUserActive(user.id, false));
+        if (error) {
+            onError(error);
+        }
         closeModal();
     }
 

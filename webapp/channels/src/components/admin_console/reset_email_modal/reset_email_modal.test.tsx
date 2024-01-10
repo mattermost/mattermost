@@ -13,8 +13,6 @@ import {TestHelper} from 'utils/test_helper';
 import ResetEmailModal from './reset_email_modal';
 
 describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () => {
-    const emptyFunction = jest.fn();
-
     const user: UserProfile = TestHelper.getUserMock({
         email: 'arvin.darmawan@gmail.com',
     });
@@ -23,9 +21,8 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
         actions: {patchUser: jest.fn(() => Promise.resolve({}))},
         user,
         currentUserId: 'random_user_id',
-        show: true,
-        onModalSubmit: emptyFunction,
-        onModalDismissed: emptyFunction,
+        onHide: jest.fn(),
+        onExited: jest.fn(),
     };
 
     test('should match snapshot when not the current user', () => {

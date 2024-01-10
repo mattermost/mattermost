@@ -6,6 +6,7 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
+import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {updateUserActive} from 'mattermost-redux/actions/users';
@@ -37,9 +38,10 @@ interface Props {
     currentUser: UserProfile;
     tableId?: string;
     rowIndex: number;
+    onError: (error: ServerError) => void;
 }
 
-function AdminConsoleListActions({user, currentUser, tableId, rowIndex}: Props) {
+function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
@@ -114,17 +116,16 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex}: Props) 
                         defaultMessage='Activate'
                     />
                 }
-                onClick={() => {
+                onClick={async () => {
                     // TODO: disable if this is true
                     if (user.auth_service === Constants.LDAP_SERVICE) {
                         return;
                     }
 
-                    dispatch(updateUserActive(user.id, true)).then(({error}) => {
-                        if (error) {
-                            // TODO: error handling?
-                        }
-                    });
+                    const {error} = await dispatch(updateUserActive(user.id, true));
+                    if (error) {
+                        onError(error);
+                    }
                 }}
             />}
 
@@ -142,7 +143,7 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex}: Props) 
                     dispatch(openModal({
                         modalId: ModalIdentifiers.DEACTIVATE_MEMBER_MODAL,
                         dialogType: DeactivateMemberModal,
-                        dialogProps: {user},
+                        dialogProps: {user, onError},
                     }));
                 }}
             />}
@@ -281,7 +282,7 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex}: Props) 
                     dispatch(openModal({
                         modalId: ModalIdentifiers.PROMOTE_TO_MEMBER_MODAL,
                         dialogType: PromoteToMemberModal,
-                        dialogProps: {user},
+                        dialogProps: {user, onError},
                     }));
                 }}
             />}
@@ -298,7 +299,7 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex}: Props) 
                     dispatch(openModal({
                         modalId: ModalIdentifiers.DEMOTE_TO_GUEST_MODAL,
                         dialogType: DemoteToGuestModal,
-                        dialogProps: {user},
+                        dialogProps: {user, onError},
                     }));
                 }}
             />}
@@ -316,7 +317,7 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex}: Props) 
                         dispatch(openModal({
                             modalId: ModalIdentifiers.REVOKE_SESSIONS_MODAL,
                             dialogType: RevokeSessionsModal,
-                            dialogProps: {user, currentUser},
+                            dialogProps: {user, currentUser, onError},
                         }));
                     }}
                 />}
@@ -335,7 +336,7 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex}: Props) 
                         dispatch(openModal({
                             modalId: ModalIdentifiers.CREATE_GROUP_SYNCABLES_MEMBERSHIP_MODAL,
                             dialogType: CreateGroupSyncablesMembershipsModal,
-                            dialogProps: {user},
+                            dialogProps: {user, onError},
                         }));
                     }}
                 />}

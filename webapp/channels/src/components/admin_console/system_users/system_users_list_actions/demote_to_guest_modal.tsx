@@ -5,6 +5,7 @@ import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
+import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {demoteUserToGuest} from 'mattermost-redux/actions/users';
@@ -14,9 +15,10 @@ import ConfirmModal from 'components/confirm_modal';
 type Props = {
     user: UserProfile;
     onHide: () => void;
+    onError: (error: ServerError) => void;
 }
 
-export default function DemoteToGuestModal({user, onHide}: Props) {
+export default function DemoteToGuestModal({user, onHide, onError}: Props) {
     const [show, setShow] = useState(true);
     const dispatch = useDispatch();
 
