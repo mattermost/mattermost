@@ -8,16 +8,16 @@ import BoolSetting from './bool_setting';
 
 describe('components/widgets/settings/BoolSetting', () => {
     test('render component with required props', () => {
-      const onChange = jest.fn();
+        const onChange = jest.fn();
         const wrapper = shallow(
 
             <BoolSetting
-              id='string.id'
-              label='some label'
-              value={true}
-              placeholder='Text aligned with checkbox'
-              onChange={onChange}
-            />
+                id='string.id'
+                label='some label'
+                value={true}
+                placeholder='Text aligned with checkbox'
+                onChange={onChange}
+            />,
         );
         expect(wrapper).toMatchInlineSnapshot(`
 <Setting

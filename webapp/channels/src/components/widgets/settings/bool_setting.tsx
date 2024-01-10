@@ -1,7 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, { ChangeEvent } from 'react';
+import type {ChangeEvent} from 'react';
+import React from 'react';
+
 import Setting from './setting';
 
 type Props = {
@@ -27,7 +29,7 @@ const BoolSetting = ({
     disabled,
     inputClassName = '',
     onChange,
-    autoFocus
+    autoFocus,
 }: Props) => {
     const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
         onChange(id, e.target.checked);
@@ -56,6 +58,6 @@ const BoolSetting = ({
             </div>
         </Setting>
     );
-}
+};
 
 export default React.memo(BoolSetting);
