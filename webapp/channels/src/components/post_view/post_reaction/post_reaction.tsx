@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import type {Dispatch} from 'redux';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -30,7 +29,7 @@ export type Props = {
     showEmojiPicker: boolean;
     toggleEmojiPicker: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     actions: {
-        toggleReaction: (postId: string, emojiName: string) => (dispatch: Dispatch) => {data: boolean};
+        toggleReaction: (postId: string, emojiName: string) => void;
     };
 }
 

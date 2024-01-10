@@ -137,9 +137,9 @@ export type Actions = {
     getFirstAdminSetupComplete: () => Promise<ActionResult>;
     getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
     migrateRecentEmojis: () => void;
-    loadConfigAndMe: () => Promise<{data: boolean}>;
+    loadConfigAndMe: () => Promise<ActionResult>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
-    initializeProducts: () => Promise<void[]>;
+    initializeProducts: () => Promise<ActionResult[]>;
 }
 
 type Props = {
@@ -290,7 +290,7 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.props.actions.migrateRecentEmojis();
-        loadRecentlyUsedCustomEmojis()(store.dispatch, store.getState);
+        store.dispatch(loadRecentlyUsedCustomEmojis());
 
         const iosDownloadLink = getConfig(store.getState()).IosAppDownloadLink;
         const androidDownloadLink = getConfig(store.getState()).AndroidAppDownloadLink;

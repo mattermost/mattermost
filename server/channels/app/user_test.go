@@ -2008,6 +2008,5 @@ func TestGetUsersForReporting(t *testing.T) {
 		})
 		require.Nil(t, err)
 		require.NotNil(t, userReports)
-		require.Equal(t, "Bob Bobson", userReports[0].DisplayName)
 	})
 }

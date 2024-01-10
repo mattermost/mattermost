@@ -10,7 +10,7 @@ import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
 import AnnouncementBarController from 'components/announcement_bar';
@@ -44,7 +44,7 @@ type ExtraProps = {
     setNavigationBlocked?: () => void;
     roles?: Record<string, Role>;
     editRole?: (role: Role) => void;
-    updateConfig?: (config: AdminConfig) => ActionFunc;
+    updateConfig?: (config: AdminConfig) => Promise<ActionResult>;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
 }
