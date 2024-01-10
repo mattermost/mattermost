@@ -46,11 +46,11 @@ func checkOutgoingOAuthConnectionReadPermissions(c *Context) bool {
 // checkOutgoingOAuthConnectionWritePermissions checks if the user has the permissions to write outgoing oauth connections.
 // This is a more granular permissions intended for system admins to manage (setup) outgoing oauth connections.
 func checkOutgoingOAuthConnectionWritePermissions(c *Context) bool {
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.OutgoingOAuthConnectionManagementPermission) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) {
 		return true
 	}
 
-	c.SetPermissionError(model.OutgoingOAuthConnectionManagementPermission)
+	c.SetPermissionError(model.PermissionManageOutgoingOAuthConnections)
 	return false
 }
 

@@ -1750,6 +1750,8 @@
   "admin.permissions.permission.use_group_mentions.name": "Group Mentions",
   "admin.permissions.permission.view_team.description": "View team",
   "admin.permissions.permission.view_team.name": "View team",
+  "admin.permissions.permission.manage_outgoing_oauth_connections.name": "Manage Outgoing OAuth Connections",
+  "admin.permissions.permission.manage_outgoing_oauth_connections.description": "Create, edit, and delete Outgoing OAuth Connections.",
   "admin.permissions.permissionSchemes": "Permission Schemes",
   "admin.permissions.permissionSchemes.cancel": "Cancel",
   "admin.permissions.permissionsSchemeSummary.delete": "Delete",
