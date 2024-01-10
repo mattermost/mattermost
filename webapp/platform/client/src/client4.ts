@@ -52,7 +52,7 @@ import {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions, UserReportOptions} from '@mattermost/types/client4';
+import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions, UserReportOptions, UserReportFilter} from '@mattermost/types/client4';
 import {Compliance} from '@mattermost/types/compliance';
 import {
     ClientConfig,
@@ -998,6 +998,14 @@ export default class Client4 {
         const queryString = buildQueryString(filter);
         return this.doFetch<UserReport[]>(
             `${this.getReportsRoute()}/users${queryString}`,
+            {method: 'get'},
+        );
+    }
+
+    getUserCountForReporting = (filter: UserReportFilter) => {
+        const queryString = buildQueryString(filter);
+        return this.doFetch<number>(
+            `${this.getReportsRoute()}/users/count${queryString}`,
             {method: 'get'},
         );
     }
