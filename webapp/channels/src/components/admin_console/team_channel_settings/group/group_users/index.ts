@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -11,7 +11,6 @@ import {getChannelMembersInChannels} from 'mattermost-redux/selectors/entities/c
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMembersInTeams} from 'mattermost-redux/selectors/entities/teams';
 import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
 
@@ -28,17 +27,6 @@ type Props = {
     scope: 'team' | 'channel';
     scopeId: string;
     total: number;
-};
-
-type Actions = {
-    loadTeamMembersForProfilesList: (profiles: UserProfile[], id: string, reloadAllMembers?: boolean) => Promise<{
-        data: boolean;
-    }>;
-    loadChannelMembersForProfilesList: (profiles: UserProfile[], id: string, reloadAllMembers?: boolean) => Promise<{
-        data: boolean;
-    }>;
-    setModalSearchTerm: (term: string) => ActionResult;
-    setModalFilters: (filters: Filters) => ActionResult;
 };
 
 function makeMapStateToProps() {
@@ -90,9 +78,9 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             loadChannelMembersForProfilesList,
             loadTeamMembersForProfilesList,
             setModalSearchTerm,
