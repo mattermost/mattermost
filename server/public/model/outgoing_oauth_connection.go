@@ -57,6 +57,34 @@ func (oa *OutgoingOAuthConnection) Sanitize() {
 	oa.CredentialsPassword = nil
 }
 
+// Patch updates the OutgoingOAuthConnection object with the non-empty fields from the given connection.
+func (oa *OutgoingOAuthConnection) Patch(conn *OutgoingOAuthConnection) {
+	if conn.Name != "" {
+		oa.Name = conn.Name
+	}
+	if conn.ClientId != "" {
+		oa.ClientId = conn.ClientId
+	}
+	if conn.ClientSecret != "" {
+		oa.ClientSecret = conn.ClientSecret
+	}
+	if conn.OAuthTokenURL != "" {
+		oa.OAuthTokenURL = conn.OAuthTokenURL
+	}
+	if conn.GrantType != "" {
+		oa.GrantType = conn.GrantType
+	}
+	if len(conn.Audiences) > 0 {
+		oa.Audiences = conn.Audiences
+	}
+	if conn.CredentialsUsername != nil {
+		oa.CredentialsUsername = conn.CredentialsUsername
+	}
+	if conn.CredentialsPassword != nil {
+		oa.CredentialsPassword = conn.CredentialsPassword
+	}
+}
+
 // IsValid validates the object and returns an error if it isn't properly configured
 func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 	if !IsValidId(oa.Id) {
@@ -91,7 +119,7 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.oauth_token_url.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if err := oa.IsValidGrantType(); err != nil {
+	if err := oa.HaveValidGrantType(); err != nil {
 		return err
 	}
 
@@ -110,8 +138,8 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 	return nil
 }
 
-// IsValidGrantType validates the grant type and its parameters returning an error if it isn't properly configured
-func (oa *OutgoingOAuthConnection) IsValidGrantType() *AppError {
+// HaveValidGrantType validates the grant type and its parameters returning an error if it isn't properly configured
+func (oa *OutgoingOAuthConnection) HaveValidGrantType() *AppError {
 	if !oa.GrantType.IsValid() {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.grant_type.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}

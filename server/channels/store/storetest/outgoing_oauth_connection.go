@@ -163,6 +163,106 @@ func testUpdateOutgoingOAuthConnection(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, connection, storeConn)
 	})
+
+	t.Run("patch", func(t *testing.T) {
+		t.Run("name", func(t *testing.T) {
+			connection := newValidOutgoingOAuthConnection()
+			_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
+			require.NoError(t, err)
+
+			connection.Name = "Updated Name"
+
+			updated, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
+			require.NoError(t, err)
+			require.Equal(t, connection, updated)
+		})
+
+		t.Run("client id", func(t *testing.T) {
+			connection := newValidOutgoingOAuthConnection()
+			_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
+			require.NoError(t, err)
+
+			connection.ClientId = "Updated ClientId"
+
+			updated, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
+			require.NoError(t, err)
+			require.Equal(t, connection, updated)
+		})
+
+		t.Run("client secret", func(t *testing.T) {
+			connection := newValidOutgoingOAuthConnection()
+			_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
+			require.NoError(t, err)
+
+			connection.ClientSecret = "Updated ClientSecret"
+
+			updated, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
+			require.NoError(t, err)
+			require.Equal(t, connection, updated)
+		})
+
+		t.Run("oauth token url", func(t *testing.T) {
+			connection := newValidOutgoingOAuthConnection()
+			_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
+			require.NoError(t, err)
+
+			connection.OAuthTokenURL = "https://nowhere.com/updated"
+
+			updated, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
+			require.NoError(t, err)
+			require.Equal(t, connection, updated)
+		})
+
+		t.Run("grant type", func(t *testing.T) {
+			connection := newValidOutgoingOAuthConnection()
+			_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
+			require.NoError(t, err)
+
+			connection.GrantType = model.OutgoingOAuthConnectionGrantTypeClientCredentials
+
+			updated, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
+			require.NoError(t, err)
+			require.Equal(t, connection, updated)
+		})
+
+		t.Run("audiences", func(t *testing.T) {
+			connection := newValidOutgoingOAuthConnection()
+			_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
+			require.NoError(t, err)
+
+			connection.Audiences = model.StringArray{"https://nowhere.com/updated"}
+
+			updated, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
+			require.NoError(t, err)
+			require.Equal(t, connection, updated)
+		})
+
+		t.Run("credentials username", func(t *testing.T) {
+			connection := newValidOutgoingOAuthConnection()
+			_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
+			require.NoError(t, err)
+
+			username := "updated username"
+			connection.CredentialsUsername = &username
+
+			updated, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
+			require.NoError(t, err)
+			require.Equal(t, connection, updated)
+		})
+
+		t.Run("credentials password", func(t *testing.T) {
+			connection := newValidOutgoingOAuthConnection()
+			_, err := ss.OutgoingOAuthConnection().SaveConnection(c, connection)
+			require.NoError(t, err)
+
+			password := "updated password"
+			connection.CredentialsPassword = &password
+
+			updated, err := ss.OutgoingOAuthConnection().UpdateConnection(c, connection)
+			require.NoError(t, err)
+			require.Equal(t, connection, updated)
+		})
+	})
 }
 
 func testGetOutgoingOAuthConnection(t *testing.T, ss store.Store) {

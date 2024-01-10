@@ -267,7 +267,9 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	}
 	auditRec.AddEventPriorState(currentConnection)
 
-	connection, err := service.UpdateConnection(c.AppContext, &inputConnection)
+	currentConnection.Patch(&inputConnection)
+
+	connection, err := service.UpdateConnection(c.AppContext, currentConnection)
 	if err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
