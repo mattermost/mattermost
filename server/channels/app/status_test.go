@@ -6,6 +6,7 @@ package app
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 
@@ -22,7 +23,7 @@ func TestCustomStatus(t *testing.T) {
 	user := th.BasicUser
 
 	cs := &model.CustomStatus{
-		Emoji: ":smile:",
+		Emoji: "smile",
 		Text:  "honk!",
 	}
 
@@ -83,7 +84,7 @@ func TestCustomStatusErrors(t *testing.T) {
 			require.NoError(t, err)
 
 			cs := &model.CustomStatus{
-				Emoji: ":smile:",
+				Emoji: "smile",
 				Text:  "honk!",
 			}
 
@@ -97,6 +98,94 @@ func TestCustomStatusErrors(t *testing.T) {
 
 			require.NotNil(t, appErr)
 			require.Equal(t, tc.expectedErr, appErr.Id)
+		})
+	}
+}
+
+func TestSetCustomStatus(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.EnableCustomEmoji = true
+	})
+
+	emoji := th.CreateEmoji()
+
+	for _, testCase := range []struct {
+		Name         string
+		Input        *model.CustomStatus
+		ExpectsError bool
+	}{
+		{
+			Name: "should be able to set custom status with text and emoji",
+			Input: &model.CustomStatus{
+				Emoji: "smile",
+				Text:  "honk!",
+			},
+			ExpectsError: false,
+		},
+		{
+			Name: "should be able to set custom status with only text",
+			Input: &model.CustomStatus{
+				Text: "honk!",
+			},
+			ExpectsError: false,
+		},
+		{
+			Name: "should be able to set custom status with just a system emoji",
+			Input: &model.CustomStatus{
+				Emoji: "smile",
+			},
+			ExpectsError: false,
+		},
+		{
+			Name: "should be able to set custom status with just a custom emoji",
+			Input: &model.CustomStatus{
+				Emoji: emoji.Name,
+			},
+			ExpectsError: false,
+		},
+		{
+			Name:         "should not be able to set custom status without text or emoji",
+			Input:        &model.CustomStatus{},
+			ExpectsError: true,
+		},
+		{
+			Name: "should not be able to set custom status with a non-existent emoji name",
+			Input: &model.CustomStatus{
+				Emoji: "somethingthatdoesntexist",
+			},
+			ExpectsError: true,
+		},
+		{
+			Name: "should not be able to set custom status with an invalid emoji name",
+			Input: &model.CustomStatus{
+				Emoji: "abcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyzabcdefghijklmnopqrstuvwxyz",
+				Text:  "honk!",
+			},
+			ExpectsError: true,
+		},
+	} {
+		t.Run(testCase.Name, func(t *testing.T) {
+			err := th.App.SetCustomStatus(th.Context, th.BasicUser.Id, testCase.Input)
+			defer th.App.RemoveCustomStatus(th.Context, th.BasicUser.Id)
+
+			if testCase.ExpectsError {
+				require.NotNil(t, err)
+			} else {
+				require.Nil(t, err)
+			}
+
+			customStatus, err := th.App.GetCustomStatus(th.BasicUser.Id)
+
+			require.Nil(t, err)
+
+			if testCase.ExpectsError {
+				assert.NotEqual(t, testCase.Input, customStatus)
+			} else {
+				assert.Equal(t, testCase.Input, customStatus)
+			}
 		})
 	}
 }

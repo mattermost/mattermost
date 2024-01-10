@@ -13,7 +13,7 @@ import {setCustomStatusInitialisationState} from 'mattermost-redux/actions/prefe
 import {Preferences} from 'mattermost-redux/constants';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
+import {loadCustomEmojisForRecentCustomStatuses} from 'actions/emoji_actions';
 import {closeModal} from 'actions/views/modals';
 import {GenericModal} from '@mattermost/components';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
@@ -148,9 +148,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
     };
 
     const loadCustomEmojisForRecentStatuses = () => {
-        const emojisToLoad = new Set<string>();
-        recentCustomStatuses.forEach((customStatus: UserCustomStatus) => emojisToLoad.add(customStatus.emoji));
-        dispatch(loadCustomEmojisIfNeeded(Array.from(emojisToLoad)));
+        dispatch(loadCustomEmojisForRecentCustomStatuses());
     };
 
     const handleStatusExpired = () => {
@@ -422,6 +420,7 @@ const CustomStatusModal: React.FC<Props> = (props: Props) => {
                             type='button'
                             onClick={toggleEmojiPicker}
                             ref={emojiButtonRef}
+                            aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                             className={classNames('emoji-picker__container', 'StatusModal__emoji-button', {
                                 'StatusModal__emoji-button--active': showEmojiPicker,
                             })}

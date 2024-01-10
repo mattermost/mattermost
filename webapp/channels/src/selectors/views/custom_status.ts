@@ -12,6 +12,7 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {Preferences} from 'mattermost-redux/constants';
 import {CustomStatusDuration, UserCustomStatus} from '@mattermost/types/users';
 
+import {getEmojiMap} from 'selectors/emojis';
 import {isDateWithinDaysRange, TimeInformation} from 'utils/utils';
 
 import {GlobalState} from 'types/store';
@@ -43,11 +44,23 @@ export function isCustomStatusExpired(state: GlobalState, customStatus?: UserCus
     return currentTime.isSameOrAfter(expiryTime);
 }
 
-export const getRecentCustomStatuses = createSelector(
+/**
+ * getRecentCustomStatuses returns an array of the current user's recent custom statuses with any statuses using
+ * non-loaded or non-existent emojis filtered out.
+ */
+export const getRecentCustomStatuses: (state: GlobalState) => UserCustomStatus[] = createSelector(
     'getRecentCustomStatuses',
     (state: GlobalState) => get(state, Preferences.CATEGORY_CUSTOM_STATUS, Preferences.NAME_RECENT_CUSTOM_STATUSES),
-    (value) => {
-        return value ? JSON.parse(value) : [];
+    getEmojiMap,
+    (value, emojiMap) => {
+        if (!value) {
+            return [];
+        }
+
+        let recentCustomStatuses: UserCustomStatus[] = JSON.parse(value);
+        recentCustomStatuses = recentCustomStatuses.filter((customStatus) => emojiMap.has(customStatus.emoji));
+
+        return recentCustomStatuses;
     },
 );
 
