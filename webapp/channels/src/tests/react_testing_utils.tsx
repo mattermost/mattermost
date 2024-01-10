@@ -23,6 +23,7 @@ export * from '@testing-library/react';
 export {userEvent};
 
 export type FullContextOptions = {
+    intlMessages?: Record<string, string>;
     locale?: string;
     useMockedStore?: boolean;
 }
@@ -33,6 +34,7 @@ export const renderWithContext = (
     partialOptions?: FullContextOptions,
 ) => {
     const options = {
+        intlMessages: partialOptions?.intlMessages,
         locale: partialOptions?.locale ?? 'en',
         useMockedStore: partialOptions?.useMockedStore ?? false,
     };
@@ -55,6 +57,7 @@ export const renderWithContext = (
                 <Router history={renderState.history}>
                     <IntlProvider
                         locale={renderState.options.locale}
+                        messages={renderState.options.intlMessages}
                     >
                         <WebSocketContext.Provider value={WebSocketClient}>
                             {props.children}

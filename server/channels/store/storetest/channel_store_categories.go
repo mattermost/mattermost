@@ -324,7 +324,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		otherUserId2 := model.NewId()
 
 		// Set up two direct channels, one favorited and one not
-		dmChannel1, err := ss.Channel().SaveDirectChannel(
+		dmChannel1, err := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId1),
 				Type: model.ChannelTypeDirect,
@@ -340,7 +340,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		)
 		require.NoError(t, err)
 
-		dmChannel2, err := ss.Channel().SaveDirectChannel(
+		dmChannel2, err := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId2),
 				Type: model.ChannelTypeDirect,
@@ -795,7 +795,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:   model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(channel1.Id)
+		defer ss.Channel().PermanentDelete(rctx, channel1.Id)
 
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
@@ -900,7 +900,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 
 		// Create a DM
 		otherUserId := model.NewId()
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -950,7 +950,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:   model.ChannelTypeGroup,
 		}, 10)
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(gmChannel.Id)
+		defer ss.Channel().PermanentDelete(rctx, gmChannel.Id)
 		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   gmChannel.Id,
@@ -987,7 +987,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 
 		// Create a DM
 		otherUserId := model.NewId()
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1086,7 +1086,7 @@ func testGetSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotEmpty(t, members)
 		member := members[0]
 		member.DeleteAt = model.GetMillis()
-		ss.Team().UpdateMember(member)
+		ss.Team().UpdateMember(rctx, member)
 
 		teamIds := []string{
 			teamMember1.Id,
@@ -1360,7 +1360,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		// Create a direct channel
 		otherUserId := model.NewId()
 
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1445,7 +1445,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		// Create a direct channel
 		otherUserId := model.NewId()
 
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1681,6 +1681,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 
 		otherUserId := model.NewId()
 		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+			rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1739,7 +1740,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userId)
 
 		otherUserId := model.NewId()
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -2008,7 +2009,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		}, 1000)
 		require.NoError(t, nErr)
 
-		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, &model.User{
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(rctx, user, &model.User{
 			Id: model.NewId(),
 		})
 		require.NoError(t, nErr)
@@ -2057,7 +2058,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		}, 1000)
 		require.NoError(t, nErr)
 
-		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, &model.User{
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(rctx, user, &model.User{
 			Id: model.NewId(),
 		})
 		require.NoError(t, nErr)
@@ -2124,7 +2125,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		}, 1000)
 		require.NoError(t, nErr)
 
-		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, user2)
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(rctx, user, user2)
 		require.NoError(t, nErr)
 
 		_, err = ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
@@ -2216,7 +2217,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 			Type:   model.ChannelTypeOpen,
 		}, 1000)
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(channel1.Id)
+		defer ss.Channel().PermanentDelete(rctx, channel1.Id)
 
 		channel2, nErr := ss.Channel().Save(&model.Channel{
 			Name:   model.NewId(),
@@ -2224,13 +2225,13 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 			Type:   model.ChannelTypePrivate,
 		}, 1000)
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(channel2.Id)
+		defer ss.Channel().PermanentDelete(rctx, channel2.Id)
 
-		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, &model.User{
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(rctx, user, &model.User{
 			Id: model.NewId(),
 		})
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(dmChannel1.Id)
+		defer ss.Channel().PermanentDelete(rctx, dmChannel1.Id)
 
 		// Assign some of those channels to a custom category
 		newCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{

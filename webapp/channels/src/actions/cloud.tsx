@@ -272,7 +272,7 @@ export function retryFailedCloudFetches() {
         }
 
         if (errors.limits) {
-            getCloudLimits()(dispatch, getState);
+            dispatch(getCloudLimits());
         }
 
         return {data: true};

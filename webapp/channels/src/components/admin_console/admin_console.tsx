@@ -3,14 +3,14 @@
 
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
 import AnnouncementBarController from 'components/announcement_bar';
@@ -30,10 +30,7 @@ import type {AdminDefinitionSubSection, AdminDefinitionSection} from './types';
 
 import type {PropsFromRedux} from './index';
 
-export interface Props extends PropsFromRedux {
-    match: {url: string};
-    currentTheme: Theme;
-}
+export type Props = PropsFromRedux & RouteComponentProps;
 
 type State = {
     filter: string;
@@ -48,7 +45,7 @@ type ExtraProps = {
     setNavigationBlocked?: () => void;
     roles?: Record<string, Role>;
     editRole?: (role: Role) => void;
-    updateConfig?: (config: AdminConfig) => ActionFunc;
+    updateConfig?: (config: AdminConfig) => Promise<ActionResult>;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
 }

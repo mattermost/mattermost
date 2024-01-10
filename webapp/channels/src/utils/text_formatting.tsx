@@ -51,7 +51,7 @@ export type Team = {
     display_name: string;
 };
 
-interface TextFormattingOptionsBase {
+export interface TextFormattingOptionsBase {
 
     /**
      * If specified, this word is highlighted in the resulting html.
@@ -503,7 +503,7 @@ export function autolinkAtMentions(text: string, tokens: Tokens): string {
     return output;
 }
 
-export function allAtMentions(text: string): RegExpMatchArray {
+export function allAtMentions(text: string): string[] {
     return text.match(Constants.SPECIAL_MENTIONS_REGEX && AT_MENTION_PATTERN) || [];
 }
 

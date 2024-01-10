@@ -84,14 +84,11 @@ type Props = {
         /**
         * Access token managment
         */
-        createUserAccessToken: (userId: string, description: string) => Promise<{
-            data: {token: string; description: string; id: string; is_active: boolean} | null;
-            error?: Error;
-        }>;
+        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
 
-        revokeUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-        enableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-        disableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
+        revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
     };
 
     /**

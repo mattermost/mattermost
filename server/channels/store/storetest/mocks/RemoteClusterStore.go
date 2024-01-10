@@ -90,6 +90,32 @@ func (_m *RemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*
 	return r0, r1
 }
 
+// GetByPluginID provides a mock function with given fields: pluginID
+func (_m *RemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
+	ret := _m.Called(pluginID)
+
+	var r0 *model.RemoteCluster
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.RemoteCluster, error)); ok {
+		return rf(pluginID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.RemoteCluster); ok {
+		r0 = rf(pluginID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.RemoteCluster)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(pluginID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Save provides a mock function with given fields: rc
 func (_m *RemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	ret := _m.Called(rc)
