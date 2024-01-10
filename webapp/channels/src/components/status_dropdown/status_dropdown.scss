@@ -1,3 +1,14 @@
+.profile__icon {
+    &:hover {
+        fill: rgba(255, 0, 0, 0.72);
+    }
+}
+.logout__icon {
+    &:hover {
+        fill: rgba(255, 0, 0, 0.72);
+    }
+}
+
 #statusDropdownMenu {
     .icon {
         position: relative;
@@ -133,6 +144,10 @@ button.custom_status__row {
 .custom-status {
     &-emoji {
         fill: rgba(var(--center-channel-color-rgb), 0.56);
+        &:hover {
+            fill: rgba(var(--center-channel-color-rgb), 0.72);
+        }
+
     }
 
     &-suggestion-emoji > span:first-child {

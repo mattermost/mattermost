@@ -6,6 +6,8 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {injectIntl, FormattedDate, FormattedMessage, FormattedTime, defineMessage, defineMessages} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
+import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
@@ -33,9 +35,6 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Avatar from 'components/widgets/users/avatar/avatar';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
-
-import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
-import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {ModalData} from 'types/actions';
 import type {Menu as MenuType} from 'types/store/plugins';
@@ -614,6 +613,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             icon={<AccountOutlineIcon
                                 size={16}
                                 color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                                className={'profile__icon'}
                             />}
                         >
                             {this.props.showCompleteYourProfileTour && (
@@ -627,15 +627,19 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         </Menu.ItemToggleModalRedux>
                     </Menu.Group>
                     <Menu.Group>
-                        <Menu.ItemAction
-                            id='logout'
-                            onClick={this.handleEmitUserLoggedOutEvent}
-                            text={this.props.intl.formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
-                            icon={ <ExitToAppIcon
-                                size={16}
-                                color={"rgba(var(--center-channel-color-rgb), 0.56)"}
-                            />}
-                        />
+                        <span className={'logout__icon'}>
+                            <Menu.ItemAction
+                                id='logout'
+                                onClick={this.handleEmitUserLoggedOutEvent}
+                                text={this.props.intl.formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
+                                icon={
+                                    <ExitToAppIcon
+                                        size={16}
+                                        color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                                    />
+                                }
+                            />
+                        </span>
                     </Menu.Group>
                 </Menu>
             </MenuWrapper>
