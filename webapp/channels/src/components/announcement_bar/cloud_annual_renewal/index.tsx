@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
+import {getConfig as adminGetConfig} from 'mattermost-redux/actions/admin';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
@@ -36,7 +37,6 @@ export const getCurrentYearAsString = () => {
 const CloudAnnualRenewalAnnouncementBar = () => {
     const subscription = useGetSubscription();
 
-    // TODO: Update with renewal modal
     const openPurchaseModal = useOpenCloudPurchaseModal({});
     const {formatMessage} = useIntl();
     const {isDelinquencySubscription} = useDelinquencySubscription();
@@ -45,14 +45,21 @@ const CloudAnnualRenewalAnnouncementBar = () => {
     const currentUserId = useSelector(getCurrentUserId);
     const hasDismissed60DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_60_DAY}_${getCurrentYearAsString()}`)) === 'true';
     const hasDismissed30DayBanner = useSelector((state: GlobalState) => get(state, Preferences.CLOUD_ANNUAL_RENEWAL_BANNER, `${CloudBanners.ANNUAL_RENEWAL_30_DAY}_${getCurrentYearAsString()}`)) === 'true';
-    const cloudAnnualRenewalsEnabled = useSelector(getConfig).FeatureFlags?.CloudAnnualRenewals;
+    const config = useSelector(getConfig);
+    const cloudAnnualRenewalsEnabled = config.FeatureFlags?.CloudAnnualRenewals;
+
+    useEffect(() => {
+        if (!config || !config.FeatureFlags) {
+            dispatch(adminGetConfig());
+        }
+    }, []);
 
     const daysUntilExpiration = useMemo(() => {
         if (!subscription || !subscription.end_at || !subscription.cancel_at) {
             return 0;
         }
 
-        return daysToExpiration(subscription.end_at * 1000);
+        return daysToExpiration(subscription.end_at);
     }, [subscription]);
 
     const handleDismiss = (banner: string) => {
