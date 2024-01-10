@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -760,35 +761,29 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 
 // UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.
 func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
-	var query string
-	// squirrel cannot handle the difference in syntax for update with join
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = `
-		UPDATE
-			SharedChannelUsers AS scu
-		SET
-			LastSyncAt = GREATEST(u.UpdateAt, u.LastPictureUpdate)
-		FROM
-			Users AS u
-		WHERE
-			u.Id = scu.UserId AND scu.UserId = ? AND scu.ChannelId = ? AND scu.RemoteId = ?
-		`
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		query = `
-		UPDATE
-			SharedChannelUsers AS scu
-		INNER JOIN
-			Users AS u ON u.Id = scu.UserId
-		SET
-			LastSyncAt = GREATEST(u.UpdateAt, u.LastPictureUpdate)
-		WHERE
-			scu.UserId = ? AND scu.ChannelId = ? AND scu.RemoteId = ?
-		`
-	} else {
-		return errors.New("unsupported DB driver " + s.DriverName())
+	// fetching the user first creates a minor race condition. This is mitigated by ensuring that the
+	// LastUpdateAt is only ever increased. Doing it this way avoids the update with join that has differing
+	// syntax between MySQL and Postgres which Squirrel cannot handle.  It also allows us to return
+	// a proper error when trying to update for a non-existent user, which cannot be done by checking RowsAffected
+	// when doing updates; RowsAffected=0 when the LastUpdateAt doesn't change and is the same result if user doesn't
+	// exist.
+	user, err := s.stores.user.Get(context.Background(), userID)
+	if err != nil {
+		return err
 	}
 
-	_, err := s.GetMasterX().Exec(query, userID, channelID, remoteID)
+	updateAt := maxInt64(user.UpdateAt, user.LastPictureUpdate)
+
+	query := s.getQueryBuilder().
+		Update("SharedChannelUsers AS scu").
+		Set("LastSyncAt", sq.Expr("GREATEST(scu.LastSyncAt, ?)", updateAt)).
+		Where(sq.Eq{
+			"scu.UserId":    userID,
+			"scu.ChannelId": channelID,
+			"scu.RemoteId":  remoteID,
+		})
+
+	_, err = s.GetMasterX().ExecBuilder(query)
 	if err != nil {
 		return fmt.Errorf("failed to update LastSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
 			userID, channelID, remoteID, err)
