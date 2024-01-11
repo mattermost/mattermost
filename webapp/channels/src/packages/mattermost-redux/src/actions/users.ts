@@ -565,24 +565,24 @@ export function getUser(id: string): NewActionFuncAsync<UserProfile> {
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getUserByUsername(username: string): ActionFunc {
+export function getUserByUsername(username: string): NewActionFuncAsync<UserProfile> {
     return bindClientFunc({
         clientFunc: Client4.getUserByUsername,
         onSuccess: UserTypes.RECEIVED_PROFILE,
         params: [
             username,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getUserByEmail(email: string): ActionFunc {
+export function getUserByEmail(email: string): NewActionFuncAsync<UserProfile> {
     return bindClientFunc({
         clientFunc: Client4.getUserByEmail,
         onSuccess: UserTypes.RECEIVED_PROFILE,
         params: [
             email,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 // We create an array to hold the id's that we want to get a status for. We build our

@@ -20,10 +20,10 @@ export interface Match {
 
 export type MatchAndHistory = Pick<Props, 'match' | 'history'>
 
-interface Props {
+export interface Props {
     match: Match;
     actions: {
-        onChannelByIdentifierEnter: (props: MatchAndHistory) => any;
+        onChannelByIdentifierEnter: (props: MatchAndHistory) => void;
     };
     history: any;
 }

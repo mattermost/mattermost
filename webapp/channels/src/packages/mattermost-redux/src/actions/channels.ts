@@ -409,8 +409,8 @@ export function updateChannelNotifyProps(userId: string, channelId: string, prop
     };
 }
 
-export function getChannelByNameAndTeamName(teamName: string, channelName: string, includeDeleted = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getChannelByNameAndTeamName(teamName: string, channelName: string, includeDeleted = false): NewActionFuncAsync<Channel> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getChannelByNameAndTeamName(teamName, channelName, includeDeleted);
@@ -501,8 +501,8 @@ export function getChannelTimezones(channelId: string): NewActionFuncAsync<strin
     };
 }
 
-export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function fetchChannelsAndMembers(teamId: string): NewActionFuncAsync<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
+    return async (dispatch, getState) => {
         let channels;
         let channelMembers;
         try {
