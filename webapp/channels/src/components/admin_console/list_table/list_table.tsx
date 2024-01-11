@@ -14,8 +14,6 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-// RM
-
 import Constants from 'utils/constants';
 
 // import {Pagination} from './pagination';
