@@ -31,9 +31,9 @@ function mapStateToProps(state: GlobalState) {
     const sortIsDescending = tableProperties?.sortIsDescending ?? adminConsoleUserManagementTablePropertiesInitialState.sortIsDescending;
     const pageSize = tableProperties?.pageSize ?? adminConsoleUserManagementTablePropertiesInitialState.pageSize;
     const pageIndex = tableProperties?.pageIndex ?? adminConsoleUserManagementTablePropertiesInitialState.pageIndex;
-    const direction = tableProperties?.direction ?? adminConsoleUserManagementTablePropertiesInitialState.direction;
-    const fromId = tableProperties?.userId ?? adminConsoleUserManagementTablePropertiesInitialState.userId;
-    const fromColumnValue = tableProperties?.columnValue ?? adminConsoleUserManagementTablePropertiesInitialState.columnValue;
+    const direction = tableProperties?.cursorDirection ?? adminConsoleUserManagementTablePropertiesInitialState.cursorDirection;
+    const fromId = tableProperties?.cursorUserId ?? adminConsoleUserManagementTablePropertiesInitialState.cursorUserId;
+    const fromColumnValue = tableProperties?.cursorColumnValue ?? adminConsoleUserManagementTablePropertiesInitialState.cursorColumnValue;
 
     return {
         siteName,

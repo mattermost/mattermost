@@ -25,9 +25,9 @@ export type AdminConsoleUserManagementTableProperties = {
     sortIsDescending: boolean;
     pageSize: number;
     pageIndex: number;
-    userId: string;
-    columnValue: string;
-    direction: CursorPaginationDirection;
+    cursorUserId: string;
+    cursorColumnValue: string;
+    cursorDirection: CursorPaginationDirection;
 };
 
 export type ViewsState = {

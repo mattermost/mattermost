@@ -26,9 +26,9 @@ type Props = {
     tablePropertySortIsDescending: AdminConsoleUserManagementTableProperties['sortIsDescending'];
     tablePropertyPageSize: AdminConsoleUserManagementTableProperties['pageSize'];
     tablePropertyPageIndex: AdminConsoleUserManagementTableProperties['pageIndex'];
-    tablePropertyFromColumnValue: AdminConsoleUserManagementTableProperties['columnValue'];
-    tablePropertyFromId: AdminConsoleUserManagementTableProperties['userId'];
-    tablePropertyDirection: AdminConsoleUserManagementTableProperties['direction'];
+    tablePropertyFromColumnValue: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
+    tablePropertyFromId: AdminConsoleUserManagementTableProperties['cursorUserId'];
+    tablePropertyDirection: AdminConsoleUserManagementTableProperties['cursorDirection'];
     getUserReports: (options?: UserReportOptions) => Promise<{data: UserReport[]}>;
     setAdminConsoleUsersManagementTableProperties: (properties: Partial<AdminConsoleUserManagementTableProperties>) => void;
 };
@@ -53,6 +53,25 @@ function SystemUsersList(props: Props) {
 
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
+
+    const getPaginationInfo = (pageIndex: number, pageSize: number, currentLength: number, totalUserCount: number) => {
+        if (!currentLength) {
+            return null;
+        }
+
+        return (
+            <span>
+                {formatMessage({
+                    id: 'admin.system_users_list.pagination',
+                    defaultMessage: 'Showing {firstPage} - {lastPage} of {totalUserCount} users',
+                }, {
+                    firstPage: (pageIndex * pageSize) + 1,
+                    lastPage: (pageIndex * pageSize) + currentLength,
+                    totalUserCount,
+                })}
+            </span>
+        );
+    };
 
     const columns: Array<ColumnDef<UserReport, any>> = useMemo(
         () => [
@@ -210,8 +229,8 @@ function SystemUsersList(props: Props) {
             pageSize?: PaginationState['pageSize'];
             sortColumn?: SortingState[0]['id'];
             sortIsDescending?: SortingState[0]['desc'];
-            fromColumnValue?: AdminConsoleUserManagementTableProperties['columnValue'];
-            fromId?: AdminConsoleUserManagementTableProperties['userId'];
+            fromColumnValue?: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
+            fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
             direction?: CursorPaginationDirection;
         }) {
             setLoadingState(LoadingStates.Loading);
@@ -269,9 +288,9 @@ function SystemUsersList(props: Props) {
 
         props.setAdminConsoleUsersManagementTableProperties({
             pageIndex: props.tablePropertyPageIndex - 1,
-            direction: CursorPaginationDirection.up,
-            userId: userReports[0].id,
-            columnValue: getColumnValue(userReports[0], props.tablePropertySortColumn),
+            cursorDirection: CursorPaginationDirection.prev,
+            cursorUserId: userReports[0].id,
+            cursorColumnValue: getColumnValue(userReports[0], props.tablePropertySortColumn),
         });
     }
 
@@ -282,9 +301,9 @@ function SystemUsersList(props: Props) {
 
         props.setAdminConsoleUsersManagementTableProperties({
             pageIndex: props.tablePropertyPageIndex + 1,
-            direction: CursorPaginationDirection.down,
-            userId: userReports[userReports.length - 1].id,
-            columnValue: getColumnValue(userReports[userReports.length - 1], props.tablePropertySortColumn),
+            cursorDirection: CursorPaginationDirection.next,
+            cursorUserId: userReports[userReports.length - 1].id,
+            cursorColumnValue: getColumnValue(userReports[userReports.length - 1], props.tablePropertySortColumn),
         });
     }
 
@@ -299,9 +318,9 @@ function SystemUsersList(props: Props) {
 
         props.setAdminConsoleUsersManagementTableProperties({
             pageIndex: 0,
-            direction: undefined,
-            userId: undefined,
-            columnValue: undefined,
+            cursorDirection: undefined, // reset the cursor to the beginning on any filter change
+            cursorUserId: undefined,
+            cursorColumnValue: undefined,
             sortColumn: updatedSortingState.id,
             sortIsDescending: updatedSortingState.desc,
         });
@@ -313,9 +332,9 @@ function SystemUsersList(props: Props) {
 
         props.setAdminConsoleUsersManagementTableProperties({
             pageIndex: 0,
-            direction: undefined,
-            userId: undefined,
-            columnValue: undefined,
+            cursorDirection: undefined, // reset the cursor to the beginning on any filter change
+            cursorUserId: undefined,
+            cursorColumnValue: undefined,
             pageSize: updatedPaginationState.pageSize,
         });
     }
@@ -340,13 +359,13 @@ function SystemUsersList(props: Props) {
             tableId: 'systemUsersTable',
             tableCaption: formatMessage({id: 'admin.system_users.list.caption', defaultMessage: 'System Users'}),
             loadingState,
-            disablePrevPage: !props.tablePropertyFromId || props.tablePropertyPageIndex <= 0 || (props.tablePropertyDirection === 'up' && userReports.length < paginationTableState.pageSize),
-            disableNextPage: props.tablePropertyDirection === 'down' && userReports.length < paginationTableState.pageSize,
+            disablePrevPage: !props.tablePropertyFromId || props.tablePropertyPageIndex <= 0 || (props.tablePropertyDirection === 'prev' && userReports.length < paginationTableState.pageSize),
+            disableNextPage: props.tablePropertyDirection === 'next' && userReports.length < paginationTableState.pageSize,
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,
             paginationInfo: getPaginationInfo(paginationTableState.pageIndex, paginationTableState.pageSize, userReports.length, 0),
-            hasAdditionalPaginationAtTop: false,
+            hasAdditionalPaginationAtTop: true,
             totalRowInfo: '',
         } as TableMeta,
         getCoreRowModel: getCoreRowModel<UserReport>(),
@@ -414,18 +433,6 @@ function getColumnValue(row: UserReport, sortColumn: AdminConsoleUserManagementT
     default:
         return row.username;
     }
-}
-
-function getPaginationInfo(pageIndex: number, pageSize: number, currentLength: number, totalUserCount: number): React.ReactNode {
-    if (!currentLength) {
-        return null;
-    }
-
-    return (
-        <span>
-            {`Showing ${(pageIndex * pageSize) + 1} - ${(pageIndex * pageSize) + currentLength} of ${totalUserCount} users`}
-        </span>
-    );
 }
 
 export default SystemUsersList;

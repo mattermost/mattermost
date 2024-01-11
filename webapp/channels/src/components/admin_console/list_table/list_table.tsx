@@ -124,7 +124,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
 
     return (
         <>
-            {/* <div className='adminConsoleListTabletOptionalHead'>
+            <div className='adminConsoleListTabletOptionalHead'>
                 {tableMeta.totalRowInfo}
                 {tableMeta.hasAdditionalPaginationAtTop && (
                     <Pagination
@@ -136,7 +136,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         paginationInfo={tableMeta.paginationInfo}
                     />
                 )}
-            </div> */}
+            </div>
             <table
                 id={tableMeta.tableId}
                 aria-colcount={colcount}

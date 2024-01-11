@@ -63,9 +63,9 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     sortIsDescending: false,
     pageSize: 0,
     pageIndex: 0,
-    direction: CursorPaginationDirection.down,
-    userId: '',
-    columnValue: '',
+    cursorDirection: CursorPaginationDirection.next,
+    cursorUserId: '',
+    cursorColumnValue: '',
 };
 
 export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: GenericAction) {
