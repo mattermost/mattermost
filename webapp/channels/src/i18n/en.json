@@ -3269,8 +3269,6 @@
   "create_post.shortcutsNotSupported": "Keyboard shortcuts are not supported on your device.",
   "create_post.write": "Write to {channelDisplayName}",
   "create_team.agreement": "By proceeding to create your account and use {siteName}, you agree to our [Terms of Use]({TermsOfServiceLink}) and [Privacy Policy]({PrivacyPolicyLink}). If you do not agree, you cannot use {siteName}.",
-  "create_team.createTeamRestricted.message": "Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.",
-  "create_team.createTeamRestricted.title": "Professional feature",
   "create_team.display_name.charLength": "Name must be {min} or more characters up to a maximum of {max}. You can add a longer team description later.",
   "create_team.display_name.nameHelp": "Name your team in any language. Your team name shows in menus and headings.",
   "create_team.display_name.next": "Next",
