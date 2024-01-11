@@ -27,18 +27,12 @@ type Props = {
     totalTeamMembers: number;
     canManageTeamMembers?: boolean;
     actions: {
-        getTeamMembers: (teamId: string, page?: number, perPage?: number, options?: GetTeamMembersOpts) => Promise<{data: TeamMembership}>;
-        searchProfiles: (term: string, options?: {[key: string]: any}) => Promise<{data: UserProfile[]}>;
-        getTeamStats: (teamId: string) => Promise<{data: TeamStats}>;
-        loadProfilesAndTeamMembers: (page: number, perPage: number, teamId?: string, options?: {[key: string]: any}) => Promise<{
-            data: boolean;
-        }>;
-        loadStatusesForProfilesList: (users: UserProfile[]) => Promise<{
-            data: boolean;
-        }>;
-        loadTeamMembersForProfilesList: (profiles: any, teamId: string, reloadAllMembers: boolean) => Promise<{
-            data: boolean;
-        }>;
+        getTeamMembers: (teamId: string, page?: number, perPage?: number, options?: GetTeamMembersOpts) => Promise<ActionResult<TeamMembership[]>>;
+        searchProfiles: (term: string, options?: {[key: string]: any}) => Promise<ActionResult<UserProfile[]>>;
+        getTeamStats: (teamId: string) => Promise<ActionResult<TeamStats>>;
+        loadProfilesAndTeamMembers: (page: number, perPage: number, teamId: string, options?: {[key: string]: any}) => Promise<ActionResult>;
+        loadStatusesForProfilesList: (users: UserProfile[]) => void;
+        loadTeamMembersForProfilesList: (profiles: any, teamId: string, reloadAllMembers: boolean) => Promise<ActionResult>;
         setModalSearchTerm: (term: string) => ActionResult;
     };
 }
@@ -67,7 +61,7 @@ export default class MemberListTeam extends React.PureComponent<Props, State> {
                 {
                     sort: Teams.SORT_USERNAME_OPTION,
                     exclude_deleted_users: true,
-                } as GetTeamMembersOpts,
+                },
             ),
             this.props.actions.getTeamStats(this.props.currentTeamId),
         ]);
@@ -104,7 +98,7 @@ export default class MemberListTeam extends React.PureComponent<Props, State> {
 
                     this.setState({loading: true});
 
-                    loadStatusesForProfilesList(data);
+                    loadStatusesForProfilesList(data!);
                     loadTeamMembersForProfilesList(data, this.props.currentTeamId, true).then(({data: membersLoaded}) => {
                         if (membersLoaded) {
                             this.loadComplete();

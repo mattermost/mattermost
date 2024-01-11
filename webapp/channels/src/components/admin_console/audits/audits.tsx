@@ -7,6 +7,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Audit} from '@mattermost/types/audits';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import ComplianceReports from 'components/admin_console/compliance_reports';
 import AuditTable from 'components/audit_table';
 import LoadingScreen from 'components/loading_screen';
@@ -17,7 +19,7 @@ type Props = {
     audits: Audit[];
     isDisabled?: boolean;
     actions: {
-        getAudits: () => Promise<{data: Audit[]}>;
+        getAudits: () => Promise<ActionResult<Audit[]>>;
     };
 };
 
