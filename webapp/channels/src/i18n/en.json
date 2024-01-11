@@ -1381,8 +1381,6 @@
   "admin.license.modal.upload": "Upload",
   "admin.license.modal.uploading": "Uploading",
   "admin.license.no-file-selected": "No file selected",
-  "admin.license.notices.enterprise": "This software is offered under a commercial license. See ENTERPRISE-EDITION-LICENSE.txt in your root install directory for details. See NOTICE.txt for information about open source software used in this system.",
-  "admin.license.notices.upgrade": "When using Mattermost Enterprise Edition, the software is offered under a commercial license. See <a>here</a> for “Enterprise Edition License” for details. See NOTICE.txt for information about open source software used in the system.",
   "admin.license.purchaseEnterpriseGovPlanTitle": "Purchase the Enterprise Gov Plan",
   "admin.license.purchaseEnterprisePlanSubtitle": "Continue your access to Enterprise features by purchasing a license today.",
   "admin.license.purchaseEnterprisePlanTitle": "Purchase the Enterprise Plan",

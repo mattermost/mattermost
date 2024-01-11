@@ -28,6 +28,7 @@ import SettingsGroup from 'components/admin_console/settings_group';
 import TextSetting from 'components/admin_console/text_setting';
 import UserAutocompleteSetting from 'components/admin_console/user_autocomplete_setting';
 import FormError from 'components/form_error';
+import Markdown from 'components/markdown';
 import SaveButton from 'components/save_button';
 import Tooltip from 'components/tooltip';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -351,6 +352,9 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         if (typeof setting.label === 'string') {
+            if (setting.label_markdown) {
+                return (<Markdown message={setting.label}/>);
+            }
             return <span>{setting.label}</span>;
         }
 
@@ -660,13 +664,9 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         });
 
         if (setting.multiple) {
-            const noResultText = typeof setting.no_result === 'object' ?
-                (
-                    <FormattedMessage
-                        {...setting.no_result}
-                    />
-                ) :
-                setting.no_result;
+            const noResultText = typeof setting.no_result === 'object' ? (
+                <FormattedMessage {...setting.no_result}/>
+            ) : setting.no_result;
             return (
                 <MultiSelectSetting
                     key={this.props.schema.id + '_language_' + setting.key}
