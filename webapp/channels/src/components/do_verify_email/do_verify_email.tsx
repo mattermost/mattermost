@@ -93,7 +93,7 @@ const DoVerifyEmail = () => {
         dispatch(logError({
             message: AnnouncementBarMessages.EMAIL_VERIFIED,
             type: AnnouncementBarTypes.SUCCESS,
-        } as any, true));
+        }, true));
 
         trackEvent('settings', 'verify_email');
 
