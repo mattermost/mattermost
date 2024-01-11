@@ -60,7 +60,7 @@ func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 	}
 
 	// daily active users
-	dau, err := a.Srv().Store().Status().GetTotalActiveUsersCount()
+	dau, err := a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 	if err != nil {
 		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total daily active users count", http.StatusInternalServerError)
 	}
