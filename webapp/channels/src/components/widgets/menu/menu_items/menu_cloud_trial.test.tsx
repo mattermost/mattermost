@@ -355,45 +355,4 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
         const openModalLink = wrapper.find('.open-trial-benefits-modal');
         expect(openModalLink.exists()).toEqual(false);
     });
-
-    test('should return null if some limit needs attention', () => {
-        const state = {
-            entities: {
-                users,
-                general: {
-                    license: {
-                        IsLicensed: 'true',
-                        Cloud: 'true',
-                    },
-                },
-                cloud: {
-                    subscription: {
-                        product_id: 'prod_starter',
-                        is_free_trial: 'false',
-                        trial_end_at: 232434,
-                    },
-                    products: {
-                        prod_starter: {
-                            id: 'prod_starter',
-                            sku: CloudProducts.STARTER,
-                        },
-                    },
-                    limits,
-                },
-                usage: {
-                    ...usage,
-                    messages: {
-                        ...usage.messages,
-                        history: Math.ceil((limitThresholds.warn / 100) * limits.limits.messages.history) + 1,
-                    },
-                },
-            },
-        };
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(<Provider store={store}><MenuCloudTrial id='menuCloudTrial'/></Provider>);
-        expect(wrapper.find('.MenuCloudTrial').exists()).toEqual(false);
-        expect(wrapper.find('.open-see-plans-modal').exists()).toEqual(false);
-        expect(wrapper.find('.open-learn-more-trial-modal').exists()).toEqual(false);
-        expect(wrapper.find('.open-trial-benefits-modal').exists()).toEqual(false);
-    });
 });

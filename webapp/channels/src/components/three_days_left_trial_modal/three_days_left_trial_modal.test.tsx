@@ -75,7 +75,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
 
     const props = {
         onExited: jest.fn(),
-        limitsOverpassed: false,
     };
 
     const store = mockStore(state);
@@ -94,7 +93,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
             <Provider store={store}>
                 <ThreeDaysLeftTrialModal
                     {...props}
-                    limitsOverpassed={true}
                 />
             </Provider>,
         );
@@ -116,7 +114,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
             <Provider store={store}>
                 <ThreeDaysLeftTrialModal
                     {...props}
-                    limitsOverpassed={true}
                 />
             </Provider>,
         );

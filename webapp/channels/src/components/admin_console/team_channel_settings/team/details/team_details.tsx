@@ -517,7 +517,6 @@ export default class TeamDetails extends React.PureComponent<Props, State> {
                             onToggleArchive={this.onToggleArchive}
                             isArchived={isLocalArchived}
                             isDisabled={this.props.isDisabled}
-                            saveNeeded={this.state.saveNeeded}
                         />
                         <ConfirmModal
                             show={showArchiveConfirmModal}

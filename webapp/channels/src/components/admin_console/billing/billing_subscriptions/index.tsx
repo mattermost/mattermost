@@ -4,7 +4,6 @@
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
-import {hasSomeLimits} from 'utils/limits';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -19,9 +18,7 @@ import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
-import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
-import useGetLimits from 'components/common/hooks/useGetLimits';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -38,11 +35,8 @@ import {
     creditCardExpiredBanner,
     paymentFailedBanner,
 } from './billing_subscriptions';
-import CancelSubscription from './cancel_subscription';
+import CloudTrialBanner from './cloud_trial_banner';
 import ContactSalesCard from './contact_sales_card';
-import LimitReachedBanner from './limit_reached_banner';
-import Limits from './limits';
-import {ToPaidNudgeBanner} from './to_paid_plan_nudge_banner';
 
 import BillingSummary from '../billing_summary';
 import PlanDetails from '../plan_details';
@@ -52,7 +46,6 @@ import './billing_subscriptions.scss';
 const BillingSubscriptions = () => {
     const dispatch = useDispatch<DispatchFunc>();
     const subscription = useSelector(selectCloudSubscription);
-    const [cloudLimits] = useGetLimits();
     const errorLoadingData = useSelector((state: GlobalState) => {
         const errors = getCloudErrors(state);
         return Boolean(errors.limits || errors.subscription || errors.customer || errors.products);
@@ -130,12 +123,8 @@ const BillingSubscriptions = () => {
                 <div className='admin-console__content'>
                     {errorLoadingData && <CloudFetchError/>}
                     {!errorLoadingData && <>
-                        <LimitReachedBanner
-                            product={product}
-                        />
                         {shouldShowPaymentFailedBanner() && paymentFailedBanner()}
                         {<CloudAnnualRenewalBanner/>}
-                        {<ToPaidNudgeBanner/>}
                         {showCreditCardBanner &&
                             isCardExpired &&
                             creditCardExpiredBanner(setShowCreditCardBanner)}
@@ -151,16 +140,11 @@ const BillingSubscriptions = () => {
                                 onUpgradeMattermostCloud={onUpgradeMattermostCloud}
                             />
                         </div>
-                        {hasSomeLimits(cloudLimits) && !isFreeTrial ? (
-                            <Limits/>
-                        ) : (
-                            <ContactSalesCard
-                                isFreeTrial={isFreeTrial}
-                                subscriptionPlan={product?.sku}
-                                onUpgradeMattermostCloud={openPricingModal}
-                            />
-                        )}
-                        <CancelSubscription/>
+                        <ContactSalesCard
+                            isFreeTrial={isFreeTrial}
+                            subscriptionPlan={product?.sku}
+                            onUpgradeMattermostCloud={openPricingModal}
+                        />
                     </>}
                 </div>
             </div>

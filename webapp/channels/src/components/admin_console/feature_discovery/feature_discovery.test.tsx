@@ -39,7 +39,6 @@ describe('components/feature_discovery', () => {
                     isCloudTrial={false}
                     hadPrevCloudTrial={false}
                     isSubscriptionLoaded={true}
-                    isPaidSubscription={false}
                     actions={{
                         getPrevTrialLicense,
                         getCloudSubscription,
@@ -93,7 +92,6 @@ describe('components/feature_discovery', () => {
                         isCloud={true}
                         isCloudTrial={false}
                         hadPrevCloudTrial={false}
-                        isPaidSubscription={false}
                         isSubscriptionLoaded={true}
                         actions={{
                             getPrevTrialLicense,
@@ -153,7 +151,6 @@ describe('components/feature_discovery', () => {
                     isCloudTrial={false}
                     hadPrevCloudTrial={false}
                     isSubscriptionLoaded={false}
-                    isPaidSubscription={false}
                     actions={{
                         getPrevTrialLicense,
                         getCloudSubscription,

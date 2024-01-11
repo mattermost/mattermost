@@ -40,6 +40,7 @@ import {getSiteURL} from 'utils/url';
 import * as DefinitionConstants from './admin_definition_constants';
 import Audits from './audits';
 import BillingHistory from './billing/billing_history';
+import BillingSubscriptions from './billing/billing_subscriptions';
 import CompanyInfo from './billing/company_info';
 import CompanyInfoEdit from './billing/company_info_edit';
 import PaymentInfo from './billing/payment_info';
