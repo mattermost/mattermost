@@ -246,6 +246,8 @@ type InvoiceLineItem struct {
 	Description  string         `json:"description"`
 	Type         string         `json:"type"`
 	Metadata     map[string]any `json:"metadata"`
+	PeriodStart  int64          `json:"period_start"`
+	PeriodEnd    int64          `json:"period_end"`
 }
 
 type DelinquencyEmailTrigger struct {

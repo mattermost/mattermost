@@ -33,9 +33,6 @@ exports[`components/AnnouncementBar should match snapshot, bar not showing 1`] =
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -74,9 +71,6 @@ exports[`components/AnnouncementBar should match snapshot, bar showing 1`] = `
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -115,9 +109,6 @@ exports[`components/AnnouncementBar should match snapshot, bar showing, no dismi
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -156,9 +147,6 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 1`] = `
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -197,9 +185,6 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 2`] = `
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -238,9 +223,6 @@ exports[`components/AnnouncementBar should match snapshot, dismissal 3`] = `
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -279,9 +261,6 @@ exports[`components/AnnouncementBar should match snapshot, props change 1`] = `
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -320,9 +299,6 @@ exports[`components/AnnouncementBar should match snapshot, props change 2`] = `
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -361,9 +337,6 @@ exports[`components/AnnouncementBar should match snapshot, props change 3`] = `
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
@@ -402,9 +375,6 @@ exports[`components/AnnouncementBar should match snapshot, props change 4`] = `
           id="text"
         />
       </span>
-      <span
-        className="announcement-bar__link"
-      />
     </div>
   </OverlayTrigger>
 </_StyledDiv>
