@@ -8267,6 +8267,10 @@
     "translation": "There was an error updating the outgoing oauth connection."
   },
   {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "There is already an outgoing oauth connection for the provided audience."
+  },
+  {
     "id": "ent.saml.attribute.app_error",
     "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
