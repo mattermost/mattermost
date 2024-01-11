@@ -5,7 +5,7 @@ import type {Bot, BotPatch} from '@mattermost/types/bots';
 
 import {BotTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
@@ -32,14 +32,14 @@ export function patchBot(botUserId: string, botPatch: Partial<BotPatch>): NewAct
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function loadBot(botUserId: string): ActionFunc {
+export function loadBot(botUserId: string): NewActionFuncAsync<Bot> { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.getBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
         params: [
             botUserId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function loadBots(page = 0, perPage = BOTS_PER_PAGE_DEFAULT): NewActionFuncAsync<Bot[]> {
@@ -73,7 +73,7 @@ export function enableBot(botUserId: string): NewActionFuncAsync<Bot> {
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function assignBot(botUserId: string, newOwnerId: string): ActionFunc {
+export function assignBot(botUserId: string, newOwnerId: string): NewActionFuncAsync<Bot> { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.assignBot,
         onSuccess: BotTypes.RECEIVED_BOT_ACCOUNT,
@@ -81,5 +81,5 @@ export function assignBot(botUserId: string, newOwnerId: string): ActionFunc {
             botUserId,
             newOwnerId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
