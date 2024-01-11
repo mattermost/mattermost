@@ -29,6 +29,7 @@ import {ThreadsState} from './threads';
 import {Typing} from './typing';
 import {UsersState} from './users';
 import {AppsState} from './apps';
+import {ChannelBookmarksState} from './channel_bookmarks';
 
 export type GlobalState = {
     entities: {
@@ -36,6 +37,7 @@ export type GlobalState = {
         users: UsersState;
         teams: TeamsState;
         channels: ChannelsState;
+        channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
         bots: {

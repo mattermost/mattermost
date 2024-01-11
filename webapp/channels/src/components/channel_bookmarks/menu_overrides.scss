@@ -1,0 +1,43 @@
+#channelBookmarksPlusMenuButton {
+    position: relative;
+    display: flex;
+    padding: 4px;
+    border: none;
+    background: transparent;
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-weight: 600;
+    font-family: Open Sans;
+    font-size: 12px;
+    gap: 5px;
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+        fill: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active,
+    &--active,
+    &--active:hover,
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 0.08);
+        color: rgb(var(--button-bg-rgb));
+        fill: rgb(var(--button-bg-rgb));
+
+        .icon__text {
+            color: rgb(var(--button-bg));
+        }
+
+        .icon {
+            color: rgb(var(--button-bg));
+        }
+    }
+
+    &--active-inverted,
+    &--active-inverted:hover {
+        background: rgb(var(--button-bg));
+        color: rgb(var(--button-color));
+        fill: rgb(var(--button-color));
+    }
+}

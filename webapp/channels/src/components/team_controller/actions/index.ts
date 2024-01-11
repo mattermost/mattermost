@@ -19,6 +19,8 @@ import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 import {addUserToTeam} from 'actions/team_actions';
 import LocalStorageStore from 'stores/local_storage_store';
 
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
+
 import {isSuccess} from 'types/actions';
 
 export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
@@ -30,7 +32,7 @@ export function initializeTeam(team: Team): ActionFunc<Team, ServerError> {
         LocalStorageStore.setPreviousTeamId(currentUser.id, team.id);
 
         try {
-            await dispatch(fetchChannelsAndMembers(team.id));
+            await dispatch(fetchChannelsAndMembers(team.id, getIsChannelBookmarksEnabled(state)));
         } catch (error) {
             forceLogoutIfNecessary(error as ServerError, dispatch, getState);
             dispatch(logError(error as ServerError));

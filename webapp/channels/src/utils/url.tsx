@@ -168,7 +168,7 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
     return errors;
 }
 
-export function isInternalURL(url: string, siteURL?: string): boolean {
+export function isInternalURL(url: string, siteURL: string | undefined): boolean {
     return url.startsWith(siteURL || '') || url.startsWith('/');
 }
 

@@ -2,45 +2,115 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import {
+    LinkVariantIcon,
+    PaperclipIcon,
     PlusIcon,
 } from '@mattermost/compass-icons/components';
 
-import {useIsChannelBookmarksEnabled} from './hooks';
+import * as Menu from 'components/menu';
 
-const ChannelBookmarks = () => {
+import BookmarkItem from './bookmark_item';
+import {useChannelBookmarks, useIsChannelBookmarksEnabled} from './utils';
+
+import './menu_overrides.scss';
+
+type Props = {
+    channelId: string;
+}
+
+const ChannelBookmarks = ({
+    channelId,
+}: Props) => {
     const show = useIsChannelBookmarksEnabled();
-    const {formatMessage} = useIntl();
+    const {order} = useChannelBookmarks(channelId);
 
     if (!show) {
         return null;
     }
 
-    const bookmarks = null;
-
     return (
         <Container>
-            {bookmarks}
-            <PlusButtonMenu/>
+            {order.map((id) => {
+                return (
+                    <BookmarkItem
+                        key={id}
+                        id={id}
+                        channelId={channelId}
+                    />
+                );
+            })}
+            <PlusButtonMenu hasBookmarks={Boolean(order?.length)}/>
         </Container>
     );
 };
 
 export default ChannelBookmarks;
 
-const PlusButtonMenu = () => {
+const PlusButtonMenu = (props: {hasBookmarks: boolean}) => {
     const {formatMessage} = useIntl();
-    return (
-        <PlusButton
-            id={'channel-bookmarks-add'}
-            aria-label={formatMessage({id: 'channel_header.addBookmark', defaultMessage: 'Add bookmark'})}
-            className={'channel-bookmarks-plus'}
-        >
+    const label = formatMessage({id: 'channel_bookmarks.addBookmarkLabel', defaultMessage: 'Add a bookmark'});
+
+    const button = (
+        <>
             <PlusIcon size={18}/>
-        </PlusButton>
+            {!props.hasBookmarks && label}
+        </>
+    );
+
+    return (
+        <Menu.Container
+            anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'left',
+            }}
+            transformOrigin={{
+                vertical: 'top',
+                horizontal: 'left',
+            }}
+            menuButton={{
+                id: 'channelBookmarksPlusMenuButton',
+                children: button,
+                'aria-label': label,
+            }}
+            menu={{
+                id: 'channelBookmarksPlusMenuDropdown',
+            }}
+        >
+            <Menu.Item
+                key='channelBookmarksAddLink'
+                id='channelBookmarksAddLink'
+                onClick={() => {
+
+                }}
+                leadingElement={<LinkVariantIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='channel_bookmarks.addLinkLabel'
+                        defaultMessage='Add a link'
+                    />
+                }
+                aria-label={formatMessage({id: 'channel_bookmarks.addLinkLabel', defaultMessage: 'Add a link'})}
+            />
+            <Menu.Item
+                key='channelBookmarksAttachFile'
+                id='channelBookmarksAttachFile'
+                onClick={() => {
+
+                }}
+                leadingElement={<PaperclipIcon size={16}/>}
+                labels={
+                    <FormattedMessage
+                        id='channel_bookmarks.attachFileLabel'
+                        defaultMessage='Attach an image'
+                    />
+                }
+                aria-label={formatMessage({id: 'channel_bookmarks.attachFileLabel', defaultMessage: 'Attach an image'})}
+            />
+        </Menu.Container>
     );
 };
 
@@ -50,43 +120,4 @@ const Container = styled.div`
     padding: 6px;
     align-items: center;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-`;
-
-const PlusButton = styled.button`
-    position: relative;
-    display: flex;
-    padding: 4px;
-    border: none;
-    background: transparent;
-    border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-
-    &:hover {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.72);
-        fill: rgba(var(--center-channel-color-rgb), 0.72);
-    }
-
-    &:active,
-    &--active,
-    &--active:hover {
-        background: rgba(var(--button-bg-rgb), 0.08);
-        color: rgb(var(--button-bg-rgb));
-        fill: rgb(var(--button-bg-rgb));
-
-        .icon__text {
-            color: rgb(var(--button-bg));
-        }
-
-        .icon {
-            color: rgb(var(--button-bg));
-        }
-    }
-
-    &--active-inverted,
-    &--active-inverted:hover {
-        background: rgb(var(--button-bg));
-        color: rgb(var(--button-color));
-        fill: rgb(var(--button-color));
-    }
 `;

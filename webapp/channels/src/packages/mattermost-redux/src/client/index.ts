@@ -14,3 +14,5 @@ export {
     DEFAULT_LIMIT_AFTER,
     DEFAULT_LIMIT_BEFORE,
 };
+
+globalThis.client4 = Client4;

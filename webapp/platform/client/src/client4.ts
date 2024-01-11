@@ -113,6 +113,7 @@ import {Role} from '@mattermost/types/roles';
 import {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
 import {Scheme} from '@mattermost/types/schemes';
 import {Session} from '@mattermost/types/sessions';
+import {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import {
     GetTeamMembersOpts,
     Team,
@@ -149,6 +150,7 @@ import {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
 import {TelemetryHandler} from './telemetry';
+
 
 const HEADER_AUTH = 'Authorization';
 const HEADER_BEARER = 'BEARER';
@@ -319,6 +321,12 @@ export default class Client4 {
 
     getChannelSchemeRoute(channelId: string) {
         return `${this.getChannelRoute(channelId)}/scheme`;
+    }
+    getChannelBookmarksRoute(channelId: string) {
+        return `${this.getChannelRoute(channelId)}/bookmarks`;
+    }
+    getChannelBookmarkRoute(channelId: string, bookmarkId: string) {
+        return `${this.getChannelRoute(channelId)}/bookmarks/${bookmarkId}`;
     }
 
     getChannelCategoriesRoute(userId: string, teamId: string) {
@@ -1548,7 +1556,16 @@ export default class Client4 {
 
     // Channel Routes
 
-    getAllChannels = (page = 0, perPage = PER_PAGE_DEFAULT, notAssociatedToGroup = '', excludeDefaultChannels = false, includeTotalCount = false, includeDeleted = false, excludePolicyConstrained = false) => {
+    getAllChannels = (
+        page = 0,
+        perPage = PER_PAGE_DEFAULT,
+        notAssociatedToGroup = '',
+        excludeDefaultChannels = false,
+        includeTotalCount = false,
+        includeDeleted = false,
+        excludePolicyConstrained = false,
+        includeBookmarks = false
+    ) => {
         const queryData = {
             page,
             per_page: perPage,
@@ -1557,6 +1574,7 @@ export default class Client4 {
             include_total_count: includeTotalCount,
             include_deleted: includeDeleted,
             exclude_policy_constrained: excludePolicyConstrained,
+            include_bookmarks: includeBookmarks,
         };
         return this.doFetch<ChannelWithTeamData[] | ChannelsWithTotalCount>(
             `${this.getChannelsRoute()}${buildQueryString(queryData)}`,
@@ -1698,9 +1716,9 @@ export default class Client4 {
         );
     };
 
-    getMyChannels = (teamId: string, includeDeleted = false) => {
+    getMyChannels = (teamId: string, includeDeleted = false, includeChannelBookmarks = false) => {
         return this.doFetch<ServerChannel[]>(
-            `${this.getUserRoute('me')}/teams/${teamId}/channels${buildQueryString({include_deleted: includeDeleted})}`,
+            `${this.getUserRoute('me')}/teams/${teamId}/channels${buildQueryString({include_deleted: includeDeleted, include_bookmarks: includeChannelBookmarks})}`,
             {method: 'get'},
         );
     };
@@ -1892,7 +1910,45 @@ export default class Client4 {
         );
     };
 
-    // Channel Category Routes
+    // Channel Bookmark Routes
+
+    getChannelBookmarks = (channelId: string) => {
+        return this.doFetch<ChannelBookmark[]>(
+            `${this.getChannelBookmarksRoute(channelId)}`,
+            {method: 'get'},
+        );
+    };
+
+    createChannelBookmark = (channelId: string, channelBookmark: ChannelBookmark) => {
+        return this.doFetch<ChannelBookmark>(
+            `${this.getChannelBookmarksRoute(channelId)}`,
+            {method: 'post', body: JSON.stringify(channelBookmark)},
+        );
+    };
+
+    deleteCehannelBookmark = (channelId: string, channelBookmark: ChannelBookmark) => {
+        return this.doFetch<void>(
+            `${this.getChannelBookmarksRoute(channelId)}`,
+            {method: 'delete', body: JSON.stringify(channelBookmark)},
+        );
+    };
+
+    updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch) => {
+        return this.doFetch<ChannelBookmark>(
+            `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}`,
+            {method: 'patch', body: JSON.stringify(patch)},
+        );
+    };
+
+    updateChannelBookmarkSortOrder = (channelId: string, channelBookmarkId: string, newOrder: number) => {
+        return this.doFetch<void>(
+            `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}/sort_order`,
+            {method: 'post', body: JSON.stringify(newOrder)},
+        );
+    };
+
+
+    //  Channel Category Routes
 
     getChannelCategories = (userId: string, teamId: string) => {
         return this.doFetch<OrderedChannelCategories>(

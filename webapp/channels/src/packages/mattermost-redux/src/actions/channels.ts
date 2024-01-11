@@ -29,9 +29,12 @@ import {
     isManuallyUnread,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {channelBookmarksEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import type {ActionFunc, ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
+
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
 import {logError} from './errors';
@@ -497,13 +500,13 @@ export function getChannelTimezones(channelId: string): ActionFunc {
     };
 }
 
-export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
+export function fetchChannelsAndMembers(teamId: string, fetchBookmarks: boolean): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let channels;
         let channelMembers;
         try {
             [channels, channelMembers] = await Promise.all([
-                Client4.getMyChannels(teamId),
+                Client4.getMyChannels(teamId, false, fetchBookmarks),
                 Client4.getMyChannelMembers(teamId),
             ]);
         } catch (error) {
