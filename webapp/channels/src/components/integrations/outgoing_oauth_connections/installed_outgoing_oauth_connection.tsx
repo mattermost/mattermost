@@ -40,37 +40,11 @@ export type InstalledOutgoingOAuthConnectionState = {
 }
 
 const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectionProps) => {
-    const [storedClientSecret, setClientSecret] = useState(FAKE_SECRET);
     const [storedError, setError] = useState<string | null>(null);
-
-    const handleShowClientSecret = (e?: React.MouseEvent): void => {
-        if (e && e.preventDefault) {
-            e.preventDefault();
-        }
-        setClientSecret(props.outgoingOAuthConnection.client_secret);
-    };
-
-    // const handleHideClientSecret = (e: React.MouseEvent): void => {
-    //     e.preventDefault();
-    //     setClientSecret(FAKE_SECRET);
-    // };
-
-    const handleRegenerate = (e: React.MouseEvent): void => {
-        e.preventDefault();
-        props.onRegenerateSecret(props.outgoingOAuthConnection.id).then(
-            ({error}) => {
-                if (error) {
-                    setError(error.message);
-                } else {
-                    setError(null);
-                    handleShowClientSecret();
-                }
-            },
-        );
-    };
 
     const handleDelete = (): void => {
         props.onDelete(props.outgoingOAuthConnection);
+        setError(''); // TODO check for error here
     };
 
     const {outgoingOAuthConnection, creatorName} = props;
@@ -100,18 +74,6 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
         );
     }
 
-    // let description;
-
-    // if (outgoingOAuthConnection.description) {
-    //     description = (
-    //         <div className='item-details__row'>
-    //             <span className='item-details__description'>
-    //                 {outgoingOAuthConnection.description}
-    //             </span>
-    //         </div>
-    //     );
-    // }
-
     const urls = (
         <div className='item-details__row'>
             <span className='item-details__url word-break--all'>
@@ -126,106 +88,8 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
         </div>
     );
 
-    // let isTrusted;
-
-    // if (outgoingOAuthConnection.is_trusted) {
-    //     isTrusted = Utils.localizeMessage('installed_outgoing_oauth_connections.trusted.yes', 'Yes');
-    // } else {
-    //     isTrusted = Utils.localizeMessage('installed_outgoing_oauth_connections.trusted.no', 'No');
-    // }
-
-    // let showHide;
-    let clientSecretComponent;
-    if (storedClientSecret === FAKE_SECRET) {
-        // showHide = (
-        //     <button
-        //         id='showSecretButton'
-        //         className='style--none color--link'
-        //         onClick={handleShowClientSecret}
-        //     >
-        //         <FormattedMessage
-        //             id='installed_integrations.showSecret'
-        //             defaultMessage='Show Secret'
-        //         />
-        //     </button>
-        // );
-        clientSecretComponent = (
-            <span className='item-details__token'>
-                <FormattedMessage
-                    id='installed_integrations.client_secret'
-                    defaultMessage='Client Secret: **{clientSecret}**'
-                    values={{
-                        clientSecret: storedClientSecret,
-                    }}
-                />
-            </span>
-        );
-    } else {
-        // showHide = (
-        //     <button
-        //         id='hideSecretButton'
-        //         className='style--none color--link'
-        //         onClick={handleHideClientSecret}
-        //     >
-        //         <FormattedMessage
-        //             id='installed_integrations.hideSecret'
-        //             defaultMessage='Hide Secret'
-        //         />
-        //     </button>
-        // );
-        clientSecretComponent = (
-            <span className='item-details__token'>
-                <FormattedMarkdownMessage
-                    id='installed_integrations.client_secret'
-                    defaultMessage='Client Secret: **{clientSecret}**'
-                    values={{
-                        clientSecret: storedClientSecret,
-                    }}
-                />
-                <CopyText
-                    idMessage='integrations.copy_client_secret'
-                    defaultMessage='Copy Client Secret'
-                    value={storedClientSecret}
-                />
-            </span>
-        );
-    }
-
-    const regen = (
-        <button
-            id='regenerateSecretButton'
-            className='style--none color--link'
-            onClick={handleRegenerate}
-        >
-            <FormattedMessage
-                id='installed_integrations.regenSecret'
-                defaultMessage='Regenerate Secret'
-            />
-        </button>
-    );
-
-    let icon;
-
-    // if (outgoingOAuthConnection.icon_url) {
-    //     icon = (
-    //         <div className='integration__icon integration-list__icon'>
-    //             <img
-    //                 alt={'get connection screenshot'}
-    //                 src={outgoingOAuthConnection.icon_url}
-    //             />
-    //         </div>
-    //     );
-    // }
-
-    // let actions;
-
-    // if (!props.fromApp) {
     const actions = (
         <div className='item-actions'>
-            {/* {showHide}
-                {' - '} */}
-            {regen}
-            {' - '}
             <Link to={`/${props.team.name}/integrations/outgoing-oauth2-connections/edit?id=${outgoingOAuthConnection.id}`}>
                 <FormattedMessage
                     id='installed_integrations.edit'
@@ -245,33 +109,8 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
         </div>
     );
 
-    // }
-
-    // let appInfo = (
-    //     <div className='item-details__row'>
-    //         <span className='item-details__creation'>
-    //             <FormattedMessage
-    //                 id='installed_integrations.fromApp'
-    //                 defaultMessage='Managed by Apps Framework'
-    //             />
-    //         </span>
-    //     </div>
-    // );
-
-    // if (!props.fromApp) {
     const connectionInfo = (
         <>
-            {/* <div className='item-details__row'>
-                    <span className='item-details__url word-break--all'>
-                        <FormattedMarkdownMessage
-                            id='installed_outgoing_oauth_connections.is_trusted'
-                            defaultMessage='Is Trusted: **{isTrusted}**'
-                            values={{
-                                isTrusted,
-                            }}
-                        />
-                    </span>
-                </div> */}
             <div className='item-details__row'>
                 <span className='item-details__token'>
                     <FormattedMarkdownMessage
@@ -281,16 +120,40 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                             clientId: outgoingOAuthConnection.client_id,
                         }}
                     />
-                    <CopyText
-                        idMessage='integrations.copy_client_id'
-                        defaultMessage='Copy Client Id'
-                        value={outgoingOAuthConnection.client_id}
-                    />
                 </span>
             </div>
             <div className='item-details__row'>
-                {clientSecretComponent}
+                <span className='item-details__token'>
+                    <FormattedMessage
+                        id='installed_outgoing_oauth_connections.client_secret'
+                        defaultMessage='Client Secret: ********'
+                    />
+                </span>
             </div>
+            {outgoingOAuthConnection.grant_type === 'password' && (
+                <>
+                    <div className='item-details__row'>
+                        <span className='item-details__token'>
+                            <FormattedMarkdownMessage
+                                id='installed_outgoing_oauth_connections.username'
+                                defaultMessage='Username: **{username}**'
+                                values={{
+                                    username: outgoingOAuthConnection.credentials_username,
+                                }}
+                            />
+                        </span>
+                    </div>
+                    <div className='item-details__row'>
+                        <span className='item-details__token'>
+                            <FormattedMessage
+                                id='installed_outgoing_oauth_connections.password'
+                                defaultMessage='Password: ********'
+                            />
+                        </span>
+                    </div>
+                </>
+            )}
+
             {urls}
             <div className='item-details__row'>
                 <span className='item-details__creation'>
@@ -309,7 +172,6 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
 
     return (
         <div className='backstage-list__item' >
-            {icon}
             <div className='item-details' >
                 <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
                     <strong className='item-details__name'>
@@ -319,7 +181,6 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                     {actions}
                 </div>
                 {errorComponent}
-                {/* {description} */}
                 {connectionInfo}
             </div>
         </div >

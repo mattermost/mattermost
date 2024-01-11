@@ -2767,24 +2767,6 @@ export default class Client4 {
     };
 
     getOutgoingOAuthConnections = (page = 0, perPage = PER_PAGE_DEFAULT) => {
-        const connection: OutgoingOAuthConnection = {
-            'id': 'someid',
-            'name': 'some name',
-            'creator_id': '0',
-            'create_at': 0,
-            'update_at': 0,
-            'client_id': 'some client id',
-            'client_secret': 'some secret',
-            'credentials_username': '',
-            'credentials_password': '',
-            'oauth_token_url': '',
-            'grant_type': 'client_credentials',
-            'audiences': ['https://myserver.com/my/integration/path'],
-        }
-        return Promise.resolve([
-            connection,
-        ]);
-
         return this.doFetch<OutgoingOAuthConnection[]>(
             `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({page, per_page: perPage})}`,
             {method: 'get'},
@@ -2792,23 +2774,6 @@ export default class Client4 {
     };
 
     getOutgoingOAuthConnection = (connectionId: string) => {
-        const connection: OutgoingOAuthConnection = {
-            'id': 'someid',
-            'name': 'some name',
-            'creator_id': '0',
-            'create_at': 0,
-            'update_at': 0,
-            'client_id': 'some client id',
-            'client_secret': 'some secret',
-            'credentials_username': '',
-            'credentials_password': '',
-            'oauth_token_url': '',
-            'grant_type': 'client_credentials',
-            'audiences': ['https://myserver.com/my/integration/path'],
-        }
-        return Promise.resolve(
-            connection,
-        );
         return this.doFetch<OutgoingOAuthConnection>(
             `${this.getOutgoingOAuthConnectionRoute(connectionId)}`,
             {method: 'get'},
