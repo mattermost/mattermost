@@ -578,5 +578,13 @@
   {
     "id": "api.command.invite_people.hint",
     "translation": "[vardas@domenas.lt ...]"
+  },
+  {
+    "id": "api.command.invite_people.name",
+    "translation": "kviesti_žmones"
+  },
+  {
+    "id": "api.command.invite_people.no_email",
+    "translation": "Nurodykite vieną ar daugiau galiojančių el. pašto adresų"
   }
 ]
