@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {DialogSubmission, DialogElement as TDialogElement} from '@mattermost/types/integrations';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {
     checkDialogElementForError,
     checkIfErrorsMatchElements,
@@ -33,7 +33,7 @@ export type Props = {
     state?: string;
     onExited?: () => void;
     actions: {
-        submitInteractiveDialog: (submission: DialogSubmission) => ActionFunc;
+        submitInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult>;
     };
     emojiMap: EmojiMap;
 }
@@ -116,7 +116,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
 
         this.setState({submitting: true});
 
-        const {data}: any = await this.props.actions.submitInteractiveDialog(dialog) ?? {};
+        const {data} = await this.props.actions.submitInteractiveDialog(dialog) ?? {};
 
         this.setState({submitting: false});
 

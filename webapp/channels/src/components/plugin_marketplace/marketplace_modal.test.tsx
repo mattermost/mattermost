@@ -3,11 +3,10 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
+import type {Action} from 'redux';
 
 import type {MarketplacePlugin} from '@mattermost/types/marketplace';
 import {AuthorType, ReleaseStage} from '@mattermost/types/marketplace';
-
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {ModalIdentifiers} from 'utils/constants';
 
@@ -22,7 +21,7 @@ let mockState: GlobalState;
 jest.mock('react-redux', () => ({
     ...jest.requireActual('react-redux') as typeof import('react-redux'),
     useSelector: (selector: (state: typeof mockState) => unknown) => selector(mockState),
-    useDispatch: jest.fn(() => (action: ActionFunc) => action),
+    useDispatch: jest.fn(() => (action: Action) => action),
 }));
 
 describe('components/marketplace/', () => {

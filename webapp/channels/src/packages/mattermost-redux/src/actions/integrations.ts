@@ -3,14 +3,14 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Command, CommandArgs, CommandResponse, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingWebhook, SubmitDialogResponse} from '@mattermost/types/integrations';
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -156,17 +156,17 @@ export function regenOutgoingHookToken(hookId: string): NewActionFuncAsync<Outgo
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getCommands(teamId: string): ActionFunc {
+export function getCommands(teamId: string): NewActionFuncAsync<Command[]> { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.getCommandsList,
         onSuccess: [IntegrationTypes.RECEIVED_COMMANDS],
         params: [
             teamId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getAutocompleteCommands(teamId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getAutocompleteCommands(teamId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<Command[]> { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.getAutocompleteCommandsList,
         onSuccess: [IntegrationTypes.RECEIVED_COMMANDS],
@@ -175,7 +175,7 @@ export function getAutocompleteCommands(teamId: string, page = 0, perPage: numbe
             page,
             perPage,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getCustomTeamCommands(teamId: string): NewActionFuncAsync<Command[]> {
@@ -208,14 +208,14 @@ export function editCommand(command: Command): NewActionFuncAsync<Command> {
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function executeCommand(command: string, args: CommandArgs): ActionFunc {
+export function executeCommand(command: string, args: CommandArgs): NewActionFuncAsync<CommandResponse> { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.executeCommand,
         params: [
             command,
             args,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function regenCommandToken(id: string): NewActionFuncAsync {
@@ -297,11 +297,11 @@ export function getOAuthApps(page = 0, perPage: number = General.PAGE_SIZE_DEFAU
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getAppsOAuthAppIDs(): ActionFunc {
+export function getAppsOAuthAppIDs(): NewActionFuncAsync<string[]> {
     return bindClientFunc({
         clientFunc: Client4.getAppsOAuthAppIDs,
         onSuccess: [IntegrationTypes.RECEIVED_APPS_OAUTH_APP_IDS],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getAppsBotIDs(): NewActionFuncAsync<string[]> {
@@ -380,8 +380,8 @@ export function regenOAuthAppSecret(appId: string): NewActionFuncAsync<OAuthApp>
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function submitInteractiveDialog(submission: DialogSubmission): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function submitInteractiveDialog(submission: DialogSubmission): NewActionFuncAsync<SubmitDialogResponse> {
+    return async (dispatch, getState) => {
         const state = getState();
         submission.channel_id = getCurrentChannelId(state);
         submission.team_id = getCurrentTeamId(state);
