@@ -41,7 +41,8 @@ function SystemUsers(props: Props) {
                         tablePropertyCursorDirection={props.tablePropertyCursorDirection}
                         tablePropertyCursorColumnValue={props.tablePropertyCursorColumnValue}
                         tablePropertyCursorUserId={props.tablePropertyCursorUserId}
-                        getUserReports={props.getUserReports as any}
+                        getUserReports={props.getUserReports}
+                        getUserCountForReporting={props.getUserCountForReporting}
                         setAdminConsoleUsersManagementTableProperties={props.setAdminConsoleUsersManagementTableProperties}
                     />
                 </div>

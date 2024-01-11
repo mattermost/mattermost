@@ -7,7 +7,7 @@ import {connect} from 'react-redux';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {getUserReports, setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
+import {getUserCountForReporting, getUserReports, setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 import {adminConsoleUserManagementTablePropertiesInitialState} from 'reducers/views/admin';
 import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
@@ -53,6 +53,7 @@ function mapStateToProps(state: GlobalState) {
 
 const mapDispatchToProps = {
     getUserReports,
+    getUserCountForReporting,
     setAdminConsoleUsersManagementTableProperties,
 };
 

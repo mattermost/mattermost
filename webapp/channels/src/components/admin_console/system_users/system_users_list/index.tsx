@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import {UserReportSortColumns, ReportSortDirection, CursorPaginationDirection} from '@mattermost/types/reports';
-import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
+import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
@@ -29,7 +29,8 @@ type Props = {
     tablePropertyCursorColumnValue: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
     tablePropertyCursorUserId: AdminConsoleUserManagementTableProperties['cursorUserId'];
     tablePropertyCursorDirection: AdminConsoleUserManagementTableProperties['cursorDirection'];
-    getUserReports: (options?: UserReportOptions) => Promise<{data: UserReport[]}>;
+    getUserReports: (options?: UserReportOptions) => Promise<{data?: UserReport[]}>;
+    getUserCountForReporting: (filter?: UserReportFilter) => Promise<{data?: number}>;
     setAdminConsoleUsersManagementTableProperties: (properties: Partial<AdminConsoleUserManagementTableProperties>) => void;
 };
 
@@ -52,6 +53,7 @@ function SystemUsersList(props: Props) {
     const history = useHistory();
 
     const [userReports, setUserReports] = useState<UserReport[]>([]);
+    const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
 
     const getPaginationInfo = (pageIndex: number, pageSize: number, currentLength: number, totalUserCount: number) => {
@@ -225,6 +227,15 @@ function SystemUsersList(props: Props) {
     );
 
     useEffect(() => {
+        const getUserCount = async () => {
+            const {data} = await props.getUserCountForReporting({});
+            setUserCount(data);
+        };
+
+        getUserCount();
+    }, []);
+
+    useEffect(() => {
         async function fetchUserReportsWithOptions(tableOptions?: {
             pageSize?: PaginationState['pageSize'];
             sortColumn?: SortingState[0]['id'];
@@ -364,7 +375,7 @@ function SystemUsersList(props: Props) {
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,
-            paginationInfo: getPaginationInfo(paginationTableState.pageIndex, paginationTableState.pageSize, userReports.length, 0),
+            paginationInfo: getPaginationInfo(paginationTableState.pageIndex, paginationTableState.pageSize, userReports.length, userCount ?? 0),
             hasAdditionalPaginationAtTop: true,
             totalRowInfo: '',
         } as TableMeta,
