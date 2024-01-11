@@ -18,7 +18,7 @@ import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import Constants from 'utils/constants';
 
-// import {Pagination} from './pagination';
+import {Pagination} from './pagination';
 
 import './list_table.scss';
 
@@ -126,7 +126,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
 
     return (
         <>
-            {/* <div className='adminConsoleListTabletOptionalHead'>
+            <div className='adminConsoleListTabletOptionalHead'>
                 {tableMeta.totalRowInfo}
                 {tableMeta.hasAdditionalPaginationAtTop && (
                     <Pagination
@@ -138,7 +138,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         paginationInfo={tableMeta.paginationInfo}
                     />
                 )}
-            </div> */}
+            </div>
             <table
                 id={tableMeta.tableId}
                 aria-colcount={colcount}
@@ -340,16 +340,14 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         />
                     </div>
                 )}
-
-                {/* TODO will implement next */}
-                {/* <Pagination
+                <Pagination
                     disablePrevPage={tableMeta.disablePrevPage}
                     disableNextPage={tableMeta.disableNextPage}
                     isLoading={tableMeta.loadingState === LoadingStates.Loading}
                     onPreviousPageClick={tableMeta.onPreviousPageClick}
                     onNextPageClick={tableMeta.onNextPageClick}
                     paginationInfo={tableMeta.paginationInfo}
-                /> */}
+                />
             </div>
         </>
     );

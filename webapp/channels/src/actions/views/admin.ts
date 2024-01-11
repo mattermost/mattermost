@@ -2,12 +2,12 @@
 // See LICENSE.txt for license information.
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserReportOptions, UserReport} from '@mattermost/types/reports';
+import type {UserReportOptions, UserReport, UserReportFilter} from '@mattermost/types/reports';
 
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
@@ -36,11 +36,26 @@ export function setAdminConsoleUsersManagementTableProperties(data?: Partial<Adm
     };
 }
 
-export function getUserReports(options = {} as UserReportOptions): ActionFunc<UserReport[], ServerError> {
+export function getUserReports(options = {} as UserReportOptions): NewActionFuncAsync<UserReport[]> {
     return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getUsersForReporting(options);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error: error as ServerError};
+        }
+
+        return {data};
+    };
+}
+
+export function getUserCountForReporting(filter = {} as UserReportFilter): NewActionFuncAsync<number> {
+    return async (dispatch, getState) => {
+        let data;
+        try {
+            data = await Client4.getUserCountForReporting(filter);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
