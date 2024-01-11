@@ -339,11 +339,18 @@ func (a *App) DoSubscriptionRenewalCheck() {
 		return
 	}
 
+	numFailed := 0
 	for _, admin := range sysAdmins {
 		err = emailFunc(admin.Email, admin.Locale, *a.Config().ServiceSettings.SiteURL)
 		if err != nil {
 			a.Log().Error("Error sending renewal email", mlog.Err(err))
+			numFailed += 1
 		}
+	}
+
+	if numFailed == len(sysAdmins) {
+		// If all emails failed, we don't want to update the system variable
+		return
 	}
 
 	updatedSysVar := &model.System{
