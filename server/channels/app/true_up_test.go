@@ -33,7 +33,7 @@ func TestGetTrueUpProfile(t *testing.T) {
 
 	t.Run("missing license", func(t *testing.T) {
 		_, err := th.App.GetTrueUpProfile()
-		require.NotNil(t, err)
+		require.Error(t, err)
 		require.True(t, strings.Contains(err.Error(), "True up review requires a license"))
 	})
 	t.Run("happy path - returns correct mau and activated users", func(t *testing.T) {
