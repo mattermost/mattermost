@@ -8,7 +8,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -100,7 +100,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
           teams={Array []}
         />
       </AdminPanel>
-      <Connect(ChannelSelectorModal)
+      <Connect(injectIntl(ChannelSelectorModal))
         alreadySelected={
           Array [
             "44444444444444444444444444",
@@ -158,7 +158,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -250,7 +250,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
           teams={Array []}
         />
       </AdminPanel>
-      <Connect(TeamSelectorModal)
+      <Connect(injectIntl(TeamSelectorModal))
         alreadySelected={
           Array [
             "11111111111111111111111111",
@@ -307,7 +307,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />
@@ -445,7 +445,7 @@ exports[`components/admin_console/group_settings/group_details/GroupDetails shou
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/groups"
       />

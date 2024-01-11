@@ -117,6 +117,7 @@ type SupportPacket struct {
 
 	LicenseTo             string `yaml:"license_to"`
 	LicenseSupportedUsers int    `yaml:"license_supported_users,omitempty"`
+	LicenseIsTrial        string `yaml:"license_is_trial,omitempty"`
 
 	/* Server stats */
 

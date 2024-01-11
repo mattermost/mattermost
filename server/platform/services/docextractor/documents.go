@@ -26,6 +26,10 @@ var doconvConverterByExtensions = map[string]func(io.Reader) (string, map[string
 	"pdf": docconv.ConvertPDF,
 }
 
+func (de *documentExtractor) Name() string {
+	return "documentExtractor"
+}
+
 func (de *documentExtractor) Match(filename string) bool {
 	extension := strings.TrimPrefix(path.Ext(filename), ".")
 	_, ok := doconvConverterByExtensions[extension]

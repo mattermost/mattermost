@@ -54,8 +54,8 @@ describe('components/MoreDirectChannels', () => {
         onExited: jest.fn(),
         actions: {
             getProfiles: jest.fn(() => {
-                return new Promise<void>((resolve) => {
-                    process.nextTick(() => resolve());
+                return new Promise((resolve) => {
+                    process.nextTick(() => resolve({data: true}));
                 });
             }),
             getProfilesInTeam: jest.fn().mockResolvedValue({data: true}),
@@ -135,7 +135,7 @@ describe('components/MoreDirectChannels', () => {
     });
 
     test('should call on search', () => {
-        jest.useFakeTimers('modern');
+        jest.useFakeTimers();
         const props = {...baseProps, actions: {...baseProps.actions, setModalSearchTerm: jest.fn()}};
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...props}/>);
         wrapper.instance().search('user_search');
@@ -178,7 +178,7 @@ describe('components/MoreDirectChannels', () => {
     });
 
     test('should open a DM', (done) => {
-        jest.useFakeTimers('legacy');
+        jest.useFakeTimers({legacyFakeTimers: true});
         const user: UserProfile = {
             ...mockedUser,
             id: 'user_id_1',
@@ -203,7 +203,7 @@ describe('components/MoreDirectChannels', () => {
     });
 
     test('should open a GM', (done) => {
-        jest.useFakeTimers('legacy');
+        jest.useFakeTimers({legacyFakeTimers: true});
         const wrapper = shallow<MoreDirectChannels>(<MoreDirectChannels {...baseProps}/>);
         const handleHide = jest.fn();
         const exitToChannel = '';

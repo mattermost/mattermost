@@ -113,7 +113,7 @@
   },
   {
     "id": "api.admin.test_email.reenter_password",
-    "translation": "SMTP server, port, ili korisničko ime su promijenjeni. Molimo ponovno unesite SMTP lozinku za testiranje veze."
+    "translation": "SMTP server, priključak ili korisničko ime su promijenjeni. Za testiranje veze ponovo upiši SMTP lozinku."
   },
   {
     "id": "api.admin.test_email.missing_server",
@@ -125,7 +125,7 @@
   },
   {
     "id": "api.admin.saml.not_available.app_error",
-    "translation": "SAML 2.0 nije postavljen ili podržan na ovom poslužitelju."
+    "translation": "SAML 2.0 nije postavljen ili podržan na ovom serveru."
   },
   {
     "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
@@ -261,19 +261,19 @@
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
-    "translation": "Nedostaje čvor SSO usluga pružatelja identiteta u XML-u."
+    "translation": "Nedostaje čvor SSO usluga pružatelja usluge identifikacije u XML-u."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
-    "translation": "Nedostaje ključ SSO deskriptora pružatelja identiteta u XML-u."
+    "translation": "Nedostaje čvor deskriptora ključa pružatelja usluge identifikacije u XML-u."
   },
   {
     "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
-    "translation": "Nedostaje čvor SSO deskriptora pružatelja identiteta u XML-u."
+    "translation": "Nedostaje čvor SSO deskriptora pružatelja usluge identifikacije u XML-u."
   },
   {
     "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
-    "translation": "Greška prilikom obrade informacija metapodataka primljenih od pružatelja identiteta za certifikat."
+    "translation": "Greška prilikom obrade informacija metapodataka primljenih od pružatelja usluge identifikacije za certifikat."
   },
   {
     "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
@@ -281,11 +281,11 @@
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
-    "translation": "Korisnički podaci autentifikacije i lozinka su međusobno isključivi."
+    "translation": "Podaci autentifikacije i lozinka korisnika se međusobno isključuju."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_service_dependency.error",
-    "translation": "Korisnički podaci autentifikacije i podaci autentifikacije su međusobno uključivi."
+    "translation": "Usluga autentifikacije i podaci autentifikacije korisnika se međusobno uključuju."
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_length.error",
@@ -437,7 +437,7 @@
   },
   {
     "id": "api.command.invite_people.invite_off",
-    "translation": "Stvaranje korisnika je deaktivirano na ovom poslužitelju, nijedna pozivnica nije poslana"
+    "translation": "Stvaranje korisnika je deaktivirano na ovom serveru, nijedna pozivnica nije poslana"
   },
   {
     "id": "api.command.invite_people.hint",
@@ -477,7 +477,7 @@
   },
   {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
-    "translation": "Neuspjelo objavljivanje poruke o pridruživanju/napuštanju"
+    "translation": "Neuspjela objava poruke o pridruživanju/napuštanju"
   },
   {
     "id": "api.channel.post_update_channel_header_message_and_forget.updated_to",
@@ -497,7 +497,7 @@
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.updated_from",
-    "translation": "%s je aktualizirao/la ime kanala iz: %s u: %s"
+    "translation": "%s je aktualizirao/la prikazno ime kanala iz: %s u: %s"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -621,7 +621,7 @@
   },
   {
     "id": "api.acknowledgement.delete.deadline.app_error",
-    "translation": "Ne možeš ukloniti potvrdu nakon što prođe 5 minuta."
+    "translation": "Ne možeš ukloniti potvrdu nakon što prođe 5 minuta."
   },
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
@@ -646,5 +646,481 @@
   {
     "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
     "translation": "Greška u poništavanju predmemorije"
+  },
+  {
+    "id": "api.oauth.allow_oauth.turn_off.app_error",
+    "translation": "Administrator sustava je isključio pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.oauth.get_access_token.disabled.app_error",
+    "translation": "Administrator sustava je isključio pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.user.authorize_oauth_user.response.app_error",
+    "translation": "Primljen je neipsravan odgovor pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Slika profila se mora postaviti putem korisničkog pružatelja usluge prijave."
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Nije bilo moguće dekodirati informacije XML metapodataka primljenih od pružatelja usluge identifikacije."
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Nije bilo moguće pročitati primljeni odgovor od pružatelja usluge identifikacije."
+  },
+  {
+    "id": "ent.saml.build_request.app_error",
+    "translation": "Došlo je do greške prilikom pokretanja zahtjeva pružatelju usluge identifikacije. Kontaktiraj svog administratora sustava."
+  },
+  {
+    "id": "api.oauth.authorize_oauth.disabled.app_error",
+    "translation": "Administrator sustava je isključio pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.oauth.register_oauth_app.turn_off.app_error",
+    "translation": "Administrator sustava je isključio pružatelja usluge OAuth2."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Korisniku nije dopušteno pretvaranje grupne poruke u privatni kanal"
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Ne možeš potvrditi u arhiviranom kanalu."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "few": "{{.User}} već jesu u kanalu.",
+      "one": "{{.User}} već je u kanalu.",
+      "other": "{{.User}} već jesu u kanalu."
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} i {{.Others}} drugih već jesu u kanalu."
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[kanal]"
+  },
+  {
+    "id": "api.command_join.fail.app_error",
+    "translation": "Dogodila je greška prilikom pridruživanja kanalu."
+  },
+  {
+    "id": "api.command_shrug.hint",
+    "translation": "[poruka]"
+  },
+  {
+    "id": "api.templates.delinquency_30.bullet.files",
+    "translation": "Datoteke"
+  },
+  {
+    "id": "api.templates.invite_body_footer.learn_more",
+    "translation": "Saznaj više"
+  },
+  {
+    "id": "api.templates.welcome_body.app_download_button",
+    "translation": "Preuzmi"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Nije moguće izbrisati potvrdu."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Nije moguće dobiti potvrdu."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Nije moguće dobiti potvrdu za objavu."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Nije moguće spremiti potvrdu za objavu."
+  },
+  {
+    "id": "api.command_logout.name",
+    "translation": "odjava"
+  },
+  {
+    "id": "api.command_leave.desc",
+    "translation": "Napusti trenutačni kanal"
+  },
+  {
+    "id": "api.command_logout.desc",
+    "translation": "Odjava s Mattermosta"
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "{{.Users}} možeš dodati kanalu nakon što postanu članovi tima **{{.Team}}**."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} i {{.Others}} su dodani u kanal {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Pozovi korisnika u kanal"
+  },
+  {
+    "id": "api.command_invite.fail.app_error",
+    "translation": "Dogodila je greška prilikom pridruživanja kanalu."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[kanal]"
+  },
+  {
+    "id": "api.command_me.hint",
+    "translation": "[poruka]"
+  },
+  {
+    "id": "api.command_me.name",
+    "translation": "ja"
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "ukloni"
+  },
+  {
+    "id": "app.system.system_bot.bot_displayname",
+    "translation": "Sustav"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.chrome",
+    "translation": "Preuzmi najnoviji Chrome preglednik"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.firefox",
+    "translation": "Preuzmi najnoviji Firefox preglednik"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_get_latest.safari",
+    "translation": "Preuzmi najnoviji Safari preglednik"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.chrome",
+    "translation": "Google Chrome"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.edge",
+    "translation": "Microsoft Edge"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.firefox",
+    "translation": "Firefox"
+  },
+  {
+    "id": "web.error.unsupported_browser.browser_title.safari",
+    "translation": "Safari"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.chrome",
+    "translation": "Version 116+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.edge",
+    "translation": "Version 116+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.firefox",
+    "translation": "Version 115+"
+  },
+  {
+    "id": "web.error.unsupported_browser.no_longer_support",
+    "translation": "Mattermost više ne podržava ovaj preglednik"
+  },
+  {
+    "id": "system.message.name",
+    "translation": "Sustav"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_browser_version.safari",
+    "translation": "Version 16.2+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.mac",
+    "translation": "macOS 11+"
+  },
+  {
+    "id": "web.error.unsupported_browser.min_os_version.windows",
+    "translation": "Windows 10+"
+  },
+  {
+    "id": "api.post.get_message_for_notification.files_sent",
+    "translation": {
+      "few": "{{.Count}} poslane datoteke: {{.Filenames}}",
+      "one": "{{.Count}} poslana datoteka: {{.Filenames}}",
+      "other": "{{.Count}} poslanih datoteka: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.command_settings.name",
+    "translation": "postavke"
+  },
+  {
+    "id": "error",
+    "translation": "Greška"
+  },
+  {
+    "id": "api.post.get_message_for_notification.images_sent",
+    "translation": {
+      "few": "{{.Count}} poslane slike: {{.Filenames}}",
+      "one": "{{.Count}} poslana slika: {{.Filenames}}",
+      "other": "{{.Count}} poslanih slika: {{.Filenames}}"
+    }
+  },
+  {
+    "id": "api.command_search.name",
+    "translation": "pretraga"
+  },
+  {
+    "id": "api.command_search.desc",
+    "translation": "Traži tekst u porukama"
+  },
+  {
+    "id": "api.command_search.hint",
+    "translation": "[text]"
+  },
+  {
+    "id": "api.file.get_file_thumbnail.no_thumbnail.app_error",
+    "translation": "Datoteka nema sličicu."
+  },
+  {
+    "id": "api.templates.verify_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.welcome_body.serverURL",
+    "translation": "{{ .ServerURL }}."
+  },
+  {
+    "id": "api.templates.reset_body.title",
+    "translation": "Resetiraj tvoju lozinku"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "isključi zvuk"
+  },
+  {
+    "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
+    "translation": "SMTP nije konfiguriran u konzoli sustava"
+  },
+  {
+    "id": "api.templates.reset_body.button",
+    "translation": "Resetiraj lozinku"
+  },
+  {
+    "id": "app.import.validate_role_import_data.display_name_invalid.error",
+    "translation": "Neispravno prikazno ime uloge."
+  },
+  {
+    "id": "app.import.validate_role_import_data.name_invalid.error",
+    "translation": "Neispravno ime uloge."
+  },
+  {
+    "id": "app.import.validate_role_import_data.invalid_permission.error",
+    "translation": "Neispravna dozvola za ulogu."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.description_invalid.error",
+    "translation": "Neispravan opis sheme."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.display_name_invalid.error",
+    "translation": "Neispravno prikazno ime sheme."
+  },
+  {
+    "id": "app.import.validate_scheme_import_data.name_invalid.error",
+    "translation": "Neispravno ime sheme."
+  },
+  {
+    "id": "app.import.validate_team_import_data.description_length.error",
+    "translation": "Opis tima je predug."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_length.error",
+    "translation": "Ime tima je predugo."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_missing.error",
+    "translation": "Nedostaje potrebno svojstvo tima: ime."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_reserved.error",
+    "translation": "Ime tima sadrži rezervirane riječi."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_invalid.error",
+    "translation": "Vrsta tima je neispravna."
+  },
+  {
+    "id": "app.import.validate_team_import_data.type_missing.error",
+    "translation": "Nedostaje potrebno svojstvo tima: vrsta."
+  },
+  {
+    "id": "app.import.validate_user_import_data.last_name_length.error",
+    "translation": "Prezime korisnika je predugačko."
+  },
+  {
+    "id": "app.import.validate_team_import_data.scheme_invalid.error",
+    "translation": "Neispravno ime sheme za tim."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_missing.error",
+    "translation": "Nedostaje potrebno svojstvo tima: email."
+  },
+  {
+    "id": "app.import.validate_user_import_data.email_length.error",
+    "translation": "Dužina korisničke e-mail adrese nije ispravna."
+  },
+  {
+    "id": "app.import.validate_role_import_data.description_invalid.error",
+    "translation": "Neispravan opis uloge."
+  },
+  {
+    "id": "app.import.validate_team_import_data.name_characters.error",
+    "translation": "Ime tima sadrži nevažeće znakove."
+  },
+  {
+    "id": "app.import.validate_user_import_data.nickname_length.error",
+    "translation": "Nadimak korisnika je predugačak."
+  },
+  {
+    "id": "app.import.validate_user_import_data.first_name_length.error",
+    "translation": "Ime korisnika je predugačko."
+  },
+  {
+    "id": "api.team.join_team.post_and_forget",
+    "translation": "%v se pridružio/la timu."
+  },
+  {
+    "id": "api.team.leave.left",
+    "translation": "%v je napustio/la tim."
+  },
+  {
+    "id": "api.templates.remove_expired_license.body.renew_button",
+    "translation": "Obnovi licencu sada"
+  },
+  {
+    "id": "web.error.unsupported_browser.system_browser_or",
+    "translation": "ili"
+  },
+  {
+    "id": "api.templates.mfa_activated_body.title",
+    "translation": "Višefaktorska autentifikacija je dodana"
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.info",
+    "translation": "Višefaktorska autentifikacija je uklonjena iz tvog računa na {{ .SiteURL }}."
+  },
+  {
+    "id": "api.templates.mfa_deactivated_body.title",
+    "translation": "Višefaktorska autentifikacija je uklonjena"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.title",
+    "translation": "Aktualizirao/la si svoj način prijave"
+  },
+  {
+    "id": "api.templates.signin_change_email.subject",
+    "translation": "[{{ .SiteName }}] Tvoj način prijave je aktualiziran"
+  },
+  {
+    "id": "api.templates.reset_subject",
+    "translation": "[{{ .SiteName }}] Resetiraj tvoju lozinku"
+  },
+  {
+    "id": "api.templates.signin_change_email.body.method_email",
+    "translation": "e-mail i lozinka"
+  },
+  {
+    "id": "api.templates.username_change_subject",
+    "translation": "[{{ .SiteName }}] Tvoje korisničko ime se promijenilo"
+  },
+  {
+    "id": "api.templates.verify_body.subTitle2",
+    "translation": "Pritisni dolje za potvrđivanje tvoje e-mail adresu."
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.registered_users_header",
+    "translation": "Ukupni broj aktivnih korisnika: "
+  },
+  {
+    "id": "api.templates.verify_body.title",
+    "translation": "Potvrdi tvoju e-mail adresu"
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.contact_name_header",
+    "translation": "Kontakt: "
+  },
+  {
+    "id": "api.templates.warn_metric_ack.body.site_url_header",
+    "translation": "URL stranice: "
+  },
+  {
+    "id": "api.templates.welcome_body.title",
+    "translation": "Dobro došao, dobro došla u tim"
+  },
+  {
+    "id": "api.templates.welcome_body.subTitle2",
+    "translation": "Pritisni dolje za potvrđivanje tvoje e-mail adresu."
+  },
+  {
+    "id": "api.unable_to_create_zip_file",
+    "translation": "Greška pri izradi zip datoteke."
+  },
+  {
+    "id": "api.templates.signin_change_email.body.info",
+    "translation": "Aktualizirao/la si svoj način prijave na {{ .SiteName }} u {{.Method}}."
+  },
+  {
+    "id": "api.templates.mfa_activated_body.info",
+    "translation": "Višefaktorska autentifikacija je dodana tvom računu na {{ .SiteURL }}."
+  },
+  {
+    "id": "api.command_open.name",
+    "translation": "otvori"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Sigurna veza | URL stranice | Samo za čitanje | Prihvaćen poziv | Online | Zadnja sinkronizacija |"
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID sigurne veze ne valja: {{.Error}}"
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Nemaš dozvolu za pozivanje novih korisnika na ovaj server."
+  },
+  {
+    "id": "api.command_shortcuts.name",
+    "translation": "prečaci"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Za poništavanje poziva moraš navesti valjani ID sigurne veze"
+  },
+  {
+    "id": "api.command_shrug.desc",
+    "translation": "Dodaj ¯\\_(ツ)_/¯ u tvoju poruku"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Aktualiziranje prijevoda servera nije uspjelo."
+  },
+  {
+    "id": "api.team.get_team_icon.read_file.app_error",
+    "translation": "Nije moguće učitati datoteku ikone tima."
+  },
+  {
+    "id": "api.team.remove_user_from_team.removed",
+    "translation": "%v je uklonjen/a iz tima."
   }
 ]

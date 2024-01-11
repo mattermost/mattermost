@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -13,7 +13,6 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAppsOAuthAppIDs, getOAuthApps} from 'mattermost-redux/selectors/entities/integrations';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {loadOAuthAppsAndProfiles} from 'actions/integration_actions';
 
@@ -32,15 +31,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    loadOAuthAppsAndProfiles: (page?: number, perPage?: number) => Promise<void>;
-    regenOAuthAppSecret: (appId: string) => Promise<{ error?: Error }>;
-    deleteOAuthApp: (appId: string) => Promise<void>;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             loadOAuthAppsAndProfiles,
             regenOAuthAppSecret,
             deleteOAuthApp,

@@ -33,8 +33,8 @@ export type ClientConfig = {
     CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
-    DataRetentionFileRetentionDays: string;
-    DataRetentionMessageRetentionDays: string;
+    DataRetentionFileRetentionHours: string;
+    DataRetentionMessageRetentionHours: string;
     DefaultClientLocale: string;
     DefaultTheme: string;
     DiagnosticId: string;
@@ -115,7 +115,6 @@ export type ClientConfig = {
     ExperimentalEnablePostMetadata: string;
     ExperimentalGroupUnreadChannels: string;
     ExperimentalPrimaryTeam: string;
-    ExperimentalTimezone: string;
     ExperimentalViewArchivedChannels: string;
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
@@ -200,7 +199,14 @@ export type ClientConfig = {
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
+    WranglerPermittedWranglerRoles: string;
+    WranglerAllowedEmailDomain: string;
+    WranglerMoveThreadMaxCount: string;
+    WranglerMoveThreadFromPrivateChannelEnable: string;
+    WranglerMoveThreadFromDirectMessageChannelEnable: string;
+    WranglerMoveThreadFromGroupMessageChannelEnable: string;
     ServiceEnvironment: string;
+    UniqueEmojiReactionLimitPerPost: string;
 };
 
 export type License = {
@@ -297,6 +303,7 @@ export type ServiceSettings = {
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
     EnableCommands: boolean;
+    OutgoingIntegrationRequestsTimeout: number;
     EnablePostUsernameOverride: boolean;
     EnablePostIconOverride: boolean;
     EnableLinkPreviews: boolean;
@@ -379,6 +386,8 @@ export type ServiceSettings = {
     PersistentNotificationIntervalMinutes: number;
     PersistentNotificationMaxCount: number;
     PersistentNotificationMaxRecipients: number;
+    UniqueEmojiReactionLimitPerPost: number;
+    RefreshPostStatsRunTime: string;
 };
 
 export type TeamSettings = {
@@ -481,6 +490,16 @@ export type PasswordSettings = {
     Uppercase: boolean;
     Symbol: boolean;
     EnableForgotLink: boolean;
+};
+
+export type WranglerSettings = {
+    PermittedWranglerRoles: string[];
+    AllowedEmailDomain: string[];
+    MoveThreadMaxCount: number;
+    MoveThreadToAnotherTeamEnable: boolean;
+    MoveThreadFromPrivateChannelEnable: boolean;
+    MoveThreadFromDirectMessageChannelEnable: boolean;
+    MoveThreadFromGroupMessageChannelEnable: boolean;
 };
 
 export type FileSettings = {
@@ -809,7 +828,9 @@ export type DataRetentionSettings = {
     EnableMessageDeletion: boolean;
     EnableFileDeletion: boolean;
     MessageRetentionDays: number;
+    MessageRetentionHours: number;
     FileRetentionDays: number;
+    FileRetentionHours: number;
     DeletionJobStartTime: string;
     BatchSize: number;
     EnableBoardsDeletion: boolean,
@@ -831,6 +852,8 @@ export type MessageExportSettings = {
         SMTPPassword: string;
         EmailAddress: string;
         SMTPServerTimeout: number;
+        CustomSMTPServerName: string;
+        CustomSMTPPort: string;
     };
 };
 
@@ -864,7 +887,6 @@ export type PluginSettings = {
 
 export type DisplaySettings = {
     CustomURLSchemes: string[];
-    ExperimentalTimezone: boolean;
     MaxMarkdownNodes: number;
 };
 
@@ -944,6 +966,7 @@ export type AdminConfig = {
     FeatureFlags: FeatureFlags;
     ImportSettings: ImportSettings;
     ExportSettings: ExportSettings;
+    WranglerSettings: WranglerSettings;
 };
 
 export type ReplicaLagSetting = {
@@ -978,4 +1001,18 @@ export enum ServiceEnvironment {
     PRODUCTION = 'production',
     TEST = 'test',
     DEV = 'dev',
+}
+
+
+export type AllowedIPRange = {
+    cidr_block: string;
+    description: string;
+    enabled: boolean;
+    owner_id: string;
+}
+
+export type AllowedIPRanges = AllowedIPRange[];
+
+export type FetchIPResponse = {
+    ip: string;
 }

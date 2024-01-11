@@ -55,6 +55,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/plugins"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/post_persistent_notifications"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/product_notices"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_post_stats"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
@@ -109,6 +110,7 @@ type Server struct {
 	httpService            httpservice.HTTPService
 	PushNotificationsHub   PushNotificationsHub
 	pushNotificationClient *http.Client // TODO: move this to it's own package
+	outgoingWebhookClient  *http.Client
 
 	runEssentialJobs bool
 	Jobs             *jobs.JobServer
@@ -141,7 +143,9 @@ type Server struct {
 	// startSearchEngine bool
 	skipPostInit bool
 
-	Cloud einterfaces.CloudInterface
+	Cloud                   einterfaces.CloudInterface
+	IPFiltering             einterfaces.IPFilteringInterface
+	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
 
 	tracer *tracing.Tracer
 
@@ -149,8 +153,6 @@ type Server struct {
 
 	products map[string]product.Product
 	services map[product.ServiceKey]any
-
-	hooksManager *product.HooksManager
 }
 
 func (s *Server) Store() store.Store {
@@ -246,8 +248,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	s.hooksManager = product.NewHooksManager(s.GetMetrics())
-
 	// ensure app implements `product.UserService`
 	var _ product.UserService = (*App)(nil)
 
@@ -274,7 +274,7 @@ func NewServer(options ...Option) (*Server, error) {
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
-	s.platform.Start()
+	s.platform.Start(s.makeBroadcastHooks())
 
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
 	// otherwise it will throw a panic.
@@ -339,6 +339,7 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	s.pushNotificationClient = s.httpService.MakeClient(true)
+	s.outgoingWebhookClient = s.httpService.MakeClient(false)
 
 	if err2 := utils.TranslationsPreInit(); err2 != nil {
 		return nil, errors.Wrapf(err2, "unable to load Mattermost translation files")
@@ -400,6 +401,10 @@ func NewServer(options ...Option) (*Server, error) {
 
 	s.initJobs()
 
+	if ipFilteringInterface != nil {
+		s.IPFiltering = ipFilteringInterface(app)
+	}
+
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
@@ -425,6 +430,11 @@ func NewServer(options ...Option) (*Server, error) {
 		s.EmailService.InitEmailBatching()
 	})
 
+	isTrial := false
+	if licence := s.License(); licence != nil {
+		isTrial = licence.IsTrial
+	}
+
 	logCurrentVersion := fmt.Sprintf("Current version is %v (%v/%v/%v/%v)", model.CurrentVersion, model.BuildNumber, model.BuildDate, model.BuildHash, model.BuildHashEnterprise)
 	mlog.Info(
 		logCurrentVersion,
@@ -436,7 +446,11 @@ func NewServer(options ...Option) (*Server, error) {
 		mlog.String("service_environment", model.GetServiceEnvironment()),
 	)
 	if model.BuildEnterpriseReady == "true" {
-		mlog.Info("Enterprise Build", mlog.Bool("enterprise_build", true))
+		mlog.Info(
+			"Enterprise Build",
+			mlog.Bool("enterprise_build", true),
+			mlog.Bool("is_trial", isTrial),
+		)
 	} else {
 		mlog.Info("Team Edition Build", mlog.Bool("enterprise_build", false))
 	}
@@ -498,12 +512,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.runEssentialJobs {
-		s.Go(func() {
-			appInstance := New(ServerConnector(s.Channels()))
-			s.runLicenseExpirationCheckJob()
-			runDNDStatusExpireJob(appInstance)
-			runPostReminderJob(appInstance)
-		})
 		s.runJobs()
 	}
 
@@ -525,6 +533,12 @@ func NewServer(options ...Option) (*Server, error) {
 }
 
 func (s *Server) runJobs() {
+	s.Go(func() {
+		appInstance := New(ServerConnector(s.Channels()))
+		s.runLicenseExpirationCheckJob()
+		runDNDStatusExpireJob(appInstance)
+		runPostReminderJob(appInstance)
+	})
 	s.Go(func() {
 		runSecurityJob(s)
 	})
@@ -612,8 +626,8 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	var err error
-
-	rcs, err := remotecluster.NewRemoteClusterService(s)
+	appInstance := New(ServerConnector(s.Channels()))
+	rcs, err := remotecluster.NewRemoteClusterService(s, appInstance)
 	if err != nil {
 		return err
 	}
@@ -640,7 +654,6 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	appInstance := New(ServerConnector(s.Channels()))
 	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
 	if err != nil {
 		return err
@@ -1653,8 +1666,14 @@ func (s *Server) initJobs() {
 
 	s.Jobs.RegisterJobType(
 		model.JobTypeCleanupDesktopTokens,
-		cleanup_desktop_tokens.MakeWorker(s.Jobs, s.Store()),
+		cleanup_desktop_tokens.MakeWorker(s.Jobs),
 		cleanup_desktop_tokens.MakeScheduler(s.Jobs),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeRefreshPostStats,
+		refresh_post_stats.MakeWorker(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
+		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
 	)
 
 	s.platform.Jobs = s.Jobs

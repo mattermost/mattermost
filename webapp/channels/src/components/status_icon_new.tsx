@@ -4,32 +4,25 @@
 import React from 'react';
 
 type Props = {
-    className: string;
-    status: string;
+    className?: string;
+    status?: string;
 }
 
-export default class StatusIconNew extends React.PureComponent<Props> {
-    static defaultProps: Props = {
-        className: '',
-        status: '',
-    };
+const statusToIconMap: { [key: string]: string } = {
+    online: 'icon-check-circle',
+    away: 'icon-clock',
+    dnd: 'icon-minus-circle',
+    default: 'icon-circle-outline',
+};
 
-    render() {
-        const {status, className} = this.props;
-
-        if (!status) {
-            return null;
-        }
-
-        let iconName = 'icon-circle-outline';
-        if (status === 'online') {
-            iconName = 'icon-check-circle';
-        } else if (status === 'away') {
-            iconName = 'icon-clock';
-        } else if (status === 'dnd') {
-            iconName = 'icon-minus-circle';
-        }
-
-        return <i className={`${iconName} ${className}`}/>;
+const StatusIconNew = ({className = '', status = ''}: Props) => {
+    if (!status) {
+        return null;
     }
-}
+
+    const iconName = statusToIconMap[status] || statusToIconMap.default;
+
+    return <i className={`${iconName} ${className}`}/>;
+};
+
+export default React.memo(StatusIconNew);

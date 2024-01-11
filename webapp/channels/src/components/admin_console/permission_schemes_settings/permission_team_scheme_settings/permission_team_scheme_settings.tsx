@@ -2,23 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
 import type {Role} from '@mattermost/types/roles';
 import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
 import type {Team} from '@mattermost/types/teams';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 import LoadingScreen from 'components/loading_screen';
-import LocalizedInput from 'components/localized_input/localized_input';
 import SaveButton from 'components/save_button';
 import TeamSelectorModal from 'components/team_selector_modal';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -45,17 +43,18 @@ export type Props = {
     scheme: Scheme | null;
     roles: RolesMap;
     license: ClientLicense;
-    teams: Team[];
+    teams: Team[] | null;
     isDisabled: boolean;
     config: Partial<ClientConfig>;
+    intl: IntlShape;
     actions: {
-        loadRolesIfNeeded: (roles: Iterable<string>) => ActionFunc;
+        loadRolesIfNeeded: (roles: Iterable<string>) => Promise<ActionResult>;
         loadScheme: (schemeId: string) => Promise<ActionResult>;
-        loadSchemeTeams: (schemeId: string, page?: number, perPage?: number) => ActionFunc;
-        editRole: (role: Role) => Promise<{error: ServerError}>;
-        patchScheme: (schemeId: string, scheme: SchemePatch) => ActionFunc;
-        updateTeamScheme: (teamId: string, schemeId: string) => Promise<{error: ServerError; data: Scheme}>;
-        createScheme: (scheme: Scheme) => Promise<{error: ServerError; data: Scheme}>;
+        loadSchemeTeams: (schemeId: string, page?: number, perPage?: number) => Promise<ActionResult>;
+        editRole: (role: Role) => Promise<ActionResult>;
+        patchScheme: (schemeId: string, scheme: SchemePatch) => Promise<ActionResult>;
+        updateTeamScheme: (teamId: string, schemeId: string) => Promise<ActionResult>;
+        createScheme: (scheme: Scheme) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
 }
@@ -82,7 +81,7 @@ type State = {
     schemeDescription: string | undefined;
 };
 
-export default class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
+export class PermissionTeamSchemeSettings extends React.PureComponent<Props & RouteComponentProps, State> {
     constructor(props: Props & RouteComponentProps) {
         super(props);
         this.state = {
@@ -548,7 +547,7 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
     };
 
     removeTeam = (teamId: string) => {
-        const teams = (this.state.teams || this.props.teams).filter((team) => team.id !== teamId);
+        const teams = (this.state.teams || this.props.teams)?.filter((team) => team.id !== teamId) ?? null;
         this.setState({teams, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
     };
@@ -650,14 +649,14 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
                                             defaultMessage='Scheme Name:'
                                         />
                                     </label>
-                                    <LocalizedInput
-                                        id='scheme-name'
+                                    <input
                                         className='form-control'
+                                        disabled={this.props.isDisabled}
+                                        id='scheme-name'
+                                        placeholder={this.props.intl.formatMessage({id: 'admin.permissions.teamScheme.schemeNamePlaceholder', defaultMessage: 'Scheme Name'})}
                                         type='text'
                                         value={schemeName}
-                                        placeholder={{id: t('admin.permissions.teamScheme.schemeNamePlaceholder'), defaultMessage: 'Scheme Name'}}
                                         onChange={this.handleNameChange}
-                                        disabled={this.props.isDisabled}
                                     />
                                 </div>
                                 <div className='form-group'>
@@ -844,3 +843,5 @@ export default class PermissionTeamSchemeSettings extends React.PureComponent<Pr
         );
     };
 }
+
+export default injectIntl(PermissionTeamSchemeSettings);

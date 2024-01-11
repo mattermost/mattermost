@@ -16,8 +16,6 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {CustomStatusDuration} from '@mattermost/types/users';
 import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import * as GlobalActions from 'actions/global_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
@@ -53,8 +51,8 @@ type Props = {
     autoResetPref?: string;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        setStatus: (status: UserStatus) => ActionFunc;
-        unsetCustomStatus: () => ActionFunc;
+        setStatus: (status: UserStatus) => void;
+        unsetCustomStatus: () => void;
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         setStatusDropdown: (open: boolean) => void;
     };
@@ -150,8 +148,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             endTime = currentDate.add(2, 'hours');
             break;
         case 3:
-            // add one day in current date
-            endTime = currentDate.add(1, 'day');
+            // set to next day 9 in the morning
+            endTime = currentDate.add(1, 'day').set({hour: 9, minute: 0});
             break;
         }
 
@@ -374,7 +372,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             this.dndTimes.map(({id, label, labelDefault}, index) => {
                 let text: React.ReactNode = localizeMessage(label, labelDefault);
                 if (index === 3) {
-                    const tomorrow = getCurrentMomentForTimezone(this.props.timezone).add(1, 'day').toDate();
+                    const tomorrow = getCurrentMomentForTimezone(this.props.timezone).add(1, 'day').set({hour: 9, minute: 0}).toDate();
                     text = (
                         <>
                             {text}

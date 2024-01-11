@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import expect from 'expect';
 import moment from 'moment';
 import React from 'react';
 import type {ComponentProps} from 'react';

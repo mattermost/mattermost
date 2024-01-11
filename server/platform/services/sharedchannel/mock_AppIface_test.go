@@ -47,11 +47,11 @@ func (_m *MockAppIface) AddUserToChannel(c request.CTX, user *model.User, channe
 }
 
 // AddUserToTeamByTeamId provides a mock function with given fields: c, teamId, user
-func (_m *MockAppIface) AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError {
+func (_m *MockAppIface) AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError {
 	ret := _m.Called(c, teamId, user)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, *model.User) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *model.User) *model.AppError); ok {
 		r0 = rf(c, teamId, user)
 	} else {
 		if ret.Get(0) != nil {
@@ -175,11 +175,11 @@ func (_m *MockAppIface) DeletePost(c request.CTX, postID string, deleteByID stri
 }
 
 // DeleteReactionForPost provides a mock function with given fields: c, reaction
-func (_m *MockAppIface) DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError {
+func (_m *MockAppIface) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError {
 	ret := _m.Called(c, reaction)
 
 	var r0 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Reaction) *model.AppError); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) *model.AppError); ok {
 		r0 = rf(c, reaction)
 	} else {
 		if ret.Get(0) != nil {
@@ -314,6 +314,30 @@ func (_m *MockAppIface) NotifySharedChannelUserUpdate(user *model.User) {
 	_m.Called(user)
 }
 
+// OnSharedChannelsSyncMsg provides a mock function with given fields: msg, rc
+func (_m *MockAppIface) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	ret := _m.Called(msg, rc)
+
+	var r0 model.SyncResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) (model.SyncResponse, error)); ok {
+		return rf(msg, rc)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) model.SyncResponse); ok {
+		r0 = rf(msg, rc)
+	} else {
+		r0 = ret.Get(0).(model.SyncResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SyncMsg, *model.RemoteCluster) error); ok {
+		r1 = rf(msg, rc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // PatchChannelModerationsForChannel provides a mock function with given fields: c, channel, channelModerationsPatch
 func (_m *MockAppIface) PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError) {
 	ret := _m.Called(c, channel, channelModerationsPatch)
@@ -359,15 +383,15 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 }
 
 // SaveReactionForPost provides a mock function with given fields: c, reaction
-func (_m *MockAppIface) SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
+func (_m *MockAppIface) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError) {
 	ret := _m.Called(c, reaction)
 
 	var r0 *model.Reaction
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Reaction) (*model.Reaction, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) (*model.Reaction, *model.AppError)); ok {
 		return rf(c, reaction)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Reaction) *model.Reaction); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Reaction) *model.Reaction); ok {
 		r0 = rf(c, reaction)
 	} else {
 		if ret.Get(0) != nil {
@@ -375,7 +399,7 @@ func (_m *MockAppIface) SaveReactionForPost(c *request.Context, reaction *model.
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, *model.Reaction) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Reaction) *model.AppError); ok {
 		r1 = rf(c, reaction)
 	} else {
 		if ret.Get(1) != nil {
@@ -403,15 +427,15 @@ func (_m *MockAppIface) SendEphemeralPost(c request.CTX, userId string, post *mo
 }
 
 // UpdatePost provides a mock function with given fields: c, post, safeUpdate
-func (_m *MockAppIface) UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
+func (_m *MockAppIface) UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
 	ret := _m.Called(c, post, safeUpdate)
 
 	var r0 *model.Post
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Post, bool) (*model.Post, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, bool) (*model.Post, *model.AppError)); ok {
 		return rf(c, post, safeUpdate)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.Post, bool) *model.Post); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, bool) *model.Post); ok {
 		r0 = rf(c, post, safeUpdate)
 	} else {
 		if ret.Get(0) != nil {
@@ -419,7 +443,7 @@ func (_m *MockAppIface) UpdatePost(c *request.Context, post *model.Post, safeUpd
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, *model.Post, bool) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, bool) *model.AppError); ok {
 		r1 = rf(c, post, safeUpdate)
 	} else {
 		if ret.Get(1) != nil {

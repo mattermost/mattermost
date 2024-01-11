@@ -179,6 +179,19 @@ button {
         }
     }
 
+    &.btn-link {
+        padding: 0;
+        border: none;
+        background: transparent;
+        color: rgba(var(--button-bg-rgb), 1);
+
+        &:hover,
+        &:focus,
+        &:active {
+            text-decoration: underline;
+        }
+    }
+
     &.btn-primary {
         position: relative;
         border-color: transparent;
@@ -199,7 +212,7 @@ button {
         &:disabled:hover,
         &:disabled:active {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.32);
+            color: rgba(var(--center-channel-color-rgb), 0.32) !important;
             opacity: 1;
         }
     }
@@ -256,6 +269,22 @@ button {
             background: rgba(var(--center-channel-color-rgb), 0.08);
             color: rgba(var(--center-channel-color-rgb), 0.32);
             opacity: 1;
+        }
+
+        &.btn-danger {
+            background-color: rgba(var(--error-text-color-rgb), 0.08);
+            color: var(--error-text);
+
+            &:hover {
+                background-color: rgba(var(--error-text-color-rgb), 0.12);
+                color: var(--error-text);
+            }
+
+            &:active,
+            &:focus {
+                background-color: rgba(var(--error-text-color-rgb), 0.16);
+                color: var(--error-text);
+            }
         }
     }
 

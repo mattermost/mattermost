@@ -16,15 +16,15 @@ type SamlInterface struct {
 }
 
 // BuildRequest provides a mock function with given fields: c, relayState
-func (_m *SamlInterface) BuildRequest(c *request.Context, relayState string) (*model.SamlAuthRequest, *model.AppError) {
+func (_m *SamlInterface) BuildRequest(c request.CTX, relayState string) (*model.SamlAuthRequest, *model.AppError) {
 	ret := _m.Called(c, relayState)
 
 	var r0 *model.SamlAuthRequest
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string) (*model.SamlAuthRequest, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.SamlAuthRequest, *model.AppError)); ok {
 		return rf(c, relayState)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string) *model.SamlAuthRequest); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.SamlAuthRequest); ok {
 		r0 = rf(c, relayState)
 	} else {
 		if ret.Get(0) != nil {
@@ -32,7 +32,7 @@ func (_m *SamlInterface) BuildRequest(c *request.Context, relayState string) (*m
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
 		r1 = rf(c, relayState)
 	} else {
 		if ret.Get(1) != nil {
@@ -44,11 +44,11 @@ func (_m *SamlInterface) BuildRequest(c *request.Context, relayState string) (*m
 }
 
 // CheckProviderAttributes provides a mock function with given fields: c, SS, ouser, patch
-func (_m *SamlInterface) CheckProviderAttributes(c *request.Context, SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string {
+func (_m *SamlInterface) CheckProviderAttributes(c request.CTX, SS *model.SamlSettings, ouser *model.User, patch *model.UserPatch) string {
 	ret := _m.Called(c, SS, ouser, patch)
 
 	var r0 string
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.SamlSettings, *model.User, *model.UserPatch) string); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.SamlSettings, *model.User, *model.UserPatch) string); ok {
 		r0 = rf(c, SS, ouser, patch)
 	} else {
 		r0 = ret.Get(0).(string)
@@ -58,11 +58,11 @@ func (_m *SamlInterface) CheckProviderAttributes(c *request.Context, SS *model.S
 }
 
 // ConfigureSP provides a mock function with given fields: c
-func (_m *SamlInterface) ConfigureSP(c *request.Context) error {
+func (_m *SamlInterface) ConfigureSP(c request.CTX) error {
 	ret := _m.Called(c)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*request.Context) error); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX) error); ok {
 		r0 = rf(c)
 	} else {
 		r0 = ret.Error(0)
@@ -72,15 +72,15 @@ func (_m *SamlInterface) ConfigureSP(c *request.Context) error {
 }
 
 // DoLogin provides a mock function with given fields: c, encodedXML, relayState
-func (_m *SamlInterface) DoLogin(c *request.Context, encodedXML string, relayState map[string]string) (*model.User, *model.AppError) {
+func (_m *SamlInterface) DoLogin(c request.CTX, encodedXML string, relayState map[string]string) (*model.User, *model.AppError) {
 	ret := _m.Called(c, encodedXML, relayState)
 
 	var r0 *model.User
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, string, map[string]string) (*model.User, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) (*model.User, *model.AppError)); ok {
 		return rf(c, encodedXML, relayState)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, string, map[string]string) *model.User); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, string, map[string]string) *model.User); ok {
 		r0 = rf(c, encodedXML, relayState)
 	} else {
 		if ret.Get(0) != nil {
@@ -88,7 +88,7 @@ func (_m *SamlInterface) DoLogin(c *request.Context, encodedXML string, relaySta
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, string, map[string]string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, string, map[string]string) *model.AppError); ok {
 		r1 = rf(c, encodedXML, relayState)
 	} else {
 		if ret.Get(1) != nil {
@@ -100,21 +100,21 @@ func (_m *SamlInterface) DoLogin(c *request.Context, encodedXML string, relaySta
 }
 
 // GetMetadata provides a mock function with given fields: c
-func (_m *SamlInterface) GetMetadata(c *request.Context) (string, *model.AppError) {
+func (_m *SamlInterface) GetMetadata(c request.CTX) (string, *model.AppError) {
 	ret := _m.Called(c)
 
 	var r0 string
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context) (string, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX) (string, *model.AppError)); ok {
 		return rf(c)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context) string); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX) string); ok {
 		r0 = rf(c)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX) *model.AppError); ok {
 		r1 = rf(c)
 	} else {
 		if ret.Get(1) != nil {

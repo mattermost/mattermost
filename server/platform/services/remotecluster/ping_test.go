@@ -11,6 +11,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -66,9 +67,10 @@ func TestPing(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL, false))
+		mockApp := newMockApp(t, nil)
 
-		service, err := NewRemoteClusterService(mockServer)
+		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
 
 		err = service.Start()
@@ -115,9 +117,10 @@ func TestPing(t *testing.T) {
 		}))
 		defer ts.Close()
 
-		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL))
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, ts.URL, false))
+		mockApp := newMockApp(t, nil)
 
-		service, err := NewRemoteClusterService(mockServer)
+		service, err := NewRemoteClusterService(mockServer, mockApp)
 		require.NoError(t, err)
 
 		err = service.Start()
@@ -131,6 +134,34 @@ func TestPing(t *testing.T) {
 		assert.Equal(t, int32(NumRemotes), atomic.LoadInt32(&countWebReq))
 		t.Logf("%d web requests counted;  %d expected",
 			atomic.LoadInt32(&countWebReq), NumRemotes)
+	})
+
+	t.Run("Plugin ping", func(t *testing.T) {
+		mockServer := newMockServer(t, makeRemoteClusters(NumRemotes, model.NewId(), true))
+		offline := []string{mockServer.remotes[0].PluginID, mockServer.remotes[1].PluginID}
+
+		mockApp := newMockApp(t, offline)
+
+		service, err := NewRemoteClusterService(mockServer, mockApp)
+		require.NoError(t, err)
+
+		// high ping frequency so we don't delay unit tests.
+		service.SetPingFreq(time.Millisecond * 50)
+
+		err = service.Start()
+		require.NoError(t, err)
+		defer service.Shutdown()
+
+		checkPingCount := func() bool {
+			return mockApp.GetTotalPingCount() >= NumRemotes
+		}
+
+		checkErrorCount := func() bool {
+			return mockApp.GetTotalPingErrorCount() >= 2
+		}
+
+		assert.Eventually(t, checkPingCount, time.Second*5, 10*time.Millisecond)
+		assert.Eventually(t, checkErrorCount, time.Second*5, 10*time.Millisecond)
 	})
 }
 

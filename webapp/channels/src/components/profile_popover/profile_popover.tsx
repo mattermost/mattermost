@@ -8,11 +8,11 @@ import type {IntlShape} from 'react-intl';
 
 import {AccountOutlineIcon, AccountPlusOutlineIcon, CloseIcon, EmoticonHappyOutlineIcon, PhoneInTalkIcon, SendIcon} from '@mattermost/compass-icons/components';
 import type {Channel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
 import type {UserCustomStatus, UserProfile} from '@mattermost/types/users';
 import {CustomStatusDuration} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername, isGuest, isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -164,12 +164,11 @@ export interface ProfilePopoverProps extends Omit<React.ComponentProps<typeof Po
     /**
      * @internal
      */
-    enableTimezone: boolean;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
-        openDirectChannelToUserId: (userId?: string) => Promise<{error: ServerError}>;
-        getMembershipForEntities: (teamId: string, userId: string, channelId?: string) => Promise<void>;
+        openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
+        getMembershipForEntities: (teamId: string, userId: string, channelId?: string) => void;
     };
     intl: IntlShape;
     lastActivityTimestamp: number;
@@ -283,7 +282,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
             return;
         }
         this.setState({loadingDMChannel: user.id});
-        actions.openDirectChannelToUserId(user.id).then((result: {error: ServerError}) => {
+        actions.openDirectChannelToUserId(user.id).then((result: ActionResult) => {
             if (!result.error) {
                 if (this.props.isMobileView) {
                     GlobalActions.emitCloseRightHandSide();
@@ -425,7 +424,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
         }
 
         const keysToBeRemoved: Array<keyof ProfilePopoverProps> = ['user', 'userId', 'channelId', 'src', 'status', 'hideStatus', 'isBusy',
-            'hide', 'hasMention', 'enableTimezone', 'currentUserId', 'currentTeamId', 'teamUrl', 'actions', 'isTeamAdmin',
+            'hide', 'hasMention', 'currentUserId', 'currentTeamId', 'teamUrl', 'actions', 'isTeamAdmin',
             'isChannelAdmin', 'canManageAnyChannelMembersInCurrentTeam', 'intl'];
         const popoverProps: React.ComponentProps<typeof Popover> = Utils.deleteKeysFromObject({...this.props},
             keysToBeRemoved);
@@ -526,7 +525,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
             );
             dataContent.push(
                 <div
-                    className='overflow--ellipsis text-nowrap'
+                    className='text-center'
                     key='user-popover-position'
                 >
                     {position}
@@ -566,11 +565,7 @@ class ProfilePopover extends React.PureComponent<ProfilePopoverProps, ProfilePop
                 fromWebhook={this.props.fromWebhook}
             />,
         );
-        if (
-            this.props.enableTimezone &&
-            this.props.user.timezone &&
-            !haveOverrideProp
-        ) {
+        if (this.props.user.timezone && !haveOverrideProp) {
             dataContent.push(
                 <ProfileTimezone
                     currentUserTimezone={this.props.currentUserTimezone}

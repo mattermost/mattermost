@@ -32,7 +32,7 @@ export type Filters = {
 
 export type Memberships = RelationOneToOne<UserProfile, TeamMembership> | RelationOneToOne<UserProfile, ChannelMembership>;
 
-interface Props {
+export interface Props {
     members: UserProfile[];
     memberships: Memberships;
     total: number;

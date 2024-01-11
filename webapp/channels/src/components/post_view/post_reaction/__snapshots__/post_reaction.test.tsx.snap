@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/post_view/PostReaction should match snapshot 1`] = `
-<Connect(ChannelPermissionGate)
+<Connect(Component)
   channelId="current_channel_id"
   permissions={
     Array [
@@ -52,5 +52,5 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
       />
     </button>
   </OverlayTrigger>
-</Connect(ChannelPermissionGate)>
+</Connect(Component)>
 `;

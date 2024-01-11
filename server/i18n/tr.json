@@ -3932,7 +3932,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Kimlik hizmeti sağlayıcı adresi http:// ya da https:// ile başlayan geçerli bir adres olmalıdır."
+    "translation": "Kimlik hizmeti sağlayıcı adresi boş bir dizge olamaz."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -5836,7 +5836,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Sürüm 102+"
+    "translation": "Sürüm 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",
@@ -9171,7 +9171,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost, sağladığı araçlar ile takımların güvenli iletişim, işbirliği ve birlikte çalışmasını sağlayan açık kaynaklı bir platformdur.\nMattermost üç temel araç sunar:\n\n**Kanallar** - Takımınızla toplu olarak ve üyeleriyle birebir iletişim kurabilirsiniz.\n**[Senaryolar](/playbooks)** - Yinelenen işlemlere özel yapılandırmalar oluşturarak öngörülebilir sonuçlar alabilirsiniz.\n**[Panolar](/boards)** - Projeleri ve görevlerini Kanban panosu yapısında yöneterek takımınızın hedeflere ulaşmasına yardımcı olabilirsiniz.\n\n[İlgili belgeler ve rehberler]({{.HelpLink}})"
+    "translation": "Mattermost, sağladığı araçlar ile takımların güvenli iletişim, işbirliği ve birlikte çalışmasını sağlayan açık kaynaklı bir platformdur.\nMattermost üç temel araç sunar:\n\n**Kanallar** - Takımınızla toplu olarak ve üyeleriyle birebir iletişim kurabilirsiniz.\n**[Senaryolar](/playbooks)** - Yinelenen işlemlere özel yapılandırmalar oluşturarak öngörülebilir sonuçlar alabilirsiniz.\n\n[İlgili belgeler ve rehberler]({{.HelpLink}})"
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",
@@ -9972,5 +9972,17 @@
   {
     "id": "app.channel.group_message_conversion.incorrect_team",
     "translation": "Dönüştürme isteğinde belirtilen takım kimliğinde tüm grup iletisi üyeleri bulunmuyor"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Ada göre bu kadar çok emoji alınamıyor. Aynı anda yalnızca {{.MaxNames}} emoji istenebilir."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "JSON işlenemedi: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Biçim geçersiz: {{.Error}}"
   }
 ]

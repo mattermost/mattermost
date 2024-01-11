@@ -45,6 +45,7 @@ exports[`components/marketplace/ doesn't show web marketplace banner in FeatureF
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -130,6 +131,7 @@ exports[`components/marketplace/ hides search, shows web marketplace banner in F
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -216,6 +218,7 @@ exports[`components/marketplace/ should render default 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -353,6 +356,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -507,6 +511,7 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -652,6 +657,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -815,6 +821,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace

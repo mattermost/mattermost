@@ -14,6 +14,7 @@ import {General, Permissions} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {getPermalinkURL} from 'selectors/urls';
 
@@ -190,7 +191,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
             if (type === Constants.DM_CHANNEL && userId) {
                 return actions.openDirectChannelToUserId(userId);
             }
-            return {data: false};
+            return {data: false} as ActionResult;
         }).then(({data}) => {
             if (data) {
                 channelToForward.details.id = data.id;
@@ -223,7 +224,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
 
     const postPreviewFooterMessage = formatMessage({
         id: 'forward_post_modal.preview.footer_message',
-        defaultMessage: 'Originally posted in ~{channelName}',
+        defaultMessage: 'Originally posted in ~{channel}',
     },
     {
         channel: channel.display_name,

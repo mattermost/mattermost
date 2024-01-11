@@ -2,28 +2,25 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, injectIntl, type WrappedComponentProps} from 'react-intl';
 
-import LocalizedIcon from 'components/localized_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
-
-import {t} from 'utils/i18n';
 
 const NEXT_BUTTON_TIMEOUT = 500;
 
-type Props = {
+interface Props extends WrappedComponentProps {
     logs: string[];
     page: number;
     perPage: number;
     nextPage: () => void;
     previousPage: () => void;
-};
+}
 
 type State = {
     nextDisabled: boolean;
 };
 
-export default class PlainLogList extends React.PureComponent<Props, State> {
+class PlainLogList extends React.PureComponent<Props, State> {
     private logPanel: React.RefObject<HTMLDivElement>;
 
     constructor(props: Props) {
@@ -96,9 +93,9 @@ export default class PlainLogList extends React.PureComponent<Props, State> {
                     className='btn btn-tertiary filter-control filter-control__prev'
                     onClick={this.previousPage}
                 >
-                    <LocalizedIcon
+                    <i
                         className='fa fa-angle-left'
-                        title={{id: t('generic_icons.previous'), defaultMessage: 'Previous Icon'}}
+                        title={this.props.intl.formatMessage({id: 'generic_icons.previous', defaultMessage: 'Previous Icon'})}
                     />
                     <FormattedMessage
                         id='admin.logs.prev'
@@ -147,3 +144,5 @@ export default class PlainLogList extends React.PureComponent<Props, State> {
         );
     }
 }
+
+export default injectIntl(PlainLogList);

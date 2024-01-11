@@ -14,15 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
-func (a *App) MakePermissionError(s *model.Session, permissions []*model.Permission) *model.AppError {
-	permissionsStr := "permission="
-	for _, permission := range permissions {
-		permissionsStr += permission.Id
-		permissionsStr += ","
-	}
-	return model.NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
-}
-
 func (a *App) SessionHasPermissionTo(session model.Session, permission *model.Permission) bool {
 	if session.IsUnrestricted() {
 		return true
@@ -68,31 +59,22 @@ func (a *App) SessionHasPermissionToTeams(c request.CTX, session model.Session, 
 			return false
 		}
 	}
-	if session.IsUnrestricted() {
+
+	// Check session permission, if it allows access, no need to check teams.
+	if a.SessionHasPermissionTo(session, permission) {
 		return true
 	}
-
-	// Getting the list of unique roles from all teams.
-	var roles []string
-	uniqueRoles := make(map[string]bool)
 	for _, teamID := range teamIDs {
 		tm := session.GetTeamByTeamId(teamID)
 		if tm != nil {
-			for _, role := range tm.GetRoles() {
-				uniqueRoles[role] = true
+			// If a team member has permission, then no need to check further.
+			if a.RolesGrantPermission(tm.GetRoles(), permission.Id) {
+				continue
 			}
 		}
+		return false
 	}
-
-	for role := range uniqueRoles {
-		roles = append(roles, role)
-	}
-
-	if a.RolesGrantPermission(roles, permission.Id) {
-		return true
-	}
-
-	return a.RolesGrantPermission(session.GetUserRoles(), permission.Id)
+	return true
 }
 
 func (a *App) SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool {
@@ -140,55 +122,34 @@ func (a *App) SessionHasPermissionToChannels(c request.CTX, session model.Sessio
 		}
 	}
 
-	if session.IsUnrestricted() {
+	// if System Roles (ie. Admin, TeamAdmin) allow permissions
+	// if so, no reason to check team
+	if a.SessionHasPermissionTo(session, permission) {
+		// make sure all channels exist, otherwise return false.
+		for _, channelID := range channelIDs {
+			_, appErr := a.GetChannel(c, channelID)
+			if appErr != nil && appErr.StatusCode == http.StatusNotFound {
+				return false
+			}
+		}
 		return true
 	}
 
 	ids, err := a.Srv().Store().Channel().GetAllChannelMembersForUser(session.UserId, true, true)
-
 	var channelRoles []string
-	uniqueRoles := make(map[string]bool)
-	if err == nil {
-		for _, channelID := range channelIDs {
+	for _, channelID := range channelIDs {
+		if err == nil {
+			// If a channel member has permission, then no need to check further.
 			if roles, ok := ids[channelID]; ok {
-				for _, role := range strings.Fields(roles) {
-					uniqueRoles[role] = true
+				channelRoles = strings.Fields(roles)
+				if a.RolesGrantPermission(channelRoles, permission.Id) {
+					continue
 				}
 			}
 		}
-	}
-
-	for role := range uniqueRoles {
-		channelRoles = append(channelRoles, role)
-	}
-
-	if a.RolesGrantPermission(channelRoles, permission.Id) {
-		return true
-	}
-
-	channels, appErr := a.GetChannels(c, channelIDs)
-	if appErr != nil && appErr.StatusCode == http.StatusNotFound {
 		return false
 	}
-
-	// Get TeamIDs from channels
-	uniqueTeamIDs := make(map[string]bool)
-	for _, ch := range channels {
-		if ch.TeamId != "" {
-			uniqueTeamIDs[ch.TeamId] = true
-		}
-	}
-
-	var teamIDs []string
-	for teamID := range uniqueTeamIDs {
-		teamIDs = append(teamIDs, teamID)
-	}
-
-	if appErr == nil && len(teamIDs) > 0 {
-		return a.SessionHasPermissionToTeams(c, session, teamIDs, permission)
-	}
-
-	return a.SessionHasPermissionTo(session, permission)
+	return true
 }
 
 func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool {
@@ -211,7 +172,7 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -317,7 +278,7 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 }
 
 func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -386,7 +347,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// the bot doesn't exist at all.
 				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
-			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
+			return model.MakePermissionError(&session, []*model.Permission{model.PermissionManageBots})
 		}
 	} else {
 		if !a.SessionHasPermissionTo(session, model.PermissionManageOthersBots) {
@@ -395,7 +356,7 @@ func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId s
 				// pretend as if the bot doesn't exist at all.
 				return model.MakeBotNotFoundError("permissions", botUserId)
 			}
-			return a.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
+			return model.MakePermissionError(&session, []*model.Permission{model.PermissionManageOthersBots})
 		}
 	}
 
@@ -406,5 +367,13 @@ func (a *App) HasPermissionToReadChannel(c request.CTX, userID string, channel *
 	if !*a.Config().TeamSettings.ExperimentalViewArchivedChannels && channel.DeleteAt != 0 {
 		return false
 	}
-	return a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) || (channel.Type == model.ChannelTypeOpen && a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionReadPublicChannel))
+	if a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent) {
+		return true
+	}
+
+	if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
+		return a.HasPermissionToTeam(c, userID, channel.TeamId, model.PermissionReadPublicChannel)
+	}
+
+	return false
 }
