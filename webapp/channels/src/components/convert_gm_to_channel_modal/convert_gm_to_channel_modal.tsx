@@ -14,6 +14,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
@@ -26,8 +27,6 @@ import NoCommonTeamsError from './no_common_teams/no_common_teams';
 import TeamSelector from './team_selector/team_selector';
 import WarningTextSection from './warning_text_section/warning_text_section';
 
-import type {Actions} from './index';
-
 const enum ServerErrorId {
     CHANNEL_NAME_EXISTS = 'store.sql_channel.save_channel.exists.app_error',
 }
@@ -35,7 +34,11 @@ const enum ServerErrorId {
 export type Props = {
     onExited: () => void;
     channel: Channel;
-    actions: Actions;
+    actions: {
+        closeModal: (modalID: string) => void;
+        convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => Promise<ActionResult>;
+        moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting?: boolean) => void;
+    };
     profilesInChannel: UserProfile[];
     teammateNameDisplaySetting: string;
     currentUserId: string;

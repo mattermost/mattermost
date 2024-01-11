@@ -11,7 +11,6 @@ import {
     getCurrentUserId,
     makeGetProfilesInChannel,
 } from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {moveChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {closeModal} from 'actions/views/modals';
@@ -35,12 +34,6 @@ function makeMapStateToProps() {
             currentUserId,
         };
     };
-}
-
-export type Actions = {
-    closeModal: (modalID: string) => void;
-    convertGroupMessageToPrivateChannel: (channelID: string, teamID: string, displayName: string, name: string) => Promise<ActionResult>;
-    moveChannelsInSidebar: (categoryId: string, targetIndex: number, draggableChannelId: string, setManualSorting?: boolean) => void;
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
