@@ -586,5 +586,173 @@
   {
     "id": "api.command.invite_people.no_email",
     "translation": "Nurodykite vieną ar daugiau galiojančių el. pašto adresų"
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Įvestas tekstas viršija simbolių limitą. Kanalo antraštėje galima įrašyti ne daugiau kaip {{.MaxLength}} simbolių."
+  },
+  {
+    "id": "api.command_channel_purpose.channel.app_error",
+    "translation": "Klaida gaunant dabartinį kanalą."
+  },
+  {
+    "id": "api.command_channel_rename.too_short.app_error",
+    "translation": "Kanalo pavadinimą turi sudaryti ne daugiau kaip {{.Length}} simbolių."
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Klaida nustatant būseną."
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Nepavyksta nustatyti tiesioginių pranešimų kanalų paskirties. Naudokite /header, kad nustatytumėte antraštę."
+  },
+  {
+    "id": "api.command_away.desc",
+    "translation": "Nustatykite savo būseną"
+  },
+  {
+    "id": "api.command_away.name",
+    "translation": "Ne prie kompiuterio"
+  },
+  {
+    "id": "api.command_away.success",
+    "translation": "Esate ne prie kompiuterio"
+  },
+  {
+    "id": "api.command_channel_header.channel.app_error",
+    "translation": "Klaida gaunant dabartinį kanalą."
+  },
+  {
+    "id": "api.command_channel_header.desc",
+    "translation": "Redaguoti kanalo antraštę"
+  },
+  {
+    "id": "api.command_channel_header.hint",
+    "translation": "[tekstas]"
+  },
+  {
+    "id": "api.command_channel_header.message.app_error",
+    "translation": "Tekstas turi būti pateiktas su komanda /header."
+  },
+  {
+    "id": "api.command_channel_header.name",
+    "translation": "antraštė"
+  },
+  {
+    "id": "api.command_channel_header.permission.app_error",
+    "translation": "Neturite leidimų redaguoti kanalo antraštę."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.app_error",
+    "translation": "Klaida atnaujinant kanalo antraštę."
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Įvestas tekstas viršija simbolių limitą. Kanalo antraštėje galima įrašyti ne daugiau kaip {{.MaxLength}} simbolių."
+  },
+  {
+    "id": "api.command_channel_purpose.desc",
+    "translation": "Redaguoti kanalo paskirtį"
+  },
+  {
+    "id": "api.command_channel_purpose.message.app_error",
+    "translation": "Kartu su komanda /purpose turi būti pateiktas pranešimas."
+  },
+  {
+    "id": "api.command_channel_purpose.name",
+    "translation": "paskirtis"
+  },
+  {
+    "id": "api.command_channel_purpose.permission.app_error",
+    "translation": "Neturite tinkamų leidimų redaguoti kanalo paskirtį."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.app_error",
+    "translation": "Klaida atnaujinant kanalo paskirtį."
+  },
+  {
+    "id": "api.command_channel_remove.channel.app_error",
+    "translation": "Klaida gaunant kanalą."
+  },
+  {
+    "id": "api.command_channel_rename.channel.app_error",
+    "translation": "Klaida gaunant kanalą."
+  },
+  {
+    "id": "api.command_channel_rename.desc",
+    "translation": "Kanalo pervadinimas"
+  },
+  {
+    "id": "api.command_channel_rename.direct_group.app_error",
+    "translation": "Nepavyksta pervadinti tiesioginių pranešimų kanalų."
+  },
+  {
+    "id": "api.command_channel_rename.message.app_error",
+    "translation": "Kartu su komanda /rename turi būti pateiktas pranešimas."
+  },
+  {
+    "id": "api.command_channel_rename.name",
+    "translation": "pervadinti"
+  },
+  {
+    "id": "api.command_channel_rename.permission.app_error",
+    "translation": "Neturite tinkamų leidimų pervadinti kanalą."
+  },
+  {
+    "id": "api.command_channel_rename.too_long.app_error",
+    "translation": "Kanalo pavadinimą turi sudaryti ne daugiau kaip {{.Length}} simbolių."
+  },
+  {
+    "id": "api.command_channel_rename.update_channel.app_error",
+    "translation": "Klaida atnaujinant kanalą."
+  },
+  {
+    "id": "api.command_code.desc",
+    "translation": "Rodyti tekstą kaip kodo bloką"
+  },
+  {
+    "id": "api.command_code.hint",
+    "translation": "[tekstas]"
+  },
+  {
+    "id": "api.command_code.message.app_error",
+    "translation": "Kartu su komanda /code turi būti pateiktas pranešimas."
+  },
+  {
+    "id": "api.command_code.name",
+    "translation": "kodas"
+  },
+  {
+    "id": "api.command_collapse.desc",
+    "translation": "Įjungti automatinį nuotrakų peržiūros sutraukimą"
+  },
+  {
+    "id": "api.command_collapse.name",
+    "translation": "suskleisti"
+  },
+  {
+    "id": "api.command_collapse.success",
+    "translation": "Paveikslėliai dabar suspaudžiami pagal numatytuosius nustatymus"
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Klaida išvalant būseną."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Jūsų būsena buvo panaikinta."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Nustatykite arba panaikinkite savo būseną"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] arba valyti"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "būsena"
   }
 ]
