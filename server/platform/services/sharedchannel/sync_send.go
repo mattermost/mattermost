@@ -248,6 +248,16 @@ func (scs *Service) processTask(task syncTask) error {
 		if err != nil {
 			return err
 		}
+
+		// add all remotes that have the autoinvited option.
+		filter = model.RemoteClusterQueryFilter{
+			RequireOptions: model.BitflagOptionAutoInvited,
+		}
+		remotesAutoInvited, err := scs.server.GetStore().RemoteCluster().GetAll(filter)
+		if err != nil {
+			return err
+		}
+		remotes = append(remotes, remotesAutoInvited...)
 	} else {
 		rc, err := scs.server.GetStore().RemoteCluster().Get(task.remoteID)
 		if err != nil {

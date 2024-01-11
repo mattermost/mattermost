@@ -143,8 +143,9 @@ type Server struct {
 	// startSearchEngine bool
 	skipPostInit bool
 
-	Cloud       einterfaces.CloudInterface
-	IPFiltering einterfaces.IPFilteringInterface
+	Cloud                   einterfaces.CloudInterface
+	IPFiltering             einterfaces.IPFilteringInterface
+	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
 
 	tracer *tracing.Tracer
 
@@ -1414,7 +1415,8 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsCloud() {
-		mlog.Debug("Skipping license expiration check for Cloud")
+		appInstance := New(ServerConnector(s.Channels()))
+		appInstance.DoSubscriptionRenewalCheck()
 		return
 	}
 

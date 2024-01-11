@@ -7,7 +7,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
-import type {CloudState, Product, Limits} from '@mattermost/types/cloud';
+import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 import type {DeepPartial} from '@mattermost/types/utilities';
@@ -32,7 +32,6 @@ import TeamAnalytics from 'components/analytics/team_analytics';
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {isCloudFreePlan} from 'utils/cloud_utils';
 import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
 import {t} from 'utils/i18n';
 import {isCloudLicense} from 'utils/license_utils';
@@ -222,10 +221,7 @@ export const it = {
         if (!productId) {
             return false;
         }
-        const limits = cloud.limits || {};
-        const subscriptionProduct = cloud.products?.[productId];
-        const isCloudFreeProduct = isCloudFreePlan(subscriptionProduct, limits as Limits);
-        return cloud?.subscription?.is_free_trial === 'true' || isCloudFreeProduct;
+        return cloud?.subscription?.is_free_trial === 'true';
     },
     userHasReadPermissionOnResource: (key: string) => (config: DeepPartial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
     userHasReadPermissionOnSomeResources: (key: string | {[key: string]: string}) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
@@ -3203,7 +3199,7 @@ const AdminDefinition: AdminDefinitionType = {
                 url: 'site_config/wrangler',
                 title: t('admin.sidebar.move_thread'),
                 title_default: 'Move Thread (Beta)',
-                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled')),
+                isHidden: it.any(it.not(it.userHasReadPermissionOnResource(RESOURCE_KEYS.SITE.POSTS)), it.configIsFalse('FeatureFlags', 'MoveThreadsEnabled'), it.not(it.licensed)),
                 schema: {
                     id: 'WranglerSettings',
                     name: t('admin.site.move_thread'),

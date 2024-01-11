@@ -36,6 +36,12 @@ const state: GlobalState = {
             lastActivity: {},
             dndEndTimes: {},
         },
+        limits: {
+            usersLimits: {
+                activeUserCount: 0,
+                maxUsersLimit: 0,
+            },
+        },
         teams: {
             currentTeamId: '',
             teams: {},
