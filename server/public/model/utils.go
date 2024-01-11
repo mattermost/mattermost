@@ -542,7 +542,20 @@ func StringInterfaceToJSON(objmap map[string]any) string {
 	return string(b)
 }
 
-func StringInterfaceFromJSON(data io.Reader, maxBytes int64) (map[string]any, error) {
+// Deprecated: ArrayFromJSON is deprecated,
+// use StringInterfaceFromJSONLimited instead
+func StringInterfaceFromJSON(data io.Reader) map[string]any {
+	var objmap map[string]any
+
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make(map[string]any)
+	}
+
+	return objmap
+}
+
+func StringInterfaceFromJSONLimited(data io.Reader, maxBytes int64) (map[string]any, error) {
 	var objmap map[string]any
 
 	lr := io.LimitReader(data, maxBytes)
