@@ -3,6 +3,7 @@
         fill: rgba(255, 0, 0, 0.72);
     }
 }
+
 .logout__icon {
     &:hover {
         fill: rgba(255, 0, 0, 0.72);
@@ -99,8 +100,8 @@ button.custom_status__row {
     &__container {
         display: flex;
         padding: 7px 0;
+        color: rgba(var(--center-channel-color-rgb), 1);
         line-height: 20px;
-        color: rgba(var(--center-channel-color-rgb), 1.0);
     }
 
     &__icon {
@@ -144,10 +145,10 @@ button.custom_status__row {
 .custom-status {
     &-emoji {
         fill: rgba(var(--center-channel-color-rgb), 0.56);
+
         &:hover {
             fill: rgba(var(--center-channel-color-rgb), 0.72);
         }
-
     }
 
     &-suggestion-emoji > span:first-child {
