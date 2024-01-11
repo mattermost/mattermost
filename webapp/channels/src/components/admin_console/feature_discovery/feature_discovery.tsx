@@ -20,7 +20,7 @@ import StartTrialBtn from 'components/learn_more_trial_modal/start_trial_btn';
 import PurchaseModal from 'components/purchase_modal';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {ModalIdentifiers, TELEMETRY_CATEGORIES, LicenseLinks, LicenseSkus} from 'utils/constants';
+import {ModalIdentifiers, TELEMETRY_CATEGORIES, LicenseLinks, LicenseSkus, AboutLinks} from 'utils/constants';
 import {goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 import * as Utils from 'utils/utils';
 
@@ -184,7 +184,7 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
         );
 
         if (isCloud) {
-        // if all conditions are set for being able to request a cloud trial, then show the cta start cloud trial button
+            // if all conditions are set for being able to request a cloud trial, then show the cta start cloud trial button
             if (hadPrevCloudTrial) {
                 // if it is cloud, but this account already had a free trial, then the cta button must be Upgrade now
                 ctaPrimaryButton = (
@@ -239,6 +239,33 @@ export default class FeatureDiscovery extends React.PureComponent<Props, State> 
                     />
                 </ExternalLink>
                 {gettingTrialError}
+                <p className='trial-legal-terms'>
+                    <FormattedMessage
+                        id='admin.feature_discovery.trial-request.accept-terms'
+                        defaultMessage='By clicking <highlight>Start trial</highlight>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy> and receiving product emails.'
+                        values={{
+                            highlight: (msg: React.ReactNode) => (
+                                <strong>{msg}</strong>
+                            ),
+                            linkEvaluation: (msg: React.ReactNode) => (
+                                <ExternalLink
+                                    location='feature_discovery'
+                                    href={LicenseLinks.SOFTWARE_SERVICES_LICENSE_AGREEMENT}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                            linkPrivacy: (msg: React.ReactNode) => (
+                                <ExternalLink
+                                    location='feature_discovery'
+                                    href={AboutLinks.PRIVACY_POLICY}
+                                >
+                                    {msg}
+                                </ExternalLink>
+                            ),
+                        }}
+                    />
+                </p>
             </>
         );
     };

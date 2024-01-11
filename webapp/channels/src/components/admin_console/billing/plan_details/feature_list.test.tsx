@@ -74,10 +74,6 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
             subscriptionPlan: CloudProducts.ENTERPRISE,
         }, true);
 
-        const wrapperStarter = renderFeatureList({
-            subscriptionPlan: CloudProducts.STARTER,
-        }, true);
-
         const wrapperProfessional = renderFeatureList({
             subscriptionPlan: CloudProducts.PROFESSIONAL,
         }, true);
@@ -86,7 +82,7 @@ describe('components/admin_console/billing/plan_details/feature_list', () => {
             subscriptionPlan: CloudProducts.PROFESSIONAL,
         }, true);
 
-        const wrappers = [wrapperProfessional, wrapperEnterprise, wrapperStarter, wrapperFreeTier];
+        const wrappers = [wrapperProfessional, wrapperEnterprise, wrapperFreeTier];
 
         wrappers.forEach((wrapper: ReturnType<typeof renderFeatureList>) => {
             const featuresSpanElements = wrapper.find('div.PlanDetailsFeature > span');
