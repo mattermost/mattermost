@@ -3,24 +3,16 @@
 
 import React, {useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
 
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import {getUsersLimits} from 'mattermost-redux/selectors/entities/limits';
 
-import {openModal} from 'actions/views/modals';
-
-import AirGappedContactSalesModal from 'components/air_gapped_contact_sales_modal';
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar';
-import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 
-import {
-    AnnouncementBarTypes,
-    LicenseLinks,
-    ModalIdentifiers,
-} from 'utils/constants';
+import {AnnouncementBarTypes} from 'utils/constants';
 
 type Props = {
     license?: ClientLicense;
@@ -30,8 +22,6 @@ type Props = {
 const learnMoreExternalLink = 'https://mattermost.com/pl/error-code-error-user-limits-exceeded';
 
 function UsersLimitsAnnouncementBar(props: Props) {
-    const dispatch = useDispatch();
-
     const usersLimits = useSelector(getUsersLimits);
 
     const handleCTAClick = useCallback(() => {
