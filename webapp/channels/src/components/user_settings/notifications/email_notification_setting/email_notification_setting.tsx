@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserNotifyProps} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getEmailInterval} from 'mattermost-redux/utils/notify_props';
 
 import SettingItemMax from 'components/setting_item_max';
@@ -37,7 +38,7 @@ type Props = {
     enableEmailBatching: boolean;
     actions: {
         savePreferences: (currentUserId: string, emailIntervalPreference: PreferenceType[]) =>
-        Promise<{data: boolean}>;
+        Promise<ActionResult>;
     };
 };
 
