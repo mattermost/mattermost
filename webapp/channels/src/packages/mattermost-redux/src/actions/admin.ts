@@ -3,14 +3,14 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {LogFilter, SchemaMigration} from '@mattermost/types/admin';
+import type {AnalyticsRow, ClusterInfo, LogFilter, SchemaMigration} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {
     Channel,
     ChannelSearchOpts,
 } from '@mattermost/types/channels';
 import type {Compliance} from '@mattermost/types/compliance';
-import type {AdminConfig, AllowedIPRange, License} from '@mattermost/types/config';
+import type {AdminConfig, AllowedIPRange, ClientLicense, EnvironmentConfig, License} from '@mattermost/types/config';
 import type {
     CreateDataRetentionCustomPolicy,
     DataRetentionCustomPolicies,
@@ -19,7 +19,8 @@ import type {
 } from '@mattermost/types/data_retention';
 import type {ServerError} from '@mattermost/types/errors';
 import type {GroupSearchOpts, MixedUnlinkedGroup} from '@mattermost/types/groups';
-import type {SamlMetadataResponse} from '@mattermost/types/saml';
+import type {PluginManifest, PluginsResponse, PluginStatus} from '@mattermost/types/plugins';
+import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {
     Team,
@@ -29,7 +30,7 @@ import type {
 import {AdminTypes} from 'mattermost-redux/action_types';
 import {getUsersLimits} from 'mattermost-redux/actions/limits';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -74,11 +75,11 @@ export function getAudits(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT)
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getConfig(): ActionFunc {
+export function getConfig(): NewActionFuncAsync<AdminConfig> {
     return bindClientFunc({
         clientFunc: Client4.getConfig,
         onSuccess: [AdminTypes.RECEIVED_CONFIG],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function updateConfig(config: Record<string, unknown>): NewActionFuncAsync<Partial<AdminConfig>> {
@@ -91,56 +92,56 @@ export function updateConfig(config: Record<string, unknown>): NewActionFuncAsyn
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function reloadConfig(): ActionFunc {
+export function reloadConfig(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.reloadConfig,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getEnvironmentConfig(): ActionFunc {
+export function getEnvironmentConfig(): NewActionFuncAsync<EnvironmentConfig> {
     return bindClientFunc({
         clientFunc: Client4.getEnvironmentConfig,
         onSuccess: [AdminTypes.RECEIVED_ENVIRONMENT_CONFIG],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function testEmail(config: unknown): ActionFunc {
+export function testEmail(config: unknown): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.testEmail,
         params: [
             config,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function testSiteURL(siteURL: string): ActionFunc {
+export function testSiteURL(siteURL: string): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.testSiteURL,
         params: [
             siteURL,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function testS3Connection(config: unknown): ActionFunc {
+export function testS3Connection(config: unknown): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.testS3Connection,
         params: [
             config,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function invalidateCaches(): ActionFunc {
+export function invalidateCaches(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.invalidateCaches,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function recycleDatabase(): ActionFunc {
+export function recycleDatabase(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.recycleDatabase,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function createComplianceReport(job: Partial<Compliance>): NewActionFuncAsync<Compliance> {
@@ -155,14 +156,14 @@ export function createComplianceReport(job: Partial<Compliance>): NewActionFuncA
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getComplianceReport(reportId: string): ActionFunc {
+export function getComplianceReport(reportId: string): NewActionFuncAsync<Compliance> { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.getComplianceReport,
         onSuccess: [AdminTypes.RECEIVED_COMPLIANCE_REPORT],
         params: [
             reportId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getComplianceReports(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<Compliance[]> {
@@ -176,38 +177,38 @@ export function getComplianceReports(page = 0, perPage: number = General.PAGE_SI
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function uploadBrandImage(imageData: File): ActionFunc {
+export function uploadBrandImage(imageData: File): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.uploadBrandImage,
         params: [
             imageData,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function deleteBrandImage(): ActionFunc {
+export function deleteBrandImage(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.deleteBrandImage,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getClusterStatus(): ActionFunc {
+export function getClusterStatus(): NewActionFuncAsync<ClusterInfo[]> {
     return bindClientFunc({
         clientFunc: Client4.getClusterStatus,
         onSuccess: [AdminTypes.RECEIVED_CLUSTER_STATUS],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function testLdap(): ActionFunc {
+export function testLdap(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.testLdap,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function syncLdap(): ActionFunc {
+export function syncLdap(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.syncLdap,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getLdapGroups(page = 0, perPage: number = General.PAGE_SIZE_MAXIMUM, opts: GroupSearchOpts = {q: ''}): NewActionFuncAsync<{count: number; groups: MixedUnlinkedGroup[]}> {
@@ -268,101 +269,101 @@ export function unlinkLdapGroup(key: string): NewActionFuncAsync {
     };
 }
 
-export function getSamlCertificateStatus(): ActionFunc {
+export function getSamlCertificateStatus(): NewActionFuncAsync<SamlCertificateStatus> {
     return bindClientFunc({
         clientFunc: Client4.getSamlCertificateStatus,
         onSuccess: [AdminTypes.RECEIVED_SAML_CERT_STATUS],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function uploadPublicSamlCertificate(fileData: File): ActionFunc {
+export function uploadPublicSamlCertificate(fileData: File): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.uploadPublicSamlCertificate,
         params: [
             fileData,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function uploadPrivateSamlCertificate(fileData: File): ActionFunc {
+export function uploadPrivateSamlCertificate(fileData: File): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.uploadPrivateSamlCertificate,
         params: [
             fileData,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function uploadPublicLdapCertificate(fileData: File): ActionFunc {
+export function uploadPublicLdapCertificate(fileData: File): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.uploadPublicLdapCertificate,
         params: [
             fileData,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function uploadPrivateLdapCertificate(fileData: File): ActionFunc {
+export function uploadPrivateLdapCertificate(fileData: File): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.uploadPrivateLdapCertificate,
         params: [
             fileData,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function uploadIdpSamlCertificate(fileData: File): ActionFunc {
+export function uploadIdpSamlCertificate(fileData: File): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.uploadIdpSamlCertificate,
         params: [
             fileData,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removePublicSamlCertificate(): ActionFunc {
+export function removePublicSamlCertificate(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.deletePublicSamlCertificate,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removePrivateSamlCertificate(): ActionFunc {
+export function removePrivateSamlCertificate(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.deletePrivateSamlCertificate,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removePublicLdapCertificate(): ActionFunc {
+export function removePublicLdapCertificate(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.deletePublicLdapCertificate,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removePrivateLdapCertificate(): ActionFunc {
+export function removePrivateLdapCertificate(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.deletePrivateLdapCertificate,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removeIdpSamlCertificate(): ActionFunc {
+export function removeIdpSamlCertificate(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.deleteIdpSamlCertificate,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function testElasticsearch(config: unknown): ActionFunc {
+export function testElasticsearch(config: unknown): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.testElasticsearch,
         params: [
             config,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function purgeElasticsearchIndexes(): ActionFunc {
+export function purgeElasticsearchIndexes(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.purgeElasticsearchIndexes,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function uploadLicense(fileData: File): NewActionFuncAsync<License> {
@@ -390,8 +391,8 @@ export function removeLicense(): NewActionFuncAsync<boolean> {
     };
 }
 
-export function getPrevTrialLicense(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getPrevTrialLicense(): NewActionFuncAsync<ClientLicense> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getPrevTrialLicense();
@@ -405,8 +406,8 @@ export function getPrevTrialLicense(): ActionFunc {
     };
 }
 
-export function getAnalytics(name: string, teamId = ''): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getAnalytics(name: string, teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getAnalytics(name, teamId);
@@ -426,28 +427,28 @@ export function getAnalytics(name: string, teamId = ''): ActionFunc {
     };
 }
 
-export function getStandardAnalytics(teamId = ''): ActionFunc {
+export function getStandardAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
     return getAnalytics('standard', teamId);
 }
 
-export function getAdvancedAnalytics(teamId = ''): ActionFunc {
+export function getAdvancedAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
     return getAnalytics('extra_counts', teamId);
 }
 
-export function getPostsPerDayAnalytics(teamId = ''): ActionFunc {
+export function getPostsPerDayAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
     return getAnalytics('post_counts_day', teamId);
 }
 
-export function getBotPostsPerDayAnalytics(teamId = ''): ActionFunc {
+export function getBotPostsPerDayAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
     return getAnalytics('bot_post_counts_day', teamId);
 }
 
-export function getUsersPerDayAnalytics(teamId = ''): ActionFunc {
+export function getUsersPerDayAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
     return getAnalytics('user_counts_with_posts_day', teamId);
 }
 
-export function uploadPlugin(fileData: File, force = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function uploadPlugin(fileData: File, force = false): NewActionFuncAsync<PluginManifest> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.uploadPlugin(fileData, force);
@@ -461,7 +462,7 @@ export function uploadPlugin(fileData: File, force = false): ActionFunc {
     };
 }
 
-export function installPluginFromUrl(url: string, force = false): ActionFunc {
+export function installPluginFromUrl(url: string, force = false): NewActionFuncAsync<PluginManifest> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -476,18 +477,18 @@ export function installPluginFromUrl(url: string, force = false): ActionFunc {
     };
 }
 
-export function getPlugins(): ActionFunc {
+export function getPlugins(): NewActionFuncAsync<PluginsResponse> {
     return bindClientFunc({
         clientFunc: Client4.getPlugins,
         onSuccess: [AdminTypes.RECEIVED_PLUGINS],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getPluginStatuses(): ActionFunc {
+export function getPluginStatuses(): NewActionFuncAsync<PluginStatus[]> {
     return bindClientFunc({
         clientFunc: Client4.getPluginStatuses,
         onSuccess: [AdminTypes.RECEIVED_PLUGIN_STATUSES],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function removePlugin(pluginId: string): NewActionFuncAsync {
@@ -697,7 +698,7 @@ export function getDataRetentionCustomPolicyChannels(id: string, page = 0, perPa
 }
 
 export function searchDataRetentionCustomPolicyTeams(id: string, term: string, opts: TeamSearchOpts): NewActionFuncAsync<DataRetentionCustomPolicies> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.searchDataRetentionCustomPolicyTeams(id, term, opts);
@@ -852,11 +853,11 @@ export function removeDataRetentionCustomPolicyChannels(id: string, channels: st
     };
 }
 
-export function completeSetup(completeSetup: CompleteOnboardingRequest): ActionFunc {
+export function completeSetup(completeSetup: CompleteOnboardingRequest): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.completeSetup,
         params: [completeSetup],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getAppliedSchemaMigrations(): NewActionFuncAsync<SchemaMigration[]> {

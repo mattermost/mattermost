@@ -10,6 +10,7 @@ import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import PluginState from 'mattermost-redux/constants/plugins';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 import ExternalLink from 'components/external_link';
@@ -421,13 +422,13 @@ type Props = BaseProps & {
     plugins: any;
     appsFeatureFlagEnabled: boolean;
     actions: {
-        uploadPlugin: (fileData: File, force: boolean) => any;
-        removePlugin: (pluginId: string) => any;
-        getPlugins: () => unknown;
-        getPluginStatuses: () => any;
-        enablePlugin: (pluginId: string) => any;
-        disablePlugin: (pluginId: string) => any;
-        installPluginFromUrl: (url: string, force: boolean) => any;
+        uploadPlugin: (fileData: File, force: boolean) => Promise<ActionResult>;
+        removePlugin: (pluginId: string) => Promise<ActionResult>;
+        getPlugins: () => Promise<ActionResult>;
+        getPluginStatuses: () => Promise<ActionResult>;
+        enablePlugin: (pluginId: string) => Promise<ActionResult>;
+        disablePlugin: (pluginId: string) => Promise<ActionResult>;
+        installPluginFromUrl: (url: string, force: boolean) => Promise<ActionResult>;
     };
 };
 
