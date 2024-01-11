@@ -60,6 +60,10 @@ func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request
 	}
 
 	options, err := fillUserReportOptions(r.URL.Query())
+	if err != nil {
+		c.Err = err
+		return
+	}
 
 	count, err := c.App.GetUserCountForReport(options)
 	if err != nil {
@@ -93,7 +97,7 @@ func retrieveBatchReportFile(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 
 	reportId := c.Params.ReportId
-	if reportId == "" || !model.IsValidId(reportId) {
+	if !model.IsValidId(reportId) {
 		c.Err = model.NewAppError("retrieveBatchReportFile", "api.retrieveBatchReportFile.invalid_report_id", nil, "", http.StatusBadRequest)
 		return
 	}
@@ -111,7 +115,7 @@ func retrieveBatchReportFile(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 	defer file.Close()
 
-	w.Header().Set("Content-Type", "text/csv") // TODO: other formats
+	w.Header().Set("Content-Type", "text/csv") // This will need to be changed when introducing other formats
 	http.ServeContent(w, r, name, time.Time{}, file)
 }
 

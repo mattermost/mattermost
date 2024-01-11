@@ -40,21 +40,21 @@ func MakeBatchReportWorker[T BatchReportWorkerAppIFace](
 	getData func(jobData model.StringMap, app T) ([]model.ReportableObject, model.StringMap, bool, error),
 ) model.Worker {
 	worker := &BatchReportWorker[T]{
+		BatchWorker: BatchWorker{
+			jobServer:          jobServer,
+			logger:             jobServer.Logger(),
+			store:              store,
+			stop:               make(chan struct{}),
+			stopped:            make(chan bool, 1),
+			jobs:               make(chan model.Job),
+			timeBetweenBatches: timeBetweenBatches,
+		},
 		app:          app,
 		reportFormat: reportFormat,
 		headers:      headers,
 		getData:      getData,
 	}
-	worker.BatchWorker = BatchWorker{
-		jobServer:          jobServer,
-		logger:             jobServer.Logger(),
-		store:              store,
-		stop:               make(chan struct{}),
-		stopped:            make(chan bool, 1),
-		jobs:               make(chan model.Job),
-		timeBetweenBatches: timeBetweenBatches,
-		doBatch:            worker.doBatch,
-	}
+	worker.BatchWorker.doBatch = worker.doBatch
 	return worker
 }
 
@@ -76,7 +76,7 @@ func (worker *BatchReportWorker[T]) doBatch(rctx *request.Context, job *model.Jo
 		return true
 	}
 
-	err = worker.saveData(job, reportData)
+	err = worker.processChunk(job, reportData)
 	if err != nil {
 		worker.logger.Error("Worker: Failed to save report batch. Exiting", mlog.Err(err))
 		worker.setJobError(worker.logger, job, model.NewAppError("doBatch", model.NoTranslation, nil, "", http.StatusInternalServerError).Wrap(err))
@@ -87,7 +87,8 @@ func (worker *BatchReportWorker[T]) doBatch(rctx *request.Context, job *model.Jo
 		job.Data[k] = v
 	}
 
-	// TODO add progress?
+	// We might be able to add progress for this type of job in the future
+	// But for now we can just set to 0
 	worker.jobServer.SetJobProgress(job, 0)
 	return false
 }
@@ -105,7 +106,7 @@ func getFileCount(jobData model.StringMap) (int, error) {
 	return 0, nil
 }
 
-func (worker *BatchReportWorker[T]) saveData(job *model.Job, reportData []model.ReportableObject) error {
+func (worker *BatchReportWorker[T]) processChunk(job *model.Job, reportData []model.ReportableObject) error {
 	fileCount, err := getFileCount(job.Data)
 	if err != nil {
 		return err
@@ -137,13 +138,13 @@ func (worker *BatchReportWorker[T]) complete(rctx request.CTX, job *model.Job) e
 		return appErr
 	}
 
+	defer func() {
+		worker.app.CleanupReportChunks(worker.reportFormat, job.Id, fileCount)
+	}()
+
 	if appErr = worker.app.SendReportToUser(rctx, requestingUserId, job.Id, worker.reportFormat); appErr != nil {
 		return appErr
 	}
-
-	go func() {
-		worker.app.CleanupReportChunks(worker.reportFormat, job.Id, fileCount)
-	}()
 
 	return nil
 }

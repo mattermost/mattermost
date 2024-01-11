@@ -36,6 +36,9 @@ func (a *App) saveCSVChunk(prefix string, count int, reportData []model.Reportab
 	}
 
 	w.Flush()
+	if err := w.Error(); err != nil {
+		return model.NewAppError("saveCSVChunk", "app.save_csv_chunk.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 	_, appErr := a.WriteFile(&buf, makeFilePath(prefix, count, "csv"))
 	return appErr
 }
@@ -58,6 +61,9 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 		return model.NewAppError("compileCSVChunks", "app.compile_csv_chunks.header_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	w.Flush()
+	if err = w.Error(); err != nil {
+		return model.NewAppError("saveCSVChunk", "app.save_csv_chunk.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
 	_, appErr := a.WriteFile(&headerBuf, filePath)
 	if appErr != nil {
 		return appErr
@@ -197,13 +203,13 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string) *model.A
 	a.Srv().Go(func() {
 		systemBot, err := a.GetSystemBot()
 		if err != nil {
-			rctx.Logger().Error("Failed to post batch export message", mlog.Err(err))
+			rctx.Logger().Error("Failed to get the system bot", mlog.Err(err))
 			return
 		}
 
 		channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), rctx.Session().UserId, systemBot.UserId)
 		if err != nil {
-			rctx.Logger().Error("Failed to post batch export message", mlog.Err(err))
+			rctx.Logger().Error("Failed to get or create the DM", mlog.Err(err))
 			return
 		}
 

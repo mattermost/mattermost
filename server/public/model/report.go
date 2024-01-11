@@ -84,7 +84,7 @@ func (u *UserReport) ToReport() []string {
 	}
 	lastPostDate := ""
 	if u.LastPostDate != nil {
-		lastStatusAt = time.UnixMilli(*u.LastPostDate).String()
+		lastPostDate = time.UnixMilli(*u.LastPostDate).String()
 	}
 	daysActive := ""
 	if u.DaysActive != nil {
@@ -104,7 +104,7 @@ func (u *UserReport) ToReport() []string {
 		u.Username,
 		u.Email,
 		time.UnixMilli(u.CreateAt).String(),
-		u.DisplayName,
+		u.User.GetDisplayName(ShowNicknameFullName),
 		u.Roles,
 		lastLogin,
 		lastStatusAt,
