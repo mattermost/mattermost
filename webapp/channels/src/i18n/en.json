@@ -5728,6 +5728,8 @@
   "userGuideHelp.mattermostUserGuide": "Mattermost user guide",
   "userGuideHelp.reportAProblem": "Report a problem",
   "userGuideHelp.trainingResources": "Training resources",
+  "users_limits_announcement_bar.copyText": "User limits exceeded. Contact administrator with: ERROR_USER_LIMITS_EXCEEDED",
+  "users_limits_announcement_bar.ctaText": "Learn More",
   "userSettingsModal.pluginPreferences.header": "PLUGIN PREFERENCES",
   "version_bar.new": "A new version of Mattermost is available.",
   "version_bar.refresh": "Refresh the app now",
