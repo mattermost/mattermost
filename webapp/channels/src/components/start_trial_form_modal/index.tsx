@@ -18,7 +18,7 @@ import {closeModal, openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import DropdownInput from 'components/dropdown_input';
 import ExternalLink from 'components/external_link';
@@ -78,7 +78,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
     const {formatMessage} = useIntl();
-    const canReachCWS = useCWSAvailabilityCheck();
+    const cwsAvailability = useCWSAvailabilityCheck();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
     const [didOnce, setDidOnce] = useState(false);
@@ -236,7 +236,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         status === TrialLoadStatus.Success
     );
 
-    if (typeof canReachCWS !== 'undefined' && !canReachCWS) {
+    if (cwsAvailability === CSWAvailabilityCheckTypes.Unavailable) {
         return (
             <AirGappedModal
                 onClose={handleOnClose}
