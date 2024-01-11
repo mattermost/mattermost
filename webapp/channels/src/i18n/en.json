@@ -964,6 +964,7 @@
   "admin.experimental.userStatusAwayTimeout.example": "E.g.: \"300\"",
   "admin.experimental.userStatusAwayTimeout.title": "User Status Away Timeout:",
   "admin.false": "false",
+  "admin.feature_discovery.trial-request.accept-terms": "By clicking <highlight>Start trial</highlight>, I agree to the <linkEvaluation>Mattermost Software and Services License Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy> and receiving product emails.",
   "admin.feature_discovery.trial-request.error": "Trial license could not be retrieved. Visit <link>https://mattermost.com/trial</link> to request a license.",
   "admin.feature_flags.flag": "Flag",
   "admin.feature_flags.flag_value": "Value",

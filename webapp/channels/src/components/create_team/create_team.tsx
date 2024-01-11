@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
 import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -98,29 +97,29 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
                             siteName={siteName}
                         />
                         <div className='signup__content'>
-                                <Switch>
-                                    <Route
-                                        path={`${this.props.match.url}/display_name`}
-                                        render={(props) => (
-                                            <DisplayName
-                                                state={this.state}
-                                                updateParent={this.updateParent}
-                                                {...props}
-                                            />
-                                        )}
-                                    />
-                                    <Route
-                                        path={`${this.props.match.url}/team_url`}
-                                        render={(props) => (
-                                            <TeamUrl
-                                                state={this.state}
-                                                updateParent={this.updateParent}
-                                                {...props}
-                                            />
-                                        )}
-                                    />
-                                    <Redirect to={`${match.url}/display_name`}/>
-                                </Switch>
+                            <Switch>
+                                <Route
+                                    path={`${this.props.match.url}/display_name`}
+                                    render={(props) => (
+                                        <DisplayName
+                                            state={this.state}
+                                            updateParent={this.updateParent}
+                                            {...props}
+                                        />
+                                    )}
+                                />
+                                <Route
+                                    path={`${this.props.match.url}/team_url`}
+                                    render={(props) => (
+                                        <TeamUrl
+                                            state={this.state}
+                                            updateParent={this.updateParent}
+                                            {...props}
+                                        />
+                                    )}
+                                />
+                                <Redirect to={`${match.url}/display_name`}/>
+                            </Switch>
                         </div>
                     </div>
                 </div>
