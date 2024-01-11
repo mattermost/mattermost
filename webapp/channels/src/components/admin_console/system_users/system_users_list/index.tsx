@@ -26,9 +26,9 @@ type Props = {
     tablePropertySortIsDescending: AdminConsoleUserManagementTableProperties['sortIsDescending'];
     tablePropertyPageSize: AdminConsoleUserManagementTableProperties['pageSize'];
     tablePropertyPageIndex: AdminConsoleUserManagementTableProperties['pageIndex'];
-    tablePropertyFromColumnValue: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
-    tablePropertyFromId: AdminConsoleUserManagementTableProperties['cursorUserId'];
-    tablePropertyDirection: AdminConsoleUserManagementTableProperties['cursorDirection'];
+    tablePropertyCursorColumnValue: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
+    tablePropertyCursorUserId: AdminConsoleUserManagementTableProperties['cursorUserId'];
+    tablePropertyCursorDirection: AdminConsoleUserManagementTableProperties['cursorDirection'];
     getUserReports: (options?: UserReportOptions) => Promise<{data: UserReport[]}>;
     setAdminConsoleUsersManagementTableProperties: (properties: Partial<AdminConsoleUserManagementTableProperties>) => void;
 };
@@ -262,17 +262,17 @@ function SystemUsersList(props: Props) {
             pageSize: props.tablePropertyPageSize,
             sortColumn: props.tablePropertySortColumn,
             sortIsDescending: props.tablePropertySortIsDescending,
-            fromColumnValue: props.tablePropertyFromColumnValue,
-            fromId: props.tablePropertyFromId,
-            direction: props.tablePropertyDirection,
+            fromColumnValue: props.tablePropertyCursorColumnValue,
+            fromId: props.tablePropertyCursorUserId,
+            direction: props.tablePropertyCursorDirection,
         });
     }, [
         props.tablePropertyPageSize,
         props.tablePropertySortColumn,
         props.tablePropertySortIsDescending,
-        props.tablePropertyDirection,
-        props.tablePropertyFromColumnValue,
-        props.tablePropertyFromId,
+        props.tablePropertyCursorDirection,
+        props.tablePropertyCursorColumnValue,
+        props.tablePropertyCursorUserId,
     ]);
 
     function handleRowClick(userId: UserReport['id']) {
@@ -359,8 +359,8 @@ function SystemUsersList(props: Props) {
             tableId: 'systemUsersTable',
             tableCaption: formatMessage({id: 'admin.system_users.list.caption', defaultMessage: 'System Users'}),
             loadingState,
-            disablePrevPage: !props.tablePropertyFromId || props.tablePropertyPageIndex <= 0 || (props.tablePropertyDirection === 'prev' && userReports.length < paginationTableState.pageSize),
-            disableNextPage: props.tablePropertyDirection === 'next' && userReports.length < paginationTableState.pageSize,
+            disablePrevPage: !props.tablePropertyCursorUserId || props.tablePropertyPageIndex <= 0 || (props.tablePropertyCursorDirection === 'prev' && userReports.length < paginationTableState.pageSize),
+            disableNextPage: props.tablePropertyCursorDirection === 'next' && userReports.length < paginationTableState.pageSize,
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,

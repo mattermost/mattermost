@@ -38,9 +38,9 @@ function SystemUsers(props: Props) {
                         tablePropertySortIsDescending={props.tablePropertySortIsDescending}
                         tablePropertyPageSize={props.tablePropertyPageSize}
                         tablePropertyPageIndex={props.tablePropertyPageIndex}
-                        tablePropertyDirection={props.tablePropertyDirection}
-                        tablePropertyFromColumnValue={props.tablePropertyFromColumnValue}
-                        tablePropertyFromId={props.tablePropertyFromId}
+                        tablePropertyCursorDirection={props.tablePropertyCursorDirection}
+                        tablePropertyCursorColumnValue={props.tablePropertyCursorColumnValue}
+                        tablePropertyCursorUserId={props.tablePropertyCursorUserId}
                         getUserReports={props.getUserReports as any}
                         setAdminConsoleUsersManagementTableProperties={props.setAdminConsoleUsersManagementTableProperties}
                     />

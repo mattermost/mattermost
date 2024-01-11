@@ -45,9 +45,9 @@ function mapStateToProps(state: GlobalState) {
         tablePropertySortIsDescending: sortIsDescending,
         tablePropertyPageSize: pageSize,
         tablePropertyPageIndex: pageIndex,
-        tablePropertyDirection: direction,
-        tablePropertyFromId: fromId,
-        tablePropertyFromColumnValue: fromColumnValue,
+        tablePropertyCursorDirection: direction,
+        tablePropertyCursorUserId: fromId,
+        tablePropertyCursorColumnValue: fromColumnValue,
     };
 }
 
