@@ -117,14 +117,14 @@ export function getTeam(teamId: string): NewActionFuncAsync<Team> {
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getTeamByName(teamName: string): ActionFunc<Team, ServerError> {
+export function getTeamByName(teamName: string): NewActionFuncAsync<Team> {
     return bindClientFunc({
         clientFunc: Client4.getTeamByName,
         onSuccess: TeamTypes.RECEIVED_TEAM,
         params: [
             teamName,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false): NewActionFuncAsync {

@@ -5,10 +5,7 @@ import iNoBounce from 'inobounce';
 import React, {lazy, memo, useEffect, useRef, useState} from 'react';
 import {Route, Switch, useHistory, useParams} from 'react-router-dom';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
-
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {reconnect} from 'actions/websocket_actions.jsx';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -150,7 +147,7 @@ function TeamController(props: Props) {
     }, []);
 
     async function initTeamOrRedirect(team: Team) {
-        const {data: joinedTeam, error} = await props.initializeTeam(team) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        const {data: joinedTeam, error} = await props.initializeTeam(team);
         if (error) {
             history.push('/error?type=team_not_found');
             return;
@@ -163,7 +160,7 @@ function TeamController(props: Props) {
     async function joinTeamOrRedirect(teamNameParam: string, joinedOnFirstLoad: boolean) {
         setTeam(null);
 
-        const {data: joinedTeam, error} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        const {data: joinedTeam, error} = await props.joinTeam(teamNameParam, joinedOnFirstLoad);
         if (error) {
             history.push('/error?type=team_not_found');
             return;
