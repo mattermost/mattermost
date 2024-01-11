@@ -109,6 +109,9 @@ export function addRecentEmojis(aliases) {
     };
 }
 
+/**
+ * @returns {import('mattermost-redux/types/actions').NewActionFuncAsync}
+ */
 export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
     const getCustomStatus = makeGetCustomStatus();
     return (dispatch, getState) => {
@@ -134,6 +137,9 @@ export function loadCustomEmojisForCustomStatusesByUserIds(userIds) {
     };
 }
 
+/**
+ * @returns {import('mattermost-redux/types/actions').NewActionFuncAsync}
+ */
 export function loadCustomEmojisForRecentCustomStatuses() {
     return (dispatch, getState) => {
         const state = getState();
@@ -163,6 +169,9 @@ export function loadCustomEmojisForRecentCustomStatuses() {
     };
 }
 
+/**
+ * @returns {import('mattermost-redux/types/actions').NewActionFuncAsync}
+ */
 export function loadCustomEmojisIfNeeded(emojis) {
     return (dispatch, getState) => {
         if (!emojis || emojis.length === 0) {

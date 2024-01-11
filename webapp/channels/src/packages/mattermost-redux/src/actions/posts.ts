@@ -6,6 +6,7 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {Channel, ChannelUnread} from '@mattermost/types/channels';
 import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
+import type {CustomEmoji} from '@mattermost/types/emojis';
 import type {Group} from '@mattermost/types/groups';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
 import type {Reaction} from '@mattermost/types/reactions';
@@ -635,8 +636,8 @@ export function removeReaction(postId: string, emojiName: string): NewActionFunc
     };
 }
 
-export function getCustomEmojiForReaction(name: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getCustomEmojiForReaction(name: string): NewActionFuncAsync<true | CustomEmoji> {
+    return async (dispatch, getState) => {
         const nonExistentEmoji = getState().entities.emojis.nonExistentEmoji;
         const customEmojisByName = selectCustomEmojisByName(getState());
 
