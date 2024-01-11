@@ -8215,6 +8215,14 @@
     "translation": "There was an error while authenticating the outgoing oauth connection."
   },
   {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "There is already an outgoing oauth connection for the provided audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "No configured outgoing oauth connection matches the provided audience."
+  },
+  {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
     "translation": "There was an error while deleting the outgoing oauth connection."
   },
@@ -8249,6 +8257,10 @@
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
     "translation": "There was an error saving the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "There is already an outgoing oauth connection for the provided audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
