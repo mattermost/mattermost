@@ -12,8 +12,6 @@ import type {
     LogServerNames,
 } from '@mattermost/types/admin';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import LogList from './log_list';
@@ -24,11 +22,11 @@ type Props = {
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
-        getLogs: (logFilter: LogFilter) => ActionFunc;
+        getLogs: (logFilter: LogFilter) => Promise<unknown>;
         getPlainLogs: (
             page?: number | undefined,
             perPage?: number | undefined
-        ) => ActionFunc;
+        ) => Promise<unknown>;
     };
 };
 

@@ -52,7 +52,7 @@ type Props = {
     roles: Record<string, Role>;
     license: ClientLicense;
     editRole: (role: Role) => void;
-    updateConfig: (config: AdminConfig) => ActionResult;
+    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     isDisabled: boolean;
     consoleAccess: ConsoleAccess;
     cloud: CloudState;

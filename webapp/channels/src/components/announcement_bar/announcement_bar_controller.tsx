@@ -6,7 +6,6 @@ import React from 'react';
 import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 
 import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
-import {ToYearlyNudgeBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_yearly_nudge_banner';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
 import CloudAnnualRenewalAnnouncementBar from './cloud_annual_renewal';
@@ -15,7 +14,6 @@ import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
 import AnnouncementBar from './default_announcement_bar';
-import NotifyAdminDowngradeDelinquencyBar from './notify_admin_downgrade_delinquency_bar';
 import OverageUsersBanner from './overage_users_banner';
 import PaymentAnnouncementBar from './payment_announcement_bar';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
@@ -72,8 +70,8 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let cloudTrialEndAnnouncementBar = null;
         let cloudDelinquencyAnnouncementBar = null;
         let cloudRenewalAnnouncementBar = null;
-        let notifyAdminDowngradeDelinquencyBar = null;
-        let toYearlyNudgeBannerDismissable = null;
+        const notifyAdminDowngradeDelinquencyBar = null;
+        const toYearlyNudgeBannerDismissable = null;
         let toPaidPlanNudgeBannerDismissable = null;
         if (this.props.license?.Cloud === 'true') {
             paymentAnnouncementBar = (
@@ -91,10 +89,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             cloudRenewalAnnouncementBar = (
                 <CloudAnnualRenewalAnnouncementBar/>
             );
-            notifyAdminDowngradeDelinquencyBar = (
-                <NotifyAdminDowngradeDelinquencyBar/>
-            );
-            toYearlyNudgeBannerDismissable = (<ToYearlyNudgeBannerDismissable/>);
             toPaidPlanNudgeBannerDismissable = (<ToPaidPlanBannerDismissable/>);
         }
 

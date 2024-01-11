@@ -8,10 +8,10 @@ import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
-import type {GetFilteredUsersStatsOpts, UserProfile, UsersStats} from '@mattermost/types/users';
+import type {GetFilteredUsersStatsOpts, UserAccessToken, UserProfile, UsersStats} from '@mattermost/types/users';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -69,22 +69,22 @@ type Props = {
         /**
          * Function to get statistics for a team
          */
-        getTeamStats: (teamId: string) => ActionFunc;
+        getTeamStats: (teamId: string) => Promise<ActionResult>;
 
         /**
          * Function to get a user
          */
-        getUser: (id: string) => ActionFunc;
+        getUser: (id: string) => Promise<ActionResult>;
 
         /**
          * Function to get a user access token
          */
-        getUserAccessToken: (tokenId: string) => Promise<any> | ActionFunc;
+        getUserAccessToken: (tokenId: string) => Promise<ActionResult<UserAccessToken>>;
         loadProfilesAndTeamMembers: (page: number, maxItemsPerPage: number, teamId: string, options: Record<string, string | boolean>) => void;
         loadProfilesWithoutTeam: (page: number, maxItemsPerPage: number, options: Record<string, string | boolean>) => void;
         getProfiles: (page: number, maxItemsPerPage: number, options: Record<string, string | boolean>) => void;
         setSystemUsersSearch: (searchTerm: string, teamId: string, filter: string) => void;
-        searchProfiles: (term: string, options?: any) => Promise<any> | ActionFunc;
+        searchProfiles: (term: string, options?: any) => Promise<ActionResult<UserProfile[]>>;
 
         /**
          * Function to log errors
@@ -220,7 +220,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
         };
 
         const {data: profiles} = await this.props.actions.searchProfiles(term, options);
-        if (profiles.length === 0 && term.length === USER_ID_LENGTH) {
+        if (profiles!.length === 0 && term.length === USER_ID_LENGTH) {
             await this.getUserByTokenOrId(term);
         }
 
@@ -274,7 +274,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
         };
 
         const {data: profiles} = await this.props.actions.searchProfiles(term, options);
-        if (profiles.length === 0 && term.length === USER_ID_LENGTH) {
+        if (profiles!.length === 0 && term.length === USER_ID_LENGTH) {
             await this.getUserByTokenOrId(term);
         }
 

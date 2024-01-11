@@ -3,14 +3,13 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getProfiles, searchProfiles} from 'mattermost-redux/actions/users';
 import {getProfiles as selectProfiles} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import AddUsersToRoleModal from './add_users_to_role_modal';
 import type {Props} from './add_users_to_role_modal';
@@ -24,9 +23,9 @@ function mapStateToProps(state: GlobalState, props: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             getProfiles,
             searchProfiles,
         }, dispatch),

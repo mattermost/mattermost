@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 import type {ChannelWithTeamData, ChannelSearchOpts} from '@mattermost/types/channels';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -28,10 +28,10 @@ import {Constants} from 'utils/constants';
 
 import './channel_list.scss';
 
-interface ChannelListProps {
+export interface ChannelListProps {
     actions: {
-        searchAllChannels: (term: string, opts: ChannelSearchOpts) => Promise<{ data: any }>;
-        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => ActionFunc | ActionResult | Promise<ChannelWithTeamData[]>;
+        searchAllChannels: (term: string, opts: ChannelSearchOpts) => Promise<ActionResult>;
+        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<ActionResult>;
     };
     data: ChannelWithTeamData[];
     total: number;

@@ -4,10 +4,7 @@
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {AdminConfig} from '@mattermost/types/config';
-import type {Role} from '@mattermost/types/roles';
+import type {Dispatch} from 'redux';
 
 import {getConfig, getEnvironmentConfig, updateConfig} from 'mattermost-redux/actions/admin';
 import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
@@ -19,7 +16,6 @@ import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {isCurrentUserSystemAdmin, currentUserHasAnAdminRole, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked, deferNavigation, cancelNavigation, confirmNavigation} from 'actions/admin_actions.jsx';
 import {selectLhsItem} from 'actions/views/lhs';
@@ -28,7 +24,6 @@ import {showNavigationPrompt} from 'selectors/views/admin';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import type {GlobalState} from 'types/store';
-import type {LhsItemType} from 'types/store/lhs';
 
 import AdminConsole from './admin_console';
 
@@ -59,22 +54,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    getConfig: () => ActionFunc;
-    getEnvironmentConfig: () => ActionFunc;
-    setNavigationBlocked: (blocked: boolean) => void;
-    confirmNavigation: () => void;
-    cancelNavigation: () => void;
-    loadRolesIfNeeded: (roles: Iterable<string>) => ActionFunc;
-    selectLhsItem: (type: LhsItemType, id?: string) => void;
-    selectTeam: (teamId: string) => void;
-    editRole: (role: Role) => void;
-    updateConfig: (config: AdminConfig) => ActionResult;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             getConfig,
             getEnvironmentConfig,
             updateConfig,

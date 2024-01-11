@@ -13,12 +13,12 @@ import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
 
 type Props = {
-    teamId?: string;
+    teamId: string;
     isActive: boolean;
     isGroupConstrained?: boolean;
     allowOpenInvite?: boolean;
     onToggle: (active: boolean) => void;
-    patchTeam: (patch: Partial<Team>) => Promise<ActionResult>;
+    patchTeam: (patch: Partial<Team> & {id: string}) => Promise<ActionResult>;
 };
 
 const OpenInvite = (props: Props) => {

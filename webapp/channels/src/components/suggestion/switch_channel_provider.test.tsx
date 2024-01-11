@@ -5,14 +5,10 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
 
-import Store from 'stores/redux_store';
-
 import mockStore from 'tests/test_store';
 import {TestHelper} from 'utils/test_helper';
 
 import SwitchChannelProvider from './switch_channel_provider';
-
-const getState = Store.getState;
 
 const latestPost = TestHelper.getPostMock({
     id: 'latest_post_id',
@@ -21,11 +17,6 @@ const latestPost = TestHelper.getPostMock({
     channel_id: 'other_gm_channel',
     create_at: Date.now(),
 });
-
-jest.mock('stores/redux_store', () => ({
-    dispatch: jest.fn(),
-    getState: jest.fn(),
-}));
 
 jest.mock('mattermost-redux/client', () => {
     const original = jest.requireActual('mattermost-redux/client');
@@ -81,6 +72,7 @@ describe('components/SwitchChannelProvider', () => {
                         id: 'direct_other_user',
                         name: 'current_user_id__other_user',
                     },
+                    myMembers: {},
                 },
                 messageCounts: {
                     direct_other_user: {
@@ -147,8 +139,7 @@ describe('components/SwitchChannelProvider', () => {
     it('should change name on wrapper to be unique with same name user channel and public channel', () => {
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(defaultState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
 
         const users = [
             TestHelper.getUserMock({
@@ -192,8 +183,7 @@ describe('components/SwitchChannelProvider', () => {
     it('should change name on wrapper to be unique with same name user in channel and public channel', () => {
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(defaultState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
 
         const users = [
             TestHelper.getUserMock({
@@ -229,8 +219,7 @@ describe('components/SwitchChannelProvider', () => {
     it('should not fail if nothing matches', () => {
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(defaultState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
 
         const users: UserProfile[] = [];
         const channels = [{
@@ -273,8 +262,6 @@ describe('components/SwitchChannelProvider', () => {
         let res = switchProvider.userWrappedChannel(user, channel);
         expect(res.channel.display_name).toEqual('fn ln');
 
-        getState.mockClear();
-
         const store = mockStore({
             entities: {
                 general: {
@@ -312,7 +299,7 @@ describe('components/SwitchChannelProvider', () => {
                 },
             },
         });
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
 
         res = switchProvider.userWrappedChannel(user, channel);
         expect(res.channel.display_name).toEqual('fn ln');
@@ -356,6 +343,12 @@ describe('components/SwitchChannelProvider', () => {
                 ...defaultState.entities,
                 channels: {
                     ...defaultState.entities.channels,
+                    channels: {
+                        ...defaultState.entities.channels.channels,
+                        [channels[0].id]: channels[0],
+                        [channels[1].id]: channels[1],
+                        [channels[2].id]: channels[2],
+                    },
                     myMembers: {
                         current_channel_id: {
                             channel_id: 'current_channel_id',
@@ -369,13 +362,20 @@ describe('components/SwitchChannelProvider', () => {
                         direct_other_user2: {},
                     },
                 },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        ...defaultState.entities.users.profiles,
+                        [users[0].id]: users[0],
+                        [users[1].id]: users[1],
+                    },
+                },
             },
         };
 
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(modifiedState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
 
         const searchText = 'other';
 
@@ -392,42 +392,6 @@ describe('components/SwitchChannelProvider', () => {
     });
 
     it('should sort results based on last_viewed_at order followed by alphabetical andomit users not in members', () => {
-        const modifiedState = {
-            ...defaultState,
-            entities: {
-                ...defaultState.entities,
-                channels: {
-                    ...defaultState.entities.channels,
-                    myMembers: {
-                        current_channel_id: {
-                            channel_id: 'current_channel_id',
-                            user_id: 'current_user_id',
-                            roles: 'channel_role',
-                            mention_count: 1,
-                            msg_count: 9,
-                            last_viewed_at: 1,
-                        },
-                        direct_other_user1: {
-                            channel_id: 'direct_other_user1',
-                            msg_count: 1,
-                            last_viewed_at: 2,
-                        },
-                        direct_other_user4: {
-                            channel_id: 'direct_other_user4',
-                            msg_count: 1,
-                            last_viewed_at: 3,
-                        },
-                        channel_other_user: {},
-                    },
-                },
-            },
-        };
-
-        const switchProvider = new SwitchChannelProvider();
-        const store = mockStore(modifiedState);
-
-        getState.mockImplementation(store.getState);
-
         const users = [
             TestHelper.getUserMock({
                 id: 'other_user1',
@@ -472,6 +436,58 @@ describe('components/SwitchChannelProvider', () => {
             display_name: 'other_user4',
             delete_at: 0,
         }];
+
+        const modifiedState = {
+            ...defaultState,
+            entities: {
+                ...defaultState.entities,
+                channels: {
+                    ...defaultState.entities.channels,
+                    channels: {
+                        ...defaultState.entities.channels.channels,
+                        [channels[0].id]: channels[0],
+                        [channels[1].id]: channels[1],
+                        [channels[2].id]: channels[2],
+                        [channels[3].id]: channels[3],
+                    },
+                    myMembers: {
+                        current_channel_id: {
+                            channel_id: 'current_channel_id',
+                            user_id: 'current_user_id',
+                            roles: 'channel_role',
+                            mention_count: 1,
+                            msg_count: 9,
+                            last_viewed_at: 1,
+                        },
+                        direct_other_user1: {
+                            channel_id: 'direct_other_user1',
+                            msg_count: 1,
+                            last_viewed_at: 2,
+                        },
+                        direct_other_user4: {
+                            channel_id: 'direct_other_user4',
+                            msg_count: 1,
+                            last_viewed_at: 3,
+                        },
+                        channel_other_user: {},
+                    },
+                },
+                users: {
+                    ...defaultState.entities.users,
+                    profiles: {
+                        ...defaultState.entities.users.profiles,
+                        [users[0].id]: users[0],
+                        [users[1].id]: users[1],
+                        [users[2].id]: users[2],
+                        [users[3].id]: users[3],
+                    },
+                },
+            },
+        };
+
+        const switchProvider = new SwitchChannelProvider();
+        const store = mockStore(modifiedState);
+        switchProvider.store = store;
 
         const searchText = 'other';
 
@@ -538,12 +554,10 @@ describe('components/SwitchChannelProvider', () => {
             },
         };
 
-        getState.mockClear();
-
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(modifiedState);
+        switchProvider.store = store;
 
-        getState.mockImplementation(store.getState);
         const searchText = 'other';
         const resultsCallback = jest.fn();
 
@@ -627,12 +641,9 @@ describe('components/SwitchChannelProvider', () => {
             },
         };
 
-        getState.mockClear();
-
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(modifiedState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
         const searchText = 'other.';
         const resultsCallback = jest.fn();
 
@@ -718,12 +729,10 @@ describe('components/SwitchChannelProvider', () => {
                 },
             },
         };
-        getState.mockClear();
 
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(modifiedState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
         const searchText = 'other';
         const resultsCallback = jest.fn();
 
@@ -808,8 +817,7 @@ describe('components/SwitchChannelProvider', () => {
 
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(modifiedState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
 
         const users = [
             TestHelper.getUserMock({
@@ -873,12 +881,9 @@ describe('components/SwitchChannelProvider', () => {
             },
         };
 
-        getState.mockClear();
-
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(modifiedState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
         const searchText = 'chan';
         const resultsCallback = jest.fn();
 
@@ -963,12 +968,9 @@ describe('components/SwitchChannelProvider', () => {
             },
         };
 
-        getState.mockClear();
-
         const switchProvider = new SwitchChannelProvider();
         const store = mockStore(modifiedState);
-
-        getState.mockImplementation(store.getState);
+        switchProvider.store = store;
         const searchText = 'thread';
         const resultsCallback = jest.fn();
 

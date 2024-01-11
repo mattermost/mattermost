@@ -11,6 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
 import {filterProfiles} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {filterProfilesStartingWithTerm, profileListToMap, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import MultiSelect from 'components/multiselect/multiselect';
@@ -38,8 +39,8 @@ export type Props = {
     onExited: () => void;
 
     actions: {
-        getProfiles: (page: number, perPage?: number, options?: Record<string, any>) => Promise<{ data: UserProfile[] }>;
-        searchProfiles: (term: string, options?: Record<string, any>) => Promise<{ data: UserProfile[] }>;
+        getProfiles: (page: number, perPage?: number, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
+        searchProfiles: (term: string, options?: Record<string, any>) => Promise<ActionResult<UserProfile[]>>;
     };
 }
 
@@ -89,7 +90,7 @@ export class AddUsersToRoleModal extends React.PureComponent<Props, State> {
         const search = term !== '';
         if (search) {
             const {data} = await this.props.actions.searchProfiles(term, {replace: true});
-            data.forEach((user) => {
+            data!.forEach((user) => {
                 if (!user.is_bot) {
                     searchResults.push(user);
                 }

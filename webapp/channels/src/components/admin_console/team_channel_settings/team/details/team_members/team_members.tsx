@@ -4,9 +4,8 @@
 import React from 'react';
 import {FormattedMessage, defineMessage} from 'react-intl';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {TeamMembership, Team} from '@mattermost/types/teams';
-import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import type {UserProfile, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -43,21 +42,12 @@ type Props = {
     updateRole: (userId: string, schemeUser: boolean, schemeAdmin: boolean) => void;
 
     actions: {
-        getTeamStats: (teamId: string) => Promise<{
-            data: boolean;
-        }>;
-        loadProfilesAndReloadTeamMembers: (page: number, perPage: number, teamId?: string, options?: {[key: string]: any}) => Promise<{
-            data: boolean;
-        }>;
-        searchProfilesAndTeamMembers: (term: string, options?: {[key: string]: any}) => Promise<{
-            data: boolean;
-        }>;
-        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
-            data?: UsersStats;
-            error?: ServerError;
-        }>;
-        setUserGridSearch: (term: string) => ActionResult;
-        setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => ActionResult;
+        getTeamStats: (teamId: string) => Promise<ActionResult>;
+        loadProfilesAndReloadTeamMembers: (page: number, perPage: number, teamId: string, options?: {[key: string]: any}) => Promise<ActionResult>;
+        searchProfilesAndTeamMembers: (term: string, options?: {[key: string]: any}) => Promise<ActionResult>;
+        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<ActionResult>;
+        setUserGridSearch: (term: string) => void;
+        setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => void;
     };
 }
 

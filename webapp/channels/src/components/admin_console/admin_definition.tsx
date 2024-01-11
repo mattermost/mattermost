@@ -8,7 +8,7 @@ import type {MessageDescriptor} from 'react-intl';
 import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import {AccountMultipleOutlineIcon, ChartBarIcon, CogOutlineIcon, CreditCardOutlineIcon, FlaskOutlineIcon, FormatListBulletedIcon, InformationOutlineIcon, PowerPlugOutlineIcon, ServerVariantIcon, ShieldOutlineIcon, SitemapIcon} from '@mattermost/compass-icons/components';
-import type {CloudState, Product, Limits} from '@mattermost/types/cloud';
+import type {CloudState, Product} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense} from '@mattermost/types/config';
 import type {Job} from '@mattermost/types/jobs';
 
@@ -34,7 +34,6 @@ import {searchableStrings as teamAnalyticsSearchableStrings} from 'components/an
 import ExternalLink from 'components/external_link';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import {isCloudFreePlan} from 'utils/cloud_utils';
 import {Constants, CloudProducts, LicenseSkus, AboutLinks, DocLinks, DeveloperLinks} from 'utils/constants';
 import {isCloudLicense} from 'utils/license_utils';
 import {getSiteURL} from 'utils/url';
@@ -231,10 +230,7 @@ export const it = {
         if (!productId) {
             return false;
         }
-        const limits = cloud.limits || {};
-        const subscriptionProduct = cloud.products?.[productId];
-        const isCloudFreeProduct = isCloudFreePlan(subscriptionProduct, limits as Limits);
-        return cloud?.subscription?.is_free_trial === 'true' || isCloudFreeProduct;
+        return cloud?.subscription?.is_free_trial === 'true';
     },
     userHasReadPermissionOnResource: (key: string) => (config: Partial<AdminConfig>, state: any, license?: ClientLicense, enterpriseReady?: boolean, consoleAccess?: ConsoleAccess) => (consoleAccess?.read as any)?.[key],
     userHasReadPermissionOnSomeResources: (key: string | {[key: string]: string}) => Object.values(key).some((resource) => it.userHasReadPermissionOnResource(resource)),
