@@ -27,26 +27,16 @@ type Props = {
     userIsAdmin: boolean;
 };
 
+const learnMoreExternalLink = 'https://mattermost.com/pl/error-code-error-user-limits-exceeded';
+
 function UsersLimitsAnnouncementBar(props: Props) {
     const dispatch = useDispatch();
 
-    const cwsAvailability = useCWSAvailabilityCheck();
     const usersLimits = useSelector(getUsersLimits);
 
     const handleCTAClick = useCallback(() => {
-        if (
-            cwsAvailability === CSWAvailabilityCheckTypes.Available ||
-            cwsAvailability === CSWAvailabilityCheckTypes.NotApplicable
-        ) {
-            window.open(LicenseLinks.CONTACT_SALES, '_blank');
-        } else if (cwsAvailability === CSWAvailabilityCheckTypes.Unavailable) {
-            // Its an airgapped instance
-            dispatch(openModal({
-                modalId: ModalIdentifiers.AIR_GAPPED_CONTACT_SALES,
-                dialogType: AirGappedContactSalesModal,
-            }));
-        }
-    }, [cwsAvailability]);
+        window.open(learnMoreExternalLink, '_blank');
+    }, []);
 
     const isLicensed = props?.license?.IsLicensed === 'true';
     const maxUsersLimit = usersLimits?.maxUsersLimit ?? 0;
@@ -63,18 +53,17 @@ function UsersLimitsAnnouncementBar(props: Props) {
             message={
                 <FormattedMessage
                     id='users_limits_announcement_bar.copyText'
-                    defaultMessage='Your user count exceeds the maximum users allowed. Upgrade to Mattermost Professional or Mattermost Enterprise to continue using Mattermost.'
+                    defaultMessage='User limits exceeded. Contact administrator with: ERROR_USER_LIMITS_EXCEEDED'
                 />
             }
             type={AnnouncementBarTypes.CRITICAL}
             icon={<AlertOutlineIcon size={16}/>}
             showCTA={true}
-            ctaDisabled={cwsAvailability === CSWAvailabilityCheckTypes.Pending}
             showLinkAsButton={true}
             ctaText={
                 <FormattedMessage
                     id='users_limits_announcement_bar.ctaText'
-                    defaultMessage='Contact sales'
+                    defaultMessage='Learn More'
                 />
             }
             onButtonClick={handleCTAClick}
@@ -98,11 +87,7 @@ export function shouldShowUserLimitsAnnouncementBar({userIsAdmin, isLicensed, ma
         return false;
     }
 
-    if (!isLicensed && activeUserCount >= maxUsersLimit) {
-        return true;
-    }
-
-    return false;
+    return !isLicensed && activeUserCount >= maxUsersLimit;
 }
 
 export default UsersLimitsAnnouncementBar;
