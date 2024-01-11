@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -270,16 +271,25 @@ func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*m
 	return api.app.GetUsersInTeam(options)
 }
 
+func (api *PluginAPI) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
+	pref, err := api.app.GetPreferenceByCategoryAndNameForUser(api.ctx, userID, category, name)
+	if err != nil {
+		return model.Preference{}, err
+	}
+
+	return *pref, nil
+}
+
 func (api *PluginAPI) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
-	return api.app.GetPreferencesForUser(userID)
+	return api.app.GetPreferencesForUser(api.ctx, userID)
 }
 
 func (api *PluginAPI) UpdatePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
-	return api.app.UpdatePreferences(userID, preferences)
+	return api.app.UpdatePreferences(api.ctx, userID, preferences)
 }
 
 func (api *PluginAPI) DeletePreferencesForUser(userID string, preferences []model.Preference) *model.AppError {
-	return api.app.DeletePreferences(userID, preferences)
+	return api.app.DeletePreferences(api.ctx, userID, preferences)
 }
 
 func (api *PluginAPI) GetSession(sessionID string) (*model.Session, *model.AppError) {
@@ -1278,4 +1288,45 @@ func (api *PluginAPI) GetUploadSession(uploadID string) (*model.UploadSession, e
 func (api *PluginAPI) SendPushNotification(notification *model.PushNotification, userID string) *model.AppError {
 	// Ignoring skipSessionId because it's only used internally to clear push notifications
 	return api.app.sendPushNotificationToAllSessions(notification, userID, "")
+}
+
+func (api *PluginAPI) RegisterPluginForSharedChannels(opts model.RegisterPluginOpts) (remoteID string, err error) {
+	return api.app.RegisterPluginForSharedChannels(opts)
+}
+
+func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
+	return api.app.UnregisterPluginForSharedChannels(pluginID)
+}
+
+func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	scShared, err := api.app.ShareChannel(api.ctx, sc)
+	if errors.Is(err, ErrChannelAlreadyShared) {
+		// sharing an already shared channel is not an error; treat as idempotent and return the existing shared channel
+		return api.app.GetSharedChannel(sc.ChannelId)
+	}
+	return scShared, err
+}
+
+func (api *PluginAPI) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
+	return api.app.UpdateSharedChannel(sc)
+}
+
+func (api *PluginAPI) UnshareChannel(channelID string) (unshared bool, err error) {
+	return api.app.UnshareChannel(channelID)
+}
+
+func (api *PluginAPI) UpdateSharedChannelCursor(channelID, remoteID string, cusror model.GetPostsSinceForSyncCursor) error {
+	return api.app.UpdateSharedChannelCursor(channelID, remoteID, cusror)
+}
+
+func (api *PluginAPI) SyncSharedChannel(channelID string) error {
+	return api.app.SyncSharedChannel(channelID)
+}
+
+func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string) error {
+	return api.app.InviteRemoteToChannel(channelID, remoteID, userID)
+}
+
+func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {
+	return api.app.UninviteRemoteFromChannel(channelID, remoteID)
 }

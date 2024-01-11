@@ -1554,7 +1554,7 @@ func (s *OpenTracingLayerChannelStore) GetMemberCountsByGroup(ctx context.Contex
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetMemberForPost(postID string, userID string) (*model.ChannelMember, error) {
+func (s *OpenTracingLayerChannelStore) GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberForPost")
 	s.Root.Store.SetContext(newCtx)
@@ -1563,7 +1563,7 @@ func (s *OpenTracingLayerChannelStore) GetMemberForPost(postID string, userID st
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetMemberForPost(postID, userID)
+	result, err := s.ChannelStore.GetMemberForPost(postID, userID, includeArchivedChannels)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -1572,16 +1572,16 @@ func (s *OpenTracingLayerChannelStore) GetMemberForPost(postID string, userID st
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+func (s *OpenTracingLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
 	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberOnly")
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetMemberLastViewedAt")
 	s.Root.Store.SetContext(newCtx)
 	defer func() {
 		s.Root.Store.SetContext(origCtx)
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetMemberOnly(ctx, channelID, userID)
+	result, err := s.ChannelStore.GetMemberLastViewedAt(ctx, channelID, userID)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -7643,6 +7643,24 @@ func (s *OpenTracingLayerRemoteClusterStore) GetAll(filter model.RemoteClusterQu
 	return result, err
 }
 
+func (s *OpenTracingLayerRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.GetByPluginID")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.RemoteClusterStore.GetByPluginID(pluginID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerRemoteClusterStore) Save(rc *model.RemoteCluster) (*model.RemoteCluster, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "RemoteClusterStore.Save")
@@ -11884,6 +11902,24 @@ func (s *OpenTracingLayerUserStore) GetUnreadCountForChannel(userID string, chan
 
 	defer span.Finish()
 	result, err := s.UserStore.GetUnreadCountForChannel(userID, channelID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
+func (s *OpenTracingLayerUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetUserCountForReport")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.UserStore.GetUserCountForReport(filter)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

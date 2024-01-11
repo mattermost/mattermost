@@ -504,9 +504,11 @@ func getPost(c *Context, w http.ResponseWriter, r *http.Request) {
 
 // getPostsByIds also sets a header to indicate, if posts were truncated as per the cloud plan's limit.
 func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	postIDs := model.ArrayFromJSON(r.Body)
-
-	if len(postIDs) == 0 {
+	postIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.Err = model.NewAppError("getPostsByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(postIDs) == 0 {
 		c.SetInvalidParam("post_ids")
 		return
 	}
@@ -516,9 +518,9 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	postsList, firstInaccessiblePostTime, err := c.App.GetPostsByIds(postIDs)
-	if err != nil {
-		c.Err = err
+	postsList, firstInaccessiblePostTime, appErr := c.App.GetPostsByIds(postIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -530,9 +532,9 @@ func getPostsByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		if val, ok := channelMap[post.ChannelId]; ok {
 			channel = val
 		} else {
-			channel, err = c.App.GetChannel(c.AppContext, post.ChannelId)
-			if err != nil {
-				c.Err = err
+			channel, appErr = c.App.GetChannel(c.AppContext, post.ChannelId)
+			if appErr != nil {
+				c.Err = appErr
 				return
 			}
 			channelMap[channel.Id] = channel
@@ -1136,7 +1138,7 @@ func moveThread(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.Config().FeatureFlags.MoveThreadsEnabled {
+	if !c.App.Config().FeatureFlags.MoveThreadsEnabled || c.App.License() == nil {
 		c.Err = model.NewAppError("moveThread", "api.post.move_thread.disabled.app_error", nil, "", http.StatusNotImplemented)
 		return
 	}

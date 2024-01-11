@@ -51,6 +51,8 @@ type FeatureFlags struct {
 
 	CloudAnnualRenewals bool
 
+	OutgoingOAuthConnections bool
+
 	WebSocketEventScope bool
 }
 
@@ -71,6 +73,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
+	f.OutgoingOAuthConnections = false
 	f.WebSocketEventScope = false
 }
 
