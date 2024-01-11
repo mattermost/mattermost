@@ -90,6 +90,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("SaveMultipleMembers", func(t *testing.T) { testChannelSaveMultipleMembers(t, rctx, ss) })
 	t.Run("UpdateMember", func(t *testing.T) { testChannelUpdateMember(t, rctx, ss) })
 	t.Run("UpdateMemberNotifyProps", func(t *testing.T) { testChannelUpdateMemberNotifyProps(t, rctx, ss) })
+	t.Run("PatchMultipleMembersNotifyProps", func(t *testing.T) { testChannelPatchMultipleMembersNotifyProps(t, rctx, ss) })
 	t.Run("UpdateMultipleMembers", func(t *testing.T) { testChannelUpdateMultipleMembers(t, rctx, ss) })
 	t.Run("RemoveMember", func(t *testing.T) { testChannelRemoveMember(t, rctx, ss) })
 	t.Run("RemoveMembers", func(t *testing.T) { testChannelRemoveMembers(t, rctx, ss) })
@@ -3280,6 +3281,133 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, rctx request.CTX, ss store
 		var invErr *store.ErrInvalidInput
 		require.ErrorAs(t, err, &invErr)
 		require.Nil(t, member)
+	})
+}
+
+func testChannelPatchMultipleMembersNotifyProps(t *testing.T, rctx request.CTX, ss store.Store) {
+	t.Run("should save multiple channel members' notify props at once", func(t *testing.T) {
+		channel1, err := ss.Channel().Save(&model.Channel{
+			Name: model.NewId(),
+			Type: model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+		channel2, err := ss.Channel().Save(&model.Channel{
+			Name: model.NewId(),
+			Type: model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		user1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+		require.NoError(t, err)
+		user2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+		require.NoError(t, err)
+		original1, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel1.Id,
+			UserId:      user1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+		original2, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel1.Id,
+			UserId:      user2.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+		original3, err := ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel2.Id,
+			UserId:      user1.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
+		require.Equal(t, model.ChannelNotifyDefault, original1.NotifyProps[model.DesktopNotifyProp])
+		require.Equal(t, model.ChannelAutoFollowThreadsOff, original1.NotifyProps[model.ChannelAutoFollowThreads])
+		require.Equal(t, "", original1.NotifyProps["test_key"])
+		require.Equal(t, model.ChannelNotifyDefault, original2.NotifyProps[model.DesktopNotifyProp])
+		require.Equal(t, model.ChannelAutoFollowThreadsOff, original2.NotifyProps[model.ChannelAutoFollowThreads])
+		require.Equal(t, "", original2.NotifyProps["test_key"])
+		require.Equal(t, model.ChannelNotifyDefault, original3.NotifyProps[model.DesktopNotifyProp])
+		require.Equal(t, model.ChannelAutoFollowThreadsOff, original3.NotifyProps[model.ChannelAutoFollowThreads])
+		require.Equal(t, "", original3.NotifyProps["test_key"])
+
+		// Sleep for 1ms to ensure that the LastUpdateAt will change
+		time.Sleep(1 * time.Millisecond)
+
+		// Save the channel members
+		updated, err := ss.Channel().PatchMultipleMembersNotifyProps(
+			[]*model.ChannelMemberIdentifier{
+				{
+					ChannelId: original1.ChannelId,
+					UserId:    original1.UserId,
+				},
+				{
+					ChannelId: original2.ChannelId,
+					UserId:    original2.UserId,
+				},
+				{
+					ChannelId: original3.ChannelId,
+					UserId:    original3.UserId,
+				},
+			},
+			map[string]string{
+				model.ChannelAutoFollowThreads: model.ChannelAutoFollowThreadsOff,
+				"test_key":                     "test_value",
+			},
+		)
+
+		require.NoError(t, err)
+
+		// Ensure the specified fields changed and that the unspecified fields did not
+		assert.Equal(t, original1.NotifyProps[model.DesktopNotifyProp], updated[0].NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, model.ChannelAutoFollowThreadsOff, updated[0].NotifyProps[model.ChannelAutoFollowThreads])
+		assert.Equal(t, "test_value", updated[0].NotifyProps["test_key"])
+		assert.Equal(t, original2.NotifyProps[model.DesktopNotifyProp], updated[1].NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, model.ChannelAutoFollowThreadsOff, updated[1].NotifyProps[model.ChannelAutoFollowThreads])
+		assert.Equal(t, "test_value", updated[1].NotifyProps["test_key"])
+		assert.Equal(t, original3.NotifyProps[model.DesktopNotifyProp], updated[2].NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, model.ChannelAutoFollowThreadsOff, updated[2].NotifyProps[model.ChannelAutoFollowThreads])
+		assert.Equal(t, "test_value", updated[2].NotifyProps["test_key"])
+
+		assert.Equal(t, original1.NotifyProps[model.DesktopNotifyProp], updated[0].NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, original2.NotifyProps[model.DesktopNotifyProp], updated[1].NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, original3.NotifyProps[model.DesktopNotifyProp], updated[2].NotifyProps[model.DesktopNotifyProp])
+
+		// Ensure that LastUpdateAt was updated
+		assert.Greater(t, updated[0].LastUpdateAt, original1.LastUpdateAt)
+		assert.Greater(t, updated[1].LastUpdateAt, original2.LastUpdateAt)
+		assert.Greater(t, updated[2].LastUpdateAt, original3.LastUpdateAt)
+	})
+
+	t.Run("should not allow saving invalid notify props", func(t *testing.T) {
+		channel, err := ss.Channel().Save(&model.Channel{
+			Name: model.NewId(),
+			Type: model.ChannelTypeOpen,
+		}, -1)
+		require.NoError(t, err)
+
+		user, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+		require.NoError(t, err)
+		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+			ChannelId:   channel.Id,
+			UserId:      user.Id,
+			NotifyProps: model.GetDefaultChannelNotifyProps(),
+		})
+		require.NoError(t, err)
+
+		// Save the channel member
+		_, err = ss.Channel().PatchMultipleMembersNotifyProps(
+			[]*model.ChannelMemberIdentifier{
+				{
+					ChannelId: channel.Id,
+					UserId:    user.Id,
+				},
+			},
+			map[string]string{
+				model.MarkUnreadNotifyProp: "garbage",
+			},
+		)
+
+		assert.Error(t, err)
 	})
 }
 
