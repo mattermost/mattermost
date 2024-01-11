@@ -33,7 +33,7 @@ type Props = {
     license: ClientLicense;
     isDisabled?: boolean;
     actions: {
-        loadRolesIfNeeded: (roles: Iterable<string>) => void;
+        loadRolesIfNeeded: (roles: string[]) => void;
         editRole: (role: Partial<Role>) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
