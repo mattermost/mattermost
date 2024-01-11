@@ -11892,6 +11892,24 @@ func (s *OpenTracingLayerUserStore) GetUnreadCountForChannel(userID string, chan
 	return result, err
 }
 
+func (s *OpenTracingLayerUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetUserCountForReport")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, err := s.UserStore.GetUserCountForReport(filter)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, err
+}
+
 func (s *OpenTracingLayerUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetUserReport")

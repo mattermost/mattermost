@@ -12,7 +12,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef} from 'components/admin_console/list_table';
 
-import {imageURLForUser} from 'utils/utils';
+import {getDisplayName, imageURLForUser} from 'utils/utils';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
@@ -27,20 +27,6 @@ type Props = {
     tablePropertyPageSize: AdminConsoleUserManagementTableProperties['pageSize'];
     getUserReports: (options?: UserReportOptions) => Promise<{data: UserReport[]}>;
     setAdminConsoleUsersManagementTableProperties: (properties: Partial<AdminConsoleUserManagementTableProperties>) => void;
-};
-
-type SystemUsersRow = {
-    id: UserProfile['id'];
-    username: UserProfile['username'];
-    email: UserProfile['email'];
-    display_name: string;
-    roles: UserProfile['roles'];
-    create_at: UserProfile['create_at'];
-    last_login_at?: number;
-    last_status_at?: number;
-    last_post_date?: number;
-    days_active?: number;
-    total_posts?: number;
 };
 
 enum ColumnNames {
@@ -64,7 +50,7 @@ function SystemUsersList(props: Props) {
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
 
-    const columns: Array<ColumnDef<SystemUsersRow, any>> = useMemo(
+    const columns: Array<ColumnDef<UserReport, any>> = useMemo(
         () => [
             {
                 id: ColumnNames.displayName,
@@ -73,7 +59,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.userDetails',
                     defaultMessage: 'User details',
                 }),
-                cell: (info: CellContext<SystemUsersRow, null>) => {
+                cell: (info: CellContext<UserReport, null>) => {
                     return (
                         <div>
                             <div className='profilePictureContainer'>
@@ -85,9 +71,9 @@ function SystemUsersList(props: Props) {
                             </div>
                             <div
                                 className='displayName'
-                                title={info.row.original.display_name}
+                                title={getDisplayName(info.row.original)}
                             >
-                                {info.row.original.display_name || ''}
+                                {getDisplayName(info.row.original) || ''}
                             </div>
                             <div
                                 className='userName'
@@ -109,7 +95,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.email',
                     defaultMessage: 'Email',
                 }),
-                cell: (info: CellContext<SystemUsersRow, string>) => info.getValue() || '',
+                cell: (info: CellContext<UserReport, string>) => info.getValue() || '',
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -121,7 +107,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.memberSince',
                     defaultMessage: 'Member since',
                 }),
-                cell: (info: CellContext<SystemUsersRow, number>) => <ElapsedDurationCell date={info.getValue()}/>,
+                cell: (info: CellContext<UserReport, number>) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: true,
@@ -133,7 +119,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.lastLoginAt',
                     defaultMessage: 'Last login',
                 }),
-                cell: (info: CellContext<SystemUsersRow, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
+                cell: (info: CellContext<UserReport, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
@@ -145,7 +131,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.lastActivity',
                     defaultMessage: 'Last activity',
                 }),
-                cell: (info: CellContext<SystemUsersRow, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
+                cell: (info: CellContext<UserReport, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
@@ -157,7 +143,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.lastPost',
                     defaultMessage: 'Last post',
                 }),
-                cell: (info: CellContext<SystemUsersRow, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
+                cell: (info: CellContext<UserReport, number | undefined>) => <ElapsedDurationCell date={info.getValue()}/>,
                 enableHiding: true,
                 enablePinning: false,
                 enableSorting: false,
@@ -169,7 +155,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.daysActive',
                     defaultMessage: 'Days active',
                 }),
-                cell: (info: CellContext<SystemUsersRow, number | undefined>) => info.getValue(),
+                cell: (info: CellContext<UserReport, number | undefined>) => info.getValue(),
                 meta: {
                     isNumeric: true,
                 },
@@ -184,7 +170,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.totalPosts',
                     defaultMessage: 'Messages posted',
                 }),
-                cell: (info: CellContext<SystemUsersRow, number | undefined>) => info.getValue() || null,
+                cell: (info: CellContext<UserReport, number | undefined>) => info.getValue() || null,
                 meta: {
                     isNumeric: true,
                 },
@@ -199,7 +185,7 @@ function SystemUsersList(props: Props) {
                     id: 'admin.system_users.list.actions',
                     defaultMessage: 'Actions',
                 }),
-                cell: (info: CellContext<SystemUsersRow, null>) => (
+                cell: (info: CellContext<UserReport, null>) => (
                     <SystemUsersActions
                         rowIndex={info.cell.row.index}
                         tableId={tableId}
@@ -242,7 +228,7 @@ function SystemUsersList(props: Props) {
         fetchUserReportsWithOptions(props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending);
     }, [props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending]);
 
-    function handleRowClick(userId: SystemUsersRow['id']) {
+    function handleRowClick(userId: UserReport['id']) {
         if (userId.length !== 0) {
             history.push(`/admin_console/user_management/user/${userId}`);
         }
@@ -308,8 +294,8 @@ function SystemUsersList(props: Props) {
             hasAdditionalPaginationAtTop: false,
             totalRowInfo: '',
         } as TableMeta,
-        getCoreRowModel: getCoreRowModel<SystemUsersRow>(),
-        getSortedRowModel: getSortedRowModel<SystemUsersRow>(),
+        getCoreRowModel: getCoreRowModel<UserReport>(),
+        getSortedRowModel: getSortedRowModel<UserReport>(),
         onPaginationChange: handlePaginationChange as OnChangeFn<PaginationState>,
         onSortingChange: handleSortingChange as OnChangeFn<SortingState>,
         manualSorting: true,
@@ -321,7 +307,7 @@ function SystemUsersList(props: Props) {
     });
 
     return (
-        <AdminConsoleListTable<SystemUsersRow>
+        <AdminConsoleListTable<UserReport>
             table={table}
         />
     );
