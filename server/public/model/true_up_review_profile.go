@@ -13,7 +13,8 @@ type TrueUpReviewProfile struct {
 	LicensedSeats          int                 `json:"licensed_seats"`
 	LicensePlan            string              `json:"license_plan"`
 	CustomerName           string              `json:"customer_name"`
-	ActivatedUsers         int64               `json:"activated_users"`
+	ActivatedUsers         int64               `json:"total_activated_users"`
+	DailyActiveUsers       int64               `json:"daily_active_users"`
 	MonthlyActiveUsers     int64               `json:"monthly_active_users"`
 	AuthenticationFeatures []string            `json:"authentication_features"`
 	Plugins                TrueUpReviewPlugins `json:"plugins"`

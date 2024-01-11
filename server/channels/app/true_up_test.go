@@ -26,6 +26,10 @@ func TestGetTrueUpProfile(t *testing.T) {
 	mockUserStore.On("AnalyticsActiveCount", int64(MonthMilliseconds), model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false}).Return(int64(5), nil)
 	mockStore.On("User").Return(&mockUserStore)
 
+	mockStatusStore := mocks.StatusStore{}
+	mockStatusStore.On("GetTotalActiveUsersCount", mock.Anything).Return(int64(2), nil)
+	mockStore.On("Status").Return(&mockStatusStore)
+
 	mockWebhookStore := mocks.WebhookStore{}
 	mockWebhookStore.On("AnalyticsIncomingCount", mock.Anything).Return(int64(1), nil)
 	mockWebhookStore.On("AnalyticsOutgoingCount", mock.Anything).Return(int64(1), nil)
@@ -44,7 +48,8 @@ func TestGetTrueUpProfile(t *testing.T) {
 
 		require.NotNil(t, profile)
 		assert.Equal(t, float64(5), profile["monthly_active_users"])
-		assert.Equal(t, float64(10), profile["activated_users"])
+		assert.Equal(t, float64(2), profile["daily_active_users"])
+		assert.Equal(t, float64(10), profile["total_activated_users"])
 		assert.Equal(t, float64(1), profile["incoming_webhooks_count"])
 		assert.Equal(t, float64(1), profile["outgoing_webhooks_count"])
 	})

@@ -52,11 +52,20 @@ func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 	}
 
 	// Customer Info & Usage Analytics
+
+	// active registered users
 	activatedUsers, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total active users count", http.StatusInternalServerError).Wrap(err)
+		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total activated users count", http.StatusInternalServerError).Wrap(err)
 	}
 
+	// daily active users
+	dau, err := a.Srv().Store().Status().GetTotalActiveUsersCount()
+	if err != nil {
+		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total daily active users count", http.StatusInternalServerError)
+	}
+
+	// monthly active users
 	mau, err := a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
 	if err != nil {
 		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total monthly active users count", http.StatusInternalServerError).Wrap(err)
@@ -114,6 +123,7 @@ func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 		LicensePlan:            license.SkuName,
 		CustomerName:           license.Customer.Name,
 		ActivatedUsers:         activatedUsers,
+		DailyActiveUsers:       dau,
 		MonthlyActiveUsers:     mau,
 		TotalIncomingWebhooks:  incomingWebhookCount,
 		TotalOutgoingWebhooks:  outgoingWebhookCount,
