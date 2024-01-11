@@ -139,10 +139,6 @@ func (a *App) GetUsersForReporting(filter *model.UserReportOptions) ([]*model.Us
 		return nil, appErr
 	}
 
-	return a.getUserReport(filter)
-}
-
-func (a *App) getUserReport(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError) {
 	userReportQuery, err := a.Srv().Store().User().GetUserReport(filter)
 	if err != nil {
 		return nil, model.NewAppError("GetUsersForReporting", "app.report.get_user_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -154,6 +150,15 @@ func (a *App) getUserReport(filter *model.UserReportOptions) ([]*model.UserRepor
 	}
 
 	return userReports, nil
+}
+
+func (a *App) GetUserCountForReport(filter *model.UserReportOptions) (*int64, *model.AppError) {
+	count, err := a.Srv().Store().User().GetUserCountForReport(filter)
+	if err != nil {
+		return nil, model.NewAppError("GetUserCountForReport", "app.report.get_user_count_for_report.store_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return &count, nil
 }
 
 func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string) *model.AppError {
