@@ -41,7 +41,7 @@ import {
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-import type {DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
@@ -483,13 +483,15 @@ export function scrollPostListToBottom() {
     };
 }
 
-export function markChannelAsReadOnFocus(channelId: string) {
+export function markChannelAsReadOnFocus(channelId: string): NewActionFunc {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         if (isManuallyUnread(getState(), channelId)) {
-            return;
+            return {data: false};
         }
 
         dispatch(markChannelAsRead(channelId));
+
+        return {data: true};
     };
 }
 

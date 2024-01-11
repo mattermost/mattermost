@@ -8,6 +8,8 @@ import type {Channel, ChannelStats} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
@@ -65,7 +67,7 @@ export interface Props {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
-        getChannelStats: (channelId: string) => Promise<{data: ChannelStats}>;
+        getChannelStats: (channelId: string) => Promise<ActionResult>;
     };
 }
 

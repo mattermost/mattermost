@@ -4,6 +4,7 @@
 import classNames from 'classnames';
 import React from 'react';
 import {connect, useSelector} from 'react-redux';
+import type {Store} from 'redux';
 
 import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -431,7 +432,7 @@ function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
 }
 
 export default class SwitchChannelProvider extends Provider {
-    store = globalStore;
+    store: Store<GlobalState> = globalStore;
 
     /**
      * whenever this gets adjusted/refactored to not call the callback twice we need to adjust the behavior in
@@ -842,7 +843,7 @@ export default class SwitchChannelProvider extends Provider {
 
         try {
             const {data} = await channelsAsync;
-            channels = data.channels as Channel[];
+            channels = data!.channels as Channel[];
         } catch (err) {
             this.store.dispatch(logError(err));
             return;

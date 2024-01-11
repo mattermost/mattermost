@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {AnyAction, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {unfavoriteChannel, favoriteChannel, getChannelStats} from 'mattermost-redux/actions/channels';
 import {Permissions} from 'mattermost-redux/constants';
@@ -80,7 +80,7 @@ function mapStateToProps(state: GlobalState) {
     return props;
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             closeRightHandSide,

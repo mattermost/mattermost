@@ -10,7 +10,7 @@ import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelURL} from 'selectors/urls';
 
@@ -55,7 +55,7 @@ const getChannelURLAction = (channelId: string, teamId: string, url: string) => 
     return getHistory().push(getChannelURL(state, channel, teamId));
 };
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             autoUpdateTimezone,

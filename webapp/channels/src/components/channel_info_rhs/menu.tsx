@@ -7,6 +7,8 @@ import styled from 'styled-components';
 
 import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import {Constants} from 'utils/constants';
@@ -99,7 +101,7 @@ interface MenuProps {
         showChannelFiles: (channelId: string) => void;
         showPinnedPosts: (channelId: string | undefined) => void;
         showChannelMembers: (channelId: string) => void;
-        getChannelStats: (channelId: string, includeFileCount: boolean) => Promise<{data: ChannelStats}>;
+        getChannelStats: (channelId: string, includeFileCount: boolean) => Promise<ActionResult>;
     };
 }
 

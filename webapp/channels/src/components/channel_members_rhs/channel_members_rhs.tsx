@@ -11,6 +11,7 @@ import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AlertBanner from 'components/alert_banner';
 import ChannelInviteModal from 'components/channel_invite_modal';
@@ -52,14 +53,14 @@ export interface Props {
 
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        openDirectChannelToUserId: (userId: string) => Promise<{data: Channel}>;
+        openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
         closeRightHandSide: () => void;
         goBack: () => void;
         setChannelMembersRhsSearchTerm: (terms: string) => void;
         loadProfilesAndReloadChannelMembers: (page: number, perParge: number, channelId: string, sort: string) => void;
         loadMyChannelMemberAndRole: (channelId: string) => void;
         setEditChannelMembers: (active: boolean) => void;
-        searchProfilesAndChannelMembers: (term: string, options: any) => Promise<{data: UserProfile[]}>;
+        searchProfilesAndChannelMembers: (term: string, options: any) => Promise<ActionResult>;
     };
 }
 
