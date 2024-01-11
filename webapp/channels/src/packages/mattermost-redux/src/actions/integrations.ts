@@ -10,34 +10,34 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function createIncomingHook(hook: IncomingWebhook): ActionFunc {
+export function createIncomingHook(hook: IncomingWebhook): NewActionFuncAsync<IncomingWebhook> {
     return bindClientFunc({
         clientFunc: Client4.createIncomingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOK],
         params: [
             hook,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getIncomingHook(hookId: string): ActionFunc {
+export function getIncomingHook(hookId: string): NewActionFuncAsync<IncomingWebhook> {
     return bindClientFunc({
         clientFunc: Client4.getIncomingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOK],
         params: [
             hookId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getIncomingHooks(teamId = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getIncomingHooks(teamId = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<IncomingWebhook[]> {
     return bindClientFunc({
         clientFunc: Client4.getIncomingWebhooks,
         onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOKS],
@@ -46,11 +46,11 @@ export function getIncomingHooks(teamId = '', page = 0, perPage: number = Genera
             page,
             perPage,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removeIncomingHook(hookId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removeIncomingHook(hookId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.removeIncomingWebhook(hookId);
         } catch (error) {
@@ -71,37 +71,37 @@ export function removeIncomingHook(hookId: string): ActionFunc {
     };
 }
 
-export function updateIncomingHook(hook: IncomingWebhook): ActionFunc {
+export function updateIncomingHook(hook: IncomingWebhook): NewActionFuncAsync<IncomingWebhook> {
     return bindClientFunc({
         clientFunc: Client4.updateIncomingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_INCOMING_HOOK],
         params: [
             hook,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function createOutgoingHook(hook: OutgoingWebhook): ActionFunc {
+export function createOutgoingHook(hook: OutgoingWebhook): NewActionFuncAsync<OutgoingWebhook> {
     return bindClientFunc({
         clientFunc: Client4.createOutgoingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOK],
         params: [
             hook,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getOutgoingHook(hookId: string): ActionFunc {
+export function getOutgoingHook(hookId: string): NewActionFuncAsync<OutgoingWebhook> {
     return bindClientFunc({
         clientFunc: Client4.getOutgoingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOK],
         params: [
             hookId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getOutgoingHooks(channelId = '', teamId = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getOutgoingHooks(channelId = '', teamId = '', page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<OutgoingWebhook[]> {
     return bindClientFunc({
         clientFunc: Client4.getOutgoingWebhooks,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOKS],
@@ -111,11 +111,11 @@ export function getOutgoingHooks(channelId = '', teamId = '', page = 0, perPage:
             page,
             perPage,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removeOutgoingHook(hookId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removeOutgoingHook(hookId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.removeOutgoingWebhook(hookId);
         } catch (error) {
@@ -136,24 +136,24 @@ export function removeOutgoingHook(hookId: string): ActionFunc {
     };
 }
 
-export function updateOutgoingHook(hook: OutgoingWebhook): ActionFunc {
+export function updateOutgoingHook(hook: OutgoingWebhook): NewActionFuncAsync<OutgoingWebhook> {
     return bindClientFunc({
         clientFunc: Client4.updateOutgoingWebhook,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOK],
         params: [
             hook,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function regenOutgoingHookToken(hookId: string): ActionFunc {
+export function regenOutgoingHookToken(hookId: string): NewActionFuncAsync<OutgoingWebhook> {
     return bindClientFunc({
         clientFunc: Client4.regenOutgoingHookToken,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_HOOK],
         params: [
             hookId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getCommands(teamId: string): ActionFunc {
@@ -178,34 +178,34 @@ export function getAutocompleteCommands(teamId: string, page = 0, perPage: numbe
     });
 }
 
-export function getCustomTeamCommands(teamId: string): ActionFunc {
+export function getCustomTeamCommands(teamId: string): NewActionFuncAsync<Command[]> {
     return bindClientFunc({
         clientFunc: Client4.getCustomTeamCommands,
         onSuccess: [IntegrationTypes.RECEIVED_CUSTOM_TEAM_COMMANDS],
         params: [
             teamId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function addCommand(command: Command): ActionFunc {
+export function addCommand(command: Command): NewActionFuncAsync<Command> {
     return bindClientFunc({
         clientFunc: Client4.addCommand,
         onSuccess: [IntegrationTypes.RECEIVED_COMMAND],
         params: [
             command,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function editCommand(command: Command): ActionFunc {
+export function editCommand(command: Command): NewActionFuncAsync<Command> {
     return bindClientFunc({
         clientFunc: Client4.editCommand,
         onSuccess: [IntegrationTypes.RECEIVED_COMMAND],
         params: [
             command,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function executeCommand(command: string, args: CommandArgs): ActionFunc {
@@ -218,8 +218,8 @@ export function executeCommand(command: string, args: CommandArgs): ActionFunc {
     });
 }
 
-export function regenCommandToken(id: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function regenCommandToken(id: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let res;
         try {
             res = await Client4.regenCommandToken(id);
@@ -244,8 +244,8 @@ export function regenCommandToken(id: string): ActionFunc {
     };
 }
 
-export function deleteCommand(id: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteCommand(id: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.deleteCommand(id);
         } catch (error) {
@@ -266,27 +266,27 @@ export function deleteCommand(id: string): ActionFunc {
     };
 }
 
-export function addOAuthApp(app: OAuthApp): ActionFunc {
+export function addOAuthApp(app: OAuthApp): NewActionFuncAsync<OAuthApp> {
     return bindClientFunc({
         clientFunc: Client4.createOAuthApp,
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APP],
         params: [
             app,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function editOAuthApp(app: OAuthApp): ActionFunc {
+export function editOAuthApp(app: OAuthApp): NewActionFuncAsync<OAuthApp> {
     return bindClientFunc({
         clientFunc: Client4.editOAuthApp,
         onSuccess: IntegrationTypes.RECEIVED_OAUTH_APP,
         params: [
             app,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getOAuthApps(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getOAuthApps(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<OAuthApp[]> {
     return bindClientFunc({
         clientFunc: Client4.getOAuthApps,
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APPS],
@@ -294,7 +294,7 @@ export function getOAuthApps(page = 0, perPage: number = General.PAGE_SIZE_DEFAU
             page,
             perPage,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getOutgoingOAuthConnections(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
@@ -345,25 +345,25 @@ export function getAppsOAuthAppIDs(): ActionFunc {
     });
 }
 
-export function getAppsBotIDs(): ActionFunc {
+export function getAppsBotIDs(): NewActionFuncAsync<string[]> {
     return bindClientFunc({
         clientFunc: Client4.getAppsBotIDs,
         onSuccess: [IntegrationTypes.RECEIVED_APPS_BOT_IDS],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getOAuthApp(appId: string): ActionFunc {
+export function getOAuthApp(appId: string): NewActionFuncAsync<OAuthApp> {
     return bindClientFunc({
         clientFunc: Client4.getOAuthApp,
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APP],
         params: [
             appId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getAuthorizedOAuthApps(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getAuthorizedOAuthApps(): NewActionFuncAsync<OAuthApp[]> {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 
@@ -382,15 +382,15 @@ export function getAuthorizedOAuthApps(): ActionFunc {
     };
 }
 
-export function deauthorizeOAuthApp(clientId: string): ActionFunc {
+export function deauthorizeOAuthApp(clientId: string): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.deauthorizeOAuthApp,
         params: [clientId],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function deleteOAuthApp(id: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteOAuthApp(id: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.deleteOAuthApp(id);
         } catch (error) {
@@ -411,14 +411,14 @@ export function deleteOAuthApp(id: string): ActionFunc {
     };
 }
 
-export function regenOAuthAppSecret(appId: string): ActionFunc {
+export function regenOAuthAppSecret(appId: string): NewActionFuncAsync<OAuthApp> {
     return bindClientFunc({
         clientFunc: Client4.regenOAuthAppSecret,
         onSuccess: [IntegrationTypes.RECEIVED_OAUTH_APP],
         params: [
             appId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function deleteOutgoingOAuthConnection(id: string): ActionFunc {

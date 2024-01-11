@@ -26,6 +26,7 @@ func (api *API) InitOutgoingOAuthConnection() {
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(getOutgoingOAuthConnection)).Methods("GET")
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(updateOutgoingOAuthConnection)).Methods("PUT")
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(deleteOutgoingOAuthConnection)).Methods("DELETE")
+	api.BaseRoutes.OutgoingOAuthConnection.Handle("/validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods("POST")
 	api.BaseRoutes.OutgoingOAuthConnections.Handle("/validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods("POST")
 }
 
@@ -46,11 +47,11 @@ func checkOutgoingOAuthConnectionReadPermissions(c *Context) bool {
 // checkOutgoingOAuthConnectionWritePermissions checks if the user has the permissions to write outgoing oauth connections.
 // This is a more granular permissions intended for system admins to manage (setup) outgoing oauth connections.
 func checkOutgoingOAuthConnectionWritePermissions(c *Context) bool {
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.OutgoingOAuthConnectionManagementPermission) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) {
 		return true
 	}
 
-	c.SetPermissionError(model.OutgoingOAuthConnectionManagementPermission)
+	c.SetPermissionError(model.PermissionManageOutgoingOAuthConnections)
 	return false
 }
 
@@ -267,7 +268,9 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	}
 	auditRec.AddEventPriorState(currentConnection)
 
-	connection, err := service.UpdateConnection(c.AppContext, &inputConnection)
+	currentConnection.Patch(&inputConnection)
+
+	connection, err := service.UpdateConnection(c.AppContext, currentConnection)
 	if err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
@@ -340,34 +343,49 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	c.LogAudit("attempt")
 
 	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+		w.WriteHeader(c.Err.StatusCode)
 		return
 	}
 
 	service, ok := ensureOutgoingOAuthConnectionInterface(c, whereOutgoingOAuthConnection)
 	if !ok {
+		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
-	var inputConnection model.OutgoingOAuthConnection
-	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, err.Error(), http.StatusBadRequest)
-		return
+	// Allow checking connections sent in the body or by id if coming from an already existing
+	// connection url.
+	var inputConnection *model.OutgoingOAuthConnection
+	if c.Params != nil && c.Params.OutgoingOAuthConnectionID != "" {
+		var err *model.AppError
+		inputConnection, err = service.GetConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID)
+		if err != nil {
+			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, err.Error(), http.StatusInternalServerError)
+			w.WriteHeader(c.Err.StatusCode)
+			return
+		}
+	} else {
+		if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
+			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, err.Error(), http.StatusBadRequest)
+			w.WriteHeader(c.Err.StatusCode)
+			return
+		}
 	}
 
-	audit.AddEventParameterAuditable(auditRec, "outgoing_oauth_connection", &inputConnection)
+	audit.AddEventParameterAuditable(auditRec, "outgoing_oauth_connection", inputConnection)
 
 	resultStatusCode := http.StatusOK
 
 	// Try to retrieve a token with the provided credentials
 	// do not store the token, just check if the credentials are valid and the request can be made
-	_, err := service.RetrieveTokenForConnection(c.AppContext, &inputConnection)
+	_, err := service.RetrieveTokenForConnection(c.AppContext, inputConnection)
 	if err != nil {
 		c.Logger.Error("Failed to retrieve token while validating outgoing oauth connection", logr.Err(err))
 		resultStatusCode = err.StatusCode
 	}
 
 	auditRec.Success()
-	auditRec.AddEventResultState(&inputConnection)
+	auditRec.AddEventResultState(inputConnection)
 	auditRec.AddEventObjectType("outgoing_oauth_connection")
 
 	w.WriteHeader(resultStatusCode)

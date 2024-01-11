@@ -323,3 +323,61 @@ func TestOutgoingOAuthConnectionSanitize(t *testing.T) {
 	require.Empty(t, oa.CredentialsUsername)
 	require.Empty(t, oa.CredentialsPassword)
 }
+
+func TestOutgoingOAuthConnectionPatch(t *testing.T) {
+	t.Run("name", func(t *testing.T) {
+		oa := newValidOutgoingOAuthConnection()
+		oa.Patch(&OutgoingOAuthConnection{Name: "new name"})
+
+		require.Equal(t, "new name", oa.Name)
+	})
+
+	t.Run("client_id", func(t *testing.T) {
+		oa := newValidOutgoingOAuthConnection()
+		oa.Patch(&OutgoingOAuthConnection{ClientId: "new client id"})
+
+		require.Equal(t, "new client id", oa.ClientId)
+	})
+
+	t.Run("client_secret", func(t *testing.T) {
+		oa := newValidOutgoingOAuthConnection()
+		oa.Patch(&OutgoingOAuthConnection{ClientSecret: "new client secret"})
+
+		require.Equal(t, "new client secret", oa.ClientSecret)
+	})
+
+	t.Run("oauth_token_url", func(t *testing.T) {
+		oa := newValidOutgoingOAuthConnection()
+		oa.Patch(&OutgoingOAuthConnection{OAuthTokenURL: "new oauth token url"})
+
+		require.Equal(t, "new oauth token url", oa.OAuthTokenURL)
+	})
+
+	t.Run("grant_type", func(t *testing.T) {
+		oa := newValidOutgoingOAuthConnection()
+		oa.Patch(&OutgoingOAuthConnection{GrantType: OutgoingOAuthConnectionGrantTypePassword})
+
+		require.Equal(t, OutgoingOAuthConnectionGrantTypePassword, oa.GrantType)
+	})
+
+	t.Run("audiences", func(t *testing.T) {
+		oa := newValidOutgoingOAuthConnection()
+		oa.Patch(&OutgoingOAuthConnection{Audiences: StringArray{"new audience"}})
+
+		require.Equal(t, StringArray{"new audience"}, oa.Audiences)
+	})
+
+	t.Run("credentials_username", func(t *testing.T) {
+		oa := newValidOutgoingOAuthConnection()
+		oa.Patch(&OutgoingOAuthConnection{CredentialsUsername: &someString})
+
+		require.Equal(t, &someString, oa.CredentialsUsername)
+	})
+
+	t.Run("credentials_password", func(t *testing.T) {
+		oa := newValidOutgoingOAuthConnection()
+		oa.Patch(&OutgoingOAuthConnection{CredentialsPassword: &someString})
+
+		require.Equal(t, &someString, oa.CredentialsPassword)
+	})
+}

@@ -16,8 +16,6 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import {CustomStatusDuration} from '@mattermost/types/users';
 import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import * as GlobalActions from 'actions/global_actions';
 
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
@@ -53,8 +51,8 @@ type Props = {
     autoResetPref?: string;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        setStatus: (status: UserStatus) => ActionFunc;
-        unsetCustomStatus: () => ActionFunc;
+        setStatus: (status: UserStatus) => void;
+        unsetCustomStatus: () => void;
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         setStatusDropdown: (open: boolean) => void;
     };

@@ -1694,6 +1694,10 @@
     "translation": "Invalid input parameters."
   },
   {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "There was an error while validating the outgoing OAuth connection credentials."
+  },
+  {
     "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
     "translation": "Couldn't retrieve credentials with the specified connection configuration."
   },
@@ -6645,6 +6649,10 @@
   {
     "id": "app.recover.save.app_error",
     "translation": "Unable to save the token."
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Failed to fetch user count."
   },
   {
     "id": "app.report.get_user_report.store_error",

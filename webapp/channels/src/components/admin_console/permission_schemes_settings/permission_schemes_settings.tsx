@@ -456,3 +456,5 @@ t('admin.permissions.permission.restore_custom_group.name');
 t('admin.permissions.permission.restore_custom_group.description');
 t('admin.permissions.permission.edit_custom_group.name');
 t('admin.permissions.permission.edit_custom_group.description');
+t('admin.permissions.permission.manage_outgoing_oauth_connections.name');
+t('admin.permissions.permission.manage_outgoing_oauth_connections.description');
