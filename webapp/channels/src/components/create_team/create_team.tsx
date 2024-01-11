@@ -77,17 +77,7 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
             customDescriptionText,
             match,
             siteName,
-            isCloud,
-            isFreeTrial,
-            usageDeltas: {
-                teams: {
-                    active: usageDeltaTeams,
-                },
-            },
         } = this.props;
-
-        const teamsLimitReached = usageDeltaTeams >= 0;
-        const createTeamRestricted = isCloud && !isFreeTrial && teamsLimitReached;
 
         let url = '/select_team';
         if (currentTeam) {
@@ -108,23 +98,6 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
                             siteName={siteName}
                         />
                         <div className='signup__content'>
-                            {createTeamRestricted ? (
-                                <>
-                                    <h5>
-                                        <FormattedMessage
-                                            id='create_team.createTeamRestricted.title'
-                                            tagName='strong'
-                                            defaultMessage='Professional feature'
-                                        />
-                                    </h5>
-                                    <div>
-                                        <FormattedMessage
-                                            id='create_team.createTeamRestricted.message'
-                                            defaultMessage='Your workspace plan has reached the limit on the number of teams. Create unlimited teams with a free 30-day trial. Contact your System Administrator.'
-                                        />
-                                    </div>
-                                </>
-                            ) : (
                                 <Switch>
                                     <Route
                                         path={`${this.props.match.url}/display_name`}
@@ -148,7 +121,6 @@ export default class CreateTeam extends React.PureComponent<Props & RouteCompone
                                     />
                                     <Redirect to={`${match.url}/display_name`}/>
                                 </Switch>
-                            )}
                         </div>
                     </div>
                 </div>
