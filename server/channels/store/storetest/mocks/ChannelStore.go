@@ -432,8 +432,8 @@ func (_m *ChannelStore) GetAll(teamID string) ([]*model.Channel, error) {
 	return r0, r1
 }
 
-// GetAllChannelMembersById provides a mock function with given fields: id
-func (_m *ChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+// GetAllChannelMemberIdsByChannelId provides a mock function with given fields: id
+func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, error) {
 	ret := _m.Called(id)
 
 	var r0 []string
@@ -1307,6 +1307,30 @@ func (_m *ChannelStore) GetMemberForPost(postID string, userID string, includeAr
 
 	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
 		r1 = rf(postID, userID, includeArchivedChannels)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetMemberLastViewedAt provides a mock function with given fields: ctx, channelID, userID
+func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
+	ret := _m.Called(ctx, channelID, userID)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return rf(ctx, channelID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
+		r0 = rf(ctx, channelID, userID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, channelID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
