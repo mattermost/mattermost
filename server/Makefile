@@ -709,7 +709,6 @@ clean: stop-docker ## Clean up everything except persistent server data.
 	rm -f mattermost.log.jsonl
 	rm -f npm-debug.log
 	rm -f .prepare-go
-	rm -f enterprise
 	rm -f cover.out
 	rm -f ecover.out
 	rm -f *.out
