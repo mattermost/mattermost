@@ -676,7 +676,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} is reeds lid van het kanaal."
+    "translation": {
+      "one": "{{.User}} is reeds lid van het kanaal.",
+      "other": "{{.User}} zijn reeds lid van het kanaal."
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1725,7 +1728,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Team beperken tot {{.Domain}} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
+    "translation": "Team beperken tot {{ .Domain }} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2437,7 +2440,7 @@
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "Geïmporteerde lijn heeft onbekend type \"\"{.Type}}\"."
+    "translation": "Geïmporteerde lijn heeft onbekend type \"{{.Type}}\"."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
@@ -2849,15 +2852,15 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nieuw groepsbericht van {{.ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nieuw groepsbericht van {{ .ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nieuwe Notificatie voor {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{ .SiteName }}[{{.SiteName}}] Nieuw groepsbericht op  {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nieuw vermelding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Melding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -2989,7 +2992,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Clusterconfiguratie is gewijzigd voor id= {{.id}}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet u onmiddellijk een rollende herstart uitvoeren."
+    "translation": "Clusterconfiguratie is gewijzigd voor id= {{ .id }}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet je onmiddellijk een rollende herstart uitvoeren."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -3881,7 +3884,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Bericht Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10."
+    "translation": "Message export GlobalRelaySettings.CustomerType moet worden ingesteld op \"A9\", \"A10\" of \"CUSTOM\"."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -3929,7 +3932,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Ongeldige URL. Een geldige URL begint met http:// of https://."
+    "translation": "Identity Provider Issuer URL kan geen lege tekst zijn."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4337,95 +4340,95 @@
   },
   {
     "id": "model.post.is_valid.original_id.app_error",
-    "translation": "Ongeldige orgineel id"
+    "translation": "Ongeldige orgineel id."
   },
   {
     "id": "model.post.is_valid.props.app_error",
-    "translation": "Ongeldige eigenschappen"
+    "translation": "Ongeldige eigenschappen."
   },
   {
     "id": "model.post.is_valid.root_id.app_error",
-    "translation": "Ongeldig start id"
+    "translation": "Ongeldig start id."
   },
   {
     "id": "model.post.is_valid.type.app_error",
-    "translation": "Ongeldig type"
+    "translation": "Ongeldig type."
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn."
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
-    "translation": "Ongeldig gebruikers id"
+    "translation": "Ongeldig gebruikers id."
   },
   {
     "id": "model.preference.is_valid.category.app_error",
-    "translation": "Ongeldige categorie"
+    "translation": "Ongeldige categorie."
   },
   {
     "id": "model.preference.is_valid.id.app_error",
-    "translation": "Ongeldig gebruikers id"
+    "translation": "Ongeldig gebruikers id."
   },
   {
     "id": "model.preference.is_valid.name.app_error",
-    "translation": "Ongeldige naam"
+    "translation": "Ongeldige naam."
   },
   {
     "id": "model.preference.is_valid.theme.app_error",
-    "translation": "Ongeldig thema"
+    "translation": "Ongeldig thema."
   },
   {
     "id": "model.preference.is_valid.value.app_error",
-    "translation": "Waarde it te lang"
+    "translation": "Waarde it te lang."
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Aangemaakt op moet een geldige tijd zijn."
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
-    "translation": "Ongeldig emoji id"
+    "translation": "Ongeldig emojinaam."
   },
   {
     "id": "model.reaction.is_valid.post_id.app_error",
-    "translation": "Ongeldig start id"
+    "translation": "Ongeldig post id."
   },
   {
     "id": "model.reaction.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikers id."
   },
   {
     "id": "model.team.is_valid.characters.app_error",
-    "translation": "Naam oet 2 of meer kleine letters bevatten"
+    "translation": "Naam moet 2 of meer kleine letters bevatten."
   },
   {
     "id": "model.team.is_valid.company.app_error",
-    "translation": "Ongeldige bedrijfsnaam"
+    "translation": "Ongeldige bedrijfsnaam."
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Aangemaakt op moet een geldige tijd zijn."
   },
   {
     "id": "model.team.is_valid.description.app_error",
-    "translation": "Ongeldige beschrijving"
+    "translation": "Ongeldige beschrijving."
   },
   {
     "id": "model.team.is_valid.domains.app_error",
-    "translation": "Toegestane domeinen is ongeldig"
+    "translation": "Toegestane domeinen is ongeldig."
   },
   {
     "id": "model.team.is_valid.email.app_error",
-    "translation": "Ongeldige e-mail"
+    "translation": "Ongeldige e-mail."
   },
   {
     "id": "model.team.is_valid.id.app_error",
-    "translation": "Ongeldig Id"
+    "translation": "Ongeldig Id."
   },
   {
     "id": "model.team.is_valid.name.app_error",
-    "translation": "Ongeldige naam"
+    "translation": "Ongeldige naam."
   },
   {
     "id": "model.team.is_valid.reserved.app_error",
@@ -4433,23 +4436,23 @@
   },
   {
     "id": "model.team.is_valid.type.app_error",
-    "translation": "Ongeldig type"
+    "translation": "Ongeldig type."
   },
   {
     "id": "model.team.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn."
   },
   {
     "id": "model.team.is_valid.url.app_error",
-    "translation": "Ongeldige URL 'identifier'"
+    "translation": "Ongeldige URL 'identifier'."
   },
   {
     "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": "Ongeldig team id"
+    "translation": "Ongeldig team id."
   },
   {
     "id": "model.team_member.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikers id."
   },
   {
     "id": "model.token.is_valid.expiry",
@@ -4457,7 +4460,7 @@
   },
   {
     "id": "model.token.is_valid.size",
-    "translation": "Ongeldig token"
+    "translation": "Ongeldig token."
   },
   {
     "id": "model.user.is_valid.email.app_error",
@@ -4473,7 +4476,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number.app_error",
-    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter en 1 cijfer bevatten"
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter en 1 cijfer bevatten."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_number_symbol.app_error",
@@ -4489,7 +4492,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten"
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
@@ -4541,11 +4544,11 @@
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
-    "translation": "Ongeldig toegangs token"
+    "translation": "Ongeldig toegangstoken."
   },
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikersid."
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -4669,7 +4672,7 @@
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Onjuiste kanaal rechten"
+    "translation": "Onjuiste kanaal rechten."
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4765,15 +4768,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versie 102+"
+    "translation": "Versie 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versie 116+"
+    "translation": "Versie 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Versie 116+"
+    "translation": "Versie 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4841,7 +4844,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -4865,7 +4868,7 @@
   },
   {
     "id": "model.user.is_valid.id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikers id."
   },
   {
     "id": "model.user.is_valid.first_name.app_error",
@@ -4873,7 +4876,7 @@
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
-    "translation": "Aangemaakt op moet een geldige tijd zijn"
+    "translation": "Aangemaakt op moet een geldige tijd zijn."
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
@@ -5713,7 +5716,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{.Team}}** team."
+    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{{.Team}}** team."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -7889,7 +7892,7 @@
   },
   {
     "id": "api.back_to_app",
-    "translation": "Terug naar {{.siteName}}"
+    "translation": "Terug naar {{.SiteName}}"
   },
   {
     "id": "api.user.update_user_auth.invalid_request",
@@ -8421,7 +8424,7 @@
   },
   {
     "id": "api.command_share.available_actions",
-    "translation": "Beschikbare acties: {{.Acties}}"
+    "translation": "Beschikbare acties: {{.Actions}}"
   },
   {
     "id": "api.command_remote.unknown_action",
@@ -8465,7 +8468,7 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Acties}}"
+    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8529,7 +8532,7 @@
   },
   {
     "id": "api.command_remote.decode_invitation.error",
-    "translation": "Kon de uitnodiging niet decoderen: {{.Fout}}"
+    "translation": "Kon de uitnodiging niet decoderen: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
@@ -8852,7 +8855,7 @@
   },
   {
     "id": "app.notification.body.thread_dm.subTitle",
-    "translation": "Terwijl je weg was, heeft {{.Afzendernaam}} op een draadje in je privé-berichten geantwoord."
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} op een draadje in je privé-bericht geantwoord."
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
@@ -9136,7 +9139,7 @@
   },
   {
     "id": "common.parse_error_int64",
-    "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
+    "translation": "Mislukt om de waarde te ontleden:{{.Value}} naar int64"
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -9160,7 +9163,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.team.clear_cache.app_error",
@@ -9188,7 +9191,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is een open source platform voor veilige communicatie, samenwerking, en regie van werk over tools en teams heen.\nMattermost bevat drie belangrijke tools:\n\n**Channels** - Blijf verbonden met je team via 1:1 en groepsberichten.\n**[Playbooks](/playbooks)** - Bouw en configureer herhaalbare processen om specifieke en voorspelbare resultaten te bereiken.\n**[Boards](/borden)** - Beheer projecten en taken in een Kanban-bordstructuur om jouw team te helpen belangrijke mijlpalen te halen.\n\n[Documentatie en leidraden bekijken]({{.HelpLink}})"
+    "translation": "Mattermost is een open source platform voor veilige communicatie, samenwerking, en regie van werk over tools en teams heen.\nMattermost bevat twee belangrijke tools:\n\n**Channels** - Blijf verbonden met je team via 1:1 en groepsberichten.\n**[Playbooks](/playbooks)** - Bouw en configureer herhaalbare processen om specifieke en voorspelbare resultaten te bereiken.\n\n[Documentatie en leidraden bekijken]({{.HelpLink}})"
   },
   {
     "id": "api.cloud.delinquency_email.missing_email_to_trigger",
@@ -9644,7 +9647,7 @@
   },
   {
     "id": "app.group.username_conflict",
-    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
+    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Username}}\"."
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9872,7 +9875,7 @@
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
-    "translation": "Berichten met een blijvende meldingen moeten minimaal {{.MaxRecipients}} 1 ontvanger hebben."
+    "translation": "Berichten met een blijvende meldingen moeten minimaal 1 ontvanger hebben."
   },
   {
     "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
@@ -9904,7 +9907,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
-    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{.Team}}** team."
+    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{{.Team}}** team."
   },
   {
     "id": "api.user.login.remote_users.login.error",
@@ -9981,5 +9984,141 @@
   {
     "id": "app.thread.mark_all_as_read_by_channels.app_error",
     "translation": "Kan niet alle draadjes markeren als gelezen door kanaal"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Kan niet zoveel emoji's op naam krijgen. Alleen {{.MaxNames}} emoji's kunnen in één keer worden opgevraagd."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Mislukt bij het parsen van JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Ongeldig formaat: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Er is een fout opgetreden tijdens het toepassen van de IP-filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de IP-filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Er is een fout opgetreden bij het ophalen van het IP-adres van de client"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP-filtering is niet beschikbaar op deze server"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Wijzigingen bekijken"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{ .InitiatingUsername }} heeft de IP-filterinstellingen voor jouw werkruimte gewijzigd op de URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Wijzigingen in de IP-filters van je werkruimte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Stuur een e-mail naar {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Timestamp van de laatste aanmelding kon niet worden bijgewerkt"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Fout bij het parsen van het subpad van de SiteURL"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "IP-filterwijzigingen voor je werkruimte"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Neem contact met de helpdesk"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Log in op het klantenportaal om de IP-filtering opnieuw in te stellen"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Problemen met de toegang tot je werkruimte?"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience mag niet leeg zijn."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Sommige audience URL's zijn onjuist."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Ongeldig client id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Ongeldig client geheim."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Aangemaakt op moet een geldige tijd bevatten."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Ongeldig aanmaker-id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Ongeldig granttype."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Ongeldig id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Ongeldige naam."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Ongeldige oauth token url."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Ongeldige wachtwoordgegevens."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Bijgewerkt op moet een geldige tijd zijn."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Het bijwerken van de aangepaste status is mislukt. Een emoji met de opgegeven naam bestaat niet."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ongeldig team id opgegeven."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Kan niet zowel actieve als inactieve gebruikers verbergen."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "De reactielimiet voor dit bericht is bereikt."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Als GlobalRelaySettings.CustomerType 'CUSTOM' is, dan moeten GlobalRelaySettings.CustomSMTPServerName en GlobalRelaySettings.CustomSMTPPort worden ingesteld."
   }
 ]

@@ -337,7 +337,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             id="bots.manage.add.cancel"
           />
         </Link>
-        <SpinnerButton
+        <Memo(SpinnerButton)
           className="btn btn-primary"
           id="saveBot"
           onClick={[Function]}
@@ -354,7 +354,7 @@ exports[`components/integrations/bots/AddBot blank 1`] = `
             defaultMessage="Create Bot Account"
             id="bots.manage.add.create"
           />
-        </SpinnerButton>
+        </Memo(SpinnerButton)>
       </div>
     </form>
   </div>

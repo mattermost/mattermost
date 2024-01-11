@@ -18,6 +18,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -613,7 +614,7 @@ func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) 
 	return newChannel, err
 }
 
-func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+func (s SqlChannelStore) CreateDirectChannel(rctx request.CTX, user *model.User, otherUser *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	channel := new(model.Channel)
 
 	for _, option := range channelOptions {
@@ -641,10 +642,10 @@ func (s SqlChannelStore) CreateDirectChannel(user *model.User, otherUser *model.
 		SchemeUser:  !otherUser.IsGuest(),
 	}
 
-	return s.SaveDirectChannel(channel, cm1, cm2)
+	return s.SaveDirectChannel(rctx, channel, cm1, cm2)
 }
 
-func (s SqlChannelStore) SaveDirectChannel(directChannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (_ *model.Channel, err error) {
+func (s SqlChannelStore) SaveDirectChannel(rctx request.CTX, directChannel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (_ *model.Channel, err error) {
 	if directChannel.DeleteAt != 0 {
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", directChannel.DeleteAt)
 	}
@@ -721,7 +722,7 @@ func (s SqlChannelStore) saveChannelT(transaction *sqlxTxWrapper, channel *model
 }
 
 // Update writes the updated channel to the database.
-func (s SqlChannelStore) Update(channel *model.Channel) (_ *model.Channel, err error) {
+func (s SqlChannelStore) Update(rctx request.CTX, channel *model.Channel) (_ *model.Channel, err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return nil, errors.Wrap(err, "begin_transaction")
@@ -973,7 +974,7 @@ func (s SqlChannelStore) permanentDeleteByTeamtT(transaction *sqlxTxWrapper, tea
 }
 
 // PermanentDelete removes the given channel from the database.
-func (s SqlChannelStore) PermanentDelete(channelId string) (err error) {
+func (s SqlChannelStore) PermanentDelete(rctx request.CTX, channelId string) (err error) {
 	transaction, err := s.GetMasterX().Beginx()
 	if err != nil {
 		return errors.Wrap(err, "PermanentDelete: begin_transaction")
@@ -1009,7 +1010,7 @@ func (s SqlChannelStore) permanentDeleteT(transaction *sqlxTxWrapper, channelId 
 	return nil
 }
 
-func (s SqlChannelStore) PermanentDeleteMembersByChannel(channelId string) error {
+func (s SqlChannelStore) PermanentDeleteMembersByChannel(rctx request.CTX, channelId string) error {
 	_, err := s.GetMasterX().Exec("DELETE FROM ChannelMembers WHERE ChannelId = ?", channelId)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete Channel with channelId=%s", channelId)
@@ -1846,7 +1847,7 @@ func (s SqlChannelStore) UpdateMultipleMembers(members []*model.ChannelMember) (
 	return updatedMembers, nil
 }
 
-func (s SqlChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s SqlChannelStore) UpdateMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	updatedMembers, err := s.UpdateMultipleMembers([]*model.ChannelMember{member})
 	if err != nil {
 		return nil, err
@@ -2106,7 +2107,7 @@ func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string
 	return false
 }
 
-func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeArchivedChannels bool) (*model.ChannelMember, error) {
 	var dbMember channelMemberWithSchemeRoles
 	query := `
 		SELECT
@@ -2146,6 +2147,10 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 			ChannelMembers.UserId = ?
 		AND
 			Posts.Id = ?`
+
+	if !includeArchivedChannels {
+		query += " AND Channels.DeleteAt = 0"
+	}
 	if err := s.GetReplicaX().Get(&dbMember, query, userId, postId); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with postId=%s and userId=%s", postId, userId)
 	}
@@ -2468,7 +2473,7 @@ func (s SqlChannelStore) GetGuestCount(channelId string, allowFromCache bool) (i
 	return count, nil
 }
 
-func (s SqlChannelStore) RemoveMembers(channelId string, userIds []string) error {
+func (s SqlChannelStore) RemoveMembers(rctx request.CTX, channelId string, userIds []string) error {
 	builder := s.getQueryBuilder().
 		Delete("ChannelMembers").
 		Where(sq.Eq{"ChannelId": channelId}).
@@ -2499,11 +2504,11 @@ func (s SqlChannelStore) RemoveMembers(channelId string, userIds []string) error
 	return nil
 }
 
-func (s SqlChannelStore) RemoveMember(channelId string, userId string) error {
-	return s.RemoveMembers(channelId, []string{userId})
+func (s SqlChannelStore) RemoveMember(rctx request.CTX, channelId string, userId string) error {
+	return s.RemoveMembers(rctx, channelId, []string{userId})
 }
 
-func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) error {
+func (s SqlChannelStore) RemoveAllDeactivatedMembers(rctx request.CTX, channelId string) error {
 	query := `
 		DELETE
 		FROM
@@ -2528,7 +2533,7 @@ func (s SqlChannelStore) RemoveAllDeactivatedMembers(channelId string) error {
 	return nil
 }
 
-func (s SqlChannelStore) PermanentDeleteMembersByUser(userId string) error {
+func (s SqlChannelStore) PermanentDeleteMembersByUser(rctx request.CTX, userId string) error {
 	if _, err := s.GetMasterX().Exec("DELETE FROM ChannelMembers WHERE UserId = ?", userId); err != nil {
 		return errors.Wrapf(err, "failed to permanent delete ChannelMembers with userId=%s", userId)
 	}
@@ -2644,7 +2649,7 @@ func (s SqlChannelStore) UpdateLastViewedAt(channelIds []string, userId string) 
 	return times, nil
 }
 
-func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64, userId string) (int, error) {
+func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64, excludedUserID string) (int, error) {
 	query := s.getQueryBuilder().
 		Select("count(*)").
 		From("PostsPriority").
@@ -2656,8 +2661,8 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 			sq.Eq{"Posts.DeleteAt": 0},
 		})
 
-	if userId != "" {
-		query = query.Where(sq.Eq{"Posts.UserId": userId})
+	if excludedUserID != "" {
+		query = query.Where(sq.NotEq{"Posts.UserId": excludedUserID})
 	}
 
 	var urgent int64
@@ -2669,8 +2674,8 @@ func (s SqlChannelStore) CountUrgentPostsAfter(channelId string, timestamp int64
 	return int(urgent), nil
 }
 
-// CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by that user.
-func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, userId string) (int, int, error) {
+// CountPostsAfter returns the number of posts in the given channel created after but not including the given timestamp. If given a non-empty user ID, only counts posts made by any other user.
+func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, excludedUserID string) (int, int, error) {
 	joinLeavePostTypes := []string{
 		// These types correspond to the ones checked by Post.IsJoinLeaveMessage
 		model.PostTypeJoinLeave,
@@ -2694,8 +2699,8 @@ func (s SqlChannelStore) CountPostsAfter(channelId string, timestamp int64, user
 			sq.Eq{"DeleteAt": 0},
 		})
 
-	if userId != "" {
-		query = query.Where(sq.Eq{"UserId": userId})
+	if excludedUserID != "" {
+		query = query.Where(sq.NotEq{"UserId": excludedUserID})
 	}
 	sql, args, err := query.ToSql()
 	if err != nil {
@@ -3018,7 +3023,7 @@ func (s SqlChannelStore) GetTeamMembersForChannel(channelID string) ([]string, e
 	return teamMemberIDs, nil
 }
 
-func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
+func (s SqlChannelStore) Autocomplete(rctx request.CTX, userID, term string, includeDeleted, isGuest bool) (model.ChannelListWithTeamData, error) {
 	query := s.getQueryBuilder().Select("c.*",
 		"t.DisplayName AS TeamDisplayName",
 		"t.Name AS TeamName",
@@ -3073,7 +3078,7 @@ func (s SqlChannelStore) Autocomplete(userID, term string, includeDeleted, isGue
 	return channels, nil
 }
 
-func (s SqlChannelStore) AutocompleteInTeam(teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
+func (s SqlChannelStore) AutocompleteInTeam(rctx request.CTX, teamID, userID, term string, includeDeleted, isGuest bool) (model.ChannelList, error) {
 	query := s.getQueryBuilder().Select("*").
 		From("Channels c").
 		Where(sq.Eq{"c.TeamId": teamID}).

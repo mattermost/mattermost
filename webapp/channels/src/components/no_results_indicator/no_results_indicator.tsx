@@ -7,14 +7,12 @@ import type {ReactNode, CSSProperties} from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 
-import FlagIcon from 'components/widgets/icons/flag_icon';
-import MentionsIcon from 'components/widgets/icons/mentions_icon';
-import PinIcon from 'components/widgets/icons/pin_icon';
-import SearchIcon from 'components/widgets/icons/search_icon';
+import {SearchSVG, ChannelSearchSVG, MentionsSVG, SavedMessagesSVG, PinSVG, ChannelFilesSVG, UserGroupsSVG, UserGroupMembersSVG} from 'components/common/svg_images_components';
 
 import {t} from 'utils/i18n';
 
 import {NoResultsVariant, NoResultsLayout} from './types';
+import './no_results_indicator.scss';
 
 interface Props {
     expanded?: boolean;
@@ -31,18 +29,26 @@ interface Props {
 }
 
 const iconMap: {[key in NoResultsVariant]: React.ReactNode } = {
-    [NoResultsVariant.ChannelSearch]: <SearchIcon className='no-results__icon'/>,
-    [NoResultsVariant.Mentions]: <MentionsIcon className='no-results__icon'/>,
-    [NoResultsVariant.FlaggedPosts]: <FlagIcon className='no-results__icon'/>,
-    [NoResultsVariant.PinnedPosts]: <PinIcon className='no-results__icon'/>,
-    [NoResultsVariant.ChannelFiles]: <i className='icon icon-file-text-outline no-results__icon'/>,
-    [NoResultsVariant.ChannelFilesFiltered]: <i className='icon icon-file-text-outline no-results__icon'/>,
-    [NoResultsVariant.UserGroups]: <i className='icon icon-account-multiple-outline no-results__icon'/>,
-    [NoResultsVariant.UserGroupMembers]: <i className='icon icon-account-outline no-results__icon'/>,
-    [NoResultsVariant.UserGroupsArchived]: <i className='icon icon-account-multiple-outline no-results__icon'/>,
+    [NoResultsVariant.Search]: <SearchSVG className='no-results__icon'/>,
+    [NoResultsVariant.ChannelSearch]: <ChannelSearchSVG className='no-results__icon'/>,
+    [NoResultsVariant.Files]: <ChannelFilesSVG className='no-results__icon'/>,
+    [NoResultsVariant.Mentions]: <MentionsSVG className='no-results__icon'/>,
+    [NoResultsVariant.FlaggedPosts]: <SavedMessagesSVG className='no-results__icon'/>,
+    [NoResultsVariant.PinnedPosts]: <PinSVG className='no-results__icon'/>,
+    [NoResultsVariant.ChannelFiles]: <ChannelFilesSVG className='no-results__icon'/>,
+    [NoResultsVariant.ChannelFilesFiltered]: <ChannelFilesSVG className='no-results__icon'/>,
+    [NoResultsVariant.UserGroups]: <UserGroupsSVG className='no-results__icon'/>,
+    [NoResultsVariant.UserGroupMembers]: <UserGroupMembersSVG className='no-results__icon'/>,
+    [NoResultsVariant.UserGroupsArchived]: <UserGroupsSVG className='no-results__icon'/>,
 };
 
 const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
+    [NoResultsVariant.Search]: {
+        id: t('no_results.search.title'),
+    },
+    [NoResultsVariant.Files]: {
+        id: t('no_results.Files.title'),
+    },
     [NoResultsVariant.ChannelSearch]: {
         id: t('no_results.channel_search.title'),
     },
@@ -53,7 +59,7 @@ const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
         id: t('no_results.flagged_posts.title'),
     },
     [NoResultsVariant.PinnedPosts]: {
-        id: t('no_results.pinned_posts.title'),
+        id: t('no_results.pinned_messages.title'),
     },
     [NoResultsVariant.ChannelFiles]: {
         id: t('no_results.channel_files.title'),
@@ -73,6 +79,12 @@ const titleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
 };
 
 const subtitleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
+    [NoResultsVariant.Search]: {
+        id: t('no_results.search.subtitle'),
+    },
+    [NoResultsVariant.Files]: {
+        id: t('no_results.Files.subtitle'),
+    },
     [NoResultsVariant.ChannelSearch]: {
         id: t('no_results.channel_search.subtitle'),
     },
@@ -83,7 +95,7 @@ const subtitleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
         id: t('no_results.flagged_posts.subtitle'),
     },
     [NoResultsVariant.PinnedPosts]: {
-        id: t('no_results.pinned_posts.subtitle'),
+        id: t('no_results.pinned_messages.subtitle'),
     },
     [NoResultsVariant.ChannelFiles]: {
         id: t('no_results.channel_files.subtitle'),
@@ -101,8 +113,6 @@ const subtitleMap: {[key in NoResultsVariant]: MessageDescriptor} = {
         id: t('no_results.user_groups.archived.subtitle'),
     },
 };
-
-import './no_results_indicator.scss';
 
 const NoResultsIndicator = ({
     expanded,

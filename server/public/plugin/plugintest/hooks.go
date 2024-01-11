@@ -198,6 +198,22 @@ func (_m *Hooks) MessageWillBeUpdated(c *plugin.Context, newPost *model.Post, ol
 	return r0, r1
 }
 
+// MessagesWillBeConsumed provides a mock function with given fields: posts
+func (_m *Hooks) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	ret := _m.Called(posts)
+
+	var r0 []*model.Post
+	if rf, ok := ret.Get(0).(func([]*model.Post) []*model.Post); ok {
+		r0 = rf(posts)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.Post)
+		}
+	}
+
+	return r0
+}
+
 // NotificationWillBePushed provides a mock function with given fields: pushNotification, userID
 func (_m *Hooks) NotificationWillBePushed(pushNotification *model.PushNotification, userID string) (*model.PushNotification, string) {
 	ret := _m.Called(pushNotification, userID)
@@ -295,6 +311,44 @@ func (_m *Hooks) OnSendDailyTelemetry() {
 	_m.Called()
 }
 
+// OnSharedChannelsPing provides a mock function with given fields: rc
+func (_m *Hooks) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	ret := _m.Called(rc)
+
+	var r0 bool
+	if rf, ok := ret.Get(0).(func(*model.RemoteCluster) bool); ok {
+		r0 = rf(rc)
+	} else {
+		r0 = ret.Get(0).(bool)
+	}
+
+	return r0
+}
+
+// OnSharedChannelsSyncMsg provides a mock function with given fields: msg, rc
+func (_m *Hooks) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	ret := _m.Called(msg, rc)
+
+	var r0 model.SyncResponse
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) (model.SyncResponse, error)); ok {
+		return rf(msg, rc)
+	}
+	if rf, ok := ret.Get(0).(func(*model.SyncMsg, *model.RemoteCluster) model.SyncResponse); ok {
+		r0 = rf(msg, rc)
+	} else {
+		r0 = ret.Get(0).(model.SyncResponse)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.SyncMsg, *model.RemoteCluster) error); ok {
+		r1 = rf(msg, rc)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // OnWebSocketConnect provides a mock function with given fields: webConnID, userID
 func (_m *Hooks) OnWebSocketConnect(webConnID string, userID string) {
 	_m.Called(webConnID, userID)
@@ -303,6 +357,11 @@ func (_m *Hooks) OnWebSocketConnect(webConnID string, userID string) {
 // OnWebSocketDisconnect provides a mock function with given fields: webConnID, userID
 func (_m *Hooks) OnWebSocketDisconnect(webConnID string, userID string) {
 	_m.Called(webConnID, userID)
+}
+
+// PreferencesHaveChanged provides a mock function with given fields: c, preferences
+func (_m *Hooks) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
+	_m.Called(c, preferences)
 }
 
 // ReactionHasBeenAdded provides a mock function with given fields: c, reaction
@@ -341,6 +400,11 @@ func (_m *Hooks) RunDataRetention(nowTime int64, batchSize int64) (int64, error)
 
 // ServeHTTP provides a mock function with given fields: c, w, r
 func (_m *Hooks) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
+	_m.Called(c, w, r)
+}
+
+// ServeMetrics provides a mock function with given fields: c, w, r
+func (_m *Hooks) ServeMetrics(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
 	_m.Called(c, w, r)
 }
 

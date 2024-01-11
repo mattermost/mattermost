@@ -84,6 +84,17 @@ export function completeStripeAddPaymentMethod(
     };
 }
 
+export function getInstallation() {
+    return async () => {
+        try {
+            const installation = await Client4.getInstallation();
+            return {data: installation};
+        } catch (e: any) {
+            return {error: e.message};
+        }
+    };
+}
+
 export function subscribeCloudSubscription(
     productId: string,
     shippingAddress: Address = getBlankAddressWithCountry(),
@@ -261,7 +272,7 @@ export function retryFailedCloudFetches() {
         }
 
         if (errors.limits) {
-            getCloudLimits()(dispatch, getState);
+            dispatch(getCloudLimits());
         }
 
         return {data: true};

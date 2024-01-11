@@ -9,6 +9,7 @@ package plugin
 import (
 	"errors"
 	"io"
+	"net/http"
 	"reflect"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -48,6 +49,10 @@ type MessageHasBeenPostedIFace interface {
 
 type MessageHasBeenUpdatedIFace interface {
 	MessageHasBeenUpdated(c *Context, newPost, oldPost *model.Post)
+}
+
+type MessagesWillBeConsumedIFace interface {
+	MessagesWillBeConsumed(posts []*model.Post) []*model.Post
 }
 
 type MessageHasBeenDeletedIFace interface {
@@ -128,6 +133,22 @@ type NotificationWillBePushedIFace interface {
 
 type UserHasBeenDeactivatedIFace interface {
 	UserHasBeenDeactivated(c *Context, user *model.User)
+}
+
+type ServeMetricsIFace interface {
+	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
+}
+
+type OnSharedChannelsSyncMsgIFace interface {
+	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+}
+
+type OnSharedChannelsPingIFace interface {
+	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+}
+
+type PreferencesHaveChangedIFace interface {
+	PreferencesHaveChanged(c *Context, preferences []model.Preference)
 }
 
 type HooksAdapter struct {
@@ -222,6 +243,15 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		a.implemented[MessageHasBeenUpdatedID] = struct{}{}
 	} else if _, ok := ft.MethodByName("MessageHasBeenUpdated"); ok {
 		return nil, errors.New("hook has MessageHasBeenUpdated method but does not implement plugin.MessageHasBeenUpdated interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements MessagesWillBeConsumed interface.
+	tt = reflect.TypeOf((*MessagesWillBeConsumedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[MessagesWillBeConsumedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("MessagesWillBeConsumed"); ok {
+		return nil, errors.New("hook has MessagesWillBeConsumed method but does not implement plugin.MessagesWillBeConsumed interface")
 	}
 
 	// Assessing the type of the productHooks if it individually implements MessageHasBeenDeleted interface.
@@ -404,6 +434,42 @@ func NewAdapter(productHooks any) (*HooksAdapter, error) {
 		return nil, errors.New("hook has UserHasBeenDeactivated method but does not implement plugin.UserHasBeenDeactivated interface")
 	}
 
+	// Assessing the type of the productHooks if it individually implements ServeMetrics interface.
+	tt = reflect.TypeOf((*ServeMetricsIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[ServeMetricsID] = struct{}{}
+	} else if _, ok := ft.MethodByName("ServeMetrics"); ok {
+		return nil, errors.New("hook has ServeMetrics method but does not implement plugin.ServeMetrics interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements OnSharedChannelsSyncMsg interface.
+	tt = reflect.TypeOf((*OnSharedChannelsSyncMsgIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[OnSharedChannelsSyncMsgID] = struct{}{}
+	} else if _, ok := ft.MethodByName("OnSharedChannelsSyncMsg"); ok {
+		return nil, errors.New("hook has OnSharedChannelsSyncMsg method but does not implement plugin.OnSharedChannelsSyncMsg interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements OnSharedChannelsPing interface.
+	tt = reflect.TypeOf((*OnSharedChannelsPingIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[OnSharedChannelsPingID] = struct{}{}
+	} else if _, ok := ft.MethodByName("OnSharedChannelsPing"); ok {
+		return nil, errors.New("hook has OnSharedChannelsPing method but does not implement plugin.OnSharedChannelsPing interface")
+	}
+
+	// Assessing the type of the productHooks if it individually implements PreferencesHaveChanged interface.
+	tt = reflect.TypeOf((*PreferencesHaveChangedIFace)(nil)).Elem()
+
+	if ft.Implements(tt) {
+		a.implemented[PreferencesHaveChangedID] = struct{}{}
+	} else if _, ok := ft.MethodByName("PreferencesHaveChanged"); ok {
+		return nil, errors.New("hook has PreferencesHaveChanged method but does not implement plugin.PreferencesHaveChanged interface")
+	}
+
 	return a, nil
 }
 
@@ -485,6 +551,15 @@ func (a *HooksAdapter) MessageHasBeenUpdated(c *Context, newPost, oldPost *model
 	}
 
 	a.productHooks.(MessageHasBeenUpdatedIFace).MessageHasBeenUpdated(c, newPost, oldPost)
+
+}
+
+func (a *HooksAdapter) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	if _, ok := a.implemented[MessagesWillBeConsumedID]; !ok {
+		panic("product hooks must implement MessagesWillBeConsumed")
+	}
+
+	return a.productHooks.(MessagesWillBeConsumedIFace).MessagesWillBeConsumed(posts)
 
 }
 
@@ -665,5 +740,41 @@ func (a *HooksAdapter) UserHasBeenDeactivated(c *Context, user *model.User) {
 	}
 
 	a.productHooks.(UserHasBeenDeactivatedIFace).UserHasBeenDeactivated(c, user)
+
+}
+
+func (a *HooksAdapter) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	if _, ok := a.implemented[ServeMetricsID]; !ok {
+		panic("product hooks must implement ServeMetrics")
+	}
+
+	a.productHooks.(ServeMetricsIFace).ServeMetrics(c, w, r)
+
+}
+
+func (a *HooksAdapter) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
+	if _, ok := a.implemented[OnSharedChannelsSyncMsgID]; !ok {
+		panic("product hooks must implement OnSharedChannelsSyncMsg")
+	}
+
+	return a.productHooks.(OnSharedChannelsSyncMsgIFace).OnSharedChannelsSyncMsg(msg, rc)
+
+}
+
+func (a *HooksAdapter) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
+	if _, ok := a.implemented[OnSharedChannelsPingID]; !ok {
+		panic("product hooks must implement OnSharedChannelsPing")
+	}
+
+	return a.productHooks.(OnSharedChannelsPingIFace).OnSharedChannelsPing(rc)
+
+}
+
+func (a *HooksAdapter) PreferencesHaveChanged(c *Context, preferences []model.Preference) {
+	if _, ok := a.implemented[PreferencesHaveChangedID]; !ok {
+		panic("product hooks must implement PreferencesHaveChanged")
+	}
+
+	a.productHooks.(PreferencesHaveChangedIFace).PreferencesHaveChanged(c, preferences)
 
 }

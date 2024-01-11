@@ -2,13 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
 import {emptyLimits} from 'tests/constants/cloud';
 import {emptyTeams} from 'tests/constants/teams';
 import {adminUsersState, endUsersState} from 'tests/constants/users';
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import testConfigureStore from 'tests/test_store';
+import {screen, renderWithContext} from 'tests/react_testing_utils';
 import {makeEmptyUsage} from 'utils/limits_test';
 import {TestHelper} from 'utils/test_helper';
 
@@ -102,38 +100,34 @@ const endUserLimitExceeded = {
 
 describe('CenterMessageLock', () => {
     it('returns null if limits not loaded', () => {
-        renderWithIntl(
-            <Provider store={testConfigureStore(initialState)}>
-                <CenterMessageLock channelId={'channelId'}/>
-            </Provider>,
+        renderWithContext(
+            <CenterMessageLock channelId={'channelId'}/>,
+            initialState,
         );
         expect(screen.queryByText('Notify Admin')).not.toBeInTheDocument();
         expect(screen.queryByText('Upgrade now')).not.toBeInTheDocument();
     });
 
     it('Admins have a call to upgrade', () => {
-        renderWithIntl(
-            <Provider store={testConfigureStore(exceededLimitsState)}>
-                <CenterMessageLock channelId={'channelId'}/>
-            </Provider>,
+        renderWithContext(
+            <CenterMessageLock channelId={'channelId'}/>,
+            exceededLimitsState,
         );
         screen.getByText('Upgrade now');
     });
 
     it('End users have a call to notify admin', () => {
-        renderWithIntl(
-            <Provider store={testConfigureStore(endUserLimitExceeded)}>
-                <CenterMessageLock channelId={'channelId'}/>
-            </Provider>,
+        renderWithContext(
+            <CenterMessageLock channelId={'channelId'}/>,
+            endUserLimitExceeded,
         );
         screen.getByText('Notify Admin');
     });
 
     it('Filtered messages over one year old display year', () => {
-        renderWithIntl(
-            <Provider store={testConfigureStore(exceededLimitsState)}>
-                <CenterMessageLock channelId={'channelId'}/>
-            </Provider>,
+        renderWithContext(
+            <CenterMessageLock channelId={'channelId'}/>,
+            exceededLimitsState,
         );
         screen.getByText('January 1, 1970', {exact: false});
     });
@@ -145,10 +139,9 @@ describe('CenterMessageLock', () => {
         const expectedDate = firstOfMonth.toLocaleString('en', {month: 'long', day: 'numeric'});
 
         state.entities.posts.posts.c.create_at = Date.parse(firstOfMonth.toUTCString());
-        renderWithIntl(
-            <Provider store={testConfigureStore(state)}>
-                <CenterMessageLock channelId={'channelId'}/>
-            </Provider>,
+        renderWithContext(
+            <CenterMessageLock channelId={'channelId'}/>,
+            state,
         );
         screen.getByText(expectedDate, {exact: false});
     });
@@ -158,13 +151,12 @@ describe('CenterMessageLock', () => {
         const secondOfMonth = new Date(now + (1000 * 60 * 60 * 24));
         const expectedDate = secondOfMonth.toLocaleString('en', {month: 'long', day: 'numeric'});
 
-        renderWithIntl(
-            <Provider store={testConfigureStore(exceededLimitsStateNoAccessiblePosts)}>
-                <CenterMessageLock
-                    channelId={'channelId'}
-                    firstInaccessiblePostTime={now}
-                />
-            </Provider>,
+        renderWithContext(
+            <CenterMessageLock
+                channelId={'channelId'}
+                firstInaccessiblePostTime={now}
+            />,
+            exceededLimitsStateNoAccessiblePosts,
         );
         screen.getByText(expectedDate, {exact: false});
     });

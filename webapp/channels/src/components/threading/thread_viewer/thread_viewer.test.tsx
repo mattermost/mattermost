@@ -66,6 +66,8 @@ describe('components/threading/ThreadViewer', () => {
         isCollapsedThreadsEnabled: false,
         postIds: [post.id],
         appsEnabled: true,
+        rootPostId: post.id,
+        isThreadView: true,
     };
 
     test('should match snapshot', async () => {
@@ -102,6 +104,18 @@ describe('components/threading/ThreadViewer', () => {
         }).not.toThrowError("Cannot read property 'reply_count' of undefined");
     });
 
+    test('should not break if root post is ID only', () => {
+        const props = {
+            ...baseProps,
+            rootPostId: post.id,
+            selected: undefined,
+        };
+
+        expect(() => {
+            shallow(<ThreadViewer {...props}/>);
+        }).not.toThrowError("Cannot read property 'reply_count' of undefined");
+    });
+
     test('should call fetchThread when no thread on mount', (done) => {
         const {actions} = baseProps;
 
@@ -123,7 +137,7 @@ describe('components/threading/ThreadViewer', () => {
     });
 
     test('should call updateThreadLastOpened on mount', () => {
-        jest.useFakeTimers('modern').setSystemTime(400);
+        jest.useFakeTimers().setSystemTime(400);
         const {actions} = baseProps;
         const userThread = {
             id: 'id',
@@ -146,7 +160,7 @@ describe('components/threading/ThreadViewer', () => {
     });
 
     test('should call updateThreadLastOpened and updateThreadRead on mount when unread replies', () => {
-        jest.useFakeTimers('modern').setSystemTime(400);
+        jest.useFakeTimers().setSystemTime(400);
         const {actions} = baseProps;
         const userThread = {
             id: 'id',

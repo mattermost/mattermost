@@ -55,7 +55,7 @@ func syncLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	var opts LdapSyncOptions
 	err := json.NewDecoder(r.Body).Decode(&opts)
 	if err != nil {
-		c.Logger.Warn("Error decoding LDAP sync options", mlog.Err(err))
+		c.Logger.LogM(mlog.MlvlLDAPInfo, "Error decoding LDAP sync options", mlog.Err(err))
 	}
 
 	auditRec := c.MakeAuditRecord("syncLdap", audit.Fail)
@@ -83,7 +83,7 @@ func testLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := c.App.TestLdap(); err != nil {
+	if err := c.App.TestLdap(c.AppContext); err != nil {
 		c.Err = err
 		return
 	}
@@ -112,7 +112,7 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.IsConfigured = c.Params.IsConfigured
 	}
 
-	groups, total, appErr := c.App.GetAllLdapGroupsPage(c.Params.Page, c.Params.PerPage, opts)
+	groups, total, appErr := c.App.GetAllLdapGroupsPage(c.AppContext, c.Params.Page, c.Params.PerPage, opts)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -163,7 +163,7 @@ func linkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ldapGroup, appErr := c.App.GetLdapGroup(c.Params.RemoteId)
+	ldapGroup, appErr := c.App.GetLdapGroup(c.AppContext, c.Params.RemoteId)
 	if appErr != nil {
 		c.Err = appErr
 		return

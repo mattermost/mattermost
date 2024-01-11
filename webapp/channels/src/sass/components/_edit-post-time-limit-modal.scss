@@ -10,5 +10,9 @@
         width: 65%;
         color: red;
         text-align: left;
+
+        &:empty {
+            display: none;
+        }
     }
 }

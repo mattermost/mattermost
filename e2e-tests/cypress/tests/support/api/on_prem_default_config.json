@@ -162,7 +162,7 @@
         "ConsoleJson": true,
         "EnableColor": false,
         "EnableFile": true,
-        "FileLevel": "INFO",
+        "FileLevel": "DEBUG",
         "FileJson": true,
         "FileLocation": "",
         "EnableWebhookDebugging": true,
@@ -591,9 +591,7 @@
         "ChimeraOAuthProxyURL": ""
     },
     "DisplaySettings": {
-        "CustomURLSchemes": [],
-        "MaxMarkdownNodes": 0,
-        "ExperimentalTimezone": false
+        "CustomURLSchemes": []
     },
     "GuestAccountsSettings": {
         "Enable": true,

@@ -10,17 +10,18 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
-func TestTrueUpReviewStatusStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("CreateTrueUpReviewStatusRecord", func(t *testing.T) { testCreateTrueUpReviewStatus(t, ss) })
-	t.Run("GetTrueUpReviewStatus", func(t *testing.T) { testGetTrueUpReviewStatus(t, ss) })
-	t.Run("Update", func(t *testing.T) { testUpdateTrueUpReviewStatus(t, ss) })
+func TestTrueUpReviewStatusStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("CreateTrueUpReviewStatusRecord", func(t *testing.T) { testCreateTrueUpReviewStatus(t, rctx, ss) })
+	t.Run("GetTrueUpReviewStatus", func(t *testing.T) { testGetTrueUpReviewStatus(t, rctx, ss) })
+	t.Run("Update", func(t *testing.T) { testUpdateTrueUpReviewStatus(t, rctx, ss) })
 }
 
-func testCreateTrueUpReviewStatus(t *testing.T, ss store.Store) {
+func testCreateTrueUpReviewStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := time.Date(time.Now().Year(), time.January, 1, 0, 0, 0, 0, time.Local)
 
 	reviewStatus := model.TrueUpReviewStatus{
@@ -37,7 +38,7 @@ func testCreateTrueUpReviewStatus(t *testing.T, ss store.Store) {
 	})
 }
 
-func testGetTrueUpReviewStatus(t *testing.T, ss store.Store) {
+func testGetTrueUpReviewStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := time.Date(time.Now().Year(), time.August, 1, 0, 0, 0, 0, time.Local)
 	dueDate := utils.GetNextTrueUpReviewDueDate(now).UnixMilli()
 
@@ -58,7 +59,7 @@ func testGetTrueUpReviewStatus(t *testing.T, ss store.Store) {
 	})
 }
 
-func testUpdateTrueUpReviewStatus(t *testing.T, ss store.Store) {
+func testUpdateTrueUpReviewStatus(t *testing.T, rctx request.CTX, ss store.Store) {
 	now := time.Date(time.Now().Year(), time.April, 1, 0, 0, 0, 0, time.Local)
 
 	reviewStatus := model.TrueUpReviewStatus{

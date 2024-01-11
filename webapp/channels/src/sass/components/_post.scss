@@ -70,6 +70,26 @@
     }
 }
 
+.textarea-wrapper.textarea-wrapper-preview {
+    .textbox-preview-area {
+        display: block;
+    }
+
+    .textbox-edit-area {
+        display: none;
+    }
+}
+
+.textarea-wrapper:not(.textarea-wrapper-preview) {
+    .textbox-preview-area {
+        display: none;
+    }
+
+    .textbox-edit-area {
+        display: block;
+    }
+}
+
 .help__format-text {
     display: inline-block;
     font-size: 0.85em;
@@ -326,7 +346,7 @@
     width: 40px;
     height: 40px;
     background-repeat: no-repeat;
-    fill: #444;
+    fill: rgba(var(--center-channel-color-rgb), 0.3);
     opacity: 0;
     text-align: center;
     transition: all 0.6s;
@@ -351,6 +371,7 @@
     width: 100%;
     flex: 0 0 auto;
     background: var(--center-channel-bg);
+    color: var(--center-channel-color);
 
     label {
         font-weight: normal;
@@ -399,62 +420,12 @@
         }
     }
 
-    .post-create-body {
-        position: relative;
-        padding: 0 0 2px;
-
-        .post-body__cell {
-            position: relative;
-            vertical-align: top;
-        }
-
-        .send-button {
-            display: none;
-            width: 45px;
-            height: 100%;
-            padding-right: 4px;
-            border-left: 1px solid transparent;
-            cursor: pointer;
-            font-size: 17px;
-            line-height: 49px;
-            text-align: center;
-            transition: all 0.15s;
-            vertical-align: bottom;
-
-            &:active {
-                opacity: 0.75;
-            }
-
-            &.disabled {
-                i {
-                    color: inherit;
-                }
-            }
-
-            .android &,
-            .ios & {
-                display: block;
-            }
-        }
-
-        .icon--emoji-picker {
-            cursor: pointer;
-            opacity: 0.5;
-            transition: all 0.15s;
-
-            &:hover,
-            &:active {
-                box-shadow: none;
-                opacity: 0.9;
-            }
-        }
-    }
-
     .msg-typing {
         display: block;
         overflow: hidden;
         height: 20px;
         margin: 2px 0;
+        color: var(--center-channel-color);
         font-size: 11px;
         line-height: 16px;
         opacity: 0.7;
@@ -713,6 +684,10 @@
             .post-menu {
                 min-width: 0;
             }
+        }
+
+        .post__body {
+            color: rgba(var(--center-channel-color-rgb), 0.6);
         }
     }
 
@@ -1585,9 +1560,11 @@
         }
     }
 
+    // This class is used for the "Commented on" messages with CRT disabled
     .post__link {
         overflow: hidden;
         margin: 2px 0 5px;
+        color: rgba(var(--center-channel-color-rgb), 0.65);
         font-size: 13px;
         text-overflow: ellipsis;
         -webkit-user-select: none; /* Chrome all / Safari all */
@@ -1776,22 +1753,6 @@
         color: #d58a8a;
     }
 
-    .post-waiting {
-        position: relative;
-        color: #999;
-
-        .spinner {
-            position: absolute;
-            top: 4px;
-            right: 8px;
-            width: 20px;
-        }
-
-        .post-message {
-            padding-right: 24px;
-        }
-    }
-
     .permalink-icon {
         display: inline-block;
         color: $primary-color;
@@ -1872,6 +1833,7 @@
         z-index: 1;
         top: 2px;
         margin: 0 6px 0 4px;
+        color: rgba(var(--center-channel-color-rgb), 0.3);
         opacity: 0.24;
         vertical-align: top;
 
@@ -1886,6 +1848,7 @@
         svg {
             width: 14px;
             height: 14px;
+            fill: var(--center-channel-color);
         }
     }
 
@@ -2242,42 +2205,6 @@
     }
 }
 
-#restorePostModal {
-    .modal-body {
-        max-height: calc(100vh - 128px - 61px - 88px);
-
-        .GenericModal__header {
-            padding-top: 0;
-        }
-    }
-
-    .modal-content {
-        padding-top: 44px;
-    }
-
-    .modal-footer {
-        padding-top: 28px;
-        text-align: center;
-    }
-
-    .GenericModal__button {
-        margin: 0 4px;
-
-        &.cancel-button {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            border-radius: 4px;
-        }
-    }
-}
-
-.edit-post-history__restore__modal__header {
-    text-align: center;
-
-    span {
-        font-size: 22px;
-    }
-}
-
 .edit-post-history__restore__modal__content {
     padding: 16px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -2375,7 +2302,7 @@
 
 .post.current--user {
     &.other--root,
-    &.post--root, {
+    &.post--root {
         .post__header-set-custom-status {
             display: revert;
             padding: 0 6px;

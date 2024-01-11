@@ -74,6 +74,47 @@ func TestConfigEmptySiteName(t *testing.T) {
 	require.Equal(t, *c1.TeamSettings.SiteName, TeamSettingsDefaultSiteName)
 }
 
+func TestServiceSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		ServiceSettings ServiceSettings
+		ExpectError     bool
+	}{
+		"empty": {
+			ServiceSettings: ServiceSettings{},
+			ExpectError:     false,
+		},
+		"OutgoingIntegrationRequestsTimeout is negative": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(-1),
+			},
+			ExpectError: true,
+		},
+		"OutgoingIntegrationRequestsTimeout is zero": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(0),
+			},
+			ExpectError: true,
+		},
+		"OutgoingIntegrationRequestsTimeout is positiv": {
+			ServiceSettings: ServiceSettings{
+				OutgoingIntegrationRequestsTimeout: NewInt64(1),
+			},
+			ExpectError: false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.ServiceSettings.SetDefaults(false)
+
+			appErr := test.ServiceSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, appErr)
+			} else {
+				assert.Nil(t, appErr)
+			}
+		})
+	}
+}
+
 func TestConfigEnableDeveloper(t *testing.T) {
 	testCases := []struct {
 		Description     string
@@ -141,6 +182,24 @@ func TestConfigOverwriteSignatureAlgorithm(t *testing.T) {
 
 	require.Equal(t, *c1.SamlSettings.SignatureAlgorithm, testAlgorithm)
 	require.Equal(t, *c1.SamlSettings.CanonicalAlgorithm, testAlgorithm)
+}
+
+func TestWranglerSettingsIsValid(t *testing.T) {
+	// // Test valid domains
+	w := &WranglerSettings{
+		AllowedEmailDomain: []string{"example.com", "subdomain.example.com"},
+	}
+	if err := w.IsValid(); err != nil {
+		t.Errorf("Expected no error for valid domains, but got %v", err)
+	}
+
+	// Test invalid domains
+	w = &WranglerSettings{
+		AllowedEmailDomain: []string{"example", "example..com", "example-.com", "-example.com", "example.com.", "example.com-"},
+	}
+	if err := w.IsValid(); err == nil {
+		t.Errorf("Expected error for invalid domains, but got none")
+	}
 }
 
 func TestConfigIsValidDefaultAlgorithms(t *testing.T) {
@@ -1208,6 +1267,115 @@ func TestLdapSettingsIsValid(t *testing.T) {
 	}
 }
 
+func TestLogSettingsIsValid(t *testing.T) {
+	for name, test := range map[string]struct {
+		LogSettings LogSettings
+		ExpectError bool
+	}{
+		"empty": {
+			LogSettings: LogSettings{},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON contains empty string": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(``),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON contains empty JSON": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`{}`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingJSON has JSON error ": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has missing target": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"foo": "bar",
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON has an unknown Type": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+							"Type": "XYZ",
+							"Format": "json",
+							"Levels": [
+							  {"ID": 10, "Name": "stdlog", "Stacktrace": false},
+									{"ID": 5, "Name": "debug", "Stacktrace": false},
+									{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+									{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+									{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31},
+									{"ID": 1, "Name": "fatal", "Stacktrace": true},
+									{"ID": 0, "Name": "panic", "Stacktrace": true}
+							],
+							"Options": {
+									"Out": "stdout"
+							},
+							"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: true,
+		},
+		"AdvancedLoggingJSON is valid": {
+			LogSettings: LogSettings{
+				AdvancedLoggingJSON: json.RawMessage(`
+				{
+					"console-log": {
+							"Type": "console",
+							"Format": "json",
+							"Levels": [
+								{"ID": 5, "Name": "debug", "Stacktrace": false},
+								{"ID": 4, "Name": "info", "Stacktrace": false, "color": 36},
+								{"ID": 3, "Name": "warn", "Stacktrace": false, "color": 33},
+								{"ID": 2, "Name": "error", "Stacktrace": true, "color": 31}
+							],
+							"Options": {
+									"Out": "stdout"
+							},
+							"MaxQueueSize": 1000
+					}
+				}
+				`),
+			},
+			ExpectError: false,
+		},
+		"AdvancedLoggingConfig contains filepath": {
+			LogSettings: LogSettings{
+				AdvancedLoggingConfig: sToP("/some/Path"),
+			},
+			ExpectError: false,
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			test.LogSettings.SetDefaults()
+
+			appErr := test.LogSettings.isValid()
+			if test.ExpectError {
+				assert.NotNil(t, appErr)
+			} else {
+				assert.Nil(t, appErr)
+			}
+		})
+	}
+}
+
 func TestConfigSanitize(t *testing.T) {
 	c := Config{}
 	c.SetDefaults()
@@ -1478,4 +1646,106 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 		c1.SetDefaults()
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
 	})
+}
+
+func TestConfigGetMessageRetentionHours(t *testing.T) {
+	tests := []struct {
+		name   string
+		config Config
+		value  int
+	}{
+		{
+			name:   "should return MessageRetentionDays config value in hours by default",
+			config: Config{},
+			value:  8760,
+		},
+		{
+			name: "should return MessageRetentionHours config value",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					MessageRetentionHours: NewInt(48),
+				},
+			},
+			value: 48,
+		},
+		{
+			name: "should return MessageRetentionHours config value",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					MessageRetentionDays:  NewInt(50),
+					MessageRetentionHours: NewInt(48),
+				},
+			},
+			value: 48,
+		},
+		{
+			name: "should return MessageRetentionDays config value in hours",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					MessageRetentionDays:  NewInt(50),
+					MessageRetentionHours: NewInt(0),
+				},
+			},
+			value: 1200,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.config.SetDefaults()
+
+			require.Equal(t, test.value, test.config.DataRetentionSettings.GetMessageRetentionHours())
+		})
+	}
+}
+
+func TestConfigGetFileRetentionHours(t *testing.T) {
+	tests := []struct {
+		name   string
+		config Config
+		value  int
+	}{
+		{
+			name:   "should return FileRetentionDays config value in hours by default",
+			config: Config{},
+			value:  8760,
+		},
+		{
+			name: "should return FileRetentionHours config value",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					FileRetentionHours: NewInt(48),
+				},
+			},
+			value: 48,
+		},
+		{
+			name: "should return FileRetentionHours config value",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					FileRetentionDays:  NewInt(50),
+					FileRetentionHours: NewInt(48),
+				},
+			},
+			value: 48,
+		},
+		{
+			name: "should return FileRetentionDays config value in hours",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					FileRetentionDays:  NewInt(50),
+					FileRetentionHours: NewInt(0),
+				},
+			},
+			value: 1200,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.config.SetDefaults()
+
+			require.Equal(t, test.value, test.config.DataRetentionSettings.GetFileRetentionHours())
+		})
+	}
 }

@@ -134,7 +134,6 @@ exports[`plugins/PostMessageView should match snapshot with no extended post typ
           "onImageLoaded": [Function],
         }
       }
-      mentionKeys={Array []}
       message="this is some text"
       options={Object {}}
       post={

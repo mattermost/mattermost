@@ -12,7 +12,6 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import LocalizedIcon from 'components/localized_icon';
 import {QuickInput} from 'components/quick_input/quick_input';
 import GroupMemberList from 'components/user_group_popover/group_member_list';
 import UserGroupsModal from 'components/user_groups_modal';
@@ -21,7 +20,6 @@ import Popover from 'components/widgets/popover';
 
 import Constants, {A11yClassNames, A11yCustomEventTypes, ModalIdentifiers} from 'utils/constants';
 import type {A11yFocusEventDetail} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Keyboard from 'utils/keyboard';
 import {shouldFocusMainTextbox} from 'utils/post_utils';
 
@@ -209,9 +207,8 @@ const UserGroupPopover = (props: Props) => {
                             onClick={handleClose}
                             ref={closeRef}
                         >
-                            <LocalizedIcon
+                            <i
                                 className='icon icon-close'
-                                ariaLabel={{id: t('user_group_popover.close'), defaultMessage: 'Close'}}
                             />
                         </CloseButton>
                     </Heading>

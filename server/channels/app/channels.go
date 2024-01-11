@@ -51,9 +51,6 @@ type Channels struct {
 	pluginConfigListenerID        string
 	pluginClusterLeaderListenerID string
 
-	productCommandsLock sync.RWMutex
-	productCommands     []*ProductCommand
-
 	imageProxy *imageproxy.ImageProxy
 
 	// cached counts that are used during notice condition validation
@@ -63,13 +60,14 @@ type Channels struct {
 	// previously fetched notices
 	cachedNotices model.ProductNotices
 
-	AccountMigration einterfaces.AccountMigrationInterface
-	Compliance       einterfaces.ComplianceInterface
-	DataRetention    einterfaces.DataRetentionInterface
-	MessageExport    einterfaces.MessageExportInterface
-	Saml             einterfaces.SamlInterface
-	Notification     einterfaces.NotificationInterface
-	Ldap             einterfaces.LdapInterface
+	AccountMigration        einterfaces.AccountMigrationInterface
+	Compliance              einterfaces.ComplianceInterface
+	DataRetention           einterfaces.DataRetentionInterface
+	MessageExport           einterfaces.MessageExportInterface
+	Saml                    einterfaces.SamlInterface
+	Notification            einterfaces.NotificationInterface
+	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
+	Ldap                    einterfaces.LdapInterface
 
 	// These are used to prevent concurrent upload requests
 	// for a given upload session which could cause inconsistencies
@@ -179,6 +177,9 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 	if notificationInterface != nil {
 		ch.Notification = notificationInterface(New(ServerConnector(ch)))
 	}
+	if outgoingOauthConnectionInterface != nil {
+		ch.OutgoingOAuthConnection = outgoingOauthConnectionInterface(New(ServerConnector(ch)))
+	}
 	if samlInterfaceNew != nil {
 		ch.Saml = samlInterfaceNew(New(ServerConnector(ch)))
 		if err := ch.Saml.ConfigureSP(request.EmptyContext(s.Log())); err != nil {
@@ -237,10 +238,6 @@ func NewChannels(services map[product.ServiceKey]any) (*Channels, error) {
 
 	services[product.BotKey] = &botServiceWrapper{
 		app: &App{ch: ch},
-	}
-
-	services[product.HooksKey] = &hooksService{
-		ch: ch,
 	}
 
 	services[product.UserKey] = &App{ch: ch}
@@ -334,28 +331,10 @@ func (ch *Channels) RequestTrialLicense(requesterID string, users int, termsAcce
 		receiveEmailsAccepted)
 }
 
-func (a *App) HooksManager() *product.HooksManager {
-	return a.ch.srv.hooksManager
-}
-
-// Ensure hooksService implements `product.HooksService`
-var _ product.HooksService = (*hooksService)(nil)
-
-type hooksService struct {
-	ch *Channels
-}
-
-func (s *hooksService) RegisterHooks(productID string, hooks any) error {
-	return s.ch.srv.hooksManager.AddProduct(productID, hooks)
-}
-
 func (ch *Channels) RunMultiHook(hookRunnerFunc func(hooks plugin.Hooks) bool, hookId int) {
 	if env := ch.GetPluginsEnvironment(); env != nil {
 		env.RunMultiPluginHook(hookRunnerFunc, hookId)
 	}
-
-	// run hook for the products
-	ch.srv.hooksManager.RunMultiHook(hookRunnerFunc, hookId)
 }
 
 func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
@@ -367,11 +346,6 @@ func (ch *Channels) HooksForPluginOrProduct(id string) (plugin.Hooks, error) {
 		if hooks != nil {
 			return hooks, nil
 		}
-	}
-
-	hooks = ch.srv.hooksManager.HooksForProduct(id)
-	if hooks != nil {
-		return hooks, nil
 	}
 
 	return nil, fmt.Errorf("could not find hooks for id %s", id)

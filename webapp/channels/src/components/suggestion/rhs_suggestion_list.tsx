@@ -28,7 +28,7 @@ export default function RhsSuggestionList(props: Props): JSX.Element {
                 setPosition(newPosition);
             }
         }
-    }, [props.inputRef, props.open]);
+    }, [position, props.inputRef, props.open]);
 
     return (
         <SuggestionList

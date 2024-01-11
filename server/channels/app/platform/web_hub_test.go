@@ -4,6 +4,7 @@
 package platform
 
 import (
+	"bytes"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -69,7 +70,7 @@ func TestHubStopWithMultipleConnections(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	th.Service.Start()
+	th.Service.Start(nil)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -93,7 +94,7 @@ func TestHubStopRaceCondition(t *testing.T) {
 	})
 	require.NoError(t, err)
 
-	th.Service.Start()
+	th.Service.Start(nil)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	defer wc1.Close()
 
@@ -307,6 +308,53 @@ func TestHubConnIndex(t *testing.T) {
 	})
 }
 
+func TestHubConnIndexIncorrectRemoval(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	connIndex := newHubConnectionIndex(1 * time.Second)
+
+	// User2
+	wc2 := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   model.NewId(),
+	}
+	wc2.SetConnectionID("first")
+	wc2.SetSession(&model.Session{})
+
+	wc3 := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   wc2.UserId,
+	}
+	wc3.SetConnectionID("myID")
+	wc3.SetSession(&model.Session{})
+
+	wc4 := &WebConn{
+		Platform: th.Service,
+		Suite:    th.Suite,
+		UserId:   wc2.UserId,
+	}
+	wc4.SetConnectionID("last")
+	wc4.SetSession(&model.Session{})
+
+	connIndex.Add(wc2)
+	connIndex.Add(wc3)
+	connIndex.Add(wc4)
+
+	for _, wc := range connIndex.ForUser(wc2.UserId) {
+		if !connIndex.Has(wc) {
+			require.Failf(t, "Failed to find connection", "connection: %v", wc)
+			continue
+		}
+
+		if connIndex.ForConnection("myID") != nil {
+			connIndex.Remove(wc)
+		}
+	}
+}
+
 func TestHubConnIndexByConnectionId(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -354,18 +402,18 @@ func TestHubConnIndexByConnectionId(t *testing.T) {
 		connIndex.Add(wc3)
 
 		assert.Len(t, connIndex.byConnectionId, 2)
-		assert.Equal(t, wc1, connIndex.byConnectionId[wc1ID])
-		assert.Equal(t, wc3, connIndex.byConnectionId[wc3ID])
-		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc2ID])
+		assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
+		assert.Equal(t, wc3, connIndex.ForConnection(wc3ID))
+		assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc2ID))
 	})
 
 	t.Run("removing", func(t *testing.T) {
 		connIndex.Remove(wc3)
 
 		assert.Len(t, connIndex.byConnectionId, 1)
-		assert.Equal(t, wc1, connIndex.byConnectionId[wc1ID])
-		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc3ID])
-		assert.Equal(t, (*WebConn)(nil), connIndex.byConnectionId[wc2ID])
+		assert.Equal(t, wc1, connIndex.ForConnection(wc1ID))
+		assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc3ID))
+		assert.Equal(t, (*WebConn)(nil), connIndex.ForConnection(wc2ID))
 	})
 }
 
@@ -476,7 +524,7 @@ func TestHubIsRegistered(t *testing.T) {
 	s := httptest.NewServer(dummyWebsocketHandler(t))
 	defer s.Close()
 
-	th.Service.Start()
+	th.Service.Start(nil)
 	wc1 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc2 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
 	wc3 := registerDummyWebConn(t, th, s.Listener.Addr(), session)
@@ -583,7 +631,7 @@ func BenchmarkGetHubForUserId(b *testing.B) {
 	th := Setup(b).InitBasic()
 	defer th.TearDown()
 
-	th.Service.Start()
+	th.Service.Start(nil)
 
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
@@ -617,4 +665,55 @@ func TestClusterBroadcast(t *testing.T) {
 	err := json.Unmarshal(messages[0].Data, &clusterEvent)
 	require.NoError(t, err)
 	require.Equal(t, clusterEvent.Broadcast, broadcast)
+}
+
+func TestClusterBroadcastHooks(t *testing.T) {
+	t.Run("should send broadcast hook information across cluster", func(t *testing.T) {
+		testCluster := &testlib.FakeClusterInterface{}
+
+		th := SetupWithCluster(t, testCluster)
+		defer th.TearDown()
+
+		hookID := broadcastTest
+		hookArgs := map[string]any{
+			"makes_changes": true,
+		}
+
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+		event.GetBroadcast().AddHook(hookID, hookArgs)
+
+		th.Service.Publish(event)
+
+		received, err := model.WebSocketEventFromJSON(bytes.NewReader(testCluster.GetMessages()[0].Data))
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{hookID}, received.GetBroadcast().BroadcastHooks)
+		assert.Equal(t, []map[string]any{hookArgs}, received.GetBroadcast().BroadcastHookArgs)
+	})
+
+	t.Run("should not preserve type information for args", func(t *testing.T) {
+		// This behaviour isn't ideal, but this test confirms that it hasn't changed
+		testCluster := &testlib.FakeClusterInterface{}
+
+		th := SetupWithCluster(t, testCluster)
+		defer th.TearDown()
+
+		hookID := "test_broadcast_hook_with_args"
+		hookArgs := map[string]any{
+			"user":  &model.User{Id: "user1"},
+			"array": []string{"a", "b", "c"},
+		}
+
+		event := model.NewWebSocketEvent(model.WebsocketEventPosted, "", "", "", nil, "")
+		event.GetBroadcast().AddHook(hookID, hookArgs)
+
+		th.Service.Publish(event)
+
+		received, err := model.WebSocketEventFromJSON(bytes.NewReader(testCluster.GetMessages()[0].Data))
+
+		require.NoError(t, err)
+		assert.Equal(t, []string{hookID}, received.GetBroadcast().BroadcastHooks)
+		assert.IsType(t, map[string]any{}, received.GetBroadcast().BroadcastHookArgs[0]["user"])
+		assert.IsType(t, []any{}, received.GetBroadcast().BroadcastHookArgs[0]["array"])
+	})
 }

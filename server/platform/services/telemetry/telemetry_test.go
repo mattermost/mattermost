@@ -24,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	storeMocks "github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
@@ -189,7 +188,6 @@ func initializeMocks(cfg *model.Config, cloudLicense bool) (*mocks.ServerIface, 
 	serverIfaceMock.On("GetRoleByName", context.Background(), "channel_guest").Return(&model.Role{Permissions: []string{"cg-test1", "cg-test2"}}, nil)
 	serverIfaceMock.On("GetSchemes", "team", 0, 100).Return([]*model.Scheme{}, nil)
 	serverIfaceMock.On("HTTPService").Return(httpservice.MakeHTTPService(configService))
-	serverIfaceMock.On("HooksManager").Return(product.NewHooksManager(nil))
 
 	storeMock := &storeMocks.Store{}
 	storeMock.On("GetDbVersion", false).Return("5.24.0", nil)

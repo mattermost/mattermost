@@ -72,7 +72,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
         setByEnv={false}
         value="01:00"
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         disabled={true}
         helpText={
           <FormattedMarkdownMessage
@@ -86,7 +86,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, actia
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -246,7 +245,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
         setByEnv={false}
         value="01:00"
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         disabled={true}
         helpText={
           <FormattedMarkdownMessage
@@ -260,7 +259,6 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -290,7 +288,7 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
       <SettingsGroup
         id="globalRelaySettings"
       >
-        <RadioSetting
+        <Memo(RadioSetting)
           disabled={true}
           helpText={
             <Memo(MemoizedFormattedMessage)
@@ -317,6 +315,10 @@ exports[`components/MessageExportSettings should match snapshot, disabled, globa
               Object {
                 "text": "A10/Type 10",
                 "value": "A10",
+              },
+              Object {
+                "text": "Custom",
+                "value": "CUSTOM",
               },
             ]
           }
@@ -515,7 +517,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
         setByEnv={false}
         value="01:00"
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         disabled={false}
         helpText={
           <FormattedMarkdownMessage
@@ -529,7 +531,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, actian
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -689,7 +690,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
         setByEnv={false}
         value="01:00"
       />
-      <DropdownSetting
+      <Memo(DropdownSetting)
         disabled={false}
         helpText={
           <FormattedMarkdownMessage
@@ -703,7 +704,6 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
           />
         }
         id="exportFormat"
-        isDisabled={false}
         label={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Export Format:"
@@ -733,7 +733,7 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
       <SettingsGroup
         id="globalRelaySettings"
       >
-        <RadioSetting
+        <Memo(RadioSetting)
           disabled={false}
           helpText={
             <Memo(MemoizedFormattedMessage)
@@ -760,6 +760,10 @@ exports[`components/MessageExportSettings should match snapshot, enabled, global
               Object {
                 "text": "A10/Type 10",
                 "value": "A10",
+              },
+              Object {
+                "text": "Custom",
+                "value": "CUSTOM",
               },
             ]
           }
