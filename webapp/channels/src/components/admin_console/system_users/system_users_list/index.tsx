@@ -6,8 +6,8 @@ import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
-import {UserReportSortColumns, ReportSortDirection} from '@mattermost/types/reports';
-import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
+import {UserReportSortColumns, ReportSortDirection, CursorPaginationDirection} from '@mattermost/types/reports';
+import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
@@ -26,7 +26,12 @@ type Props = {
     tablePropertySortColumn: AdminConsoleUserManagementTableProperties['sortColumn'];
     tablePropertySortIsDescending: AdminConsoleUserManagementTableProperties['sortIsDescending'];
     tablePropertyPageSize: AdminConsoleUserManagementTableProperties['pageSize'];
-    getUserReports: (options?: UserReportOptions) => Promise<{data: UserReport[]}>;
+    tablePropertyPageIndex: AdminConsoleUserManagementTableProperties['pageIndex'];
+    tablePropertyCursorColumnValue: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
+    tablePropertyCursorUserId: AdminConsoleUserManagementTableProperties['cursorUserId'];
+    tablePropertyCursorDirection: AdminConsoleUserManagementTableProperties['cursorDirection'];
+    getUserReports: (options?: UserReportOptions) => Promise<{data?: UserReport[]}>;
+    getUserCountForReporting: (filter?: UserReportFilter) => Promise<{data?: number}>;
     setAdminConsoleUsersManagementTableProperties: (properties: Partial<AdminConsoleUserManagementTableProperties>) => void;
 };
 
@@ -49,6 +54,7 @@ function SystemUsersList(props: Props) {
     const history = useHistory();
 
     const [userReports, setUserReports] = useState<UserReport[]>([]);
+    const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
 
     function onError(error: ServerError) {
@@ -56,6 +62,25 @@ function SystemUsersList(props: Props) {
         // eslint-disable-next-line no-console
         console.error(error);
     }
+
+    const getPaginationInfo = (pageIndex: number, pageSize: number, currentLength: number, totalUserCount: number) => {
+        if (!currentLength) {
+            return null;
+        }
+
+        return (
+            <span>
+                {formatMessage({
+                    id: 'admin.system_users_list.pagination',
+                    defaultMessage: 'Showing {firstPage} - {lastPage} of {totalUserCount} users',
+                }, {
+                    firstPage: (pageIndex * pageSize) + 1,
+                    lastPage: (pageIndex * pageSize) + currentLength,
+                    totalUserCount,
+                })}
+            </span>
+        );
+    };
 
     const columns: Array<ColumnDef<UserReport, any>> = useMemo(
         () => [
@@ -210,13 +235,32 @@ function SystemUsersList(props: Props) {
     );
 
     useEffect(() => {
-        async function fetchUserReportsWithOptions(pageSize?: PaginationState['pageSize'], sortColumn?: SortingState[0]['id'], sortIsDescending?: SortingState[0]['desc']) {
+        const getUserCount = async () => {
+            const {data} = await props.getUserCountForReporting({});
+            setUserCount(data);
+        };
+
+        getUserCount();
+    }, []);
+
+    useEffect(() => {
+        async function fetchUserReportsWithOptions(tableOptions?: {
+            pageSize?: PaginationState['pageSize'];
+            sortColumn?: SortingState[0]['id'];
+            sortIsDescending?: SortingState[0]['desc'];
+            fromColumnValue?: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
+            fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
+            direction?: CursorPaginationDirection;
+        }) {
             setLoadingState(LoadingStates.Loading);
 
             const options: UserReportOptions = {
-                page_size: pageSize || PAGE_SIZES[0],
-                ...getSortColumnForOptions(sortColumn),
-                ...getSortDirectionForOptions(sortIsDescending),
+                page_size: tableOptions?.pageSize || PAGE_SIZES[0],
+                from_column_value: tableOptions?.fromColumnValue,
+                from_id: tableOptions?.fromId,
+                direction: tableOptions?.direction,
+                ...getSortColumnForOptions(tableOptions?.sortColumn),
+                ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
             };
 
             const {data} = await props.getUserReports(options);
@@ -233,8 +277,22 @@ function SystemUsersList(props: Props) {
             }
         }
 
-        fetchUserReportsWithOptions(props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending);
-    }, [props.tablePropertyPageSize, props.tablePropertySortColumn, props.tablePropertySortIsDescending]);
+        fetchUserReportsWithOptions({
+            pageSize: props.tablePropertyPageSize,
+            sortColumn: props.tablePropertySortColumn,
+            sortIsDescending: props.tablePropertySortIsDescending,
+            fromColumnValue: props.tablePropertyCursorColumnValue,
+            fromId: props.tablePropertyCursorUserId,
+            direction: props.tablePropertyCursorDirection,
+        });
+    }, [
+        props.tablePropertyPageSize,
+        props.tablePropertySortColumn,
+        props.tablePropertySortIsDescending,
+        props.tablePropertyCursorDirection,
+        props.tablePropertyCursorColumnValue,
+        props.tablePropertyCursorUserId,
+    ]);
 
     function handleRowClick(userId: UserReport['id']) {
         if (userId.length !== 0) {
@@ -243,13 +301,29 @@ function SystemUsersList(props: Props) {
     }
 
     function handlePreviousPageClick() {
-        // eslint-disable-next-line no-console
-        console.log('previous page click');
+        if (!userReports.length) {
+            return;
+        }
+
+        props.setAdminConsoleUsersManagementTableProperties({
+            pageIndex: props.tablePropertyPageIndex - 1,
+            cursorDirection: CursorPaginationDirection.prev,
+            cursorUserId: userReports[0].id,
+            cursorColumnValue: getColumnValue(userReports[0], props.tablePropertySortColumn),
+        });
     }
 
     function handleNextPageClick() {
-        // eslint-disable-next-line no-console
-        console.log('next page click');
+        if (!userReports.length) {
+            return;
+        }
+
+        props.setAdminConsoleUsersManagementTableProperties({
+            pageIndex: props.tablePropertyPageIndex + 1,
+            cursorDirection: CursorPaginationDirection.next,
+            cursorUserId: userReports[userReports.length - 1].id,
+            cursorColumnValue: getColumnValue(userReports[userReports.length - 1], props.tablePropertySortColumn),
+        });
     }
 
     function handleSortingChange(updateFn: (currentSortingState: SortingState) => SortingState) {
@@ -262,6 +336,10 @@ function SystemUsersList(props: Props) {
         }
 
         props.setAdminConsoleUsersManagementTableProperties({
+            pageIndex: 0,
+            cursorDirection: undefined, // reset the cursor to the beginning on any filter change
+            cursorUserId: undefined,
+            cursorColumnValue: undefined,
             sortColumn: updatedSortingState.id,
             sortIsDescending: updatedSortingState.desc,
         });
@@ -272,6 +350,10 @@ function SystemUsersList(props: Props) {
         const updatedPaginationState = updateFn(currentPaginationState);
 
         props.setAdminConsoleUsersManagementTableProperties({
+            pageIndex: 0,
+            cursorDirection: undefined, // reset the cursor to the beginning on any filter change
+            cursorUserId: undefined,
+            cursorColumnValue: undefined,
             pageSize: updatedPaginationState.pageSize,
         });
     }
@@ -281,8 +363,8 @@ function SystemUsersList(props: Props) {
         desc: props?.tablePropertySortIsDescending ?? false,
     }];
     const paginationTableState = {
-        pageIndex: 0, // We are using cursor based pagination so this is always 0
-        pageSize: props?.tablePropertyPageSize ?? PAGE_SIZES[0],
+        pageIndex: props?.tablePropertyPageIndex ?? 0,
+        pageSize: props?.tablePropertyPageSize || PAGE_SIZES[0],
     };
 
     const table = useReactTable({
@@ -296,10 +378,13 @@ function SystemUsersList(props: Props) {
             tableId: 'systemUsersTable',
             tableCaption: formatMessage({id: 'admin.system_users.list.caption', defaultMessage: 'System Users'}),
             loadingState,
+            disablePrevPage: !props.tablePropertyCursorUserId || props.tablePropertyPageIndex <= 0 || (props.tablePropertyCursorDirection === 'prev' && userReports.length < paginationTableState.pageSize),
+            disableNextPage: props.tablePropertyCursorDirection === 'next' && userReports.length < paginationTableState.pageSize,
             onRowClick: handleRowClick,
             onPreviousPageClick: handlePreviousPageClick,
             onNextPageClick: handleNextPageClick,
-            hasAdditionalPaginationAtTop: false,
+            paginationInfo: getPaginationInfo(paginationTableState.pageIndex, paginationTableState.pageSize, userReports.length, userCount ?? 0),
+            hasAdditionalPaginationAtTop: true,
             totalRowInfo: '',
         } as TableMeta,
         getCoreRowModel: getCoreRowModel<UserReport>(),
@@ -356,6 +441,17 @@ function getSortDirectionForOptions(desc?: SortingState[0]['desc']): Pick<UserRe
     return {
         sort_direction: sortDirection,
     };
+}
+
+function getColumnValue(row: UserReport, sortColumn: AdminConsoleUserManagementTableProperties['sortColumn']): string {
+    switch (sortColumn) {
+    case ColumnNames.email:
+        return row.email;
+    case ColumnNames.createAt:
+        return String(row.create_at);
+    default:
+        return row.username;
+    }
 }
 
 export default SystemUsersList;

@@ -7,7 +7,7 @@ import {connect} from 'react-redux';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {getUserReports, setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
+import {getUserCountForReporting, getUserReports, setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 import {adminConsoleUserManagementTablePropertiesInitialState} from 'reducers/views/admin';
 import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
@@ -29,6 +29,10 @@ function mapStateToProps(state: GlobalState) {
     const sortColumn = tableProperties?.sortColumn ?? adminConsoleUserManagementTablePropertiesInitialState.sortColumn;
     const sortIsDescending = tableProperties?.sortIsDescending ?? adminConsoleUserManagementTablePropertiesInitialState.sortIsDescending;
     const pageSize = tableProperties?.pageSize ?? adminConsoleUserManagementTablePropertiesInitialState.pageSize;
+    const pageIndex = tableProperties?.pageIndex ?? adminConsoleUserManagementTablePropertiesInitialState.pageIndex;
+    const direction = tableProperties?.cursorDirection ?? adminConsoleUserManagementTablePropertiesInitialState.cursorDirection;
+    const fromId = tableProperties?.cursorUserId ?? adminConsoleUserManagementTablePropertiesInitialState.cursorUserId;
+    const fromColumnValue = tableProperties?.cursorColumnValue ?? adminConsoleUserManagementTablePropertiesInitialState.cursorColumnValue;
 
     return {
         siteName,
@@ -39,11 +43,16 @@ function mapStateToProps(state: GlobalState) {
         tablePropertySortColumn: sortColumn,
         tablePropertySortIsDescending: sortIsDescending,
         tablePropertyPageSize: pageSize,
+        tablePropertyPageIndex: pageIndex,
+        tablePropertyCursorDirection: direction,
+        tablePropertyCursorUserId: fromId,
+        tablePropertyCursorColumnValue: fromColumnValue,
     };
 }
 
 const mapDispatchToProps = {
     getUserReports,
+    getUserCountForReporting,
     setAdminConsoleUsersManagementTableProperties,
 };
 

@@ -110,6 +110,7 @@ func TestChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	t.Run("IncrementMentionCount", func(t *testing.T) { testChannelStoreIncrementMentionCount(t, rctx, ss) })
 	t.Run("UpdateChannelMember", func(t *testing.T) { testUpdateChannelMember(t, rctx, ss) })
 	t.Run("GetMember", func(t *testing.T) { testGetMember(t, rctx, ss) })
+	t.Run("GetMemberLastViewedAt", func(t *testing.T) { testGetMemberLastViewedAt(t, rctx, ss) })
 	t.Run("GetMemberForPost", func(t *testing.T) { testChannelStoreGetMemberForPost(t, rctx, ss) })
 	t.Run("GetMemberCount", func(t *testing.T) { testGetMemberCount(t, rctx, ss) })
 	t.Run("GetMemberCountsByGroup", func(t *testing.T) { testGetMemberCountsByGroup(t, rctx, ss) })
@@ -246,6 +247,10 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	require.NoError(t, nErr)
 	require.Len(t, members, 2, "should have saved 2 members")
 
+	userIDs, nErr := ss.Channel().GetAllChannelMemberIdsByChannelId(o1.Id)
+	require.NoError(t, nErr)
+	require.ElementsMatch(t, []string{u1.Id, u2.Id}, userIDs)
+
 	_, nErr = ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
 	require.Error(t, nErr, "shouldn't be a able to update from save")
 
@@ -281,6 +286,10 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	members, nErr = ss.Channel().GetMembers(o1.Id, 0, 100)
 	require.NoError(t, nErr)
 	require.Len(t, members, 1, "should have saved just 1 member")
+
+	userIDs, nErr = ss.Channel().GetAllChannelMemberIdsByChannelId(o1.Id)
+	require.NoError(t, nErr)
+	require.ElementsMatch(t, []string{u1.Id}, userIDs)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")
@@ -4892,6 +4901,62 @@ func testGetMember(t *testing.T, rctx request.CTX, ss store.Store) {
 	ss.Channel().InvalidateCacheForChannelMembersNotifyProps(c2.Id)
 }
 
+func testGetMemberLastViewedAt(t *testing.T, rctx request.CTX, ss store.Store) {
+	userId := model.NewId()
+
+	c1 := &model.Channel{
+		TeamId:      model.NewId(),
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	_, nErr := ss.Channel().Save(c1, -1)
+	require.NoError(t, nErr)
+
+	c2 := &model.Channel{
+		TeamId:      c1.TeamId,
+		DisplayName: model.NewId(),
+		Name:        model.NewId(),
+		Type:        model.ChannelTypeOpen,
+	}
+	_, nErr = ss.Channel().Save(c2, -1)
+	require.NoError(t, nErr)
+
+	m1 := &model.ChannelMember{
+		ChannelId:    c1.Id,
+		UserId:       userId,
+		NotifyProps:  model.GetDefaultChannelNotifyProps(),
+		LastViewedAt: int64(100),
+	}
+	_, err := ss.Channel().SaveMember(m1)
+	require.NoError(t, err)
+
+	m2 := &model.ChannelMember{
+		ChannelId:    c2.Id,
+		UserId:       userId,
+		NotifyProps:  model.GetDefaultChannelNotifyProps(),
+		LastViewedAt: int64(200),
+	}
+	_, err = ss.Channel().SaveMember(m2)
+	require.NoError(t, err)
+
+	_, err = ss.Channel().GetMemberLastViewedAt(context.Background(), model.NewId(), userId)
+	require.Error(t, err, "should've failed to get member for non-existent channel")
+
+	_, err = ss.Channel().GetMemberLastViewedAt(context.Background(), c1.Id, model.NewId())
+	require.Error(t, err, "should've failed to get member for non-existent user")
+
+	lvAt, err := ss.Channel().GetMemberLastViewedAt(context.Background(), c1.Id, userId)
+	require.NoError(t, err, "shouldn't have errored when getting member", err)
+	require.Equal(t, m1.LastViewedAt, lvAt, "should've gotten LastViewedAt of channel 1")
+
+	lvAt, err = ss.Channel().GetMemberLastViewedAt(context.Background(), c2.Id, userId)
+	require.NoError(t, err, "shouldn't have errored when getting member", err)
+	require.Equal(t, m2.LastViewedAt, lvAt, "should've gotten gotten LastViewedAt of channel 2")
+
+	ss.Channel().InvalidateCacheForChannelMembersNotifyProps(c2.Id)
+}
+
 func testChannelStoreGetMemberForPost(t *testing.T, rctx request.CTX, ss store.Store) {
 	ch := &model.Channel{
 		TeamId:      model.NewId(),
@@ -4917,11 +4982,11 @@ func testChannelStoreGetMemberForPost(t *testing.T, rctx request.CTX, ss store.S
 	})
 	require.NoError(t, nErr)
 
-	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId)
+	r1, err := ss.Channel().GetMemberForPost(p1.Id, m1.UserId, false)
 	require.NoError(t, err, err)
 	require.Equal(t, channelMemberToJSON(t, m1), channelMemberToJSON(t, r1), "invalid returned channel member")
 
-	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId())
+	_, err = ss.Channel().GetMemberForPost(p1.Id, model.NewId(), false)
 	require.Error(t, err, "shouldn't have returned a member")
 }
 
@@ -7477,6 +7542,10 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 	assert.NoError(t, err)
 	assert.Len(t, d1, 3)
 
+	userIDs, nErr := ss.Channel().GetAllChannelMemberIdsByChannelId(c1.Id)
+	require.NoError(t, nErr)
+	require.ElementsMatch(t, []string{u1.Id, u2.Id, u3.Id}, userIDs)
+
 	// Deactivate users 1 & 2.
 	u1.DeleteAt = model.GetMillis()
 	u2.DeleteAt = model.GetMillis()
@@ -7493,6 +7562,10 @@ func testChannelStoreRemoveAllDeactivatedMembers(t *testing.T, rctx request.CTX,
 	assert.NoError(t, err)
 	assert.Len(t, d2, 1)
 	assert.Equal(t, u3.Id, d2[0].UserId)
+
+	userIDs, nErr = ss.Channel().GetAllChannelMemberIdsByChannelId(c1.Id)
+	require.NoError(t, nErr)
+	require.ElementsMatch(t, []string{u3.Id}, userIDs)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")
