@@ -483,13 +483,6 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPosted, "", post.ChannelId, "", nil, "")
 
-	// Note that PreparePostForClient should've already been called by this point
-	postJSON, jsonErr := post.ToJSON()
-	if jsonErr != nil {
-		return nil, errors.Wrapf(jsonErr, "failed to encode post to JSON")
-	}
-	message.Add("post", postJSON)
-
 	message.Add("channel_type", channel.Type)
 	message.Add("channel_display_name", notification.GetChannelName(model.ShowUsername, ""))
 	message.Add("channel_name", channel.Name)
@@ -528,6 +521,13 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		return nil, err
 	}
 	if !published {
+		removePermalinkMetadataFromPost(post)
+		postJSON, jsonErr := post.ToJSON()
+		if jsonErr != nil {
+			return nil, errors.Wrapf(jsonErr, "failed to encode post to JSON")
+		}
+		message.Add("post", postJSON)
+
 		a.Publish(message)
 	}
 

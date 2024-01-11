@@ -755,17 +755,18 @@ func (a *App) UpdatePost(c *request.Context, receivedUpdatedPost *model.Post, sa
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
-	postJSON, jsonErr := rpost.ToJSON()
-	if jsonErr != nil {
-		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-	message.Add("post", postJSON)
 
 	published, err := a.publishWebsocketEventForPermalinkPost(c, rpost, message)
 	if err != nil {
 		return nil, err
 	}
 	if !published {
+		removePermalinkMetadataFromPost(rpost)
+		postJSON, jsonErr := rpost.ToJSON()
+		if jsonErr != nil {
+			return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		}
+		message.Add("post", postJSON)
 		a.Publish(message)
 	}
 
