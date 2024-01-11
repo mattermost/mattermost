@@ -5,6 +5,8 @@ package model
 
 import (
 	"encoding/json"
+	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -187,6 +189,15 @@ type Subscription struct {
 
 func (s *Subscription) DaysToExpiration() int64 {
 	now := time.Now().UnixMilli()
+	// Allows us to base the current time off of an environment variable for testing purposes
+	if GetServiceEnvironment() == ServiceEnvironmentTest {
+		if currTime, set := os.LookupEnv("CLOUD_MOCK_CURRENT_TIME"); set {
+			timeInt, err := strconv.ParseInt(currTime, 10, 64)
+			if err == nil {
+				now = time.Unix(timeInt, 0).UnixMilli()
+			}
+		}
+	}
 	daysToExpiry := (s.EndAt - now) / (1000 * 60 * 60 * 24)
 	return daysToExpiry
 }
