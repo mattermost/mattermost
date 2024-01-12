@@ -90,7 +90,7 @@ describe('components/threading/ThreadViewer', () => {
         wrapper.setProps({socketConnectionStatus: false});
         wrapper.setProps({socketConnectionStatus: true});
 
-        return expect(actions.getPostThread).toHaveBeenCalledWith(post.id);
+        return expect(actions.getPostThread).toHaveBeenCalledWith(post.id, true);
     });
 
     test('should not break if root post is a fake post', () => {

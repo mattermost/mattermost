@@ -14,7 +14,6 @@ import {PostPriority} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
 import {getChannel as fetchChannel} from 'mattermost-redux/actions/channels';
-import {getPostThread} from 'mattermost-redux/actions/posts';
 import {markLastPostInThreadAsUnread, updateThreadRead} from 'mattermost-redux/actions/threads';
 import {getMissingProfilesByIds} from 'mattermost-redux/actions/users';
 import {Posts} from 'mattermost-redux/constants';
@@ -116,7 +115,7 @@ function ThreadItem({
 
     let unreadTimestamp = post.edit_at || post.create_at;
 
-    const selectHandler = useCallback(async (e: MouseEvent<HTMLDivElement>) => {
+    const selectHandler = useCallback((e: MouseEvent<HTMLDivElement>) => {
         if (e.altKey) {
             const hasUnreads = thread ? Boolean(thread.unread_replies) : false;
             const lastViewedAt = hasUnreads ? Date.now() : unreadTimestamp;
@@ -128,7 +127,6 @@ function ThreadItem({
                 dispatch(markLastPostInThreadAsUnread(currentUserId, currentTeamId, threadId));
             }
         } else {
-            await dispatch(getPostThread(threadId));
             select(threadId);
         }
     }, [

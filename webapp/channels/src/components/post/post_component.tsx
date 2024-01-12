@@ -93,6 +93,7 @@ export type Props = {
         markPostAsUnread: (post: Post, location: string) => void;
         emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
         setActionsMenuInitialisationState: (viewed: Record<string, boolean>) => void;
+        selectPost: (post: Post) => void;
         selectPostFromRightHandSideSearch: (post: Post) => void;
         removePost: (post: Post) => void;
         closeRightHandSide: () => void;
@@ -352,7 +353,7 @@ const PostComponent = (props: Props): JSX.Element => {
             !props.isPostBeingEdited
         ) {
             trackEvent('crt', 'clicked_to_reply');
-            props.actions.selectPostFromRightHandSideSearch(post);
+            props.actions.selectPost(post);
         }
 
         if (e.altKey) {
