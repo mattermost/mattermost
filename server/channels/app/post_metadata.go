@@ -190,25 +190,33 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 	return post
 }
 
+func removePermalinkMetadataFromPost(post *model.Post) {
+	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 {
+		return
+	}
+
+	// Remove all permalink embeds and only keep non-permalink embeds.
+	// We always have only one permalink embed even if the post
+	// contains multiple permalinks.
+	var newEmbeds []*model.PostEmbed
+	for _, embed := range post.Metadata.Embeds {
+		if embed.Type != model.PostEmbedPermalink {
+			newEmbeds = append(newEmbeds, embed)
+		}
+	}
+
+	post.Metadata.Embeds = newEmbeds
+
+	post.DelProp(model.PostPropsPreviewedPost)
+}
+
 func (a *App) sanitizePostMetadataForUserAndChannel(c request.CTX, post *model.Post, previewedPost *model.PreviewPost, previewedChannel *model.Channel, userID string) *model.Post {
 	if post.Metadata == nil || len(post.Metadata.Embeds) == 0 || previewedPost == nil {
 		return post
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
-		// Remove all permalink embeds and only keep non-permalink embeds.
-		// We always have only one permalink embed even if the post
-		// contains multiple permalinks.
-		var newEmbeds []*model.PostEmbed
-		for _, embed := range post.Metadata.Embeds {
-			if embed.Type != model.PostEmbedPermalink {
-				newEmbeds = append(newEmbeds, embed)
-			}
-		}
-
-		post.Metadata.Embeds = newEmbeds
-
-		post.DelProp(model.PostPropsPreviewedPost)
+		removePermalinkMetadataFromPost(post)
 	}
 
 	return post
@@ -230,19 +238,7 @@ func (a *App) SanitizePostMetadataForUser(c request.CTX, post *model.Post, userI
 	}
 
 	if previewedChannel != nil && !a.HasPermissionToReadChannel(c, userID, previewedChannel) {
-		// Remove all permalink embeds and only keep non-permalink embeds.
-		// We always have only one permalink embed even if the post
-		// contains multiple permalinks.
-		var newEmbeds []*model.PostEmbed
-		for _, embed := range post.Metadata.Embeds {
-			if embed.Type != model.PostEmbedPermalink {
-				newEmbeds = append(newEmbeds, embed)
-			}
-		}
-
-		post.Metadata.Embeds = newEmbeds
-
-		post.DelProp(model.PostPropsPreviewedPost)
+		removePermalinkMetadataFromPost(post)
 	}
 
 	return post, nil
