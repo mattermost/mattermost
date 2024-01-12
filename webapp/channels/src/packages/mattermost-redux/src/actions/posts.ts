@@ -1229,7 +1229,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
 
 export type ExtendedPost = Post & { system_post_ids?: string[] };
 
-export function removePost(post: ExtendedPost): NewActionFunc {
+export function removePost(post: ExtendedPost): NewActionFunc<boolean> {
     return (dispatch, getState) => {
         if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY && post.system_post_ids) {
             const state = getState();
