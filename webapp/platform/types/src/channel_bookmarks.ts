@@ -25,6 +25,19 @@ export type ChannelBookmark = {
     parent_id?: string;
 }
 
+export type ChannelBookmarkCreate = {
+    display_name: string;
+    image_url?: string;
+    emoji?: string;
+    type: ChannelBookmarkType;
+} & ({
+    type: 'link';
+    link_url: string;
+} | {
+    type: 'file';
+    file_id: string;
+})
+
 export type ChannelBookmarkPatch = {
     file_id?: string;
     display_name?: string;

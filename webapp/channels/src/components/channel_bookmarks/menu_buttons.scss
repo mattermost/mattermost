@@ -1,0 +1,75 @@
+
+#channelBookmarksPlusMenuButton {
+    position: relative;
+    display: flex;
+    padding: 4px;
+
+    background: transparent;
+    border: none;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+    font-family: Open Sans;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    gap: 5px;
+
+    &.rounded {
+        border-radius: 12px;
+        padding-right: 8px;
+    }
+
+    &:hover {
+        background: rgba(var(--center-channel-color-rgb), 8%);
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active,
+    &--active,
+    &--active:hover,
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 8%);
+        color: rgb(var(--button-bg-rgb));
+    }
+}
+
+#channelBookmarksDotMenuButton {
+    height: 18px;
+    width: 18px;
+    padding: 0;
+    align-items: center;
+    display: flex;
+    border-radius: 4px;
+    font-family: Open Sans;
+    font-weight: 600;
+    font-size: 12px;
+    border: none;
+
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+
+    background: rgba(var(--center-channel-color-rgb), 8%);
+    background: color-mix(in sRGB, var(--center-channel-bg), var(--center-channel-color) 8%);
+
+    &:hover {
+        background: rgba(var(--button-bg-rgb), 16%);
+        background: color-mix(
+            in sRGB,
+            var(--center-channel-bg),
+            var(--center-channel-color) 16%
+        );
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    &:active,
+    &--active,
+    &--active:hover,
+    &[aria-expanded="true"] {
+        background: rgba(var(--button-bg-rgb), 16%);
+        background: color-mix(
+            in sRGB,
+            var(--center-channel-bg),
+            var(--button-bg) 16%,
+        );
+        color: rgb(var(--button-bg-rgb));
+    }
+}

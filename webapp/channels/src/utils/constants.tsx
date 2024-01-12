@@ -455,6 +455,8 @@ export const ModalIdentifiers = {
     IP_FILTERING_SAVE_CONFIRMATION_MODAL: 'ip_filtering_save_confirmation_modal',
     REACTION_LIMIT_REACHED: 'reaction_limit_reached',
     AIR_GAPPED_CONTACT_SALES: 'air_gapped_contact_sales',
+    CHANNEL_BOOKMARK_DELETE: 'channel_bookmark_delete',
+    CHANNEL_BOOKMARK_CREATE: 'channel_bookmark_create',
 };
 
 export const UserStatuses = {
@@ -580,6 +582,10 @@ export const SocketEvents = {
     CHANNEL_DELETED: 'channel_deleted',
     CHANNEL_UNARCHIVED: 'channel_restored',
     CHANNEL_UPDATED: 'channel_updated',
+    CHANNEL_BOOKMARK_CREATED: 'channel_bookmark_created',
+    CHANNEL_BOOKMARK_DELETED: 'channel_bookmark_deleted',
+    CHANNEL_BOOKMARK_UPDATED: 'channel_bookmark_updated',
+    CHANNEL_BOOKMARK_SORTED: 'channel_bookmark_sorted',
     MULTIPLE_CHANNELS_VIEWED: 'multiple_channels_viewed',
     CHANNEL_MEMBER_UPDATED: 'channel_member_updated',
     CHANNEL_SCHEME_UPDATED: 'channel_scheme_updated',

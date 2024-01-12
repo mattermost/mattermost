@@ -6,13 +6,15 @@ import {useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
+import {getChannelBookmark} from 'mattermost-redux/selectors/entities/channel_bookmarks';
+
 import ExternalLink from 'components/external_link';
 
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
-import {getChannelBookmark} from './utils';
+import BookmarkItemDotMenu from './bookmark_dot_menu';
 
 type Props = {id: string; channelId: string};
 const BookmarkItem = ({
@@ -23,11 +25,12 @@ const BookmarkItem = ({
 
     if (bookmark.type === 'link' && bookmark.link_url) {
         return (
-            <DynamicLink href={bookmark.link_url}>
-                <Chip>
-                    {bookmark.display_name}
-                </Chip>
-            </DynamicLink>
+            <Chip>
+                <DynamicLink href={bookmark.link_url}>
+                    <Label>{bookmark.display_name}</Label>
+                </DynamicLink>
+                <BookmarkItemDotMenu bookmark={bookmark}/>
+            </Chip>
         );
     }
 
@@ -35,15 +38,65 @@ const BookmarkItem = ({
 };
 
 const Chip = styled.div`
-    display: flex;
-    padding: 4px 6px;
-    gap: 5px;
+    position: relative;
     border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    min-width: 5rem;
+
+    button {
+        position: absolute;
+        visibility: hidden;
+        right: 6px;
+        top: 4px;
+    }
 
     &:hover,
-    &:focus {
-        background: rgba(var(--center-channel-color-rgb), 0.08);
+    &:focus-within,
+    &:has([aria-expanded="true"]) {
+        button {
+            visibility: visible;
+        }
     }
+
+    &:hover,
+    &:focus-within {
+        a {
+            text-decoration: none;
+        }
+    }
+
+    &:hover,
+    &:focus-within,
+    &:has([aria-expanded="true"]) {
+        a {
+            background: rgba(var(--center-channel-color-rgb), 0.08);
+            color: rgba(var(--center-channel-color-rgb), 1);
+        }
+    }
+
+    &:active:not(:has(button:active)),
+    &--active,
+    &--active:hover {
+        a {
+            background: rgba(var(--button-bg-rgb), 0.08);
+            color: rgb(var(--button-bg-rgb)) !important;
+
+            .icon__text {
+                color: rgb(var(--button-bg));
+            }
+
+            .icon {
+                color: rgb(var(--button-bg));
+            }
+        }
+
+    }
+`;
+
+const Label = styled.span`
+    white-space: nowrap;
+    padding: 4px 0;
 `;
 
 const TARGET_BLANK_URL_PREFIX = '!';
@@ -82,17 +135,16 @@ const DynamicLink = ({href, children}: DynamicLinkProps) => {
 };
 
 const linkStyles = css`
+    display: flex;
+    padding: 0 12px 0 6px;
+    gap: 5px;
+
     color: rgba(var(--center-channel-color-rgb), 1);
     font-family: Open Sans;
     font-size: 12px;
     font-style: normal;
     font-weight: 600;
     line-height: 16px;
-
-    &:hover,
-    &:focus {
-        text-decoration: none;
-    }
 `;
 
 const StyledAnchor = styled.a`

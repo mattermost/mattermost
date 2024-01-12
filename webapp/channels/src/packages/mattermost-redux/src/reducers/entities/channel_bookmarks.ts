@@ -30,13 +30,15 @@ export function byChannelId(state: ChannelBookmarksState['byChannelId'] = {}, ac
 
     case ChannelBookmarkTypes.RECEIVED_BOOKMARK: {
         const bookmark: ChannelBookmark = action.data;
+        const {id, channel_id: channelId} = bookmark;
 
         return {
             ...state,
-            [bookmark.channel_id]: {
-                ...state[bookmark.channel_id],
-                [bookmark.id]: {
-                    ...state[bookmark.channel_id][bookmark.id],
+            [channelId]: {
+                ...state[channelId],
+                [id]: {
+                    ...state[channelId]?.[id],
+                    ...bookmark,
                 },
             },
         };
@@ -73,14 +75,13 @@ export function byChannelId(state: ChannelBookmarksState['byChannelId'] = {}, ac
     }
 
     case ChannelBookmarkTypes.BOOKMARK_DELETED: {
-        const channelId: Channel['id'] = action.data.channelId;
-        const bookmarkId: ChannelBookmark['id'] = action.data.bookmark.id;
+        const bookmark: ChannelBookmark = action.data;
 
-        const channelNextState = state[channelId];
+        const channelNextState = {...state[bookmark.channel_id]};
 
-        Reflect.deleteProperty(channelNextState, bookmarkId);
+        Reflect.deleteProperty(channelNextState, bookmark.id);
 
-        const nextState = {...state, [channelId]: channelNextState};
+        const nextState = {...state, [bookmark.channel_id]: channelNextState};
 
         return nextState;
     }
@@ -95,23 +96,6 @@ export function byChannelId(state: ChannelBookmarksState['byChannelId'] = {}, ac
         return nextState;
     }
 
-    // case TeamTypes.LEAVE_TEAM: {
-    //     const team: Team = action.data;
-
-    //     const nextState = {...state};
-    //     let changed = false;
-
-    //     for (const category of Object.values(state)) {
-    //         if (category.team_id !== team.id) {
-    //             continue;
-    //         }
-
-    //         Reflect.deleteProperty(nextState, category.id);
-    //         changed = true;
-    //     }
-
-    //     return changed ? nextState : state;
-    // }
     case UserTypes.LOGOUT_SUCCESS:
         return {};
     default:

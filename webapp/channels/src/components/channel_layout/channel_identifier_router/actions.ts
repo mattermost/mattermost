@@ -18,6 +18,8 @@ import * as UserUtils from 'mattermost-redux/utils/user_utils';
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import * as GlobalActions from 'actions/global_actions';
 
+import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
+
 import {joinPrivateChannelPrompt} from 'utils/channel_utils';
 import {Constants} from 'utils/constants';
 import * as Utils from 'utils/utils';
@@ -68,7 +70,7 @@ export function onChannelByIdentifierEnter({match, history}: MatchAndHistory): A
             dispatch(goToDirectChannelByUserId(match, history, identifier));
             break;
         case 'error':
-            await dispatch(fetchChannelsAndMembers(teamObj!.id));
+            await dispatch(fetchChannelsAndMembers(teamObj!.id, getIsChannelBookmarksEnabled(getState())));
             handleError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
             break;
         }
@@ -136,7 +138,7 @@ export function goToChannelByChannelId(match: Match, history: History): ActionFu
         if (!channel || !member) {
             const dispatchResult = await dispatch(joinChannel(getCurrentUserId(state), teamObj!.id, channelId, ''));
             if ('error' in dispatchResult) {
-                await dispatch(fetchChannelsAndMembers(teamObj!.id));
+                await dispatch(fetchChannelsAndMembers(teamObj!.id, getIsChannelBookmarksEnabled(getState())));
                 handleChannelJoinError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
                 return {data: undefined};
             }
@@ -202,7 +204,8 @@ export function goToChannelByChannelName(match: Match, history: History): Action
                 if (!channel) {
                     const getChannelDispatchResult = await dispatch(getChannelByNameAndTeamName(team, channelName, true));
                     if ('error' in getChannelDispatchResult || getChannelDispatchResult.data.delete_at === 0) {
-                        await dispatch(fetchChannelsAndMembers(teamObj!.id));
+                        const isChannelBookmarksEnabled = getIsChannelBookmarksEnabled(getState());
+                        await dispatch(fetchChannelsAndMembers(teamObj!.id, isChannelBookmarksEnabled));
                         handleChannelJoinError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
                         return {data: undefined};
                     }
@@ -235,7 +238,7 @@ function goToDirectChannelByUsername(match: Match, history: History): ActionFunc
         if (!user) {
             const dispatchResult = await dispatch(getUserByUsername(username));
             if ('error' in dispatchResult) {
-                await dispatch(fetchChannelsAndMembers(teamObj!.id));
+                await dispatch(fetchChannelsAndMembers(teamObj!.id, getIsChannelBookmarksEnabled(getState())));
                 handleError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
                 return {data: undefined};
             }
@@ -244,7 +247,7 @@ function goToDirectChannelByUsername(match: Match, history: History): ActionFunc
 
         const directChannelDispatchRes = await dispatch(openDirectChannelToUserId(user.id));
         if ('error' in directChannelDispatchRes) {
-            await dispatch(fetchChannelsAndMembers(teamObj!.id));
+            await dispatch(fetchChannelsAndMembers(teamObj!.id, getIsChannelBookmarksEnabled(getState())));
             handleError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
             return {data: undefined};
         }
@@ -264,7 +267,7 @@ export function goToDirectChannelByUserId(match: Match, history: History, userId
         if (!user) {
             const dispatchResult = await dispatch(getUser(userId));
             if ('error' in dispatchResult) {
-                await dispatch(fetchChannelsAndMembers(teamObj!.id));
+                await dispatch(fetchChannelsAndMembers(teamObj!.id, getIsChannelBookmarksEnabled(getState())));
                 handleError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
                 return {data: undefined};
             }
@@ -287,7 +290,7 @@ export function goToDirectChannelByUserIds(match: Match, history: History): Acti
         if (!user) {
             const dispatchResult = await dispatch(getUser(userId));
             if ('error' in dispatchResult) {
-                await dispatch(fetchChannelsAndMembers(teamObj!.id));
+                await dispatch(fetchChannelsAndMembers(teamObj!.id, getIsChannelBookmarksEnabled(getState())));
                 handleError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
                 return {data: undefined};
             }
@@ -310,7 +313,7 @@ export function goToDirectChannelByEmail(match: Match, history: History): Action
         if (!user) {
             const dispatchResult = await dispatch(getUserByEmail(email));
             if ('error' in dispatchResult) {
-                await dispatch(fetchChannelsAndMembers(teamObj!.id));
+                await dispatch(fetchChannelsAndMembers(teamObj!.id, getIsChannelBookmarksEnabled(getState())));
                 handleError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
                 return {data: undefined};
             }
@@ -335,7 +338,7 @@ function goToGroupChannelByGroupId(match: Match, history: History): ActionFunc {
         if (!channel) {
             const dispatchResult = await dispatch(joinChannel(getCurrentUserId(state), teamObj!.id, '', groupId));
             if ('error' in dispatchResult) {
-                await dispatch(fetchChannelsAndMembers(teamObj!.id));
+                await dispatch(fetchChannelsAndMembers(teamObj!.id, getIsChannelBookmarksEnabled(getState())));
                 handleError(match, history, getRedirectChannelNameForTeam(state, teamObj!.id));
                 return {data: undefined};
             }

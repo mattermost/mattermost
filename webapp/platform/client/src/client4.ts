@@ -113,7 +113,7 @@ import {Role} from '@mattermost/types/roles';
 import {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
 import {Scheme} from '@mattermost/types/schemes';
 import {Session} from '@mattermost/types/sessions';
-import {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
+import {ChannelBookmark, ChannelBookmarkCreate, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 import {
     GetTeamMembersOpts,
     Team,
@@ -1919,24 +1919,24 @@ export default class Client4 {
         );
     };
 
-    createChannelBookmark = (channelId: string, channelBookmark: ChannelBookmark) => {
+    createChannelBookmark = (channelId: string, channelBookmark: ChannelBookmarkCreate) => {
         return this.doFetch<ChannelBookmark>(
             `${this.getChannelBookmarksRoute(channelId)}`,
             {method: 'post', body: JSON.stringify(channelBookmark)},
         );
     };
 
-    deleteCehannelBookmark = (channelId: string, channelBookmark: ChannelBookmark) => {
+    deleteChannelBookmark = (channelId: string, channelBookmarkId: string) => {
         return this.doFetch<void>(
-            `${this.getChannelBookmarksRoute(channelId)}`,
-            {method: 'delete', body: JSON.stringify(channelBookmark)},
+            `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
+            {method: 'delete'},
         );
     };
 
     updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch) => {
-        return this.doFetch<ChannelBookmark>(
-            `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}`,
-            {method: 'patch', body: JSON.stringify(patch)},
+        return this.doFetch<{updated: ChannelBookmark}>(
+            `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
+            {method: 'PATCH', body: JSON.stringify(patch)},
         );
     };
 

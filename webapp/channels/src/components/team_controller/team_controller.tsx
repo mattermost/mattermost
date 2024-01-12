@@ -22,6 +22,8 @@ import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
 import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
 
+import {useIsChannelBookmarksEnabled} from '../channel_bookmarks/utils';
+
 import type {OwnProps, PropsFromRedux} from './index';
 
 const BackstageController = makeAsyncComponent('BackstageController', lazy(() => import('components/backstage')));
@@ -42,6 +44,7 @@ type Props = PropsFromRedux & OwnProps;
 function TeamController(props: Props) {
     const history = useHistory();
     const {team: teamNameParam} = useParams<Props['match']['params']>();
+    const isChannelBookmarksEnabled = useIsChannelBookmarksEnabled();
 
     const [initialChannelsLoaded, setInitialChannelsLoaded] = useState(false);
 
@@ -92,7 +95,7 @@ function TeamController(props: Props) {
             if (!props.disableRefetchingOnBrowserFocus) {
                 const currentTime = Date.now();
                 if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
-                    props.fetchChannelsAndMembers(props.currentTeamId);
+                    props.fetchChannelsAndMembers(props.currentTeamId, isChannelBookmarksEnabled);
                 }
             }
         }

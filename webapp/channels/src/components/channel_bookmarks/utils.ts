@@ -4,9 +4,9 @@
 import {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import type {ChannelBookmarksState} from '@mattermost/types/channel_bookmarks';
 import type {GlobalState} from '@mattermost/types/store';
 
+import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 
 import {LicenseSkus} from 'utils/constants';
@@ -36,22 +36,6 @@ export const getIsChannelBookmarksEnabled = (state: GlobalState) => {
             license.SkuShortName === LicenseSkus.E10
         )
     );
-};
-
-const EMPTY_BOOKMARKS = {};
-
-export const getChannelBookmarks = (state: GlobalState, channelId: string): ChannelBookmarksState['byChannelId'][string] => {
-    const bookmarks = state.entities.channelBookmarks.byChannelId[channelId];
-
-    if (!bookmarks) {
-        return EMPTY_BOOKMARKS;
-    }
-
-    return bookmarks;
-};
-
-export const getChannelBookmark = (state: GlobalState, channelId: string, bookmarkId: string) => {
-    return getChannelBookmarks(state, channelId)?.[bookmarkId];
 };
 
 export const useChannelBookmarks = (channelId: string) => {
