@@ -77,6 +77,9 @@ const initialState: OutgoingOAuthConnection = {
 
 export default function AbstractOutgoingOAuthConnection(props: Props) {
     const [state, setState] = useOutgoingOAuthForm(props.initialConnection || initialState as OutgoingOAuthConnection);
+    const [isEditingSecret, setIsEditingSecret] = useState(false);
+
+    const isNewConnection = !props.initialConnection;
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
@@ -118,12 +121,12 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return;
         }
 
-        if (!state.clientSecret) {
+        if ((isNewConnection || isEditingSecret) && !state.clientSecret) {
             setState({
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_oauth_app.client_secret'
+                        id='add_outgoing_oauth_connection.client_secret'
                         defaultMessage='Client Secret for the OAuth connection is required.'
                     />
                 ),
@@ -225,9 +228,49 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         });
     };
 
+    const startEditingClientSecret = () => {
+        setIsEditingSecret(true);
+    };
+
     const headerToRender = props.header;
     const footerToRender = props.footer;
     const renderExtra = props.renderExtra;
+
+    let clientSecretSection = (
+        <input
+            id='name'
+            type='text'
+            className='form-control'
+            value={state.clientSecret}
+            onChange={updateClientSecret}
+        />
+    );
+
+    if (!isNewConnection && !isEditingSecret) {
+        clientSecretSection = (
+            <>
+                <input
+                    id='name'
+                    disabled={true}
+                    type='text'
+                    className='form-control disabled'
+                    value={'*'.repeat(16)}
+                />
+                <span
+                    onClick={startEditingClientSecret}
+                    className='outgoing-oauth-connections-edit-secret'
+                    style={{
+                        position: 'absolute',
+                        right: '16px',
+                        top: '8px',
+                        cursor: 'pointer',
+                    }}
+                >
+                    <i className='icon icon-pencil-outline'/>
+                </span>
+            </>
+        );
+    }
 
     return (
         <div className='backstage-content'>
@@ -310,14 +353,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
-                            <input
-                                id='name'
-                                type='text'
-                                maxLength={64}
-                                className='form-control'
-                                value={'*'.repeat(state.clientSecret.length)}
-                                onChange={updateClientSecret}
-                            />
+                            {clientSecretSection}
                             <div className='form__help'>
                                 <FormattedMessage
                                     id='add_oauth_app.client_secret.help'
