@@ -170,11 +170,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     // scrolls to either bottom or new messages line
     private onInit = async (reconnected = false): Promise<void> => {
         this.setState({isLoading: !reconnected});
-        if (reconnected || this.morePostsToFetch()) {
-            await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected);
-        } else {
-            await this.props.actions.getNewestPostThread(this.props.selected?.id || this.props.rootPostId);
-        }
+        await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected);
 
         if (
             this.props.isCollapsedThreadsEnabled &&

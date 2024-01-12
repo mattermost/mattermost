@@ -40,7 +40,6 @@ import type {RhsState} from 'types/store/rhs';
 function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const postRootId = post.root_id || post.id;
-        await dispatch(PostActions.getPostThread(postRootId));
         const state = getState() as GlobalState;
 
         dispatch({
