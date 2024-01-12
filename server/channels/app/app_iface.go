@@ -269,9 +269,15 @@ type AppIface interface {
 	MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
 	NotifySessionsExpired() error
-	// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin wto check that the plugin
+	// OnSharedChannelsAttachmentSyncMsg is called by the Shared Channels service for a registered plugin when a file attachment
+	// needs to be synchronized.
+	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+	// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin to check that the plugin
 	// is still responding and has a connection to any upstream services it needs (e.g. MS Graph API).
 	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+	// OnSharedChannelsProfileImageSyncMsg is called by the Shared Channels service for a registered plugin when a user's
+	// profile image needs to be synchronized.
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	// OnSharedChannelsSyncMsg is called by the Shared Channels service for a registered plugin when there is new content
 	// that needs to be synchronized.
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
