@@ -129,7 +129,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             currentTeamId,
             selected,
         } = this.props;
-        
+
         if (selected && this.getReplyCount() && (this.props.selected as Post)?.is_following) {
             return getThread(
                 currentUserId,
