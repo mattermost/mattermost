@@ -10,7 +10,6 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
-import * as PostActions from 'mattermost-redux/actions/posts';
 import * as SearchActions from 'mattermost-redux/actions/search';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
@@ -171,15 +170,14 @@ describe('rhs view actions', () => {
             root_id: 'root123',
         } as Post;
 
-
-        test.skip('it dispatches PostActions.getPostThread correctly', () => {
+        /*test('it dispatches PostActions.getPostThread correctly', () => {
             store.dispatch(selectPostFromRightHandSideSearch(post));
 
             const compareStore = mockStore(initialState);
             compareStore.dispatch(PostActions.getPostThread(post.root_id));
 
             expect(store.getActions()[0]).toEqual(compareStore.getActions()[0]);
-        });
+        });*/
 
         describe(`it dispatches ${ActionTypes.SELECT_POST} correctly`, () => {
             it('with mocked date', async () => {
