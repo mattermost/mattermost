@@ -8303,12 +8303,20 @@
     "translation": "There is already an outgoing oauth connection for the provided audience."
   },
   {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "One of the provided audiences is not a valid URL."
+  },
+  {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
     "translation": "There was an error updating the outgoing oauth connection."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
     "translation": "There is already an outgoing oauth connection for the provided audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "One of the provided audiences is not a valid URL."
   },
   {
     "id": "ent.saml.attribute.app_error",
