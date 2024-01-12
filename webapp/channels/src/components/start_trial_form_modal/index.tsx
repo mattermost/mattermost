@@ -9,7 +9,6 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {requestTrialLicense} from 'actions/admin_actions';
 import {validateBusinessEmail} from 'actions/cloud';
@@ -69,7 +68,7 @@ type Props = {
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const currentUser = useSelector(getCurrentUser);
     const [name, setName] = useState('');
     const [email, setEmail] = useState(currentUser.email);

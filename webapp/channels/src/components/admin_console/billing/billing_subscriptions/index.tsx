@@ -14,7 +14,6 @@ import {
     getCloudCustomer as selectCloudCustomer,
     getCloudErrors,
 } from 'mattermost-redux/selectors/entities/cloud';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
@@ -50,7 +49,7 @@ import PlanDetails from '../plan_details';
 import './billing_subscriptions.scss';
 
 const BillingSubscriptions = () => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const subscription = useSelector(selectCloudSubscription);
     const [cloudLimits] = useGetLimits();
     const errorLoadingData = useSelector((state: GlobalState) => {

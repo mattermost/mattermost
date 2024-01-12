@@ -7,7 +7,6 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
@@ -19,7 +18,7 @@ import CompanyInfoDisplay from './company_info_display';
 type Props = Record<string, never>;
 
 const CompanyInfo: React.FC<Props> = () => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const {customer: customerError} = useSelector(getCloudErrors);
 
     useEffect(() => {
