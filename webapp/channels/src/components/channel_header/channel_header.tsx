@@ -71,7 +71,6 @@ export type Props = {
         updateChannelNotifyProps: (userId: string, channelId: string, props: Partial<ChannelNotifyProps>) => void;
         goToLastViewedChannel: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
-        closeModal: () => void;
         showChannelMembers: (channelId: string, inEditingMode?: boolean) => void;
     };
     currentRelativeTeamUrl: string;
