@@ -1,11 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction} from 'redux';
+import type {AnyAction, Dispatch} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
+import type {Audit} from '@mattermost/types/audits';
 import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {ServerError} from '@mattermost/types/errors';
+import type {MfaSecret} from '@mattermost/types/mfa';
+import type {Session} from '@mattermost/types/sessions';
 import type {TermsOfService} from '@mattermost/types/terms_of_service';
 import type {UserProfile, UserStatus, GetFilteredUsersStatsOpts, UsersStats, UserCustomStatus, UserAccessToken, AuthChangeResponse} from '@mattermost/types/users';
 
@@ -22,16 +25,16 @@ import {General} from 'mattermost-redux/constants';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
-export function generateMfaSecret(userId: string): ActionFunc {
+export function generateMfaSecret(userId: string): NewActionFuncAsync<MfaSecret> {
     return bindClientFunc({
         clientFunc: Client4.generateMfaSecret,
         params: [
             userId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function createUser(user: UserProfile, token: string, inviteId: string, redirect: string): NewActionFuncAsync<UserProfile> {
@@ -57,8 +60,8 @@ export function createUser(user: UserProfile, token: string, inviteId: string, r
     };
 }
 
-export function loadMe(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadMe(): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         // Sometimes the server version is set in one or the other
         const serverVersion = getState().entities.general.serverVersion || Client4.getServerVersion();
         dispatch(setServerVersion(serverVersion));
@@ -86,8 +89,8 @@ export function loadMe(): ActionFunc {
     };
 }
 
-export function logout(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function logout(): NewActionFuncAsync {
+    return async (dispatch) => {
         dispatch({type: UserTypes.LOGOUT_REQUEST, data: null});
 
         try {
@@ -102,11 +105,11 @@ export function logout(): ActionFunc {
     };
 }
 
-export function getTotalUsersStats(): ActionFunc {
+export function getTotalUsersStats(): NewActionFuncAsync<UsersStats> {
     return bindClientFunc({
         clientFunc: Client4.getTotalUsersStats,
         onSuccess: UserTypes.RECEIVED_USER_STATS,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function getFilteredUsersStats(options: GetFilteredUsersStatsOpts = {}, updateGlobalState = true): NewActionFuncAsync<UsersStats> {
@@ -152,8 +155,8 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
     };
 }
 
-export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingProfilesByIds(userIds: string[]): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         const {profiles} = getState().entities.users;
         const missingIds: string[] = [];
         userIds.forEach((id) => {
@@ -171,8 +174,8 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
     };
 }
 
-export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingProfilesByUsernames(usernames: string[]): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         const {profiles} = getState().entities.users;
 
         const usernameProfiles = Object.values(profiles).reduce((acc, profile: any) => {
@@ -194,8 +197,8 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
     };
 }
 
-export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getProfilesByIds(userIds: string[], options?: any): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         let profiles: UserProfile[];
 
         try {
@@ -215,8 +218,8 @@ export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
     };
 }
 
-export function getProfilesByUsernames(usernames: string[]): ActionFunc<UserProfile[]> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getProfilesByUsernames(usernames: string[]): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         let profiles;
 
         try {
@@ -293,8 +296,8 @@ export function getProfilesNotInTeam(teamId: string, groupConstrained: boolean, 
     };
 }
 
-export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         let profiles = null;
         try {
             profiles = await Client4.getProfilesWithoutTeam(page, perPage, options);
@@ -352,8 +355,8 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
     };
 }
 
-export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getProfilesInGroupChannels(channelsIds: string[]): NewActionFuncAsync<Record<string, UserProfile[]>> {
+    return async (dispatch, getState) => {
         let channelProfiles;
 
         try {
@@ -419,12 +422,12 @@ export function getProfilesNotInChannel(teamId: string, channelId: string, group
     };
 }
 
-export function getMe(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMe(): NewActionFuncAsync<UserProfile> {
+    return async (dispatch, getState) => {
         const getMeFunc = bindClientFunc({
             clientFunc: Client4.getMe,
             onSuccess: UserTypes.RECEIVED_ME,
-        });
+        }) as any; // HARRISONTODO Type bindClientFunc
         const me = await getMeFunc(dispatch, getState);
 
         if ('error' in me) {
@@ -592,7 +595,7 @@ export function getUserByEmail(email: string): NewActionFuncAsync<UserProfile> {
 // statuses, we are only making one call for 75 ids.
 // We could maybe clean it up somewhat by storing the array of ids in redux state possbily?
 let ids: string[] = [];
-const debouncedGetStatusesByIds = debounce(async (dispatch: DispatchFunc) => {
+const debouncedGetStatusesByIds = debounce(async (dispatch: Dispatch) => {
     dispatch(getStatusesByIds([...new Set(ids)]));
 }, 20, false, () => {
     ids = [];
@@ -602,28 +605,28 @@ export function getStatusesByIdsBatchedDebounced(id: string) {
     return debouncedGetStatusesByIds;
 }
 
-export function getStatusesByIds(userIds: string[]): ActionFunc {
+export function getStatusesByIds(userIds: string[]): NewActionFuncAsync<UserStatus[]> {
     return bindClientFunc({
         clientFunc: Client4.getStatusesByIds,
         onSuccess: UserTypes.RECEIVED_STATUSES,
         params: [
             userIds,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getStatus(userId: string): ActionFunc {
+export function getStatus(userId: string): NewActionFuncAsync<UserStatus> {
     return bindClientFunc({
         clientFunc: Client4.getStatus,
         onSuccess: UserTypes.RECEIVED_STATUS,
         params: [
             userId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function setStatus(status: UserStatus): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setStatus(status: UserStatus): NewActionFuncAsync<UserStatus> {
+    return async (dispatch, getState) => {
         try {
             await Client4.updateStatus(status);
         } catch (error) {
@@ -641,38 +644,38 @@ export function setStatus(status: UserStatus): ActionFunc {
     };
 }
 
-export function setCustomStatus(customStatus: UserCustomStatus): ActionFunc {
+export function setCustomStatus(customStatus: UserCustomStatus): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.updateCustomStatus,
         params: [
             customStatus,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function unsetCustomStatus(): ActionFunc {
+export function unsetCustomStatus(): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.unsetCustomStatus,
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removeRecentCustomStatus(customStatus: UserCustomStatus): ActionFunc {
+export function removeRecentCustomStatus(customStatus: UserCustomStatus): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.removeRecentCustomStatus,
         params: [
             customStatus,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getSessions(userId: string): ActionFunc {
+export function getSessions(userId: string): NewActionFuncAsync<Session[]> {
     return bindClientFunc({
         clientFunc: Client4.getSessions,
         onSuccess: UserTypes.RECEIVED_SESSIONS,
         params: [
             userId,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function revokeSession(userId: string, sessionId: string): NewActionFuncAsync {
@@ -716,7 +719,7 @@ export function revokeAllSessionsForUser(userId: string): NewActionFuncAsync<boo
     };
 }
 
-export function revokeSessionsForAllUsers(): ActionFunc<boolean, ServerError> {
+export function revokeSessionsForAllUsers(): NewActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.revokeSessionsForAllUsers();
@@ -735,7 +738,7 @@ export function revokeSessionsForAllUsers(): ActionFunc<boolean, ServerError> {
     };
 }
 
-export function getUserAudits(userId: string, page = 0, perPage: number = General.AUDITS_CHUNK_SIZE): ActionFunc {
+export function getUserAudits(userId: string, page = 0, perPage: number = General.AUDITS_CHUNK_SIZE): NewActionFuncAsync<Audit[]> {
     return bindClientFunc({
         clientFunc: Client4.getUserAudits,
         onSuccess: UserTypes.RECEIVED_AUDITS,
@@ -744,7 +747,7 @@ export function getUserAudits(userId: string, page = 0, perPage: number = Genera
             page,
             perPage,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function autocompleteUsers(term: string, teamId = '', channelId = '', options?: {
@@ -902,7 +905,7 @@ export function startPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTO
     };
 }
 
-export function stopPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTODO These status actions are unused
+export function stopPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTODO remove me
     return async () => {
         if (statusIntervalId) {
             clearInterval(statusIntervalId);
@@ -968,8 +971,8 @@ export function updateUserRoles(userId: string, roles: string): NewActionFuncAsy
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateUserMfa(userId: string, activate: boolean, code = ''): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);
         } catch (error) {
@@ -1023,13 +1026,13 @@ export function updateUserActive(userId: string, active: boolean): NewActionFunc
     };
 }
 
-export function verifyUserEmail(token: string): ActionFunc {
+export function verifyUserEmail(token: string): NewActionFuncAsync {
     return bindClientFunc({
         clientFunc: Client4.verifyUserEmail,
         params: [
             token,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function sendVerificationEmail(email: string): NewActionFuncAsync {
@@ -1095,7 +1098,7 @@ export function uploadProfileImage(userId: string, imageData: any): NewActionFun
     };
 }
 
-export function switchEmailToOAuth(service: string, email: string, password: string, mfaCode = ''): ActionFunc {
+export function switchEmailToOAuth(service: string, email: string, password: string, mfaCode = ''): NewActionFuncAsync<AuthChangeResponse> {
     return bindClientFunc({
         clientFunc: Client4.switchEmailToOAuth,
         params: [
@@ -1104,10 +1107,10 @@ export function switchEmailToOAuth(service: string, email: string, password: str
             password,
             mfaCode,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function switchOAuthToEmail(currentService: string, email: string, password: string): ActionFunc {
+export function switchOAuthToEmail(currentService: string, email: string, password: string): NewActionFuncAsync<AuthChangeResponse> {
     return bindClientFunc({
         clientFunc: Client4.switchOAuthToEmail,
         params: [
@@ -1115,10 +1118,10 @@ export function switchOAuthToEmail(currentService: string, email: string, passwo
             email,
             password,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function switchEmailToLdap(email: string, emailPassword: string, ldapId: string, ldapPassword: string, mfaCode = ''): ActionFunc {
+export function switchEmailToLdap(email: string, emailPassword: string, ldapId: string, ldapPassword: string, mfaCode = ''): NewActionFuncAsync<AuthChangeResponse> {
     return bindClientFunc({
         clientFunc: Client4.switchEmailToLdap,
         params: [
@@ -1128,7 +1131,7 @@ export function switchEmailToLdap(email: string, emailPassword: string, ldapId: 
             ldapPassword,
             mfaCode,
         ],
-    });
+    }) as any; // HARRISONTODO Type bindClientFunc
 }
 
 export function switchLdapToEmail(ldapPassword: string, email: string, emailPassword: string, mfaCode = ''): NewActionFuncAsync<AuthChangeResponse> {
@@ -1210,8 +1213,8 @@ export function getUserAccessToken(tokenId: string): NewActionFuncAsync<UserAcce
     };
 }
 
-export function getUserAccessTokens(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getUserAccessTokens(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): NewActionFuncAsync<UserAccessToken[]> { // HARRISONTODO remove me
+    return async (dispatch, getState) => {
         let data;
 
         try {
@@ -1327,15 +1330,15 @@ export function getKnownUsers(): NewActionFuncAsync {
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function clearUserAccessTokens(): ActionFunc {
+export function clearUserAccessTokens(): NewActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: UserTypes.CLEAR_MY_USER_ACCESS_TOKENS, data: null});
         return {data: true};
     };
 }
 
-export function checkForModifiedUsers() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function checkForModifiedUsers(): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const users = getUsers(state);
         const lastDisconnectAt = state.websocket.lastDisconnectAt;

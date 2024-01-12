@@ -125,31 +125,4 @@ describe('actions/status_actions', () => {
             expect(getStatusesByIds).not.toHaveBeenCalled();
         });
     });
-
-    describe('loadStatusesForProfilesMap', () => {
-        test('load statuses for users map', () => {
-            const state = cloneDeep(initialState);
-            const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForProfilesMap({
-                user_id2: {id: 'user_id2', username: 'user2'} as UserProfile,
-                user_id3: {id: 'user_id3', username: 'user3'} as UserProfile,
-                user_id4: {id: 'user_id4', username: 'user4'} as UserProfile,
-            }));
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['user_id2', 'user_id3', 'user_id4']));
-        });
-
-        test('load statuses for empty users map', () => {
-            const state = cloneDeep(initialState);
-            const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForProfilesMap({}));
-            expect(getStatusesByIds).not.toHaveBeenCalled();
-        });
-
-        test('load statuses for null users map', () => {
-            const state = cloneDeep(initialState);
-            const testStore = mockStore(state);
-            testStore.dispatch(Actions.loadStatusesForProfilesMap(null));
-            expect(getStatusesByIds).not.toHaveBeenCalled();
-        });
-    });
 });

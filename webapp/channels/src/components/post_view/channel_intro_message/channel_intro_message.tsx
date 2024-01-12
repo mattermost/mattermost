@@ -46,7 +46,7 @@ type Props = {
     usersLimit: number;
     channelMember?: ChannelMembership;
     actions: {
-        getTotalUsersStats: () => any;
+        getTotalUsersStats: () => void;
     };
 }
 

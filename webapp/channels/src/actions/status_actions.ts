@@ -49,7 +49,7 @@ export function loadStatusesForChannelAndSidebar(): NewActionFunc {
     };
 }
 
-export function loadStatusesForProfilesList(users: UserProfile[] | null): NewActionFunc<boolean> {
+export function loadStatusesForProfilesList(users: UserProfile[] | null | undefined): NewActionFunc<boolean> {
     return (dispatch) => {
         if (users == null) {
             return {data: false};
@@ -58,25 +58,6 @@ export function loadStatusesForProfilesList(users: UserProfile[] | null): NewAct
         const statusesToLoad = [];
         for (let i = 0; i < users.length; i++) {
             statusesToLoad.push(users[i].id);
-        }
-
-        dispatch(loadStatusesByIds(statusesToLoad));
-
-        return {data: true};
-    };
-}
-
-export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | null): NewActionFunc {
-    return (dispatch) => {
-        if (users == null) {
-            return {data: false};
-        }
-
-        const statusesToLoad = [];
-        for (const userId in users) {
-            if ({}.hasOwnProperty.call(users, userId)) {
-                statusesToLoad.push(userId);
-            }
         }
 
         dispatch(loadStatusesByIds(statusesToLoad));

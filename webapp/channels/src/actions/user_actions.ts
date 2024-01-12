@@ -22,11 +22,11 @@ import {
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
-import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
+import {loadStatusesForProfilesList} from 'actions/status_actions';
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
 import store from 'stores/redux_store';
 
@@ -164,13 +164,13 @@ export function loadTeamMembersForProfilesList(profiles: UserProfile[], teamId: 
     };
 }
 
-export function loadProfilesWithoutTeam(page: number, perPage: number, options?: Record<string, any>) {
-    return async (doDispatch: DispatchFunc) => {
+export function loadProfilesWithoutTeam(page: number, perPage: number, options?: Record<string, any>): NewActionFuncAsync<UserProfile[]> {
+    return async (doDispatch) => {
         const {data} = await doDispatch(UserActions.getProfilesWithoutTeam(page, perPage, options));
 
-        doDispatch(loadStatusesForProfilesMap(data));
+        doDispatch(loadStatusesForProfilesList(data));
 
-        return data;
+        return {data};
     };
 }
 
@@ -275,8 +275,8 @@ export function loadNewGMIfNeeded(channelId: string) {
     };
 }
 
-export function loadProfilesForGroupChannels(groupChannels: Channel[]) {
-    return (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function loadProfilesForGroupChannels(groupChannels: Channel[]): NewActionFunc {
+    return (doDispatch, doGetState) => {
         const state = doGetState();
         const userIdsInChannels = Selectors.getUserIdsInChannels(state);
 

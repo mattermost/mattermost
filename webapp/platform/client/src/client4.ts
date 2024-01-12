@@ -1063,21 +1063,21 @@ export default class Client4 {
     };
 
     updateCustomStatus = (customStatus: UserCustomStatus) => {
-        return this.doFetch(
+        return this.doFetch<StatusOK>(
             `${this.getUserRoute('me')}/status/custom`,
             {method: 'put', body: JSON.stringify(customStatus)},
         );
     };
 
     unsetCustomStatus = () => {
-        return this.doFetch(
+        return this.doFetch<StatusOK>(
             `${this.getUserRoute('me')}/status/custom`,
             {method: 'delete'},
         );
     }
 
     removeRecentCustomStatus = (customStatus: UserCustomStatus) => {
-        return this.doFetch(
+        return this.doFetch<StatusOK>(
             `${this.getUserRoute('me')}/status/custom/recent/delete`,
             {method: 'post', body: JSON.stringify(customStatus)},
         );
