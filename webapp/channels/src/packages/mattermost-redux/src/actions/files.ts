@@ -6,7 +6,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {FileTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {DispatchFunc, GetStateFunc, ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -63,12 +63,12 @@ export function getFilesForPost(postId: string): ActionFunc {
     };
 }
 
-export function getFilePublicLink(fileId: string): NewActionFuncAsync<{link: string}> {
+export function getFilePublicLink(fileId: string) {
     return bindClientFunc({
         clientFunc: Client4.getFilePublicLink,
         onSuccess: FileTypes.RECEIVED_FILE_PUBLIC_LINK,
         params: [
             fileId,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }

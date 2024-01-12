@@ -12,12 +12,10 @@ import type {
     ChannelsWithTotalCount,
     ChannelSearchOpts,
     ServerChannel,
-    ChannelModeration,
     ChannelStats,
     ChannelWithTeamData,
 } from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
-import type {UsersWithGroupsAndCount} from '@mattermost/types/groups';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {ChannelTypes, PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
@@ -1028,11 +1026,11 @@ export function searchAllChannels(term: string, opts: ChannelSearchOpts = {}): N
     };
 }
 
-export function searchGroupChannels(term: string): NewActionFuncAsync<Channel[]> {
+export function searchGroupChannels(term: string) {
     return bindClientFunc({
         clientFunc: Client4.searchGroupChannels,
         params: [term],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function getChannelStats(channelId: string, includeFileCount?: boolean): NewActionFuncAsync<ChannelStats> {
@@ -1359,7 +1357,7 @@ export function getChannelMembersByIds(channelId: string, userIds: string[]) {
     });
 }
 
-export function getChannelMember(channelId: string, userId: string): NewActionFuncAsync<ChannelMembership> {
+export function getChannelMember(channelId: string, userId: string) {
     return bindClientFunc({
         clientFunc: Client4.getChannelMember,
         onSuccess: ChannelTypes.RECEIVED_CHANNEL_MEMBER,
@@ -1367,7 +1365,7 @@ export function getChannelMember(channelId: string, userId: string): NewActionFu
             channelId,
             userId,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function getMyChannelMember(channelId: string) {
@@ -1439,17 +1437,17 @@ export function updateChannelScheme(channelId: string, schemeId: string) {
     });
 }
 
-export function updateChannelMemberSchemeRoles(channelId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean): NewActionFuncAsync {
+export function updateChannelMemberSchemeRoles(channelId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) {
     return bindClientFunc({
         clientFunc: async () => {
             await Client4.updateChannelMemberSchemeRoles(channelId, userId, isSchemeUser, isSchemeAdmin);
             return {channelId, userId, isSchemeUser, isSchemeAdmin};
         },
         onSuccess: ChannelTypes.UPDATED_CHANNEL_MEMBER_SCHEME_ROLES,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function membersMinusGroupMembers(channelID: string, groupIDs: string[], page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): NewActionFuncAsync<UsersWithGroupsAndCount> {
+export function membersMinusGroupMembers(channelID: string, groupIDs: string[], page = 0, perPage: number = General.PROFILE_CHUNK_SIZE) {
     return bindClientFunc({
         clientFunc: Client4.channelMembersMinusGroupMembers,
         onSuccess: ChannelTypes.RECEIVED_CHANNEL_MEMBERS_MINUS_GROUP_MEMBERS,
@@ -1459,10 +1457,10 @@ export function membersMinusGroupMembers(channelID: string, groupIDs: string[], 
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getChannelModerations(channelId: string): NewActionFuncAsync<ChannelModeration[]> {
+export function getChannelModerations(channelId: string) {
     return bindClientFunc({
         clientFunc: async () => {
             const moderations = await Client4.getChannelModerations(channelId);
@@ -1475,7 +1473,7 @@ export function getChannelModerations(channelId: string): NewActionFuncAsync<Cha
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function patchChannelModerations(channelId: string, patch: ChannelModerationPatch[]): NewActionFuncAsync<ChannelModeration[]> {
+export function patchChannelModerations(channelId: string, patch: ChannelModerationPatch[]) {
     return bindClientFunc({
         clientFunc: async () => {
             const moderations = await Client4.patchChannelModerations(channelId, patch);
@@ -1488,7 +1486,7 @@ export function patchChannelModerations(channelId: string, patch: ChannelModerat
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function getChannelMemberCountsByGroup(channelId: string): ActionFunc {
+export function getChannelMemberCountsByGroup(channelId: string) {
     return bindClientFunc({
         clientFunc: async () => {
             const channelMemberCountsByGroup = await Client4.getChannelMemberCountsByGroup(channelId, true);

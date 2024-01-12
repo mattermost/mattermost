@@ -44,7 +44,7 @@ type Props = {
         createJob: (job: JobTypeBase) => Promise<ActionResult>;
         getJobsByType: (job: JobType) => Promise<ActionResult>;
         deleteDataRetentionCustomPolicy: (id: string) => Promise<ActionResult>;
-        updateConfig: (config: Record<string, any>) => Promise<ActionResult>;
+        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     };
 };
 
