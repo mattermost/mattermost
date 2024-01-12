@@ -14,7 +14,7 @@ import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redu
 import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
@@ -76,7 +76,7 @@ export function openGroupChannelToUserIds(userIds: Array<UserProfile['id']>): Ne
     };
 }
 
-export function loadChannelsForCurrentUser(): ActionFunc {
+export function loadChannelsForCurrentUser(): NewActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const unreads = getUnreadChannelIds(state);
@@ -96,7 +96,7 @@ export function loadChannelsForCurrentUser(): ActionFunc {
     };
 }
 
-export function searchMoreChannels(term: string, showArchivedChannels: boolean, hideJoinedChannels: boolean): ActionFunc<Channel[], ServerError> {
+export function searchMoreChannels(term: string, showArchivedChannels: boolean, hideJoinedChannels: boolean): NewActionFuncAsync<Channel[]> { // HARRISONTODO unused
     return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
