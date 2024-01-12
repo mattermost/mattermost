@@ -53,9 +53,23 @@ func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 	}
 
 	// Customer Info & Usage Analytics
-	activeUserCount, err := a.Srv().Store().Status().GetTotalActiveUsersCount()
+
+	// active registered users
+	activatedUsers, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
-		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total active users count", http.StatusInternalServerError)
+		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total activated users count", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// daily active users
+	dau, err := a.Srv().Store().User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	if err != nil {
+		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total daily active users count", http.StatusInternalServerError)
+	}
+
+	// monthly active users
+	mau, err := a.Srv().Store().User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
+	if err != nil {
+		return nil, model.NewAppError("requestTrueUpReview", "api.license.true_up_review.user_count_fail", nil, "Could not get the total monthly active users count", http.StatusInternalServerError).Wrap(err)
 	}
 
 	// Webhook, calls, boards, and playbook counts
@@ -109,7 +123,9 @@ func (a *App) getTrueUpProfile() (*model.TrueUpReviewProfile, error) {
 		LicensedSeats:          *license.Features.Users,
 		LicensePlan:            license.SkuName,
 		CustomerName:           license.Customer.Name,
-		ActiveUsers:            activeUserCount,
+		ActivatedUsers:         activatedUsers,
+		DailyActiveUsers:       dau,
+		MonthlyActiveUsers:     mau,
 		TotalIncomingWebhooks:  incomingWebhookCount,
 		TotalOutgoingWebhooks:  outgoingWebhookCount,
 		Plugins:                trueUpReviewPlugins,
