@@ -19,10 +19,7 @@ const ProfilePopoverAvatar = ({
     urlSrc,
 }: Props) => {
     return (
-        <div
-            className='user-popover-image'
-            key='user-popover-image'
-        >
+        <div className='user-popover-image'>
             <Avatar
                 id='userAvatar'
                 size='xxl'

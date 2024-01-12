@@ -102,7 +102,6 @@ const ProfilePopoverCustomStatus = ({
 
     return (
         <div
-            key='user-popover-status'
             id='user-popover-status'
             className='user-popover__time-status-container'
         >

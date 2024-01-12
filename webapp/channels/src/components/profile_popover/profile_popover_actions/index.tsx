@@ -41,7 +41,6 @@ const ProfilePopoverActions = ({
     return (
         <div
             data-toggle='tooltip'
-            key='user-popover-dm'
             className='popover__row first'
         >
             <button

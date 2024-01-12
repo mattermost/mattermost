@@ -17,10 +17,7 @@ const BotDescription = ({
         return null;
     }
     return (
-        <div
-            key='bot-description'
-            className='overflow--ellipsis text-nowrap pb-1'
-        >
+        <div className='overflow--ellipsis text-nowrap pb-1'>
             {botDescription}
         </div>
     );

@@ -26,10 +26,7 @@ const ProfilePopoverLastActive = ({
     }
 
     return (
-        <div
-            className='user-popover-last-active'
-            key='user-popover-last-active'
-        >
+        <div className='user-popover-last-active'>
             <FormattedMessage
                 id='channel_header.lastOnline'
                 defaultMessage='Last online {timestamp}'

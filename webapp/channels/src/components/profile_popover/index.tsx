@@ -270,17 +270,13 @@ const ProfilePopover = ({
                         haveOverrideProp={haveOverrideProp}
                         fullname={fullname}
                     />
-                    <hr
-                        key='user-popover-hr'
-                        className='divider divider--expanded'
-                    />
+                    <hr className='divider divider--expanded'/>
                     <ProfilePopoverEmail
                         email={user.email}
                         haveOverrideProp={haveOverrideProp}
                         isBot={user.is_bot}
                     />
                     <Pluggable
-                        key='profilePopoverPluggable2'
                         pluggableName='PopoverUserAttributes'
                         user={user}
                         hide={hide}
@@ -291,7 +287,6 @@ const ProfilePopover = ({
                         currentUserTimezone={currentUserTimezone}
                         profileUserTimezone={user.timezone}
                         haveOverrideProp={haveOverrideProp}
-                        key='user-popover-local-time'
                     />
                     <ProfilePopoverCustomStatus
                         currentUserId={currentUserId}
@@ -327,7 +322,6 @@ const ProfilePopover = ({
                         hide={hide}
                     />
                     <Pluggable
-                        key='profilePopoverPluggable3'
                         pluggableName='PopoverUserActions'
                         user={user}
                         hide={hide}

@@ -21,10 +21,7 @@ const Position = ({
         Constants.MAX_POSITION_LENGTH,
     );
     return (
-        <div
-            className='text-center'
-            key='user-popover-position'
-        >
+        <div className='text-center'>
             {positionToRender}
         </div>
     );

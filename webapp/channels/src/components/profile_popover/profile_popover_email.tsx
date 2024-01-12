@@ -20,7 +20,6 @@ const ProfilePopoverEmail = ({
         <div
             data-toggle='tooltip'
             title={email}
-            key='user-popover-email'
         >
             <a
                 href={'mailto:' + email}

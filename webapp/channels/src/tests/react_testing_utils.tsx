@@ -8,6 +8,7 @@ import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {Router} from 'react-router-dom';
+import type {Reducer} from 'redux';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -83,7 +84,7 @@ export const renderWithContext = (
          * Rerenders the component after replacing the entire store state with the provided one.
          */
         replaceStoreState: (newInitialState: DeepPartial<GlobalState>) => {
-            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore);
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
 
             results.rerender(renderState.component);
         },
@@ -93,14 +94,24 @@ export const renderWithContext = (
          */
         updateStoreState: (stateDiff: DeepPartial<GlobalState>) => {
             const newInitialState = mergeObjects(renderState.store.getState(), stateDiff);
-            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore);
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
 
             results.rerender(renderState.component);
         },
     };
 };
 
-function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, testReducers?: string[]) {
+function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, extraReducersKeys?: string[]) {
+    let testReducers;
+    if (extraReducersKeys) {
+        const newReducers: Record<string, Reducer> = {};
+        extraReducersKeys.forEach((v) => {
+            newReducers[v] = (state = null) => state;
+        });
+
+        testReducers = newReducers;
+    }
+
     let testStore = configureStore(initialState, testReducers);
     if (useMockedStore) {
         testStore = mockStore(testStore.getState());

@@ -19,7 +19,6 @@ const ProfilePopoverOverrideDisclaimer = ({
     return (
         <div
             data-toggle='tooltip'
-            key='user-popover-settings'
             className='popover__row first'
         >
             <FormattedMessage

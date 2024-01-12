@@ -32,7 +32,6 @@ const FullName = ({
         <div
             data-testid={`popover-fullname-${username}`}
             className='overflow--ellipsis pb-1'
-            key='user-popover-fullname'
         >
             <span className='user-profile-popover__heading'>{fullname}</span>
             {sharedIcon}

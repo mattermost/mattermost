@@ -18,7 +18,6 @@ const UserName = ({
         <div
             id='userPopoverUsername'
             className={userNameClass}
-            key='user-popover-username'
         >
             {`@${username}`}
         </div>
