@@ -1,13 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import {
     PostTypes,
     SearchTypes,
     UserTypes,
 } from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/search';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 type SearchState = ReturnType<typeof reducer>;
 
@@ -18,7 +19,7 @@ describe('reducers.entities.search', () => {
             const action = {};
             const expectedState: any = [];
 
-            const actualState = reducer({results: inputState} as SearchState, action as GenericAction);
+            const actualState = reducer({results: inputState} as SearchState, action as AnyAction);
             expect(actualState.results).toEqual(expectedState);
         });
 
@@ -120,7 +121,7 @@ describe('reducers.entities.search', () => {
             const action = {};
             const expectedState: string[] = [];
 
-            const actualState = reducer({fileResults: inputState} as SearchState, action as GenericAction);
+            const actualState = reducer({fileResults: inputState} as SearchState, action as AnyAction);
             expect(actualState.fileResults).toEqual(expectedState);
         });
 
@@ -191,7 +192,7 @@ describe('reducers.entities.search', () => {
             const action = {};
             const expectedState = {};
 
-            const actualState = reducer({matches: inputState} as SearchState, action as GenericAction);
+            const actualState = reducer({matches: inputState} as SearchState, action as AnyAction);
             expect(actualState.matches).toEqual(expectedState);
         });
 

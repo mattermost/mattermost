@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {EmojisState, CustomEmoji} from '@mattermost/types/emojis';
@@ -8,9 +9,8 @@ import type {Post} from '@mattermost/types/posts';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {EmojiTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-export function customEmoji(state: IDMappedObjects<CustomEmoji> = {}, action: GenericAction): IDMappedObjects<CustomEmoji> {
+export function customEmoji(state: IDMappedObjects<CustomEmoji> = {}, action: AnyAction): IDMappedObjects<CustomEmoji> {
     switch (action.type) {
     case EmojiTypes.RECEIVED_CUSTOM_EMOJI: {
         const emoji: CustomEmoji = action.data;
@@ -75,7 +75,7 @@ function storeEmojisForPost(state: IDMappedObjects<CustomEmoji>, post: Post): ID
     return post.metadata.emojis.reduce(storeEmoji, state);
 }
 
-function nonExistentEmoji(state: Set<string> = new Set(), action: GenericAction): Set<string> {
+function nonExistentEmoji(state: Set<string> = new Set(), action: AnyAction): Set<string> {
     switch (action.type) {
     case EmojiTypes.CUSTOM_EMOJI_DOES_NOT_EXIST: {
         if (!state.has(action.data)) {
@@ -122,4 +122,4 @@ export default (combineReducers({
 
     // set containing custom emoji names that do not exist
     nonExistentEmoji,
-}) as (b: EmojisState, a: GenericAction) => EmojisState);
+}) as (b: EmojisState, a: AnyAction) => EmojisState);

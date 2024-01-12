@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 import {TestHelper} from 'utils/test_helper';
@@ -22,7 +23,7 @@ describe('Reducers.users', () => {
                 profilesInChannel: {},
             };
 
-            const newState = reducer(state, action as GenericAction);
+            const newState = reducer(state, action as AnyAction);
             expect(newState.profilesInChannel).toEqual(expectedState.profilesInChannel);
         });
 
@@ -301,7 +302,7 @@ describe('Reducers.users', () => {
                 profilesNotInChannel: {},
             };
 
-            const newState = reducer(state, action as GenericAction);
+            const newState = reducer(state, action as AnyAction);
             expect(newState.profilesNotInChannel).toEqual(expectedState.profilesNotInChannel);
         });
 
@@ -593,7 +594,7 @@ describe('Reducers.users', () => {
                 profilesNotInGroup: {},
             };
 
-            const newState = reducer(state, action as GenericAction);
+            const newState = reducer(state, action as AnyAction);
             expect(newState.profilesNotInGroup).toEqual(expectedState.profilesNotInGroup);
         });
 
