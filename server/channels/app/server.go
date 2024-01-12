@@ -1415,7 +1415,8 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsCloud() {
-		mlog.Debug("Skipping license expiration check for Cloud")
+		appInstance := New(ServerConnector(s.Channels()))
+		appInstance.DoSubscriptionRenewalCheck()
 		return
 	}
 

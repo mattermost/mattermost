@@ -32,6 +32,8 @@ function makeInvoice(...lines: Array<[number, typeof InvoiceLineItemType[keyof t
                 description: '',
                 type,
                 metadata: {} as Record<string, string>,
+                period_end: 1642330466000,
+                period_start: 1643540066000,
             };
             if (type === InvoiceLineItemType.Full || type === InvoiceLineItemType.Partial) {
                 lineItem.metadata.type = type;
