@@ -39,7 +39,7 @@ export type Props = Attrs & {
     actions: {
         fetchRHSAppsBindings: (channelId: string, rootID: string) => unknown;
         getNewestPostThread: (rootId: string) => Promise<any>|ActionFunc;
-        getPostThread: (rootId: string) => Promise<any>|ActionFunc;
+        getPostThread: (rootId: string, fetchThreads: boolean) => Promise<any>|ActionFunc;
         getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<any>|ActionFunc;
         selectPostCard: (post: Post) => void;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
@@ -111,6 +111,11 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
         }
     }
 
+    public morePostsToFetch(): boolean {
+        const replyCount = this.getReplyCount();
+        return Boolean(this.props.selected) && this.props.postIds.length < (replyCount + 1);
+    }
+
     public getReplyCount(): number {
         return (this.props.selected as Post)?.reply_count || this.props.userThread?.reply_count || 0;
     }
@@ -124,6 +129,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             currentTeamId,
             selected,
         } = this.props;
+
         if (selected && this.getReplyCount() && (this.props.selected as Post)?.is_following) {
             return getThread(
                 currentUserId,
@@ -164,12 +170,10 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     // scrolls to either bottom or new messages line
     private onInit = async (reconnected = false): Promise<void> => {
         this.setState({isLoading: !reconnected});
-
-        // We only load the thread when reconnected. There is no need to load the thread
-        // on component mount because those are done on the caller side, and it also
-        // avoids rendering bugs like emojis not getting rendered.
-        if (reconnected) {
-            await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId);
+        if (reconnected || this.morePostsToFetch()) {
+            await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected);
+        } else {
+            await this.props.actions.getNewestPostThread(this.props.selected?.id || this.props.rootPostId);
         }
 
         if (
