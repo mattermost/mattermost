@@ -130,7 +130,7 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 	if len(oa.Audiences) > 0 {
 		for _, audience := range oa.Audiences {
 			if !IsValidHTTPURL(audience) {
-				return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.audience.error", nil, "id="+oa.Id, http.StatusBadRequest)
+				return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.audience.error", map[string]any{"Url": audience}, "id="+oa.Id, http.StatusBadRequest)
 			}
 		}
 	}
