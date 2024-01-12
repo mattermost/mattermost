@@ -11,7 +11,7 @@ import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, NewActionFuncAsync, NewActionFuncOldVariantDoNotUse} from 'mattermost-redux/types/actions';
+import type {ActionResult, NewActionFuncAsync, NewActionFuncOldVariantDoNotUse} from 'mattermost-redux/types/actions';
 
 import {getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
@@ -44,8 +44,8 @@ export function getMissingChannelsFromPosts(posts: PostList['posts']): NewAction
     };
 }
 
-export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultItem>): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultItem>): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const {
             channels,
             membersInChannel,
@@ -63,7 +63,10 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
                 promises.push(dispatch(getChannelMembers(id)));
             }
         });
-        return Promise.all(promises);
+
+        await Promise.all(promises);
+
+        return {data: true};
     };
 }
 
@@ -130,7 +133,7 @@ export function getMorePostsForSearch(): NewActionFuncAsync {
     };
 }
 
-export function clearSearch(): ActionFunc {
+export function clearSearch(): NewActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: SearchTypes.REMOVE_SEARCH_POSTS});
         dispatch({type: SearchTypes.REMOVE_SEARCH_FILES});
@@ -139,8 +142,8 @@ export function clearSearch(): ActionFunc {
     };
 }
 
-export function searchFilesWithParams(teamId: string, params: SearchParameter): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchFilesWithParams(teamId: string, params: SearchParameter): NewActionFuncAsync<FileSearchResults> {
+    return async (dispatch, getState) => {
         const isGettingMore = params.page > 0;
         dispatch({
             type: SearchTypes.SEARCH_FILES_REQUEST,
@@ -186,8 +189,8 @@ export function searchFiles(teamId: string, terms: string, isOrSearch: boolean, 
     return searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
 }
 
-export function getMoreFilesForSearch(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMoreFilesForSearch(): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const teamId = getCurrentTeamId(getState());
         const {params, isFilesEnd} = getState().entities.search.current[teamId];
         if (!isFilesEnd) {
@@ -199,8 +202,8 @@ export function getMoreFilesForSearch(): ActionFunc {
     };
 }
 
-export function getFlaggedPosts(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getFlaggedPosts(): NewActionFuncAsync<PostList> {
+    return async (dispatch, getState) => {
         const state = getState();
         const userId = getCurrentUserId(state);
 
@@ -233,8 +236,8 @@ export function getFlaggedPosts(): ActionFunc {
     };
 }
 
-export function getPinnedPosts(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getPinnedPosts(channelId: string): NewActionFuncAsync<PostList> {
+    return async (dispatch, getState) => {
         dispatch({type: SearchTypes.SEARCH_PINNED_POSTS_REQUEST});
 
         let result;
@@ -243,7 +246,7 @@ export function getPinnedPosts(channelId: string): ActionFunc {
 
             const profilesAndStatuses = getMentionsAndStatusesForPosts(result.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(result.posts));
-            const arr: [Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels];
+            const arr = [profilesAndStatuses, missingChannels];
             await Promise.all(arr);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -269,7 +272,7 @@ export function getPinnedPosts(channelId: string): ActionFunc {
     };
 }
 
-export function clearPinnedPosts(channelId: string): ActionFunc {
+export function clearPinnedPosts(channelId: string): NewActionFuncAsync { // HARRISONTODO remove me
     return async (dispatch) => {
         dispatch({
             type: SearchTypes.REMOVE_SEARCH_PINNED_POSTS,
@@ -282,7 +285,7 @@ export function clearPinnedPosts(channelId: string): ActionFunc {
     };
 }
 
-export function removeSearchTerms(teamId: string, terms: string): ActionFunc {
+export function removeSearchTerms(teamId: string, terms: string): NewActionFuncAsync { // HARRISONTODO remove me
     return async (dispatch) => {
         dispatch({
             type: SearchTypes.REMOVE_SEARCH_TERM,

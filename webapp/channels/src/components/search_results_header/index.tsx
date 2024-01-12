@@ -4,7 +4,7 @@
 import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {AnyAction, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
@@ -36,7 +36,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             closeRightHandSide,

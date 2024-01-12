@@ -138,8 +138,8 @@ export function postRemoved(post: Post) {
     };
 }
 
-export function getPost(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getPost(postId: string): NewActionFuncAsync<Post> {
+    return async (dispatch, getState) => {
         let post;
         const crtEnabled = isCollapsedThreadsEnabled(getState());
 
