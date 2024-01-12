@@ -1922,6 +1922,88 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	return dbMember.ToModel(), err
 }
 
+// PatchMultipleMembersNotifyProps updates the NotifyProps of multiple channel members at once without modifying
+// unspecified fields.
+//
+// Note that the returned array may not be in the same order as the provided IDs.
+func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+	if len(notifyProps) == 0 {
+		return nil, errors.New("PatchMultipleMembersNotifyProps: No notifyProps specified")
+	}
+
+	if err := model.IsChannelMemberNotifyPropsValid(notifyProps, true); err != nil {
+		return nil, err
+	}
+
+	// Make the where clause first since it'll be used multiple times
+	whereClause := sq.Or{}
+	for _, member := range members {
+		whereClause = append(whereClause, sq.And{
+			sq.Eq{"ChannelId": member.ChannelId},
+			sq.Eq{"UserId": member.UserId},
+		})
+	}
+
+	// Update the channel members
+	builder := s.getQueryBuilder().Update("ChannelMembers")
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		jsonNotifyProps := string(model.ToJSON(notifyProps))
+		builder = builder.Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps))
+	} else {
+		// Unpack the keys and values to pass to MySQL
+		jsonArgs, jsonSQL := constructMySQLJSONArgs(notifyProps)
+		jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
+
+		// Example: UPDATE ChannelMembers
+		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
+		// WHERE ...
+		builder = builder.Set("NotifyProps", jsonExpr)
+	}
+
+	builder = builder.Set("LastUpdateAt", model.GetMillis())
+
+	builder = builder.Where(whereClause)
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	transaction.trace = true
+
+	result, err := transaction.ExecBuilder(builder)
+	if err != nil {
+		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Failed to update ChannelMembers")
+	} else if count, _ := result.RowsAffected(); count != int64(len(members)) {
+		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Unable to update all ChannelMembers, some must not exist")
+	}
+
+	// Get the updated channel members
+	selectSQL, selectArgs, err := s.channelMembersForTeamWithSchemeSelectQuery.
+		Where(whereClause).ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "PatchMultipleMembersNotifyProps_Select_ToSql")
+	}
+
+	var dbMembers []*channelMemberWithSchemeRoles
+	if err := transaction.Select(&dbMembers, selectSQL, selectArgs...); err != nil {
+		return nil, errors.Wrapf(err, "PatchMultipleMembersNotifyProps: Failed to get updated ChannelMembers")
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	updated := make([]*model.ChannelMember, len(dbMembers))
+	for i, dbMember := range dbMembers {
+		updated[i] = dbMember.ToModel()
+	}
+
+	return updated, nil
+}
+
 func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error) {
 	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.
 		Where(sq.Eq{

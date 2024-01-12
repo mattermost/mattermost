@@ -3663,6 +3663,35 @@ func (s *apiRPCServer) UpdateChannelMemberNotifications(args *Z_UpdateChannelMem
 	return nil
 }
 
+type Z_PatchChannelMembersNotificationsArgs struct {
+	A []*model.ChannelMemberIdentifier
+	B map[string]string
+}
+
+type Z_PatchChannelMembersNotificationsReturns struct {
+	A *model.AppError
+}
+
+func (g *apiRPCClient) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError {
+	_args := &Z_PatchChannelMembersNotificationsArgs{members, notifyProps}
+	_returns := &Z_PatchChannelMembersNotificationsReturns{}
+	if err := g.client.Call("Plugin.PatchChannelMembersNotifications", _args, _returns); err != nil {
+		log.Printf("RPC call to PatchChannelMembersNotifications API failed: %s", err.Error())
+	}
+	return _returns.A
+}
+
+func (s *apiRPCServer) PatchChannelMembersNotifications(args *Z_PatchChannelMembersNotificationsArgs, returns *Z_PatchChannelMembersNotificationsReturns) error {
+	if hook, ok := s.impl.(interface {
+		PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError
+	}); ok {
+		returns.A = hook.PatchChannelMembersNotifications(args.A, args.B)
+	} else {
+		return encodableError(fmt.Errorf("API PatchChannelMembersNotifications called but not implemented."))
+	}
+	return nil
+}
+
 type Z_GetGroupArgs struct {
 	A string
 }

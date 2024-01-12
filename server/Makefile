@@ -828,7 +828,7 @@ test-migration:
 	@sed -i'' -e 's|{{ .source_schema }}|${MYSQL_SCHEMA}|g' tests/temp.load
 
 	# run pgloader and save the logs
-	pgloader tests/temp.load > migration.log
+	pgloader --debug tests/temp.load > migration.log
 
 	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
 	# compare two database contents

@@ -600,6 +600,15 @@ type API interface {
 	// Minimum server version: 5.2
 	UpdateChannelMemberNotifications(channelId, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
 
+	// PatchChannelMembersNotifications updates the notification properties for multiple channel members.
+	// Other changes made to the channel memberships will be ignored. A maximum of 200 members can be
+	// updated at once.
+	//
+	// @tag Channel
+	// @tag User
+	// Minimum server version: 9.5
+	PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError
+
 	// GetGroup gets a group by ID.
 	//
 	// @tag Group
