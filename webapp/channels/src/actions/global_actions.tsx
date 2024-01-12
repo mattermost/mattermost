@@ -24,7 +24,7 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -169,8 +169,8 @@ export function showMobileSubMenuModal(elements: any[]) { // TODO Use more speci
     dispatch(openModal(submenuModalData));
 }
 
-export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFunc {
-    return (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): NewActionFuncAsync {
+    return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
         const post = {
             id: Utils.generateId(),
@@ -188,8 +188,8 @@ export function sendEphemeralPost(message: string, channelId?: string, parentId?
     };
 }
 
-export function sendGenericPostMessage(message: string, channelId?: string, parentId?: string, userId?: string): ActionFunc {
-    return (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function sendGenericPostMessage(message: string, channelId?: string, parentId?: string, userId?: string): NewActionFuncAsync { // HARRISONTODO unused
+    return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
         const post = {
             id: Utils.generateId(),

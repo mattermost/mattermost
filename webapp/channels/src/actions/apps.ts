@@ -10,7 +10,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {openModal} from 'actions/views/modals';
@@ -237,7 +237,7 @@ export function openAppsModal(form: AppForm, context: AppContext): AnyAction {
     });
 }
 
-export function postEphemeralCallResponseForPost(response: AppCallResponse, message: string, post: Post): ActionFunc {
+export function postEphemeralCallResponseForPost(response: AppCallResponse, message: string, post: Post) {
     return sendEphemeralPost(
         message,
         post.channel_id,
@@ -246,7 +246,7 @@ export function postEphemeralCallResponseForPost(response: AppCallResponse, mess
     );
 }
 
-export function postEphemeralCallResponseForChannel(response: AppCallResponse, message: string, channelID: string): ActionFunc {
+export function postEphemeralCallResponseForChannel(response: AppCallResponse, message: string, channelID: string) {
     return sendEphemeralPost(
         message,
         channelID,
@@ -255,7 +255,7 @@ export function postEphemeralCallResponseForChannel(response: AppCallResponse, m
     );
 }
 
-export function postEphemeralCallResponseForContext(response: AppCallResponse, message: string, context: AppContext): ActionFunc {
+export function postEphemeralCallResponseForContext(response: AppCallResponse, message: string, context: AppContext) {
     return sendEphemeralPost(
         message,
         context.channel_id,
@@ -264,7 +264,7 @@ export function postEphemeralCallResponseForContext(response: AppCallResponse, m
     );
 }
 
-export function postEphemeralCallResponseForCommandArgs(response: AppCallResponse, message: string, args: CommandArgs): ActionFunc {
+export function postEphemeralCallResponseForCommandArgs(response: AppCallResponse, message: string, args: CommandArgs) {
     return sendEphemeralPost(
         message,
         args.channel_id,
