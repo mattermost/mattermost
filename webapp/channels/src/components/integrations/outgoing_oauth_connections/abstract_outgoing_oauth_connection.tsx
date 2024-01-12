@@ -98,7 +98,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_oauth_app.nameRequired'
+                        id='add_outgoing_oauth_connection.nameRequired'
                         defaultMessage='Name for the OAuth connection is required.'
                     />
                 ),
@@ -112,7 +112,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_oauth_app.client_id'
+                        id='add_outgoing_oauth_connection.client_id'
                         defaultMessage='Client Id for the OAuth connection is required.'
                     />
                 ),
@@ -140,7 +140,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_oauth_app.grant_type'
+                        id='add_outgoing_oauth_connection.grant_type'
                         defaultMessage='Grant Type for the OAuth connection is required.'
                     />
                 ),
@@ -154,7 +154,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_oauth_app.oauth_token_url'
+                        id='add_outgoing_oauth_connection.oauth_token_url'
                         defaultMessage='OAuth Token URL for the OAuth connection is required.'
                     />
                 ),
@@ -177,7 +177,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                 saving: false,
                 clientError: (
                     <FormattedMessage
-                        id='add_oauth_app.callbackUrlsRequired'
+                        id='add_outgoing_oauth_connection.callbackUrlsRequired'
                         defaultMessage='One or more audience URLs are required.'
                     />
                 ),
@@ -294,8 +294,8 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='name'
                         >
                             <FormattedMessage
-                                id='installed_oauth_apps.name'
-                                defaultMessage='Display Name'
+                                id='installed_outgoing_oauth_connections.name'
+                                defaultMessage='Name'
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
@@ -309,8 +309,8 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                             <div className='form__help'>
                                 <FormattedMessage
-                                    id='add_oauth_app.name.help'
-                                    defaultMessage='Specify the display name for your OAuth connection.'
+                                    id='add_outgoing_oauth_connection.name.help'
+                                    defaultMessage='Specify the name for your OAuth connection.'
                                 />
                             </div>
                         </div>
@@ -321,7 +321,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='client_id'
                         >
                             <FormattedMessage
-                                id='installed_oauth_apps.client_id'
+                                id='installed_outgoing_oauth_connections.client_id'
                                 defaultMessage='Client ID'
                             />
                         </label>
@@ -336,7 +336,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                             <div className='form__help'>
                                 <FormattedMessage
-                                    id='add_oauth_app.client_id.help'
+                                    id='add_outgoing_oauth_connection.client_id.help'
                                     defaultMessage='Specify the Client ID for your OAuth connection.'
                                 />
                             </div>
@@ -348,7 +348,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='client_secret'
                         >
                             <FormattedMessage
-                                id='installed_oauth_apps.client_secret'
+                                id='installed_outgoing_oauth_connections.client_secret'
                                 defaultMessage='Client Secret'
                             />
                         </label>
@@ -356,7 +356,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             {clientSecretSection}
                             <div className='form__help'>
                                 <FormattedMessage
-                                    id='add_oauth_app.client_secret.help'
+                                    id='add_outgoing_oauth_connection.client_secret.help'
                                     defaultMessage='Specify the Client Secret for your OAuth connection.'
                                 />
                             </div>
@@ -368,7 +368,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='oauth_token_url'
                         >
                             <FormattedMessage
-                                id='installed_oauth_apps.oauth_token_url'
+                                id='installed_outgoing_oauth_connections.oauth_token_url'
                                 defaultMessage='OAuth Token URL'
                             />
                         </label>
@@ -383,7 +383,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                             <div className='form__help'>
                                 <FormattedMessage
-                                    id='add_oauth_app.oauth_token_url.help'
+                                    id='add_outgoing_oauth_connection.oauth_token_url.help'
                                     defaultMessage='Specify the OAuth Token URL for your OAuth connection.'
                                 />
                             </div>
@@ -395,7 +395,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='audienceUrls'
                         >
                             <FormattedMessage
-                                id='installed_oauth_apps.audienceUrls'
+                                id='installed_outgoing_oauth_connections.audienceUrls'
                                 defaultMessage='Audience URLs (One Per Line)'
                             />
                         </label>
@@ -410,7 +410,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                             <div className='form__help'>
                                 <FormattedMessage
-                                    id='add_oauth_app.audienceUrls.help'
+                                    id='add_outgoing_oauth_connection.audienceUrls.help'
                                     defaultMessage='The audience URIs which will receive requests with the OAuth token. Must be a valid URL and start with http:// or https://.'
                                 />
                             </div>
@@ -426,7 +426,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}
                         >
                             <FormattedMessage
-                                id='installed_oauth_apps.cancel'
+                                id='installed_outgoing_oauth_connections.cancel'
                                 defaultMessage='Cancel'
                             />
                         </Link>

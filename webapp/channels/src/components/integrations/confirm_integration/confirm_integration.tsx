@@ -321,14 +321,14 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                 <p className='word-break--all'>
                     <FormattedMarkdownMessage
                         id='add_outgoing_oauth_connection.token_url'
-                        defaultMessage='**Token URL**: {url}'
+                        defaultMessage='**Token URL**: `{url}`'
                         values={{url: outgoingOAuthConnection.oauth_token_url}}
                     />
                 </p>
                 <p className='word-break--all'>
                     <FormattedMarkdownMessage
                         id='add_outgoing_oauth_connection.audience_urls'
-                        defaultMessage='**Audience URL(s)**: {url}'
+                        defaultMessage='**Audience URL(s)**: `{url}`'
                         values={{url: outgoingOAuthConnection.audiences.join(', ')}}
                     />
                 </p>

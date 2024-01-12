@@ -138,8 +138,8 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
             <BackstageList
                 header={
                     <FormattedMessage
-                        id='installed_oauth2_outgoing_oauth_connections.header'
-                        defaultMessage='Outgoing OAuth Connections'
+                        id='installed_oauth2_apps.header'
+                        defaultMessage='OAuth 2.0 Applications'
                     />
                 }
                 helpText={

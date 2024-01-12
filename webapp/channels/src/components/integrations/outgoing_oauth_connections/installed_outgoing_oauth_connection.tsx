@@ -75,17 +75,30 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
     }
 
     const urls = (
-        <div className='item-details__row'>
-            <span className='item-details__url word-break--all'>
-                <FormattedMessage
-                    id='installed_integrations.audience_urls'
-                    defaultMessage='Audiences URLs: {urls}'
-                    values={{
-                        urls: outgoingOAuthConnection.audiences.join(', '),
-                    }}
-                />
-            </span>
-        </div>
+        <>
+            <div className='item-details__row'>
+                <span className='item-details__url word-break--all'>
+                    <FormattedMessage
+                        id='installed_integrations.audience_urls'
+                        defaultMessage='Audience URLs: {urls}'
+                        values={{
+                            urls: outgoingOAuthConnection.audiences.join(', '),
+                        }}
+                    />
+                </span>
+            </div>
+            <div className='item-details__row'>
+                <span className='item-details__url word-break--all'>
+                    <FormattedMessage
+                        id='installed_integrations.token_url'
+                        defaultMessage='Token URL: {url}'
+                        values={{
+                            url: outgoingOAuthConnection.oauth_token_url,
+                        }}
+                    />
+                </span>
+            </div>
+        </>
     );
 
     const actions = (
@@ -177,7 +190,7 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                     <strong className='item-details__name'>
                         {name}
                     </strong>
-                    <span style={{marginLeft: '5px'}}/>
+                    <span style={{marginLeft: '5px'}} />
                     {actions}
                 </div>
                 {errorComponent}
