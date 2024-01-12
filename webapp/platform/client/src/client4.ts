@@ -148,6 +148,7 @@ import {
 } from '@mattermost/types/data_retention';
 import {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
+import {UsersLimits} from '@mattermost/types/limits';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -486,6 +487,10 @@ export default class Client4 {
 
     getLimitsRoute(): string {
         return `${this.getBaseRoute()}/limits`;
+    }
+
+    getUsersLimitsRoute() {
+        return `${this.getLimitsRoute()}/users`;
     }
 
     getCSRFFromCookie() {
@@ -1193,6 +1198,18 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/tokens/enable`,
             {method: 'post', body: JSON.stringify({token_id: tokenId})},
+        );
+    }
+
+
+    // Limits Routes
+
+    getUsersLimits = () => {
+        return this.doFetchWithResponse<UsersLimits>(
+            `${this.getUsersLimitsRoute()}`,
+            {
+                method: 'get',
+            },
         );
     }
 
