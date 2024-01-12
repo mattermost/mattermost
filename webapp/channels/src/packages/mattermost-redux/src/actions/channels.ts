@@ -1467,10 +1467,7 @@ export function getChannelModerations(channelId: string) {
             return {channelId, moderations};
         },
         onSuccess: ChannelTypes.RECEIVED_CHANNEL_MODERATIONS,
-        params: [
-            channelId,
-        ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function patchChannelModerations(channelId: string, patch: ChannelModerationPatch[]) {
@@ -1480,10 +1477,7 @@ export function patchChannelModerations(channelId: string, patch: ChannelModerat
             return {channelId, moderations};
         },
         onSuccess: ChannelTypes.RECEIVED_CHANNEL_MODERATIONS,
-        params: [
-            channelId,
-        ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function getChannelMemberCountsByGroup(channelId: string) {
@@ -1493,9 +1487,6 @@ export function getChannelMemberCountsByGroup(channelId: string) {
             return {channelId, memberCounts: channelMemberCountsByGroup};
         },
         onSuccess: ChannelTypes.RECEIVED_CHANNEL_MEMBER_COUNTS_BY_GROUP,
-        params: [
-            channelId,
-        ],
     });
 }
 
