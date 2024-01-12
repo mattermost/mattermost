@@ -226,7 +226,7 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
             markPostAsUnread,
             emitShortcutReactToLastPostFrom,
             setActionsMenuInitialisationState,
-            selectPost
+            selectPost,
             selectPostFromRightHandSideSearch,
             setRhsExpanded,
             removePost: removePostCloseRHSDeleteDraft,
