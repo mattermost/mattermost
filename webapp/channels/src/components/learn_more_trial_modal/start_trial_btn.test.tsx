@@ -106,7 +106,7 @@ describe('components/learn_more_trial_modal/start_trial_btn', () => {
         });
 
         await act(async () => {
-            wrapper.find('.start-trial-btn').simulate('click');
+            wrapper.find('.btn-secondary').simulate('click');
         });
 
         expect(mockOnClick).toHaveBeenCalled();

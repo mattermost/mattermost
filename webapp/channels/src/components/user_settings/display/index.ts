@@ -3,12 +3,10 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 import timezones from 'timezones.json';
 
 import {CollapsedThreads} from '@mattermost/types/config';
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
@@ -17,7 +15,6 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {get, isCollapsedThreadsAllowed, getCollapsedThreadsPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezoneFull, getCurrentTimezoneLabel} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
 import {Preferences} from 'utils/constants';
@@ -25,12 +22,6 @@ import {Preferences} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import UserSettingsDisplay from './user_settings_display';
-
-type Actions = {
-    autoUpdateTimezone: (deviceTimezone: string) => void;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => void;
-    updateMe: (user: UserProfile) => Promise<ActionResult>;
-}
 
 export function makeMapStateToProps() {
     return (state: GlobalState) => {
@@ -85,9 +76,9 @@ export function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             autoUpdateTimezone,
             savePreferences,
             updateMe,
