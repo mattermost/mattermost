@@ -47,7 +47,7 @@ import type {GlobalState} from 'types/store';
 import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';
 
-export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): NewActionFuncAsync {
+export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): NewActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         let websocketMessageProps = {};
         const state = getState();

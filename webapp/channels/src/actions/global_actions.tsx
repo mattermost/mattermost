@@ -169,7 +169,7 @@ export function showMobileSubMenuModal(elements: any[]) { // TODO Use more speci
     dispatch(openModal(submenuModalData));
 }
 
-export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): NewActionFuncAsync {
+export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): NewActionFuncAsync<boolean, GlobalState> {
     return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
         const post = {
@@ -188,7 +188,7 @@ export function sendEphemeralPost(message: string, channelId?: string, parentId?
     };
 }
 
-export function sendGenericPostMessage(message: string, channelId?: string, parentId?: string, userId?: string): NewActionFuncAsync { // HARRISONTODO unused
+export function sendGenericPostMessage(message: string, channelId?: string, parentId?: string, userId?: string): NewActionFuncAsync<boolean, GlobalState> { // HARRISONTODO unused
     return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
         const post = {
