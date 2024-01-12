@@ -273,6 +273,6 @@ async function runSpec(count = 0, retry = 0) {
 runSpec().then(({count, message}) => {
     console.log(chalk.magenta(message));
     if (count > 0) {
-        console.log(chalk.magenta(`This test runner has completed ${count} spec file/s.`));
+        console.log(chalk.magenta(`This TEST runner has completed ${count} spec file/s.`));
     }
 });
