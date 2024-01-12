@@ -19,7 +19,7 @@ export type GetStateFunc = () => GlobalState;
 export type GenericAction = AnyAction;
 type Thunk = (b: DispatchFunc, a: GetStateFunc) => Promise<ActionResult> | ActionResult;
 
-type Action = GenericAction | Thunk | BatchAction | ActionFunc;
+type Action = GenericAction | Thunk | BatchAction;
 
 /**
  * ActionResult should be the return value of most Thunk action creators.
@@ -30,16 +30,6 @@ export type ActionResult<Data = any, Error = any> = {
 };
 
 export type DispatchFunc = (action: Action | NewActionFunc<unknown, any> | NewActionFuncAsync<unknown, any> | NewActionFuncOldVariantDoNotUse<unknown, any>, getState?: GetStateFunc | null) => Promise<ActionResult>;
-
-/**
- * Return type of a redux action.
- * @usage
- * ActionFunc<ReturnTypeOfData, ErrorType>
- */
-export type ActionFunc<Data = any, Error = any> = (
-    dispatch: DispatchFunc,
-    getState: GetStateFunc
-) => Promise<ActionResult<Data, Error> | Array<ActionResult<Data, Error>>> | ActionResult<Data, Error>;
 
 /**
  * NewActionFunc should be the return type of most non-async Thunk action creators. If that action requires web app
