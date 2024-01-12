@@ -9,8 +9,6 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
-
 import AutocompleteSelector from 'components/autocomplete_selector';
 import type {Option, Selected} from 'components/autocomplete_selector';
 import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
@@ -45,7 +43,7 @@ export type Props = {
     onChange: (name: string, selected: string) => void;
     autoFocus?: boolean;
     actions: {
-        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
+        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
         autocompleteUsers: (search: string) => Promise<UserAutocomplete>;
     };
 }

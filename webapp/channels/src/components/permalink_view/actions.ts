@@ -53,7 +53,7 @@ function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: 
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const {data} = await dispatch(getPostThread(post.root_id));
 
-        if (data.first_inaccessible_post_time) {
+        if (data!.first_inaccessible_post_time) {
             getHistory().replace(`/error?type=${ErrorPageTypes.CLOUD_ARCHIVED}&returnTo=${returnTo}`);
             return {data: false};
         }
@@ -108,7 +108,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
                 privateChannelJoinPromptVisible = true;
                 const joinPromptResult = await dispatch(joinPrivateChannelPrompt(currentTeam, postInfo.channel_display_name));
                 privateChannelJoinPromptVisible = false;
-                if ('data' in joinPromptResult && !joinPromptResult.data.join) {
+                if (joinPromptResult.data && !joinPromptResult.data.join) {
                     return;
                 }
             }
@@ -154,7 +154,7 @@ export function focusPost(postId: string, returnTo = '', currentUserId: string, 
             }
 
             const membership = await dispatch(getChannelMember(channel.id, currentUserId));
-            if ('data' in membership) {
+            if (membership.data) {
                 myMember = membership.data;
             }
 

@@ -2,7 +2,10 @@
 // See LICENSE.txt for license information.
 
 import PQueue from 'p-queue';
+import type {AnyAction} from 'redux';
+import type {ThunkAction} from 'redux-thunk';
 
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
@@ -415,18 +418,18 @@ export async function loadProfilesForDM() {
     await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
-export function autocompleteUsersInTeam(username: string) {
-    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function autocompleteUsersInTeam(username: string): ThunkAction<Promise<UserAutocomplete>, GlobalState, unknown, AnyAction> {
+    return async (doDispatch, doGetState) => {
         const currentTeamId = getCurrentTeamId(doGetState());
         const {data} = await doDispatch(UserActions.autocompleteUsers(username, currentTeamId));
-        return data;
+        return data!;
     };
 }
 
-export function autocompleteUsers(username: string) {
+export function autocompleteUsers(username: string): ThunkAction<Promise<UserAutocomplete>, GlobalState, unknown, AnyAction> {
     return async (doDispatch: DispatchFunc) => {
         const {data} = await doDispatch(UserActions.autocompleteUsers(username));
-        return data;
+        return data!;
     };
 }
 
@@ -435,17 +438,17 @@ export function autoResetStatus() {
         const {currentUserId} = getState().entities.users;
         const {data: userStatus} = await doDispatch(UserActions.getStatus(currentUserId));
 
-        if (userStatus.status === UserStatuses.OUT_OF_OFFICE || !userStatus.manual) {
-            return {data: userStatus};
+        if (userStatus!.status === UserStatuses.OUT_OF_OFFICE || !userStatus!.manual) {
+            return {data: userStatus!};
         }
 
         const autoReset = getBool(getState(), PreferencesRedux.CATEGORY_AUTO_RESET_MANUAL_STATUS, currentUserId, false);
 
         if (autoReset) {
             doDispatch(UserActions.setStatus({user_id: currentUserId, status: 'online'}));
-            return {data: userStatus};
+            return {data: userStatus!};
         }
 
-        return {data: userStatus};
+        return {data: userStatus!};
     };
 }

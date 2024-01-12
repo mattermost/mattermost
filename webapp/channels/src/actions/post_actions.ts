@@ -202,8 +202,8 @@ export function addReaction(postId: string, emojiName: string): NewActionFunc {
     };
 }
 
-export function searchForTerm(term: string) {
-    return (dispatch: DispatchFunc) => {
+export function searchForTerm(term: string): NewActionFunc<boolean, GlobalState> {
+    return (dispatch) => {
         dispatch(RhsActions.updateSearchTerms(term));
         dispatch(RhsActions.showSearchResults());
         return {data: true};

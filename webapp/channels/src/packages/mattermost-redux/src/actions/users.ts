@@ -57,7 +57,7 @@ export function createUser(user: UserProfile, token: string, inviteId: string, r
     };
 }
 
-export function loadMe(): NewActionFuncAsync {
+export function loadMe(): NewActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         // Sometimes the server version is set in one or the other
         const serverVersion = getState().entities.general.serverVersion || Client4.getServerVersion();

@@ -13,7 +13,7 @@ const useGetTotalUsersNoBots = (includeInactive = false): number => {
 
     const getTotalUsers = async () => {
         const {data} = await dispatch(getFilteredUsersStats({include_bots: false, include_deleted: includeInactive}, false));
-        setUserCount(data?.total_users_count);
+        setUserCount(data?.total_users_count ?? 0);
     };
 
     useEffect(() => {

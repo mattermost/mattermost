@@ -206,7 +206,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
             if (type === Constants.MENTION_MORE_CHANNELS && type === Constants.OPEN_CHANNEL) {
                 return actions.joinChannelById(channelToForward.details.id);
             }
-            return {data: false};
+            return {data: false} as any;
         }).then(() => {
             // only switch channels when we are not in a private conversation
             if (!isPrivateConversation) {

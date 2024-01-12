@@ -990,7 +990,7 @@ export class AppCommandParser {
                             // Silently fail on default value
                             break;
                         }
-                        user = dispatchResult.data;
+                        user = dispatchResult.data!; // HARRISONTODO confirm if these !s are still needed...
                     }
                     parsed.values[f.name] = user.username;
                     break;
@@ -1004,7 +1004,7 @@ export class AppCommandParser {
                             // Silently fail on default value
                             break;
                         }
-                        channel = dispatchResult.data;
+                        channel = dispatchResult.data!; // HARRISONTODO confirm if these !s are still needed...
                     }
                     parsed.values[f.name] = channel.name;
                     break;
@@ -1502,7 +1502,7 @@ export class AppCommandParser {
     // fetchSubmittableForm unconditionaly retrieves the form for the given binding (subcommand)
     private fetchSubmittableForm = async (source: AppCall, context: AppContext): Promise<{form?: AppForm; error?: string} | undefined> => {
         const payload = createCallRequest(source, context);
-        const res = await this.store.dispatch(doAppFetchForm(payload, this.intl)) as DoAppCallResult;
+        const res = await this.store.dispatch(doAppFetchForm(payload, this.intl));
         if (res.error) {
             const errorResponse = res.error;
             return {error: errorResponse.text || this.intl.formatMessage({

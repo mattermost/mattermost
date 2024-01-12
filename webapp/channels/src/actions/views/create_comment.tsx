@@ -52,10 +52,10 @@ export function updateCommentDraft(rootId: string, draft?: PostDraft, save = fal
     return updateDraft(key, draft ?? null, rootId, save);
 }
 
-export function makeOnMoveHistoryIndex(rootId: string, direction: number) {
+export function makeOnMoveHistoryIndex(rootId: string, direction: number): () => NewActionFunc<boolean, GlobalState> {
     const getMessageInHistory = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.COMMENT as 'comment');
 
-    return () => (dispatch: DispatchFunc, getState: () => GlobalState) => {
+    return () => (dispatch, getState) => {
         const draft = getPostDraft(getState(), StoragePrefixes.COMMENT_DRAFT, rootId);
         if (draft.message !== '' && draft.message !== getMessageInHistory(getState())) {
             return {data: true};
@@ -105,8 +105,8 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft) 
     };
 }
 
-export function submitCommand(channelId: string, rootId: string, draft: PostDraft) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function submitCommand(channelId: string, rootId: string, draft: PostDraft): NewActionFuncAsync<unknown, GlobalState> {
+    return async (dispatch, getState) => {
         const state = getState();
 
         const teamId = getCurrentTeamId(state);
@@ -122,13 +122,13 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
         const hookResult = await dispatch(runSlashCommandWillBePostedHooks(message, args));
         if (hookResult.error) {
             return {error: hookResult.error};
-        } else if (!hookResult.data.message && !hookResult.data.args) {
+        } else if (!hookResult.data!.message && !hookResult.data!.args) { // HARRISONTODO confirm if these !s are still needed...
             // do nothing with an empty return from a hook
             return {};
         }
 
-        message = hookResult.data.message;
-        args = hookResult.data.args;
+        message = hookResult.data!.message;
+        args = hookResult.data!.args;
 
         const {error} = await dispatch(executeCommand(message, args));
 

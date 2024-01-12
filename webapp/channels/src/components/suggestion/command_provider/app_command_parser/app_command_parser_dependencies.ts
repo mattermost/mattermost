@@ -73,7 +73,7 @@ export {
 } from 'utils/apps';
 
 export type Store = {
-    dispatch: DispatchFunc;
+    dispatch: DispatchFunc<GlobalState>;
     getState: () => GlobalState;
 }
 

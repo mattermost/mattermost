@@ -6,14 +6,12 @@ import React from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
-
 import Provider from './provider';
 import type {ResultsCallback} from './provider';
 import {SuggestionContainer} from './suggestion';
 import type {SuggestionProps} from './suggestion';
 
-type ChannelSearchFunc = (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => (ActionResult | Promise<ActionResult | ActionResult[]>);
+type ChannelSearchFunc = (term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
 
 const GenericChannelSuggestion = React.forwardRef<HTMLDivElement, SuggestionProps<Channel>>((props, ref) => {
     const {item} = props;

@@ -92,7 +92,7 @@ export function loadIfNecessaryAndSwitchToChannelById(channelId: string) {
         let channel = getChannel(state, channelId);
         if (!channel) {
             const res = await dispatch(loadChannel(channelId));
-            channel = res.data;
+            channel = res.data!;
         }
         return dispatch(switchToChannel(channel));
     };
@@ -306,11 +306,11 @@ export function loadPostsAround(channelId: string, focusedPostId: string) {
         dispatch({
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,
-            amount: data.order.length,
+            amount: data!.order.length, // HARRISONTODO confirm if these !s are still needed...
         });
         return {
-            atLatestMessage: data.next_post_id === '',
-            atOldestmessage: data.prev_post_id === '',
+            atLatestMessage: data!.next_post_id === '',
+            atOldestmessage: data!.prev_post_id === '',
         };
     };
 }
@@ -336,8 +336,8 @@ export function loadLatestPosts(channelId: string) {
 
         return {
             data,
-            atLatestMessage: data.next_post_id === '',
-            atOldestmessage: data.prev_post_id === '',
+            atLatestMessage: data!.next_post_id === '', // HARRISONTODO confirm if these !s are still needed...
+            atOldestmessage: data!.prev_post_id === '',
         };
     };
 }
@@ -393,17 +393,17 @@ export function loadPosts({
             };
         }
 
-        dispatch(loadCustomStatusEmojisForPostList(data.posts));
+        dispatch(loadCustomStatusEmojisForPostList(data!.posts)); // HARRISONTODO confirm if these !s are still needed...
         actions.push({
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,
-            amount: data.order.length,
+            amount: data!.order.length,
         });
 
         dispatch(batchActions(actions));
 
         return {
-            moreToLoad: type === PostRequestTypes.BEFORE_ID ? data.prev_post_id !== '' : data.next_post_id !== '',
+            moreToLoad: type === PostRequestTypes.BEFORE_ID ? data!.prev_post_id !== '' : data!.next_post_id !== '',
         };
     };
 }
