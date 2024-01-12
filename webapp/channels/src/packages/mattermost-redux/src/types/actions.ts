@@ -3,7 +3,7 @@
 
 import type {Action as ReduxAction, AnyAction} from 'redux';
 import type {BatchAction} from 'redux-batched-actions';
-import type {ThunkAction} from 'redux-thunk';
+import type {ThunkAction as BaseThunkAction} from 'redux-thunk';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -45,16 +45,18 @@ export type ActionFunc<Data = any, Error = any> = (
  * NewActionFunc should be the return type of most non-async Thunk action creators. If that action requires web app
  * state, the second type parameter should be used to pass the version of GlobalState from 'types/store'.
  */
-export type NewActionFunc<Data = unknown, State extends GlobalState = GlobalState> = ThunkAction<ActionResult<Data>, State, unknown, ReduxAction>;
+export type NewActionFunc<Data = unknown, State extends GlobalState = GlobalState> = BaseThunkAction<ActionResult<Data>, State, unknown, ReduxAction>;
 
 /**
  * NewActionFunc should be the return type of most async Thunk action creators. If that action requires web app
  * state, the second type parameter should be used to pass the version of GlobalState from 'types/store'.
  */
-export type NewActionFuncAsync<Data = unknown, State extends GlobalState = GlobalState> = ThunkAction<Promise<ActionResult<Data>>, State, unknown, ReduxAction>;
+export type NewActionFuncAsync<Data = unknown, State extends GlobalState = GlobalState> = BaseThunkAction<Promise<ActionResult<Data>>, State, unknown, ReduxAction>;
 
 /**
  * NewActionFuncOldVariantDoNotUse is a (hopefully) temporary type to let us migrate actions which previously returned
  * an array of promises to use a ThunkAction without having to modify their logic yet.
  */
-export type NewActionFuncOldVariantDoNotUse<Data = unknown, State extends GlobalState = GlobalState> = ThunkAction<Data, State, unknown, ReduxAction>;
+export type NewActionFuncOldVariantDoNotUse<Data = unknown, State extends GlobalState = GlobalState> = BaseThunkAction<Data, State, unknown, ReduxAction>;
+
+export type ThunkActionFunc<ReturnType, State extends GlobalState = GlobalState> = BaseThunkAction<ReturnType, State, unknown, AnyAction>
