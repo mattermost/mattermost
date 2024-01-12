@@ -567,7 +567,7 @@ describe('Actions.Admin', () => {
             post('/elasticsearch/test').
             reply(200, OK_RESPONSE);
 
-        await store.dispatch(Actions.testElasticsearch({}));
+        await store.dispatch(Actions.testElasticsearch());
 
         expect(nock.isDone()).toBe(true);
     });

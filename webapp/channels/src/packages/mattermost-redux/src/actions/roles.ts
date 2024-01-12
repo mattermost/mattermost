@@ -48,17 +48,17 @@ export function getRole(roleId: string) {
     });
 }
 
-export function editRole(role: Partial<Role>): NewActionFuncAsync<Role> {
+export function editRole(role: Partial<Role>) {
     return bindClientFunc({
         clientFunc: Client4.patchRole,
         onRequest: RoleTypes.EDIT_ROLE_REQUEST,
         onSuccess: [RoleTypes.RECEIVED_ROLE, RoleTypes.EDIT_ROLE_SUCCESS],
         onFailure: RoleTypes.EDIT_ROLE_FAILURE,
         params: [
-            role.id,
+            role.id!,
             role,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function setPendingRoles(roles: string[]) {

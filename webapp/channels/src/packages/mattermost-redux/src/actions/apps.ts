@@ -25,7 +25,7 @@ export function fetchAppBindings(channelID: string): NewActionFuncAsync<AppBindi
             clientFunc: () => Client4.getAppsBindings(channelID, teamID),
             onSuccess: AppsTypes.RECEIVED_APP_BINDINGS,
             onFailure: AppsTypes.FAILED_TO_FETCH_APP_BINDINGS,
-        }) as any); // HARRISONTODO Type bindClientFunc
+        }));
     };
 }
 

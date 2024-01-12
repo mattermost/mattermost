@@ -43,11 +43,11 @@ export function deletePreferences(userId: string, preferences: PreferenceType[])
     };
 }
 
-export function getMyPreferences(): NewActionFuncAsync {
+export function getMyPreferences() {
     return bindClientFunc({
         clientFunc: Client4.getMyPreferences,
         onSuccess: PreferenceTypes.RECEIVED_ALL_PREFERENCES,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function makeDirectChannelVisibleIfNecessary(otherUserId: string): NewActionFuncAsync { // HARRISONTODO remove me

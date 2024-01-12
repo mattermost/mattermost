@@ -61,12 +61,12 @@ export function getFilesForPost(postId: string): NewActionFuncAsync {
     };
 }
 
-export function getFilePublicLink(fileId: string): NewActionFuncAsync<{link: string}> {
+export function getFilePublicLink(fileId: string) {
     return bindClientFunc({
         clientFunc: Client4.getFilePublicLink,
         onSuccess: FileTypes.RECEIVED_FILE_PUBLIC_LINK,
         params: [
             fileId,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }

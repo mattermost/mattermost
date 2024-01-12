@@ -24,7 +24,7 @@ export function setSystemEmojis(emojis: Set<string>) {
     systemEmojis = emojis;
 }
 
-export function createCustomEmoji(emoji: any, image: any): NewActionFuncAsync<CustomEmoji> {
+export function createCustomEmoji(emoji: any, image: any) {
     return bindClientFunc({
         clientFunc: Client4.createCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
@@ -32,17 +32,17 @@ export function createCustomEmoji(emoji: any, image: any): NewActionFuncAsync<Cu
             emoji,
             image,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getCustomEmoji(emojiId: string): NewActionFuncAsync<CustomEmoji> { // HARRISONTODO remove me
+export function getCustomEmoji(emojiId: string) { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.getCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
         params: [
             emojiId,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function getCustomEmojiByName(name: string): NewActionFuncAsync<CustomEmoji> {

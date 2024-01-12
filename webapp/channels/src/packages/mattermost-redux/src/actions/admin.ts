@@ -3,14 +3,13 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {AnalyticsRow, ClusterInfo, LogFilter, SchemaMigration} from '@mattermost/types/admin';
-import type {Audit} from '@mattermost/types/audits';
+import type {AnalyticsRow, LogFilter} from '@mattermost/types/admin';
 import type {
     Channel,
     ChannelSearchOpts,
 } from '@mattermost/types/channels';
 import type {Compliance} from '@mattermost/types/compliance';
-import type {AdminConfig, AllowedIPRange, ClientLicense, EnvironmentConfig, License} from '@mattermost/types/config';
+import type {AdminConfig, AllowedIPRange, ClientLicense} from '@mattermost/types/config';
 import type {
     CreateDataRetentionCustomPolicy,
     DataRetentionCustomPolicies,
@@ -18,9 +17,8 @@ import type {
     PatchDataRetentionCustomPolicy,
 } from '@mattermost/types/data_retention';
 import type {ServerError} from '@mattermost/types/errors';
-import type {GroupSearchOpts, MixedUnlinkedGroup} from '@mattermost/types/groups';
-import type {PluginManifest, PluginsResponse, PluginStatus} from '@mattermost/types/plugins';
-import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
+import type {GroupSearchOpts} from '@mattermost/types/groups';
+import type {PluginManifest} from '@mattermost/types/plugins';
 import type {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import type {
     Team,
@@ -37,7 +35,7 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter): NewActionFuncAsync<string[]> {
+export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: LogFilter) {
     const logFilter = {
         server_names: serverNames,
         log_levels: logLevels,
@@ -50,10 +48,10 @@ export function getLogs({serverNames = [], logLevels = [], dateFrom, dateTo}: Lo
         params: [
             logFilter,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getPlainLogs(page = 0, perPage: number = General.LOGS_PAGE_SIZE_DEFAULT): NewActionFuncAsync<string[]> {
+export function getPlainLogs(page = 0, perPage: number = General.LOGS_PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getPlainLogs,
         onSuccess: [AdminTypes.RECEIVED_PLAIN_LOGS],
@@ -61,10 +59,10 @@ export function getPlainLogs(page = 0, perPage: number = General.LOGS_PAGE_SIZE_
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getAudits(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<Audit[]> {
+export function getAudits(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getAudits,
         onSuccess: [AdminTypes.RECEIVED_AUDITS],
@@ -72,79 +70,79 @@ export function getAudits(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT)
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getConfig(): NewActionFuncAsync<AdminConfig> {
+export function getConfig() {
     return bindClientFunc({
         clientFunc: Client4.getConfig,
         onSuccess: [AdminTypes.RECEIVED_CONFIG],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function updateConfig(config: Record<string, unknown>): NewActionFuncAsync<Partial<AdminConfig>> {
+export function updateConfig(config: AdminConfig) {
     return bindClientFunc({
         clientFunc: Client4.updateConfig,
         onSuccess: [AdminTypes.RECEIVED_CONFIG],
         params: [
             config,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function reloadConfig(): NewActionFuncAsync {
+export function reloadConfig() {
     return bindClientFunc({
         clientFunc: Client4.reloadConfig,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getEnvironmentConfig(): NewActionFuncAsync<EnvironmentConfig> {
+export function getEnvironmentConfig() {
     return bindClientFunc({
         clientFunc: Client4.getEnvironmentConfig,
         onSuccess: [AdminTypes.RECEIVED_ENVIRONMENT_CONFIG],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function testEmail(config: unknown): NewActionFuncAsync {
+export function testEmail(config?: AdminConfig) {
     return bindClientFunc({
         clientFunc: Client4.testEmail,
         params: [
             config,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function testSiteURL(siteURL: string): NewActionFuncAsync {
+export function testSiteURL(siteURL: string) {
     return bindClientFunc({
         clientFunc: Client4.testSiteURL,
         params: [
             siteURL,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function testS3Connection(config: unknown): NewActionFuncAsync {
+export function testS3Connection(config?: AdminConfig) {
     return bindClientFunc({
         clientFunc: Client4.testS3Connection,
         params: [
             config,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function invalidateCaches(): NewActionFuncAsync {
+export function invalidateCaches() {
     return bindClientFunc({
         clientFunc: Client4.invalidateCaches,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function recycleDatabase(): NewActionFuncAsync {
+export function recycleDatabase() {
     return bindClientFunc({
         clientFunc: Client4.recycleDatabase,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function createComplianceReport(job: Partial<Compliance>): NewActionFuncAsync<Compliance> {
+export function createComplianceReport(job: Partial<Compliance>) {
     return bindClientFunc({
         clientFunc: Client4.createComplianceReport,
         onRequest: AdminTypes.CREATE_COMPLIANCE_REQUEST,
@@ -153,20 +151,20 @@ export function createComplianceReport(job: Partial<Compliance>): NewActionFuncA
         params: [
             job,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getComplianceReport(reportId: string): NewActionFuncAsync<Compliance> { // HARRISONTODO remove me
+export function getComplianceReport(reportId: string) { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.getComplianceReport,
         onSuccess: [AdminTypes.RECEIVED_COMPLIANCE_REPORT],
         params: [
             reportId,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getComplianceReports(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<Compliance[]> {
+export function getComplianceReports(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getComplianceReports,
         onSuccess: [AdminTypes.RECEIVED_COMPLIANCE_REPORTS],
@@ -174,44 +172,44 @@ export function getComplianceReports(page = 0, perPage: number = General.PAGE_SI
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function uploadBrandImage(imageData: File): NewActionFuncAsync {
+export function uploadBrandImage(imageData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadBrandImage,
         params: [
             imageData,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function deleteBrandImage(): NewActionFuncAsync {
+export function deleteBrandImage() {
     return bindClientFunc({
         clientFunc: Client4.deleteBrandImage,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getClusterStatus(): NewActionFuncAsync<ClusterInfo[]> {
+export function getClusterStatus() {
     return bindClientFunc({
         clientFunc: Client4.getClusterStatus,
         onSuccess: [AdminTypes.RECEIVED_CLUSTER_STATUS],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function testLdap(): NewActionFuncAsync {
+export function testLdap() {
     return bindClientFunc({
         clientFunc: Client4.testLdap,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function syncLdap(): NewActionFuncAsync {
+export function syncLdap() {
     return bindClientFunc({
         clientFunc: Client4.syncLdap,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getLdapGroups(page = 0, perPage: number = General.PAGE_SIZE_MAXIMUM, opts: GroupSearchOpts = {q: ''}): NewActionFuncAsync<{count: number; groups: MixedUnlinkedGroup[]}> {
+export function getLdapGroups(page = 0, perPage: number = General.PAGE_SIZE_MAXIMUM, opts: GroupSearchOpts = {q: ''}) {
     return bindClientFunc({
         clientFunc: Client4.getLdapGroups,
         onSuccess: [AdminTypes.RECEIVED_LDAP_GROUPS],
@@ -220,7 +218,7 @@ export function getLdapGroups(page = 0, perPage: number = General.PAGE_SIZE_MAXI
             perPage,
             opts,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function linkLdapGroup(key: string): NewActionFuncAsync {
@@ -269,110 +267,110 @@ export function unlinkLdapGroup(key: string): NewActionFuncAsync {
     };
 }
 
-export function getSamlCertificateStatus(): NewActionFuncAsync<SamlCertificateStatus> {
+export function getSamlCertificateStatus() {
     return bindClientFunc({
         clientFunc: Client4.getSamlCertificateStatus,
         onSuccess: [AdminTypes.RECEIVED_SAML_CERT_STATUS],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function uploadPublicSamlCertificate(fileData: File): NewActionFuncAsync {
+export function uploadPublicSamlCertificate(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadPublicSamlCertificate,
         params: [
             fileData,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function uploadPrivateSamlCertificate(fileData: File): NewActionFuncAsync {
+export function uploadPrivateSamlCertificate(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadPrivateSamlCertificate,
         params: [
             fileData,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function uploadPublicLdapCertificate(fileData: File): NewActionFuncAsync {
+export function uploadPublicLdapCertificate(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadPublicLdapCertificate,
         params: [
             fileData,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function uploadPrivateLdapCertificate(fileData: File): NewActionFuncAsync {
+export function uploadPrivateLdapCertificate(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadPrivateLdapCertificate,
         params: [
             fileData,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function uploadIdpSamlCertificate(fileData: File): NewActionFuncAsync {
+export function uploadIdpSamlCertificate(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadIdpSamlCertificate,
         params: [
             fileData,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function removePublicSamlCertificate(): NewActionFuncAsync {
+export function removePublicSamlCertificate() {
     return bindClientFunc({
         clientFunc: Client4.deletePublicSamlCertificate,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function removePrivateSamlCertificate(): NewActionFuncAsync {
+export function removePrivateSamlCertificate() {
     return bindClientFunc({
         clientFunc: Client4.deletePrivateSamlCertificate,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function removePublicLdapCertificate(): NewActionFuncAsync {
+export function removePublicLdapCertificate() {
     return bindClientFunc({
         clientFunc: Client4.deletePublicLdapCertificate,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function removePrivateLdapCertificate(): NewActionFuncAsync {
+export function removePrivateLdapCertificate() {
     return bindClientFunc({
         clientFunc: Client4.deletePrivateLdapCertificate,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function removeIdpSamlCertificate(): NewActionFuncAsync {
+export function removeIdpSamlCertificate() {
     return bindClientFunc({
         clientFunc: Client4.deleteIdpSamlCertificate,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function testElasticsearch(config: unknown): NewActionFuncAsync {
+export function testElasticsearch(config?: AdminConfig) {
     return bindClientFunc({
         clientFunc: Client4.testElasticsearch,
         params: [
             config,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function purgeElasticsearchIndexes(): NewActionFuncAsync {
+export function purgeElasticsearchIndexes() {
     return bindClientFunc({
         clientFunc: Client4.purgeElasticsearchIndexes,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function uploadLicense(fileData: File): NewActionFuncAsync<License> {
+export function uploadLicense(fileData: File) {
     return bindClientFunc({
         clientFunc: Client4.uploadLicense,
         params: [
             fileData,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function removeLicense(): NewActionFuncAsync<boolean> {
@@ -427,23 +425,23 @@ export function getAnalytics(name: string, teamId = ''): NewActionFuncAsync<Anal
     };
 }
 
-export function getStandardAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
+export function getStandardAnalytics(teamId = '') {
     return getAnalytics('standard', teamId);
 }
 
-export function getAdvancedAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
+export function getAdvancedAnalytics(teamId = '') {
     return getAnalytics('extra_counts', teamId);
 }
 
-export function getPostsPerDayAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
+export function getPostsPerDayAnalytics(teamId = '') {
     return getAnalytics('post_counts_day', teamId);
 }
 
-export function getBotPostsPerDayAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
+export function getBotPostsPerDayAnalytics(teamId = '') {
     return getAnalytics('bot_post_counts_day', teamId);
 }
 
-export function getUsersPerDayAnalytics(teamId = ''): NewActionFuncAsync<AnalyticsRow[]> {
+export function getUsersPerDayAnalytics(teamId = '') {
     return getAnalytics('user_counts_with_posts_day', teamId);
 }
 
@@ -477,18 +475,18 @@ export function installPluginFromUrl(url: string, force = false): NewActionFuncA
     };
 }
 
-export function getPlugins(): NewActionFuncAsync<PluginsResponse> {
+export function getPlugins() {
     return bindClientFunc({
         clientFunc: Client4.getPlugins,
         onSuccess: [AdminTypes.RECEIVED_PLUGINS],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getPluginStatuses(): NewActionFuncAsync<PluginStatus[]> {
+export function getPluginStatuses() {
     return bindClientFunc({
         clientFunc: Client4.getPluginStatuses,
         onSuccess: [AdminTypes.RECEIVED_PLUGIN_STATUSES],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function removePlugin(pluginId: string): NewActionFuncAsync {
@@ -544,23 +542,23 @@ export function disablePlugin(pluginId: string): NewActionFuncAsync {
     };
 }
 
-export function getSamlMetadataFromIdp(samlMetadataURL: string): NewActionFuncAsync<SamlMetadataResponse> {
+export function getSamlMetadataFromIdp(samlMetadataURL: string) {
     return bindClientFunc({
         clientFunc: Client4.getSamlMetadataFromIdp,
         onSuccess: AdminTypes.RECEIVED_SAML_METADATA_RESPONSE,
         params: [
             samlMetadataURL,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function setSamlIdpCertificateFromMetadata(certData: string): NewActionFuncAsync {
+export function setSamlIdpCertificateFromMetadata(certData: string) {
     return bindClientFunc({
         clientFunc: Client4.setSamlIdpCertificateFromMetadata,
         params: [
             certData,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function sendWarnMetricAck(warnMetricId: string, forceAck: boolean): NewActionFuncAsync {
@@ -781,7 +779,7 @@ export function updateDataRetentionCustomPolicy(id: string, policy: PatchDataRet
     };
 }
 
-export function addDataRetentionCustomPolicyTeams(id: string, teams: string[]): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function addDataRetentionCustomPolicyTeams(id: string, teams: string[]) {
     return bindClientFunc({
         clientFunc: Client4.addDataRetentionPolicyTeams,
         onSuccess: AdminTypes.ADD_DATA_RETENTION_CUSTOM_POLICY_TEAMS_SUCCESS,
@@ -789,7 +787,7 @@ export function addDataRetentionCustomPolicyTeams(id: string, teams: string[]): 
             id,
             teams,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function removeDataRetentionCustomPolicyTeams(id: string, teams: string[]): NewActionFuncAsync<{teams: string[]}> {
@@ -817,7 +815,7 @@ export function removeDataRetentionCustomPolicyTeams(id: string, teams: string[]
     };
 }
 
-export function addDataRetentionCustomPolicyChannels(id: string, channels: string[]): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function addDataRetentionCustomPolicyChannels(id: string, channels: string[]) {
     return bindClientFunc({
         clientFunc: Client4.addDataRetentionPolicyChannels,
         onSuccess: AdminTypes.ADD_DATA_RETENTION_CUSTOM_POLICY_CHANNELS_SUCCESS,
@@ -825,7 +823,7 @@ export function addDataRetentionCustomPolicyChannels(id: string, channels: strin
             id,
             channels,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function removeDataRetentionCustomPolicyChannels(id: string, channels: string[]): NewActionFuncAsync<{channels: string[]}> {
@@ -853,17 +851,17 @@ export function removeDataRetentionCustomPolicyChannels(id: string, channels: st
     };
 }
 
-export function completeSetup(completeSetup: CompleteOnboardingRequest): NewActionFuncAsync {
+export function completeSetup(completeSetup: CompleteOnboardingRequest) {
     return bindClientFunc({
         clientFunc: Client4.completeSetup,
         params: [completeSetup],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getAppliedSchemaMigrations(): NewActionFuncAsync<SchemaMigration[]> {
+export function getAppliedSchemaMigrations() {
     return bindClientFunc({
         clientFunc: Client4.getAppliedSchemaMigrations,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function getIPFilters() {

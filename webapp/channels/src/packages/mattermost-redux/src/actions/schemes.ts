@@ -1,9 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Channel} from '@mattermost/types/channels';
 import type {Scheme, SchemeScope, SchemePatch} from '@mattermost/types/schemes';
-import type {Team} from '@mattermost/types/teams';
 
 import {SchemeTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -14,17 +12,17 @@ import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function getScheme(schemeId: string): NewActionFuncAsync<Scheme> {
+export function getScheme(schemeId: string) {
     return bindClientFunc({
         clientFunc: Client4.getScheme,
         onSuccess: [SchemeTypes.RECEIVED_SCHEME],
         params: [
             schemeId,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getSchemes(scope: SchemeScope, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<Scheme[]> {
+export function getSchemes(scope: SchemeScope, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getSchemes,
         onSuccess: [SchemeTypes.RECEIVED_SCHEMES],
@@ -33,17 +31,17 @@ export function getSchemes(scope: SchemeScope, page = 0, perPage: number = Gener
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function createScheme(scheme: Scheme): NewActionFuncAsync<Scheme> {
+export function createScheme(scheme: Scheme) {
     return bindClientFunc({
         clientFunc: Client4.createScheme,
         onSuccess: [SchemeTypes.CREATED_SCHEME],
         params: [
             scheme,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function deleteScheme(schemeId: string): NewActionFuncAsync {
@@ -63,7 +61,7 @@ export function deleteScheme(schemeId: string): NewActionFuncAsync {
     };
 }
 
-export function patchScheme(schemeId: string, scheme: SchemePatch): NewActionFuncAsync<Scheme> {
+export function patchScheme(schemeId: string, scheme: SchemePatch) {
     return bindClientFunc({
         clientFunc: Client4.patchScheme,
         onSuccess: [SchemeTypes.PATCHED_SCHEME],
@@ -71,10 +69,10 @@ export function patchScheme(schemeId: string, scheme: SchemePatch): NewActionFun
             schemeId,
             scheme,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getSchemeTeams(schemeId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<Team[]> {
+export function getSchemeTeams(schemeId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getSchemeTeams,
         onSuccess: [SchemeTypes.RECEIVED_SCHEME_TEAMS],
@@ -83,10 +81,10 @@ export function getSchemeTeams(schemeId: string, page = 0, perPage: number = Gen
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getSchemeChannels(schemeId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): NewActionFuncAsync<Channel[]> {
+export function getSchemeChannels(schemeId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getSchemeChannels,
         onSuccess: [SchemeTypes.RECEIVED_SCHEME_CHANNELS],
@@ -95,5 +93,5 @@ export function getSchemeChannels(schemeId: string, page = 0, perPage: number = 
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }

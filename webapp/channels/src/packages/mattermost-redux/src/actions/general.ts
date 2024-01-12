@@ -4,7 +4,7 @@
 import {batchActions} from 'redux-batched-actions';
 
 import {LogLevel} from '@mattermost/types/client4';
-import type {ClientConfig, ClientLicense, DataRetentionPolicy} from '@mattermost/types/config';
+import type {ClientConfig, DataRetentionPolicy} from '@mattermost/types/config';
 import type {SystemSetting} from '@mattermost/types/general';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
@@ -57,14 +57,14 @@ export function getDataRetentionPolicy(): NewActionFuncAsync<DataRetentionPolicy
     };
 }
 
-export function getLicenseConfig(): NewActionFuncAsync<ClientLicense> {
+export function getLicenseConfig() {
     return bindClientFunc({
         clientFunc: Client4.getClientLicenseOld,
         onSuccess: [GeneralTypes.CLIENT_LICENSE_RECEIVED],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function logClientError(message: string, level = LogLevel.Error): NewActionFuncAsync { // HARRISONTODO remove me
+export function logClientError(message: string, level = LogLevel.Error) { // HARRISONTODO remove me
     return bindClientFunc({
         clientFunc: Client4.logClientError,
         onRequest: GeneralTypes.LOG_CLIENT_ERROR_REQUEST,
@@ -74,7 +74,7 @@ export function logClientError(message: string, level = LogLevel.Error): NewActi
             message,
             level,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function setServerVersion(serverVersion: string): NewActionFuncAsync {

@@ -44,7 +44,7 @@ type Props = {
         createJob: (job: JobTypeBase) => Promise<ActionResult>;
         getJobsByType: (job: JobType) => Promise<ActionResult>;
         deleteDataRetentionCustomPolicy: (id: string) => Promise<ActionResult>;
-        updateConfig: (config: Record<string, any>) => Promise<ActionResult>;
+        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     };
 };
 
@@ -410,7 +410,7 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
     };
 
     changeJobTimeConfig = async (value: string) => {
-        const newConfig = JSON.parse(JSON.stringify(this.props.config));
+        const newConfig: AdminConfig = JSON.parse(JSON.stringify(this.props.config));
         newConfig.DataRetentionSettings.DeletionJobStartTime = value;
 
         await this.props.actions.updateConfig(newConfig);

@@ -182,22 +182,22 @@ export function retryFailedHostedCustomerFetches(): NewActionFunc {
     };
 }
 
-export function submitTrueUpReview(): NewActionFuncAsync {
+export function submitTrueUpReview() {
     return bindClientFunc({
         clientFunc: Client4.submitTrueUpReview,
         onSuccess: [HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_BUNDLE],
         onFailure: HostedCustomerTypes.TRUE_UP_REVIEW_PROFILE_FAILED,
         onRequest: HostedCustomerTypes.TRUE_UP_REVIEW_PROFILE_REQUEST,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getTrueUpReviewStatus(): NewActionFuncAsync {
+export function getTrueUpReviewStatus() {
     return bindClientFunc({
         clientFunc: Client4.getTrueUpReviewStatus,
         onSuccess: [HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_STATUS],
         onFailure: HostedCustomerTypes.TRUE_UP_REVIEW_STATUS_FAILED,
         onRequest: HostedCustomerTypes.TRUE_UP_REVIEW_STATUS_REQUEST,
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
 export function confirmSelfHostedExpansion(
