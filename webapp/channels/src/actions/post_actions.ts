@@ -355,14 +355,14 @@ export function markMostRecentPostInChannelAsUnread(channelId: string) {
 }
 
 // Action called by DeletePostModal when the post is deleted
-export function deleteAndRemovePost(post: Post): NewActionFuncAsync<boolean> {
+export function deleteAndRemovePost(post: Post): NewActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const {error} = await dispatch(PostActions.deletePost(post));
         if (error) {
             return {error};
         }
 
-        if (post.id === getSelectedPostId(getState() as GlobalState)) {
+        if (post.id === getSelectedPostId(getState())) {
             dispatch({
                 type: ActionTypes.SELECT_POST,
                 postId: '',
@@ -371,7 +371,7 @@ export function deleteAndRemovePost(post: Post): NewActionFuncAsync<boolean> {
             });
         }
 
-        if (post.id === getSelectedPostCardId(getState() as GlobalState)) {
+        if (post.id === getSelectedPostCardId(getState())) {
             dispatch({
                 type: ActionTypes.SELECT_POST_CARD,
                 postId: '',
@@ -381,7 +381,7 @@ export function deleteAndRemovePost(post: Post): NewActionFuncAsync<boolean> {
 
         if (post.root_id === '') {
             const key = StoragePrefixes.COMMENT_DRAFT + post.id;
-            if (getGlobalItem(getState() as GlobalState, key, null)) {
+            if (getGlobalItem(getState(), key, null)) {
                 dispatch(removeDraft(key, post.channel_id, post.id));
             }
         }
