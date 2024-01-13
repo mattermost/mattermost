@@ -3,15 +3,14 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {updateUserRoles} from 'mattermost-redux/actions/users';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
 import ManageRolesModal from './manage_roles_modal';
-import type {Props} from './manage_roles_modal';
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -21,7 +20,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             updateUserRoles,
         }, dispatch),
     };
