@@ -111,3 +111,17 @@ input::-webkit-file-upload-button {
 .input-group-addon {
     color: var(--center-channel-color);
 }
+
+// This class is used to make the input field look like a dropdown to be used in menus
+.inputWithMenu {
+    cursor: pointer;
+
+    input.form-control {
+        cursor: pointer;
+        width: 100px;
+
+        &:read-only {
+            background-color: $white;
+        }
+    }
+}

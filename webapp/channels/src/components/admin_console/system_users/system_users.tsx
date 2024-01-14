@@ -7,7 +7,11 @@ import {FormattedMessage} from 'react-intl';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import RevokeSessionsButton from './revoke_sessions_button';
+import SystemUsersColumnToggler from './system_users_column_toggler_menu';
+import SystemUsersExport from './system_users_export';
+import SystemUsersFilterMenu from './system_users_filter_menu';
 import SystemUsersList from './system_users_list';
+import SystemUsersSearch from './system_users_search';
 
 import type {PropsFromRedux} from './index';
 
@@ -32,6 +36,12 @@ function SystemUsers(props: Props) {
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__container'>
+                    <div className='admin-console__filters-rows'>
+                        <SystemUsersSearch/>
+                        <SystemUsersFilterMenu/>
+                        <SystemUsersColumnToggler selectedColumns={[]}/>
+                        <SystemUsersExport/>
+                    </div>
                     <SystemUsersList
                         currentUserRoles={props.currentUserRoles}
                         tablePropertySortColumn={props.tablePropertySortColumn}

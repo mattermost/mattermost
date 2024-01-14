@@ -123,7 +123,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
     const rowCount = props.table.getRowModel().rows.length;
 
     return (
-        <>
+        <div className='adminConsoleListTableContainer'>
             <div className='adminConsoleListTabletOptionalHead'>
                 {tableMeta.totalRowInfo}
                 {tableMeta.hasAdditionalPaginationAtTop && (
@@ -347,7 +347,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     paginationInfo={tableMeta.paginationInfo}
                 />
             </div>
-        </>
+        </div>
     );
 }
 

@@ -16,6 +16,7 @@ import {getDisplayName, imageURLForUser} from 'utils/utils';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
+import {ColumnNames} from '../constants';
 import SystemUsersActions from '../system_users_list_actions';
 
 import './system_users_list.scss';
@@ -33,18 +34,6 @@ type Props = {
     getUserCountForReporting: (filter?: UserReportFilter) => Promise<{data?: number}>;
     setAdminConsoleUsersManagementTableProperties: (properties: Partial<AdminConsoleUserManagementTableProperties>) => void;
 };
-
-enum ColumnNames {
-    displayName = 'displayNameColumn',
-    email = 'emailColumn',
-    createAt = 'createAtColumn',
-    lastLoginAt = 'lastLoginColumn',
-    lastStatusAt = 'lastStatusAtColumn',
-    lastPostDate = 'lastPostDateColumn',
-    daysActive = 'daysActiveColumn',
-    totalPosts = 'totalPostsColumn',
-    actions = 'actionsColumn',
-}
 
 function SystemUsersList(props: Props) {
     const tableId = 'systemUsersTable';
