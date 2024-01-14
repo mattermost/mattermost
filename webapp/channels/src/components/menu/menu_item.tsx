@@ -80,6 +80,12 @@ export interface Props extends MuiMenuItemProps {
     onClick?: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
     /**
+     * If true, clicking on the menu item will not close the menu.
+     * @warning This is a rare UX pattern and should be used sparingly as it breaks a lot of menu/submenu auto closing logic.
+     */
+    antipattern__blockClosingOnClick?: boolean;
+
+    /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
     children?: ReactNode;
@@ -122,14 +128,18 @@ export function MenuItem(props: Props) {
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
-            // close submenu first if it is open
-            if (subMenuContext.close) {
-                subMenuContext.close();
-            }
+            if (props.antipattern__blockClosingOnClick) {
+                event.stopPropagation();
+            } else {
+                // close submenu first if it is open
+                if (subMenuContext.close) {
+                    subMenuContext.close();
+                }
 
-            // And then close the menu
-            if (menuContext.close) {
-                menuContext.close();
+                // And then close the menu
+                if (menuContext.close) {
+                    menuContext.close();
+                }
             }
 
             if (onClick) {

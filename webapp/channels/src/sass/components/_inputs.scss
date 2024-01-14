@@ -117,8 +117,8 @@ input::-webkit-file-upload-button {
     cursor: pointer;
 
     input.form-control {
-        cursor: pointer;
         width: 100px;
+        cursor: pointer;
 
         &:read-only {
             background-color: $white;

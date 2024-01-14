@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactNode} from 'react';
 import React, {useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
@@ -155,16 +154,17 @@ function SystemUsersColumnTogglerMenu(props: Props) {
                     id: 'systemUsersColumnTogglerMenuButton',
                     class: 'inputWithMenu',
                     'aria-label': formatMessage({
-                        id: 'admin.system_users.column_toggler.buttonAriaLabel',
+                        id: 'admin.system_users.column_toggler.menuButtonAriaLabel',
                         defaultMessage: 'Open menu to select columns to display',
                     }),
                     as: 'div',
                     children: (
                         <Input
-                            placeholder={formatMessage({
+                            label={formatMessage({
                                 id: 'admin.system_users.column_toggler.placeholder',
                                 defaultMessage: 'Columns',
                             })}
+                            name='colXC'
                             value={getInputValue(props.selectedColumns)}
                             readOnly={true}
                             inputSuffix={<i className='icon icon-chevron-down'/>}
@@ -174,8 +174,8 @@ function SystemUsersColumnTogglerMenu(props: Props) {
                 menu={{
                     id: 'systemUsersColumnTogglerMenu',
                     'aria-label': formatMessage({
-                        id: 'sidebar_left.sidebar_channel_menu.dropdownAriaLabel',
-                        defaultMessage: 'Edit channel menu',
+                        id: 'admin.system_users.column_toggler.dropdownAriaLabel',
+                        defaultMessage: 'Columns visibility menu',
                     }),
                 }}
             >
@@ -200,7 +200,7 @@ function SystemUsersColumnTogglerMenu(props: Props) {
                                 labels={item.label}
                                 disabled={!item.selectable}
                                 leadingElement={leadingElement}
-                                blockCloseOnClick={true}
+                                antipattern__blockClosingOnClick={true}
 
                                 // onClick={this.handleColumnMenuItemActivated}
                             />
