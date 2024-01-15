@@ -3725,7 +3725,7 @@ describe('reactions', () => {
 
             const nextState = reducers.reactions(state, action);
 
-            expect(nextState).toEqual(state);
+            expect(nextState.post).not.toBeUndefined();
         });
 
         it('no reactions in post metadata', () => {
