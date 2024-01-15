@@ -4371,6 +4371,10 @@
     "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Error while checking if a user has a custom profile image."
+  },
+  {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
     "translation": "Failed to get uploads."
   },
