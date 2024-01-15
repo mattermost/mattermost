@@ -12,7 +12,7 @@ import {DownloadOutlineIcon, LinkVariantIcon, CheckIcon} from '@mattermost/compa
 import type {FileInfo} from '@mattermost/types/files';
 import type {PostImage} from '@mattermost/types/posts';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getFileMiniPreviewUrl} from 'mattermost-redux/utils/file_utils';
 
 import LoadingImagePreview from 'components/loading_image_preview';
@@ -87,7 +87,7 @@ export type Props = {
     /**
     * Action to fetch public link of an image from server.
     */
-    getFilePublicLink?: () => ActionFunc;
+    getFilePublicLink?: () => Promise<ActionResult<{link: string}>>;
 
     /*
     * Prevents display of utility buttons when image in a location that makes them inappropriate

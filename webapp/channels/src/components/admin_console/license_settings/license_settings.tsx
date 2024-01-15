@@ -7,6 +7,7 @@ import {FormattedMessage} from 'react-intl';
 import type {StatusOK} from '@mattermost/types/client4';
 import type {ClientLicense} from '@mattermost/types/config';
 import type {ServerError} from '@mattermost/types/errors';
+import type {UsersLimits} from '@mattermost/types/limits';
 import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -46,14 +47,15 @@ type Props = {
     actions: {
         getLicenseConfig: () => void;
         uploadLicense: (file: File) => Promise<ActionResult>;
-        removeLicense: () => Promise<ActionResult>;
+        removeLicense: () => Promise<ActionResult<boolean, ServerError>>;
         getPrevTrialLicense: () => void;
         upgradeToE0: () => Promise<StatusOK>;
-        upgradeToE0Status: () => Promise<{percentage: number; error: string | JSX.Element}>;
+        upgradeToE0Status: () => Promise<{percentage: number; error: string | JSX.Element | null}>;
         restartServer: () => Promise<StatusOK>;
         ping: () => Promise<{status: string}>;
         requestTrialLicense: (users: number, termsAccepted: boolean, receiveEmailsAccepted: boolean, featureName: string) => Promise<ActionResult>;
         openModal: <P>(modalData: ModalData<P>) => void;
+        getUsersLimits: () => Promise<ActionResult<UsersLimits, ServerError>>;
         getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
             data?: UsersStats;
             error?: ServerError;
@@ -179,8 +181,13 @@ export default class LicenseSettings extends React.PureComponent<Props, State> {
             return;
         }
 
-        this.props.actions.getPrevTrialLicense();
-        await this.props.actions.getLicenseConfig();
+        await Promise.all([
+            this.props.actions.getPrevTrialLicense(),
+            this.props.actions.getLicenseConfig(),
+        ]);
+
+        await this.props.actions.getUsersLimits();
+
         this.setState({serverError: null, removing: false});
     };
 
