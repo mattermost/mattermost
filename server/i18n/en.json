@@ -4903,6 +4903,14 @@
     "translation": "Could not sort the bookmark."
   },
   {
+    "id": "app.channel.bookmark.update_sort.invalid_input.app_error",
+    "translation": "Could not sort the bookmark. Invalid input."
+  },
+  {
+    "id": "app.channel.bookmark.update_sort.missing_bookmark.app_error",
+    "translation": "Could not sort the bookmark. Not found."
+  },
+  {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Failed to retrieve the channel members."
   },
