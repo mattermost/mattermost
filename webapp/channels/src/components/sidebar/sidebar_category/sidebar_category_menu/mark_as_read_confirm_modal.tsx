@@ -30,6 +30,7 @@ const MarkAsReadConfirmModal = ({
     return (
         <GenericModal
             ariaLabel={header}
+            compassDesign={true}
             modalHeaderText={header}
             handleConfirm={handleConfirm}
             handleCancel={handleCancel}
