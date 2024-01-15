@@ -27,6 +27,7 @@ import type {
 } from '@mattermost/types/teams';
 
 import {AdminTypes} from 'mattermost-redux/action_types';
+import {getUsersLimits} from 'mattermost-redux/actions/limits';
 import {Client4} from 'mattermost-redux/client';
 import type {ActionFunc, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
@@ -373,10 +374,20 @@ export function uploadLicense(fileData: File): NewActionFuncAsync<License> {
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function removeLicense(): NewActionFuncAsync {
-    return bindClientFunc({
-        clientFunc: Client4.removeLicense,
-    }) as any; // HARRISONTODO Type bindClientFunc
+export function removeLicense(): NewActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.removeLicense();
+        } catch (error) {
+            forceLogoutIfNecessary(error as ServerError, dispatch, getState);
+            dispatch(logError(error as ServerError));
+            return {error: error as ServerError};
+        }
+
+        await dispatch(getUsersLimits());
+
+        return {data: true};
+    };
 }
 
 export function getPrevTrialLicense(): ActionFunc {

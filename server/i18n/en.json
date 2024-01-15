@@ -3379,6 +3379,38 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Renew now"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Please renew to avoid any disruption"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Annual bill due in 30 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Your annual bill is due in 30 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Annual subscription renewal in 60 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Annual subscription renewal in 60 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Action Required: Annual subscription renewal in 7 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "You are about to lose access to your workspace in 7 days"
+  },
+  {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "Mattermost Upgrade Confirmation"
   },
@@ -5021,6 +5053,14 @@
   {
     "id": "app.channel.move_channel.members_do_not_match.error",
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Unable to update channel members' notify props."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Unable to update that many channel members. Only {{.Max}} channel members can be updated at once."
   },
   {
     "id": "app.channel.permanent_delete.app_error",
