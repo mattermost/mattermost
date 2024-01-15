@@ -65,6 +65,7 @@ exports[`components/AddGroupsToChannelModal should match snapshot 1`] = `
       handleInput={[Function]}
       handlePageChange={[Function]}
       handleSubmit={[Function]}
+      intl={Object {}}
       key="addGroupsToChannelKey"
       loading={true}
       maxValues={10}
