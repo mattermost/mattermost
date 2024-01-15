@@ -11,7 +11,7 @@ import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import {daysToExpiration} from 'utils/cloud_utils';
+import {daysToCancellation, daysToExpiration} from 'utils/cloud_utils';
 
 export const creditCardExpiredBanner = (setShowCreditCardBanner: (value: boolean) => void) => {
     return (
@@ -69,7 +69,7 @@ export const CloudAnnualRenewalBanner = () => {
         return null;
     }
     const daysUntilExpiration = daysToExpiration(subscription);
-    const daysUntilCancelation = daysToExpiration(subscription);
+    const daysUntilCancelation = daysToCancellation(subscription);
     const renewButton = (
         <button
             className='btn btn-primary'

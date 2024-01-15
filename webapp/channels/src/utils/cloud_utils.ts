@@ -47,14 +47,22 @@ export function openExternalPricingLink() {
 
 export const FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS = 30;
 
-export function daysToExpiration(subscription?: Subscription): number {
+export function daysUntil(end?: number, simulatedCurrentTimeMs?: number) {
     let now = new Date();
 
-    // If the backend is passing a simulated_current_time_ms, use that instead of the current time
-    if (subscription?.simulated_current_time_ms) {
-        now = new Date(subscription?.simulated_current_time_ms);
+    if (simulatedCurrentTimeMs) {
+        now = new Date(simulatedCurrentTimeMs);
     }
-    const expiration = new Date(subscription?.end_at || 0);
+
+    const expiration = new Date(end || 0);
     const diff = expiration.getTime() - now.getTime();
     return Math.ceil(diff / (1000 * 3600 * 24));
+}
+
+export function daysToExpiration(subscription?: Subscription): number {
+    return daysUntil(subscription?.end_at, subscription?.simulated_current_time_ms);
+}
+
+export function daysToCancellation(subscription?: Subscription): number {
+    return daysUntil(subscription?.cancel_at, subscription?.simulated_current_time_ms);
 }
