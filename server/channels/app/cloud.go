@@ -285,6 +285,10 @@ func (a *App) DoSubscriptionRenewalCheck() {
 		return
 	}
 
+	if subscription.IsFreeTrial == "true" {
+		return // Don't send renewal emails for free trials
+	}
+
 	sysVar, err := a.Srv().Store().System().GetByName(model.CloudRenewalEmail)
 	if err != nil {
 		// We only care about the error if it wasn't a not found error
