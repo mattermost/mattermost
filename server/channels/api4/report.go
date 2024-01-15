@@ -23,7 +23,7 @@ func (api *API) InitReports() {
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+	if !(c.IsSystemAdmin()) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
 		return
 	}
@@ -54,7 +54,7 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+	if !(c.IsSystemAdmin()) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
 		return
 	}
@@ -77,12 +77,13 @@ func getUserCountForReporting(c *Context, w http.ResponseWriter, r *http.Request
 }
 
 func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+	if !(c.IsSystemAdmin()) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
 		return
 	}
 
-	if err := c.App.StartUsersBatchExport(c.AppContext, r.URL.Query().Get("date_range")); err != nil {
+	startAt, endAt := model.GetReportDateRange(r.URL.Query().Get("date_range"), time.Now())
+	if err := c.App.StartUsersBatchExport(c.AppContext, startAt, endAt); err != nil {
 		c.Err = err
 		return
 	}
@@ -91,7 +92,7 @@ func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func retrieveBatchReportFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
+	if !(c.IsSystemAdmin()) {
 		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
 		return
 	}
@@ -115,7 +116,7 @@ func retrieveBatchReportFile(c *Context, w http.ResponseWriter, r *http.Request)
 	}
 	defer file.Close()
 
-	w.Header().Set("Content-Type", "text/csv") // This will need to be changed when introducing other formats
+	w.Header().Set("Content-Type", "text/csv")
 	http.ServeContent(w, r, name, time.Time{}, file)
 }
 

@@ -41,19 +41,25 @@ type ReportingBaseOptions struct {
 	EndAt           int64
 }
 
-func (options *ReportingBaseOptions) PopulateDateRange(now time.Time) {
+func GetReportDateRange(dateRange string, now time.Time) (int64, int64) {
 	startAt := int64(0)
 	endAt := int64(0)
 
-	if options.DateRange == ReportDurationLast30Days {
+	if dateRange == ReportDurationLast30Days {
 		startAt = now.AddDate(0, 0, -30).UnixMilli()
-	} else if options.DateRange == ReportDurationPreviousMonth {
+	} else if dateRange == ReportDurationPreviousMonth {
 		startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
 		startAt = startOfMonth.AddDate(0, -1, 0).UnixMilli()
 		endAt = startOfMonth.UnixMilli()
-	} else if options.DateRange == ReportDurationLast6Months {
+	} else if dateRange == ReportDurationLast6Months {
 		startAt = now.AddDate(0, -6, -0).UnixMilli()
 	}
+
+	return startAt, endAt
+}
+
+func (options *ReportingBaseOptions) PopulateDateRange(now time.Time) {
+	startAt, endAt := GetReportDateRange(options.DateRange, now)
 
 	options.StartAt = startAt
 	options.EndAt = endAt

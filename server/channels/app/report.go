@@ -8,6 +8,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
@@ -167,10 +168,11 @@ func (a *App) GetUserCountForReport(filter *model.UserReportOptions) (*int64, *m
 	return &count, nil
 }
 
-func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string) *model.AppError {
+func (a *App) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64) *model.AppError {
 	options := map[string]string{
 		"requesting_user_id": rctx.Session().UserId,
-		"date_range":         dateRange,
+		"start_at":           strconv.FormatInt(startAt, 10),
+		"end_at":             strconv.FormatInt(endAt, 10),
 	}
 
 	// Check for existing job
@@ -180,7 +182,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string) *model.A
 		return err
 	}
 	for _, job := range pendingJobs {
-		if job.Data["date_range"] == dateRange && job.Data["requesting_user_id"] == rctx.Session().UserId {
+		if job.Data["start_at"] == options["start_at"] && job.Data["end_at"] == options["end_at"] && job.Data["requesting_user_id"] == rctx.Session().UserId {
 			return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -190,7 +192,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string) *model.A
 		return err
 	}
 	for _, job := range inProgressJobs {
-		if job.Data["date_range"] == dateRange && job.Data["requesting_user_id"] == rctx.Session().UserId {
+		if job.Data["start_at"] == options["start_at"] && job.Data["end_at"] == options["end_at"] && job.Data["requesting_user_id"] == rctx.Session().UserId {
 			return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
 		}
 	}
