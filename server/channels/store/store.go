@@ -16,17 +16,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
-// Deprecated: Use GenericStoreResult instead.
-type StoreResult struct {
-	Data any
-
-	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
-	NErr error
-}
-
-// GenericStoreResult is a type safe version of StoreResult.
-// Once all the code is migrated to use GenericStoreResult, it should be renamed to StoreResult.
-type GenericStoreResult[T any] struct {
+type StoreResult[T any] struct {
 	Data T
 
 	// NErr a temporary field used by the new code for the AppError migration. This will later become Err when the entire store is migrated.
@@ -235,11 +225,10 @@ type ChannelStore interface {
 	// UpdateMemberNotifyProps patches the notifyProps field with the given props map.
 	// It replaces existing fields and creates new ones which don't exist.
 	UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error)
+	PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error)
 	GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
-	// GetMemberOnly is a lite version of GetMember where it does not join
-	// with the different schemes tables.
-	GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
+	GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
@@ -247,7 +236,7 @@ type ChannelStore interface {
 	IsUserInChannelUseCache(userID string, channelID string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
 	InvalidateCacheForChannelMembersNotifyProps(channelID string)
-	GetMemberForPost(postID string, userID string) (*model.ChannelMember, error)
+	GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error)
 	InvalidateMemberCount(channelID string)
 	GetMemberCountFromCache(channelID string) int64
 	GetFileCount(channelID string) (int64, error)
@@ -494,6 +483,7 @@ type UserStore interface {
 	InsertUsers(users []*model.User) error
 	RefreshPostStatsForUsers() error
 	GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error)
+	GetUserCountForReport(filter *model.UserReportOptions) (int64, error)
 }
 
 type BotStore interface {

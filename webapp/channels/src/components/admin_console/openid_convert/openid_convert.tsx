@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {BaseProps} from 'components/admin_console/admin_settings';
 import ExternalLink from 'components/external_link';
@@ -21,16 +21,11 @@ import './openid_convert.scss';
 type Props = BaseProps & {
     disabled?: boolean;
     actions: {
-        updateConfig: (config: AdminConfig) => ActionFunc & Partial<{error?: ClientErrorPlaceholder}>;
+        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     };
 };
 type State = {
     serverError?: string;
-}
-
-type ClientErrorPlaceholder = {
-    message: string;
-    server_error_id: string;
 }
 
 export default class OpenIdConvert extends React.PureComponent<Props, State> {

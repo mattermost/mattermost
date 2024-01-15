@@ -37,8 +37,8 @@ export type Props = {
     backButtonCallback: () => void;
     backButtonAction: () => void;
     actions: {
-        getGroup: (groupId: string, includeMemberCount: boolean) => Promise<{data: Group}>;
-        getUsersInGroup: (groupId: string, page: number, perPage: number) => Promise<{data: UserProfile[]}>;
+        getGroup: (groupId: string, includeMemberCount: boolean) => Promise<ActionResult<Group>>;
+        getUsersInGroup: (groupId: string, page: number, perPage: number) => Promise<ActionResult<UserProfile[]>>;
         setModalSearchTerm: (term: string) => void;
         searchProfiles: (term: string, options: any) => Promise<ActionResult>;
     };

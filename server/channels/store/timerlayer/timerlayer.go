@@ -1445,10 +1445,10 @@ func (s *TimerLayerChannelStore) GetMemberCountsByGroup(ctx context.Context, cha
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMemberForPost(postID, userID)
+	result, err := s.ChannelStore.GetMemberForPost(postID, userID, includeArchivedChannels)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1461,10 +1461,10 @@ func (s *TimerLayerChannelStore) GetMemberForPost(postID string, userID string) 
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.GetMemberOnly(ctx, channelID, userID)
+	result, err := s.ChannelStore.GetMemberLastViewedAt(ctx, channelID, userID)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -1472,7 +1472,7 @@ func (s *TimerLayerChannelStore) GetMemberOnly(ctx context.Context, channelID st
 		if err == nil {
 			success = "true"
 		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberOnly", success, elapsed)
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.GetMemberLastViewedAt", success, elapsed)
 	}
 	return result, err
 }
@@ -1946,6 +1946,22 @@ func (s *TimerLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.MigrateChannelMembers", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+	start := time.Now()
+
+	result, err := s.ChannelStore.PatchMultipleMembersNotifyProps(members, notifyProps)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelStore.PatchMultipleMembersNotifyProps", success, elapsed)
 	}
 	return result, err
 }
@@ -10721,6 +10737,22 @@ func (s *TimerLayerUserStore) GetUnreadCountForChannel(userID string, channelID 
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUnreadCountForChannel", success, elapsed)
+	}
+	return result, err
+}
+
+func (s *TimerLayerUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	start := time.Now()
+
+	result, err := s.UserStore.GetUserCountForReport(filter)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetUserCountForReport", success, elapsed)
 	}
 	return result, err
 }
