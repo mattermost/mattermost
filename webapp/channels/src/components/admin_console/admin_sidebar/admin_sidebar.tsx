@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import isEqual from 'lodash/isEqual';
 import React from 'react';
 import Scrollbars from 'react-custom-scrollbars';
-import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 
 import type {PluginRedux} from '@mattermost/types/plugins';
@@ -304,7 +304,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         type='text'
                         onChange={this.onFilterChange}
                         value={this.state.filter}
-                        placeholder={defineMessage({id: 'admin.sidebar.filter', defaultMessage: 'Find settings'})}
+                        placeholder={this.props.intl.formatMessage({id: 'admin.sidebar.filter', defaultMessage: 'Find settings'})}
                         ref={this.searchRef}
                         id='adminSidebarFilter'
                         clearable={true}
