@@ -111,6 +111,10 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	if model.GetServiceEnvironment() != model.ServiceEnvironmentTest {
+
+	}
+
 	if !c.App.Config().FeatureFlags.CloudAnnualRenewals {
 		subscription.WillRenew = ""
 		subscription.CancelAt = nil

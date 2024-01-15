@@ -59,7 +59,7 @@ const CloudAnnualRenewalAnnouncementBar = () => {
             return 0;
         }
 
-        return daysToExpiration(subscription.end_at);
+        return daysToExpiration(subscription);
     }, [subscription]);
 
     const handleDismiss = (banner: string) => {

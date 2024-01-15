@@ -68,8 +68,8 @@ export const CloudAnnualRenewalBanner = () => {
     if (!subscription || !subscription.cancel_at || (subscription.will_renew === 'true' && !subscription.delinquent_since)) {
         return null;
     }
-    const daysUntilExpiration = daysToExpiration(subscription?.end_at);
-    const daysUntilCancelation = daysToExpiration(subscription?.cancel_at);
+    const daysUntilExpiration = daysToExpiration(subscription);
+    const daysUntilCancelation = daysToExpiration(subscription);
     const renewButton = (
         <button
             className='btn btn-primary'
