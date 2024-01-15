@@ -4699,6 +4699,7 @@
   "search_bar.usage.search_type_files": "Files",
   "search_bar.usage.search_type_messages": "Messages",
   "search_bar.usage.search_type_question": "What are you searching for?",
+  "search_bar.usage.searchLearn": "<a>Learn about search</a>",
   "search_bar.usage.title": "Search options",
   "search_bar.usage.title_files": "File search options",
   "search_bar.usage.title_messages": "Message search options",
