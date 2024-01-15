@@ -80,12 +80,12 @@ func TestCompileReportChunks(t *testing.T) {
 	require.Nil(t, err)
 
 	t.Run("should compile a bunch of report chunks", func(t *testing.T) {
-		err = th.App.CompileReportChunks("csv", prefix, 3, []string{"Name", "NumPosts", "StartDate"})
-		require.Nil(t, err)
+		compileErr := th.App.CompileReportChunks("csv", prefix, 3, []string{"Name", "NumPosts", "StartDate"})
+		require.Nil(t, compileErr)
 
 		filePath := fmt.Sprintf("admin_reports/batch_report_%s.csv", prefix)
-		bytes, err := th.App.ReadFile(filePath)
-		require.Nil(t, err)
+		bytes, readErr := th.App.ReadFile(filePath)
+		require.Nil(t, readErr)
 		require.NotNil(t, bytes)
 
 		expected :=
