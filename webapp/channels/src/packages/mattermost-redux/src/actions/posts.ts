@@ -137,6 +137,15 @@ export function postRemoved(post: Post) {
     };
 }
 
+export function postPinnedChanged(postId: string, isPinned: boolean, updateAt = Date.now()) {
+    return {
+        type: PostTypes.POST_PINNED_CHANGED,
+        postId,
+        isPinned,
+        updateAt,
+    };
+}
+
 export function getPost(postId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let post;
@@ -525,11 +534,7 @@ export function pinPost(postId: string) {
         const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
-                receivedPost({
-                    ...post,
-                    is_pinned: true,
-                    update_at: Date.now(),
-                }, isCollapsedThreadsEnabled(state)),
+                postPinnedChanged(postId, true, Date.now()),
                 {
                     type: ChannelTypes.INCREMENT_PINNED_POST_COUNT,
                     id: post.channel_id,
@@ -577,11 +582,7 @@ export function unpinPost(postId: string) {
         const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
-                receivedPost({
-                    ...post,
-                    is_pinned: false,
-                    update_at: Date.now(),
-                }, isCollapsedThreadsEnabled(state)),
+                postPinnedChanged(postId, false, Date.now()),
                 decrementPinnedPostCount(post.channel_id),
             );
         }
