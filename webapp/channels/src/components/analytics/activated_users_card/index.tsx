@@ -11,6 +11,8 @@ import StatisticCount from 'components/analytics/statistic_count';
 
 import {calculateOverageUserActivated} from 'utils/overage_team';
 
+import Title from './title';
+
 type ActivatedUserCardProps = {
     seatsPurchased: number;
     activatedUsers: number | undefined;
@@ -32,12 +34,7 @@ export const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: Act
 
     return (
         <StatisticCount
-            title={
-                <FormattedMessage
-                    id='analytics.team.totalUsers'
-                    defaultMessage='Total Active Users'
-                />
-            }
+            title={<Title/>}
             icon='fa-users'
             status={activeUserStatus}
             count={activatedUsers}
