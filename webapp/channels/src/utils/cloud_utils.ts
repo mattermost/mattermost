@@ -49,6 +49,7 @@ export const FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS = 30;
 
 export function daysToExpiration(subscription?: Subscription): number {
     let now = new Date();
+
     // If the backend is passing a simulated_current_time_ms, use that instead of the current time
     if (subscription?.simulated_current_time_ms) {
         now = new Date(subscription?.simulated_current_time_ms);

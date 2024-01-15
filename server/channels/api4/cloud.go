@@ -112,7 +112,7 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if model.GetServiceEnvironment() != model.ServiceEnvironmentTest {
-
+		subscription.SimulatedCurrentTimeMs = nil
 	}
 
 	if !c.App.Config().FeatureFlags.CloudAnnualRenewals {

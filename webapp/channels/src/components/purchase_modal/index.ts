@@ -34,7 +34,7 @@ function mapStateToProps(state: GlobalState) {
     const subscription = state.entities.cloud.subscription;
 
     const isDelinquencyModal = Boolean(state.entities.cloud.subscription?.delinquent_since);
-    const isRenewalModal = daysToExpiration(state.entities.cloud.subscription) <= 60 && !isDelinquencyModal && getConfig(state).FeatureFlags?.CloudAnnualRenewals;
+    const isRenewalModal = daysToExpiration(state.entities.cloud.subscription) <= 60 && state.entities.cloud.subscription?.is_free_trial === 'false' && !isDelinquencyModal && getConfig(state).FeatureFlags?.CloudAnnualRenewals;
     const products = state.entities.cloud!.products;
     const yearlyProducts = findOnlyYearlyProducts(products || {});
 
