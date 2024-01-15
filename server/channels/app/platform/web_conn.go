@@ -115,7 +115,6 @@ type WebConn struct {
 	session      atomic.Pointer[model.Session]
 	connectionID atomic.Value
 
-	setActiveOnce                   sync.Once
 	activeChannelID                 atomic.Value
 	activeTeamID                    atomic.Value
 	activeRHSThreadChannelID        atomic.Value
@@ -311,19 +310,6 @@ func (wc *WebConn) GetConnectionID() string {
 // SetActiveChannelID sets the active channel id of the connection.
 func (wc *WebConn) SetActiveChannelID(id string) {
 	wc.activeChannelID.Store(id)
-	if id != UnsetPresenceIndicator {
-		wc.setActiveOnce.Do(func() {
-			// We set these to empty as soon as we get an active channel scope.
-			// We do this to let the optimization take effect sooner, rather than
-			// waiting for a user to open a thread.
-			if wc.GetActiveRHSThreadChannelID() == UnsetPresenceIndicator {
-				wc.SetActiveRHSThreadChannelID("")
-			}
-			if wc.GetActiveThreadViewThreadChannelID() == UnsetPresenceIndicator {
-				wc.SetActiveThreadViewThreadChannelID("")
-			}
-		})
-	}
 }
 
 // GetActiveChannelID returns the active channel id of the connection.
@@ -890,7 +876,8 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			utils.Contains([]model.WebsocketEventType{
 				model.WebsocketEventTyping,
 				model.WebsocketEventReactionAdded,
-			}, msg.EventType()) && wc.notInChannelAndThread(chID) {
+				model.WebsocketEventReactionRemoved,
+			}, msg.EventType()) && wc.notInChannel(chID) && wc.notInThread(chID) {
 			return false
 		}
 
@@ -927,9 +914,12 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 	return true
 }
 
-func (wc *WebConn) notInChannelAndThread(val string) bool {
-	return (wc.isSet(wc.GetActiveChannelID()) && val != wc.GetActiveChannelID()) &&
-		(wc.isSet(wc.GetActiveRHSThreadChannelID()) && val != wc.GetActiveRHSThreadChannelID()) &&
+func (wc *WebConn) notInChannel(val string) bool {
+	return (wc.isSet(wc.GetActiveChannelID()) && val != wc.GetActiveChannelID())
+}
+
+func (wc *WebConn) notInThread(val string) bool {
+	return (wc.isSet(wc.GetActiveRHSThreadChannelID()) && val != wc.GetActiveRHSThreadChannelID()) &&
 		(wc.isSet(wc.GetActiveThreadViewThreadChannelID()) && val != wc.GetActiveThreadViewThreadChannelID())
 }
 
