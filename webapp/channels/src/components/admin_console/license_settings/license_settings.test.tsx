@@ -54,6 +54,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),
             openModal: jest.fn(),
             getFilteredUsersStats: jest.fn(),
+            getUsersLimits: jest.fn(),
         },
     };
 

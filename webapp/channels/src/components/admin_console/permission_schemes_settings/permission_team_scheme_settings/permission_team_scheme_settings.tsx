@@ -6,13 +6,12 @@ import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import type {ServerError} from '@mattermost/types/errors';
 import type {Role} from '@mattermost/types/roles';
 import type {Scheme, SchemePatch} from '@mattermost/types/schemes';
 import type {Team} from '@mattermost/types/teams';
 
 import GeneralConstants from 'mattermost-redux/constants/general';
-import type {ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BlockableLink from 'components/admin_console/blockable_link';
 import ExternalLink from 'components/external_link';
@@ -44,18 +43,18 @@ export type Props = {
     scheme: Scheme | null;
     roles: RolesMap;
     license: ClientLicense;
-    teams: Team[];
+    teams: Team[] | null;
     isDisabled: boolean;
     config: Partial<ClientConfig>;
     intl: IntlShape;
     actions: {
-        loadRolesIfNeeded: (roles: Iterable<string>) => ActionFunc;
+        loadRolesIfNeeded: (roles: Iterable<string>) => Promise<ActionResult>;
         loadScheme: (schemeId: string) => Promise<ActionResult>;
-        loadSchemeTeams: (schemeId: string, page?: number, perPage?: number) => ActionFunc;
-        editRole: (role: Role) => Promise<{error: ServerError}>;
-        patchScheme: (schemeId: string, scheme: SchemePatch) => ActionFunc;
-        updateTeamScheme: (teamId: string, schemeId: string) => Promise<{error: ServerError; data: Scheme}>;
-        createScheme: (scheme: Scheme) => Promise<{error: ServerError; data: Scheme}>;
+        loadSchemeTeams: (schemeId: string, page?: number, perPage?: number) => Promise<ActionResult>;
+        editRole: (role: Role) => Promise<ActionResult>;
+        patchScheme: (schemeId: string, scheme: SchemePatch) => Promise<ActionResult>;
+        updateTeamScheme: (teamId: string, schemeId: string) => Promise<ActionResult>;
+        createScheme: (scheme: Scheme) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
 }
@@ -548,7 +547,7 @@ export class PermissionTeamSchemeSettings extends React.PureComponent<Props & Ro
     };
 
     removeTeam = (teamId: string) => {
-        const teams = (this.state.teams || this.props.teams).filter((team) => team.id !== teamId);
+        const teams = (this.state.teams || this.props.teams)?.filter((team) => team.id !== teamId) ?? null;
         this.setState({teams, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);
     };
