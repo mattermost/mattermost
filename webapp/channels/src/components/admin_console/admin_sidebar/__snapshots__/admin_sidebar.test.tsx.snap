@@ -18,12 +18,7 @@ exports[`components/AdminSidebar Plugins should filter plugins 1`] = `
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value="autolink"
     />
@@ -103,12 +98,7 @@ exports[`components/AdminSidebar Plugins should match snapshot 1`] = `
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value=""
     />
@@ -515,12 +505,7 @@ exports[`components/AdminSidebar should match snapshot 1`] = `
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value=""
     />
@@ -1214,12 +1199,7 @@ exports[`components/AdminSidebar should match snapshot with workspace optimizati
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value=""
     />
@@ -1913,12 +1893,7 @@ exports[`components/AdminSidebar should match snapshot, no access 1`] = `
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value=""
     />
@@ -1973,12 +1948,7 @@ exports[`components/AdminSidebar should match snapshot, not prevent the console 
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value=""
     />
@@ -2672,12 +2642,7 @@ exports[`components/AdminSidebar should match snapshot, render plugins without a
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value=""
     />
@@ -3371,12 +3336,7 @@ exports[`components/AdminSidebar should match snapshot, with license (with all f
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value=""
     />
@@ -4232,12 +4192,7 @@ exports[`components/AdminSidebar should match snapshot, with license (without an
       id="adminSidebarFilter"
       onChange={[Function]}
       onClear={[Function]}
-      placeholder={
-        Object {
-          "defaultMessage": "Find settings",
-          "id": "admin.sidebar.filter",
-        }
-      }
+      placeholder="Find settings"
       type="text"
       value=""
     />
