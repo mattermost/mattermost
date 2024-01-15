@@ -1313,12 +1313,8 @@ export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfil
 }
 
 function storeReactionsForPost(state: any, post: Post) {
-    if (!post.metadata || !post.metadata.reactions || post.delete_at > 0) {
-        return state;
-    }
-
     const reactionsForPost: Record<string, Reaction> = {};
-    if (post.metadata.reactions && post.metadata.reactions.length > 0) {
+    if (post.metadata && post.metadata.reactions && post.metadata.reactions.length > 0) {
         for (const reaction of post.metadata.reactions) {
             reactionsForPost[reaction.user_id + '-' + reaction.emoji_name] = reaction;
         }
