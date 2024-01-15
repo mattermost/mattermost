@@ -89,7 +89,7 @@ const CloudAnnualRenewalAnnouncementBar = () => {
             ...defaultProps,
             type: '',
         };
-        if (between(daysUntilExpiration, 31, 60) && !hasDismissed60DayBanner) {
+        if (between(daysUntilExpiration, 31, 60)) {
             if (hasDismissed60DayBanner) {
                 return null;
             }
@@ -112,6 +112,7 @@ const CloudAnnualRenewalAnnouncementBar = () => {
                 handleClose: () => handleDismiss(CloudBanners.ANNUAL_RENEWAL_30_DAY),
             };
         } else if (between(daysUntilExpiration, 0, 7) && !isDelinquencySubscription()) {
+            // This banner is not dismissable
             bannerProps = {
                 ...defaultProps,
                 message: (<>{formatMessage({id: 'cloud_annual_renewal.banner.message.7', defaultMessage: 'Your annual subscription expires in {days} days. Failure to renew will result in your workspace being deleted.'}, {days: daysUntilExpiration})}</>),
@@ -119,13 +120,16 @@ const CloudAnnualRenewalAnnouncementBar = () => {
                 type: AnnouncementBarTypes.CRITICAL,
                 showCloseButton: false,
             };
+        } else {
+            // If none of the above, return null, so that a blank announcement bar isn't visible
+            return null;
         }
 
         return <AnnouncementBar {...bannerProps}/>;
     }, [daysUntilExpiration, hasDismissed60DayBanner, hasDismissed30DayBanner]);
 
     // Delinquent subscriptions will have a cancel_at time, but the banner is handled separately
-    if (!cloudAnnualRenewalsEnabled || !subscription || !subscription.cancel_at || subscription.will_renew === 'true' || isDelinquencySubscription() || !isAdmin || daysUntilExpiration > 60) {
+    if (!cloudAnnualRenewalsEnabled || !subscription || !subscription.cancel_at || subscription.is_free_trial === 'true' || subscription.will_renew === 'true' || isDelinquencySubscription() || !isAdmin || daysUntilExpiration > 60) {
         return null;
     }
 
