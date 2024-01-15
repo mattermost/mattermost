@@ -33,9 +33,8 @@ func MakeBatchWorker(
 	store store.Store,
 	timeBetweenBatches time.Duration,
 	doBatch func(rctx *request.Context, job *model.Job) bool,
-	onComplete func(),
 ) model.Worker {
-	worker := &BatchWorker{
+	return &BatchWorker{
 		jobServer:          jobServer,
 		logger:             jobServer.Logger(),
 		store:              store,
@@ -45,7 +44,6 @@ func MakeBatchWorker(
 		timeBetweenBatches: timeBetweenBatches,
 		doBatch:            doBatch,
 	}
-	return worker
 }
 
 // Run starts the worker dedicated to the unique migration batch job it will be given to process.

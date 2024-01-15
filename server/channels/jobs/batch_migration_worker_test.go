@@ -118,6 +118,20 @@ func TestBatchMigrationWorker(t *testing.T) {
 		}, 5*time.Second, 250*time.Millisecond, "job never transitioned to %s", status)
 	}
 
+	waitForBatchNumber := func(t *testing.T, th *TestHelper, job *model.Job, batchNumber int) {
+		t.Helper()
+
+		require.Eventuallyf(t, func() bool {
+			actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
+			require.Nil(t, appErr)
+			require.Equal(t, job.Id, actualJob.Id)
+
+			finalBatchNumber, err := strconv.Atoi(actualJob.Data["batch_number"])
+			require.NoError(t, err)
+			return finalBatchNumber == batchNumber
+		}, 5*time.Second, 250*time.Millisecond, "job did not stop at batch %d", batchNumber)
+	}
+
 	assertJobReset := func(t *testing.T, th *TestHelper, job *model.Job) {
 		actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
 		require.Nil(t, appErr)
@@ -185,9 +199,11 @@ func TestBatchMigrationWorker(t *testing.T) {
 			require.Equal(t, 1, batchNumber, "only batch 1 should have run")
 
 			// Shut down the worker after the first batch to prevent subsequent ones.
-			go worker.Stop()
-
-			batchNumber++
+			if batchNumber >= 1 {
+				go worker.Stop()
+			} else {
+				batchNumber++
+			}
 
 			return getDataFromBatchNumber(batchNumber), false, nil
 		})
@@ -196,6 +212,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 		worker.JobChannel() <- *job
 
 		waitForJobStatus(t, th, job, model.JobStatusPending)
+		waitForBatchNumber(t, th, job, 1)
 	})
 
 	t.Run("stop after second batch", func(t *testing.T) {
@@ -211,9 +228,12 @@ func TestBatchMigrationWorker(t *testing.T) {
 
 			require.LessOrEqual(t, batchNumber, 2, "only batches 1 and 2 should have run")
 
-			// Shut down the worker after the first batch to prevent subsequent ones.
-			go worker.Stop()
-			batchNumber++
+			// Shut down the worker after the second batch to prevent subsequent ones.
+			if batchNumber >= 2 {
+				go worker.Stop()
+			} else {
+				batchNumber++
+			}
 
 			return getDataFromBatchNumber(batchNumber), false, nil
 		})
@@ -222,6 +242,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 		worker.JobChannel() <- *job
 
 		waitForJobStatus(t, th, job, model.JobStatusPending)
+		waitForBatchNumber(t, th, job, 2)
 	})
 
 	t.Run("clusters not in sync after first batch", func(t *testing.T) {
@@ -266,17 +287,19 @@ func TestBatchMigrationWorker(t *testing.T) {
 			batchNumber := getBatchNumberFromData(t, data)
 			require.Equal(t, 1, batchNumber, "only batch 1 should have run")
 
-			// Shut down the worker after the first batch to prevent subsequent ones.
-			go worker.Stop()
-			batchNumber++
+			if batchNumber >= 1 {
+				return getDataFromBatchNumber(batchNumber), true, nil
+			}
 
-			return getDataFromBatchNumber(batchNumber), true, nil
+			batchNumber++
+			return getDataFromBatchNumber(batchNumber), false, nil
 		})
 
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
 		waitForJobStatus(t, th, job, model.JobStatusSuccess)
+		waitForBatchNumber(t, th, job, 1)
 	})
 
 	t.Run("done after three batches", func(t *testing.T) {
@@ -291,16 +314,18 @@ func TestBatchMigrationWorker(t *testing.T) {
 			batchNumber := getBatchNumberFromData(t, data)
 			require.LessOrEqual(t, batchNumber, 3, "only 3 batches should have run")
 
-			// Shut down the worker after the first batch to prevent subsequent ones.
-			go worker.Stop()
-			batchNumber++
+			if batchNumber >= 3 {
+				return getDataFromBatchNumber(batchNumber), true, nil
+			}
 
-			return getDataFromBatchNumber(batchNumber), true, nil
+			batchNumber++
+			return getDataFromBatchNumber(batchNumber), false, nil
 		})
 
 		// Queue the work to be done
 		worker.JobChannel() <- *job
 
 		waitForJobStatus(t, th, job, model.JobStatusSuccess)
+		waitForBatchNumber(t, th, job, 3)
 	})
 }
