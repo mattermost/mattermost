@@ -96,6 +96,11 @@ export const CloudAnnualRenewalBanner = () => {
         message: <></>,
     };
 
+    // If outside the 60 day window or on a trial, don't show this banner.
+    if (daysUntilExpiration > 60 || subscription.is_free_trial === 'true') {
+        return null;
+    }
+
     if (daysUntilExpiration <= 7) {
         alertBannerProps.mode = 'danger';
     }
