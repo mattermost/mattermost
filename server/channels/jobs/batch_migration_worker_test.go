@@ -288,7 +288,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 			require.Equal(t, 1, batchNumber, "only batch 1 should have run")
 
 			if batchNumber >= 1 {
-				go worker.Stop()
+				go worker.Stop() // Shut down the worker when the job is done
 				return getDataFromBatchNumber(batchNumber), true, nil
 			}
 
@@ -316,7 +316,7 @@ func TestBatchMigrationWorker(t *testing.T) {
 			require.LessOrEqual(t, batchNumber, 3, "only 3 batches should have run")
 
 			if batchNumber >= 3 {
-				go worker.Stop()
+				go worker.Stop() // Shut down the worker when the job is done
 				return getDataFromBatchNumber(batchNumber), true, nil
 			}
 
