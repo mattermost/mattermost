@@ -157,7 +157,7 @@ export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action
     }
 }
 
-export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: GenericAction) {
+export function handlePosts(state: IDMappedObjects<Post> = {}, action: GenericAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
@@ -260,6 +260,23 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: Ge
         }
 
         return nextState;
+    }
+
+    case PostTypes.POST_PINNED_CHANGED: {
+        const {postId, isPinned, updateAt} = action;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [postId]: {
+                ...state[postId],
+                is_pinned: isPinned,
+                last_update_at: updateAt,
+            },
+        };
     }
 
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
@@ -1312,13 +1329,13 @@ export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfil
     }
 }
 
-function storeReactionsForPost(state: any, post: Post) {
-    if (post.delete_at > 0) {
+function storeReactionsForPost(state: RelationOneToOne<Post, Record<string, Reaction>>, post: Post) {
+    if (!post.metadata || post.delete_at > 0) {
         return state;
     }
 
     const reactionsForPost: Record<string, Reaction> = {};
-    if (post.metadata && post.metadata.reactions && post.metadata.reactions.length > 0) {
+    if (post.metadata.reactions && post.metadata.reactions.length > 0) {
         for (const reaction of post.metadata.reactions) {
             reactionsForPost[reaction.user_id + '-' + reaction.emoji_name] = reaction;
         }
