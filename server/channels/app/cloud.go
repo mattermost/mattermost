@@ -322,13 +322,13 @@ func (a *App) DoSubscriptionRenewalCheck() {
 
 	// Only send the email if within the period and it's not already been sent
 	// This allows the email to send on day 59 if for whatever reason it was unable to on day 60
-	if daysToExpiration <= 60 && daysToExpiration > 30 && prevSentEmail != 60 {
+	if daysToExpiration <= 60 && daysToExpiration > 30 && prevSentEmail != 60 && !(prevSentEmail < 60) {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail60
 		prevSentEmail = 60
-	} else if daysToExpiration <= 30 && daysToExpiration > 7 && prevSentEmail != 30 {
+	} else if daysToExpiration <= 30 && daysToExpiration > 7 && prevSentEmail != 30 && !(prevSentEmail < 30) {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail30
 		prevSentEmail = 30
-	} else if daysToExpiration <= 7 && daysToExpiration > 3 && prevSentEmail != 7 {
+	} else if daysToExpiration <= 7 && daysToExpiration >= 0 && prevSentEmail != 7 {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail7
 		prevSentEmail = 7
 	}
