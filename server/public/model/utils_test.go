@@ -5,8 +5,10 @@ package model
 
 import (
 	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -198,6 +200,88 @@ func TestMapJson(t *testing.T) {
 
 	rm2 := MapFromJSON(strings.NewReader(""))
 	require.LessOrEqual(t, len(rm2), 0, "make should be invalid")
+}
+
+func TestSortedArrayFromJSON(t *testing.T) {
+	t.Run("Successful parse", func(t *testing.T) {
+		ids := []string{NewId(), NewId(), NewId()}
+		b, _ := json.Marshal(ids)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b), 1000)
+		require.NoError(t, err)
+		require.ElementsMatch(t, ids, a)
+	})
+
+	t.Run("Empty Array", func(t *testing.T) {
+		ids := []string{}
+		b, _ := json.Marshal(ids)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b), 1000)
+		require.NoError(t, err)
+		require.Empty(t, a)
+	})
+
+	t.Run("Error too large", func(t *testing.T) {
+		var ids []string
+		for i := 0; i <= 100; i++ {
+			ids = append(ids, NewId())
+		}
+		b, _ := json.Marshal(ids)
+		_, err := SortedArrayFromJSON(bytes.NewReader(b), 1000)
+		require.Error(t, err)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	})
+
+	t.Run("Duplicate keys, returns one", func(t *testing.T) {
+		var ids []string
+		id := NewId()
+		for i := 0; i < 10; i++ {
+			ids = append(ids, id)
+		}
+		b, _ := json.Marshal(ids)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b), 26000)
+		require.NoError(t, err)
+		require.Len(t, a, 1)
+	})
+}
+
+func TestNonSortedArrayFromJSON(t *testing.T) {
+	t.Run("Successful parse", func(t *testing.T) {
+		ids := []string{NewId(), NewId(), NewId()}
+		b, _ := json.Marshal(ids)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b), 1000)
+		require.NoError(t, err)
+		require.Equal(t, ids, a)
+	})
+
+	t.Run("Empty Array", func(t *testing.T) {
+		ids := []string{}
+		b, _ := json.Marshal(ids)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b), 1000)
+		require.NoError(t, err)
+		require.Empty(t, a)
+	})
+
+	t.Run("Error too large", func(t *testing.T) {
+		var ids []string
+		for i := 0; i <= 100; i++ {
+			ids = append(ids, NewId())
+		}
+		b, _ := json.Marshal(ids)
+		_, err := NonSortedArrayFromJSON(bytes.NewReader(b), 1000)
+		require.Error(t, err)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	})
+
+	t.Run("Duplicate keys, returns one", func(t *testing.T) {
+		var ids []string
+		id := NewId()
+		for i := 0; i <= 10; i++ {
+			ids = append(ids, id)
+		}
+		b, _ := json.Marshal(ids)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b), 26000)
+		require.NoError(t, err)
+		require.Len(t, a, 1)
+	})
 }
 
 func TestIsValidEmail(t *testing.T) {

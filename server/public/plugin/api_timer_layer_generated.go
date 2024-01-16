@@ -195,6 +195,13 @@ func (api *apiTimerLayer) GetUsersInTeam(teamID string, page int, perPage int) (
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
+	startTime := timePkg.Now()
+	_returnsA, _returnsB := api.apiImpl.GetPreferenceForUser(userID, category, name)
+	api.recordTime(startTime, "GetPreferenceForUser", _returnsB == nil)
+	return _returnsA, _returnsB
+}
+
 func (api *apiTimerLayer) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetPreferencesForUser(userID)
@@ -648,6 +655,13 @@ func (api *apiTimerLayer) UpdateChannelMemberNotifications(channelId, userID str
 	_returnsA, _returnsB := api.apiImpl.UpdateChannelMemberNotifications(channelId, userID, notifications)
 	api.recordTime(startTime, "UpdateChannelMemberNotifications", _returnsB == nil)
 	return _returnsA, _returnsB
+}
+
+func (api *apiTimerLayer) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.PatchChannelMembersNotifications(members, notifyProps)
+	api.recordTime(startTime, "PatchChannelMembersNotifications", _returnsA == nil)
+	return _returnsA
 }
 
 func (api *apiTimerLayer) GetGroup(groupId string) (*model.Group, *model.AppError) {

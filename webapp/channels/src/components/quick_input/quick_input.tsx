@@ -78,7 +78,7 @@ export type Props = {
 
     maxLength?: number;
     className?: string;
-    placeholder?: string | { id: string; defaultMessage: string };
+    placeholder?: string;
     autoFocus?: boolean;
     type?: string;
     id?: string;

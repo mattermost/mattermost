@@ -1251,6 +1251,99 @@ func (es *Service) SendDelinquencyEmail90(email, locale, siteURL string) error {
 	return nil
 }
 
+func (es *Service) SendCloudRenewalEmail60(email, locale, siteURL string) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.cloud_renewal_60.subject")
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.cloud_renewal_60.title")
+	data.Props["SubTitle"] = T("api.templates.cloud_renewal.subtitle")
+	// TODO: use the open delinquency modal action
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription"
+	data.Props["Button"] = T("api.templates.cloud_renewal.button")
+
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	data.Props["Image"] = "payment_processing.png"
+
+	body, err := es.templatesContainer.RenderToString("cloud_renewal_notification", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendMail(email, subject, body, "CloudRenewal60"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (es *Service) SendCloudRenewalEmail30(email, locale, siteURL string) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.cloud_renewal_30.subject")
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.cloud_renewal_30.title")
+	data.Props["SubTitle"] = T("api.templates.cloud_renewal.subtitle")
+	// TODO: use the open delinquency modal action
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription"
+	data.Props["Button"] = T("api.templates.cloud_renewal.button")
+
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	data.Props["Image"] = "payment_processing.png"
+
+	body, err := es.templatesContainer.RenderToString("cloud_renewal_notification", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendMail(email, subject, body, "CloudRenewal30"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (es *Service) SendCloudRenewalEmail7(email, locale, siteURL string) error {
+	T := i18n.GetUserTranslations(locale)
+
+	subject := T("api.templates.cloud_renewal_7.subject")
+
+	data := es.NewEmailTemplateData(locale)
+	data.Props["SiteURL"] = siteURL
+	data.Props["Title"] = T("api.templates.cloud_renewal_7.title")
+	data.Props["SubTitle"] = T("api.templates.cloud_renewal.subtitle")
+	// TODO: use the open delinquency modal action
+	data.Props["ButtonURL"] = siteURL + "/admin_console/billing/subscription"
+	data.Props["Button"] = T("api.templates.cloud_renewal.button")
+
+	data.Props["QuestionTitle"] = T("api.templates.questions_footer.title")
+	data.Props["QuestionInfo"] = T("api.templates.questions_footer.info")
+	data.Props["SupportEmail"] = *es.config().SupportSettings.SupportEmail
+	data.Props["EmailUs"] = T("api.templates.email_us_anytime_at")
+	data.Props["Image"] = "purchase_alert.png"
+
+	body, err := es.templatesContainer.RenderToString("cloud_renewal_notification", data)
+	if err != nil {
+		return err
+	}
+
+	if err := es.sendMail(email, subject, body, "CloudRenewal7"); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 // SendRemoveExpiredLicenseEmail formats an email and uses the email service to send the email to user with link pointing to CWS
 // to renew the user license
 func (es *Service) SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error {
