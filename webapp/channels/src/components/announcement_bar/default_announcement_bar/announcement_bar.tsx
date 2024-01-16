@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -23,8 +24,8 @@ type Props = {
     color: string;
     textColor: string;
     type: string;
-    message: React.ReactNode;
-    tooltipMsg?: React.ReactNode;
+    message: ReactNode;
+    tooltipMsg?: ReactNode;
     handleClose?: (e?: any) => void;
     showModal?: boolean;
     announcementBarCount?: number;
@@ -32,13 +33,15 @@ type Props = {
     modalButtonText?: string;
     modalButtonDefaultText?: string;
     showLinkAsButton: boolean;
-    icon?: React.ReactNode;
+    icon?: ReactNode;
     warnMetricStatus?: WarnMetricStatus;
     actions: {
         incrementAnnouncementBarCount: () => void;
         decrementAnnouncementBarCount: () => void;
     };
     showCTA?: boolean;
+    ctaText?: ReactNode;
+    ctaDisabled?: boolean;
 }
 
 type State = {
@@ -189,7 +192,7 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                             {message}
                         </span>
                         {
-                            !this.props.showLinkAsButton && this.props.showCTA &&
+                            !this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText && this.props.modalButtonDefaultText &&
                             <span className='announcement-bar__link'>
                                 {this.props.showModal &&
                                 <FormattedMessage
@@ -216,15 +219,24 @@ export default class AnnouncementBar extends React.PureComponent<Props, State> {
                             </span>
                         }
                         {
-                            this.props.showLinkAsButton && this.props.showCTA &&
+                            this.props.showLinkAsButton && this.props.showCTA && this.props.modalButtonText && this.props.modalButtonDefaultText &&
                             <button
-                                className='upgrade-button'
                                 onClick={this.props.onButtonClick}
+                                disabled={this.props.ctaDisabled}
                             >
                                 <FormattedMessage
                                     id={this.props.modalButtonText}
                                     defaultMessage={this.props.modalButtonDefaultText}
                                 />
+                            </button>
+                        }
+                        {
+                            this.props.showLinkAsButton && this.props.showCTA && this.props.ctaText &&
+                            <button
+                                onClick={this.props.onButtonClick}
+                                disabled={this.props.ctaDisabled}
+                            >
+                                {this.props.ctaText}
                             </button>
                         }
                     </div>
