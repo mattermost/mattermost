@@ -11,6 +11,7 @@ import {updateUserActive, getUser, patchUser, updateUserMfa} from 'mattermost-re
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
+import {openModal} from 'actions/views/modals';
 
 import SystemUserDetail from './system_user_detail';
 
@@ -29,6 +30,7 @@ const mapDispatchToProps = {
     updateUserMfa,
     addUserToTeam,
     setNavigationBlocked,
+    openModal,
 };
 const connector = connect(mapStateToProps, mapDispatchToProps);
 

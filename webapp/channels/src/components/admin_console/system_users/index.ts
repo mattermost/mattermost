@@ -24,7 +24,6 @@ function mapStateToProps(state: GlobalState) {
     const experimentalEnableAuthenticationTransfer = config.ExperimentalEnableAuthenticationTransfer === 'true';
 
     const currentUser = getCurrentUser(state);
-    const currentUserRoles = currentUser?.roles || '';
 
     const tableProperties = getAdminConsoleUserManagementTableProperties(state);
     const sortColumn = tableProperties?.sortColumn ?? adminConsoleUserManagementTablePropertiesInitialState.sortColumn;
@@ -41,7 +40,7 @@ function mapStateToProps(state: GlobalState) {
         mfaEnabled,
         enableUserAccessTokens,
         experimentalEnableAuthenticationTransfer,
-        currentUserRoles,
+        currentUser,
         tablePropertySortColumn: sortColumn,
         tablePropertySortIsDescending: sortIsDescending,
         tablePropertyPageSize: pageSize,

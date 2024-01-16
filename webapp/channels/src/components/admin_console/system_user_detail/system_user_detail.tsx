@@ -29,7 +29,7 @@ import EmailIcon from 'components/widgets/icons/email_icon';
 import SheidOutlineIcon from 'components/widgets/icons/shield_outline_icon';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Constants} from 'utils/constants';
+import {Constants, ModalIdentifiers} from 'utils/constants';
 import {toTitleCase} from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
@@ -297,7 +297,11 @@ export class SystemUserDetail extends PureComponent<Props, State> {
     };
 
     toggleOpenModalResetPassword = () => {
-        this.setState({showResetPasswordModal: true});
+        this.props.openModal({
+            modalId: ModalIdentifiers.RESET_PASSWORD_MODAL,
+            dialogType: ResetPasswordModal,
+            dialogProps: {user: this.state.user},
+        });
     };
 
     toggleCloseModalResetPassword = () => {
@@ -464,14 +468,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                         <FormError error={this.state.error}/>
                     </div>
                 </div>
-
                 {/* mounting of Modals */}
-                <ResetPasswordModal
-                    show={this.state.showResetPasswordModal}
-                    user={this.state.user}
-                    onModalSubmit={this.toggleCloseModalResetPassword}
-                    onModalDismissed={this.toggleCloseModalResetPassword}
-                />
                 <ConfirmModal
                     show={this.state.showDeactivateMemberModal}
                     title={

@@ -6,6 +6,7 @@ import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
+import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
 import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
 
@@ -47,6 +48,12 @@ function SystemUsers(props: Props) {
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
+
+    function onError(error: ServerError) {
+        // TODO: Some kind of error handling for actions
+        // eslint-disable-next-line no-console
+        console.error(error);
+    }
 
     const columns: Array<ColumnDef<UserReport, any>> = useMemo(
         () => [
@@ -187,8 +194,9 @@ function SystemUsers(props: Props) {
                     <SystemUsersListAction
                         rowIndex={info.cell.row.index}
                         tableId={tableId}
-                        userRoles={info.row.original.roles}
-                        currentUserRoles={props.currentUserRoles}
+                        user={info.row.original}
+                        currentUser={props.currentUser}
+                        onError={onError}
                     />
                 ),
                 enableHiding: false,
@@ -196,7 +204,7 @@ function SystemUsers(props: Props) {
                 enableSorting: false,
             },
         ],
-        [props.currentUserRoles],
+        [props.currentUser],
     );
 
     // Effect to get the total user count
