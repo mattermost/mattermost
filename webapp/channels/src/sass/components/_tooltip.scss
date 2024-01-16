@@ -54,23 +54,23 @@
         font-weight: 600;
         line-height: 15px;
     }
-    
+
     .tooltip-hint {
-        opacity: 56%;
-        line-height: 16px;
         font-size: 11px;
+        line-height: 16px;
+        opacity: 56%;
     }
-    
+
     .tooltip-shortcuts-container {
-        padding: 4px 0;
         display: flex;
-        gap: 2px;
         justify-content: center;
+        padding: 4px 0;
+        gap: 2px;
     }
 
     .emoticon {
-        vertical-align: center;
         margin-right: 6px;
+        vertical-align: center;
     }
 }
 
