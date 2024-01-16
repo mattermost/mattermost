@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import type {TeamMembership, Team} from '@mattermost/types/teams';
 import type {UserProfile, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
@@ -20,7 +20,6 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 type Props = {
     teamId: string;
@@ -241,10 +240,8 @@ export default class TeamMembers extends React.PureComponent<Props, State> {
         return (
             <AdminPanel
                 id='teamMembers'
-                titleId={t('admin.team_settings.team_detail.membersTitle')}
-                titleDefault='Members'
-                subtitleId={t('admin.team_settings.team_detail.membersDescription')}
-                subtitleDefault='A list of users who are currently in the team right now'
+                title={defineMessage({id: 'admin.team_settings.team_detail.membersTitle', defaultMessage: 'Members'})}
+                subtitle={defineMessage({id: 'admin.team_settings.team_detail.membersDescription', defaultMessage: 'A list of users who are currently in the team right now'})}
                 button={
                     <ToggleModalButton
                         id='addTeamMembers'

@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 
 import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
@@ -20,8 +21,6 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 import AdminPanelTogglable from 'components/widgets/admin_console/admin_panel_togglable';
 
 import {PermissionsScope, DefaultRolePermissions, DocLinks} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
 
 import GuestPermissionsTree, {GUEST_INCLUDED_PERMISSIONS} from '../guest_permissions_tree';
 import PermissionsTree, {EXCLUDED_PERMISSIONS} from '../permissions_tree';
@@ -38,7 +37,7 @@ type Props = {
         setNavigationBlocked: (blocked: boolean) => void;
     };
     location: Location;
-}
+} & WrappedComponentProps;
 
 type State = {
     showResetDefaultModal: boolean;
@@ -64,7 +63,7 @@ type RolesState = {
     guests: {name: string; display_name: string; permissions: Role['permissions']};
 }
 
-export default class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
+class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
     private rolesNeeded: string[];
 
     constructor(props: Props) {
@@ -407,10 +406,8 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                                 open={this.state.openRoles.guests}
                                 id='all_users'
                                 onToggle={() => this.toggleRole('guests')}
-                                titleId={t('admin.permissions.systemScheme.GuestsTitle')}
-                                titleDefault='Guests'
-                                subtitleId={t('admin.permissions.systemScheme.GuestsDescription')}
-                                subtitleDefault='Permissions granted to guest users.'
+                                title={defineMessage({id: 'admin.permissions.systemScheme.GuestsTitle', defaultMessage: 'Guests'})}
+                                subtitle={defineMessage({id: 'admin.permissions.systemScheme.GuestsDescription', defaultMessage: 'Permissions granted to guest users.'})}
                             >
                                 <GuestPermissionsTree
                                     selected={this.state.selectedPermission}
@@ -427,10 +424,8 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                             open={this.state.openRoles.all_users}
                             id='all_users'
                             onToggle={() => this.toggleRole('all_users')}
-                            titleId={t('admin.permissions.systemScheme.allMembersTitle')}
-                            titleDefault='All Members'
-                            subtitleId={t('admin.permissions.systemScheme.allMembersDescription')}
-                            subtitleDefault='Permissions granted to all members, including administrators and newly created users.'
+                            title={defineMessage({id: 'admin.permissions.systemScheme.allMembersTitle', defaultMessage: 'All Members'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.allMembersDescription', defaultMessage: 'Permissions granted to all members, including administrators and newly created users.'})}
                         >
                             <PermissionsTree
                                 selected={this.state.selectedPermission}
@@ -446,10 +441,8 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                             className='permissions-block'
                             open={this.state.openRoles.channel_admin}
                             onToggle={() => this.toggleRole('channel_admin')}
-                            titleId={t('admin.permissions.systemScheme.channelAdminsTitle')}
-                            titleDefault='Channel Administrators'
-                            subtitleId={t('admin.permissions.systemScheme.channelAdminsDescription')}
-                            subtitleDefault='Permissions granted to channel creators and any users promoted to Channel Administrator.'
+                            title={defineMessage({id: 'admin.permissions.systemScheme.channelAdminsTitle', defaultMessage: 'Channel Administrators'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.channelAdminsDescription', defaultMessage: 'Permissions granted to channel creators and any users promoted to Channel Administrator.'})}
                         >
                             <PermissionsTree
                                 parentRole={this.state.roles.all_users}
@@ -465,10 +458,8 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                             className='permissions-block'
                             open={this.state.openRoles.playbook_admin}
                             onToggle={() => this.toggleRole('playbook_admin')}
-                            titleId={t('admin.permissions.systemScheme.playbookAdmin')}
-                            titleDefault='Playbook Administrator'
-                            subtitleId={t('admin.permissions.systemScheme.playbookAdminSubtitle')}
-                            subtitleDefault='Permissions granted to administrators of a playbook.'
+                            title={defineMessage({id: 'admin.permissions.systemScheme.playbookAdmin', defaultMessage: 'Playbook Administrator'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.playbookAdminSubtitle', defaultMessage: 'Permissions granted to administrators of a playbook.'})}
                         >
                             <PermissionsTreePlaybooks
                                 role={this.state.roles.playbook_admin}
@@ -485,10 +476,8 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                             className='permissions-block'
                             open={this.state.openRoles.team_admin}
                             onToggle={() => this.toggleRole('team_admin')}
-                            titleId={t('admin.permissions.systemScheme.teamAdminsTitle')}
-                            titleDefault='Team Administrators'
-                            subtitleId={t('admin.permissions.systemScheme.teamAdminsDescription')}
-                            subtitleDefault='Permissions granted to team creators and any users promoted to Team Administrator.'
+                            title={defineMessage({id: 'admin.permissions.systemScheme.teamAdminsTitle', defaultMessage: 'Team Administrators'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.teamAdminsDescription', defaultMessage: 'Permissions granted to team creators and any users promoted to Team Administrator.'})}
                         >
                             <PermissionsTree
                                 parentRole={this.state.roles.all_users}
@@ -504,10 +493,8 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                             className='permissions-block'
                             open={this.state.openRoles.system_admin}
                             onToggle={() => this.toggleRole('system_admin')}
-                            titleId={t('admin.permissions.systemScheme.systemAdminsTitle')}
-                            titleDefault='System Administrators'
-                            subtitleId={t('admin.permissions.systemScheme.systemAdminsDescription')}
-                            subtitleDefault='Full permissions granted to System Administrators.'
+                            title={defineMessage({id: 'admin.permissions.systemScheme.systemAdminsTitle', defaultMessage: 'System Administrators'})}
+                            subtitle={defineMessage({id: 'admin.permissions.systemScheme.systemAdminsDescription', defaultMessage: 'Full permissions granted to System Administrators.'})}
                         >
                             <PermissionsTree
                                 readOnly={true}
@@ -525,7 +512,7 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
                         saving={this.state.saving}
                         disabled={this.props.isDisabled || !this.state.saveNeeded}
                         onClick={this.handleSubmit}
-                        savingMessage={localizeMessage('admin.saving', 'Saving Config...')}
+                        savingMessage={this.props.intl.formatMessage({id: 'admin.saving', defaultMessage: 'Saving Config...'})}
                     />
                     <BlockableLink
                         className='btn btn-tertiary'
@@ -581,3 +568,5 @@ export default class PermissionSystemSchemeSettings extends React.PureComponent<
         );
     };
 }
+
+export default injectIntl(PermissionSystemSchemeSettings);
