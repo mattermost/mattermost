@@ -14,6 +14,7 @@ import Timestamp from 'components/timestamp';
 type ProfileTimezoneProps = {
     profileUserTimezone?: UserTimezone;
     currentUserTimezone: string | undefined;
+    haveOverrideProp: boolean;
 }
 
 const returnTimeDiff = (
@@ -51,12 +52,15 @@ const returnTimeDiff = (
     );
 };
 
-export const ProfileTimezone = (
-    {
-        currentUserTimezone,
-        profileUserTimezone,
-    }: ProfileTimezoneProps,
-) => {
+const ProfileTimezone = ({
+    currentUserTimezone,
+    profileUserTimezone,
+    haveOverrideProp,
+}: ProfileTimezoneProps) => {
+    if (haveOverrideProp || !profileUserTimezone) {
+        return null;
+    }
+
     const profileTimezone = getUserCurrentTimezone(profileUserTimezone) || 'UTC';
     const profileTimezoneShort = profileTimezone ? DateTime.now().setZone(profileTimezone).offsetNameShort : undefined;
 
@@ -98,3 +102,5 @@ export const ProfileTimezone = (
         </div>
     );
 };
+
+export default ProfileTimezone;

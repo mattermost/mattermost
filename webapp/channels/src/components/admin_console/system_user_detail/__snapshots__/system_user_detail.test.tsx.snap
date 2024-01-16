@@ -104,18 +104,17 @@ exports[`components/admin_console/system_user_detail should match default snapsh
             </button>
           </div>
         }
-        className=""
         subtitle={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Teams to which this user belongs"
-            id="admin.userManagement.userDetail.teamsSubtitle"
-          />
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
         }
         title={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Team Membership"
-            id="admin.userManagement.userDetail.teamsTitle"
-          />
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
         }
       >
         <div
@@ -309,18 +308,17 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
             </button>
           </div>
         }
-        className=""
         subtitle={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Teams to which this user belongs"
-            id="admin.userManagement.userDetail.teamsSubtitle"
-          />
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
         }
         title={
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Team Membership"
-            id="admin.userManagement.userDetail.teamsTitle"
-          />
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
         }
       >
         <div

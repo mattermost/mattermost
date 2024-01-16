@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -13,6 +14,12 @@ import type {PropsFromRedux} from './index';
 
 type Props = PropsFromRedux;
 
+const messages = defineMessages({
+    title: {id: 'admin.system_users.title', defaultMessage: '{siteName} Users'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
+
 function SystemUsers(props: Props) {
     // Filters and search states need to come here from the store for passing down similar to how sort states are passed down currently
 
@@ -20,8 +27,7 @@ function SystemUsers(props: Props) {
         <div className='wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage
-                    id='admin.system_users.title'
-                    defaultMessage='{siteName} Users'
+                    {...messages.title}
                     values={{siteName: props.siteName}}
                 >
                     {(formatMessageChunk) => (
