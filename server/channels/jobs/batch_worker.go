@@ -33,7 +33,7 @@ func MakeBatchWorker(
 	store store.Store,
 	timeBetweenBatches time.Duration,
 	doBatch func(rctx *request.Context, job *model.Job) bool,
-) model.Worker {
+) *BatchWorker {
 	return &BatchWorker{
 		jobServer:          jobServer,
 		logger:             jobServer.Logger(),

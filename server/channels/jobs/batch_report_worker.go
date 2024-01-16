@@ -23,7 +23,7 @@ type BatchReportWorkerAppIFace interface {
 }
 
 type BatchReportWorker struct {
-	BatchWorker
+	*BatchWorker
 	app          BatchReportWorkerAppIFace
 	reportFormat string
 	headers      []string
@@ -38,23 +38,14 @@ func MakeBatchReportWorker(
 	reportFormat string,
 	headers []string,
 	getData func(jobData model.StringMap) ([]model.ReportableObject, model.StringMap, bool, error),
-) model.Worker {
+) *BatchReportWorker {
 	worker := &BatchReportWorker{
-		BatchWorker: BatchWorker{
-			jobServer:          jobServer,
-			logger:             jobServer.Logger(),
-			store:              store,
-			stop:               make(chan struct{}),
-			stopped:            make(chan bool, 1),
-			jobs:               make(chan model.Job),
-			timeBetweenBatches: timeBetweenBatches,
-		},
 		app:          app,
 		reportFormat: reportFormat,
 		headers:      headers,
 		getData:      getData,
 	}
-	worker.BatchWorker.doBatch = worker.doBatch
+	worker.BatchWorker = MakeBatchWorker(jobServer, store, timeBetweenBatches, worker.doBatch)
 	return worker
 }
 
