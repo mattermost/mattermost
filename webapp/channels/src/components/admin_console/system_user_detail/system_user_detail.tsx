@@ -4,7 +4,7 @@
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, MouseEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
-import {FormattedMessage, injectIntl} from 'react-intl';
+import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
@@ -419,18 +419,8 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 
                         {/* User's team details */}
                         <AdminPanel
-                            title={
-                                <FormattedMessage
-                                    id='admin.userManagement.userDetail.teamsTitle'
-                                    defaultMessage='Team Membership'
-                                />
-                            }
-                            subtitle={
-                                <FormattedMessage
-                                    id='admin.userManagement.userDetail.teamsSubtitle'
-                                    defaultMessage='Teams to which this user belongs'
-                                />
-                            }
+                            title={defineMessage({id: 'admin.userManagement.userDetail.teamsTitle', defaultMessage: 'Team Membership'})}
+                            subtitle={defineMessage({id: 'admin.userManagement.userDetail.teamsSubtitle', defaultMessage: 'Teams to which this user belongs'})}
                             button={
                                 <div className='add-team-button'>
                                     <button

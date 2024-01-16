@@ -2,12 +2,19 @@
 
 exports[`admin_console/team_channel_settings/channel/ChannelProfile should match snapshot 1`] = `
 <AdminPanel
-  className=""
   id="channel_profile"
-  subtitleDefault="Summary of the channel, including the channel name."
-  subtitleId="admin.channel_settings.channel_detail.profileDescription"
-  titleDefault="Channel Profile"
-  titleId="admin.channel_settings.channel_detail.profileTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "Summary of the channel, including the channel name.",
+      "id": "admin.channel_settings.channel_detail.profileDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Profile",
+      "id": "admin.channel_settings.channel_detail.profileTitle",
+    }
+  }
 >
   <div
     className="group-teams-and-channels AdminChannelDetails"
@@ -58,12 +65,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelProfile should match
 
 exports[`admin_console/team_channel_settings/channel/ChannelProfile should match snapshot for a shared channel 1`] = `
 <AdminPanel
-  className=""
   id="channel_profile"
-  subtitleDefault="Summary of the channel, including the channel name."
-  subtitleId="admin.channel_settings.channel_detail.profileDescription"
-  titleDefault="Channel Profile"
-  titleId="admin.channel_settings.channel_detail.profileTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "Summary of the channel, including the channel name.",
+      "id": "admin.channel_settings.channel_detail.profileDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Channel Profile",
+      "id": "admin.channel_settings.channel_detail.profileTitle",
+    }
+  }
 >
   <div
     className="group-teams-and-channels AdminChannelDetails"

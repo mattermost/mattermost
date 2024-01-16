@@ -150,7 +150,7 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.22.2
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.23.0
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
@@ -828,7 +828,7 @@ test-migration:
 	@sed -i'' -e 's|{{ .source_schema }}|${MYSQL_SCHEMA}|g' tests/temp.load
 
 	# run pgloader and save the logs
-	pgloader tests/temp.load > migration.log
+	pgloader --debug tests/temp.load > migration.log
 
 	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
 	# compare two database contents
