@@ -14,7 +14,7 @@ type Props = {
 };
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-function SystemUsersSearch(props: Props) {
+export function SystemUsersSearch(props: Props) {
     const {formatMessage} = useIntl();
 
     const [inputValue, setInputValue] = useState(''); // TODO add the state from redux for putting back the term when the user navigates back to the page
@@ -46,5 +46,3 @@ function SystemUsersSearch(props: Props) {
         </div>
     );
 }
-
-export default SystemUsersSearch;

@@ -16,7 +16,7 @@ type Props = {
 
 // Repurpose for the new filter
 
-function SystemUsersFilterTeam(props: Props) {
+export function SystemUsersFilterTeam(props: Props) {
     const {formatMessage} = useIntl();
 
     function handleChange(e: ChangeEvent<HTMLSelectElement>) {
@@ -62,5 +62,3 @@ function SystemUsersFilterTeam(props: Props) {
         </label>
     );
 }
-
-export default SystemUsersFilterTeam;

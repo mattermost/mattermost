@@ -84,6 +84,7 @@ export interface Props extends MuiMenuItemProps {
      * @warning This is a rare UX pattern and should be used sparingly as it breaks a lot of menu/submenu auto closing logic.
      */
     antipattern__blockClosingOnClick?: boolean;
+    antipattern__executeOnClickImmediately?: boolean;
 
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
@@ -143,7 +144,7 @@ export function MenuItem(props: Props) {
             }
 
             if (onClick) {
-                if (isMobileView) {
+                if (isMobileView || props.antipattern__executeOnClickImmediately) {
                     // If the menu is in mobile view, we execute the click event immediately.
                     onClick(event);
                 } else {

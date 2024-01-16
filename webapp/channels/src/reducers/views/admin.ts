@@ -66,12 +66,14 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     cursorDirection: CursorPaginationDirection.next,
     cursorUserId: '',
     cursorColumnValue: '',
+    columnVisibility: {},
 };
 
 export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: GenericAction) {
     switch (action.type) {
-    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES:
+    case ActionTypes.SET_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES: {
         return {...state, ...action.data};
+    }
     case ActionTypes.CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES:
         return adminConsoleUserManagementTablePropertiesInitialState;
     default:

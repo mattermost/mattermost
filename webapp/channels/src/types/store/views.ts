@@ -28,6 +28,7 @@ export type AdminConsoleUserManagementTableProperties = {
     cursorUserId: string;
     cursorColumnValue: string;
     cursorDirection: CursorPaginationDirection;
+    columnVisibility: Record<string, boolean>;
 };
 
 export type ViewsState = {

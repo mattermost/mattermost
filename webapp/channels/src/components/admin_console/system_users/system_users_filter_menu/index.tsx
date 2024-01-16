@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import './system_users_filter_menu.scss';
 
-function SystemUsersFilterMenu() {
+export function SystemUsersFilterMenu() {
     return (
         <div className='systemUsersFilterContainer'>
             <button className='btn btn-md btn-tertiary'>
@@ -22,5 +22,3 @@ function SystemUsersFilterMenu() {
         </div>
     );
 }
-
-export default SystemUsersFilterMenu;

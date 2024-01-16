@@ -18,7 +18,7 @@ interface Props {
     currentUserRoles: UserProfile['roles'];
 }
 
-function AdminConsoleListActions(props: Props) {
+export function SystemUsersListAction(props: Props) {
     const {formatMessage} = useIntl();
 
     function getTranslatedUserRole(userRoles: UserProfile['roles']) {
@@ -184,5 +184,3 @@ function AdminConsoleListActions(props: Props) {
         </Menu.Container>
     );
 }
-
-export default AdminConsoleListActions;

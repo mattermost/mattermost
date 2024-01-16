@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-function SystemUsersExport() {
+export function SystemUsersExport() {
     return (
         <button className='btn btn-md btn-tertiary'>
             <span className='icon icon-download-outline'/>
@@ -15,5 +15,3 @@ function SystemUsersExport() {
         </button>
     );
 }
-
-export default SystemUsersExport;

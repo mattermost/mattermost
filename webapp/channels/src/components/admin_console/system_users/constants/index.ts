@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 export enum ColumnNames {
+    username = 'usernameColumn',
     displayName = 'displayNameColumn',
     email = 'emailColumn',
     createAt = 'createAtColumn',
