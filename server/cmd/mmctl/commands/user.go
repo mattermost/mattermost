@@ -251,6 +251,30 @@ var MigrateAuthCmd = &cobra.Command{
 	RunE: withClient(migrateAuthCmdF),
 }
 
+var SSOAuthDataResetCmd = &cobra.Command{
+	Use:   "auth-data-reset [auth_service]",
+	Short: "Reset AuthData field to Email",
+	Long:  "Resets the AuthData field for OpenId or SAML users to their email. For SAML, run this utility after setting the 'id' SAML attribute to an empty value.",
+	Example: `  # Reset all SAML users' AuthData field to their email, including deleted users
+  $ mmctl user auth-data-reset saml --include-deleted
+
+  # Show how many users would be affected by the reset
+  $ mmctl user auth-data-reset openid --dry-run
+
+  # Skip confirmation for resetting the AuthData for openid users
+  $ mmctl user auth-data-reset openid -y
+
+  # Only reset the AuthData for the following SAML users
+  $ mmctl user auth-data-reset saml --users userid1,userid2`,
+	Args: func(command *cobra.Command, args []string) error {
+		if args[0] == "" {
+			return errors.New("auth_service parameter must be provided")
+		}
+		return nil
+	},
+	RunE: withClient(ssoAuthDataResetCmdF),
+}
+
 func init() {
 	UserCreateCmd.Flags().String("username", "", "Required. Username for the new user account")
 	_ = UserCreateCmd.MarkFlagRequired("username")
@@ -336,6 +360,11 @@ Global Flags:
 {{.InheritedFlags.FlagUsages | trimTrailingWhitespaces}}
 `)
 
+	SSOAuthDataResetCmd.Flags().Bool("include-deleted", false, "Include deleted users")
+	SSOAuthDataResetCmd.Flags().Bool("dry-run", false, "Dry run only")
+	SSOAuthDataResetCmd.Flags().BoolP("yes", "y", false, "Skip confirmation")
+	SSOAuthDataResetCmd.Flags().StringSlice("users", nil, "Comma-separated list of user IDs to which the operation will be applied")
+
 	UserCmd.AddCommand(
 		UserActivateCmd,
 		UserDeactivateCmd,
@@ -355,6 +384,7 @@ Global Flags:
 		MigrateAuthCmd,
 		PromoteGuestToUserCmd,
 		DemoteUserToGuestCmd,
+		SSOAuthDataResetCmd,
 	)
 
 	RootCmd.AddCommand(UserCmd)
@@ -999,4 +1029,31 @@ func demoteUserToGuestCmdF(c client.Client, _ *cobra.Command, userArgs []string)
 	}
 
 	return errs.ErrorOrNil()
+}
+
+func ssoAuthDataResetCmdF(c client.Client, cmd *cobra.Command, args []string) error {
+	includeDeleted, _ := cmd.Flags().GetBool("include-deleted")
+	dryRun, _ := cmd.Flags().GetBool("dry-run")
+	confirmed, _ := cmd.Flags().GetBool("yes")
+	userIDs, _ := cmd.Flags().GetStringSlice("users")
+	authService := args[0]
+
+	if !dryRun && !confirmed {
+		if err := getConfirmation("This action is irreversible. Are you sure you want to continue?", false); err != nil {
+			return err
+		}
+	}
+
+	numAffected, _, err := c.ResetUserAuthDataToEmail(context.TODO(), authService, includeDeleted, dryRun, userIDs)
+	if err != nil {
+		return err
+	}
+
+	if dryRun {
+		printer.Print(fmt.Sprintf("%d user records would be affected.\n", numAffected))
+	} else {
+		printer.Print(fmt.Sprintf("%d user records were changed.\n", numAffected))
+	}
+
+	return nil
 }

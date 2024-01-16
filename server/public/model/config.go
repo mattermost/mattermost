@@ -3546,6 +3546,15 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 	return nil
 }
 
+func (o *Config) IsSSOServiceUsingOpenId(service string) bool {
+	sso := o.GetSSOService(service)
+	if sso == nil {
+		return false
+	}
+
+	return strings.Contains(*sso.Scope, ServiceOpenid)
+}
+
 func ConfigFromJSON(data io.Reader) *Config {
 	var o *Config
 	json.NewDecoder(data).Decode(&o)

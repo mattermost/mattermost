@@ -2817,3 +2817,12 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 
 	return true
 }
+
+func (a *App) ResetUserAuthDataToEmail(authService string, includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError) {
+	numAffected, err := a.Srv().Store().User().ResetAuthDataToEmailForUsers(authService, userIDs, includeDeleted, dryRun)
+	if err != nil {
+		appErr = model.NewAppError("ResetAuthDataToEmail", "api.admin.user.failure_reset_authdata_to_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+	return
+}

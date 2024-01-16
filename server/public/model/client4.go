@@ -8862,3 +8862,28 @@ func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, er
 	}
 	return &userLimits, BuildResponse(r), nil
 }
+
+// ResetUserAuthDataToEmail resets the AuthData field of openId or SAML users to their Email.
+func (c *Client4) ResetUserAuthDataToEmail(ctx context.Context, authService string, includeDeleted bool, dryRun bool, userIDs []string) (int64, *Response, error) {
+	params := map[string]any{
+		"auth_service":    authService,
+		"include_deleted": includeDeleted,
+		"dry_run":         dryRun,
+		"user_ids":        userIDs,
+	}
+	b, err := json.Marshal(params)
+	if err != nil {
+		return 0, nil, NewAppError("ResetUserAuthDataToEmail", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.usersRoute()+"/reset_auth_data", b)
+	if err != nil {
+		return 0, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	respBody := map[string]int64{}
+	err = json.NewDecoder(r.Body).Decode(&respBody)
+	if err != nil {
+		return 0, BuildResponse(r), NewAppError("Api4.ResetUserAuthDataToEmail", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return respBody["num_affected"], BuildResponse(r), nil
+}

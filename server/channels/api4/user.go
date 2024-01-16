@@ -91,6 +91,7 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/migrate_auth/ldap", api.APISessionRequired(migrateAuthToLDAP)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/migrate_auth/saml", api.APISessionRequired(migrateAuthToSaml)).Methods("POST")
+	api.BaseRoutes.Users.Handle("/reset_auth_data", api.APISessionRequired(resetUserAuthDataToEmail)).Methods("POST")
 
 	api.BaseRoutes.User.Handle("/uploads", api.APISessionRequired(getUploadsForUser)).Methods("GET")
 	api.BaseRoutes.User.Handle("/channel_members", api.APISessionRequired(getChannelMembersForUser)).Methods("GET")
@@ -3442,6 +3443,68 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 
 	err := json.NewEncoder(w).Encode(users)
 	if err != nil {
+		c.Logger.Warn("Error writing response", mlog.Err(err))
+	}
+}
+
+func resetUserAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSystem) {
+		c.SetPermissionError(model.PermissionManageSystem)
+		return
+	}
+	type ResetAuthDataParams struct {
+		AuthService      string   `json:"auth_service"`
+		IncludeDeleted   bool     `json:"include_deleted"`
+		DryRun           bool     `json:"dry_run"`
+		SpecifiedUserIDs []string `json:"user_ids"`
+	}
+	var params *ResetAuthDataParams
+	jsonErr := json.NewDecoder(r.Body).Decode(&params)
+	if jsonErr != nil || params == nil {
+		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "model.utils.decode_json.app_error", nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	}
+
+	authService := params.AuthService
+
+	// Check the auth service matches our offerings
+	if authService == "" || (authService != model.UserAuthServiceSaml && authService != model.ServiceOpenid && authService != model.UserAuthServiceGitlab && authService != model.ServiceGoogle && authService != model.ServiceOffice365) {
+		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Check they have the right license level to use SAML
+	if authService == model.UserAuthServiceSaml && (c.App.Channels().License() == nil || !*c.App.Channels().License().Features.SAML) {
+		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.saml_license.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	licenseErr := minimumProfessionalLicense(c)
+
+	// Gitlab oauth is part of our free offering but gitlab openId requires a professional license.
+	if authService == model.UserAuthServiceGitlab && c.App.Config().IsSSOServiceUsingOpenId(authService) && licenseErr != nil {
+		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.gitlab_license.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	if (authService == model.ServiceOpenid || authService == model.ServiceGoogle || authService == model.ServiceOffice365) && licenseErr != nil {
+		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.license_level.app_error", nil, "", http.StatusNotImplemented)
+		return
+	}
+
+	numAffected, appErr := c.App.ResetUserAuthDataToEmail(authService, params.IncludeDeleted, params.DryRun, params.SpecifiedUserIDs)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	n := struct {
+		NumAffected int `json:"num_affected"`
+	}{
+		NumAffected: numAffected,
+	}
+
+	if err := json.NewEncoder(w).Encode(n); err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
 }

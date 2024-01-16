@@ -150,4 +150,5 @@ type Client interface {
 	ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted bool, dryRun bool, userIDs []string) (int64, *model.Response, error)
 	GenerateSupportPacket(ctx context.Context) ([]byte, *model.Response, error)
 	GetOAuthApps(ctx context.Context, page, perPage int) ([]*model.OAuthApp, *model.Response, error)
+	ResetUserAuthDataToEmail(ctx context.Context, authService string, includeDeleted bool, dryRun bool, userIDs []string) (int64, *model.Response, error)
 }

@@ -1791,6 +1791,22 @@ func (mr *MockClientMockRecorder) ResetSamlAuthDataToEmail(arg0, arg1, arg2, arg
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetSamlAuthDataToEmail", reflect.TypeOf((*MockClient)(nil).ResetSamlAuthDataToEmail), arg0, arg1, arg2, arg3)
 }
 
+// ResetUserAuthDataToEmail mocks base method.
+func (m *MockClient) ResetUserAuthDataToEmail(arg0 context.Context, arg1 string, arg2, arg3 bool, arg4 []string) (int64, *model.Response, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ResetUserAuthDataToEmail", arg0, arg1, arg2, arg3, arg4)
+	ret0, _ := ret[0].(int64)
+	ret1, _ := ret[1].(*model.Response)
+	ret2, _ := ret[2].(error)
+	return ret0, ret1, ret2
+}
+
+// ResetUserAuthDataToEmail indicates an expected call of ResetUserAuthDataToEmail.
+func (mr *MockClientMockRecorder) ResetUserAuthDataToEmail(arg0, arg1, arg2, arg3, arg4 interface{}) *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ResetUserAuthDataToEmail", reflect.TypeOf((*MockClient)(nil).ResetUserAuthDataToEmail), arg0, arg1, arg2, arg3, arg4)
+}
+
 // RestoreChannel mocks base method.
 func (m *MockClient) RestoreChannel(arg0 context.Context, arg1 string) (*model.Channel, *model.Response, error) {
 	m.ctrl.T.Helper()

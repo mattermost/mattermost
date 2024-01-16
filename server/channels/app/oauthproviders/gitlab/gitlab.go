@@ -105,5 +105,8 @@ func (gp *GitLabProvider) GetUserFromIdToken(_ request.CTX, idToken string) (*mo
 }
 
 func (gp *GitLabProvider) IsSameUser(_ request.CTX, dbUser, oauthUser *model.User) bool {
+	if *dbUser.AuthData == oauthUser.Email {
+		return true
+	}
 	return dbUser.AuthData == oauthUser.AuthData
 }
