@@ -66,7 +66,8 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		}
 
 		for _, rc := range remotes {
-			if rc.SiteURL != "" || rc.PluginID != "" { // filter out unconfirmed invites
+			// filter out unconfirmed invites so we don't ping them without permission
+			if rc.IsConfirmed() {
 				pingChan <- rc
 			}
 		}
