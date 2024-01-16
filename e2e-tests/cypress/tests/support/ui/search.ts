@@ -14,7 +14,6 @@ function uiSearchPosts(searchTerm: string) {
     cy.get('#searchContainer .LoadingSpinner').should('not.exist');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-use-before-define
 Cypress.Commands.add('uiSearchPosts', uiSearchPosts);
 
 /**
@@ -32,13 +31,14 @@ function uiJumpToSearchResult(postId: string) {
     cy.get(`#post_${postId}.post--highlight`).should('be.visible');
 }
 
-// eslint-disable-next-line @typescript-eslint/no-use-before-define
 Cypress.Commands.add('uiJumpToSearchResult', uiJumpToSearchResult);
 
-// eslint-disable-next-line @typescript-eslint/no-namespace
-declare namespace Cypress {
-    interface Chainable {
-        uiSearchPosts: typeof uiSearchPosts;
-        uiJumpToSearchResult: typeof uiJumpToSearchResult;
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Cypress {
+        interface Chainable {
+            uiSearchPosts: typeof uiSearchPosts;
+            uiJumpToSearchResult: typeof uiJumpToSearchResult;
+        }
     }
 }
