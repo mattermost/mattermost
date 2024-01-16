@@ -3,7 +3,8 @@
 
 import React from 'react';
 import type {ChangeEvent} from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
@@ -101,6 +102,12 @@ type State = {
     searching: boolean;
     term?: string;
 };
+
+const messages = defineMessages({
+    title: {id: 'admin.system_users.title', defaultMessage: '{siteName} Users'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
 
 export class SystemUsers extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -303,8 +310,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
             <div className='wrapper--fixed'>
                 <AdminHeader>
                     <FormattedMessage
-                        id='admin.system_users.title'
-                        defaultMessage='{siteName} Users'
+                        {...messages.title}
                         values={{siteName: this.props.siteName}}
                     />
                     <RevokeSessionsButton/>
