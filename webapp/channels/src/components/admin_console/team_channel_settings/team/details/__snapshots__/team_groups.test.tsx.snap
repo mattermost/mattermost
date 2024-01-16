@@ -63,12 +63,19 @@ exports[`admin_console/team_channel_settings/team/TeamGroups should match snapsh
       />
     </ToggleModalButton>
   }
-  className=""
   id="team_groups"
-  subtitleDefault="Add and remove team members based on their group membership."
-  subtitleId="admin.team_settings.team_detail.syncedGroupsDescription"
-  titleDefault="Synced Groups"
-  titleId="admin.team_settings.team_detail.syncedGroupsTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "Add and remove team members based on their group membership.",
+      "id": "admin.team_settings.team_detail.syncedGroupsDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Synced Groups",
+      "id": "admin.team_settings.team_detail.syncedGroupsTitle",
+    }
+  }
 >
   <Connect(GroupList)
     groups={
