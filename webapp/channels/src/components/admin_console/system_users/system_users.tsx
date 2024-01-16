@@ -27,8 +27,7 @@ function SystemUsers(props: Props) {
         <div className='wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage
-                    id='admin.system_users.title'
-                    defaultMessage='{siteName} Users'
+                    {...messages.title}
                     values={{siteName: props.siteName}}
                 >
                     {(formatMessageChunk) => (
