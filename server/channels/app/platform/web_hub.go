@@ -92,8 +92,10 @@ func newWebHub(ps *PlatformService) *Hub {
 
 // hubStart starts all the hubs.
 func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
-	// Total number of hubs is twice the number of CPUs.
-	numberOfHubs := runtime.NumCPU() * 2
+	// After running some tests, we found using the same number of hubs
+	// as CPUs to be the ideal in terms of performance.
+	// https://github.com/mattermost/mattermost/pull/25798#issuecomment-1889386454
+	numberOfHubs := runtime.NumCPU()
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	hubs := make([]*Hub, numberOfHubs)
