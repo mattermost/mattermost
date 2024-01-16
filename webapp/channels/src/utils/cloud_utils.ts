@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {CloudCustomer, InvoiceLineItem} from '@mattermost/types/cloud';
+import type {CloudCustomer, InvoiceLineItem, Subscription} from '@mattermost/types/cloud';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -47,9 +47,22 @@ export function openExternalPricingLink() {
 
 export const FREEMIUM_TO_ENTERPRISE_TRIAL_LENGTH_DAYS = 30;
 
-export function daysToExpiration(expirationDate: number): number {
-    const now = new Date();
-    const expiration = new Date(expirationDate);
+export function daysUntil(end?: number, simulatedCurrentTimeMs?: number) {
+    let now = new Date();
+
+    if (simulatedCurrentTimeMs) {
+        now = new Date(simulatedCurrentTimeMs);
+    }
+
+    const expiration = new Date(end || 0);
     const diff = expiration.getTime() - now.getTime();
     return Math.ceil(diff / (1000 * 3600 * 24));
+}
+
+export function daysToExpiration(subscription?: Subscription): number {
+    return daysUntil(subscription?.end_at, subscription?.simulated_current_time_ms);
+}
+
+export function daysToCancellation(subscription?: Subscription): number {
+    return daysUntil(subscription?.cancel_at, subscription?.simulated_current_time_ms);
 }
