@@ -789,6 +789,25 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 	return nil
 }
 
+// GetProfileImagePaths returns the paths to the profile images for the given user IDs if such a profile image exists.
+func (a *App) GetProfileImagePath(user *model.User) (string, *model.AppError) {
+	path := getProfileImagePath(user.Id)
+	exist, err := a.ch.srv.FileBackend().FileExists(path)
+	if err != nil {
+		return "", model.NewAppError(
+			"GetProfileImagePath",
+			"api.user.get_profile_image_path.app_error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(err)
+	}
+	if !exist {
+		return "", nil
+	}
+	return path, nil
+}
+
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	return a.ch.srv.GetProfileImage(user)
 }
