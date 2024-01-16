@@ -68,8 +68,8 @@ describe('Profile Settings', () => {
         },
     ];
 
-    fileTypes.forEach((fileType) => {
-        it(`MM-T2078 Profile picture: file ${fileType.extension} type accepted`, () => {
+    fileTypes.forEach((fileType, index) => {
+        it(`MM-T2078_${index + 1} Profile picture: file ${fileType.extension} type accepted`, () => {
             // # Save the default profile picture link so it can be compared to the new one
             cy.uiGetProfileHeader().findByRole('img').invoke('attr', 'src').as('defaultProfilePictureLink');
 
