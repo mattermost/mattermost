@@ -18,7 +18,7 @@ import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import OverlayTrigger from 'components/overlay_trigger';
 import PricingModal from 'components/pricing_modal';
-import Tooltip from 'components/tooltip';
+import {createTooltip} from 'components/tooltip';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
@@ -34,6 +34,12 @@ type Props = {
     isDisabled?: boolean;
     saveNeeded?: boolean;
 }
+
+const SharedTooltip = createTooltip({
+    id: 'sharedTooltip',
+    title: defineMessage({id: 'workspace_limits.teams_limit_reached.upgrade_to_unarchive', defaultMessage: 'Upgrade to Unarchive'}),
+    hint: defineMessage({id: 'workspace_limits.teams_limit_reached.tool_tip', defaultMessage: 'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'}),
+});
 
 export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, saveNeeded}: Props) {
     const teamIconUrl = imageURLForTeam(team);
@@ -70,22 +76,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                     delay={400}
                     placement='bottom'
                     disabled={!restoreDisabled}
-                    overlay={
-                        <Tooltip id='sharedTooltip'>
-                            <div className={'tooltip-title'}>
-                                <FormattedMessage
-                                    id={'workspace_limits.teams_limit_reached.upgrade_to_unarchive'}
-                                    defaultMessage={'Upgrade to Unarchive'}
-                                />
-                            </div>
-                            <div className={'tooltip-body'}>
-                                <FormattedMessage
-                                    id={'workspace_limits.teams_limit_reached.tool_tip'}
-                                    defaultMessage={'You\'ve reached the team limit for your current plan. Consider upgrading to unarchive this team or archive your other teams'}
-                                />
-                            </div>
-                        </Tooltip>
-                    }
+                    overlay={<SharedTooltip/>}
                 >
                     {/* OverlayTrigger doesn't play nicely with `disabled` buttons, because the :hover events don't fire. This is a workaround to ensure the popover appears see: https://github.com/react-bootstrap/react-bootstrap/issues/1588*/}
                     <div
