@@ -84,6 +84,11 @@ export interface Props extends MuiMenuItemProps {
      * @warning This is a rare UX pattern and should be used sparingly as it breaks a lot of menu/submenu auto closing logic.
      */
     antipattern__blockClosingOnClick?: boolean;
+
+    /**
+     * If true, the onClick handler will be executed immediately instead of waiting for the menu to close.
+     * @warning This is a rare UX pattern and should be used sparingly as it breaks a lot of menu/submenu auto closing logic.
+     */
     antipattern__executeOnClickImmediately?: boolean;
 
     /**
