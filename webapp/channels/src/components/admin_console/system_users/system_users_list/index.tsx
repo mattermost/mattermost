@@ -5,6 +5,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
+import type {ServerError} from '@mattermost/types/errors';
 import {UserReportSortColumns, ReportSortDirection, CursorPaginationDirection} from '@mattermost/types/reports';
 import type {UserReport, UserReportFilter, UserReportOptions} from '@mattermost/types/reports';
 import type {UserProfile} from '@mattermost/types/users';
@@ -21,7 +22,7 @@ import SystemUsersActions from '../system_users_list_actions';
 import './system_users_list.scss';
 
 type Props = {
-    currentUserRoles: UserProfile['roles'];
+    currentUser: UserProfile;
     tablePropertySortColumn: AdminConsoleUserManagementTableProperties['sortColumn'];
     tablePropertySortIsDescending: AdminConsoleUserManagementTableProperties['sortIsDescending'];
     tablePropertyPageSize: AdminConsoleUserManagementTableProperties['pageSize'];
@@ -55,6 +56,12 @@ function SystemUsersList(props: Props) {
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
+
+    function onError(error: ServerError) {
+        // TODO: Some kind of error handling for actions
+        // eslint-disable-next-line no-console
+        console.error(error);
+    }
 
     const getPaginationInfo = (pageIndex: number, pageSize: number, currentLength: number, totalUserCount: number) => {
         if (!currentLength) {
@@ -212,10 +219,11 @@ function SystemUsersList(props: Props) {
                 }),
                 cell: (info: CellContext<UserReport, null>) => (
                     <SystemUsersActions
+                        user={info.row.original}
                         rowIndex={info.cell.row.index}
                         tableId={tableId}
-                        userRoles={info.row.original.roles}
-                        currentUserRoles={props.currentUserRoles}
+                        currentUser={props.currentUser}
+                        onError={onError}
                     />
                 ),
                 enableHiding: false,
@@ -223,7 +231,7 @@ function SystemUsersList(props: Props) {
                 enableSorting: false,
             },
         ],
-        [props.currentUserRoles],
+        [props.currentUser],
     );
 
     useEffect(() => {
