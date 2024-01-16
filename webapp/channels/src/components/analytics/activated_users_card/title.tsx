@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessages, useIntl} from 'react-intl';
 
 import {InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
@@ -12,6 +12,10 @@ import OverlayTrigger from 'components/overlay_trigger';
 import Constants from 'utils/constants';
 
 import TitleTooltip from './title_tooltip';
+
+export const messages = defineMessages({
+    totalUsers: {id: 'analytics.team.totalUsers', defaultMessage: 'Total Activated Users'},
+});
 
 const Title = () => {
     const intl = useIntl();
@@ -23,7 +27,7 @@ const Title = () => {
         >
             <span>
                 <ExternalLink href='https://docs.mattermost.com/configure/reporting-configuration-settings.html#site-statistics'>
-                    {intl.formatMessage({id: 'analytics.team.totalUsers', defaultMessage: 'Total Activated Users'})}
+                    {intl.formatMessage(messages.totalUsers)}
                     <InformationOutlineIcon size='16'/>
                 </ExternalLink>
             </span>

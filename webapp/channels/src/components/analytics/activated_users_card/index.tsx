@@ -19,7 +19,7 @@ type ActivatedUserCardProps = {
     isCloud: boolean;
 }
 
-export const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: ActivatedUserCardProps) => {
+const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: ActivatedUserCardProps) => {
     const {isBetween5PercerntAnd10PercentPurchasedSeats, isOver10PercerntPurchasedSeats} = calculateOverageUserActivated({seatsPurchased, activeUsers: activatedUsers || 0});
     const showOverageWarning = !isCloud && (isBetween5PercerntAnd10PercentPurchasedSeats || isOver10PercerntPurchasedSeats);
 
@@ -61,3 +61,5 @@ export const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: Act
         </StatisticCount>
     );
 };
+
+export default ActivatedUserCard;
