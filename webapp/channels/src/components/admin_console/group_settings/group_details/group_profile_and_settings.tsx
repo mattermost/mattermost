@@ -2,14 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import GroupProfile from 'components/admin_console/group_settings/group_details/group_profile';
 import LineSwitch from 'components/admin_console/team_channel_settings/line_switch';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-
-import {t} from 'utils/i18n';
 
 type GroupSettingsToggleProps = {
     isDefault: boolean;
@@ -70,17 +68,12 @@ export const GroupProfileAndSettings = ({
 }: GroupProfileAndSettingsProps) => (
     <AdminPanel
         id='group_profile'
-        titleId={t('admin.group_settings.group_detail.groupProfileTitle')}
-        titleDefault='Group Profile'
-        subtitleId={t(
-            'admin.group_settings.group_detail.groupProfileDescription',
-        )}
-        subtitleDefault='The name for this group.'
+        title={defineMessage({id: 'admin.group_settings.group_detail.groupProfileTitle', defaultMessage: 'Group Profile'})}
+        subtitle={defineMessage({id: 'admin.group_settings.group_detail.groupProfileDescription', defaultMessage: 'The name for this group.'})}
     >
         <GroupProfile
             name={displayname}
-            title={t('admin.group_settings.group_details.group_profile.name')}
-            titleDefault={'Name:'}
+            title={defineMessage({id: 'admin.group_settings.group_details.group_profile.name', defaultMessage: 'Name:'})}
             customID={'groupDisplayName'}
             isDisabled={true}
             showAtMention={false}
@@ -101,10 +94,7 @@ export const GroupProfileAndSettings = ({
         {allowReference && (
             <GroupProfile
                 name={mentionname}
-                title={t(
-                    'admin.group_settings.group_details.group_mention.name',
-                )}
-                titleDefault={'Group Mention:'}
+                title={defineMessage({id: 'admin.group_settings.group_details.group_mention.name', defaultMessage: 'Group Mention:'})}
                 customID={'groupMention'}
                 isDisabled={readOnly}
                 showAtMention={true}
