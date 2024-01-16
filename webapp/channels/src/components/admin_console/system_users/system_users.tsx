@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useMemo, useState} from 'react';
-import {useIntl, FormattedMessage} from 'react-intl';
+import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
 import {CursorPaginationDirection} from '@mattermost/types/reports';
@@ -32,6 +33,12 @@ import type {PropsFromRedux} from './index';
 type Props = PropsFromRedux;
 
 const tableId = 'systemUsersTable';
+
+const messages = defineMessages({
+    title: {id: 'admin.system_users.title', defaultMessage: '{siteName} Users'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [[messages.title, {siteName: ''}]];
 
 function SystemUsers(props: Props) {
     const {formatMessage} = useIntl();
@@ -378,8 +385,7 @@ function SystemUsers(props: Props) {
         <div className='wrapper--fixed'>
             <AdminHeader>
                 <FormattedMessage
-                    id='admin.system_users.title'
-                    defaultMessage='{siteName} Users'
+                    {...messages.title}
                     values={{siteName: props.siteName}}
                 >
                     {(formatMessageChunk) => (

@@ -2279,6 +2279,27 @@ func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 
 }
 
+func (s *RetryLayerChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.PatchMultipleMembersNotifyProps(members, notifyProps)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) PermanentDelete(ctx request.CTX, channelID string) error {
 
 	tries := 0

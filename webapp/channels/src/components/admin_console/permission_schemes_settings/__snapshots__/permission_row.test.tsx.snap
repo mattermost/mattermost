@@ -13,19 +13,17 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
   <span
     className="permission-name"
   >
-    <MemoizedFormattedMessage
-      id="admin.permissions.permission.id.name"
-    />
+    id
   </span>
   <PermissionDescription
     additionalValues={Object {}}
+    description=""
     id="id"
     inherited={
       Object {
         "name": "test",
       }
     }
-    rowType="permission"
     selectRow={[MockFunction]}
   />
 </div>
@@ -44,14 +42,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
   <span
     className="permission-name"
   >
-    <MemoizedFormattedMessage
-      id="admin.permissions.permission.id.name"
-    />
+    id
   </span>
   <PermissionDescription
     additionalValues={Object {}}
+    description=""
     id="id"
-    rowType="permission"
     selectRow={[MockFunction]}
   />
 </div>
@@ -70,14 +66,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
   <span
     className="permission-name"
   >
-    <MemoizedFormattedMessage
-      id="admin.permissions.permission.id.name"
-    />
+    id
   </span>
   <PermissionDescription
     additionalValues={Object {}}
+    description=""
     id="id"
-    rowType="permission"
     selectRow={[MockFunction]}
   />
 </div>
@@ -96,14 +90,12 @@ exports[`components/admin_console/permission_schemes_settings/permission_row sho
   <span
     className="permission-name"
   >
-    <MemoizedFormattedMessage
-      id="admin.permissions.permission.id.name"
-    />
+    id
   </span>
   <PermissionDescription
     additionalValues={Object {}}
+    description=""
     id="id"
-    rowType="permission"
     selectRow={[MockFunction]}
   />
 </div>

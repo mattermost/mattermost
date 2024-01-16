@@ -153,12 +153,19 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud restore sho
     }
   >
     <AdminPanel
-      className=""
       id="team_profile"
-      subtitleDefault="Summary of the team, including team name and description."
-      subtitleId="admin.team_settings.team_detail.profileDescription"
-      titleDefault="Team Profile"
-      titleId="admin.team_settings.team_detail.profileTitle"
+      subtitle={
+        Object {
+          "defaultMessage": "Summary of the team, including team name and description.",
+          "id": "admin.team_settings.team_detail.profileDescription",
+        }
+      }
+      title={
+        Object {
+          "defaultMessage": "Team Profile",
+          "id": "admin.team_settings.team_detail.profileTitle",
+        }
+      }
     >
       <div
         className="AdminPanel clearfix "
@@ -384,12 +391,19 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
     }
   >
     <AdminPanel
-      className=""
       id="team_profile"
-      subtitleDefault="Summary of the team, including team name and description."
-      subtitleId="admin.team_settings.team_detail.profileDescription"
-      titleDefault="Team Profile"
-      titleId="admin.team_settings.team_detail.profileTitle"
+      subtitle={
+        Object {
+          "defaultMessage": "Summary of the team, including team name and description.",
+          "id": "admin.team_settings.team_detail.profileDescription",
+        }
+      }
+      title={
+        Object {
+          "defaultMessage": "Team Profile",
+          "id": "admin.team_settings.team_detail.profileTitle",
+        }
+      }
     >
       <div
         className="AdminPanel clearfix "
@@ -751,12 +765,19 @@ exports[`admin_console/team_channel_settings/team/TeamProfile__Cloud should matc
     }
   >
     <AdminPanel
-      className=""
       id="team_profile"
-      subtitleDefault="Summary of the team, including team name and description."
-      subtitleId="admin.team_settings.team_detail.profileDescription"
-      titleDefault="Team Profile"
-      titleId="admin.team_settings.team_detail.profileTitle"
+      subtitle={
+        Object {
+          "defaultMessage": "Summary of the team, including team name and description.",
+          "id": "admin.team_settings.team_detail.profileDescription",
+        }
+      }
+      title={
+        Object {
+          "defaultMessage": "Team Profile",
+          "id": "admin.team_settings.team_detail.profileTitle",
+        }
+      }
     >
       <div
         className="AdminPanel clearfix "

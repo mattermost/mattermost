@@ -6,9 +6,8 @@ import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
-import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
-import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -38,13 +37,13 @@ type State = {
 // not every page in the system console will need the license and config, but the vast majority will
 type ExtraProps = {
     enterpriseReady: boolean;
-    license?: Record<string, any>;
-    config?: DeepPartial<AdminConfig>;
-    environmentConfig?: Partial<EnvironmentConfig>;
-    setNavigationBlocked?: () => void;
-    roles?: Record<string, Role>;
-    editRole?: (role: Role) => void;
-    updateConfig?: (config: AdminConfig) => Promise<ActionResult>;
+    license: ClientLicense;
+    config: Partial<AdminConfig>;
+    environmentConfig: Partial<EnvironmentConfig>;
+    setNavigationBlocked: (blocked: boolean) => void;
+    roles: Record<string, Role>;
+    editRole: (role: Role) => void;
+    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
 }
