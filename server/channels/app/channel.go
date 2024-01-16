@@ -2916,6 +2916,7 @@ func (a *App) AutocompleteChannels(c request.CTX, userID, term string) (model.Ch
 }
 
 func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term string) (model.ChannelList, *model.AppError) {
+	includeDeleted := *a.Config().TeamSettings.ExperimentalViewArchivedChannels
 	term = strings.TrimSpace(term)
 
 	user, appErr := a.GetUser(userID)
@@ -2923,7 +2924,7 @@ func (a *App) AutocompleteChannelsForTeam(c request.CTX, teamID, userID, term st
 		return nil, appErr
 	}
 
-	channelList, err := a.Srv().Store().Channel().AutocompleteInTeam(c, teamID, userID, term, false, user.IsGuest())
+	channelList, err := a.Srv().Store().Channel().AutocompleteInTeam(c, teamID, userID, term, includeDeleted, user.IsGuest())
 	if err != nil {
 		return nil, model.NewAppError("AutocompleteChannels", "app.channel.search.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
