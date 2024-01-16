@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {Command} from '@mattermost/types/integrations';
+import type {Command, OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
-import type {RelationOneToOne} from '@mattermost/types/utilities';
+import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -34,6 +34,8 @@ type Props = {
     */
     commandId: string | null;
 
+    outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
+
     /**
     * Installed slash commands to display
     */
@@ -49,6 +51,8 @@ type Props = {
         * The function to call to edit command
         */
         editCommand: (command: Command) => Promise<ActionResult>;
+
+        getOutgoingOAuthConnections: () => void;
     };
 
     /**
@@ -179,6 +183,8 @@ export default class EditCommand extends React.PureComponent<Props, State> {
                 action={this.editCommand}
                 serverError={this.state.serverError}
                 initialCommand={this.state.originalCommand}
+                outgoingOAuthConnections={this.props.outgoingOAuthConnections}
+                getOutgoingOAuthConnections={this.props.actions.getOutgoingOAuthConnections}
             />
         );
     }

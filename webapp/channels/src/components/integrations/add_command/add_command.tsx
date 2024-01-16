@@ -6,7 +6,8 @@ import {useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import type {Command} from '@mattermost/types/integrations';
+import type {Command, OutgoingOAuthConnection} from '@mattermost/types/integrations';
+import type {IDMappedObjects} from '@mattermost/types/src/utilities';
 import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions.js';
@@ -20,16 +21,20 @@ export type Props = {
     */
     team: Team;
 
+    outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
+
     actions: {
 
         /**
         * The function to call to add new command
         */
         addCommand: (command: Command) => Promise<ActionResult<Command>>;
+
+        getOutgoingOAuthConnections: () => void;
     };
 };
 
-const AddCommand = ({team, actions}: Props) => {
+const AddCommand = ({team, actions, outgoingOAuthConnections}: Props) => {
     const history = useHistory();
     const {formatMessage} = useIntl();
     const headerMessage = formatMessage({id: ('integrations.add'), defaultMessage: 'Add'}) as MessageDescriptor;
@@ -59,6 +64,8 @@ const AddCommand = ({team, actions}: Props) => {
             loading={loadingMessage}
             action={addCommand}
             serverError={serverError}
+            outgoingOAuthConnections={outgoingOAuthConnections}
+            getOutgoingOAuthConnections={actions.getOutgoingOAuthConnections}
         />
     );
 };
