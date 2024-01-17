@@ -65,8 +65,7 @@ export type TableMeta = {
     onPreviousPageClick?: () => void;
     onNextPageClick?: () => void;
     paginationInfo?: ReactNode;
-    totalRowInfo?: ReactNode;
-    hasAdditionalPaginationAtTop?: boolean;
+    hasDualSidedPagination?: boolean;
 };
 
 interface TableMandatoryTypes {
@@ -125,16 +124,17 @@ export function ListTable<TableType extends TableMandatoryTypes>(
     return (
         <div className='adminConsoleListTableContainer'>
             <div className='adminConsoleListTabletOptionalHead'>
-                {tableMeta.totalRowInfo}
-                {tableMeta.hasAdditionalPaginationAtTop && (
-                    <Pagination
-                        disablePrevPage={tableMeta.disablePrevPage}
-                        disableNextPage={tableMeta.disableNextPage}
-                        isLoading={tableMeta.loadingState === LoadingStates.Loading}
-                        onPreviousPageClick={tableMeta.onPreviousPageClick}
-                        onNextPageClick={tableMeta.onNextPageClick}
-                        paginationInfo={tableMeta.paginationInfo}
-                    />
+                {tableMeta.hasDualSidedPagination && (
+                    <>
+                        {tableMeta.paginationInfo}
+                        <Pagination
+                            disablePrevPage={tableMeta.disablePrevPage}
+                            disableNextPage={tableMeta.disableNextPage}
+                            isLoading={tableMeta.loadingState === LoadingStates.Loading}
+                            onPreviousPageClick={tableMeta.onPreviousPageClick}
+                            onNextPageClick={tableMeta.onNextPageClick}
+                        />
+                    </>
                 )}
             </div>
             <table
@@ -300,6 +300,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 </tfoot>
             </table>
             <div className='adminConsoleListTabletOptionalFoot'>
+                {tableMeta.paginationInfo}
                 {handlePageSizeChange && (
                     <div
                         className='adminConsoleListTablePageSize'
@@ -344,7 +345,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     isLoading={tableMeta.loadingState === LoadingStates.Loading}
                     onPreviousPageClick={tableMeta.onPreviousPageClick}
                     onNextPageClick={tableMeta.onNextPageClick}
-                    paginationInfo={tableMeta.paginationInfo}
                 />
             </div>
         </div>

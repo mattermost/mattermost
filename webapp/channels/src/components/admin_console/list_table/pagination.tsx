@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 
 import type {TableMeta} from './list_table';
 
-interface Props extends Pick<TableMeta, 'onPreviousPageClick' | 'onNextPageClick' | 'disablePrevPage' | 'disableNextPage' | 'paginationInfo'> {
+interface Props extends Pick<TableMeta, 'onPreviousPageClick' | 'onNextPageClick' | 'disablePrevPage' | 'disableNextPage'> {
     isLoading?: boolean;
 }
 
@@ -15,7 +15,6 @@ export function Pagination(props: Props) {
 
     return (
         <div className='paginationButtons'>
-            {props.paginationInfo}
             {props.onPreviousPageClick && (
                 <button
                     className='btn btn-icon btn-sm'
