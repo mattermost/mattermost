@@ -343,13 +343,11 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	c.LogAudit("attempt")
 
 	if !checkOutgoingOAuthConnectionWritePermissions(c) {
-		w.WriteHeader(c.Err.StatusCode)
 		return
 	}
 
 	service, ok := ensureOutgoingOAuthConnectionInterface(c, whereOutgoingOAuthConnection)
 	if !ok {
-		w.WriteHeader(http.StatusNotImplemented)
 		return
 	}
 
