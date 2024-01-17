@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ChangeEvent} from 'react';
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -17,6 +17,7 @@ import './system_users_search.scss';
 export function SystemUsersSearch() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const timeout = useRef<NodeJS.Timeout>();
 
     const initialValue = useSelector(getAdminConsoleUserManagementTableProperties).searchTerm;
     const [inputValue, setInputValue] = useState(initialValue);
@@ -25,11 +26,15 @@ export function SystemUsersSearch() {
         const {target: {value}} = event;
         setInputValue(value);
 
-        dispatch(setAdminConsoleUsersManagementTableProperties({searchTerm: value}));
+        clearTimeout(timeout.current);
+        timeout.current = setTimeout(() => {
+            dispatch(setAdminConsoleUsersManagementTableProperties({searchTerm: value}));
+        }, 500);
     }
 
     function handleClear() {
         setInputValue('');
+        dispatch(setAdminConsoleUsersManagementTableProperties({searchTerm: ''}));
     }
 
     return (
