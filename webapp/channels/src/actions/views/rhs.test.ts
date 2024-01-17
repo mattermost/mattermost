@@ -170,15 +170,6 @@ describe('rhs view actions', () => {
             root_id: 'root123',
         } as Post;
 
-        /*test('it dispatches PostActions.getPostThread correctly', () => {
-            store.dispatch(selectPostFromRightHandSideSearch(post));
-
-            const compareStore = mockStore(initialState);
-            compareStore.dispatch(PostActions.getPostThread(post.root_id));
-
-            expect(store.getActions()[0]).toEqual(compareStore.getActions()[0]);
-        });*/
-
         describe(`it dispatches ${ActionTypes.SELECT_POST} correctly`, () => {
             it('with mocked date', async () => {
                 store = mockStore({
