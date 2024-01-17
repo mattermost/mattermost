@@ -56,7 +56,7 @@ export function getDataRetentionPolicy(): ActionFunc {
     };
 }
 
-export function getLicenseConfig(): ActionFunc {
+export function getLicenseConfig() {
     return bindClientFunc({
         clientFunc: Client4.getClientLicenseOld,
         onSuccess: [GeneralTypes.CLIENT_LICENSE_RECEIVED],
