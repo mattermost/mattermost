@@ -174,8 +174,11 @@ func (rc *RemoteCluster) IsPlugin() bool {
 
 func (rc *RemoteCluster) GetSiteURL() string {
 	siteURL := rc.SiteURL
+	if strings.HasPrefix(siteURL, SiteURLPending) {
+		siteURL = "..."
+	}
 	if strings.HasPrefix(siteURL, SiteURLPending) || strings.HasPrefix(siteURL, SiteURLPlugin) {
-		siteURL = ""
+		siteURL = "plugin"
 	}
 	return siteURL
 }

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -42,6 +42,14 @@ import BillingSummary from '../billing_summary';
 import PlanDetails from '../plan_details';
 
 import './billing_subscriptions.scss';
+
+const messages = defineMessages({
+    title: {id: 'admin.billing.subscription.title', defaultMessage: 'Subscription'},
+});
+
+export const searchableStrings = [
+    messages.title,
+];
 
 const BillingSubscriptions = () => {
     const dispatch = useDispatch<DispatchFunc>();
@@ -114,10 +122,7 @@ const BillingSubscriptions = () => {
     return (
         <div className='wrapper--fixed BillingSubscriptions'>
             <AdminHeader>
-                <FormattedMessage
-                    id='admin.billing.subscription.title'
-                    defaultMessage='Subscription'
-                />
+                <FormattedMessage {...messages.title}/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>

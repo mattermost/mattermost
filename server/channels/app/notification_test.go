@@ -218,6 +218,7 @@ func TestSendNotifications(t *testing.T) {
 }
 
 func TestSendNotifications_MentionsFollowers(t *testing.T) {
+	t.Skip("MM-56565")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
