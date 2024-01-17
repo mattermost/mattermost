@@ -10,11 +10,8 @@ import {Link} from 'react-router-dom';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
-import {Permissions} from 'mattermost-redux/constants';
-
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import FormError from 'components/form_error';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import SpinnerButton from 'components/spinner_button';
 
 import {localizeMessage} from 'utils/utils';

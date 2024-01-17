@@ -79,6 +79,7 @@ type Props = {
     enableOutgoingWebhooks: boolean;
     enableCommands: boolean;
     enableOAuthServiceProvider: boolean;
+    enableOutgoingOAuthConnections: boolean;
     canCreateOrDeleteCustomEmoji: boolean;
     canManageIntegrations: boolean;
 }
@@ -119,6 +120,7 @@ const BackstageController = (props: Props) => {
                     enableOutgoingWebhooks={props.enableOutgoingWebhooks}
                     enableCommands={props.enableCommands}
                     enableOAuthServiceProvider={props.enableOAuthServiceProvider}
+                    enableOutgoingOAuthConnections={props.enableOutgoingOAuthConnections}
                     canCreateOrDeleteCustomEmoji={props.canCreateOrDeleteCustomEmoji}
                     canManageIntegrations={props.canManageIntegrations}
                 />

@@ -27,6 +27,7 @@ type Props = {
     enableOutgoingWebhooks: boolean;
     enableCommands: boolean;
     enableOAuthServiceProvider: boolean;
+    enableOutgoingOAuthConnections: boolean;
     team: Team;
 }
 
@@ -149,6 +150,33 @@ export default class Integrations extends React.PureComponent <Props> {
                             />
                         }
                         link={'/' + this.props.team.name + '/integrations/oauth2-apps'}
+                    />
+                </SystemPermissionGate>,
+            );
+        }
+
+        if (this.props.enableOutgoingOAuthConnections) {
+            options.push(
+                <SystemPermissionGate
+                    permissions={[Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]}
+                    key='outgoingOAuthConnectionsPermission'
+                >
+                    <IntegrationOption
+                        key='outgoingOAuthConnections'
+                        image={OAuthIcon}
+                        title={
+                            <FormattedMessage
+                                id='integrations.outgoingOAuthConnections.title'
+                                defaultMessage='Outgoing OAuth Connections'
+                            />
+                        }
+                        description={
+                            <FormattedMessage
+                                id='integrations.outgoingOAuthConnections.description'
+                                defaultMessage='Outgoing OAuth Connections allow custom integrations to communicate to external systems using OAuth client credentials or password credentials grant types.'
+                            />
+                        }
+                        link={'/' + this.props.team.name + '/integrations/outgoing-oauth2-connections'}
                     />
                 </SystemPermissionGate>,
             );

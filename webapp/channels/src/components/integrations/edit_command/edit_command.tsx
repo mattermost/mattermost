@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
-import type {IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 

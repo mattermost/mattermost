@@ -23,6 +23,7 @@ type Props = {
     enableOutgoingWebhooks: boolean;
     enableCommands: boolean;
     enableOAuthServiceProvider: boolean;
+    enableOutgoingOAuthConnections: boolean;
     canCreateOrDeleteCustomEmoji: boolean;
     canManageIntegrations: boolean;
 }
@@ -156,9 +157,9 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
             </SystemPermissionGate>
         );
 
-        let outgoingOauthConnections: JSX.Element | null = null;
-        if (this.props.enableOAuthServiceProvider) {
-            outgoingOauthConnections = (
+        let outgoingOAuthConnections: JSX.Element | null = null;
+        if (this.props.enableOutgoingOAuthConnections) {
+            outgoingOAuthConnections = (
                 <SystemPermissionGate permissions={[Permissions.MANAGE_OAUTH]}>
                     <BackstageSection
                         name='outgoing-oauth2-connections'
@@ -192,7 +193,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
                 {commands}
                 {oauthApps}
                 {botAccounts}
-                {outgoingOauthConnections}
+                {outgoingOAuthConnections}
             </BackstageCategory>
         );
     }

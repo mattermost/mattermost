@@ -8,7 +8,6 @@ import {Link} from 'react-router-dom';
 
 import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';

@@ -8,13 +8,10 @@ import {Link} from 'react-router-dom';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
-import CopyText from 'components/copy_text';
 import FormError from 'components/form_error';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import DeleteIntegrationLink from '../delete_integration_link';
-
-const FAKE_SECRET = '***************';
 
 export function matchesFilter(outgoingOAuthConnection: OutgoingOAuthConnection, filter?: string | null): boolean {
     if (!filter) {
