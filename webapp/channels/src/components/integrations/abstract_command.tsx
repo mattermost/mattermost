@@ -5,11 +5,10 @@ import React from 'react';
 import type {ChangeEvent} from 'react';
 import {FormattedMessage, type MessageDescriptor, injectIntl, type IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
-import ReactSelect from 'react-select';
 
-import type {Command, OutgoingOAuthConnection} from '@mattermost/types/integrations';
-import type {IDMappedObjects} from '@mattermost/types/utilities';
+import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
+import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import ExternalLink from 'components/external_link';
@@ -18,6 +17,8 @@ import SpinnerButton from 'components/spinner_button';
 
 import {Constants, DeveloperLinks} from 'utils/constants';
 import * as Utils from 'utils/utils';
+
+import OAuthConnectionAudienceInput from './outgoing_oauth_connections/oauth_connection_audience_input';
 
 const REQUEST_POST = 'P';
 const REQUEST_GET = 'G';
@@ -59,10 +60,6 @@ type Props = {
     */
     initialCommand?: Partial<Command>;
 
-    outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
-
-    getOutgoingOAuthConnections: () => void;
-
     /**
     * The async function to run when the action button is pressed
     */
@@ -91,10 +88,6 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
         super(props);
 
         this.state = this.getStateFromCommand(this.props.initialCommand || {});
-    }
-
-    componentDidMount() {
-        this.props.getOutgoingOAuthConnections();
     }
 
     getStateFromCommand = (command: Props['initialCommand']): State => {
@@ -322,71 +315,6 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
         });
     };
 
-    renderRequestURLInput = () => {
-        const oauthConnections = Object.values(this.props.outgoingOAuthConnections);
-
-        if (!oauthConnections.length) {
-            return (
-                <input
-                    id='url'
-                    type='text'
-                    maxLength={1024}
-                    className='form-control'
-                    value={this.state.url}
-                    onChange={this.updateUrl}
-                    placeholder={this.props.intl.formatMessage({
-                        id: 'add_command.url.placeholder',
-                        defaultMessage: 'Must start with http:// or https://',
-                    })}
-                />
-            );
-        }
-
-        const reactStyles = {
-            menuPortal: (provided: React.CSSProperties) => ({
-                ...provided,
-                zIndex: 9999,
-            }),
-        };
-
-        const options = Array.from(new Set(Object.values(this.props.outgoingOAuthConnections).map((conn) => conn.audiences).flat())).map((audience) => ({
-            label: audience,
-            value: audience,
-        }));
-
-        const handleChange = (option?: {label: string; value: string}, ...args) => {
-            this.setState({url: option?.value || ''});
-        };
-
-        const handleInputChange = (value, {action}) => {
-            if (action !== 'input-change') {
-                return;
-            }
-
-            this.setState({url: value});
-        }
-
-        return (
-            <ReactSelect
-                className='react-select react-select-top'
-                classNamePrefix='react-select'
-                id='displayTimezone'
-                menuPortalTarget={document.body}
-                styles={reactStyles}
-                options={options}
-                clearable={false}
-                inputValue={this.state.url}
-                onInputChange={handleInputChange}
-                onChange={handleChange}
-                value={undefined}
-                components={{
-                    DropdownIndicator: null,
-                    IndicatorSeparator: null,
-                }}
-            />
-        );
-    };
-
     render() {
         let autocompleteHint = null;
         let autocompleteDescription = null;
@@ -598,7 +526,14 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                 />
                             </label>
                             <div className='col-md-5 col-sm-8'>
-                                {this.renderRequestURLInput()}
+                                <OAuthConnectionAudienceInput
+                                    value={this.state.url}
+                                    onChange={this.updateUrl}
+                                    placeholder={this.props.intl.formatMessage({
+                                        id: 'add_command.url.placeholder',
+                                        defaultMessage: 'Must start with http:// or https://',
+                                    })}
+                                />
                                 <div className='form__help'>
                                     <FormattedMessage
                                         id='add_command.url.help'

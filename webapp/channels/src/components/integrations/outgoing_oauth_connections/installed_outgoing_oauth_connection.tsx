@@ -190,7 +190,6 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                     <strong className='item-details__name'>
                         {name}
                     </strong>
-                    <span style={{marginLeft: '5px'}} />
                     {actions}
                 </div>
                 {errorComponent}

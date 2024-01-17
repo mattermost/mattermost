@@ -7,9 +7,9 @@ import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
-import {editCommand, getCustomTeamCommands, getOutgoingOAuthConnections as fetchOutgoingOAuthConnections} from 'mattermost-redux/actions/integrations';
+import {editCommand, getCustomTeamCommands} from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCommands, getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
+import {getCommands} from 'mattermost-redux/selectors/entities/integrations';
 
 import EditCommand from './edit_command';
 
@@ -17,26 +17,15 @@ type Props = {
     location: Location;
 }
 
-let lastValue;
-
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const config = getConfig(state);
     const commandId = (new URLSearchParams(ownProps.location.search)).get('id');
     const enableCommands = config.EnableCommands === 'true';
 
-    const x = getOutgoingOAuthConnections(state);
-    if (x !== lastValue) {
-        debugger;
-        const y = getOutgoingOAuthConnections(state);
-        lastValue = x;
-    }
-
-
     return {
         commandId,
         commands: getCommands(state),
         enableCommands,
-        outgoingOAuthConnections: getOutgoingOAuthConnections(state),
     };
 }
 
@@ -45,7 +34,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getCustomTeamCommands,
             editCommand,
-            getOutgoingOAuthConnections: fetchOutgoingOAuthConnections,
         }, dispatch),
     };
 }
