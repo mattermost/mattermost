@@ -23,7 +23,7 @@ const Title = () => {
             placement='top'
         >
             <span>
-                <ExternalLink href='https://docs.mattermost.com/configure/reporting-configuration-settings.html#site-statistics'>
+                <ExternalLink href='https://mattermost.com/pl/site-statistics-definitions'>
                     {intl.formatMessage(messages.totalUsers)}
                     <InformationOutlineIcon size='16'/>
                 </ExternalLink>
