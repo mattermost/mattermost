@@ -32,7 +32,7 @@ type Props = {
     fileRetentionHours: string | undefined;
     environmentConfig: Partial<EnvironmentConfig>;
     actions: {
-        updateConfig: (config: Record<string, any>) => Promise<ActionResult>;
+        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
 };
