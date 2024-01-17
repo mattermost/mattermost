@@ -243,7 +243,10 @@ table.adminConsoleListTable {
         display: flex;
         flex-direction: row;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-end;
+        flex-grow: 1;
+        justify-self: flex-end;
+        margin-inline-end: 12px;
 
         & > .react-select {
             min-width: 72px;
