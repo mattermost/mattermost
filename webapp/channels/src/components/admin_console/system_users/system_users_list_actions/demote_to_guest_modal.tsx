@@ -27,8 +27,9 @@ export default function DemoteToGuestModal({user, onExited, onSuccess, onError}:
         const {error} = await dispatch(demoteUserToGuest(user.id));
         if (error) {
             onError(error);
+        } else {
+            onSuccess();
         }
-        onSuccess();
         close();
     }
 

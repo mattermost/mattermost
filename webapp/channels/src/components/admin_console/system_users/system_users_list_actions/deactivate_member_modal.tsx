@@ -35,8 +35,9 @@ export default function DeactivateMemberModal({user, onExited, onSuccess, onErro
         const {error} = await dispatch(updateUserActive(user.id, false));
         if (error) {
             onError(error);
+        } else {
+            onSuccess();
         }
-        onSuccess();
         closeModal();
     }
 

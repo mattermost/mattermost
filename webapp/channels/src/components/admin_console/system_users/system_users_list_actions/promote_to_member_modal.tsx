@@ -27,9 +27,9 @@ export default function PromoteToMemberModal({user, onExited, onSuccess, onError
         const {error} = await dispatch(promoteGuestToUser(user.id));
         if (error) {
             onError(error);
+        } else {
+            onSuccess();
         }
-
-        onSuccess();
         close();
     }
 
