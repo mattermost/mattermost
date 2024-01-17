@@ -28,7 +28,7 @@
     "async": "3.2.5",
     "authenticator": "1.1.5",
     "axios": "1.6.5",
-    "axios-retry": "4.0.0",
+    "axios-retry": "3.8.0",
     "chai": "5.0.0",
     "chalk": "4.1.2",
     "client-oauth2": "github:larkox/js-client-oauth2#e24e2eb5dfcbbbb3a59d095e831dbe0012b0ac49",
