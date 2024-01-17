@@ -49,16 +49,6 @@ function SystemUsers(props: Props) {
     const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
 
-    // Effect to get the total user count
-    useEffect(() => {
-        const getUserCount = async () => {
-            const {data} = await props.getUserCountForReporting({});
-            setUserCount(data);
-        };
-
-        getUserCount();
-    }, []);
-
     // Effect to get the user reports
     useEffect(() => {
         async function fetchUserReportsWithOptions(tableOptions?: {
