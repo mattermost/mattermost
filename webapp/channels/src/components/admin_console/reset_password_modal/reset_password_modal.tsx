@@ -28,6 +28,7 @@ type State = {
 export type Props = {
     user?: UserProfile;
     currentUserId: string;
+    onSuccess?: () => void;
     onExited: () => void;
     passwordConfig: PasswordConfig;
     actions: {
@@ -95,6 +96,7 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
             this.setState({serverErrorCurrentPass: result.error.message});
             return;
         }
+        this.props.onSuccess?.();
         this.setState({show: false});
     };
 

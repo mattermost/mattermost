@@ -24,7 +24,8 @@ table.systemUsersTable {
                 grid-auto-flow: row;
                 grid-template-areas:
                     "profilePictureContainer displayName"
-                    "profilePictureContainer userName";
+                    "profilePictureContainer userName"
+                    "profilePictureContainer error";
                 grid-template-columns: calc($profilePictureSize + 16px) 1fr;
                 grid-template-rows: 1fr 1fr;
 
@@ -54,6 +55,13 @@ table.systemUsersTable {
                 .userName {
                     align-self: start;
                     grid-area: userName;
+
+                    @include textElipsis;
+                }
+
+                .error {
+                    align-self: start;
+                    grid-area: error;
 
                     @include textElipsis;
                 }

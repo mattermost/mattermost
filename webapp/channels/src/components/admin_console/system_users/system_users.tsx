@@ -33,6 +33,8 @@ import type {PropsFromRedux} from './index';
 
 type Props = PropsFromRedux;
 
+type UserReportWithError = UserReport & {error?: ServerError};
+
 const tableId = 'systemUsersTable';
 
 const messages = defineMessages({
@@ -45,7 +47,7 @@ function SystemUsers(props: Props) {
     const {formatMessage} = useIntl();
     const history = useHistory();
 
-    const [userReports, setUserReports] = useState<UserReport[]>([]);
+    const [userReports, setUserReports] = useState<UserReportWithError[]>([]);
     const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
 
@@ -185,10 +187,18 @@ function SystemUsers(props: Props) {
         });
     }
 
-    function handleUserRowActionsModalError(error: ServerError) {
-        // TODO: Some kind of error handling for actions
-        // eslint-disable-next-line no-console
-        console.error(error);
+    function updateUserReport(userId: string, updatedReport: Partial<UserReportWithError>) {
+        setUserReports(userReports.map((user) => {
+            if (user.id === userId) {
+                return {
+                    ...user,
+                    error: undefined,
+                    ...updatedReport,
+                };
+            }
+
+            return user;
+        }));
     }
 
     const columns: Array<ColumnDef<UserReport, any>> = useMemo(
@@ -200,7 +210,7 @@ function SystemUsers(props: Props) {
                     id: 'admin.system_users.list.userDetails',
                     defaultMessage: 'User details',
                 }),
-                cell: (info: CellContext<UserReport, null>) => {
+                cell: (info: CellContext<UserReportWithError, null>) => {
                     return (
                         <div>
                             <div className='profilePictureContainer'>
@@ -222,6 +232,13 @@ function SystemUsers(props: Props) {
                             >
                                 {info.row.original.username}
                             </div>
+                            {info.row.original.error &&
+                            <div
+                                className='error'
+                                title={info.row.original.error.message}
+                            >
+                                {info.row.original.error.message}
+                            </div>}
                         </div>
                     );
                 },
@@ -332,7 +349,8 @@ function SystemUsers(props: Props) {
                         tableId={tableId}
                         user={info.row.original}
                         currentUser={props.currentUser}
-                        onError={handleUserRowActionsModalError}
+                        updateUser={(updatedUser) => updateUserReport(info.row.original.id, updatedUser)}
+                        onError={(error) => updateUserReport(info.row.original.id, {error})}
                     />
                 ),
                 enableHiding: false,
@@ -340,7 +358,7 @@ function SystemUsers(props: Props) {
                 enableSorting: false,
             },
         ],
-        [props.currentUser],
+        [props.currentUser, userReports],
     );
 
     // Table state which are correctly formatted for the table component

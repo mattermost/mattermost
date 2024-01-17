@@ -20,10 +20,11 @@ import Constants from 'utils/constants';
 type Props = {
     user: UserProfile;
     onExited: () => void;
+    onSuccess: () => void;
     onError: (error: ServerError) => void;
 }
 
-export default function DeactivateMemberModal({user, onExited, onError}: Props) {
+export default function DeactivateMemberModal({user, onExited, onSuccess, onError}: Props) {
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
     const bots = useSelector(getExternalBotAccounts);
@@ -35,6 +36,7 @@ export default function DeactivateMemberModal({user, onExited, onError}: Props) 
         if (error) {
             onError(error);
         }
+        onSuccess();
         closeModal();
     }
 
