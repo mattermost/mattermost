@@ -637,7 +637,7 @@ export function escapeRegex(text?: string): string {
     return text?.replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&') || '';
 }
 
-export function escapeReplaceEspecialPatterns(text?: string): string {
+export function escapeReplaceSpecialPatterns(text?: string): string {
     return text?.replace(/[$]/g, '$$$$') || '';
 }
 
@@ -1045,7 +1045,7 @@ export function replaceTokens(text: string, tokens: Tokens): string {
     for (let i = aliases.length - 1; i >= 0; i--) {
         const alias = aliases[i];
         const token = tokens.get(alias);
-        output = output.replace(alias, escapeReplaceEspecialPatterns(token?.value || ''));
+        output = output.replace(alias, escapeReplaceSpecialPatterns(token?.value || ''));
     }
 
     return output;
