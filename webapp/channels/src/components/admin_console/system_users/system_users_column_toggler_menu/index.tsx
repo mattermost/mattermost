@@ -158,11 +158,10 @@ export function SystemUsersColumnTogglerMenu(props: Props) {
                         <Menu.Item
                             key={column.id}
                             id={column.id}
+                            role='menuitemcheckbox'
                             labels={getColumnName(column.id)}
                             disabled={!column.getCanHide()}
                             leadingElement={leadingElement}
-                            antipattern__blockClosingOnClick={true}
-                            antipattern__executeOnClickImmediately={true}
                             onClick={column.getToggleVisibilityHandler()}
                         />
                     );

@@ -13,7 +13,9 @@ import type {
     ReactElement,
     ReactNode,
     KeyboardEvent,
-    MouseEvent} from 'react';
+    MouseEvent,
+    AriaRole,
+} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
@@ -79,17 +81,7 @@ export interface Props extends MuiMenuItemProps {
 
     onClick?: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
-    /**
-     * If true, clicking on the menu item will not close the menu.
-     * @warning This is a rare UX pattern and should be used sparingly as it breaks a lot of menu/submenu auto closing logic.
-     */
-    antipattern__blockClosingOnClick?: boolean;
-
-    /**
-     * If true, the onClick handler will be executed immediately instead of waiting for the menu to close.
-     * @warning This is a rare UX pattern and should be used sparingly as it breaks a lot of menu/submenu auto closing logic.
-     */
-    antipattern__executeOnClickImmediately?: boolean;
+    role?: AriaRole;
 
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
@@ -124,6 +116,7 @@ export function MenuItem(props: Props) {
         isLabelsRowLayout,
         children,
         onClick,
+        role = 'menuitem',
         ...otherProps
     } = props;
 
@@ -134,7 +127,9 @@ export function MenuItem(props: Props) {
 
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
-            if (props.antipattern__blockClosingOnClick) {
+            // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
+            // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
+            if (isRoleCheckboxOrRadio(role)) {
                 event.stopPropagation();
             } else {
                 // close submenu first if it is open
@@ -149,8 +144,9 @@ export function MenuItem(props: Props) {
             }
 
             if (onClick) {
-                if (isMobileView || props.antipattern__executeOnClickImmediately) {
-                    // If the menu is in mobile view, we execute the click event immediately.
+                // If the menu is in mobile view, we execute the click event immediately.
+                // If the menu item is a checkbox or radio button, we execute the click event immediately.
+                if (isMobileView || isRoleCheckboxOrRadio(role)) {
                     onClick(event);
                 } else {
                     // Clone the event since we delay the click handler until after the menu has closed.
@@ -176,6 +172,7 @@ export function MenuItem(props: Props) {
             isLabelsRowLayout={isLabelsRowLayout}
             onClick={handleClick}
             onKeyDown={handleClick}
+            role={role}
             {...otherProps}
         >
             {leadingElement && <div className='leading-element'>{leadingElement}</div>}
@@ -192,7 +189,7 @@ interface MenuItemStyledProps extends MuiMenuItemProps {
     isLabelsRowLayout?: boolean;
 }
 
-const MenuItemStyled = styled(MuiMenuItem, {
+export const MenuItemStyled = styled(MuiMenuItem, {
     shouldForwardProp: (prop) => prop !== 'isDestructive' &&
         prop !== 'hasSecondaryLabel' && prop !== 'isLabelsRowLayout',
 })<MenuItemStyledProps>(
@@ -323,3 +320,8 @@ function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | Keyboa
 
     return false;
 }
+
+function isRoleCheckboxOrRadio(role: AriaRole) {
+    return role === 'menuitemcheckbox' || role === 'menuitemradio';
+}
+
