@@ -1060,6 +1060,10 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		}
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		defer func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		}()
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		httpRecorder := httptest.NewRecorder()
@@ -1070,6 +1074,46 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		handler.ServeHTTP(httpRecorder, req)
 
 		require.Equal(t, http.StatusForbidden, c.Err.StatusCode)
+	})
+
+	t.Run("no interface", func(t *testing.T) {
+		c := &Context{}
+		c.AppContext = th.Context
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		req, err := http.NewRequest("POST", "/", nil)
+		if err != nil {
+			t.Error(err)
+		}
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c.AppContext = th.Context.WithSession(&session)
+
+		defaultRolePermissions := th.SaveDefaultRolePermissions()
+		defer func() {
+			th.RestoreDefaultRolePermissions(defaultRolePermissions)
+		}()
+		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		defer func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		}()
+		th.App.Srv().OutgoingOAuthConnection = nil
+
+		httpRecorder := httptest.NewRecorder()
+		handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			validateOutgoingOAuthConnectionCredentials(c, w, r)
+		})
+
+		handler.ServeHTTP(httpRecorder, req)
+
+		require.Equal(t, http.StatusNotImplemented, c.Err.StatusCode)
 	})
 
 	t.Run("invalid", func(t *testing.T) {
@@ -1103,6 +1147,10 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		}
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		defer func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		}()
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, "error", http.StatusBadRequest))
 
@@ -1148,6 +1196,10 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		}
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		defer func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		}()
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, nil)
 
@@ -1196,6 +1248,10 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 		}
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		defer func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		}()
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("GetConnection", c.AppContext, conn.Id).Return(conn, nil)
 		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, nil)

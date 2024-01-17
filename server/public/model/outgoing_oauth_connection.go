@@ -59,6 +59,10 @@ func (oa *OutgoingOAuthConnection) Sanitize() {
 
 // Patch updates the OutgoingOAuthConnection object with the non-empty fields from the given connection.
 func (oa *OutgoingOAuthConnection) Patch(conn *OutgoingOAuthConnection) {
+	if conn == nil {
+		return
+	}
+
 	if conn.Name != "" {
 		oa.Name = conn.Name
 	}
@@ -119,7 +123,7 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.oauth_token_url.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if err := oa.HaveValidGrantType(); err != nil {
+	if err := oa.HasValidGrantType(); err != nil {
 		return err
 	}
 
@@ -138,8 +142,8 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 	return nil
 }
 
-// HaveValidGrantType validates the grant type and its parameters returning an error if it isn't properly configured
-func (oa *OutgoingOAuthConnection) HaveValidGrantType() *AppError {
+// HasValidGrantType validates the grant type and its parameters returning an error if it isn't properly configured
+func (oa *OutgoingOAuthConnection) HasValidGrantType() *AppError {
 	if !oa.GrantType.IsValid() {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.grant_type.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
