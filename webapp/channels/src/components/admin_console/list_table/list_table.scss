@@ -252,9 +252,9 @@ table.adminConsoleListTable {
     .adminConsoleListTablePageSize {
         display: flex;
         flex-direction: row;
+        flex-grow: 1;
         align-items: center;
         justify-content: flex-end;
-        flex-grow: 1;
         justify-self: flex-end;
         margin-inline-end: 12px;
 
