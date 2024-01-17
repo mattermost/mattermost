@@ -559,23 +559,43 @@ func (s *Server) doElasticsearchFixChannelIndex(c request.CTX) {
 		s.elasticsearchFixChannelIndex(c, newLicense)
 	})
 
+	s.Platform().AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+		oldEnableAutocomplete := *oldConfig.ElasticsearchSettings.EnableAutocomplete
+		newEnableAutocomplete := *newConfig.ElasticsearchSettings.EnableAutocomplete
+
+		if oldEnableAutocomplete == false && newEnableAutocomplete == true {
+			s.elasticsearchFixChannelIndex(c, s.License())
+		}
+	})
+
 	s.elasticsearchFixChannelIndex(c, s.License())
 }
 
 func (s *Server) elasticsearchFixChannelIndex(c request.CTX, license *model.License) {
-	if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
-		mlog.Debug("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
+	//if model.BuildEnterpriseReady != "true" || license == nil || !*license.Features.Elasticsearch {
+	//	mlog.Debug("Skipping triggering Elasticsearch channel index fix job as build is not Enterprise ready")
+	//	return
+	//}
+	//
+	//// If the migration is already marked as completed, don't do it again.
+	//if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
+	//	mlog.Debug("Skipping triggering Elasticsearch channel index fix job as it is already marked completed in database")
+	//	return
+	//}
+	//
+	//if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
+	//	mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
+	//}
+
+	engine := s.Platform().SearchEngine.ElasticsearchEngine
+	if engine == nil {
 		return
 	}
 
-	// If the migration is already marked as completed, don't do it again.
-	if _, err := s.Store().System().GetByName(model.MigrationKeyElasticsearchFixChannelIndex); err == nil {
-		mlog.Debug("Skipping triggering Elasticsearch channel index fix job as it is already marked completed in database")
-		return
-	}
-
-	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeElasticsearchFixChannelIndex, nil); appErr != nil {
-		mlog.Fatal("failed to start job for fixing Elasticsearch channels index", mlog.Err(appErr))
+	if *s.Config().ElasticsearchSettings.EnableAutocomplete && !engine.IsAutocompletionEnabled() {
+		s.Platform().UpdateConfig(func(config *model.Config) {
+			config.ElasticsearchSettings.EnableAutocomplete = model.NewBool(false)
+		})
 	}
 }
 
