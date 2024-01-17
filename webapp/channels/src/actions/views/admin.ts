@@ -27,6 +27,7 @@ export function setAdminConsoleUsersManagementTableProperties(data?: Partial<Adm
     if (!data) {
         return {
             type: ActionTypes.CLEAR_ADMIN_CONSOLE_USER_MANAGEMENT_TABLE_PROPERTIES,
+            data: null,
         };
     }
 

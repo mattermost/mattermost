@@ -15,7 +15,7 @@ type Props = {
 
 // Repurpose for the new filter
 
-function SystemUsersFilterRole(props: Props) {
+export function SystemUsersFilterRole(props: Props) {
     const {formatMessage} = useIntl();
 
     function handleChange(e: ChangeEvent<HTMLSelectElement>) {
@@ -57,5 +57,3 @@ function SystemUsersFilterRole(props: Props) {
         </label>
     );
 }
-
-export default SystemUsersFilterRole;

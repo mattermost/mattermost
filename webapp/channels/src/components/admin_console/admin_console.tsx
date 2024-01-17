@@ -71,6 +71,9 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
         document.body.classList.remove('console__body');
         document.getElementById('root')?.classList.remove('console__root');
         applyTheme(this.props.currentTheme);
+
+        // Reset the admin console users management table properties
+        this.props.actions.setAdminConsoleUsersManagementTableProperties();
     }
 
     private onFilterChange = (filter: string) => {

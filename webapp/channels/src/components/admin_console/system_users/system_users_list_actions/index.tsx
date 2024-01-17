@@ -41,7 +41,7 @@ interface Props {
     onError: (error: ServerError) => void;
 }
 
-function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}: Props) {
+export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onError}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
@@ -360,5 +360,3 @@ function AdminConsoleListActions({user, currentUser, tableId, rowIndex, onError}
         </Menu.Container>
     );
 }
-
-export default AdminConsoleListActions;

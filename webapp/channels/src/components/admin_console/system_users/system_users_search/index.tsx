@@ -1,57 +1,48 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import debounce from 'lodash/debounce';
 import type {ChangeEvent} from 'react';
-import React, {useCallback, useEffect} from 'react';
+import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import Constants from 'utils/constants';
+import Input from 'components/widgets/inputs/input/input';
+
+import './system_users_search.scss';
 
 type Props = {
     value?: string;
-    onChange: ({searchTerm, teamId, filter}: {searchTerm?: string; teamId?: string; filter?: string}) => void;
-    onSearch: (value: string) => void;
 };
 
-// Repurpose for the new search
-
-function SystemUsersSearch(props: Props) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function SystemUsersSearch(props: Props) {
     const {formatMessage} = useIntl();
 
-    const debouncedSearch = useCallback(debounce((value: string) => {
-        props.onSearch(value);
-    }, Constants.SEARCH_TIMEOUT_MILLISECONDS), []);
+    const [inputValue, setInputValue] = useState(''); // TODO add the state from redux for putting back the term when the user navigates back to the page
 
-    useEffect(() => {
-        return () => {
-            debouncedSearch.cancel();
-        };
-    }, []);
+    function handleChange(event: ChangeEvent<HTMLInputElement>) {
+        const {target: {value}} = event;
+        setInputValue(value);
 
-    function handleChange(e: ChangeEvent<HTMLInputElement>) {
-        const searchTerm = e?.target?.value?.trim() ?? '';
-        props.onChange({searchTerm});
+        // TODO update the redux state for the search term but dont take that value as input value for smooth UX
+    }
 
-        if (searchTerm.length > 0) {
-            debouncedSearch(searchTerm);
-        }
+    function handleClear() {
+        setInputValue('');
     }
 
     return (
         <div className='system-users__filter'>
-            <input
-                id='searchUsers'
-                className='form-control filter-textbox'
-                placeholder={formatMessage({
-                    id: 'filtered_user_list.search',
-                    defaultMessage: 'Search users',
-                })}
-                value={props.value}
+            <Input
+                type='text'
+                clearable={true}
+                name='searchTerm' // TODO Change after backend is updated
+                containerClassName='systemUsersSearch'
+                placeholder={formatMessage({id: 'admin.system_users.search.placeholder', defaultMessage: 'Search users'})}
+                inputPrefix={<i className={'icon icon-magnify'}/>}
                 onChange={handleChange}
+                onClear={handleClear}
+                value={inputValue}
             />
         </div>
     );
 }
-
-export default SystemUsersSearch;

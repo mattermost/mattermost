@@ -16,7 +16,7 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import ConfirmModal from 'components/confirm_modal';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 
-function RevokeSessionsButton() {
+export function RevokeSessionsButton() {
     const dispatch = useDispatch();
 
     const [showModal, setShowModal] = useState(false);
@@ -73,5 +73,3 @@ function RevokeSessionsButton() {
         </SystemPermissionGate>
     );
 }
-
-export default RevokeSessionsButton;
