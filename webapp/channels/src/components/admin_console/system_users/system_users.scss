@@ -15,7 +15,7 @@ table.systemUsersTable {
 
     tbody {
         tr {
-            td.displayNameColumn > div {
+            td.usernameColumn > div {
                 $profilePictureSize: 40px;
 
                 display: grid;

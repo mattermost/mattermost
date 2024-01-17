@@ -33,6 +33,7 @@ function mapStateToProps(state: GlobalState) {
     const direction = tableProperties?.cursorDirection ?? adminConsoleUserManagementTablePropertiesInitialState.cursorDirection;
     const fromId = tableProperties?.cursorUserId ?? adminConsoleUserManagementTablePropertiesInitialState.cursorUserId;
     const fromColumnValue = tableProperties?.cursorColumnValue ?? adminConsoleUserManagementTablePropertiesInitialState.cursorColumnValue;
+    const columnVisibility = tableProperties?.columnVisibility ?? adminConsoleUserManagementTablePropertiesInitialState.columnVisibility;
 
     return {
         siteName,
@@ -47,6 +48,7 @@ function mapStateToProps(state: GlobalState) {
         tablePropertyCursorDirection: direction,
         tablePropertyCursorUserId: fromId,
         tablePropertyCursorColumnValue: fromColumnValue,
+        tablePropertyColumnVisibility: columnVisibility,
     };
 }
 

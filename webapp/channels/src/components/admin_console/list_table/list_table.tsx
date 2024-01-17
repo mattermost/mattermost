@@ -122,7 +122,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
     const rowCount = props.table.getRowModel().rows.length;
 
     return (
-        <>
+        <div className='adminConsoleListTableContainer'>
             <div className='adminConsoleListTabletOptionalHead'>
                 {tableMeta.hasDualSidedPagination && (
                     <>
@@ -347,7 +347,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     onNextPageClick={tableMeta.onNextPageClick}
                 />
             </div>
-        </>
+        </div>
     );
 }
 

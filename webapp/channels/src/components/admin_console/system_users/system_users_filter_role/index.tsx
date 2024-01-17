@@ -15,7 +15,7 @@ type Props = {
 
 // Repurpose for the new filter
 
-function SystemUsersFilterRole(props: Props) {
+export function SystemUsersFilterRole(props: Props) {
     const {formatMessage} = useIntl();
 
     function handleChange(e: ChangeEvent<HTMLSelectElement>) {
@@ -48,14 +48,12 @@ function SystemUsersFilterRole(props: Props) {
                     {formatMessage({id: 'admin.system_users.guest', defaultMessage: 'Guest'})}
                 </option>
                 <option value={UserFilters.ACTIVE}>
-                    {formatMessage({id: 'admin.system_users.active', defaultMessage: 'Active'})}
+                    {formatMessage({id: 'admin.system_users.active', defaultMessage: 'Activated'})}
                 </option>
                 <option value={UserFilters.INACTIVE}>
-                    {formatMessage({id: 'admin.system_users.inactive', defaultMessage: 'Inactive'})}
+                    {formatMessage({id: 'admin.system_users.inactive', defaultMessage: 'Deactivated'})}
                 </option>
             </select>
         </label>
     );
 }
-
-export default SystemUsersFilterRole;

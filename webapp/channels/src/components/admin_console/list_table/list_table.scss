@@ -1,3 +1,13 @@
+@mixin textElipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adminConsoleListTableContainer {
+    overflow: auto;
+}
+
 table.adminConsoleListTable {
     // This is rgba(var(--sys-center-channel-color-rgb), 0.08) but since we cannot use opacity
     // due to sticky row which shows the background thus a defined color is used
