@@ -34,7 +34,7 @@ export type UserReportFilter = {
     team_filter?: string,
     hide_active?: boolean,
     hide_inactive?: boolean,
-    searchTerm?: string,
+    search_term?: string,
 }
 
 export type UserReportOptions = UserReportFilter & {

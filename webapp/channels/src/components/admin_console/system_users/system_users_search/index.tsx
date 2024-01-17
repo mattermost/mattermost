@@ -4,26 +4,28 @@
 import type {ChangeEvent} from 'react';
 import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+
+import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
+import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
 import Input from 'components/widgets/inputs/input/input';
 
 import './system_users_search.scss';
 
-type Props = {
-    value?: string;
-};
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
-export function SystemUsersSearch(props: Props) {
+export function SystemUsersSearch() {
     const {formatMessage} = useIntl();
+    const dispatch = useDispatch();
 
-    const [inputValue, setInputValue] = useState(''); // TODO add the state from redux for putting back the term when the user navigates back to the page
+    const initialValue = useSelector(getAdminConsoleUserManagementTableProperties).searchTerm;
+    const [inputValue, setInputValue] = useState(initialValue);
 
     function handleChange(event: ChangeEvent<HTMLInputElement>) {
         const {target: {value}} = event;
         setInputValue(value);
 
-        // TODO update the redux state for the search term but dont take that value as input value for smooth UX
+        dispatch(setAdminConsoleUsersManagementTableProperties({searchTerm: value}));
     }
 
     function handleClear() {
@@ -35,7 +37,7 @@ export function SystemUsersSearch(props: Props) {
             <Input
                 type='text'
                 clearable={true}
-                name='searchTerm' // TODO Change after backend is updated
+                name='searchTerm'
                 containerClassName='systemUsersSearch'
                 placeholder={formatMessage({id: 'admin.system_users.search.placeholder', defaultMessage: 'Search users'})}
                 inputPrefix={<i className={'icon icon-magnify'}/>}

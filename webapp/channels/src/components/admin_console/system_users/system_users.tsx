@@ -68,6 +68,7 @@ function SystemUsers(props: Props) {
             fromColumnValue?: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
             fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
             direction?: CursorPaginationDirection;
+            searchTerm?: string;
         }) {
             setLoadingState(LoadingStates.Loading);
 
@@ -78,6 +79,7 @@ function SystemUsers(props: Props) {
                 direction: tableOptions?.direction,
                 ...getSortColumnForOptions(tableOptions?.sortColumn),
                 ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
+                search_term: tableOptions?.searchTerm,
             };
 
             const {data} = await props.getUserReports(options);
@@ -101,6 +103,7 @@ function SystemUsers(props: Props) {
             fromColumnValue: props.tablePropertyCursorColumnValue,
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
+            searchTerm: props.tablePropertySearchTerm,
         });
     }, [
         props.tablePropertyPageSize,
@@ -109,6 +112,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorDirection,
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
+        props.tablePropertySearchTerm,
     ]);
 
     // Handlers for table actions
