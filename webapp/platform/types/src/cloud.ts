@@ -51,6 +51,7 @@ export type Subscription = {
     billing_type?: string;
     cancel_at?: number;
     will_renew?: string;
+    simulated_current_time_ms?: number;
 }
 
 export type Product = {
