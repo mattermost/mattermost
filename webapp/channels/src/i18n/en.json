@@ -2446,7 +2446,7 @@
   "admin.system_users.exportButton": "Export",
   "admin.system_users.filtersMenu": "Filters ({count})",
   "admin.system_users.guest": "Guest",
-  "admin.system_users.inactive": "Inactive",
+  "admin.system_users.inactive": "Deactivated",
   "admin.system_users.list.actions": "Actions",
   "admin.system_users.list.actions.menu.activate": "Activate",
   "admin.system_users.list.actions.menu.deactivate": "Deactivate",
