@@ -59,6 +59,10 @@ func (oa *OutgoingOAuthConnection) Sanitize() {
 
 // Patch updates the OutgoingOAuthConnection object with the non-empty fields from the given connection.
 func (oa *OutgoingOAuthConnection) Patch(conn *OutgoingOAuthConnection) {
+	if conn == nil {
+		return
+	}
+
 	if conn.Name != "" {
 		oa.Name = conn.Name
 	}
