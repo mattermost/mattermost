@@ -3381,7 +3381,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "ID триггера для интерактивного диалога истек. ID триггеров действительны в течение максимум {{{.Duration}}."
+    "translation": "ID триггера для интерактивного диалога истек. ID триггеров действительны в течение максимум {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
