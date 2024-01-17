@@ -36,8 +36,6 @@ type FeatureFlags struct {
 
 	OnboardingTourTips bool
 
-	CloudReverseTrial bool
-
 	EnableExportDirectDownload bool
 
 	MoveThreadsEnabled bool
@@ -61,7 +59,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CallsEnabled = true
 	f.WysiwygEditor = false
 	f.OnboardingTourTips = true
-	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
 	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
