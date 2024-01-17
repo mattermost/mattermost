@@ -82,6 +82,9 @@ function SystemUsers(props: Props) {
                 search_term: tableOptions?.searchTerm,
             };
 
+            const {data: count} = await props.getUserCountForReporting(options);
+            setUserCount(count);
+
             const {data} = await props.getUserReports(options);
 
             if (data) {
