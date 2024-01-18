@@ -218,7 +218,6 @@ func TestSendNotifications(t *testing.T) {
 }
 
 func TestSendNotifications_MentionsFollowers(t *testing.T) {
-	t.Skip("MM-56565")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -229,11 +228,13 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	th.LinkUserToTeam(sender, th.BasicTeam)
 	member := th.AddUserToChannel(sender, th.BasicChannel)
 
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+
 	t.Run("should inform each user if they were mentioned by a post", func(t *testing.T) {
-		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
-		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		// First post mentioning the whole channel
@@ -313,10 +314,10 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		require.Nil(t, upsertErr)
 
 		// Set up the websockets
-		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
-		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		// Confirm permissions for group mentions are correct
@@ -343,10 +344,10 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	t.Run("should inform each user if they are following a thread that was posted in", func(t *testing.T) {
 		t.Log("BasicUser ", th.BasicUser.Id)
 		t.Log("sender ", sender.Id)
-		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
-		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		// Reply to a post made by BasicUser
@@ -371,10 +372,10 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	})
 
 	t.Run("should not include broadcast hook information in messages sent to users", func(t *testing.T) {
-		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
-		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		// For a post mentioning only one user, nobody in the channel should receive information about the broadcast hooks
@@ -398,7 +399,7 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	})
 
 	t.Run("should sanitize the post if there is an error", func(t *testing.T) {
-		messages, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
 		linkedPostId := "123456789"
@@ -441,7 +442,7 @@ func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
 	assert.JSONEq(t, string(val), actual.(string))
 }
 
-func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectionID string) (chan *model.WebSocketEvent, func()) {
+func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectionID string, eventTypes []model.WebsocketEventType) (chan *model.WebSocketEvent, func()) {
 	var session *model.Session
 	var server *httptest.Server
 	var webConn *platform.WebConn
@@ -457,6 +458,11 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 			appErr := th.App.RevokeSession(th.Context, session)
 			require.Nil(t, appErr)
 		}
+	}
+
+	eventTypesSet := make(map[model.WebsocketEventType]bool)
+	for _, eventType := range eventTypes {
+		eventTypesSet[eventType] = true
 	}
 
 	// Create a session for the user's connection
@@ -491,6 +497,10 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 				break
 			}
 
+			if !eventTypesSet[msg.EventType()] {
+				continue
+			}
+
 			messages <- msg
 		}
 	}))
@@ -516,13 +526,6 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 	// Start reading from it
 	go webConn.Pump()
 
-	// Read the events which always occur at the start of a WebSocket connection
-	received := <-messages
-	assert.Equal(t, model.WebsocketEventHello, received.EventType())
-
-	received = <-messages
-	assert.Equal(t, model.WebsocketEventStatusChange, received.EventType())
-
 	return messages, closeWS
 }
 
@@ -533,7 +536,7 @@ func TestConnectFakeWebSocket(t *testing.T) {
 	teamID := th.BasicTeam.Id
 	userID := th.BasicUser.Id
 
-	messages, closeWS := connectFakeWebSocket(t, th, userID, "")
+	messages, closeWS := connectFakeWebSocket(t, th, userID, "", []model.WebsocketEventType{model.WebsocketEventPosted, model.WebsocketEventPostEdited})
 	defer closeWS()
 
 	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, teamID, "", "", nil, "")
