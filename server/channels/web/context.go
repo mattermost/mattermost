@@ -408,6 +408,17 @@ func (c *Context) RequireChannelId() *Context {
 	return c
 }
 
+func (c *Context) RequireQ() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.Q) {
+		c.SetInvalidURLParam("q")
+	}
+	return c
+}
+
 func (c *Context) RequireUsername() *Context {
 	if c.Err != nil {
 		return c

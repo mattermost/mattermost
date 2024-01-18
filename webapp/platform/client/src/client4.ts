@@ -1919,31 +1919,38 @@ export default class Client4 {
         );
     };
 
-    createChannelBookmark = (channelId: string, channelBookmark: ChannelBookmarkCreate) => {
+    createChannelBookmark = (channelId: string, channelBookmark: ChannelBookmarkCreate, connectionId: string) => {
         return this.doFetch<ChannelBookmark>(
             `${this.getChannelBookmarksRoute(channelId)}`,
-            {method: 'post', body: JSON.stringify(channelBookmark)},
+            {method: 'post', body: JSON.stringify(channelBookmark), headers: {'Connection-Id': connectionId}},
         );
     };
 
-    deleteChannelBookmark = (channelId: string, channelBookmarkId: string) => {
+    deleteChannelBookmark = (channelId: string, channelBookmarkId: string, connectionId: string) => {
         return this.doFetch<void>(
             `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
-            {method: 'delete'},
+            {method: 'delete', headers: {'Connection-Id': connectionId}},
         );
     };
 
-    updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch) => {
-        return this.doFetch<{updated: ChannelBookmark}>(
+    updateChannelBookmark = (channelId: string, channelBookmarkId: string, patch: ChannelBookmarkPatch, connectionId: string) => {
+        return this.doFetch<{updated: ChannelBookmark; deleted: ChannelBookmark}>(
             `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
-            {method: 'PATCH', body: JSON.stringify(patch)},
+            {method: 'PATCH', body: JSON.stringify(patch), headers: {'Connection-Id': connectionId}},
         );
     };
 
-    updateChannelBookmarkSortOrder = (channelId: string, channelBookmarkId: string, newOrder: number) => {
+    updateChannelBookmarkSortOrder = (channelId: string, channelBookmarkId: string, newOrder: number, connectionId: string) => {
         return this.doFetch<void>(
             `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}/sort_order`,
-            {method: 'post', body: JSON.stringify(newOrder)},
+            {method: 'post', body: JSON.stringify(newOrder), headers: {'Connection-Id': connectionId}},
+        );
+    };
+
+    fetchChannelBookmarkOpenGraph = (channelId: string, url: string, timestammp: number) => {
+        return this.doFetch<void>(
+            `${this.getChannelBookmarksRoute(channelId)}/open_graph${buildQueryString({q: url, timestammp})}`,
+            {method: 'get'},
         );
     };
 

@@ -18,6 +18,7 @@ func (api *API) InitChannelBookmarks() {
 	api.BaseRoutes.ChannelBookmark.Handle("/sort_order", api.APISessionRequired(updateChannelBookmarkSortOrder)).Methods("POST")
 	api.BaseRoutes.ChannelBookmark.Handle("", api.APISessionRequired(deleteChannelBookmark)).Methods("DELETE")
 	api.BaseRoutes.ChannelBookmarks.Handle("", api.APISessionRequired(listChannelBookmarksForChannel)).Methods("GET")
+	api.BaseRoutes.ChannelBookmarks.Handle("/open_graph", api.APISessionRequired(fetchOpenGraph)).Methods("GET")
 }
 
 func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -401,6 +402,43 @@ func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.R
 	}
 
 	if err := json.NewEncoder(w).Encode(bookmarks); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func fetchOpenGraph(c *Context, w http.ResponseWriter, r *http.Request) {
+	if c.App.Channels().License() == nil {
+		c.Err = model.NewAppError("fetchOpenGraph", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireQ()
+	if c.Err != nil {
+		return
+	}
+
+	c.RequireTimestamp()
+	if c.Err != nil {
+		return
+	}
+
+	og, _, _, err := c.App.GetLinkMetadata(c.AppContext, c.Params.Q, c.Params.Timestamp, true, "")
+	// auditRec := c.MakeAuditRecord("createChannelBookmark", audit.Fail)
+	// defer c.LogAuditRec(auditRec)
+	// audit.AddEventParameterAuditable(auditRec, "channelBookmark", channelBookmark)
+
+	/* auditRec.Success()
+	auditRec.AddEventResultState(newChannelBookmark)
+	auditRec.AddEventObjectType("channelBookmarkWithFileInfo")
+	c.LogAudit("display_name=" + newChannelBookmark.DisplayName) */
+
+	w.WriteHeader(http.StatusOK)
+	if err := json.NewEncoder(w).Encode(og); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

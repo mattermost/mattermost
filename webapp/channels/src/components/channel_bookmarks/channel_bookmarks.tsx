@@ -6,7 +6,7 @@ import styled from 'styled-components';
 
 import BookmarkItem from './bookmark_item';
 import PlusMenu from './channel_bookmarks_plus_menu';
-import {useChannelBookmarks, useIsChannelBookmarksEnabled} from './utils';
+import {useChannelBookmarkPermission, useChannelBookmarks, useIsChannelBookmarksEnabled} from './utils';
 
 import './menu_buttons.scss';
 
@@ -19,8 +19,10 @@ const ChannelBookmarks = ({
 }: Props) => {
     const show = useIsChannelBookmarksEnabled();
     const {order} = useChannelBookmarks(channelId);
+    const canAdd = useChannelBookmarkPermission(channelId, 'add');
+    const hasBookmarks = Boolean(order?.length);
 
-    if (!show) {
+    if (!show || (!hasBookmarks && !canAdd)) {
         return null;
     }
 
@@ -35,10 +37,12 @@ const ChannelBookmarks = ({
                     />
                 );
             })}
-            <PlusMenu
-                channelId={channelId}
-                hasBookmarks={Boolean(order?.length)}
-            />
+            {canAdd && (
+                <PlusMenu
+                    channelId={channelId}
+                    hasBookmarks={hasBookmarks}
+                />
+            )}
         </Container>
     );
 };

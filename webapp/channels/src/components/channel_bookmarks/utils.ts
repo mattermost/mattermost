@@ -6,13 +6,52 @@ import {useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
+import {Permissions} from 'mattermost-redux/constants';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
+import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
-import {LicenseSkus} from 'utils/constants';
+import Constants, {LicenseSkus} from 'utils/constants';
 
 export const useIsChannelBookmarksEnabled = () => {
     return useSelector(getIsChannelBookmarksEnabled);
+};
+
+const {OPEN_CHANNEL, PRIVATE_CHANNEL} = Constants as {OPEN_CHANNEL: 'O'; PRIVATE_CHANNEL: 'P'};
+
+type TAction = 'add' | 'edit' | 'delete' | 'order';
+type TActionKey = `${TAction}${typeof OPEN_CHANNEL | typeof PRIVATE_CHANNEL}`;
+
+const key = (a: TAction, c: typeof OPEN_CHANNEL | typeof PRIVATE_CHANNEL): TActionKey => {
+    return `${a}${c}`;
+};
+
+export const BOOKMARK_PERMISSION = {
+
+    // open channel
+    [key('add', OPEN_CHANNEL)]: Permissions.ADD_BOOKMARK_PUBLIC_CHANNEL,
+    [key('edit', OPEN_CHANNEL)]: Permissions.EDIT_BOOKMARK_PUBLIC_CHANNEL,
+    [key('delete', OPEN_CHANNEL)]: Permissions.DELETE_BOOKMARK_PUBLIC_CHANNEL,
+    [key('order', OPEN_CHANNEL)]: Permissions.ORDER_BOOKMARK_PUBLIC_CHANNEL,
+
+    // private channel
+    [key('add', PRIVATE_CHANNEL)]: Permissions.ADD_BOOKMARK_PRIVATE_CHANNEL,
+    [key('edit', PRIVATE_CHANNEL)]: Permissions.EDIT_BOOKMARK_PRIVATE_CHANNEL,
+    [key('delete', PRIVATE_CHANNEL)]: Permissions.DELETE_BOOKMARK_PRIVATE_CHANNEL,
+    [key('order', PRIVATE_CHANNEL)]: Permissions.ORDER_BOOKMARK_PRIVATE_CHANNEL,
+} as const;
+
+export const useChannelBookmarkPermission = (channelId: string, action: TAction) => {
+    return useSelector((state: GlobalState) => getHaveIChannelBookmarkPermission(state, channelId, action));
+};
+
+export const getHaveIChannelBookmarkPermission = (state: GlobalState, channelId: string, action: TAction) => {
+    const channel = getChannel(state, channelId);
+    const channelType = channel?.type as typeof OPEN_CHANNEL | typeof PRIVATE_CHANNEL;
+    const permission = BOOKMARK_PERMISSION[key(action, channelType)];
+
+    return channel && permission && haveIChannelPermission(state, channel.team_id, channelId, permission);
 };
 
 export const getIsChannelBookmarksEnabled = (state: GlobalState) => {

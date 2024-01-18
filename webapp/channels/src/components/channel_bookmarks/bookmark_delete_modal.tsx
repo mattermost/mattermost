@@ -43,7 +43,6 @@ function BookmarkDeleteModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
-            handleCancel={() => {}}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}

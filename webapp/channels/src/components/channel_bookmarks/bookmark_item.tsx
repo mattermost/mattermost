@@ -8,6 +8,7 @@ import styled, {css} from 'styled-components';
 
 import {getChannelBookmark} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 
+import RenderEmoji from 'components/emoji/render_emoji';
 import ExternalLink from 'components/external_link';
 
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
@@ -23,10 +24,18 @@ const BookmarkItem = ({
 }: Props) => {
     const bookmark = useSelector((state: GlobalState) => getChannelBookmark(state, channelId, id));
 
+    let icon;
+
+    if (bookmark.emoji) {
+        const emojiName = bookmark.emoji.slice(1, -1);
+        icon = <Icon><RenderEmoji emojiName={emojiName}/></Icon>;
+    }
+
     if (bookmark.type === 'link' && bookmark.link_url) {
         return (
             <Chip>
                 <DynamicLink href={bookmark.link_url}>
+                    {icon}
                     <Label>{bookmark.display_name}</Label>
                 </DynamicLink>
                 <BookmarkItemDotMenu bookmark={bookmark}/>
@@ -41,8 +50,10 @@ const Chip = styled.div`
     position: relative;
     border-radius: 12px;
     overflow: hidden;
+    margin: 1px 0;
     flex-shrink: 0;
     min-width: 5rem;
+    max-width: 20rem;
 
     button {
         position: absolute;
@@ -99,6 +110,10 @@ const Label = styled.span`
     padding: 4px 0;
 `;
 
+const Icon = styled.span`
+    padding: 3px 1px 3px 2px;
+`;
+
 const TARGET_BLANK_URL_PREFIX = '!';
 
 type DynamicLinkProps = {href: string; children: React.ReactNode};
@@ -111,12 +126,13 @@ const DynamicLink = ({href, children}: DynamicLinkProps) => {
     if (prefixed || openInNewTab) {
         return (
             <StyledExternalLink
-                href={prefixed ? href.substring(1, href.length) : href}
+                href={prefixed ? href.substring(1) : href}
                 rel='noopener noreferrer'
                 target='_blank'
             >
                 {children}
-            </StyledExternalLink>);
+            </StyledExternalLink>
+        );
     }
 
     if (href.startsWith(siteURL)) {

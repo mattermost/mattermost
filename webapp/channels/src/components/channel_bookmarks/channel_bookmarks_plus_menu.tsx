@@ -12,9 +12,9 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmark, ChannelBookmarkCreate} from '@mattermost/types/channel_bookmarks';
 
-import {createBookmark} from 'mattermost-redux/actions/channel_bookmarks';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import {createBookmark} from 'actions/channel_bookmarks';
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
@@ -43,6 +43,7 @@ const PlusMenu = ({
             modalId: ModalIdentifiers.CHANNEL_BOOKMARK_CREATE,
             dialogType: ChannelBookmarkCreateModal,
             dialogProps: {
+                channelId,
                 bookmarkType: type,
                 onConfirm: async (data: ChannelBookmarkCreate) => dispatch(createBookmark(channelId, data)) as ActionResult<boolean>,
             },

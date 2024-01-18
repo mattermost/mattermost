@@ -13,8 +13,7 @@ import {
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 
-import {deleteBookmark} from 'mattermost-redux/actions/channel_bookmarks';
-
+import {deleteBookmark} from 'actions/channel_bookmarks';
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
@@ -23,6 +22,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
 
 import BookmarkDeleteModal from './bookmark_delete_modal';
+import {useChannelBookmarkPermission} from './utils';
 
 type Props = {bookmark: ChannelBookmark};
 const BookmarkItemDotMenu = ({
@@ -30,6 +30,9 @@ const BookmarkItemDotMenu = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+
+    const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit');
+    const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete');
 
     const editLabel = formatMessage({id: 'channel_bookmarks.edit', defaultMessage: 'Edit'});
     const copyLabel = formatMessage({id: 'channel_bookmarks.copy', defaultMessage: 'Copy link'});
@@ -52,7 +55,7 @@ const BookmarkItemDotMenu = ({
                 onConfirm: () => dispatch(deleteBookmark(bookmark.channel_id, bookmark.id)),
             },
         }));
-    }, [bookmark, dispatch]);
+    }, [deleteBookmark, dispatch]);
 
     return (
         <Menu.Container
@@ -67,16 +70,18 @@ const BookmarkItemDotMenu = ({
                 id: 'channelBookmarksDotMenuDropdown',
             }}
         >
-            <Menu.Item
-                key='channelBookmarksEdit'
-                id='channelBookmarksEdit'
-                onClick={() => {
+            {canEdit && (
+                <Menu.Item
+                    key='channelBookmarksEdit'
+                    id='channelBookmarksEdit'
+                    onClick={() => {
 
-                }}
-                leadingElement={<PencilOutlineIcon size={18}/>}
-                labels={<span>{editLabel}</span>}
-                aria-label={editLabel}
-            />
+                    }}
+                    leadingElement={<PencilOutlineIcon size={18}/>}
+                    labels={<span>{editLabel}</span>}
+                    aria-label={editLabel}
+                />
+            )}
             <Menu.Item
                 key='channelBookmarksCopy'
                 id='channelBookmarksCopy'
@@ -85,15 +90,17 @@ const BookmarkItemDotMenu = ({
                 labels={<span>{copyLabel}</span>}
                 aria-label={copyLabel}
             />
-            <Menu.Item
-                key='channelBookmarksDelete'
-                id='channelBookmarksDelete'
-                onClick={handleDelete}
-                leadingElement={<TrashCanOutlineIcon size={18}/>}
-                labels={<span>{deleteLabel}</span>}
-                aria-label={deleteLabel}
-                isDestructive={true}
-            />
+            {canDelete && (
+                <Menu.Item
+                    key='channelBookmarksDelete'
+                    id='channelBookmarksDelete'
+                    onClick={handleDelete}
+                    leadingElement={<TrashCanOutlineIcon size={18}/>}
+                    labels={<span>{deleteLabel}</span>}
+                    aria-label={deleteLabel}
+                    isDestructive={true}
+                />
+            )}
         </Menu.Container>
     );
 };
