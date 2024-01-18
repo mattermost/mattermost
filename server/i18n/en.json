@@ -8268,14 +8268,6 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
-    "translation": "No configured outgoing oauth connection matches the provided audience."
-  },
-  {
-    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
-    "translation": "There is already an outgoing oauth connection for the provided audience."
-  },
-  {
-    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
     "translation": "There is no outgoing oauth connection for the provided audience."
   },
   {
@@ -8316,14 +8308,6 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
-    "translation": "There is already an outgoing oauth connection for the provided audience."
-  },
-  {
-    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
-    "translation": "One of the provided audiences is not a valid URL."
-  },
-  {
-    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
     "translation": "There is already an outgoing oauth connection for the provided audience: {{ .Audience }}"
   },
   {
@@ -8333,14 +8317,6 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
     "translation": "There was an error updating the outgoing oauth connection: {{ .Error }}"
-  },
-  {
-    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
-    "translation": "There is already an outgoing oauth connection for the provided audience."
-  },
-  {
-    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
-    "translation": "One of the provided audiences is not a valid URL."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
