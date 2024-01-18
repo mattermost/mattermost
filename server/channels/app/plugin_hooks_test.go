@@ -5,7 +5,6 @@ package app
 
 import (
 	"bytes"
-	"context"
 	_ "embed"
 	"fmt"
 	"io"
@@ -430,6 +429,50 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestHookMessageHasBeenDeleted(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil).Times(1)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+			p.API.LogDebug(post.Message)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+	_, err = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+}
+
 func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -568,7 +611,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.NotNil(t, response)
 
 		fileID := response.Id
-		fileInfo, err := th.App.GetFileInfo(fileID)
+		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "testhook.txt", fileInfo.Name)
@@ -639,7 +682,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.NotNil(t, response)
 		fileID := response.Id
 
-		fileInfo, err := th.App.GetFileInfo(fileID)
+		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "modifiedinfo", fileInfo.Name)
@@ -656,7 +699,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 	assert.Nil(t, err, "Error updating user password: %s", err)
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -684,16 +727,17 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
+	assert.Nil(t, session)
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
 	assert.Nil(t, err, "Error updating user password: %s", err)
 
@@ -723,17 +767,18 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
-	assert.Equal(t, th.Context.Session().UserId, th.BasicUser.Id)
+	require.NotNil(t, session)
+	assert.Equal(t, session.UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
 	assert.Nil(t, err, "Error updating user password: %s", err)
 
@@ -764,9 +809,10 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
+	assert.NotNil(t, session)
 
 	time.Sleep(2 * time.Second)
 
@@ -944,10 +990,9 @@ func TestErrorString(t *testing.T) {
 func TestHookContext(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
-	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	ctx.SetLogger(th.TestLogger)
 	ctx.Session().Id = model.NewId()
 
 	var mockAPI plugintest.API
@@ -1249,6 +1294,10 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 	err := th.App.DeleteReactionForPost(th.Context, reaction)
 
 	require.Nil(t, err)
+
+	time.Sleep(1 * time.Second)
+
+	mockAPI.AssertCalled(t, "LogDebug", "star")
 }
 
 func TestHookRunDataRetention(t *testing.T) {
@@ -1431,14 +1480,14 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			var userSessions []userSession
 			for i := 0; i < 3; i++ {
 				u := th.CreateUser()
-				sess, err := th.App.CreateSession(&model.Session{
+				sess, err := th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
 					DeviceId:  "deviceID" + u.Id,
 					ExpiresAt: model.GetMillis() + 100000,
 				})
 				require.Nil(t, err)
 				// We don't need to track the 2nd session.
-				_, err = th.App.CreateSession(&model.Session{
+				_, err = th.App.CreateSession(th.Context, &model.Session{
 					UserId:    u.Id,
 					DeviceId:  "deviceID" + u.Id,
 					ExpiresAt: model.GetMillis() + 100000,
@@ -1507,4 +1556,156 @@ func TestHookNotificationWillBePushed(t *testing.T) {
 			assert.Equal(t, tt.expectedNotifications, numMessages)
 		})
 	}
+}
+
+func TestHookMessagesWillBeConsumed(t *testing.T) {
+	setupPlugin := func(t *testing.T, th *TestHelper) {
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LogDebug", "message").Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+				for _, post := range posts {
+					post.Message = "mwbc_plugin:" + post.Message
+				}
+				return posts
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		t.Cleanup(tearDown)
+	}
+
+	t.Run("feature flag disabled", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
+
+		th := Setup(t).InitBasic()
+		t.Cleanup(th.TearDown)
+
+		setupPlugin(t, th)
+
+		newPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		post, err := th.App.GetSinglePost(newPost.Id, true)
+		require.Nil(t, err)
+		assert.Equal(t, "message", post.Message)
+	})
+
+	t.Run("feature flag enabled", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
+
+		th := Setup(t).InitBasic()
+		t.Cleanup(th.TearDown)
+
+		setupPlugin(t, th)
+
+		newPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		post, err := th.App.GetSinglePost(newPost.Id, true)
+		require.Nil(t, err)
+		assert.Equal(t, "mwbc_plugin:message", post.Message)
+	})
+}
+
+func TestHookPreferencesHaveChanged(t *testing.T) {
+	t.Run("should be called when preferences are changed by non-plugin code", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		var mockAPI plugintest.API
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
+				for _, preference := range preferences {
+					p.API.LogDebug(fmt.Sprintf("category=%s name=%s value=%s", preference.Category, preference.Name, preference.Value))
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Confirm plugin is actually running
+		require.Len(t, pluginIDs, 1)
+		pluginID := pluginIDs[0]
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		// Setup test
+		preferences := model.Preferences{
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_name_1",
+				Value:    "test_value_1",
+			},
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_name_2",
+				Value:    "test_value_2",
+			},
+		}
+
+		mockAPI.On("LogDebug", "category=test_category name=test_name_1 value=test_value_1")
+		mockAPI.On("LogDebug", "category=test_category name=test_name_2 value=test_value_2")
+		defer mockAPI.AssertExpectations(t)
+
+		// Run test
+		err := th.App.UpdatePreferences(th.Context, th.BasicUser.Id, preferences)
+
+		require.Nil(t, err)
+
+		// Hooks are run in a goroutine, so wait for those to complete
+		time.Sleep(1 * time.Second)
+
+		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_1 value=test_value_1")
+		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_2 value=test_value_2")
+	})
 }

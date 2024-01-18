@@ -8,8 +8,6 @@ import type {Team} from '@mattermost/types/teams';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import NextIcon from 'components/widgets/icons/fa_next_icon';
-
 import logoImage from 'images/logo.png';
 import Constants from 'utils/constants';
 import {cleanUpUrlable} from 'utils/url';
@@ -150,7 +148,7 @@ export default class TeamSignupDisplayNamePage extends React.PureComponent<Props
                             id='create_team.display_name.next'
                             defaultMessage='Next'
                         />
-                        <NextIcon/>
+                        <i className='icon icon-chevron-right'/>
                     </button>
                 </form>
             </div>

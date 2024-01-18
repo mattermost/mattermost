@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
 import type {RefObject} from 'react';
-import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, useIntl} from 'react-intl';
+import {FormattedDate, FormattedMessage, FormattedNumber, FormattedTime, defineMessages, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
 import type {ClientLicense} from '@mattermost/types/config';
@@ -43,6 +43,10 @@ export interface EnterpriseEditionProps {
     handleChange: () => void;
     statsActiveUsers: number;
 }
+
+export const messages = defineMessages({
+    keyRemove: {id: 'admin.license.keyRemove', defaultMessage: 'Remove license and downgrade to Mattermost Free'},
+});
 
 const EnterpriseEditionLeftPanel = ({
     openEELicenseModal,
@@ -179,6 +183,7 @@ const EnterpriseEditionLeftPanel = ({
                 }
             </div>
             <div className='license-notices'>
+                {/* This notice should not be translated */}
                 {upgradedFromTE ? <>
                     <p>
                         {'When using Mattermost Enterprise Edition, the software is offered under a commercial license. See '}
@@ -347,12 +352,7 @@ const renderRemoveButton = (
     isDisabled: boolean,
     removing: boolean,
 ) => {
-    let removeButtonText = (
-        <FormattedMessage
-            id='admin.license.keyRemove'
-            defaultMessage='Remove license and downgrade to Mattermost Free'
-        />
-    );
+    let removeButtonText = (<FormattedMessage {...messages.keyRemove}/>);
     if (removing) {
         removeButtonText = (
             <FormattedMessage

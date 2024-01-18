@@ -2,11 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Button, ButtonGroup} from 'react-bootstrap';
+import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import type {RouteComponentProps} from 'react-router';
 
 import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -29,15 +31,14 @@ export interface UpdateMyTermsOfServiceStatusResponse {
     user_id: number;
 }
 
-export interface TermsOfServiceProps {
-    location: {search: string};
+export interface TermsOfServiceProps extends RouteComponentProps {
     termsEnabled: boolean;
     actions: {
-        getTermsOfService: () => Promise<{ data: ReduxTermsOfService }>;
+        getTermsOfService: () => Promise<ActionResult<ReduxTermsOfService>>;
         updateMyTermsOfServiceStatus: (
             termsOfServiceId: string,
             accepted: boolean
-        ) => {data: UpdateMyTermsOfServiceStatusResponse};
+        ) => Promise<ActionResult>;
     };
     emojiMap: EmojiMap;
     onboardingFlowEnabled: boolean;
@@ -109,7 +110,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
         this.registerUserAction(
             true,
             () => {
-                const query = new URLSearchParams(this.props.location.search);
+                const query = new URLSearchParams(this.props.location?.search);
                 const redirectTo = query.get('redirect_to');
                 if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
                     getHistory().push(redirectTo);
@@ -169,7 +170,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
             termsMarkdownClasses += ' terms-of-service__height--fill';
         }
         return (
-            <div>
+            <div className='signup-page-container'>
                 <AnnouncementBar/>
                 <div className='signup-header'>
                     <a
@@ -183,53 +184,52 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
                         />
                     </a>
                 </div>
-                <div>
-                    <div className='signup-team__container terms-of-service__container'>
-                        <div className={termsMarkdownClasses}>
-                            <div
-                                className='medium-center'
-                                data-testid='termsOfService'
+                <div className='signup-team__container terms-of-service__container'>
+                    <div className={termsMarkdownClasses}>
+                        <div
+                            className='medium-center'
+                            data-testid='termsOfService'
+                        >
+                            {messageHtmlToComponent(this.formattedText(this.state.customTermsOfServiceText), {mentions: false})}
+                        </div>
+                    </div>
+                    <div className='terms-of-service__footer medium-center'>
+                        <div className='terms-of-service__button-group'>
+                            <Button
+                                bsStyle={'primary'}
+                                disabled={this.state.loadingAgree || this.state.loadingDisagree}
+                                id='acceptTerms'
+                                onClick={this.handleAcceptTerms}
+                                type='submit'
                             >
-                                {messageHtmlToComponent(this.formattedText(this.state.customTermsOfServiceText), {mentions: false})}
+                                {this.state.loadingAgree && <LoadingSpinner/>}
+                                <FormattedMessage
+                                    id='terms_of_service.agreeButton'
+                                    defaultMessage={'I Agree'}
+                                />
+                            </Button>
+                            <Button
+                                bsStyle={'default'}
+                                className='btn-quaternary'
+                                disabled={this.state.loadingAgree || this.state.loadingDisagree}
+                                id='rejectTerms'
+                                onClick={this.handleRejectTerms}
+                                type='reset'
+                            >
+                                {this.state.loadingDisagree && <LoadingSpinner/>}
+                                <FormattedMessage
+                                    id='terms_of_service.disagreeButton'
+                                    defaultMessage={'I Disagree'}
+                                />
+                            </Button>
+                        </div>
+                        {Boolean(this.state.serverError) && (
+                            <div className='terms-of-service__server-error alert alert-warning'>
+                                <WarningIcon/>
+                                {' '}
+                                {this.state.serverError}
                             </div>
-                        </div>
-                        <div className='terms-of-service__footer medium-center'>
-                            <ButtonGroup className='terms-of-service__button-group'>
-                                <Button
-                                    bsStyle={'primary'}
-                                    disabled={this.state.loadingAgree || this.state.loadingDisagree}
-                                    id='acceptTerms'
-                                    onClick={this.handleAcceptTerms}
-                                    type='submit'
-                                >
-                                    {this.state.loadingAgree && <LoadingSpinner/>}
-                                    <FormattedMessage
-                                        id='terms_of_service.agreeButton'
-                                        defaultMessage={'I Agree'}
-                                    />
-                                </Button>
-                                <Button
-                                    bsStyle={'link'}
-                                    disabled={this.state.loadingAgree || this.state.loadingDisagree}
-                                    id='rejectTerms'
-                                    onClick={this.handleRejectTerms}
-                                    type='reset'
-                                >
-                                    {this.state.loadingDisagree && <LoadingSpinner/>}
-                                    <FormattedMessage
-                                        id='terms_of_service.disagreeButton'
-                                        defaultMessage={'I Disagree'}
-                                    />
-                                </Button>
-                            </ButtonGroup>
-                            {Boolean(this.state.serverError) && (
-                                <div className='terms-of-service__server-error alert alert-warning'>
-                                    <WarningIcon/>
-                                    {' '}
-                                    {this.state.serverError}
-                                </div>
-                            )}
-                        </div>
+                        )}
                     </div>
                 </div>
             </div>

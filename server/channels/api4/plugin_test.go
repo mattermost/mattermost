@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -25,6 +26,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -462,9 +464,6 @@ func TestDisableOnRemove(t *testing.T) {
 }
 
 func TestGetMarketplacePlugins(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -685,9 +684,6 @@ func TestGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetInstalledMarketplacePlugins(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -831,9 +827,6 @@ func TestGetInstalledMarketplacePlugins(t *testing.T) {
 }
 
 func TestSearchGetMarketplacePlugins(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
 	samplePlugins := []*model.MarketplacePlugin{
 		{
 			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
@@ -959,9 +952,6 @@ func TestSearchGetMarketplacePlugins(t *testing.T) {
 }
 
 func TestGetLocalPluginInMarketplace(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1123,9 +1113,6 @@ func TestGetLocalPluginInMarketplace(t *testing.T) {
 }
 
 func TestGetRemotePluginInMarketplace(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1181,70 +1168,7 @@ func TestGetRemotePluginInMarketplace(t *testing.T) {
 	require.NoError(t, err)
 }
 
-func TestRemoteMarketplaceDisabledByStreamlinedMarketplaceFlag(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
-	th := Setup(t)
-	defer th.TearDown()
-
-	marketplacePlugins := []*model.MarketplacePlugin{
-		{
-			BaseMarketplacePlugin: &model.BaseMarketplacePlugin{
-				HomepageURL: "https://example.com/mattermost/mattermost-plugin-nps",
-				IconData:    "https://example.com/icon.svg",
-				DownloadURL: "www.github.com/example",
-				Manifest: &model.Manifest{
-					Id:               "marketplace.test",
-					Name:             "marketplacetest",
-					Description:      "a marketplace plugin",
-					Version:          "0.1.2",
-					MinServerVersion: "",
-				},
-			},
-			InstalledVersion: "",
-		},
-	}
-
-	testServer := httptest.NewServer(http.HandlerFunc(func(res http.ResponseWriter, req *http.Request) {
-		res.WriteHeader(http.StatusOK)
-		json, err := json.Marshal([]*model.MarketplacePlugin{marketplacePlugins[0]})
-		require.NoError(t, err)
-		res.Write(json)
-	}))
-	defer testServer.Close()
-
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.PluginSettings.Enable = true
-		*cfg.PluginSettings.EnableMarketplace = true
-		*cfg.PluginSettings.EnableRemoteMarketplace = true
-		*cfg.PluginSettings.EnableUploads = true
-		*cfg.PluginSettings.MarketplaceURL = testServer.URL
-	})
-
-	prepackagePlugin := &plugin.PrepackagedPlugin{
-		Manifest: &model.Manifest{
-			Version: "0.0.1",
-			Id:      "prepackaged.test",
-		},
-	}
-
-	env := th.App.GetPluginsEnvironment()
-	env.SetPrepackagedPlugins([]*plugin.PrepackagedPlugin{prepackagePlugin}, nil)
-
-	// No marketplace plugins returned
-	plugins, _, err := th.SystemAdminClient.GetMarketplacePlugins(context.Background(), &model.MarketplacePluginFilter{})
-	require.NoError(t, err)
-
-	// Only returns the prepackaged plugins
-	require.Len(t, plugins, 1)
-	require.Equal(t, prepackagePlugin.Manifest, plugins[0].Manifest)
-}
-
 func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
 	th := Setup(t)
 	defer th.TearDown()
 
@@ -1376,9 +1300,6 @@ func TestGetPrepackagedPluginInMarketplace(t *testing.T) {
 }
 
 func TestInstallMarketplacePlugin(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1729,9 +1650,6 @@ func TestInstallMarketplacePlugin(t *testing.T) {
 }
 
 func TestInstallMarketplacePluginPrepackagedDisabled(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE", "false")
-	defer os.Unsetenv("MM_FEATUREFLAGS_STREAMLINEDMARKETPLACE")
-
 	path, _ := fileutils.FindDir("tests")
 
 	signatureFilename := "testplugin2.tar.gz.sig"
@@ -2063,4 +1981,57 @@ func findClusterMessages(event model.ClusterEvent, msgs []*model.ClusterMessage)
 		}
 	}
 	return result
+}
+
+func TestPluginWebSocketSession(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginID := "com.mattermost.websocket_session_test"
+
+	// Compile plugin
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_websocket_session", "main.go")
+	pluginCode, err := os.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+	pluginDir, err := filepath.Abs(*th.App.Config().PluginSettings.Directory)
+	require.NoError(t, err)
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, string(pluginCode), backend)
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+
+	// Activate the plugin
+	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
+	require.NoError(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	// Connect through WebSocket and send a message
+	reqURL := fmt.Sprintf("ws://localhost:%d", th.Server.ListenAddr.Port)
+	wsc, err := model.NewWebSocketClient4(reqURL, th.Client.AuthToken)
+	require.NoError(t, err)
+	require.NotNil(t, wsc)
+	wsc.Listen()
+	defer wsc.Close()
+	resp := <-wsc.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+	wsc.SendMessage("custom_action", map[string]any{"value": "test"})
+
+	// Get session for user
+	sessions, _, err := th.Client.GetSessions(context.Background(), th.BasicUser.Id, "")
+	require.NoError(t, err)
+	require.NotEmpty(t, sessions)
+
+	// Verify the session has been set correctly. Check plugin code in
+	// channels/app/plugin_api_tests/manual.test_websocket_session
+	//
+	// Here the MessageWillBePosted hook is used purely as a way to
+	// communicate with the plugin side.
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginID)
+	require.NoError(t, err)
+	require.NotNil(t, hooks)
+	_, sessionID := hooks.MessageWillBePosted(nil, nil)
+	require.Equal(t, sessions[0].Id, sessionID)
 }

@@ -26,11 +26,11 @@ const WebMarketplaceBanner = () => {
                 location='marketplace_modal'
             >
                 <Title>
-                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.title', defaultMessage: 'Explore Community Integrations'})}
+                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.title', defaultMessage: 'Discover community integrations'})}
                     <ArrowRightIcon size={24}/>
                 </Title>
                 <Description>
-                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.desc', defaultMessage: 'We have dozens of community integrations available. So definitely do check them out!'})}
+                    {formatMessage({id: 'marketplace_modal.web_marketplace_link.desc', defaultMessage: 'Connect the tools you use most to Mattermost'})}
                 </Description>
                 <IconsContainer>
                     <PluginIcon src={pluginIconConfluence}/>

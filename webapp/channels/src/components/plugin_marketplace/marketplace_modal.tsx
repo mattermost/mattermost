@@ -251,13 +251,17 @@ const MarketplaceModal = ({
         >
             {isStreamlinedMarketplaceEnabled ? (
                 <>
-                    <MarketplaceList
-                        listRef={listRef}
-                        listing={listing}
-                        page={page}
-                        filter={filter}
-                        noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
-                    />
+                    {loading ? (
+                        <LoadingScreen className='loading'/>
+                    ) : (
+                        <MarketplaceList
+                            listRef={listRef}
+                            listing={listing}
+                            page={page}
+                            filter={filter}
+                            noResultsMessage={formatMessage({id: 'marketplace_modal.no_plugins', defaultMessage: 'No plugins found'})}
+                        />
+                    )}
                 </>
             ) : (
                 <Tabs

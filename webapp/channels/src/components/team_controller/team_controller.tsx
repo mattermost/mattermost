@@ -19,6 +19,7 @@ import useTelemetryIdentitySync from 'components/common/hooks/useTelemetryIdenti
 
 import Constants from 'utils/constants';
 import {cmdOrCtrlPressed, isKeyPressed} from 'utils/keyboard';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
 import {isIosSafari} from 'utils/user_agent';
 
 import type {OwnProps, PropsFromRedux} from './index';
@@ -53,17 +54,13 @@ function TeamController(props: Props) {
 
     useEffect(() => {
         async function fetchInitialChannels() {
-            if (props.graphQLEnabled) {
-                await props.fetchChannelsAndMembers();
-            } else {
-                await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
-            }
+            await props.fetchAllMyTeamsChannelsAndChannelMembersREST();
 
             setInitialChannelsLoaded(true);
         }
 
         fetchInitialChannels();
-    }, [props.graphQLEnabled]);
+    }, []);
 
     useEffect(() => {
         const wakeUpIntervalId = setInterval(() => {
@@ -95,11 +92,7 @@ function TeamController(props: Props) {
             if (!props.disableRefetchingOnBrowserFocus) {
                 const currentTime = Date.now();
                 if ((currentTime - blurTime.current) > UNREAD_CHECK_TIME_MILLISECONDS && props.currentTeamId) {
-                    if (props.graphQLEnabled) {
-                        props.fetchChannelsAndMembers(props.currentTeamId);
-                    } else {
-                        props.fetchMyChannelsAndMembersREST(props.currentTeamId);
-                    }
+                    props.fetchChannelsAndMembers(props.currentTeamId);
                 }
             }
         }
@@ -132,7 +125,7 @@ function TeamController(props: Props) {
             window.removeEventListener('blur', handleBlur);
             window.removeEventListener('keydown', handleKeydown);
         };
-    }, [props.selectedThreadId, props.graphQLEnabled, props.currentChannelId, props.currentTeamId]);
+    }, [props.selectedThreadId, props.currentChannelId, props.currentTeamId]);
 
     // Effect runs on mount, adds active state to window
     useEffect(() => {
@@ -157,26 +150,26 @@ function TeamController(props: Props) {
     }, []);
 
     async function initTeamOrRedirect(team: Team) {
-        try {
-            await props.initializeTeam(team);
-            setTeam(team);
-        } catch (error) {
+        const {data: joinedTeam, error} = await props.initializeTeam(team) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        if (error) {
             history.push('/error?type=team_not_found');
+            return;
+        }
+        if (joinedTeam) {
+            setTeam(joinedTeam);
         }
     }
 
     async function joinTeamOrRedirect(teamNameParam: string, joinedOnFirstLoad: boolean) {
         setTeam(null);
 
-        try {
-            const {data: joinedTeam} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
-            if (joinedTeam) {
-                setTeam(joinedTeam);
-            } else {
-                throw new Error('Unable to join team');
-            }
-        } catch (error) {
+        const {data: joinedTeam, error} = await props.joinTeam(teamNameParam, joinedOnFirstLoad) as ActionResult<Team, ServerError>; // Fix in MM-46907;
+        if (error) {
             history.push('/error?type=team_not_found');
+            return;
+        }
+        if (joinedTeam) {
+            setTeam(joinedTeam);
         }
     }
 
@@ -213,20 +206,22 @@ function TeamController(props: Props) {
         return null;
     }
 
+    const teamLoaded = team?.name.toLowerCase() === teamNameParam?.toLowerCase();
+
     return (
         <Switch>
             <Route
-                path={'/:team/integrations'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/integrations`}
                 component={BackstageController}
             />
             <Route
-                path={'/:team/emoji'}
+                path={`/:team(${TEAM_NAME_PATH_PATTERN})/emoji`}
                 component={BackstageController}
             />
             {props.plugins?.map((plugin) => (
                 <Route
                     key={plugin.id}
-                    path={'/:team/' + (plugin as any).route}
+                    path={`/:team(${TEAM_NAME_PATH_PATTERN})/` + (plugin as any).route}
                     render={() => (
                         <Pluggable
                             pluggableName={'NeedsTeamComponent'}
@@ -236,7 +231,7 @@ function TeamController(props: Props) {
                     )}
                 />
             ))}
-            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded}/>
+            <ChannelController shouldRenderCenterChannel={initialChannelsLoaded && teamLoaded}/>
         </Switch>
     );
 }

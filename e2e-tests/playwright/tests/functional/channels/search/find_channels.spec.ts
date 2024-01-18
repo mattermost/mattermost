@@ -37,9 +37,6 @@ test('MM-T5424 Find channel search returns only 50 results when there are more t
     await channelsPage.toBeVisible();
 
     // # Click on "Find channel" and type "test_channel"
-    if (pw.isSmallScreen()) {
-        await channelsPage.headerMobile.toggleSidebar();
-    }
     await channelsPage.sidebarLeft.findChannelButton.click();
 
     await channelsPage.findChannelsModal.toBeVisible();

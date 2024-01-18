@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: mattermostdevelopment/mirrored-mysql:5.7.12
+    image: mattermostdevelopment/mirrored-mysql:8.0.32
     restart: always
     environment:
       MYSQL_ROOT_HOST: "%"
@@ -96,5 +96,5 @@ services:
 
 networks:
   default:
-    external:
-      name: ${COMPOSE_PROJECT_NAME}
+    name: ${COMPOSE_PROJECT_NAME}
+    external: true

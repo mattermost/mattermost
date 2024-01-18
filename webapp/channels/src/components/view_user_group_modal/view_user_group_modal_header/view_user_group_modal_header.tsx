@@ -3,17 +3,15 @@
 
 import React, {useCallback} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {Group} from '@mattermost/types/groups';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import AddUsersToGroupModal from 'components/add_users_to_group_modal';
-import LocalizedIcon from 'components/localized_icon';
 
 import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
 
 import type {ModalData} from 'types/actions';
 
@@ -58,6 +56,8 @@ const ViewUserGroupModalHeader = ({
     decrementMemberCount,
     actions,
 }: Props) => {
+    const {formatMessage} = useIntl();
+
     const goToAddPeopleModal = useCallback(() => {
         actions.openModal({
             modalId: ModalIdentifiers.ADD_USERS_TO_GROUP,
@@ -103,7 +103,7 @@ const ViewUserGroupModalHeader = ({
         if (permissionToJoinGroup) {
             return (
                 <button
-                    className='user-groups-create btn btn-md btn-primary'
+                    className='mr-2 btn btn-secondary btn-sm'
                     onClick={goToAddPeopleModal}
                 >
                     <FormattedMessage
@@ -163,13 +163,12 @@ const ViewUserGroupModalHeader = ({
         <Modal.Header closeButton={true}>
             <button
                 type='button'
-                className='modal-header-back-button btn-icon'
-                aria-label='Close'
+                className='modal-header-back-button btn btn-icon'
+                aria-label={formatMessage({id: 'user_groups_modal.goBackLabel', defaultMessage: 'Back'})}
                 onClick={goBack}
             >
-                <LocalizedIcon
+                <i
                     className='icon icon-arrow-left'
-                    ariaLabel={{id: t('user_groups_modal.goBackLabel'), defaultMessage: 'Back'}}
                 />
             </button>
             {modalTitle()}

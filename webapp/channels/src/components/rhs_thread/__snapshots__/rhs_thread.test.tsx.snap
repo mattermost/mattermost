@@ -5,7 +5,7 @@ exports[`components/RhsThread should match snapshot 1`] = `
   className="sidebar-right__body"
   id="rhsContainer"
 >
-  <Connect(RhsHeaderPost)
+  <Connect(injectIntl(RhsHeaderPost))
     channel={
       Object {
         "create_at": 0,
@@ -30,6 +30,7 @@ exports[`components/RhsThread should match snapshot 1`] = `
     rootPostId="id"
   />
   <Connect(ThreadViewer)
+    fromSuppressed={false}
     isThreadView={false}
     rootPostId="id"
     useRelativeTimestamp={false}

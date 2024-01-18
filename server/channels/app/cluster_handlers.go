@@ -14,7 +14,7 @@ import (
 func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 	var data model.PluginEventData
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
-		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+		s.Log().Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
 	s.Channels().installPluginFromClusterMessage(data.Id)
 }
@@ -22,14 +22,14 @@ func (s *Server) clusterInstallPluginHandler(msg *model.ClusterMessage) {
 func (s *Server) clusterRemovePluginHandler(msg *model.ClusterMessage) {
 	var data model.PluginEventData
 	if jsonErr := json.Unmarshal(msg.Data, &data); jsonErr != nil {
-		mlog.Warn("Failed to decode from JSON", mlog.Err(jsonErr))
+		s.Log().Warn("Failed to decode from JSON", mlog.Err(jsonErr))
 	}
 	s.Channels().removePluginFromClusterMessage(data.Id)
 }
 
 func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	if msg.Props == nil {
-		mlog.Warn("ClusterMessage.Props for plugin event should not be nil")
+		s.Log().Warn("ClusterMessage.Props for plugin event should not be nil")
 		return
 	}
 	pluginID := msg.Props["PluginID"]
@@ -39,8 +39,10 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 	}
 	eventID := msg.Props["EventID"]
 	if pluginID == "" || eventID == "" {
-		mlog.Warn("Invalid ClusterMessage.Props values for plugin event",
-			mlog.String("plugin_id", pluginID), mlog.String("event_id", eventID))
+		s.Log().Warn("Invalid ClusterMessage.Props values for plugin event",
+			mlog.String("plugin_id", pluginID),
+			mlog.String("event_id", eventID),
+		)
 		return
 	}
 
@@ -51,7 +53,7 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 
 	hooks, err := channels.HooksForPluginOrProduct(pluginID)
 	if err != nil {
-		mlog.Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
+		s.Log().Warn("Getting hooks for plugin failed", mlog.String("plugin_id", pluginID), mlog.Err(err))
 		return
 	}
 
@@ -66,7 +68,6 @@ func (s *Server) clusterPluginEventHandler(msg *model.ClusterMessage) {
 // The cluster event handlers are spread across this function and NewLocalCacheLayer.
 // Be careful to not have duplicated handlers here and there.
 func (s *Server) registerClusterHandlers() {
-
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventInstallPlugin, s.clusterInstallPluginHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventRemovePlugin, s.clusterRemovePluginHandler)
 	s.platform.RegisterClusterMessageHandler(model.ClusterEventPluginEvent, s.clusterPluginEventHandler)

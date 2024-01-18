@@ -1476,6 +1476,211 @@ describe('combineUserActivityData', () => {
         };
         expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
     });
+    it('correctly combine Join and Leave Posts', () => {
+        const postJoinChannel1 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_1'});
+        const postLeaveChannel1 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_1'});
+        const postJoinChannel2 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_2'});
+        const postLeaveChannel2 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_2'});
+        const postJoinChannel3 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_3'});
+        const postLeaveChannel3 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_3'});
+
+        const post = [postJoinChannel1, postLeaveChannel1].reverse();
+        const expectedOutput = {
+            allUserIds: ['user_id_1'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(post)).toEqual(expectedOutput);
+
+        const post1 = [postJoinChannel1, postLeaveChannel1, postJoinChannel2, postLeaveChannel2, postJoinChannel3, postLeaveChannel3].reverse();
+        const expectedOutput1 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(post1)).toEqual(expectedOutput1);
+
+        const post2 = [postJoinChannel1, postJoinChannel2, postJoinChannel3, postLeaveChannel1, postLeaveChannel2, postLeaveChannel3].reverse();
+        const expectedOutput2 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(post2)).toEqual(expectedOutput2);
+
+        const post3 = [postJoinChannel1, postJoinChannel2, postLeaveChannel2, postLeaveChannel1, postJoinChannel3, postLeaveChannel3].reverse();
+        const expectedOutput3 = {
+            allUserIds: ['user_id_1', 'user_id_2', 'user_id_3'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1', 'user_id_2', 'user_id_3']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(post3)).toEqual(expectedOutput3);
+    });
+    it('should only partially combine mismatched join and leave posts', () => {
+        const postJoinChannel1 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_1'});
+        const postLeaveChannel1 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_1'});
+        const postJoinChannel2 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_2'});
+        const postLeaveChannel2 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_2'});
+
+        let posts = [postJoinChannel1, postLeaveChannel1, postJoinChannel2].reverse();
+        let expectedOutput = {
+            allUserIds: ['user_id_1', 'user_id_2'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_2']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel1, postLeaveChannel1, postLeaveChannel2].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_1', 'user_id_2'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_2']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel1, postJoinChannel2, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_1', 'user_id_2'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1', 'user_id_2']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel1, postLeaveChannel2, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_1', 'user_id_2'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_2', 'user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel2, postJoinChannel1, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_2', 'user_id_1'],
+            allUsernames: [],
+            messageData: [
+
+                // This case is arguably incorrect, but it's an edge case
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_2', 'user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postLeaveChannel2, postJoinChannel1, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_2', 'user_id_1'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_2']},
+                {postType: PostTypes.JOIN_LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+    });
+    it('should not combine join and leave posts with other actions in between', () => {
+        const postJoinChannel1 = TestHelper.getPostMock({type: PostTypes.JOIN_CHANNEL, user_id: 'user_id_1'});
+        const postLeaveChannel1 = TestHelper.getPostMock({type: PostTypes.LEAVE_CHANNEL, user_id: 'user_id_1'});
+
+        const postAddToChannel2 = TestHelper.getPostMock({type: PostTypes.ADD_TO_CHANNEL, user_id: 'user_id_2', props: {addedUserId: 'added_user_id_1', addedUsername: 'added_username_1'}});
+        const postAddToTeam2 = TestHelper.getPostMock({type: PostTypes.ADD_TO_TEAM, user_id: 'user_id_2', props: {addedUserId: 'added_user_id_1'}});
+        const postJoinTeam2 = TestHelper.getPostMock({type: PostTypes.JOIN_TEAM, user_id: 'user_id_2'});
+        const postLeaveTeam2 = TestHelper.getPostMock({type: PostTypes.LEAVE_TEAM, user_id: 'user_id_2'});
+        const postRemoveFromChannel2 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_CHANNEL, user_id: 'user_id_2', props: {removedUserId: 'removed_user_id_1', removedUsername: 'removed_username_1'}});
+        const postRemoveFromTeam2 = TestHelper.getPostMock({type: PostTypes.REMOVE_FROM_TEAM, user_id: 'removed_user_id_1'});
+
+        let posts = [postJoinChannel1, postAddToChannel2, postLeaveChannel1].reverse();
+        let expectedOutput = {
+            allUserIds: ['user_id_1', 'added_user_id_1', 'user_id_2'],
+            allUsernames: ['added_username_1'],
+            messageData: [
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.ADD_TO_CHANNEL, actorId: 'user_id_2', userIds: ['added_user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel1, postAddToTeam2, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_1', 'added_user_id_1', 'user_id_2'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.ADD_TO_TEAM, actorId: 'user_id_2', userIds: ['added_user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel1, postJoinTeam2, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_1', 'user_id_2'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.JOIN_TEAM, userIds: ['user_id_2']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel1, postLeaveTeam2, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_1', 'user_id_2'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.LEAVE_TEAM, userIds: ['user_id_2']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel1, postRemoveFromChannel2, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_1', 'removed_user_id_1', 'user_id_2'],
+            allUsernames: ['removed_username_1'],
+            messageData: [
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.REMOVE_FROM_CHANNEL, actorId: 'user_id_2', userIds: ['removed_user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+
+        posts = [postJoinChannel1, postRemoveFromTeam2, postLeaveChannel1].reverse();
+        expectedOutput = {
+            allUserIds: ['user_id_1', 'removed_user_id_1'],
+            allUsernames: [],
+            messageData: [
+                {postType: PostTypes.JOIN_CHANNEL, userIds: ['user_id_1']},
+                {postType: PostTypes.REMOVE_FROM_TEAM, userIds: ['removed_user_id_1']},
+                {postType: PostTypes.LEAVE_CHANNEL, userIds: ['user_id_1']},
+            ],
+        };
+        expect(combineUserActivitySystemPost(posts)).toEqual(expectedOutput);
+    });
 });
 
 describe('shouldShowJoinLeaveMessages', () => {

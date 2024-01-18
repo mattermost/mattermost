@@ -11,8 +11,8 @@ import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {unregisterAdminConsolePlugin} from 'actions/admin_actions';
 import {trackPluginInitialization} from 'actions/telemetry_actions';
 import {unregisterPluginTranslationsSource} from 'actions/views/root';
-import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions.jsx';
-import store from 'stores/redux_store.jsx';
+import {unregisterAllPluginWebSocketEvents, unregisterPluginReconnectHandler} from 'actions/websocket_actions';
+import store from 'stores/redux_store';
 
 import PluginRegistry from 'plugins/registry';
 import {ActionTypes} from 'utils/constants';
@@ -68,7 +68,7 @@ export async function initializePlugins() {
         return;
     }
 
-    const {data, error} = await getPlugins()(store.dispatch);
+    const {data, error} = await store.dispatch(getPlugins());
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;
@@ -214,7 +214,7 @@ export async function loadPluginsIfNecessary() {
 
     const oldManifests = store.getState().plugins.plugins;
 
-    const {error} = await getPlugins()(store.dispatch);
+    const {error} = await store.dispatch(getPlugins());
     if (error) {
         console.error(error); //eslint-disable-line no-console
         return;

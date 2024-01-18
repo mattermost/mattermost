@@ -317,11 +317,13 @@ function Content(props: ContentProps) {
                 </div>
                 <button
                     id='closeIcon'
-                    className='icon icon-close'
+                    className='close'
                     aria-label='Close'
                     title='Close'
                     onClick={props.onHide}
-                />
+                >
+                    <span aria-hidden='true'>{'×'}</span>
+                </button>
             </Modal.Header>
             <Modal.Body>
                 {!cloudFreeDeprecated && (
@@ -355,7 +357,6 @@ function Content(props: ContentProps) {
                             plan='Free'
                             planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                             price='$0'
-                            rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
                             isCloud={true}
                             cloudFreeDeprecated={cloudFreeDeprecated}
                             planLabel={
@@ -396,7 +397,6 @@ function Content(props: ContentProps) {
                                 items: hasLimits ? starterBriefing : legacyStarterBriefing,
                             }}
                         />
-
                     )
 
                     }
@@ -438,18 +438,6 @@ function Content(props: ContentProps) {
                                 formatMessage({id: 'pricing_modal.extra_briefing.professional.ssoSaml', defaultMessage: 'SSO with SAML 2.0, including Okta, OneLogin, and ADFS'}),
                                 formatMessage({id: 'pricing_modal.extra_briefing.professional.ssoadLdap', defaultMessage: 'SSO support with AD/LDAP, Google, O365, OpenID'}),
                                 formatMessage({id: 'pricing_modal.extra_briefing.professional.guestAccess', defaultMessage: 'Guest access with MFA enforcement'}),
-                            ],
-                        }}
-                        planAddonsInfo={{
-                            title: formatMessage({id: 'pricing_modal.addons.title', defaultMessage: 'Available Add-ons'}),
-                            items: [
-                                {
-                                    title: formatMessage({id: 'pricing_modal.addons.professionalPlusSupport', defaultMessage: 'Professional-Plus Support'}),
-                                    items: [
-                                        formatMessage({id: 'pricing_modal.addons.247Coverage', defaultMessage: '24x7 coverage'}),
-                                        formatMessage({id: 'pricing_modal.addons.4hourL1L2Response', defaultMessage: '4 hour L1&L2 response'}),
-                                    ],
-                                },
                             ],
                         }}
                     />

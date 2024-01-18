@@ -2,6 +2,7 @@
 
 exports[`components/admin_console/SchemaAdminSettings should match snapshot with custom component 1`] = `
 <component
+  cloud={Object {}}
   config={
     Object {
       "EscapedSettings": Object {
@@ -24,6 +25,10 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       },
     }
   }
+  consoleAccess={Object {}}
+  disabled={false}
+  editRole={[MockFunction]}
+  enterpriseReady={false}
   environmentConfig={
     Object {
       "FirstSettings": Object {
@@ -31,11 +36,54 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
       },
     }
   }
+  intl={
+    Object {
+      "$t": [Function],
+      "defaultFormats": Object {},
+      "defaultLocale": "en",
+      "defaultRichTextElements": undefined,
+      "fallbackOnEmptyString": true,
+      "formatDate": [Function],
+      "formatDateTimeRange": [Function],
+      "formatDateToParts": [Function],
+      "formatDisplayName": [Function],
+      "formatList": [Function],
+      "formatListToParts": [Function],
+      "formatMessage": [Function],
+      "formatNumber": [Function],
+      "formatNumberToParts": [Function],
+      "formatPlural": [Function],
+      "formatRelativeTime": [Function],
+      "formatTime": [Function],
+      "formatTimeToParts": [Function],
+      "formats": Object {},
+      "formatters": Object {
+        "getDateTimeFormat": [Function],
+        "getDisplayNames": [Function],
+        "getListFormat": [Function],
+        "getMessageFormat": [Function],
+        "getNumberFormat": [Function],
+        "getPluralRules": [Function],
+        "getRelativeTimeFormat": [Function],
+      },
+      "locale": "en",
+      "messages": Object {},
+      "onError": [Function],
+      "onWarn": [Function],
+      "textComponent": "span",
+      "timeZone": "Etc/UTC",
+    }
+  }
+  isCurrentUserSystemAdmin={false}
+  isDisabled={false}
+  license={Object {}}
+  roles={Object {}}
   schema={
     Object {
       "component": [Function],
     }
   }
+  setNavigationBlocked={[MockFunction]}
   updateConfig={[MockFunction]}
 />
 `;
@@ -44,12 +92,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
 <div
   className="wrapper--fixed "
 >
-  <AdminHeader>
-    <MemoizedFormattedMessage
-      defaultMessage="Configuration"
-      id="config"
-    />
-  </AdminHeader>
+  config
   <div
     className="admin-console__wrapper"
   >
@@ -69,18 +112,16 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             footer={null}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-a"
-                textDefault="This is some help text for the text field."
               />
             }
             id="FirstSettings.settinga"
             key="Config_text_FirstSettings.settinga"
-            label="Setting One"
+            label="label-a"
             onChange={[Function]}
-            placeholder="e.g. some setting"
+            placeholder="placeholder-a"
             setByEnv={false}
-            type="input"
+            type="text"
             value="fsdsdg"
           />
           <BooleanSetting
@@ -93,14 +134,12 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             }
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-b"
-                textDefault="This is some help text for the bool field."
               />
             }
             id="FirstSettings.settingb"
             key="Config_bool_FirstSettings.settingb"
-            label="Setting Two"
+            label="label-b"
             onChange={[Function]}
             setByEnv={false}
             trueText={
@@ -109,21 +148,18 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 id="admin.true"
               />
             }
-            value={false}
+            value={true}
           />
-          <DropdownSetting
+          <Memo(DropdownSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-c"
-                textDefault="This is some help text for the dropdown field."
               />
             }
             id="FirstSettings.settingc"
-            isDisabled={false}
             key="Config_dropdown_FirstSettings.settingc"
-            label="Setting Three"
+            label="label-c"
             onChange={[Function]}
             setByEnv={false}
             value="option3"
@@ -144,18 +180,16 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               ]
             }
           />
-          <RadioSetting
+          <Memo(RadioSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-d"
-                textDefault="This is some help text for the radio field."
               />
             }
             id="SecondSettings.settingd"
             key="Config_radio_SecondSettings.settingd"
-            label="Setting Four"
+            label="label-d"
             onChange={[Function]}
             setByEnv={false}
             value="option1"
@@ -180,16 +214,14 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-e"
-                textDefault="This is some help text for the generated field."
               />
             }
             id="SecondSettings.settinge"
             key="Config_generated_SecondSettings.settinge"
-            label="Setting Five"
+            label="label-e"
             onChange={[Function]}
-            placeholder="e.g. 47KyfOxtk5+ovi1MDHFyzMDHIA6esMWb"
+            placeholder="placeholder-e"
             regenerateHelpText="This is help text for the regenerate button."
             regenerateText={
               <Memo(MemoizedFormattedMessage)
@@ -204,16 +236,14 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-f"
-                textDefault="This is some help text for the user autocomplete field."
               />
             }
             id="SecondSettings.settingf"
             key="Config_userautocomplete_SecondSettings.settingf"
-            label="Setting Six"
+            label="label-f"
             onChange={[Function]}
-            placeholder="Type a username here"
+            placeholder="placeholder-f"
             value="3xz3r6n7dtbbmgref3yw4zg7sr"
           />
           <AdminTextSetting
@@ -221,16 +251,14 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             footer={null}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-g"
-                textDefault="This is some help text for the number field."
               />
             }
             id="SecondSettings.settingg"
             key="Config_text_SecondSettings.settingg"
-            label="Setting Seven"
+            label="label-g"
             onChange={[Function]}
-            placeholder="e.g. some setting"
+            placeholder="placeholder-g"
             setByEnv={false}
             type="number"
             value={7}
@@ -240,16 +268,14 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             footer={null}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-h"
-                textDefault="This is some help text for the number field."
               />
             }
             id="SecondSettings.settingh"
             key="Config_text_SecondSettings.settingh"
-            label="Setting Eight"
+            label="label-h"
             onChange={[Function]}
-            placeholder="e.g. some setting"
+            placeholder="placeholder-h"
             setByEnv={false}
             type="number"
             value={10}
@@ -262,26 +288,22 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               className="banner__content"
             >
               <span>
-                <MemoizedFormattedMessage
-                  defaultMessage="Setting Eight"
-                  id="label-h"
-                />
+                <span>
+                  label-h
+                </span>
               </span>
             </div>
           </div>
-          <DropdownSetting
+          <Memo(DropdownSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-i"
-                textDefault="This is some help text for the language field."
               />
             }
             id="SecondSettings.settingi"
-            isDisabled={false}
             key="Config_language_SecondSettings.settingi"
-            label="Setting Nine"
+            label="label-i"
             onChange={[Function]}
             setByEnv={false}
             value="de"
@@ -349,46 +371,51 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 12,
+                  "text": "Tiếng Việt (Beta)",
+                  "value": "vi",
+                },
+                Object {
+                  "order": 13,
                   "text": "Türkçe",
                   "value": "tr",
                 },
                 Object {
-                  "order": 13,
+                  "order": 14,
                   "text": "Български (Alpha)",
                   "value": "bg",
                 },
                 Object {
-                  "order": 14,
+                  "order": 15,
                   "text": "Pусский",
                   "value": "ru",
                 },
                 Object {
-                  "order": 15,
+                  "order": 16,
                   "text": "Yкраїнська (Alpha)",
                   "value": "uk",
                 },
                 Object {
-                  "order": 16,
+                  "order": 17,
                   "text": "فارسی (Alpha)",
                   "value": "fa",
                 },
                 Object {
-                  "order": 17,
+                  "order": 18,
                   "text": "한국어 (Alpha)",
                   "value": "ko",
                 },
                 Object {
-                  "order": 18,
+                  "order": 19,
                   "text": "中文 (简体) (Alpha)",
                   "value": "zh-CN",
                 },
                 Object {
-                  "order": 19,
+                  "order": 20,
                   "text": "中文 (繁體)",
                   "value": "zh-TW",
                 },
                 Object {
-                  "order": 20,
+                  "order": 21,
                   "text": "日本語",
                   "value": "ja",
                 },
@@ -399,20 +426,13 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-j"
-                textDefault="This is some help text for the multiple-language field."
               />
             }
             id="SecondSettings.settingj"
             key="Config_language_SecondSettings.settingj"
-            label="Setting Nine"
-            noResultText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="No result"
-                id="no-result-j"
-              />
-            }
+            label="label-j"
+            noResultText="no-result-j"
             onChange={[Function]}
             selected={Array []}
             setByEnv={false}
@@ -480,46 +500,51 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 12,
+                  "text": "Tiếng Việt (Beta)",
+                  "value": "vi",
+                },
+                Object {
+                  "order": 13,
                   "text": "Türkçe",
                   "value": "tr",
                 },
                 Object {
-                  "order": 13,
+                  "order": 14,
                   "text": "Български (Alpha)",
                   "value": "bg",
                 },
                 Object {
-                  "order": 14,
+                  "order": 15,
                   "text": "Pусский",
                   "value": "ru",
                 },
                 Object {
-                  "order": 15,
+                  "order": 16,
                   "text": "Yкраїнська (Alpha)",
                   "value": "uk",
                 },
                 Object {
-                  "order": 16,
+                  "order": 17,
                   "text": "فارسی (Alpha)",
                   "value": "fa",
                 },
                 Object {
-                  "order": 17,
+                  "order": 18,
                   "text": "한국어 (Alpha)",
                   "value": "ko",
                 },
                 Object {
-                  "order": 18,
+                  "order": 19,
                   "text": "中文 (简体) (Alpha)",
                   "value": "zh-CN",
                 },
                 Object {
-                  "order": 19,
+                  "order": 20,
                   "text": "中文 (繁體)",
                   "value": "zh-TW",
                 },
                 Object {
-                  "order": 20,
+                  "order": 21,
                   "text": "日本語",
                   "value": "ja",
                 },
@@ -529,21 +554,14 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
           <RequestButton
             buttonText={
               <span>
-                Setting Eleven
+                label-k
               </span>
             }
             disabled={false}
-            errorMessage={
-              Object {
-                "defaultMessage": "Reload unsuccessful: {error}",
-                "id": "admin.reload.reloadFail",
-              }
-            }
+            errorMessage="admin.reload.reloadFail"
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-k"
-                textDefault="This is some help text for the button field."
               />
             }
             id="SecondSettings.settingk"
@@ -569,14 +587,12 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             }
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-l"
-                textDefault="This is some help text for the second bool field."
               />
             }
             id="FirstSettings.settingl"
             key="Config_bool_FirstSettings.settingl"
-            label="Setting Twelve"
+            label="label-l"
             onChange={[Function]}
             setByEnv={true}
             trueText={
@@ -587,18 +603,16 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             }
             value={true}
           />
-          <ColorSetting
+          <Memo(ColorSetting)
             disabled={false}
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="help-text-m"
-                textDefault="This is some help text for the color field."
               />
             }
             id="FirstSettings.settingm"
             key="Config_text_FirstSettings.settingm"
-            label="Setting Thirteen"
+            label="label-m"
             onChange={[Function]}
             value=""
           />
@@ -627,9 +641,15 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
               }
             }
             disabled={false}
-            helpText={null}
+            helpText={
+              <span>
+                
+              </span>
+            }
             id="custom"
             key="Config_custom_custom"
+            label=""
+            license={Object {}}
             onChange={[Function]}
             registerSaveAction={[Function]}
             setByEnv={false}
@@ -638,16 +658,10 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             unRegisterSaveAction={[Function]}
           />
           <Connect(JobTable)
-            createJobButtonText={
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Setting Twelve"
-                id="label-l"
-              />
-            }
+            createJobButtonText="label-l"
             createJobHelpText={
-              <FormattedMarkdownMessage
-                defaultMessage="This is some help text for the jobs table field."
-                id="help-text-l"
+              <SchemaText
+                text="help-text-l"
               />
             }
             disabled={false}
@@ -665,14 +679,12 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             }
             helpText={
               <SchemaText
-                isTranslated={true}
                 text="escaped-help-text-a"
-                textDefault="This is some help text for the first escaped field."
               />
             }
             id="EscapedSettings.com+example+setting.a"
             key="Config_bool_EscapedSettings.com+example+setting.a"
-            label="Escaped Setting A"
+            label="escaped-label-a"
             onChange={[Function]}
             setByEnv={false}
             trueText={
@@ -691,7 +703,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -723,7 +735,6 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
     </div>
     <Overlay
       animation={[Function]}
-      delayShow={400}
       placement="top"
       rootClose={false}
       show={false}

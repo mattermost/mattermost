@@ -18,6 +18,7 @@ export type BillingDetails = {
     name: string;
     card: StripeCardElement;
     agreedTerms?: boolean;
+    company_name?: string;
 };
 
 export const areBillingDetailsValid = (

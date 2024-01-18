@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -26,12 +27,14 @@ func (a *App) GetComplianceReports(page, perPage int) (model.Compliances, *model
 	return compliances, nil
 }
 
-func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *model.AppError) {
+func (a *App) SaveComplianceReport(rctx request.CTX, job *model.Compliance) (*model.Compliance, *model.AppError) {
 	if license := a.Srv().License(); !*a.Config().ComplianceSettings.Enable || license == nil || !*license.Features.Compliance || a.Compliance() == nil {
 		return nil, model.NewAppError("saveComplianceReport", "ent.compliance.licence_disable.app_error", nil, "", http.StatusNotImplemented)
 	}
 
 	job.Type = model.ComplianceTypeAdhoc
+
+	rctx = rctx.WithLogger(rctx.Logger().With(job.LoggerFields()...))
 
 	job, err := a.Srv().Store().Compliance().Save(job)
 	if err != nil {
@@ -46,9 +49,9 @@ func (a *App) SaveComplianceReport(job *model.Compliance) (*model.Compliance, *m
 
 	jCopy := job.DeepCopy()
 	a.Srv().Go(func() {
-		err := a.Compliance().RunComplianceJob(jCopy)
+		err := a.Compliance().RunComplianceJob(rctx, jCopy)
 		if err != nil {
-			mlog.Warn("Error running compliance job", mlog.Err(err))
+			rctx.Logger().Warn("Error running compliance job", mlog.Err(err))
 		}
 	})
 

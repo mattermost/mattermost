@@ -5,7 +5,6 @@ package commands
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"time"
@@ -31,7 +30,7 @@ func (s *MmctlE2ETestSuite) TestExportListCmdF() {
 		printer.Clean()
 
 		err := exportListCmdF(s.th.Client, &cobra.Command{}, nil)
-		s.Require().EqualError(err, "failed to list exports: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to list exports: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -85,7 +84,7 @@ func (s *MmctlE2ETestSuite) TestExportDeleteCmdF() {
 		printer.Clean()
 
 		err := exportDeleteCmdF(s.th.Client, &cobra.Command{}, []string{exportName})
-		s.Require().EqualError(err, "failed to delete export: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to delete export: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -131,7 +130,7 @@ func (s *MmctlE2ETestSuite) TestExportCreateCmdF() {
 		printer.Clean()
 
 		err := exportCreateCmdF(s.th.Client, &cobra.Command{}, nil)
-		s.Require().EqualError(err, "failed to create export process job: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to create export process job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -264,9 +263,9 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 
-		expected, err := ioutil.ReadFile(exportFilePath)
+		expected, err := os.ReadFile(exportFilePath)
 		s.Require().Nil(err)
-		actual, err := ioutil.ReadFile(downloadPath)
+		actual, err := os.ReadFile(downloadPath)
 		s.Require().Nil(err)
 
 		s.Require().Equal(expected, actual)
@@ -276,21 +275,23 @@ func (s *MmctlE2ETestSuite) TestExportDownloadCmdF() {
 func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 	s.SetupTestHelper().InitBasic()
 
-	job, appErr := s.th.App.CreateJob(&model.Job{
+	job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 		Type: model.JobTypeExportProcess,
 	})
 	s.Require().Nil(appErr)
 
+	time.Sleep(time.Millisecond)
+
 	s.Run("MM-T3885 - no permissions", func() {
 		printer.Clean()
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		err := exportJobShowCmdF(s.th.Client, &cobra.Command{}, []string{job1.Id})
-		s.Require().EqualError(err, "failed to get export job: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to get export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -299,7 +300,7 @@ func (s *MmctlE2ETestSuite) TestExportJobShowCmdF() {
 		printer.Clean()
 
 		err := exportJobShowCmdF(c, &cobra.Command{}, []string{model.NewId()})
-		s.Require().ErrorContains(err, "failed to get export job: : Unable to get the job.")
+		s.Require().ErrorContains(err, "failed to get export job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -327,7 +328,7 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		cmd.Flags().Bool("all", false, "")
 
 		err := exportJobListCmdF(s.th.Client, cmd, nil)
-		s.Require().EqualError(err, "failed to get jobs: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to get jobs: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -356,21 +357,21 @@ func (s *MmctlE2ETestSuite) TestExportJobListCmdF() {
 		cmd.Flags().Int("per-page", perPage, "")
 		cmd.Flags().Bool("all", false, "")
 
-		_, appErr := s.th.App.CreateJob(&model.Job{
+		_, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job3, appErr := s.th.App.CreateJob(&model.Job{
+		job3, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -392,7 +393,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 
 		cmd := &cobra.Command{}
 
-		job, appErr := s.th.App.CreateJob(&model.Job{
+		job, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -400,7 +401,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		time.Sleep(time.Millisecond)
 
 		err := exportJobCancelCmdF(s.th.Client, cmd, []string{job.Id})
-		s.Require().EqualError(err, "failed to get export job: : You do not have the appropriate permissions.")
+		s.Require().EqualError(err, "failed to get export job: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -411,7 +412,7 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		cmd := &cobra.Command{}
 
 		err := exportJobCancelCmdF(c, cmd, []string{model.NewId()})
-		s.Require().ErrorContains(err, "failed to get export job: : Unable to get the job.")
+		s.Require().ErrorContains(err, "failed to get export job: Unable to get the job.")
 		s.Require().Empty(printer.GetLines())
 		s.Require().Empty(printer.GetErrorLines())
 	})
@@ -421,14 +422,14 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 
 		cmd := &cobra.Command{}
 
-		job1, appErr := s.th.App.CreateJob(&model.Job{
+		job1, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
 
 		time.Sleep(time.Millisecond)
 
-		job2, appErr := s.th.App.CreateJob(&model.Job{
+		job2, appErr := s.th.App.CreateJob(s.th.Context, &model.Job{
 			Type: model.JobTypeExportProcess,
 		})
 		s.Require().Nil(appErr)
@@ -439,11 +440,11 @@ func (s *MmctlE2ETestSuite) TestExportJobCancelCmdF() {
 		s.Require().Empty(printer.GetErrorLines())
 
 		// Get job1 again to refresh its status
-		job1, appErr = s.th.App.GetJob(job1.Id)
+		job1, appErr = s.th.App.GetJob(s.th.Context, job1.Id)
 		s.Require().Nil(appErr)
 
 		// Get job2 again to ensure its status did not change
-		job2, _ = s.th.App.GetJob(job2.Id)
+		job2, _ = s.th.App.GetJob(s.th.Context, job2.Id)
 		s.Require().Nil(appErr)
 
 		s.Require().Equal(job1.Status, model.JobStatusCanceled)

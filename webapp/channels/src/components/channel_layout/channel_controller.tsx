@@ -10,11 +10,11 @@ import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 
 import CenterChannel from 'components/channel_layout/center_channel';
-import FaviconTitleHandler from 'components/favicon_title_handler';
 import LoadingScreen from 'components/loading_screen';
 import ProductNoticesModal from 'components/product_notices_modal';
 import ResetStatusModal from 'components/reset_status_modal';
 import Sidebar from 'components/sidebar';
+import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
@@ -55,8 +55,9 @@ export default function ChannelController(props: Props) {
             <div
                 id='channel_view'
                 className='channel-view'
+                data-testid='channel_view'
             >
-                <FaviconTitleHandler/>
+                <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
                 <div className={classNames('container-fluid channel-view-inner')}>
                     {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}

@@ -12,7 +12,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTimezone, isTimezoneEnabled} from 'mattermost-redux/selectors/entities/timezone';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {openShowEditHistory} from 'actions/views/rhs';
 
@@ -53,11 +53,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps): StateProps {
     const config = getConfig(state);
     const channel = getChannel(state, post?.channel_id || '');
 
-    let timeZone: TimestampProps['timeZone'];
-
-    if (isTimezoneEnabled(state)) {
-        timeZone = getCurrentTimezone(state);
-    }
+    const timeZone: TimestampProps['timeZone'] = getCurrentTimezone(state);
     const postOwner = post ? isPostOwner(state, post) : undefined;
 
     const isMilitaryTime = getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false);

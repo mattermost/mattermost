@@ -22,7 +22,7 @@ func TestCreatePluginsFile(t *testing.T) {
 	defer th.TearDown()
 
 	// Happy path where we have a plugins file with no err
-	fileData, err := th.App.createPluginsFile()
+	fileData, err := th.App.createPluginsFile(th.Context)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "plugins.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
@@ -34,7 +34,7 @@ func TestCreatePluginsFile(t *testing.T) {
 	})
 
 	// Plugins off in settings so no fileData and we get a warning instead
-	fileData, err = th.App.createPluginsFile()
+	fileData, err = th.App.createPluginsFile(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "failed to get plugin list for support package")
 }
@@ -51,7 +51,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	t.Run("Happy path", func(t *testing.T) {
 		// Happy path where we have a support packet yaml file without any warnings
 
-		fileData, err := th.App.generateSupportPacketYaml()
+		fileData, err := th.App.generateSupportPacketYaml(th.Context)
 		require.NotNil(t, fileData)
 		assert.Equal(t, "support_packet.yaml", fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
@@ -72,7 +72,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		fb.On("DriverName").Return("mock")
 		fb.On("TestConnection").Return(errors.New("all broken"))
 
-		fileData, err := th.App.generateSupportPacketYaml()
+		fileData, err := th.App.generateSupportPacketYaml(th.Context)
 		require.NotNil(t, fileData)
 		assert.Equal(t, "support_packet.yaml", fileData.Filename)
 		assert.Positive(t, len(fileData.Body))
@@ -83,7 +83,6 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Equal(t, "mock", packet.FileDriver)
 		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
 	})
-
 }
 
 func TestGenerateSupportPacket(t *testing.T) {
@@ -96,9 +95,18 @@ func TestGenerateSupportPacket(t *testing.T) {
 	err = os.WriteFile("notifications.log", d1, 0777)
 	require.NoError(t, err)
 
-	fileDatas := th.App.GenerateSupportPacket()
+	fileDatas := th.App.GenerateSupportPacket(th.Context)
 	var rFileNames []string
-	testFiles := []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "mattermost.log", "notifications.log"}
+	testFiles := []string{
+		"support_packet.yaml",
+		"plugins.json",
+		"sanitized_config.json",
+		"mattermost.log",
+		"notifications.log",
+		"cpu.prof",
+		"heap.prof",
+		"goroutines",
+	}
 	for _, fileData := range fileDatas {
 		require.NotNil(t, fileData)
 		assert.Positive(t, len(fileData.Body))
@@ -112,8 +120,16 @@ func TestGenerateSupportPacket(t *testing.T) {
 	require.NoError(t, err)
 	err = os.Remove("mattermost.log")
 	require.NoError(t, err)
-	fileDatas = th.App.GenerateSupportPacket()
-	testFiles = []string{"support_packet.yaml", "plugins.json", "sanitized_config.json", "warning.txt"}
+	fileDatas = th.App.GenerateSupportPacket(th.Context)
+	testFiles = []string{
+		"support_packet.yaml",
+		"plugins.json",
+		"sanitized_config.json",
+		"cpu.prof",
+		"heap.prof",
+		"warning.txt",
+		"goroutines",
+	}
 	rFileNames = nil
 	for _, fileData := range fileDatas {
 		require.NotNil(t, fileData)
@@ -133,7 +149,7 @@ func TestGetNotificationsLog(t *testing.T) {
 		*cfg.NotificationLogSettings.EnableFile = false
 	})
 
-	fileData, err := th.App.getNotificationsLog()
+	fileData, err := th.App.getNotificationsLog(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "Unable to retrieve notifications.log because LogSettings: EnableFile is set to false")
 
@@ -145,7 +161,7 @@ func TestGetNotificationsLog(t *testing.T) {
 	// If any previous notifications.log file, lets delete it
 	os.Remove("notifications.log")
 
-	fileData, err = th.App.getNotificationsLog()
+	fileData, err = th.App.getNotificationsLog(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "failed read notifcation log file at path")
 
@@ -155,7 +171,7 @@ func TestGetNotificationsLog(t *testing.T) {
 	defer os.Remove("notifications.log")
 	require.NoError(t, err)
 
-	fileData, err = th.App.getNotificationsLog()
+	fileData, err = th.App.getNotificationsLog(th.Context)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "notifications.log", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
@@ -171,7 +187,7 @@ func TestGetMattermostLog(t *testing.T) {
 		*cfg.LogSettings.EnableFile = false
 	})
 
-	fileData, err := th.App.getMattermostLog()
+	fileData, err := th.App.getMattermostLog(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "Unable to retrieve mattermost.log because LogSettings: EnableFile is set to false")
 
@@ -183,7 +199,7 @@ func TestGetMattermostLog(t *testing.T) {
 	// If any previous mattermost.log file, lets delete it
 	os.Remove("mattermost.log")
 
-	fileData, err = th.App.getMattermostLog()
+	fileData, err = th.App.getMattermostLog(th.Context)
 	assert.Nil(t, fileData)
 	assert.ErrorContains(t, err, "failed read mattermost log file at path mattermost.log")
 
@@ -193,7 +209,7 @@ func TestGetMattermostLog(t *testing.T) {
 	defer os.Remove("mattermost.log")
 	require.NoError(t, err)
 
-	fileData, err = th.App.getMattermostLog()
+	fileData, err = th.App.getMattermostLog(th.Context)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "mattermost.log", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))
@@ -205,7 +221,7 @@ func TestCreateSanitizedConfigFile(t *testing.T) {
 	defer th.TearDown()
 
 	// Happy path where we have a sanitized config file with no err
-	fileData, err := th.App.createSanitizedConfigFile()
+	fileData, err := th.App.createSanitizedConfigFile(th.Context)
 	require.NotNil(t, fileData)
 	assert.Equal(t, "sanitized_config.json", fileData.Filename)
 	assert.Positive(t, len(fileData.Body))

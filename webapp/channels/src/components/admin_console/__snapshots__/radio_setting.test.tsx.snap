@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
-<Settings
+<Memo(Settings)
   inputId="string.id"
   label="some label"
   nested={false}
@@ -55,5 +55,5 @@ exports[`components/admin_console/RadioSetting should match snapshot 1`] = `
       this is administration
     </label>
   </div>
-</Settings>
+</Memo(Settings)>
 `;

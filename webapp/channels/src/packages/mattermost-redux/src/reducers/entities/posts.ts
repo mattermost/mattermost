@@ -19,7 +19,7 @@ import type {
     RelationOneToMany,
 } from '@mattermost/types/utilities';
 
-import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
 import type {GenericAction} from 'mattermost-redux/types/actions';
@@ -1492,23 +1492,6 @@ function messagesHistory(state: Partial<MessageHistory> = {
     }
 }
 
-export function expandedURLs(state: Record<string, string> = {}, action: GenericAction) {
-    switch (action.type) {
-    case GeneralTypes.REDIRECT_LOCATION_SUCCESS:
-        return {
-            ...state,
-            [action.data.url]: action.data.location,
-        };
-    case GeneralTypes.REDIRECT_LOCATION_FAILURE:
-        return {
-            ...state,
-            [action.data.url]: action.data.url,
-        };
-    default:
-        return state;
-    }
-}
-
 export const zeroStateLimitedViews = {
     threads: {},
     channels: {},
@@ -1621,9 +1604,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
 
         // History of posts and comments
         messagesHistory: messagesHistory(state.messagesHistory, action),
-
-        expandedURLs: expandedURLs(state.expandedURLs, action),
-
         acknowledgements: acknowledgements(state.acknowledgements, action),
 
         // For cloud instances with a message limit,
@@ -1642,7 +1622,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
         state.acknowledgements === nextState.acknowledgements &&
         state.openGraph === nextState.openGraph &&
         state.messagesHistory === nextState.messagesHistory &&
-        state.expandedURLs === nextState.expandedURLs &&
         state.limitedViews === nextState.limitedViews) {
         // None of the children have changed so don't even let the parent object change
         return state;

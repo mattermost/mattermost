@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import expect from 'expect';
 import moment from 'moment';
 import React from 'react';
 import type {ComponentProps} from 'react';
@@ -55,6 +54,7 @@ describe('components/admin_console/license_settings/LicenseSettings', () => {
             upgradeToE0Status: jest.fn().mockImplementation(() => Promise.resolve({percentage: 0, error: null})),
             openModal: jest.fn(),
             getFilteredUsersStats: jest.fn(),
+            getUsersLimits: jest.fn(),
         },
     };
 

@@ -3,7 +3,7 @@
 
 import {Audit} from './audits';
 import {Compliance} from './compliance';
-import {AdminConfig, ClientLicense, EnvironmentConfig} from './config';
+import {AdminConfig, AllowedIPRange, ClientLicense, EnvironmentConfig} from './config';
 import {DataRetentionCustomPolicies} from './data_retention';
 import {MixedUnlinkedGroupRedux} from './groups';
 import {PluginRedux, PluginStatusRedux} from './plugins';
@@ -39,6 +39,13 @@ export type LogFilter = {
     logLevels: LogLevels;
     dateFrom: LogDateFrom;
     dateTo: LogDateTo;
+}
+
+export type LogFilterQuery = {
+    server_names: LogServerNames;
+    log_levels: LogLevels;
+    date_from: LogDateFrom;
+    date_to: LogDateTo;
 }
 
 export type AdminState = {

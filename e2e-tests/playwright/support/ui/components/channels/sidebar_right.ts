@@ -8,16 +8,13 @@ import {components} from '@e2e-support/ui/components';
 export default class ChannelsSidebarRight {
     readonly container: Locator;
 
-    readonly input;
-    readonly sendMessageButton;
+    readonly postCreate;
     readonly closeButton;
 
     constructor(container: Locator) {
         this.container = container;
 
-        this.input = container.getByTestId('reply_textbox');
-        this.sendMessageButton = container.getByTestId('SendMessageButton');
-
+        this.postCreate = new components.ChannelsPostCreate(container.getByTestId('comment-create'), true);
         this.closeButton = container.locator('#rhsCloseButton');
     }
 
@@ -25,34 +22,23 @@ export default class ChannelsSidebarRight {
         await expect(this.container).toBeVisible();
     }
 
-    async postMessage(message: string) {
-        await this.writeMessage(message);
-        await this.sendMessage();
-    }
-
-    async writeMessage(message: string) {
-        await this.input.fill(message);
-    }
-
-    async sendMessage() {
-        await this.sendMessageButton.click();
-    }
-
-    /**
-     * Returns the value of the textbox in RHS
-     */
-    async getInputValue() {
-        return await this.input.inputValue();
-    }
-
     /**
      * Returns the RHS post by post id
      * @param postId Just the ID without the prefix
      */
-    async getRHSPostById(postId: string) {
-        const rhsPostId = `rhsPost_${postId}`;
-        const postLocator = this.container.locator(`#${rhsPostId}`);
-        return new components.ChannelsPost(postLocator);
+    async getPostById(postId: string) {
+        const post = this.container.locator(`[id="rhsPost_${postId}"]`);
+        await post.waitFor();
+        return new components.ChannelsPost(post);
+    }
+
+    /**
+     * Return the last post in the RHS
+     */
+    async getLastPost() {
+        const post = this.container.getByTestId('rhsPostView').last();
+        await post.waitFor();
+        return new components.ChannelsPost(post);
     }
 
     /**

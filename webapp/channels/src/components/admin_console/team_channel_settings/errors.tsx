@@ -88,7 +88,7 @@ export const UsersWillBeRemovedError = ({users, total, scope, scopeId}: UsersWil
                 <span>
                     {error}
                     <ToggleModalButton
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         modalId={ModalIdentifiers.USERS_TO_BE_REMOVED}
                         dialogType={UsersToBeRemovedModal}
                         dialogProps={{total, users, scope, scopeId}}

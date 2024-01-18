@@ -8,7 +8,6 @@ import type {IntlShape, MessageDescriptor} from 'react-intl';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Posts} from 'mattermost-redux/constants';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import Markdown from 'components/markdown';
 
@@ -17,7 +16,7 @@ import {t} from 'utils/i18n';
 import LastUsers from './last_users';
 
 const {
-    JOIN_CHANNEL, ADD_TO_CHANNEL, REMOVE_FROM_CHANNEL, LEAVE_CHANNEL,
+    JOIN_CHANNEL, ADD_TO_CHANNEL, REMOVE_FROM_CHANNEL, LEAVE_CHANNEL, JOIN_LEAVE_CHANNEL,
     JOIN_TEAM, ADD_TO_TEAM, REMOVE_FROM_TEAM, LEAVE_TEAM,
 } = Posts.POST_TYPES;
 
@@ -92,6 +91,24 @@ const postTypeMessage = {
         many_expanded: {
             id: t('combined_system_message.left_channel.many_expanded'),
             defaultMessage: '{users} and {lastUser} **left the channel**.',
+        },
+    },
+    [JOIN_LEAVE_CHANNEL]: {
+        one: {
+            id: t('combined_system_message.join_left_channel.one'),
+            defaultMessage: '{firstUser} **joined and left the channel**.',
+        },
+        one_you: {
+            id: t('combined_system_message.join_left_channel.one_you'),
+            defaultMessage: 'You **joined and left the channel**.',
+        },
+        two: {
+            id: t('combined_system_message.join_left_channel.two'),
+            defaultMessage: '{firstUser} and {secondUser} **joined and left the channel**.',
+        },
+        many_expanded: {
+            id: t('combined_system_message.join_left_channel.many_expanded'),
+            defaultMessage: '{users} and {lastUser} **joined and left the channel**.',
         },
     },
     [JOIN_TEAM]: {
@@ -182,8 +199,8 @@ export type Props = {
     showJoinLeave: boolean;
     userProfiles: UserProfile[];
     actions: {
-        getMissingProfilesByIds: (userIds: string[]) => ActionFunc ;
-        getMissingProfilesByUsernames: (usernames: string[]) => ActionFunc;
+        getMissingProfilesByIds: (userIds: string[]) => void;
+        getMissingProfilesByUsernames: (usernames: string[]) => void;
     };
 }
 

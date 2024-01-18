@@ -37,7 +37,7 @@ type Props = {
     canJoinPublicChannel: boolean;
     isOpen: boolean;
     actions: {
-        fetchMyCategories: (teamId: string) => {data: boolean};
+        fetchMyCategories: (teamId: string) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
         clearChannelSelection: () => void;
@@ -234,8 +234,6 @@ export default class Sidebar extends React.PureComponent<Props, State> {
                     'move--right': this.props.isOpen && this.props.isMobileView,
                     dragging: this.state.isDragging,
                 })}
-                disabled={this.props.isMobileView}
-
             >
                 {this.props.isMobileView ? <MobileSidebarHeader/> : (
                     <SidebarHeader

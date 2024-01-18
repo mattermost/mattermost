@@ -819,4 +819,70 @@ describe('Selectors.Users', () => {
             expect(Selectors.currentUserHasAnAdminRole(state)).toEqual(false);
         });
     });
+
+    describe('filterProfiles', () => {
+        it('no filter, return all users', () => {
+            expect(Object.keys(Selectors.filterProfiles(profiles)).length).toEqual(7);
+        });
+
+        it('filter role', () => {
+            const filter = {
+                role: 'system_admin',
+            };
+            expect(Object.keys(Selectors.filterProfiles(profiles, filter)).length).toEqual(3);
+        });
+
+        it('filter roles', () => {
+            const filter = {
+                roles: ['system_admin'],
+                team_roles: ['team_admin'],
+            };
+
+            const membership = TestHelper.fakeTeamMember(user3.id, team1.id);
+            membership.scheme_admin = true;
+            const memberships = {[user3.id]: membership};
+
+            expect(Object.keys(Selectors.filterProfiles(profiles, filter, memberships)).length).toEqual(4);
+        });
+
+        it('exclude_roles', () => {
+            const filter = {
+                exclude_roles: ['system_admin'],
+            };
+            expect(Object.keys(Selectors.filterProfiles(profiles, filter)).length).toEqual(4);
+        });
+
+        it('exclude bots', () => {
+            const filter = {
+                exclude_bots: true,
+            };
+            const botUser = {
+                ...user1,
+                id: 'test_bot_id',
+                username: 'botusername',
+                first_name: '',
+                last_name: '',
+                is_bot: true,
+            };
+            const newProfiles = {
+                ...profiles,
+                [botUser.id]: botUser,
+            };
+            expect(Object.keys(Selectors.filterProfiles(newProfiles, filter)).length).toEqual(7);
+        });
+
+        it('filter inactive', () => {
+            const filter = {
+                inactive: true,
+            };
+            expect(Object.keys(Selectors.filterProfiles(profiles, filter)).length).toEqual(2);
+        });
+
+        it('filter active', () => {
+            const filter = {
+                active: true,
+            };
+            expect(Object.keys(Selectors.filterProfiles(profiles, filter)).length).toEqual(5);
+        });
+    });
 });

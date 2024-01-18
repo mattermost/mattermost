@@ -23,7 +23,7 @@ jest.mock('actions/views/lhs', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/users', () => ({
-    loadMeREST: () => ({type: 'MOCK_RECEIVED_ME'}),
+    loadMe: () => ({type: 'MOCK_RECEIVED_ME'}),
 }));
 
 jest.mock('stores/redux_store', () => {

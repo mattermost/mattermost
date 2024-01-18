@@ -4,7 +4,7 @@
 import type {Stripe} from '@stripe/stripe-js';
 import {getCode} from 'country-list';
 
-import type {Address, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
+import type {Address, CloudCustomerPatch, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
 
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
@@ -84,11 +84,23 @@ export function completeStripeAddPaymentMethod(
     };
 }
 
+export function getInstallation() {
+    return async () => {
+        try {
+            const installation = await Client4.getInstallation();
+            return {data: installation};
+        } catch (e: any) {
+            return {error: e.message};
+        }
+    };
+}
+
 export function subscribeCloudSubscription(
     productId: string,
     shippingAddress: Address = getBlankAddressWithCountry(),
     seats = 0,
     downgradeFeedback?: Feedback,
+    customerPatch?: CloudCustomerPatch,
 ) {
     return async () => {
         try {
@@ -97,6 +109,7 @@ export function subscribeCloudSubscription(
                 shippingAddress,
                 seats,
                 downgradeFeedback,
+                customerPatch,
             );
 
             return {data: subscription};
@@ -259,7 +272,7 @@ export function retryFailedCloudFetches() {
         }
 
         if (errors.limits) {
-            getCloudLimits()(dispatch, getState);
+            dispatch(getCloudLimits());
         }
 
         return {data: true};

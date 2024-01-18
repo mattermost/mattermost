@@ -23,7 +23,7 @@ type Props = {
     onModalSubmit: (user?: UserProfile) => void;
     onModalDismissed: () => void;
     actions: {
-        patchUser: (user: UserProfile) => ActionResult;
+        patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
 }
 
@@ -233,7 +233,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
                     <Modal.Footer>
                         <button
                             type='button'
-                            className='btn btn-link'
+                            className='btn btn-tertiary'
                             onClick={this.doCancel}
                         >
                             <FormattedMessage

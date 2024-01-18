@@ -20,7 +20,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
     >
       <button
         aria-label="Create New Channel"
-        className="btn outlineButton"
+        className="btn btn-secondary btn-sm"
         id="createNewChannelButton"
         onClick={[Function]}
         type="button"
@@ -43,7 +43,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
   onExited={[Function]}
   show={true}
 >
-  <SearchableChannelList
+  <injectIntl(SearchableChannelList)
     canShowArchivedChannels={true}
     changeFilter={[Function]}
     channels={
@@ -138,7 +138,7 @@ exports[`components/BrowseChannels should match snapshot and state 1`] = `
         >
           <button
             aria-label="Create New Channel"
-            className="btn primaryButton"
+            className="btn btn-primary"
             id="createNewChannelButton"
             onClick={[Function]}
             type="button"

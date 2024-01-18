@@ -93,7 +93,7 @@ describe('components/admin_console/group_settings/group_details/GroupTeamsAndCha
                 onChangeRoles={jest.fn()}
             />,
         );
-        wrapper.find('.btn-link').simulate('click');
+        wrapper.find('.btn-tertiary').simulate('click');
         expect(wrapper.instance().state.showConfirmationModal).toEqual(true);
         wrapper.instance().removeItem();
         expect(onRemoveItem).toBeCalledWith(

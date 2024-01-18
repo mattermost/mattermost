@@ -6,8 +6,6 @@ on:
       - cloud
       - release-*
       - mono-repo*
-env:
-  go-version: "1.19.5"
 
 jobs:
   master-ci:

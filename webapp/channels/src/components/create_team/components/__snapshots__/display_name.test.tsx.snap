@@ -55,8 +55,8 @@ exports[`/components/create_team/components/display_name should match snapshot 1
         defaultMessage="Next"
         id="create_team.display_name.next"
       />
-      <NextIcon
-        additionalClassName={null}
+      <i
+        className="icon icon-chevron-right"
       />
     </button>
   </form>

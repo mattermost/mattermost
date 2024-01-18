@@ -26,10 +26,8 @@ function shortcutReactToLastPostEmittedFrom(state = '', action: GenericAction) {
             return Locations.CENTER;
         } else if (action.payload === Locations.RHS_ROOT) {
             return Locations.RHS_ROOT;
-        } else if (action.payload === Locations.NO_WHERE) {
-            return '';
         }
-        return state;
+        return '';
 
     case UserTypes.LOGOUT_SUCCESS:
         return '';

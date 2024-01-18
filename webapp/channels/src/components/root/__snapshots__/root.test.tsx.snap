@@ -2,6 +2,7 @@
 
 exports[`components/Root Routes Should mount public product routes 1`] = `
 <RootProvider>
+  <Connect(MobileViewWatcher) />
   <Switch>
     <Route
       component={[Function]}
@@ -93,11 +94,10 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <WindowSizeObserver />
       <Connect(ModalController) />
       <Connect(Component) />
-      <Connect(SystemNotice) />
+      <Connect(injectIntl(SystemNotice)) />
       <GlobalHeader />
       <CloudEffectsWrapper />
       <withRouter(Connect(TeamSidebar)) />
-      <DelinquencyModalController />
       <Switch>
         <Route
           key="productwithpublic-public"
@@ -116,7 +116,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
         />
         <LoggedInRoute
           component={[Function]}
-          path="/:team"
+          path="/:team([a-z0-9\\\\-_]+)"
           theme={Object {}}
         />
         <Connect(RootRedirect) />
@@ -124,7 +124,7 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <Connect(Pluggable)
         pluggableName="Global"
       />
-      <withRouter(Connect(Component)) />
+      <withRouter(Connect(SidebarRight)) />
       <AppBar />
       <Connect(SidebarRightMenu) />
     </CompassThemeProvider>

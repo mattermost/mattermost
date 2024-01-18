@@ -28,7 +28,6 @@ func (p *MyPlugin) OnConfigurationChange() error {
 }
 
 func (p *MyPlugin) MessageWillBePosted(_ *plugin.Context, _ *model.Post) (*model.Post, string) {
-
 	// Create an 128 x 128 image
 	img := image.NewRGBA(image.Rect(0, 0, 128, 128))
 	// Draw a red dot at (2, 3)
