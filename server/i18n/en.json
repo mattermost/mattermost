@@ -6715,6 +6715,10 @@
     "translation": "An error occurred saving the configuration."
   },
   {
+    "id": "app.save_config.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Channel autocomplete cannot be enabled as channels index is in incorrect state. Rebuild channels index before enabling this."
+  },
+  {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save."
   },

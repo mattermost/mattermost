@@ -559,14 +559,14 @@ func (s *Server) doElasticsearchFixChannelIndex(c request.CTX) {
 		s.elasticsearchFixChannelIndex(c, newLicense)
 	})
 
-	s.Platform().AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
-		oldEnableAutocomplete := *oldConfig.ElasticsearchSettings.EnableAutocomplete
-		newEnableAutocomplete := *newConfig.ElasticsearchSettings.EnableAutocomplete
-
-		if oldEnableAutocomplete == false && newEnableAutocomplete == true {
-			s.elasticsearchFixChannelIndex(c, s.License())
-		}
-	})
+	//s.Platform().AddConfigListener(func(oldConfig *model.Config, newConfig *model.Config) {
+	//	oldEnableAutocomplete := *oldConfig.ElasticsearchSettings.EnableAutocomplete
+	//	newEnableAutocomplete := *newConfig.ElasticsearchSettings.EnableAutocomplete
+	//
+	//	if oldEnableAutocomplete == false && newEnableAutocomplete == true {
+	//		s.elasticsearchFixChannelIndex(c, s.License())
+	//	}
+	//})
 
 	s.elasticsearchFixChannelIndex(c, s.License())
 }
