@@ -13,7 +13,6 @@ import Input from 'components/widgets/inputs/input/input';
 
 import './system_users_search.scss';
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 export function SystemUsersSearch() {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
