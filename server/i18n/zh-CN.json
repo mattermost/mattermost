@@ -3715,11 +3715,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "文件保留至少一天。"
+    "translation": "文件保留天数不能小于 0。"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "消息保留至少一天。"
+    "translation": "消息保留天数不能小于 0。"
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -10172,5 +10172,125 @@
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
     "translation": "服务设置中的对外集成请求超时无效。必须是正整数。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "列出对外 OAuth 连接时出现错误。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "输入参数无效。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "此功能被功能标记限制。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "删除对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "获取对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "保存此对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "无法确认邀请：{{.Error}}"
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "现在续订"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "请续订以避免任何中断"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "您的年付帐单需要在 30 天内支付"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "年度订阅需在 60 天内续期"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "获取对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "未找到该对外 oauth 连接。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "更新此对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "消息保留天数和消息保留小时数不能均大于 0。"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "读取载荷时出现错误。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "文件保留小时数不能小于 0"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "无法更新频道成员的通知属性。"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "无法更新过多频道成员。每次最多只能更新 {{.Max}} 位频道成员。"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "获取用户数量失败。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "文件保留天数和文件保留小时数不能均为 0。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "消息保留小时数不能小于 0"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "无法找到用户。"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "年付帐单需要在 30 天内支付"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "年度订阅需在 60 天内续期"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "需要操作：年度订阅需在 7 天内续期"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "您即将在 7 天后失去对您的工作区的访问"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "检查用户是否有自定义个人资料图片时出现错误。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "文件保留天数和文件保留小时数不能均大于 0。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "消息保留天数和消息保留小时数不能均为 0。"
   }
 ]
