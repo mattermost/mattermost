@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {renderWithIntl, screen, fireEvent} from 'tests/react_testing_utils';
+import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import CheckboxSetting from './checkbox_setting';
 
 describe('components/admin_console/CheckboxSetting', () => {
     test('should match snapshot', () => {
         const onChange = jest.fn();
-        const {container} = renderWithIntl(
+        const {container} = renderWithContext(
             <CheckboxSetting
                 id='string.id'
                 label='some label'
@@ -27,7 +27,7 @@ describe('components/admin_console/CheckboxSetting', () => {
 
     test('onChange', () => {
         const onChange = jest.fn();
-        renderWithIntl(
+        renderWithContext(
             <CheckboxSetting
                 id='string.id'
                 label='some label'
