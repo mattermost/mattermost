@@ -1,37 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {JobType, Job, JobTypeBase} from '@mattermost/types/jobs';
+import type {JobType, JobTypeBase} from '@mattermost/types/jobs';
 
 import {JobTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
 import {General} from '../constants';
 
-export function createJob(job: JobTypeBase): NewActionFuncAsync<Job> {
+export function createJob(job: JobTypeBase) {
     return bindClientFunc({
         clientFunc: Client4.createJob,
         onSuccess: JobTypes.RECEIVED_JOB,
         params: [
             job,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getJob(id: string): NewActionFuncAsync<Job> {
+export function getJob(id: string) {
     return bindClientFunc({
         clientFunc: Client4.getJob,
         onSuccess: JobTypes.RECEIVED_JOB,
         params: [
             id,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getJobs(page = 0, perPage: number = General.JOBS_CHUNK_SIZE): NewActionFuncAsync<Job[]> {
+export function getJobs(page = 0, perPage: number = General.JOBS_CHUNK_SIZE) {
     return bindClientFunc({
         clientFunc: Client4.getJobs,
         onSuccess: JobTypes.RECEIVED_JOBS,
@@ -39,10 +38,10 @@ export function getJobs(page = 0, perPage: number = General.JOBS_CHUNK_SIZE): Ne
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function getJobsByType(type: JobType, page = 0, perPage: number = General.JOBS_CHUNK_SIZE): NewActionFuncAsync<Job> {
+export function getJobsByType(type: JobType, page = 0, perPage: number = General.JOBS_CHUNK_SIZE) {
     return bindClientFunc({
         clientFunc: Client4.getJobsByType,
         onSuccess: [JobTypes.RECEIVED_JOBS, JobTypes.RECEIVED_JOBS_BY_TYPE],
@@ -51,14 +50,14 @@ export function getJobsByType(type: JobType, page = 0, perPage: number = General
             page,
             perPage,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }
 
-export function cancelJob(job: string): NewActionFuncAsync {
+export function cancelJob(job: string) {
     return bindClientFunc({
         clientFunc: Client4.cancelJob,
         params: [
             job,
         ],
-    }) as any; // HARRISONTODO Type bindClientFunc
+    });
 }

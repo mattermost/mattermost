@@ -5,11 +5,10 @@ import type {Address, CloudCustomerPatch} from '@mattermost/types/cloud';
 
 import {CloudTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
-export function getCloudSubscription(): ActionFunc {
+export function getCloudSubscription() {
     return bindClientFunc({
         clientFunc: Client4.getSubscription,
         onSuccess: [CloudTypes.RECEIVED_CLOUD_SUBSCRIPTION],
@@ -18,7 +17,7 @@ export function getCloudSubscription(): ActionFunc {
     });
 }
 
-export function getCloudProducts(includeLegacyProducts?: boolean): ActionFunc {
+export function getCloudProducts(includeLegacyProducts?: boolean) {
     return bindClientFunc({
         clientFunc: Client4.getCloudProducts,
         onSuccess: [CloudTypes.RECEIVED_CLOUD_PRODUCTS],
@@ -28,7 +27,7 @@ export function getCloudProducts(includeLegacyProducts?: boolean): ActionFunc {
     });
 }
 
-export function getCloudCustomer(): ActionFunc {
+export function getCloudCustomer() {
     return bindClientFunc({
         clientFunc: Client4.getCloudCustomer,
         onSuccess: [CloudTypes.RECEIVED_CLOUD_CUSTOMER],
@@ -37,7 +36,7 @@ export function getCloudCustomer(): ActionFunc {
     });
 }
 
-export function getLicenseSelfServeStatus(): ActionFunc {
+export function getLicenseSelfServeStatus() {
     return bindClientFunc({
         clientFunc: Client4.getLicenseSelfServeStatus,
         onRequest: CloudTypes.LICENSE_SELF_SERVE_STATS_REQUEST,
@@ -46,7 +45,7 @@ export function getLicenseSelfServeStatus(): ActionFunc {
     });
 }
 
-export function getInvoices(): ActionFunc {
+export function getInvoices() {
     return bindClientFunc({
         clientFunc: Client4.getInvoices,
         onSuccess: [CloudTypes.RECEIVED_CLOUD_INVOICES],
@@ -55,7 +54,7 @@ export function getInvoices(): ActionFunc {
     });
 }
 
-export function updateCloudCustomer(customerPatch: CloudCustomerPatch): ActionFunc {
+export function updateCloudCustomer(customerPatch: CloudCustomerPatch) {
     return bindClientFunc({
         clientFunc: Client4.updateCloudCustomer,
         onSuccess: [CloudTypes.RECEIVED_CLOUD_CUSTOMER],
@@ -63,7 +62,7 @@ export function updateCloudCustomer(customerPatch: CloudCustomerPatch): ActionFu
     });
 }
 
-export function updateCloudCustomerAddress(address: Address): ActionFunc {
+export function updateCloudCustomerAddress(address: Address) {
     return bindClientFunc({
         clientFunc: Client4.updateCloudCustomerAddress,
         onSuccess: [CloudTypes.RECEIVED_CLOUD_CUSTOMER],
