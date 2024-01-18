@@ -20,7 +20,6 @@ import {sortFileInfos} from 'mattermost-redux/utils/file_utils';
 import * as GlobalActions from 'actions/global_actions';
 
 import AdvancedTextEditor from 'components/advanced_text_editor/advanced_text_editor';
-import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import NotifyConfirmModal from 'components/notify_confirm_modal';
@@ -1058,11 +1057,6 @@ class AdvancedCreateComment extends React.PureComponent<Props, State> {
 
         return (
             <form onSubmit={this.handleSubmit}>
-                {
-                    this.props.canPost &&
-                    (this.props.draft.fileInfos.length > 0 || this.props.draft.uploadsInProgress.length > 0) &&
-                    <FileLimitStickyBanner/>
-                }
                 <AdvancedTextEditor
                     location={Locations.RHS_COMMENT}
                     textboxRef={this.textboxRef}

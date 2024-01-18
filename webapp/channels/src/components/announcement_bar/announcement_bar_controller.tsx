@@ -5,7 +5,6 @@ import React from 'react';
 
 import type {ClientLicense, ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 
-import {ToPaidPlanBannerDismissable} from 'components/admin_console/billing/billing_subscriptions/to_paid_plan_nudge_banner';
 import withGetCloudSubscription from 'components/common/hocs/cloud/with_get_cloud_subscription';
 
 import CloudAnnualRenewalAnnouncementBar from './cloud_annual_renewal';
@@ -71,7 +70,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
         let cloudRenewalAnnouncementBar = null;
         const notifyAdminDowngradeDelinquencyBar = null;
         const toYearlyNudgeBannerDismissable = null;
-        let toPaidPlanNudgeBannerDismissable = null;
+        const toPaidPlanNudgeBannerDismissable = null;
         if (this.props.license?.Cloud === 'true') {
             paymentAnnouncementBar = (
                 <PaymentAnnouncementBar/>
@@ -88,7 +87,6 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             cloudRenewalAnnouncementBar = (
                 <CloudAnnualRenewalAnnouncementBar/>
             );
-            toPaidPlanNudgeBannerDismissable = (<ToPaidPlanBannerDismissable/>);
         }
 
         let autoStartTrialModal = null;

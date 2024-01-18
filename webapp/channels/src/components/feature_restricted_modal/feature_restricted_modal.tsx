@@ -11,7 +11,6 @@ import {GenericModal} from '@mattermost/components';
 import {getPrevTrialLicense} from 'mattermost-redux/actions/admin';
 import {checkHadPriorTrial} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
@@ -62,7 +61,6 @@ const FeatureRestrictedModal = ({
         dispatch(getPrevTrialLicense());
     }, []);
 
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const hasCloudPriorTrial = useSelector(checkHadPriorTrial);
     const prevTrialLicense = useSelector((state: GlobalState) => state.entities.admin.prevTrialLicense);
     const hasSelfHostedPriorTrial = prevTrialLicense.IsLicensed === 'true';
@@ -104,7 +102,7 @@ const FeatureRestrictedModal = ({
 
     const getTitle = () => {
         if (isSystemAdmin) {
-            return (hasPriorTrial || cloudFreeDeprecated) ? titleAdminPostTrial : titleAdminPreTrial;
+            return (hasPriorTrial) ? titleAdminPostTrial : titleAdminPreTrial;
         }
 
         return titleEndUser;
@@ -112,13 +110,13 @@ const FeatureRestrictedModal = ({
 
     const getMessage = () => {
         if (isSystemAdmin) {
-            return (hasPriorTrial || cloudFreeDeprecated) ? messageAdminPostTrial : messageAdminPreTrial;
+            return (hasPriorTrial) ? messageAdminPostTrial : messageAdminPreTrial;
         }
 
         return messageEndUser;
     };
 
-    const showStartTrial = isSystemAdmin && !hasPriorTrial && !cloudFreeDeprecated;
+    const showStartTrial = isSystemAdmin && !hasPriorTrial;
 
     // define what is the secondary button text and action, by default will be the View Plan button
     let secondaryBtnMsg = formatMessage({id: 'feature_restricted_modal.button.plans', defaultMessage: 'View plans'});

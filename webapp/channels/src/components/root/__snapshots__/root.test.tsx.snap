@@ -96,7 +96,6 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <Connect(Component) />
       <Connect(injectIntl(SystemNotice)) />
       <GlobalHeader />
-      <CloudEffectsWrapper />
       <withRouter(Connect(TeamSidebar)) />
       <Switch>
         <Route

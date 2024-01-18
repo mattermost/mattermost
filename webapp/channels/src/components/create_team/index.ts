@@ -8,8 +8,6 @@ import {getCloudSubscription as selectCloudSubscription} from 'mattermost-redux/
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
-import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
-
 import {isCloudLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
@@ -40,4 +38,4 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-export default withUseGetUsageDelta(connect(mapStateToProps)(CreateTeam));
+export default connect(mapStateToProps)(CreateTeam);

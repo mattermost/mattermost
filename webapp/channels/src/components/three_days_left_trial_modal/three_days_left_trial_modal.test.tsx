@@ -75,7 +75,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
 
     const props = {
         onExited: jest.fn(),
-        limitsOverpassed: false,
     };
 
     const store = mockStore(state);
@@ -94,7 +93,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
             <Provider store={store}>
                 <ThreeDaysLeftTrialModal
                     {...props}
-                    limitsOverpassed={true}
                 />
             </Provider>,
         );
@@ -109,18 +107,6 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
         );
 
         expect(wrapper.find('ThreeDaysLeftTrialModal ThreeDaysLeftTrialCard')).toHaveLength(3);
-    });
-
-    test('should show the workspace limits panel when limits are overpassed', () => {
-        const wrapper = mountWithIntl(
-            <Provider store={store}>
-                <ThreeDaysLeftTrialModal
-                    {...props}
-                    limitsOverpassed={true}
-                />
-            </Provider>,
-        );
-        expect(wrapper.find('ThreeDaysLeftTrialModal WorkspaceLimitsPanel')).toHaveLength(1);
     });
 
     test('should call on exited', () => {

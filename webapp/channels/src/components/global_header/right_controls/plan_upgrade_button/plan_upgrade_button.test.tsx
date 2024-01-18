@@ -49,29 +49,6 @@ describe('components/global/PlanUpgradeButton', () => {
             },
         },
     };
-    it('should show Upgrade button in global header for admin users, cloud free subscription', () => {
-        const state = {
-            ...initialState,
-        };
-
-        const cloudSubscriptionSpy = jest.spyOn(cloudActions, 'getCloudSubscription');
-        const cloudProductsSpy = jest.spyOn(cloudActions, 'getCloudProducts');
-
-        const store = mockStore(state);
-
-        const dummyDispatch = jest.fn();
-        useDispatchMock.mockReturnValue(dummyDispatch);
-
-        const wrapper = mount(
-            <reactRedux.Provider store={store}>
-                <PlanUpgradeButton/>
-            </reactRedux.Provider>,
-        );
-
-        expect(cloudSubscriptionSpy).toHaveBeenCalledTimes(1);
-        expect(cloudProductsSpy).toHaveBeenCalledTimes(1);
-        expect(wrapper.find('UpgradeButton').exists()).toEqual(true);
-    });
 
     it('should show Upgrade button in global header for admin users, cloud and enterprise trial subscription', () => {
         const state = JSON.parse(JSON.stringify(initialState));

@@ -27,7 +27,6 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       <TeamProfile
         isArchived={false}
         onToggleArchive={[Function]}
-        saveNeeded={false}
         team={
           Object {
             "allow_open_invite": false,
@@ -133,7 +132,6 @@ exports[`admin_console/team_channel_settings/team/TeamDetails should match snaps
       <TeamProfile
         isArchived={true}
         onToggleArchive={[Function]}
-        saveNeeded={false}
         team={
           Object {
             "allow_open_invite": false,

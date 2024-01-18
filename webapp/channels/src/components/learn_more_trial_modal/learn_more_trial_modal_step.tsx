@@ -3,9 +3,6 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useSelector} from 'react-redux';
-
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 
 import ExternalLink from 'components/external_link';
 import TrialBenefitsModalStepMore from 'components/trial_benefits_modal/trial_benefits_modal_step_more';
@@ -38,7 +35,6 @@ const LearnMoreTrialModalStep = (
         buttonLabel,
         handleOnClose,
     }: LearnMoreTrialModalStepProps) => {
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     return (
         <div
             id={`learnMoreTrialModalStep-${id}`}
@@ -64,7 +60,7 @@ const LearnMoreTrialModalStep = (
                 />
             )}
             {
-                cloudFreeDeprecated ? '' : (
+                (
                     <div className='disclaimer'>
                         <span>
                             <FormattedMessage

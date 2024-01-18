@@ -18,8 +18,6 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {addUserToTeam} from 'actions/team_actions';
 
-import withUseGetUsageDelta from 'components/common/hocs/cloud/with_use_get_usage_deltas';
-
 import {isCloudLicense} from 'utils/license_utils';
 
 import type {GlobalState} from 'types/store';
@@ -68,5 +66,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
 export default compose(
     withRouter,
     connect(mapStateToProps, mapDispatchToProps),
-    withUseGetUsageDelta,
 )(SelectTeam) as any;

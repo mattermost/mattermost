@@ -111,7 +111,6 @@ const ProductMenuList = (props: Props): JSX.Element | null => {
         <Menu.Group>
             <div onClick={onClick}>
                 <Menu.CloudTrial id='menuCloudTrial'/>
-                <Menu.ItemCloudLimit id='menuItemCloudLimit'/>
                 <SystemPermissionGate
                     permissions={[Permissions.SYSCONSOLE_WRITE_ABOUT_EDITION_AND_LICENSE]}
                 >

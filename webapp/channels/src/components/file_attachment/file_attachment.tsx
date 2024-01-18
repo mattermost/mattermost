@@ -10,7 +10,6 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import useTooltip from 'components/common/hooks/useTooltip';
 import GetPublicModal from 'components/get_public_link_modal';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
@@ -26,7 +25,6 @@ import {
     localizeMessage,
 } from 'utils/utils';
 
-import ArchivedTooltip from './archived_tooltip';
 import FileThumbnail from './file_thumbnail';
 import FilenameOverlay from './filename_overlay';
 
@@ -63,16 +61,6 @@ export default function FileAttachment(props: Props) {
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
     const [keepOpen, setKeepOpen] = useState(false);
     const [openUp, setOpenUp] = useState(false);
-
-    const {
-        reference,
-        getReferenceProps,
-        tooltip: archivedTooltip,
-    } = useTooltip({
-        message: <ArchivedTooltip/>,
-        placement: 'right',
-        allowedPlacements: ['right', 'top'],
-    });
 
     const buttonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -373,8 +361,8 @@ export default function FileAttachment(props: Props) {
     const content =
         (
             <div
-                ref={fileInfo.archived ? reference : undefined}
-                {...(fileInfo.archived ? getReferenceProps() : {})}
+                ref={undefined}
+                {...({})}
                 className={
                     classNames([
                         'post-image__column',
@@ -396,7 +384,6 @@ export default function FileAttachment(props: Props) {
         return (
             <>
                 {content}
-                {archivedTooltip}
             </>
         );
     }

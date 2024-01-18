@@ -8,9 +8,6 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
     <MenuCloudTrial
       id="menuCloudTrial"
     />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
-    />
     <Connect(SystemPermissionGate)
       permissions={
         Array [
@@ -205,9 +202,6 @@ exports[`components/global/product_switcher_menu should match snapshot with most
   >
     <MenuCloudTrial
       id="menuCloudTrial"
-    />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
     />
     <Connect(SystemPermissionGate)
       permissions={
@@ -529,9 +523,6 @@ exports[`components/global/product_switcher_menu should show integrations should
   >
     <MenuCloudTrial
       id="menuCloudTrial"
-    />
-    <MenuItemCloudLimit
-      id="menuItemCloudLimit"
     />
     <Connect(SystemPermissionGate)
       permissions={

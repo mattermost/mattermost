@@ -6,22 +6,17 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
+import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import useGetHighestThresholdCloudLimit from 'components/common/hooks/useGetHighestThresholdCloudLimit';
-import useGetLimits from 'components/common/hooks/useGetLimits';
-import useGetUsage from 'components/common/hooks/useGetUsage';
 import useOpenPricingModal from 'components/common/hooks/useOpenPricingModal';
-import LearnMoreTrialModal from 'components/learn_more_trial_modal/learn_more_trial_modal';
 import TrialBenefitsModal from 'components/trial_benefits_modal/trial_benefits_modal';
 
-import {ModalIdentifiers, CloudProducts} from 'utils/constants';
+import {ModalIdentifiers} from 'utils/constants';
 
 import './menu_item.scss';
 
@@ -30,14 +25,11 @@ type Props = {
 }
 const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     const subscription = useSelector(getCloudSubscription);
-    const subscriptionProduct = useSelector(getSubscriptionProduct);
     const license = useSelector(getLicense);
-    const cloudFreeDeprecated = useSelector(deprecateCloudFree);
     const dispatch = useDispatch<DispatchFunc>();
 
     const isCloud = license?.Cloud === 'true';
     const isFreeTrial = subscription?.is_free_trial === 'true';
-    const noPriorTrial = !(subscription?.is_free_trial === 'false' && subscription?.trial_end_at > 0);
     const freeTrialEndDay = moment(subscription?.trial_end_at).format('MMMM DD');
     const isAdmin = useSelector(isCurrentUserSystemAdmin);
     const openPricingModal = useOpenPricingModal();
@@ -49,25 +41,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
         }));
     };
 
-    const openLearnMoreTrialModal = async () => {
-        await dispatch(openModal({
-            modalId: ModalIdentifiers.LEARN_MORE_TRIAL_MODAL,
-            dialogType: LearnMoreTrialModal,
-            dialogProps: {
-                launchedBy: 'main_menu_cloud_trial',
-            },
-        }));
-    };
-
-    const someLimitNeedsAttention = Boolean(useGetHighestThresholdCloudLimit(useGetUsage(), useGetLimits()[0]));
-
     if (!isCloud) {
-        return null;
-    }
-
-    const isStarter = subscriptionProduct?.sku === CloudProducts.STARTER;
-
-    if (someLimitNeedsAttention || (!isStarter && !isFreeTrial)) {
         return null;
     }
 
@@ -110,24 +84,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     );
 
     // menu option displayed when the workspace is not running any trial
-    const noFreeTrialContent = (noPriorTrial && !cloudFreeDeprecated) ? (
-        <FormattedMessage
-            id='menu.cloudFree.priorTrial.tryEnterprise'
-            defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>Try Enterprise free for 30 days</openModalLink>'
-            values={
-                {
-                    openModalLink: (msg: string) => (
-                        <a
-                            className='open-learn-more-trial-modal style-link'
-                            onClick={openLearnMoreTrialModal}
-                        >
-                            {msg}
-                        </a>
-                    ),
-                }
-            }
-        />
-    ) : (
+    const noFreeTrialContent = (
         <FormattedMessage
             id='menu.cloudFree.postTrial.tryEnterprise'
             defaultMessage='Interested in a limitless plan with high-security features? <openModalLink>See plans</openModalLink>'
