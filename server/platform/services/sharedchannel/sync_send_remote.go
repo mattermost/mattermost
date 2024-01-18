@@ -235,13 +235,17 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt)
 
+	cache := postsSliceToMap(posts)
+
 	// Fill remaining batch capacity with updated posts.
 	if len(posts) < MaxPostsPerSync {
 		options.SinceCreateAt = false
+		// use 'nextcursor' as it has the correct xxxUpdateAt values, and the updsted xxxCreateAt values.
 		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, MaxPostsPerSync-len(posts))
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
+		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt)
 	}

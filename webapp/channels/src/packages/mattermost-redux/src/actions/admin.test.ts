@@ -5,6 +5,7 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {AdminConfig} from '@mattermost/types/config';
 import type {CreateDataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 
 import * as Actions from 'mattermost-redux/actions/admin';
@@ -567,7 +568,7 @@ describe('Actions.Admin', () => {
             post('/elasticsearch/test').
             reply(200, OK_RESPONSE);
 
-        await store.dispatch(Actions.testElasticsearch({}));
+        await store.dispatch(Actions.testElasticsearch({} as AdminConfig));
 
         expect(nock.isDone()).toBe(true);
     });

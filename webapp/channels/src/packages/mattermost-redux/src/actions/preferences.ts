@@ -43,7 +43,7 @@ export function deletePreferences(userId: string, preferences: PreferenceType[])
     };
 }
 
-export function getMyPreferences(): ActionFunc {
+export function getMyPreferences() {
     return bindClientFunc({
         clientFunc: Client4.getMyPreferences,
         onSuccess: PreferenceTypes.RECEIVED_ALL_PREFERENCES,
