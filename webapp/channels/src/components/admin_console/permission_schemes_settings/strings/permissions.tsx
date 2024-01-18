@@ -621,7 +621,7 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Manage Outgoing OAuth Credentials',
         },
         description: {
-            id: 'admin.permissions.permission.manage_outgoing_oauth_credentials.description',
+            id: 'admin.permissions.permission.manage_outgoing_oauth_connections.description',
             defaultMessage: 'Create, edit, and delete outgoing OAuth credentials.',
         },
     }),

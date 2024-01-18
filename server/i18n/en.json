@@ -8260,7 +8260,15 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
-    "translation": "There was an error while authenticating the outgoing oauth connection."
+    "translation": "There was an error while authenticating the outgoing oauth connection: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "There is already an outgoing oauth connection for the provided audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "No configured outgoing oauth connection matches the provided audience."
   },
   {
     "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
@@ -8304,7 +8312,15 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "There was an error saving the outgoing oauth connection."
+    "translation": "There was an error saving the outgoing oauth connection: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "There is already an outgoing oauth connection for the provided audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "One of the provided audiences is not a valid URL."
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
@@ -8316,7 +8332,15 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "There was an error updating the outgoing oauth connection."
+    "translation": "There was an error updating the outgoing oauth connection: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "There is already an outgoing oauth connection for the provided audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "One of the provided audiences is not a valid URL."
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
@@ -9668,7 +9692,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "Some audience URL is incorrect."
+    "translation": "Audience URL is invalid: {{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
