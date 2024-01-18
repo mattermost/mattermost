@@ -3,8 +3,8 @@
 exports[`AdminConsolePluginsIndex.getPluginEntries should return map with the text extracted from plugins 1`] = `
 Object {
   "plugin_mattermost-autolink": Array [
-    "admin.plugin.enable_plugin",
-    "admin.plugin.enable_plugin.help",
+    "Enable Plugin: ",
+    "When true, this plugin is enabled.",
     "PluginSettings.PluginStates.mattermost-autolink.Enable",
     "Autolink",
     "mattermost-autolink",
@@ -18,8 +18,8 @@ Object {
 exports[`AdminConsolePluginsIndex.getPluginEntries should return map with the text extracted from plugins 2`] = `
 Object {
   "plugin_Some-random-plugin": Array [
-    "admin.plugin.enable_plugin",
-    "admin.plugin.enable_plugin.help",
+    "Enable Plugin: ",
+    "When true, this plugin is enabled.",
     "PluginSettings.PluginStates.Some-random-plugin.Enable",
     "Random",
     "Some-random-plugin",
@@ -32,8 +32,8 @@ Object {
     "setRange",
   ],
   "plugin_mattermost-autolink": Array [
-    "admin.plugin.enable_plugin",
-    "admin.plugin.enable_plugin.help",
+    "Enable Plugin: ",
+    "When true, this plugin is enabled.",
     "PluginSettings.PluginStates.mattermost-autolink.Enable",
     "Autolink",
     "mattermost-autolink",
