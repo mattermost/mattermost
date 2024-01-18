@@ -173,7 +173,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         description={
                             <FormattedMessage
                                 id='integrations.outgoingOAuthConnections.description'
-                                defaultMessage='Outgoing OAuth Connections allow custom integrations to communicate to external systems using OAuth client credentials or password credentials grant types.'
+                                defaultMessage='Outgoing OAuth Connections allow custom integrations to communicate to external systems'
                             />
                         }
                         link={'/' + this.props.team.name + '/integrations/outgoing-oauth2-connections'}

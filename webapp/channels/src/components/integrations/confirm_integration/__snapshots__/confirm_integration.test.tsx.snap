@@ -357,7 +357,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
       to="/team_test/integrations/outgoing-oauth2-connections"
     >
       <MemoizedFormattedMessage
-        defaultMessage="Outgoing OAuth Connections"
+        defaultMessage="Outgoing OAuth 2.0 Connections"
         id="installed_oauth2_outgoing_oauth_connections.header"
       />
     </Link>

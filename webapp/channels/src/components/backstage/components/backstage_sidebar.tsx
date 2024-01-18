@@ -167,7 +167,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
                         title={
                             <FormattedMessage
                                 id='backstage_sidebar.integrations.outgoingOauthConnections'
-                                defaultMessage='Outgoing OAuth Connections'
+                                defaultMessage='Outgoing OAuth 2.0 Connections'
                             />
                         }
                         id='outgoingOauthConnections'
