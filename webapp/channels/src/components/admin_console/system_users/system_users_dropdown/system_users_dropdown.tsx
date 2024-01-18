@@ -619,7 +619,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
             currentRoles = (
                 <FormattedMessage
                     id='admin.user_item.inactive'
-                    defaultMessage='Inactive'
+                    defaultMessage='Deactivated'
                 />
             );
             showMakeActive = true;
