@@ -89,7 +89,7 @@ func fillReportingBaseOptions(values url.Values) model.ReportingBaseOptions {
 		pageSize = int(pageSizeStr)
 	}
 
-	return model.ReportingBaseOptions{
+	options := model.ReportingBaseOptions{
 		Direction:       direction,
 		SortColumn:      sortColumn,
 		SortDesc:        values.Get("sort_direction") == "desc",
@@ -98,6 +98,8 @@ func fillReportingBaseOptions(values url.Values) model.ReportingBaseOptions {
 		FromId:          values.Get("from_id"),
 		DateRange:       values.Get("date_range"),
 	}
+	options.PopulateDateRange(time.Now())
+	return options
 }
 
 func fillUserReportOptions(values url.Values) (*model.UserReportOptions, *model.AppError) {
@@ -112,7 +114,7 @@ func fillUserReportOptions(values url.Values) (*model.UserReportOptions, *model.
 		return nil, model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_active_filter", nil, "", http.StatusBadRequest)
 	}
 
-	options := &model.UserReportOptions{
+	return &model.UserReportOptions{
 
 		Team:         teamFilter,
 		Role:         values.Get("role_filter"),
@@ -120,7 +122,5 @@ func fillUserReportOptions(values url.Values) (*model.UserReportOptions, *model.
 		HideActive:   hideActive,
 		HideInactive: hideInactive,
 		SearchTerm:   values.Get("search_term"),
-	}
-	options.PopulateDateRange(time.Now())
-	return options, nil
+	}, nil
 }
