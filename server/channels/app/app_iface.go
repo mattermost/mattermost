@@ -220,6 +220,8 @@ type AppIface interface {
 	GetPostsUsage() (int64, *model.AppError)
 	// GetProductNotices is called from the frontend to fetch the product notices that are relevant to the caller
 	GetProductNotices(c request.CTX, userID, teamID string, client model.NoticeClientType, clientVersion string, locale string) (model.NoticeMessages, *model.AppError)
+	// GetProfileImagePaths returns the paths to the profile images for the given user IDs if such a profile image exists.
+	GetProfileImagePath(user *model.User) (string, *model.AppError)
 	// GetPublicKey will return the actual public key saved in the `name` file.
 	GetPublicKey(name string) ([]byte, *model.AppError)
 	// GetSanitizedConfig gets the configuration for a system admin without any secrets.
@@ -269,9 +271,15 @@ type AppIface interface {
 	MoveChannel(c request.CTX, team *model.Team, channel *model.Channel, user *model.User) *model.AppError
 	// NotifySessionsExpired is called periodically from the job server to notify any mobile sessions that have expired.
 	NotifySessionsExpired() error
-	// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin wto check that the plugin
+	// OnSharedChannelsAttachmentSyncMsg is called by the Shared Channels service for a registered plugin when a file attachment
+	// needs to be synchronized.
+	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+	// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin to check that the plugin
 	// is still responding and has a connection to any upstream services it needs (e.g. MS Graph API).
 	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+	// OnSharedChannelsProfileImageSyncMsg is called by the Shared Channels service for a registered plugin when a user's
+	// profile image needs to be synchronized.
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 	// OnSharedChannelsSyncMsg is called by the Shared Channels service for a registered plugin when there is new content
 	// that needs to be synchronized.
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
@@ -573,6 +581,7 @@ type AppIface interface {
 	DoLocalRequest(c request.CTX, rawURL string, body []byte) (*http.Response, *model.AppError)
 	DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError)
 	DoPostActionWithCookie(c request.CTX, postID, actionId, userID, selectedOption string, cookie *model.PostActionCookie) (string, *model.AppError)
+	DoSubscriptionRenewalCheck()
 	DoSystemConsoleRolesCreationMigration()
 	DoUploadFile(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, *model.AppError)
 	DoUploadFileExpectModification(c request.CTX, now time.Time, rawTeamId string, rawChannelId string, rawUserId string, rawFilename string, data []byte) (*model.FileInfo, []byte, *model.AppError)
@@ -949,6 +958,7 @@ type AppIface interface {
 	OriginChecker() func(*http.Request) bool
 	OutgoingOAuthConnections() einterfaces.OutgoingOAuthConnectionInterface
 	PatchChannel(c request.CTX, channel *model.Channel, patch *model.ChannelPatch, userID string) (*model.Channel, *model.AppError)
+	PatchChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError)
 	PatchPost(c request.CTX, postID string, patch *model.PostPatch) (*model.Post, *model.AppError)
 	PatchRetentionPolicy(patch *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	PatchRole(role *model.Role, patch *model.RolePatch) (*model.Role, *model.AppError)

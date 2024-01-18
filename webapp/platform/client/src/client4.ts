@@ -7,7 +7,7 @@ import FormData from 'form-data';
 
 import {PreferenceType} from '@mattermost/types/preferences';
 import {SystemSetting} from '@mattermost/types/general';
-import {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilter} from '@mattermost/types/admin';
+import {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import {Audit} from '@mattermost/types/audits';
 import {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -96,7 +96,7 @@ import {
     OutgoingWebhook,
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
-import {Job} from '@mattermost/types/jobs';
+import {Job, JobTypeBase} from '@mattermost/types/jobs';
 import {MfaSecret} from '@mattermost/types/mfa';
 import {
     ClientPluginManifest,
@@ -149,6 +149,7 @@ import {
 } from '@mattermost/types/data_retention';
 import {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
+import {UsersLimits} from '@mattermost/types/limits';
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -496,6 +497,10 @@ export default class Client4 {
 
     getLimitsRoute(): string {
         return `${this.getBaseRoute()}/limits`;
+    }
+
+    getUsersLimitsRoute() {
+        return `${this.getLimitsRoute()}/users`;
     }
 
     getCSRFFromCookie() {
@@ -1203,6 +1208,18 @@ export default class Client4 {
         return this.doFetch<StatusOK>(
             `${this.getUsersRoute()}/tokens/enable`,
             {method: 'post', body: JSON.stringify({token_id: tokenId})},
+        );
+    }
+
+
+    // Limits Routes
+
+    getUsersLimits = () => {
+        return this.doFetchWithResponse<UsersLimits>(
+            `${this.getUsersLimitsRoute()}`,
+            {
+                method: 'get',
+            },
         );
     }
 
@@ -2828,13 +2845,6 @@ export default class Client4 {
         );
     };
 
-    regenOutgoingOAuthConnectionSecret = (connectionId: string) => {
-        return this.doFetch<OutgoingOAuthConnection>(
-            `${this.getOutgoingOAuthConnectionRoute(connectionId)}/regen_secret`,
-            {method: 'post'},
-        );
-    };
-
     submitInteractiveDialog = (data: DialogSubmission) => {
         this.trackEvent('api', 'api_interactive_messages_dialog_submitted');
         return this.doFetch<SubmitDialogResponse>(
@@ -3040,7 +3050,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: Job) => {
+    createJob = (job: JobTypeBase) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -3056,7 +3066,7 @@ export default class Client4 {
 
     // Admin Routes
 
-    getLogs = (logFilter: LogFilter) => {
+    getLogs = (logFilter: LogFilterQuery) => {
         return this.doFetch<string[]>(
             `${this.getBaseRoute()}/logs/query`,
             {method: 'post', body: JSON.stringify(logFilter)},
@@ -3112,7 +3122,7 @@ export default class Client4 {
         );
     };
 
-    testEmail = (config: AdminConfig) => {
+    testEmail = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/email/test`,
             {method: 'post', body: JSON.stringify(config)},
@@ -3126,7 +3136,7 @@ export default class Client4 {
         );
     };
 
-    testS3Connection = (config: ClientConfig) => {
+    testS3Connection = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/file/s3_test`,
             {method: 'post', body: JSON.stringify(config)},
@@ -3342,7 +3352,7 @@ export default class Client4 {
         );
     };
 
-    testElasticsearch = (config: ClientConfig) => {
+    testElasticsearch = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/elasticsearch/test`,
             {method: 'post', body: JSON.stringify(config)},
@@ -3815,7 +3825,7 @@ export default class Client4 {
 
     // Bot Routes
 
-    createBot = (bot: Bot) => {
+    createBot = (bot: Partial<Bot>) => {
         return this.doFetch<Bot>(
             `${this.getBotsRoute()}`,
             {method: 'post', body: JSON.stringify(bot)},

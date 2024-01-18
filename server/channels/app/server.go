@@ -1419,7 +1419,8 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsCloud() {
-		mlog.Debug("Skipping license expiration check for Cloud")
+		appInstance := New(ServerConnector(s.Channels()))
+		appInstance.DoSubscriptionRenewalCheck()
 		return
 	}
 
@@ -1751,7 +1752,7 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 		return img, false, nil
 	}
 
-	path := "users/" + user.Id + "/profile.png"
+	path := getProfileImagePath(user.Id)
 
 	data, err := s.ReadFile(path)
 	if err != nil {
