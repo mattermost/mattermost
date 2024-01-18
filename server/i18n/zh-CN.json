@@ -10292,5 +10292,9 @@
   {
     "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
     "translation": "消息保留天数和消息保留小时数不能均为 0。"
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "服务设置中包含无效的最大载荷大小。必须是大于 0 的整数。"
   }
 ]
