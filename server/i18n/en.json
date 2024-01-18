@@ -3399,6 +3399,10 @@
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
   },
   {
+    "id": "api.team.user.missing_account",
+    "translation": "Unable to find the user."
+  },
+  {
     "id": "api.templates.cloud_renewal.button",
     "translation": "Renew now"
   },
@@ -4385,6 +4389,10 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Error retrieving endpoint from Discovery Document."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Error while checking if a user has a custom profile image."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
