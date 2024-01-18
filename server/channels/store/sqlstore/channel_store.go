@@ -1971,8 +1971,6 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 	}
 	defer finalizeTransactionX(transaction, &err)
 
-	transaction.trace = true
-
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
 		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Failed to update ChannelMembers")
