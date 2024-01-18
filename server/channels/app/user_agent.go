@@ -150,5 +150,4 @@ func getBrowserName(ua *uasurfer.UserAgent, userAgentString string) string {
 	}
 
 	return browserNames[uasurfer.BrowserUnknown]
-
 }

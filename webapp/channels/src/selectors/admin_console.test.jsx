@@ -3,7 +3,7 @@
 
 import {getAdminDefinition} from 'selectors/admin_console.jsx';
 
-import AdminDefinition from 'components/admin_console/admin_definition.jsx';
+import AdminDefinition from 'components/admin_console/admin_definition';
 
 describe('Selectors.AdminConsole', () => {
     describe('get admin definitions', () => {

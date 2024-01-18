@@ -12,7 +12,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func (a *App) GetJob(c *request.Context, id string) (*model.Job, *model.AppError) {
+func (a *App) GetJob(c request.CTX, id string) (*model.Job, *model.AppError) {
 	job, err := a.Srv().Store().Job().Get(c, id)
 	if err != nil {
 		var nfErr *store.ErrNotFound
@@ -27,11 +27,11 @@ func (a *App) GetJob(c *request.Context, id string) (*model.Job, *model.AppError
 	return job, nil
 }
 
-func (a *App) GetJobsByTypePage(c *request.Context, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
+func (a *App) GetJobsByTypePage(c request.CTX, jobType string, page int, perPage int) ([]*model.Job, *model.AppError) {
 	return a.GetJobsByType(c, jobType, page*perPage, perPage)
 }
 
-func (a *App) GetJobsByType(c *request.Context, jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (a *App) GetJobsByType(c request.CTX, jobType string, offset int, limit int) ([]*model.Job, *model.AppError) {
 	jobs, err := a.Srv().Store().Job().GetAllByTypePage(c, jobType, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -40,11 +40,11 @@ func (a *App) GetJobsByType(c *request.Context, jobType string, offset int, limi
 	return jobs, nil
 }
 
-func (a *App) GetJobsByTypesPage(c *request.Context, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
+func (a *App) GetJobsByTypesPage(c request.CTX, jobType []string, page int, perPage int) ([]*model.Job, *model.AppError) {
 	return a.GetJobsByTypes(c, jobType, page*perPage, perPage)
 }
 
-func (a *App) GetJobsByTypes(c *request.Context, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
+func (a *App) GetJobsByTypes(c request.CTX, jobTypes []string, offset int, limit int) ([]*model.Job, *model.AppError) {
 	jobs, err := a.Srv().Store().Job().GetAllByTypesPage(c, jobTypes, offset, limit)
 	if err != nil {
 		return nil, model.NewAppError("GetJobsByType", "app.job.get_all.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -52,11 +52,11 @@ func (a *App) GetJobsByTypes(c *request.Context, jobTypes []string, offset int, 
 	return jobs, nil
 }
 
-func (a *App) CreateJob(c *request.Context, job *model.Job) (*model.Job, *model.AppError) {
+func (a *App) CreateJob(c request.CTX, job *model.Job) (*model.Job, *model.AppError) {
 	return a.Srv().Jobs.CreateJob(c, job.Type, job.Data)
 }
 
-func (a *App) CancelJob(c *request.Context, jobId string) *model.AppError {
+func (a *App) CancelJob(c request.CTX, jobId string) *model.AppError {
 	return a.Srv().Jobs.RequestCancellation(c, jobId)
 }
 

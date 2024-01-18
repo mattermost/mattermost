@@ -9,18 +9,17 @@ import type {IntlShape} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import LocalizedIcon from 'components/localized_icon';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
 import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 const holders = defineMessages({
@@ -107,26 +106,10 @@ export type Props = {
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
         clearErrors: () => void;
-        updateMe: (user: UserProfile) => Promise<{
-            data: boolean;
-            error?: {
-                server_error_id: string;
-                message: string;
-            };
-        }>;
-        sendVerificationEmail: (email: string) => Promise<{
-            data: boolean;
-            error?: {
-                err: string;
-            };
-        }>;
+        updateMe: (user: UserProfile) => Promise<ActionResult>;
+        sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
-        uploadProfileImage: (id: string, file: File) => Promise<{
-            data: boolean;
-            error?: {
-                message: string;
-            };
-        }>;
+        uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -1393,9 +1376,9 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     </button>
                     <h4 className='modal-title'>
                         <div className='modal-back'>
-                            <LocalizedIcon
+                            <i
                                 className='fa fa-angle-left'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
+                                title={this.props.intl.formatMessage({id: 'generic_icons.collapse', defaultMessage: 'Collapse Icon'})}
                                 onClick={this.props.collapseModal}
                             />
                         </div>

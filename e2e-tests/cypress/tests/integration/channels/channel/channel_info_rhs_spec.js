@@ -211,7 +211,7 @@ describe('Channel Info RHS', () => {
                 cy.uiGetRHS().findByText('Notification Preferences').should('be.visible').click();
 
                 // * Ensures the modal is there
-                cy.get('.settings-modal').should('be.visible');
+                cy.get('.channel-notifications-settings-modal').should('be.visible');
             });
             it('should be able to view files and come back', () => {
                 // # Go to test channel
@@ -248,7 +248,7 @@ describe('Channel Info RHS', () => {
                 cy.get('#channel-info-btn').click();
 
                 // # Click on "Pinned Messages"
-                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Pinned Messages').should('be.visible').click();
+                cy.uiGetRHS().findByTestId('channel_info_rhs-menu').findByText('Pinned messages').should('be.visible').click();
 
                 // * Ensure we see the Pinned Post RHS
                 cy.uiGetRHS().findByText('Hello channel info rhs spec').should('be.visible');
@@ -373,7 +373,7 @@ describe('Channel Info RHS', () => {
                 cy.uiGetRHS().findByText('Notification Preferences').should('be.visible').click();
 
                 // * Ensures the modal is there
-                cy.get('.settings-modal').should('be.visible');
+                cy.get('.channel-notifications-settings-modal').should('be.visible');
             });
         });
     });

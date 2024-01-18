@@ -18,7 +18,7 @@ import Input from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
-import {act, renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 import {WindowSizes} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -290,13 +290,12 @@ describe('components/signup/Signup', () => {
     });
 
     it('should show newsletter check box opt-in for self-hosted non airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
+        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
-        const {container: signupContainer} = renderWithIntlAndStore(
-            <BrowserRouter>
-                <Signup/>
-            </BrowserRouter>, {});
+        const {container: signupContainer} = renderWithContext(
+            <Signup/>,
+        );
 
         screen.getByTestId('signup-body-card-form-check-newsletter');
         const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');
@@ -306,26 +305,24 @@ describe('components/signup/Signup', () => {
     });
 
     it('should NOT show newsletter check box opt-in for self-hosted AND airgapped workspaces', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => false);
+        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Unavailable);
         mockLicense = {IsLicensed: 'true', Cloud: 'false'};
 
-        const {container: signupContainer} = renderWithIntlAndStore(
-            <BrowserRouter>
-                <Signup/>
-            </BrowserRouter>, {});
+        const {container: signupContainer} = renderWithContext(
+            <Signup/>,
+        );
 
         expect(() => screen.getByTestId('signup-body-card-form-check-newsletter')).toThrow();
         expect(signupContainer).toHaveTextContent('Interested in receiving Mattermost security, product, promotions, and company updates updates via newsletter?Sign up at https://mattermost.com/security-updates/.');
     });
 
     it('should show newsletter related opt-in or text for cloud', async () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
+        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
         mockLicense = {IsLicensed: 'true', Cloud: 'true'};
 
-        const {container: signupContainer} = renderWithIntlAndStore(
-            <BrowserRouter>
-                <Signup/>
-            </BrowserRouter>, {});
+        const {container: signupContainer} = renderWithContext(
+            <Signup/>,
+        );
 
         screen.getByTestId('signup-body-card-form-check-newsletter');
         const checkInput = screen.getByTestId('signup-body-card-form-check-newsletter');

@@ -5,9 +5,8 @@
 package mocks
 
 import (
-	context "context"
-
 	model "github.com/mattermost/mattermost/server/public/model"
+	request "github.com/mattermost/mattermost/server/public/shared/request"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -54,25 +53,25 @@ func (_m *SessionStore) Cleanup(expiryTime int64, batchSize int64) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: ctx, sessionIDOrToken
-func (_m *SessionStore) Get(ctx context.Context, sessionIDOrToken string) (*model.Session, error) {
-	ret := _m.Called(ctx, sessionIDOrToken)
+// Get provides a mock function with given fields: c, sessionIDOrToken
+func (_m *SessionStore) Get(c request.CTX, sessionIDOrToken string) (*model.Session, error) {
+	ret := _m.Called(c, sessionIDOrToken)
 
 	var r0 *model.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(context.Context, string) (*model.Session, error)); ok {
-		return rf(ctx, sessionIDOrToken)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.Session, error)); ok {
+		return rf(c, sessionIDOrToken)
 	}
-	if rf, ok := ret.Get(0).(func(context.Context, string) *model.Session); ok {
-		r0 = rf(ctx, sessionIDOrToken)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.Session); ok {
+		r0 = rf(c, sessionIDOrToken)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(context.Context, string) error); ok {
-		r1 = rf(ctx, sessionIDOrToken)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(c, sessionIDOrToken)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -80,25 +79,25 @@ func (_m *SessionStore) Get(ctx context.Context, sessionIDOrToken string) (*mode
 	return r0, r1
 }
 
-// GetSessions provides a mock function with given fields: userID
-func (_m *SessionStore) GetSessions(userID string) ([]*model.Session, error) {
-	ret := _m.Called(userID)
+// GetSessions provides a mock function with given fields: c, userID
+func (_m *SessionStore) GetSessions(c request.CTX, userID string) ([]*model.Session, error) {
+	ret := _m.Called(c, userID)
 
 	var r0 []*model.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string) ([]*model.Session, error)); ok {
-		return rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) ([]*model.Session, error)); ok {
+		return rf(c, userID)
 	}
-	if rf, ok := ret.Get(0).(func(string) []*model.Session); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) []*model.Session); ok {
+		r0 = rf(c, userID)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string) error); ok {
-		r1 = rf(userID)
+	if rf, ok := ret.Get(1).(func(request.CTX, string) error); ok {
+		r1 = rf(c, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -200,25 +199,25 @@ func (_m *SessionStore) RemoveAllSessions() error {
 	return r0
 }
 
-// Save provides a mock function with given fields: session
-func (_m *SessionStore) Save(session *model.Session) (*model.Session, error) {
-	ret := _m.Called(session)
+// Save provides a mock function with given fields: c, session
+func (_m *SessionStore) Save(c request.CTX, session *model.Session) (*model.Session, error) {
+	ret := _m.Called(c, session)
 
 	var r0 *model.Session
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Session) (*model.Session, error)); ok {
-		return rf(session)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Session) (*model.Session, error)); ok {
+		return rf(c, session)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Session) *model.Session); ok {
-		r0 = rf(session)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Session) *model.Session); ok {
+		r0 = rf(c, session)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Session)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Session) error); ok {
-		r1 = rf(session)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Session) error); ok {
+		r1 = rf(c, session)
 	} else {
 		r1 = ret.Error(1)
 	}

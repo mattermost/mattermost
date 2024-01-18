@@ -19,18 +19,16 @@ import {imageURLForUser} from 'utils/utils';
 
 import {generateColor} from './utils';
 
-export type UserProfileProps = {
+export type Props = {
+    user?: UserProfileType;
     userId: string;
     displayName?: string;
-    isBusy?: boolean;
     isShared?: boolean;
-    overwriteName?: React.ReactNode;
+    overwriteName?: string;
     overwriteIcon?: string;
-    user?: UserProfileType;
     disablePopover?: boolean;
     displayUsername?: boolean;
     colorize?: boolean;
-    hasMention?: boolean;
     hideStatus?: boolean;
     isMobileView: boolean;
     isRHS?: boolean;
@@ -38,13 +36,12 @@ export type UserProfileProps = {
     theme?: Theme;
 }
 
-export default class UserProfile extends PureComponent<UserProfileProps> {
+export default class UserProfile extends PureComponent<Props> {
     private overlay?: BaseOverlayTrigger;
 
-    static defaultProps: Partial<UserProfileProps> = {
+    static defaultProps: Partial<Props> = {
         disablePopover: false,
         displayUsername: false,
-        hasMention: false,
         hideStatus: false,
         isRHS: false,
         overwriteName: '',
@@ -66,11 +63,9 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
             disablePopover,
             displayName,
             displayUsername,
-            isBusy,
             isMobileView,
             isRHS,
             isShared,
-            hasMention,
             hideStatus,
             overwriteName,
             overwriteIcon,
@@ -142,10 +137,8 @@ export default class UserProfile extends PureComponent<UserProfileProps> {
                             userId={userId}
                             channelId={channelId}
                             src={profileImg}
-                            isBusy={isBusy}
                             hide={this.hideProfilePopover}
                             hideStatus={hideStatus}
-                            hasMention={hasMention}
                             overwriteName={overwriteName}
                             overwriteIcon={overwriteIcon}
                         />

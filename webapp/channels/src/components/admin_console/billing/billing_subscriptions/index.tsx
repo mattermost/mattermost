@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -18,7 +18,6 @@ import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
-import DeleteWorkspaceCTA from 'components/admin_console/billing//delete_workspace/delete_workspace_cta';
 import CloudTrialBanner from 'components/admin_console/billing/billing_subscriptions/cloud_trial_banner';
 import CloudFetchError from 'components/cloud_fetch_error';
 import useGetLimits from 'components/common/hooks/useGetLimits';
@@ -28,8 +27,6 @@ import AdminHeader from 'components/widgets/admin_console/admin_header';
 
 import {isCustomerCardExpired} from 'utils/cloud_utils';
 import {
-    CloudProducts,
-    RecurringIntervals,
     TrialPeriodDays,
 } from 'utils/constants';
 import {useQuery} from 'utils/http_utils';
@@ -37,6 +34,7 @@ import {hasSomeLimits} from 'utils/limits';
 import {getRemainingDaysFromFutureTimestamp} from 'utils/utils';
 
 import {
+    CloudAnnualRenewalBanner,
     creditCardExpiredBanner,
     paymentFailedBanner,
 } from './billing_subscriptions';
@@ -45,12 +43,19 @@ import ContactSalesCard from './contact_sales_card';
 import LimitReachedBanner from './limit_reached_banner';
 import Limits from './limits';
 import {ToPaidNudgeBanner} from './to_paid_plan_nudge_banner';
-import {ToYearlyNudgeBanner} from './to_yearly_nudge_banner';
 
 import BillingSummary from '../billing_summary';
 import PlanDetails from '../plan_details';
 
 import './billing_subscriptions.scss';
+
+const messages = defineMessages({
+    title: {id: 'admin.billing.subscription.title', defaultMessage: 'Subscription'},
+});
+
+export const searchableStrings = [
+    messages.title,
+];
 
 const BillingSubscriptions = () => {
     const dispatch = useDispatch<DispatchFunc>();
@@ -71,7 +76,6 @@ const BillingSubscriptions = () => {
     const actionQueryParam = query.get('action');
 
     const product = useSelector(getSubscriptionProduct);
-    const isAnnualProfessionalOrEnterprise = product?.sku === CloudProducts.ENTERPRISE || (product?.sku === CloudProducts.PROFESSIONAL && product?.recurring_interval === RecurringIntervals.YEAR);
 
     const openPricingModal = useOpenPricingModal();
 
@@ -125,10 +129,7 @@ const BillingSubscriptions = () => {
     return (
         <div className='wrapper--fixed BillingSubscriptions'>
             <AdminHeader>
-                <FormattedMessage
-                    id='admin.billing.subscription.title'
-                    defaultMessage='Subscription'
-                />
+                <FormattedMessage {...messages.title}/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>
@@ -138,7 +139,7 @@ const BillingSubscriptions = () => {
                             product={product}
                         />
                         {shouldShowPaymentFailedBanner() && paymentFailedBanner()}
-                        {<ToYearlyNudgeBanner/>}
+                        {<CloudAnnualRenewalBanner/>}
                         {<ToPaidNudgeBanner/>}
                         {showCreditCardBanner &&
                             isCardExpired &&
@@ -164,7 +165,7 @@ const BillingSubscriptions = () => {
                                 onUpgradeMattermostCloud={openPricingModal}
                             />
                         )}
-                        {isAnnualProfessionalOrEnterprise && !isFreeTrial ? <CancelSubscription/> : <DeleteWorkspaceCTA/>}
+                        <CancelSubscription/>
                     </>}
                 </div>
             </div>

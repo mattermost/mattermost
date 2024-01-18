@@ -23,7 +23,7 @@ const (
 	TopicChannelInvite           = "sharedchannel_invite"
 	TopicUploadCreate            = "sharedchannel_upload"
 	MaxRetries                   = 3
-	MaxPostsPerSync              = 12 // a bit more than one typical screenfull of posts
+	MaxPostsPerSync              = 50 // a bit more than 4 typical screenfulls of posts
 	MaxUsersPerSync              = 25
 	NotifyRemoteOfflineThreshold = time.Second * 10
 	NotifyMinimumDelay           = time.Second * 2
@@ -49,13 +49,13 @@ type AppIface interface {
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
 	GetOrCreateDirectChannel(c request.CTX, userId, otherUserId string, channelOptions ...model.ChannelOption) (*model.Channel, *model.AppError)
 	AddUserToChannel(c request.CTX, user *model.User, channel *model.Channel, skipTeamMemberIntegrityCheck bool) (*model.ChannelMember, *model.AppError)
-	AddUserToTeamByTeamId(c *request.Context, teamId string, user *model.User) *model.AppError
+	AddUserToTeamByTeamId(c request.CTX, teamId string, user *model.User) *model.AppError
 	PermanentDeleteChannel(c request.CTX, channel *model.Channel) *model.AppError
 	CreatePost(c request.CTX, post *model.Post, channel *model.Channel, triggerWebhooks bool, setOnline bool) (savedPost *model.Post, err *model.AppError)
-	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 	DeletePost(c request.CTX, postID, deleteByID string) (*model.Post, *model.AppError)
-	SaveReactionForPost(c *request.Context, reaction *model.Reaction) (*model.Reaction, *model.AppError)
-	DeleteReactionForPost(c *request.Context, reaction *model.Reaction) *model.AppError
+	SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*model.Reaction, *model.AppError)
+	DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *model.AppError
 	PatchChannelModerationsForChannel(c request.CTX, channel *model.Channel, channelModerationsPatch []*model.ChannelModerationPatch) ([]*model.ChannelModeration, *model.AppError)
 	CreateUploadSession(c request.CTX, us *model.UploadSession) (*model.UploadSession, *model.AppError)
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
@@ -63,16 +63,14 @@ type AppIface interface {
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
 	InvalidateCacheForUser(userID string)
 	NotifySharedChannelUserUpdate(user *model.User)
+	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
 type errNotFound interface {
 	IsErrNotFound() bool
-}
-
-// errInvalidInput allows checking against Store.ErrInvalidInput errors without making Store a dependency.
-type errInvalidInput interface {
-	InvalidInputInfo() (entity string, field string, value any)
 }
 
 // Service provides shared channel synchronization.
@@ -113,7 +111,7 @@ func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error)
 // Start is called by the server on server start-up.
 func (scs *Service) Start() error {
 	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
+	if rcs == nil || !rcs.Active() {
 		return errors.New("Shared Channel Service cannot activate: requires Remote Cluster Service")
 	}
 
@@ -133,7 +131,7 @@ func (scs *Service) Start() error {
 // Shutdown is called by the server on server shutdown.
 func (scs *Service) Shutdown() error {
 	rcs := scs.server.GetRemoteClusterService()
-	if rcs == nil {
+	if rcs == nil || !rcs.Active() {
 		return errors.New("Shared Channel Service cannot shutdown: requires Remote Cluster Service")
 	}
 

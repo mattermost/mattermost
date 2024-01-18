@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 
 import NewMessageSeparator from './new_message_separator';
 
 describe('components/post_view/new_message_separator', () => {
     test('should render new_message_separator', () => {
-        renderWithIntl(
+        renderWithContext(
             <NewMessageSeparator
                 separatorId='1234'
                 newMessagesSeparatorActions={[]}

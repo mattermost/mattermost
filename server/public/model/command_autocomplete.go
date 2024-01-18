@@ -213,7 +213,6 @@ func (ad *AutocompleteData) UpdateRelativeURLsForPluginCommands(baseURL *url.URL
 			absURL.Path = path.Join(absURL.Path, dynamicList.FetchURL)
 			dynamicList.FetchURL = absURL.String()
 		}
-
 	}
 	for _, command := range ad.SubCommands {
 		err := command.UpdateRelativeURLsForPluginCommands(baseURL)

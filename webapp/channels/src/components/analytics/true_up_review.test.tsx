@@ -8,14 +8,14 @@ import type {DeepPartial} from '@mattermost/types/utilities';
 
 import * as useCWSAvailabilityCheckAll from 'components/common/hooks/useCWSAvailabilityCheck';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {LicenseSkus} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 
 import TrueUpReview from './true_up_review';
 
 describe('TrueUpReview', () => {
-    const showsTrueUpReviewStore: DeepPartial<GlobalState> = {
+    const showsTrueUpReviewState: DeepPartial<GlobalState> = {
         entities: {
             general: {
                 license: TH.getLicenseMock({
@@ -56,18 +56,18 @@ describe('TrueUpReview', () => {
 
     };
     it('regular self hosted license in the true up window sees content', () => {
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
+        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
 
-        renderWithIntlAndStore(<TrueUpReview/>, showsTrueUpReviewStore);
+        renderWithContext(<TrueUpReview/>, showsTrueUpReviewState);
         screen.getByText('Share to Mattermost');
     });
 
     it('gov sku self-hosted license does not see true up content', () => {
-        const store = JSON.parse(JSON.stringify(showsTrueUpReviewStore));
+        const store = JSON.parse(JSON.stringify(showsTrueUpReviewState));
         store.entities.general.license.IsGovSku = 'true';
-        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => true);
+        jest.spyOn(useCWSAvailabilityCheckAll, 'default').mockImplementation(() => useCWSAvailabilityCheckAll.CSWAvailabilityCheckTypes.Available);
 
-        renderWithIntlAndStore(<TrueUpReview/>, store);
+        renderWithContext(<TrueUpReview/>, store);
         expect(screen.queryByText('Share to Mattermost')).not.toBeInTheDocument();
     });
 });

@@ -31,7 +31,7 @@ import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError} from './errors';
@@ -276,7 +276,8 @@ export function createPost(post: Post, files: any[] = []) {
                     error.server_error_id === 'api.post.create_post.town_square_read_only' ||
                     error.server_error_id === 'plugin.message_will_be_posted.dismiss_post'
                 ) {
-                    actions.push(removePost(data) as any);
+                    // RemovePost is a Thunk, and not handled by batchActions
+                    dispatch(removePost(data));
                 } else {
                     actions.push(receivedPost(data, crtEnabled));
                 }
@@ -390,8 +391,8 @@ export function resetCreatePostRequest() {
     return {type: PostTypes.CREATE_POST_RESET_REQUEST};
 }
 
-export function deletePost(post: ExtendedPost) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deletePost(post: ExtendedPost): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const delPost = {...post};
         if (!post.root_id && isCollapsedThreadsEnabled(state)) {
@@ -613,8 +614,8 @@ export function addReaction(postId: string, emojiName: string) {
     };
 }
 
-export function removeReaction(postId: string, emojiName: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removeReaction(postId: string, emojiName: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
         try {
@@ -719,7 +720,7 @@ export function flagPost(postId: string) {
 
         Client4.trackEvent('action', 'action_posts_flag');
 
-        return savePreferences(currentUserId, [preference])(dispatch);
+        return dispatch(savePreferences(currentUserId, [preference]));
     };
 }
 
@@ -1102,11 +1103,11 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const promises: any[] = [];
     if (userIdsToLoad.size > 0) {
-        promises.push(getProfilesByIds(Array.from(userIdsToLoad))(dispatch, getState));
+        promises.push(dispatch(getProfilesByIds(Array.from(userIdsToLoad))));
     }
 
     if (statusesToLoad.size > 0) {
-        promises.push(getStatusesByIds(Array.from(statusesToLoad))(dispatch, getState));
+        promises.push(dispatch(getStatusesByIds(Array.from(statusesToLoad))));
     }
 
     // Profiles of users mentioned in the posts
@@ -1115,7 +1116,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
     if (usernamesAndGroupsToLoad.size > 0) {
         // We need to load the profiles synchronously to filter them
         // out of the groups to check
-        const getProfilesPromise = getProfilesByUsernames(Array.from(usernamesAndGroupsToLoad))(dispatch, getState);
+        const getProfilesPromise = dispatch(getProfilesByUsernames(Array.from(usernamesAndGroupsToLoad)));
         promises.push(getProfilesPromise);
 
         const {data} = await getProfilesPromise as ActionResult<UserProfile[]>;
@@ -1130,7 +1131,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
                 per_page: 60,
                 include_member_count: true,
             };
-            promises.push(searchGroups(groupParams)(dispatch, getState));
+            promises.push(dispatch(searchGroups(groupParams)));
         });
     }
 
@@ -1228,15 +1229,15 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
 
 export type ExtendedPost = Post & { system_post_ids?: string[] };
 
-export function removePost(post: ExtendedPost) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removePost(post: ExtendedPost): NewActionFunc {
+    return (dispatch, getState) => {
         if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY && post.system_post_ids) {
             const state = getState();
             for (const systemPostId of post.system_post_ids) {
                 const systemPost = PostSelectors.getPost(state, systemPostId);
 
                 if (systemPost) {
-                    dispatch(removePost(systemPost as any) as any);
+                    dispatch(removePost(systemPost));
                 }
             }
         } else {
@@ -1260,6 +1261,23 @@ export function selectPost(postId: string) {
     };
 }
 
+export function moveThread(postId: string, channelId: string) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        try {
+            await Client4.moveThread(postId, channelId);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch({type: PostTypes.MOVE_POST_FAILURE, error});
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({type: PostTypes.MOVE_POST_SUCCESS});
+
+        return {data: true};
+    };
+}
+
 export function selectFocusedPostId(postId: string) {
     return {
         type: PostTypes.RECEIVED_FOCUSED_POST,
@@ -1278,7 +1296,7 @@ export function unflagPost(postId: string) {
 
         Client4.trackEvent('action', 'action_posts_unflag');
 
-        return deletePreferences(currentUserId, [preference])(dispatch, getState);
+        return dispatch(deletePreferences(currentUserId, [preference]));
     };
 }
 

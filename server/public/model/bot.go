@@ -205,7 +205,6 @@ func (l *BotList) Etag() string {
 			t = v.UpdateAt
 			id = v.UserId
 		}
-
 	}
 
 	return Etag(id, t, delta, len(*l))

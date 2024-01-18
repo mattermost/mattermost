@@ -192,7 +192,6 @@ func TestGetPreferenceByCategoryAndName(t *testing.T) {
 	_, resp, err = client.GetPreferenceByCategoryAndName(context.Background(), user.Id, preferences[0].Category, preferences[0].Name)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
-
 }
 
 func TestUpdatePreferences(t *testing.T) {

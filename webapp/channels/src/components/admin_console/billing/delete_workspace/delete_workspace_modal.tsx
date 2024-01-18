@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
@@ -39,6 +39,10 @@ import './delete_workspace_modal.scss';
 type Props = {
     callerCTA: string;
 }
+
+export const messages = defineMessages({
+    deleteButton: {id: 'admin.billing.subscription.deleteWorkspaceModal.deleteButton', defaultMessage: 'Delete Workspace'},
+});
 
 export default function DeleteWorkspaceModal(props: Props) {
     const dispatch = useDispatch<DispatchFunc>();
@@ -183,6 +187,7 @@ export default function DeleteWorkspaceModal(props: Props) {
 
     return (
         <GenericModal
+            compassDesign={true}
             className='DeleteWorkspaceModal'
             onExited={handleClickCancel}
         >
@@ -225,10 +230,7 @@ export default function DeleteWorkspaceModal(props: Props) {
                     className='btn DeleteWorkspaceModal__Buttons-Delete'
                     onClick={handleClickDeleteWorkspace}
                 >
-                    <FormattedMessage
-                        id='admin.billing.subscription.deleteWorkspaceModal.deleteButton'
-                        defaultMessage='Delete Workspace'
-                    />
+                    <FormattedMessage {...messages.deleteButton}/>
                 </button>
                 {!isStarter && !isEnterprise &&
                     <button

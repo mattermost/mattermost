@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import CustomURLSchemesSetting from 'components/admin_console/custom_url_schemes_setting';
-import LocalizedInput from 'components/localized_input/localized_input';
+
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 
 describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
     const baseProps = {
@@ -23,7 +23,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 value: [],
             };
 
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <CustomURLSchemesSetting {...props}/>,
             );
             expect(wrapper).toMatchSnapshot();
@@ -37,7 +37,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 value: ['git'],
             };
 
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <CustomURLSchemesSetting {...props}/>,
             );
             expect(wrapper).toMatchSnapshot();
@@ -51,7 +51,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 value: ['git', 'smtp', 'steam'],
             };
 
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <CustomURLSchemesSetting {...props}/>,
             );
             expect(wrapper).toMatchSnapshot();
@@ -67,11 +67,11 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find(LocalizedInput).simulate('change', {target: {value: ''}});
+            wrapper.find('input').simulate('change', {target: {value: ''}});
 
             expect(props.onChange).toBeCalledWith(baseProps.id, []);
         });
@@ -82,11 +82,11 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find(LocalizedInput).simulate('change', {target: {value: '  steam  '}});
+            wrapper.find('input').simulate('change', {target: {value: '  steam  '}});
 
             expect(props.onChange).toBeCalledWith(baseProps.id, ['steam']);
         });
@@ -97,11 +97,11 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find(LocalizedInput).simulate('change', {target: {value: 'steam, git'}});
+            wrapper.find('input').simulate('change', {target: {value: 'steam, git'}});
 
             expect(props.onChange).toBeCalledWith(baseProps.id, ['steam', 'git']);
         });
@@ -112,11 +112,11 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find(LocalizedInput).simulate('change', {target: {value: 'ts3server, smtp, ms-excel'}});
+            wrapper.find('input').simulate('change', {target: {value: 'ts3server, smtp, ms-excel'}});
 
             expect(props.onChange).toBeCalledWith(baseProps.id, ['ts3server', 'smtp', 'ms-excel']);
         });
@@ -127,11 +127,11 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
                 onChange: jest.fn(),
             };
 
-            const wrapper = shallow(
+            const wrapper = mountWithIntl(
                 <CustomURLSchemesSetting {...props}/>,
             );
 
-            wrapper.find(LocalizedInput).simulate('change', {target: {value: ',,,,,chrome,,,,ms-excel,,'}});
+            wrapper.find('input').simulate('change', {target: {value: ',,,,,chrome,,,,ms-excel,,'}});
 
             expect(props.onChange).toBeCalledWith(baseProps.id, ['chrome', 'ms-excel']);
         });
@@ -143,7 +143,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             disabled: true,
         };
 
-        const wrapper = shallow(
+        const wrapper = mountWithIntl(
             <CustomURLSchemesSetting {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();
@@ -155,7 +155,7 @@ describe('components/AdminConsole/CustomUrlSchemeSetting', () => {
             setByEnv: true,
         };
 
-        const wrapper = shallow(
+        const wrapper = mountWithIntl(
             <CustomURLSchemesSetting {...props}/>,
         );
         expect(wrapper).toMatchSnapshot();

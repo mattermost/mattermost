@@ -393,7 +393,6 @@ func TestPrivateServePluginRequest(t *testing.T) {
 			th.App.ch.servePluginRequest(recorder, request, handler)
 		})
 	}
-
 }
 
 func TestHandlePluginRequest(t *testing.T) {
@@ -505,7 +504,6 @@ func TestPluginSync(t *testing.T) {
 				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
 				cfg.FileSettings.AmazonS3Region = model.NewString("")
 				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
-
 			},
 		},
 	}

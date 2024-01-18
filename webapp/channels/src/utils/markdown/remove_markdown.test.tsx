@@ -3,9 +3,11 @@
 
 import React from 'react';
 
-import {stripMarkdown} from 'utils/markdown';
+import {formatWithRenderer, stripMarkdown} from 'utils/markdown';
 
-describe('stripMarkdown | RemoveMarkdown', () => {
+import RemoveMarkdown from './remove_markdown';
+
+describe('stripMarkdown', () => {
     const testCases = [
         {
             description: 'emoji: same',
@@ -291,7 +293,30 @@ describe('stripMarkdown | RemoveMarkdown', () => {
         },
     ];
 
-    testCases.forEach((testCase) => it(testCase.description, () => {
+    testCases.forEach((testCase) => test(testCase.description, () => {
         expect(stripMarkdown(testCase.inputText as any)).toEqual(testCase.outputText);
     }));
+});
+
+describe('RemoveMarkdown', () => {
+    test('should escape HTML entities in plain text', () => {
+        const input = 'This looks like html: <span>Mac & "cheese\'s"';
+        const expected = 'This looks like html: &lt;span&gt;Mac &amp; &quot;cheese&#39;s&quot;';
+
+        expect(formatWithRenderer(input, new RemoveMarkdown())).toBe(expected);
+    });
+
+    test('should escape HTML entities in code spans', () => {
+        const input = 'This looks like html: `<span>Mac & "cheese\'s"`';
+        const expected = 'This looks like html: &lt;span&gt;Mac &amp; &quot;cheese&#39;s&quot;';
+
+        expect(formatWithRenderer(input, new RemoveMarkdown())).toBe(expected);
+    });
+
+    test('should escape HTML entities in code', () => {
+        const input = 'This looks like html:\n```\n<span>Mac & "cheese\'s"\n```';
+        const expected = 'This looks like html: &lt;span&gt;Mac &amp; &quot;cheese&#039;s&quot;';
+
+        expect(formatWithRenderer(input, new RemoveMarkdown())).toBe(expected);
+    });
 });

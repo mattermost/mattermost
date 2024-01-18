@@ -21,5 +21,4 @@ func MakeScheduler(jobServer *jobs.JobServer, license *model.License, jobType st
 		return enabled
 	}
 	return jobs.NewPeriodicScheduler(jobServer, jobType, schedFreq, isEnabled)
-
 }

@@ -3,7 +3,7 @@
 exports[`admin_console/team_channel_settings/channel/ChannelMembers should match snapshot 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -47,14 +47,21 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         defaultMessage="Add Members"
         id="admin.team_settings.team_details.add_members"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
-  className=""
   id="channelMembers"
-  subtitleDefault="A list of users who are currently in the channel right now"
-  subtitleId="admin.channel_settings.channel_detail.membersDescription"
-  titleDefault="Members"
-  titleId="admin.channel_settings.channel_detail.membersTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "A list of users who are currently in the channel right now",
+      "id": "admin.channel_settings.channel_detail.membersDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Members",
+      "id": "admin.channel_settings.channel_detail.membersTitle",
+    }
+  }
 >
   <UserGrid
     excludeUsers={Object {}}
@@ -215,6 +222,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             "desktop_sound": "false",
             "email": "false",
             "first_name": "false",
+            "highlight_keys": "",
             "mark_unread": "mention",
             "mention_keys": "",
             "push": "none",
@@ -253,6 +261,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             "desktop_sound": "false",
             "email": "false",
             "first_name": "false",
+            "highlight_keys": "",
             "mark_unread": "mention",
             "mention_keys": "",
             "push": "none",
@@ -291,6 +300,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
             "desktop_sound": "false",
             "email": "false",
             "first_name": "false",
+            "highlight_keys": "",
             "mark_unread": "mention",
             "mention_keys": "",
             "push": "none",
@@ -314,7 +324,7 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
 exports[`admin_console/team_channel_settings/channel/ChannelMembers should match snapshot loading no users 1`] = `
 <AdminPanel
   button={
-    <Memo(Connect(ToggleModalButton))
+    <ToggleModalButton
       className="btn btn-primary"
       dialogProps={
         Object {
@@ -358,14 +368,21 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
         defaultMessage="Add Members"
         id="admin.team_settings.team_details.add_members"
       />
-    </Memo(Connect(ToggleModalButton))>
+    </ToggleModalButton>
   }
-  className=""
   id="channelMembers"
-  subtitleDefault="A list of users who are currently in the channel right now"
-  subtitleId="admin.channel_settings.channel_detail.membersDescription"
-  titleDefault="Members"
-  titleId="admin.channel_settings.channel_detail.membersTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "A list of users who are currently in the channel right now",
+      "id": "admin.channel_settings.channel_detail.membersDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Members",
+      "id": "admin.channel_settings.channel_detail.membersTitle",
+    }
+  }
 >
   <UserGrid
     excludeUsers={Object {}}

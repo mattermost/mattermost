@@ -14,14 +14,14 @@ import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
 
-import AbstractOAuthApp from '../abstract_oauth_app.jsx';
+import AbstractOAuthApp from '../abstract_oauth_app';
 
 const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
 const FOOTER = {id: 'update_incoming_webhook.update', defaultMessage: 'Update'};
 const LOADING = {id: 'update_incoming_webhook.updating', defaultMessage: 'Updating...'};
 
 type Actions = {
-    getOAuthApp: (id: string) => OAuthApp;
+    getOAuthApp: (id: string) => void;
     editOAuthApp: (app: OAuthApp) => Promise<ActionResult>;
 };
 

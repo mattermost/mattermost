@@ -12,12 +12,12 @@ import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {RequestStatus} from 'mattermost-redux/constants';
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
@@ -53,6 +53,7 @@ import Input, {SIZE} from 'components/widgets/inputs/input/input';
 import PasswordInput from 'components/widgets/inputs/password_input/password_input';
 
 import Constants from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {t} from 'utils/i18n';
 import {showNotification} from 'utils/notifications';
 import {isDesktopApp} from 'utils/user_agent';
@@ -112,7 +113,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => getMyTeamMember(state, experimentalPrimaryTeam?.id ?? ''));
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const graphQLEnabled = useSelector(isGraphQLEnabled);
 
     const loginIdInput = useRef<HTMLInputElement>(null);
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -147,6 +147,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
+    const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
 
     const query = new URLSearchParams(search);
     const redirectTo = query.get('redirect_to');
@@ -239,6 +240,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const onDismissSessionExpired = useCallback(() => {
         LocalStorageStore.setWasLoggedIn(false);
         setSessionExpired(false);
+        DesktopApp.setSessionExpired(false);
         dismissAlert();
     }, []);
 
@@ -430,9 +432,12 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 // our session after we use it to complete the sign in change.
                 LocalStorageStore.setWasLoggedIn(false);
             } else {
+                setSessionExpired(true);
+                DesktopApp.setSessionExpired(true);
+
                 // Although the authority remains the local sessionExpired bit on the state, set this
                 // extra field in the querystring to signal the desktop app.
-                setSessionExpired(true);
+                // This is legacy support for older Desktop Apps and can be removed eventually
                 const newSearchParam = new URLSearchParams(search);
                 newSearchParam.set('extra', Constants.SESSION_EXPIRED);
                 history.replace(`${pathname}?${newSearchParam}`);
@@ -455,6 +460,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
 
             window.removeEventListener('resize', onWindowResize);
             window.removeEventListener('focus', onWindowFocus);
+
+            DesktopApp.setSessionExpired(false);
         };
     }, []);
 
@@ -629,11 +636,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const postSubmit = async (userProfile: UserProfile) => {
-        if (graphQLEnabled) {
-            await dispatch(loadMe());
-        } else {
-            await dispatch(loadMeREST());
-        }
+        await dispatch(loadMe());
 
         // check for query params brought over from signup_user_complete
         const params = new URLSearchParams(search);
@@ -664,6 +667,11 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         // Record a successful login to local storage. If an unintentional logout occurs, e.g.
         // via session expiration, this bit won't get reset and we can notify the user as such.
         LocalStorageStore.setWasLoggedIn(true);
+
+        // After a user has just logged in, we set the following flag to "false" so that after
+        // a user is notified of successful login, we can set it back to "true"
+        LocalStorageStore.setWasNotifiedOfLogIn(false);
+
         if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
             history.push(redirectTo);
         } else if (team) {
@@ -740,7 +748,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     };
 
     const getResetPasswordLink = () => {
-        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false') {
+        if (!PasswordEnableForgotLink || PasswordEnableForgotLink === 'false' || onlyLdapEnabled) {
             return null;
         }
 

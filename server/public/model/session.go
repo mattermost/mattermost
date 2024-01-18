@@ -140,7 +140,6 @@ func (s *Session) Sanitize() {
 }
 
 func (s *Session) IsExpired() bool {
-
 	if s.ExpiresAt <= 0 {
 		return false
 	}
@@ -153,7 +152,6 @@ func (s *Session) IsExpired() bool {
 }
 
 func (s *Session) AddProp(key string, value string) {
-
 	if s.Props == nil {
 		s.Props = make(map[string]string)
 	}

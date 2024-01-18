@@ -1,50 +1,42 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {PureComponent} from 'react';
+import React from 'react';
 
 import SetByEnv from './set_by_env';
 
 export type Props = {
     inputId?: string;
     label: React.ReactNode;
-    children: React.ReactNode;
+    children?: React.ReactNode;
     helpText?: React.ReactNode;
     setByEnv?: boolean;
 }
 
-export default class Settings extends PureComponent<Props> {
-    public render() {
-        const {
-            children,
-            setByEnv,
-            helpText,
-            inputId,
-            label,
-        } = this.props;
-
-        return (
-            <div
-                data-testid={inputId}
-                className='form-group'
+const Settings = ({children, setByEnv, helpText, inputId, label}: Props) => {
+    return (
+        <div
+            data-testid={inputId}
+            className='form-group'
+        >
+            <label
+                className='control-label col-sm-4'
+                htmlFor={inputId}
             >
-                <label
-                    className='control-label col-sm-4'
-                    htmlFor={inputId}
+                {label}
+            </label>
+            <div className='col-sm-8'>
+                {children}
+                <div
+                    data-testid={inputId + 'help-text'}
+                    className='help-text'
                 >
-                    {label}
-                </label>
-                <div className='col-sm-8'>
-                    {children}
-                    <div
-                        data-testid={inputId + 'help-text'}
-                        className='help-text'
-                    >
-                        {helpText}
-                    </div>
-                    {setByEnv ? <SetByEnv/> : null}
+                    {helpText}
                 </div>
+                {setByEnv ? <SetByEnv/> : null}
             </div>
-        );
-    }
-}
+        </div>
+    );
+};
+
+export default React.memo(Settings);

@@ -13,10 +13,10 @@ import type {ServerError} from '@mattermost/types/errors';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getTeamInviteInfo} from 'mattermost-redux/actions/teams';
-import {createUser, loadMe, loadMeREST} from 'mattermost-redux/actions/users';
+import {createUser, loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getIsOnboardingFlowEnabled, isGraphQLEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
@@ -30,7 +30,7 @@ import {getGlobalItem} from 'selectors/storage';
 
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
@@ -110,7 +110,6 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const loggedIn = Boolean(useSelector(getCurrentUserId));
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
     const usedBefore = useSelector((state: GlobalState) => (!inviteId && !loggedIn && token ? getGlobalItem(state, token, null) : undefined));
-    const graphQLEnabled = useSelector(isGraphQLEnabled);
 
     const emailInput = useRef<HTMLInputElement>(null);
     const nameInput = useRef<HTMLInputElement>(null);
@@ -145,7 +144,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [isMobileView, setIsMobileView] = useState(false);
     const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
 
-    const canReachCWS = useCWSAvailabilityCheck();
+    const cwsAvailability = useCWSAvailabilityCheck();
 
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
@@ -482,11 +481,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const postSignupSuccess = async () => {
         const redirectTo = (new URLSearchParams(search)).get('redirect_to');
 
-        if (graphQLEnabled) {
-            await dispatch(loadMe());
-        } else {
-            await dispatch(loadMeREST());
-        }
+        await dispatch(loadMe());
 
         if (token) {
             setGlobalItem(token, JSON.stringify({usedBefore: true}));
@@ -624,7 +619,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const handleReturnButtonOnClick = () => history.replace('/');
 
     const getNewsletterCheck = () => {
-        if (canReachCWS) {
+        if (cwsAvailability === CSWAvailabilityCheckTypes.Available) {
             return (
                 <CheckInput
                     id='signup-body-card-form-check-newsletter'

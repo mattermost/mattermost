@@ -30,12 +30,12 @@ type RouterService interface {
 //
 // The service shall be registered via app.PostKey service key.
 type PostService interface {
-	CreatePost(context *request.Context, post *model.Post) (*model.Post, *model.AppError)
+	CreatePost(context request.CTX, post *model.Post) (*model.Post, *model.AppError)
 	GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError)
-	SendEphemeralPost(ctx *request.Context, userID string, post *model.Post) *model.Post
+	SendEphemeralPost(ctx request.CTX, userID string, post *model.Post) *model.Post
 	GetPost(postID string) (*model.Post, *model.AppError)
-	DeletePost(ctx *request.Context, postID, productID string) (*model.Post, *model.AppError)
-	UpdatePost(c *request.Context, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
+	DeletePost(ctx request.CTX, postID, productID string) (*model.Post, *model.AppError)
+	UpdatePost(c request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError)
 }
 
 // PermissionService provides permissions related utilities. For now, the service implementation
@@ -45,8 +45,8 @@ type PostService interface {
 // The service shall be registered via app.PermissionKey service key.
 type PermissionService interface {
 	HasPermissionTo(userID string, permission *model.Permission) bool
-	HasPermissionToTeam(userID, teamID string, permission *model.Permission) bool
-	HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool
+	HasPermissionToTeam(c request.CTX, userID, teamID string, permission *model.Permission) bool
+	HasPermissionToChannel(c request.CTX, askingUserID string, channelID string, permission *model.Permission) bool
 	RolesGrantPermission(roleNames []string, permissionID string) bool
 }
 
@@ -107,8 +107,8 @@ type UserService interface {
 //
 // The service shall be registered via app.TeamKey service key.
 type TeamService interface {
-	GetMember(teamID, userID string) (*model.TeamMember, *model.AppError)
-	CreateMember(ctx *request.Context, teamID, userID string) (*model.TeamMember, *model.AppError)
+	GetMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
+	CreateMember(ctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError)
 	GetGroup(groupId string) (*model.Group, *model.AppError)
 	GetTeam(teamID string) (*model.Team, *model.AppError)
 	GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError)
@@ -118,7 +118,7 @@ type TeamService interface {
 //
 // The service shall be registered via app.BotKey service key.
 type BotService interface {
-	EnsureBot(ctx *request.Context, productID string, bot *model.Bot) (string, error)
+	EnsureBot(ctx request.CTX, productID string, bot *model.Bot) (string, error)
 }
 
 // ConfigService shall be registered via app.ConfigKey service key.
@@ -207,9 +207,9 @@ type SystemService interface {
 //
 // The service shall be registered via app.PreferencesKey service key.
 type PreferencesService interface {
-	GetPreferencesForUser(userID string) (model.Preferences, *model.AppError)
-	UpdatePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
-	DeletePreferencesForUser(userID string, preferences model.Preferences) *model.AppError
+	GetPreferencesForUser(c request.CTX, userID string) (model.Preferences, *model.AppError)
+	UpdatePreferencesForUser(c request.CTX, userID string, preferences model.Preferences) *model.AppError
+	DeletePreferencesForUser(c request.CTX, userID string, preferences model.Preferences) *model.AppError
 }
 
 // SessionService is the API for accessing the session.
@@ -224,14 +224,6 @@ type SessionService interface {
 // The service shall be registered via app.FrontendKey service key.
 type FrontendService interface {
 	OpenInteractiveDialog(dialog model.OpenDialogRequest) *model.AppError
-}
-
-// CommandService is the API for interacting with front end.
-//
-// The service shall be registered via app.CommandKey service key.
-type CommandService interface {
-	ExecuteCommand(c request.CTX, args *model.CommandArgs) (*model.CommandResponse, *model.AppError)
-	RegisterProductCommand(productID string, command *model.Command) error
 }
 
 // ThreadsService is the API for interacting with threads anywhere.

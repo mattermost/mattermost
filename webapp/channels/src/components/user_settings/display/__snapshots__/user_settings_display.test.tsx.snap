@@ -58,10 +58,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -79,10 +76,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -100,16 +94,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -127,10 +118,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -148,16 +136,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -175,10 +160,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -196,10 +178,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -217,10 +196,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -238,10 +214,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -259,8 +232,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={true}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={
           <SettingItemMax
             containerStyle=""
@@ -335,7 +306,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             updateSection={[Function]}
           />
         }
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -353,10 +323,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -374,9 +341,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -395,7 +360,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -471,10 +435,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -492,10 +453,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -513,16 +471,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -540,10 +495,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -561,16 +513,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -588,10 +537,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -609,10 +555,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -630,10 +573,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -651,8 +591,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={true}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={
           <SettingItemMax
             containerStyle=""
@@ -727,7 +665,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             updateSection={[Function]}
           />
         }
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -745,10 +682,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -766,10 +700,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -787,9 +718,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -808,7 +737,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -884,10 +812,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -905,8 +830,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={true}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={
           <SettingItemMax
             containerStyle=""
@@ -981,7 +904,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             updateSection={[Function]}
           />
         }
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -999,16 +921,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1026,10 +945,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1047,16 +963,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1074,10 +987,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1095,10 +1005,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1116,10 +1023,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1137,10 +1041,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1158,10 +1059,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1179,10 +1077,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1200,9 +1095,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -1221,7 +1114,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1297,10 +1189,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1318,10 +1207,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1339,16 +1225,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1366,10 +1249,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1387,16 +1267,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1414,10 +1291,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1435,8 +1309,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={true}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={
           <SettingItemMax
             containerStyle=""
@@ -1511,7 +1383,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             updateSection={[Function]}
           />
         }
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1529,10 +1400,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1550,10 +1418,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1571,10 +1436,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1592,10 +1454,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1613,9 +1472,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -1634,7 +1491,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1710,10 +1566,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1731,10 +1584,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1752,16 +1602,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1779,10 +1626,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1800,16 +1644,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1827,10 +1668,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1848,10 +1686,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1869,10 +1704,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1890,10 +1722,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1911,10 +1740,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1932,10 +1758,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -1953,9 +1776,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={true}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -1974,7 +1795,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2050,10 +1870,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2071,10 +1888,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2092,16 +1906,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2119,10 +1930,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2140,16 +1948,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2167,10 +1972,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2188,10 +1990,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2209,10 +2008,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2230,10 +2026,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2251,10 +2044,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2272,9 +2062,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -2293,7 +2081,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2369,10 +2156,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2390,10 +2174,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2411,16 +2192,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2438,10 +2216,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2459,16 +2234,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2486,8 +2258,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={true}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={
           <SettingItemMax
             containerStyle=""
@@ -2562,7 +2332,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             updateSection={[Function]}
           />
         }
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2580,10 +2349,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2601,10 +2367,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2622,10 +2385,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2643,10 +2403,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2664,10 +2421,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2685,9 +2439,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -2706,7 +2458,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2782,10 +2533,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2803,10 +2551,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2824,16 +2569,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2851,10 +2593,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2872,16 +2611,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2899,10 +2635,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2920,10 +2653,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -2941,8 +2671,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={true}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={
           <SettingItemMax
             containerStyle=""
@@ -3035,7 +2763,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             updateSection={[Function]}
           />
         }
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3053,10 +2780,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3074,10 +2798,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3095,10 +2816,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3116,9 +2834,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -3137,7 +2853,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3213,10 +2928,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3234,10 +2946,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3255,16 +2964,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3282,10 +2988,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3303,16 +3006,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3330,10 +3030,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3351,10 +3048,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3372,10 +3066,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3393,10 +3084,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3414,10 +3102,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3435,10 +3120,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3456,9 +3138,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -3477,7 +3157,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3553,10 +3232,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3574,10 +3250,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3595,16 +3268,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3622,10 +3292,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3643,16 +3310,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3670,10 +3334,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3691,10 +3352,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3712,10 +3370,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3733,10 +3388,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3754,10 +3406,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3775,10 +3424,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3796,9 +3442,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -3817,7 +3461,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3893,10 +3536,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3914,10 +3554,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3935,16 +3572,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3962,10 +3596,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -3983,16 +3614,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4010,10 +3638,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4031,10 +3656,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4052,10 +3674,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4073,10 +3692,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4094,10 +3710,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4115,10 +3728,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4136,9 +3746,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -4157,7 +3765,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4246,10 +3853,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4267,10 +3871,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4288,16 +3889,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4315,10 +3913,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4336,16 +3931,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4363,10 +3955,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4384,10 +3973,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4405,10 +3991,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4426,10 +4009,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4447,10 +4027,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4468,10 +4045,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4489,9 +4063,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -4510,7 +4082,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4586,10 +4157,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4607,10 +4175,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4628,16 +4193,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4655,10 +4217,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4676,16 +4235,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="On"
             id="user.settings.display.lastActiveOn"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="lastactive"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4703,10 +4259,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4724,10 +4277,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4745,10 +4295,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4766,10 +4313,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4787,10 +4331,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4808,10 +4349,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4829,9 +4367,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
       <SettingItem
         active={false}
         areAllSectionsInactive={false}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -4850,7 +4386,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4926,10 +4461,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapsed_reply_threads"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4947,10 +4479,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="clock"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4968,16 +4497,13 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
         describe={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Show first and last name"
             id="user.settings.display.teammateNameDisplayFullname"
           />
         }
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="name_format"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -4995,10 +4521,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="availabilityStatus"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -5016,10 +4539,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="linkpreview"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -5037,10 +4557,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="collapse"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -5058,10 +4575,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="message_display"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -5079,10 +4593,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="click_to_reply"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -5100,10 +4611,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="channel_display_mode"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -5121,10 +4629,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
-        infoPosition="bottom"
         max={null}
-        saving={false}
         section="one_click_reactions_enabled"
         title={
           <Memo(MemoizedFormattedMessage)
@@ -5142,9 +4647,7 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
       <SettingItem
         active={false}
         areAllSectionsInactive={true}
-        containerStyle=""
         describe="English (US)"
-        infoPosition="bottom"
         max={
           <Memo(Connect(injectIntl(ManageLanguage)))
             locale="en"
@@ -5163,7 +4666,6 @@ exports[`components/user_settings/display/UserSettingsDisplay should not show la
             }
           />
         }
-        saving={false}
         section="languages"
         title={
           <Memo(MemoizedFormattedMessage)

@@ -112,7 +112,7 @@ func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage)
 
 	ps.Busy.ClusterEventChanged(&sbs)
 	if sbs.Busy {
-		ps.logger.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int64("expires_sec", sbs.Expires))
+		ps.logger.Warn("server busy state activated via cluster event - non-critical services disabled", mlog.Int("expires_sec", sbs.Expires))
 	} else {
 		ps.logger.Info("server busy state cleared via cluster event - non-critical services enabled")
 	}
@@ -161,7 +161,6 @@ func (ps *PlatformService) InvalidateAllCaches() *model.AppError {
 	ps.InvalidateAllCachesSkipSend()
 
 	if ps.clusterIFace != nil {
-
 		msg := &model.ClusterMessage{
 			Event:            model.ClusterEventInvalidateAllCaches,
 			SendType:         model.ClusterSendReliable,

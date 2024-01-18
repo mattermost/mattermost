@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
 
 import type {ChannelWithTeamData} from '@mattermost/types/channels';
@@ -10,6 +9,16 @@ import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
 import GroupDetails from 'components/admin_console/group_settings/group_details/group_details';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+
+function getAnyInstance(wrapper: any) {
+    return wrapper.instance() as any;
+}
+
+function getAnyState(wrapper: any) {
+    return wrapper.state() as any;
+}
 
 describe('components/admin_console/group_settings/group_details/GroupDetails', () => {
     const defaultProps = {
@@ -48,27 +57,27 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
     };
 
     test('should match snapshot, with everything closed', () => {
-        const wrapper = shallow(<GroupDetails {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, with add team selector open', () => {
-        const wrapper = shallow(<GroupDetails {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
         wrapper.setState({addTeamOpen: true});
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, with add channel selector open', () => {
-        const wrapper = shallow(<GroupDetails {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
         wrapper.setState({addChannelOpen: true});
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot, with loaded state', () => {
-        const wrapper = shallow(<GroupDetails {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<GroupDetails {...defaultProps}/>);
         wrapper.setState({loading: false, loadingTeamsAndChannels: false});
         defaultProps.actions.getGroupSyncables.mockClear();
         expect(wrapper).toMatchSnapshot();
@@ -86,7 +95,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        shallow(
+        shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
@@ -110,13 +119,13 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = getAnyInstance(wrapper);
         await instance.addChannels([
             {id: '11111111111111111111111111'} as ChannelWithTeamData,
             {id: '22222222222222222222222222'} as ChannelWithTeamData,
@@ -142,13 +151,13 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             patchGroupSyncable: jest.fn(),
             setNavigationBlocked: jest.fn(),
         };
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 actions={actions}
             />,
         );
-        const instance = wrapper.instance();
+        const instance = getAnyInstance(wrapper);
         expect(instance.state.groupTeams?.length === 0);
         instance.addTeams([
             {id: '11111111111111111111111111'} as Team,
@@ -164,7 +173,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
     });
 
     test('update name for null slug', async () => {
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -174,12 +183,12 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             />,
         );
 
-        wrapper.instance().onMentionToggle(true);
-        expect(wrapper.state().groupMentionName).toBe('test-group');
+        getAnyInstance(wrapper).onMentionToggle(true);
+        expect(getAnyState(wrapper).groupMentionName).toBe('test-group');
     });
 
     test('update name for empty slug', async () => {
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -190,12 +199,12 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
             />,
         );
 
-        wrapper.instance().onMentionToggle(true);
-        expect(wrapper.state().groupMentionName).toBe('test-group');
+        getAnyInstance(wrapper).onMentionToggle(true);
+        expect(getAnyState(wrapper).groupMentionName).toBe('test-group');
     });
 
     test('Should not update name for slug', async () => {
-        const wrapper = shallow<GroupDetails>(
+        const wrapper = shallowWithIntl(
             <GroupDetails
                 {...defaultProps}
                 group={{
@@ -205,7 +214,7 @@ describe('components/admin_console/group_settings/group_details/GroupDetails', (
                 } as Group}
             />,
         );
-        wrapper.instance().onMentionToggle(true);
-        expect(wrapper.state().groupMentionName).toBe('any_name_at_all');
+        getAnyInstance(wrapper).onMentionToggle(true);
+        expect(getAnyState(wrapper).groupMentionName).toBe('any_name_at_all');
     });
 });
