@@ -369,7 +369,7 @@ function SystemUsers(props: Props) {
     // Table state which are correctly formatted for the table component
 
     const sortingTableState = [{
-        id: props?.tablePropertySortColumn ?? ColumnNames.displayName,
+        id: props && props.tablePropertySortColumn && props.tablePropertySortColumn.length > 0 ? props.tablePropertySortColumn : ColumnNames.username,
         desc: props?.tablePropertySortIsDescending ?? false,
     }];
 
