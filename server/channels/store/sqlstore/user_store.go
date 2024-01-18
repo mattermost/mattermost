@@ -2426,10 +2426,8 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
 	}
 
-	sql, _, err := parentQuery.ToSql()
-	mlog.Debug(sql)
 	userResults := []*model.UserReportQuery{}
-	err = us.GetReplicaX().SelectBuilder(&userResults, parentQuery)
+	err := us.GetReplicaX().SelectBuilder(&userResults, parentQuery)
 	if err != nil {
 		return nil, errors.Wrap(err, "failed to get users for reporting")
 	}
