@@ -118,6 +118,7 @@ class ButtonBinding extends React.PureComponent<Props, State> {
 
         return (
             <button
+                className='btn btn-sm'
                 onClick={this.handleClick}
                 style={customButtonStyle}
             >
