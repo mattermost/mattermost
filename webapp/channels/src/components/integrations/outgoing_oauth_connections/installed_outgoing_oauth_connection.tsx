@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
-import FormError from 'components/form_error';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import DeleteIntegrationLink from '../delete_integration_link';
@@ -27,7 +26,6 @@ export type InstalledOutgoingOAuthConnectionProps = {
     creatorName: string;
     filter?: string | null;
 
-    onRegenerateSecret: (outgoingOAuthConnectionId: string) => Promise<{error?: {message: string}}>;
     onDelete: (outgoingOAuthConnection: OutgoingOAuthConnection) => void;
 }
 
@@ -37,23 +35,11 @@ export type InstalledOutgoingOAuthConnectionState = {
 }
 
 const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectionProps) => {
-    const [storedError, setError] = useState<string | null>(null);
-
     const handleDelete = (): void => {
         props.onDelete(props.outgoingOAuthConnection);
-        setError(''); // TODO check for error here
     };
 
     const {outgoingOAuthConnection, creatorName} = props;
-    let errorComponent;
-
-    if (storedError) {
-        errorComponent = (
-            <FormError
-                error={storedError}
-            />
-        );
-    }
 
     if (!matchesFilter(outgoingOAuthConnection, props.filter)) {
         return null;
@@ -189,7 +175,6 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
                     </strong>
                     {actions}
                 </div>
-                {errorComponent}
                 {connectionInfo}
             </div>
         </div >

@@ -7,7 +7,7 @@ import {useDispatch, useSelector} from 'react-redux';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
-import {deleteOutgoingOAuthConnection, regenOutgoingOAuthConnectionSecret} from 'mattermost-redux/actions/integrations';
+import {deleteOutgoingOAuthConnection} from 'mattermost-redux/actions/integrations';
 import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
@@ -32,19 +32,19 @@ type Props = {
 
 const InstalledOutgoingOAuthConnections = (props: Props) => {
     const [loading, setLoading] = useState(true);
-    const canManageOAuth = useSelector((state) => haveISystemPermission(state as GlobalState, {permission: Permissions.MANAGE_OAUTH}));
-    const enableOAuthServiceProvider = useSelector(getConfig).EnableOAuthServiceProvider;
+    const canManageOutgoingOAuthConnections = useSelector((state) => haveISystemPermission(state as GlobalState, {permission: Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS}));
+    const enableOutgoingOAuthConnections = useSelector(getConfig).EnableOutgoingOAuthConnections === 'true';
     const connections = useSelector(getOutgoingOAuthConnections);
 
     const dispatch = useDispatch();
 
     useEffect(() => {
-        if (canManageOAuth) {
+        if (canManageOutgoingOAuthConnections) {
             (dispatch(loadOutgoingOAuthConnectionsAndProfiles()) as unknown as Promise<void>).then(
                 () => setLoading(false),
             );
         }
-    }, [canManageOAuth, dispatch]);
+    }, [canManageOutgoingOAuthConnections, dispatch]);
 
     const deleteOutgoingOAuthConnectionLocal = (connection: OutgoingOAuthConnection): void => {
         if (connection && connection.id) {
@@ -75,7 +75,6 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
                 <InstalledOutgoingOAuthConnection
                     key={connection.id}
                     outgoingOAuthConnection={connection}
-                    onRegenerateSecret={(connectionId) => dispatch(regenOutgoingOAuthConnectionSecret(connectionId)) as unknown as Promise<{error?: Error}>}
                     onDelete={deleteOutgoingOAuthConnectionLocal}
                     team={props.team}
                     creatorName=''
@@ -86,7 +85,7 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
         return mapped;
     };
 
-    const integrationsEnabled = enableOAuthServiceProvider && canManageOAuth;
+    const integrationsEnabled = enableOutgoingOAuthConnections && canManageOutgoingOAuthConnections;
     let childProps;
     if (integrationsEnabled) {
         childProps = {
