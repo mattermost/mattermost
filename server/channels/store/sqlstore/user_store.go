@@ -2377,7 +2377,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 	}
 
 	if isPostgres {
-		joinSql := sq.And{sq.Eq{"ps.UserId": "u.Id"}}
+		joinSql := sq.And{}
 		if filter.StartAt > 0 {
 			startDate := time.UnixMilli(filter.StartAt)
 			joinSql = append(joinSql, sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")})
@@ -2390,9 +2390,9 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		if err != nil {
 			return nil, err
 		}
-		query = query.LeftJoin("PostStats ps ON "+sql, args...)
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id AND "+sql, args...)
 	} else {
-		joinSql := sq.And{sq.Eq{"ps.UserId": "u.Id"}}
+		joinSql := sq.And{}
 		if filter.StartAt > 0 {
 			joinSql = append(joinSql, sq.GtOrEq{"p.CreateAt": filter.StartAt})
 		}
@@ -2403,7 +2403,7 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 		if err != nil {
 			return nil, err
 		}
-		query = query.LeftJoin("Posts p ON "+sql, args...)
+		query = query.LeftJoin("Posts p ON p.UserId = u.Id AND "+sql, args...)
 	}
 
 	query = applyUserReportFilter(query, filter, isPostgres)
