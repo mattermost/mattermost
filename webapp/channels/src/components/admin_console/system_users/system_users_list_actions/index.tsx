@@ -81,6 +81,13 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
     const isDisabled = !isSystemAdmin(currentUser.roles) && isSystemAdmin(user.roles);
 
+    const onDeactivateMember = () => updateUser({delete_at: new Date().getMilliseconds()});
+    const onUpdateRoles = (roles: string) => updateUser({roles});
+    const onSwitchToEmailPassword = () => updateUser({auth_service: undefined});
+    const onUpdateEmail = (email: string) => updateUser({email});
+    const onPromoteToMember = () => updateUser({roles: user.roles.replace(General.SYSTEM_GUEST_ROLE, '')});
+    const onDemoteToGuest = () => updateUser({roles: `${user.roles} ${General.SYSTEM_GUEST_ROLE}`});
+
     return (
         <Menu.Container
             menuButton={{
@@ -150,7 +157,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         dialogProps: {
                             user,
                             onError,
-                            onSuccess: () => updateUser({delete_at: new Date().getMilliseconds()}),
+                            onSuccess: onDeactivateMember,
                         },
                     }));
                 }}
@@ -169,7 +176,10 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.MANAGE_ROLES_MODAL,
                         dialogType: ManageRolesModal,
-                        dialogProps: {user, onSuccess: (roles: string) => updateUser({roles})},
+                        dialogProps: {
+                            user,
+                            onSuccess: onUpdateRoles,
+                        },
                     }));
                 }}
             />}
@@ -256,7 +266,10 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.RESET_PASSWORD_MODAL,
                         dialogType: ResetPasswordModal,
-                        dialogProps: {user, onSuccess: () => updateUser({auth_service: undefined})},
+                        dialogProps: {
+                            user,
+                            onSuccess: onSwitchToEmailPassword,
+                        },
                     }));
                 }}
             />}
@@ -274,7 +287,10 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.RESET_EMAIL_MODAL,
                         dialogType: ResetEmailModal,
-                        dialogProps: {user, onSuccess: (email: string) => updateUser({email})},
+                        dialogProps: {
+                            user,
+                            onSuccess: onUpdateEmail,
+                        },
                     }));
                 }}
             />}
@@ -292,7 +308,11 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.PROMOTE_TO_MEMBER_MODAL,
                         dialogType: PromoteToMemberModal,
-                        dialogProps: {user, onError, onSuccess: () => updateUser({roles: user.roles.replace(General.SYSTEM_GUEST_ROLE, '')})},
+                        dialogProps: {
+                            user,
+                            onError,
+                            onSuccess: onPromoteToMember,
+                        },
                     }));
                 }}
             />}
@@ -309,7 +329,11 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.DEMOTE_TO_GUEST_MODAL,
                         dialogType: DemoteToGuestModal,
-                        dialogProps: {user, onError, onSuccess: () => updateUser({roles: `${user.roles} ${General.SYSTEM_GUEST_ROLE}`})},
+                        dialogProps: {
+                            user,
+                            onError,
+                            onSuccess: onDemoteToGuest,
+                        },
                     }));
                 }}
             />}
