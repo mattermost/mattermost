@@ -1,0 +1,174 @@
+[
+  {
+    "id": "api.channel.add_user_to_channel.type.app_error",
+    "translation": "Ezin da erabiltzailerik gehitu kanal mota honetan."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.deleted.app_error",
+    "translation": "Ezin izan da erabiltzailea kanalean gehitu taldetik ezabatu dutelako."
+  },
+  {
+    "id": "api.channel.add_user.to.channel.failed.app_error",
+    "translation": "Erabiltzailea ezin izan da kanalean gehitu."
+  },
+  {
+    "id": "api.channel.add_members.user_denied",
+    "translation": "Kanalaren partaidetza ukatu egin zaie hurrengo erabiltzaileei taldearen murrizketengatik: {{ .UserIDs }}"
+  },
+  {
+    "id": "api.channel.add_members.error",
+    "translation": "Errorea partaidea(k) kanalera gehitzean."
+  },
+  {
+    "id": "api.channel.add_member.added",
+    "translation": "%v gehitu da kanalera %v-k eginda."
+  },
+  {
+    "id": "api.channel.add_guest.added",
+    "translation": "%v gehitu da kanalera gonbidatu giza honengatik %v."
+  },
+  {
+    "id": "api.bot.teams_channels.add_message_mobile",
+    "translation": "Mesedez gehitu nazazu parte hartzea nahi duzun talde eta kanaletan. Hau egiteko, erabil nabigatzailea edo Mattermost mahaigaineko aplikazioa."
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Bot-en sorkuntza desgaitu egin da."
+  },
+  {
+    "id": "api.admin.upload_brand_image.too_large.app_error",
+    "translation": "Ezin da fitxategia igo. Fitxategia handiegia da."
+  },
+  {
+    "id": "api.admin.upload_brand_image.storage.app_error",
+    "translation": "Ezin izan da irudia igo. Irudien biltegia ez da konfiguratu."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket behar da"
+  },
+  {
+    "id": "api.admin.test_email.subject",
+    "translation": "Mattermost - E-posta ezarpenak probatzen"
+  },
+  {
+    "id": "api.admin.test_email.reenter_password",
+    "translation": "SMTP zerbitzaria, ataka, edo erabiltzaile izena aldatu da. Mesedez sartu berriro SMTP pasahitza konexioa probatzeko."
+  },
+  {
+    "id": "api.admin.test_email.missing_server",
+    "translation": "SMTP Zerbitzaria beharrezkoa da"
+  },
+  {
+    "id": "api.admin.test_email.body",
+    "translation": "Badirudi zure Mattermost e-posta zuzen konfiguratuta dagoela!"
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Eduki mota falta da."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Eduki mota baliogabea."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_body.app_error",
+    "translation": "Zertifikatuaren testua ez da baliagarria."
+  },
+  {
+    "id": "api.admin.saml.not_available.app_error",
+    "translation": "SAML 2.0 ez da konfiguratu edo onartzen zerbitzari honetan."
+  },
+  {
+    "id": "api.admin.saml.failure_save_idp_certificate_file.app_error",
+    "translation": "Ezin izan da gorde zertifikatua."
+  },
+  {
+    "id": "api.admin.remove_certificate.delete.app_error",
+    "translation": "Errore bat gertatu da zertifikatua ezabatzean."
+  },
+  {
+    "id": "api.admin.ldap.not_available.app_error",
+    "translation": "LDAP  ez dago eskuragarri."
+  },
+  {
+    "id": "api.admin.get_brand_image.storage.app_error",
+    "translation": "Irudien biltegia ez da konfiguratu."
+  },
+  {
+    "id": "api.admin.file_read_error",
+    "translation": "Errorea log fitxategia irakurtzean."
+  },
+  {
+    "id": "api.admin.delete_brand_image.storage.not_found",
+    "translation": "Ezin izan da markaren irudia ezabatu, ez da aurkitu."
+  },
+  {
+    "id": "api.admin.add_certificate.saving.app_error",
+    "translation": "Ezin izan da gorde zertifikatuaren fitxategia."
+  },
+  {
+    "id": "api.admin.add_certificate.open.app_error",
+    "translation": "Ezin izan da ireki zertifikatuaren fitxategia."
+  },
+  {
+    "id": "api.admin.add_certificate.no_file.app_error",
+    "translation": "Fitxategirik ez 'zertifikatu' azpian eskaeran."
+  },
+  {
+    "id": "api.admin.add_certificate.array.app_error",
+    "translation": "Fitxategirik ez 'zertifikatua' azpian eskaeran"
+  },
+  {
+    "id": "September",
+    "translation": "Iraila"
+  },
+  {
+    "id": "October",
+    "translation": "Urria"
+  },
+  {
+    "id": "November",
+    "translation": "Azaroa"
+  },
+  {
+    "id": "May",
+    "translation": "Maiatza"
+  },
+  {
+    "id": "March",
+    "translation": "Martxoa"
+  },
+  {
+    "id": "June",
+    "translation": "Ekaina"
+  },
+  {
+    "id": "July",
+    "translation": "Uztaila"
+  },
+  {
+    "id": "January",
+    "translation": "Urtarrila"
+  },
+  {
+    "id": "February",
+    "translation": "Otsaila"
+  },
+  {
+    "id": "December",
+    "translation": "Abendua"
+  },
+  {
+    "id": "August",
+    "translation": "Abuztua"
+  },
+  {
+    "id": "April",
+    "translation": "Apirila"
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Zure lizentziak ez du talderik onartzen"
+  }
+]

@@ -2,8 +2,8 @@
 // See LICENSE.txt for license information.
 
 import plugins from './plugins';
-import views from './views';
 import storage from './storage';
+import views from './views';
 
 export default {
     views,

@@ -4,27 +4,30 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import * as UserUtils from 'mattermost-redux/utils/user_utils';
+import type {Bot} from '@mattermost/types/bots';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
 import {Permissions} from 'mattermost-redux/constants';
-import {AdminConfig} from '@mattermost/types/config';
-import {UserProfile} from '@mattermost/types/users';
-import {ServerError} from '@mattermost/types/errors';
-import {Bot} from '@mattermost/types/bots';
-import {DeepPartial} from '@mattermost/types/utilities';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {adminResetMfa} from 'actions/admin_actions.jsx';
+import {emitUserLoggedOutEvent} from 'actions/global_actions';
+
+import ConfirmModal from 'components/confirm_modal';
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
+import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
 import {Constants} from 'utils/constants';
-import * as Utils from 'utils/utils';
 import {t} from 'utils/i18n';
 import {getSiteURL} from 'utils/url';
-import {emitUserLoggedOutEvent} from 'actions/global_actions';
-import ConfirmModal from 'components/confirm_modal';
-import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
-
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Menu from 'components/widgets/menu/menu';
-import ExternalLink from 'components/external_link';
+import * as Utils from 'utils/utils';
 
 const ROWS_FROM_BOTTOM_TO_OPEN_UP = 3;
 const TOTAL_USERS_TO_OPEN_UP = 5;
@@ -40,14 +43,13 @@ export type Props = {
     config: DeepPartial<AdminConfig>;
     bots: Record<string, Bot>;
     isLicensed: boolean;
-    isDisabled: boolean;
     actions: {
-        updateUserActive: (id: string, active: boolean) => Promise<{error: ServerError}>;
-        revokeAllSessionsForUser: (id: string) => Promise<{error: ServerError; data: any}>;
-        promoteGuestToUser: (id: string) => Promise<{error: ServerError}>;
-        demoteUserToGuest: (id: string) => Promise<{error: ServerError}>;
+        updateUserActive: (id: string, active: boolean) => Promise<ActionResult>;
+        revokeAllSessionsForUser: (id: string) => Promise<ActionResult<boolean>>;
+        promoteGuestToUser: (id: string) => Promise<ActionResult>;
+        demoteUserToGuest: (id: string) => Promise<ActionResult>;
         loadBots: (page?: number, size?: number) => Promise<unknown>;
-        createGroupTeamsAndChannels: (userId: string) => Promise<{error: ServerError}>;
+        createGroupTeamsAndChannels: (userId: string) => Promise<ActionResult>;
     };
     doPasswordReset: (user: UserProfile) => void;
     doEmailReset: (user: UserProfile) => void;
@@ -82,8 +84,12 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         };
     }
 
-    handleMakeActive = (e: {preventDefault: () => void}) => {
+    handleMakeActive = (e: React.MouseEvent<HTMLButtonElement>, disableActivationToggle: boolean) => {
         e.preventDefault();
+        e.stopPropagation();
+        if (disableActivationToggle) {
+            return;
+        }
         this.props.actions.updateUserActive(this.props.user.id, true).
             then(this.onUpdateActiveResult);
     };
@@ -121,8 +127,11 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         adminResetMfa(this.props.user.id, null, this.props.onError);
     };
 
-    handleShowDeactivateMemberModal = async (e: {preventDefault: () => void}) => {
+    handleShowDeactivateMemberModal = async (e: React.MouseEvent<HTMLButtonElement>, disableActivationToggle: boolean) => {
         e.preventDefault();
+        if (disableActivationToggle) {
+            return;
+        }
         if (this.shouldDisableBotsWhenOwnerIsDeactivated()) {
             await this.props.actions.loadBots(
                 Constants.Integrations.START_PAGE_NUM,
@@ -138,7 +147,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         this.setState({showDeactivateMemberModal: false});
     };
 
-    onUpdateActiveResult = ({error}: {error: ServerError}) => {
+    onUpdateActiveResult = ({error}: ActionResult) => {
         if (error) {
             this.props.onError({id: error.server_error_id, ...error});
         }
@@ -566,13 +575,8 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
     render() {
         const {currentUser, user, isLicensed, config} = this.props;
 
-        let isDisabled = this.props.isDisabled;
-        if (!isDisabled) {
-            // if not already disabled,
-            // disable if SystemAdmin being edited by non SystemAdmin
-            // ie, userManager with EditOtherUsers permissions
-            isDisabled = UserUtils.isSystemAdmin(user.roles) && !UserUtils.isSystemAdmin(currentUser.roles);
-        }
+        // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
+        const isDisabled = UserUtils.isSystemAdmin(user.roles) && !UserUtils.isSystemAdmin(currentUser.roles);
 
         const isGuest = UserUtils.isGuest(user.roles);
         if (!user) {
@@ -615,7 +619,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
             currentRoles = (
                 <FormattedMessage
                     id='admin.user_item.inactive'
-                    defaultMessage='Inactive'
+                    defaultMessage='Deactivated'
                 />
             );
             showMakeActive = true;
@@ -634,6 +638,12 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         const promoteToUserModal = this.renderPromoteToUserModal();
         const demoteToGuestModal = this.renderDemoteToGuestModal();
         const createGroupSyncablesMembershipsModal = this.renderCreateGroupSyncablesMembershipsModal();
+
+        const getExtraText = (disableActivationToggle: boolean) => {
+            return disableActivationToggle ? {
+                extraText: Utils.localizeMessage('admin.user_item.managedByLdap', 'Managed by LDAP'),
+            } : {};
+        };
 
         const {index, totalUsers} = this.props;
         return (
@@ -662,15 +672,17 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
                     >
                         <Menu.ItemAction
                             show={showMakeActive}
-                            onClick={this.handleMakeActive}
+                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => this.handleMakeActive(e, disableActivationToggle)}
                             text={Utils.localizeMessage('admin.user_item.makeActive', 'Activate')}
                             disabled={disableActivationToggle}
+                            {...getExtraText(disableActivationToggle)}
                         />
                         <Menu.ItemAction
                             show={showMakeNotActive}
-                            onClick={this.handleShowDeactivateMemberModal}
+                            onClick={(e: React.MouseEvent<HTMLButtonElement>) => this.handleShowDeactivateMemberModal(e, disableActivationToggle)}
                             text={Utils.localizeMessage('admin.user_item.makeInactive', 'Deactivate')}
                             disabled={disableActivationToggle}
+                            {...getExtraText(disableActivationToggle)}
                         />
                         <Menu.ItemAction
                             show={showManageRoles}

@@ -2,15 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {updateUserRoles} from 'mattermost-redux/actions/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
-import ManageRolesModal, {Props} from './manage_roles_modal';
+import ManageRolesModal from './manage_roles_modal';
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -20,7 +20,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             updateUserRoles,
         }, dispatch),
     };

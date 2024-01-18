@@ -3,10 +3,9 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
-
 import styled from 'styled-components';
 
-import Input from '../widgets/inputs/input/input';
+import Input from 'components/widgets/inputs/input/input';
 
 interface Props {
     className?: string;

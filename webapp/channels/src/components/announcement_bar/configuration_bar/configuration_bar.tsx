@@ -1,34 +1,32 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import React from 'react';
+import type {ReactNode} from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import {daysToLicenseExpire, isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod, isTrialLicense} from 'utils/license_utils';
-import {AnnouncementBarTypes, AnnouncementBarMessages, WarnMetricTypes, Preferences, ConfigurationBanners, Constants, TELEMETRY_CATEGORIES} from 'utils/constants';
-import {t} from 'utils/i18n';
-
-import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
-import {getSkuDisplayName} from 'utils/subscription';
-import {getViewportSize} from 'utils/utils';
-
-import ackIcon from 'images/icons/check-circle-outline.svg';
-import alertIcon from 'images/icons/round-white-info-icon.svg';
-
-import warningIcon from 'images/icons/warning-icon.svg';
+import type {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
+import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
+import ExternalLink from 'components/external_link';
 
-import {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
-import {PreferenceType} from '@mattermost/types/preferences';
+import ackIcon from 'images/icons/check-circle-outline.svg';
+import alertIcon from 'images/icons/round-white-info-icon.svg';
+import warningIcon from 'images/icons/warning-icon.svg';
+import {AnnouncementBarTypes, AnnouncementBarMessages, WarnMetricTypes, Preferences, ConfigurationBanners, Constants, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {t} from 'utils/i18n';
+import {daysToLicenseExpire, isLicenseExpired, isLicenseExpiring, isLicensePastGracePeriod, isTrialLicense} from 'utils/license_utils';
+import {getSkuDisplayName} from 'utils/subscription';
+import {getViewportSize} from 'utils/utils';
 
 import AnnouncementBar from '../default_announcement_bar';
-import TextDismissableBar from '../text_dismissable_bar';
 import RenewalLink from '../renewal_link/';
-import ExternalLink from 'components/external_link';
+import TextDismissableBar from '../text_dismissable_bar';
 
 type Props = {
     config?: Partial<ClientConfig>;
@@ -47,7 +45,7 @@ type Props = {
     warnMetricsStatus?: Record<string, WarnMetricStatus>;
     actions: {
         dismissNotice: (notice: string) => void;
-        savePreferences: (userId: string, preferences: PreferenceType[]) => (dispatch: DispatchFunc) => Promise<{
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{
             data: boolean;
         }>;
     };

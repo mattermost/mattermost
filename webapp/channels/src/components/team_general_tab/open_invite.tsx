@@ -4,22 +4,21 @@
 import React, {useCallback, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
+import type {Team} from '@mattermost/types/teams';
+
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
+import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
-
 import SettingItemMin from 'components/setting_item_min';
 
-import type {Team} from '@mattermost/types/teams';
-import ExternalLink from 'components/external_link';
-
 type Props = {
-    teamId?: string;
+    teamId: string;
     isActive: boolean;
     isGroupConstrained?: boolean;
     allowOpenInvite?: boolean;
     onToggle: (active: boolean) => void;
-    patchTeam: (patch: Partial<Team>) => Promise<ActionResult>;
+    patchTeam: (patch: Partial<Team> & {id: string}) => Promise<ActionResult>;
 };
 
 const OpenInvite = (props: Props) => {

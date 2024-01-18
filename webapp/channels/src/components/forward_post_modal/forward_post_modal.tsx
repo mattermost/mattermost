@@ -1,40 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useCallback, useRef, useState} from 'react';
-
-import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
-
-import {useSelector} from 'react-redux';
-
-import {ValueType} from 'react-select';
-
 import classNames from 'classnames';
+import React, {useCallback, useRef, useState} from 'react';
+import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
+import type {ValueType} from 'react-select';
 
+import {GenericModal} from '@mattermost/components';
+import type {PostPreviewMetadata} from '@mattermost/types/posts';
+
+import {General, Permissions} from 'mattermost-redux/constants';
 import {makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-
-import NotificationBox from 'components/notification_box';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {getPermalinkURL} from 'selectors/urls';
 
-import {GlobalState} from 'types/store';
-
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
-import {General, Permissions} from 'mattermost-redux/constants';
+import NotificationBox from 'components/notification_box';
+import PostMessagePreview from 'components/post_view/post_message_preview';
 
 import Constants from 'utils/constants';
+import {getSiteURL} from 'utils/url';
 
-import PostMessagePreview from 'components/post_view/post_message_preview';
-import {GenericModal} from '@mattermost/components';
+import type {GlobalState} from 'types/store';
 
-import {PostPreviewMetadata} from '@mattermost/types/posts';
-import {getSiteURL} from '../../utils/url';
-
-import ForwardPostChannelSelect, {ChannelOption, makeSelectedChannelOption} from './forward_post_channel_select';
+import ForwardPostChannelSelect, {makeSelectedChannelOption} from './forward_post_channel_select';
+import type {ChannelOption} from './forward_post_channel_select';
 import ForwardPostCommentInput from './forward_post_comment_input';
 
-import {ActionProps, OwnProps, PropsFromRedux} from './index';
+import type {ActionProps, OwnProps, PropsFromRedux} from './index';
 
 import './forward_post_modal.scss';
 
@@ -195,7 +191,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
             if (type === Constants.DM_CHANNEL && userId) {
                 return actions.openDirectChannelToUserId(userId);
             }
-            return {data: false};
+            return {data: false} as ActionResult;
         }).then(({data}) => {
             if (data) {
                 channelToForward.details.id = data.id;
@@ -228,7 +224,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
 
     const postPreviewFooterMessage = formatMessage({
         id: 'forward_post_modal.preview.footer_message',
-        defaultMessage: 'Originally posted in ~{channelName}',
+        defaultMessage: 'Originally posted in ~{channel}',
     },
     {
         channel: channel.display_name,

@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import PlaybooksImg from 'images/playbooks_tour_tip.svg';
-
 import {useMeasurePunchouts} from '@mattermost/components';
+
+import PlaybooksImg from 'images/playbooks_tour_tip.svg';
 
 import OnboardingExploreToolsTourTip from './onboarding_explore_tools_tour_tip';
 

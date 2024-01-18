@@ -4,20 +4,20 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Bot as BotType} from '@mattermost/types/bots';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-import {UserProfile, UserAccessToken} from '@mattermost/types/users';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Team} from '@mattermost/types/teams';
+import type {Bot as BotType} from '@mattermost/types/bots';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile, UserAccessToken} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
-import {getSiteURL} from 'utils/url';
-import * as Utils from 'utils/utils';
-import Constants from 'utils/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import BackstageList from 'components/backstage/components/backstage_list';
+import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
-import ExternalLink from 'components/external_link';
+import Constants from 'utils/constants';
+import {getSiteURL} from 'utils/url';
+import * as Utils from 'utils/utils';
 
 import Bot, {matchesFilter} from './bot';
 
@@ -59,7 +59,7 @@ type Props = {
         /**
          * Ensure we have bot accounts
          */
-        loadBots: (page?: number, perPage?: number) => Promise<{data: BotType[]; error?: Error}>;
+        loadBots: (page?: number, perPage?: number) => Promise<ActionResult<BotType[]>>;
 
         /**
         * Load access tokens for bot accounts
@@ -69,14 +69,11 @@ type Props = {
         /**
         * Access token managment
         */
-        createUserAccessToken: (userId: string, description: string) => Promise<{
-            data: {token: string; description: string; id: string; is_active: boolean} | null;
-            error?: Error;
-        }>;
+        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
 
-        revokeUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-        enableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-        disableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
+        revokeUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        enableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
+        disableUserAccessToken: (tokenId: string) => Promise<ActionResult>;
 
         /**
         * Load owner of bot account

@@ -3,12 +3,13 @@
 
 import {combineReducers} from 'redux';
 
+import type {Post} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Search} from '@mattermost/types/search';
+
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Preferences} from 'mattermost-redux/constants';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
-import {Search} from '@mattermost/types/search';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function results(state: string[] = [], action: GenericAction) {
     switch (action.type) {

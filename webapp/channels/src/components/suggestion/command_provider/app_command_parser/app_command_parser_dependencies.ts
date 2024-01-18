@@ -1,6 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel} from '@mattermost/types/channels';
+import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {sendEphemeralPost} from 'actions/global_actions';
+import ReduxStore from 'stores/redux_store';
+
+import {Constants} from 'utils/constants';
+import {isMac} from 'utils/user_agent';
+import {localizeAndFormatMessage} from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
+
+import type {ParsedCommand} from './app_command_parser';
+
 export type {
     AppCall,
     AppCallRequest,
@@ -22,31 +39,12 @@ export type {
     DoAppCallResult,
 } from 'types/apps';
 
-import type {
-    AutocompleteSuggestion,
-} from '@mattermost/types/integrations';
 export type {AutocompleteSuggestion};
 
-import type {
-    Channel,
-} from '@mattermost/types/channels';
 export type {Channel};
 
-import {
-    GlobalState,
-} from 'types/store';
+export type {UserAutocomplete} from '@mattermost/types/autocomplete';
 
-import type {
-    DispatchFunc,
-} from 'mattermost-redux/types/actions';
-
-export type {
-    UserAutocomplete,
-} from '@mattermost/types/autocomplete';
-
-import type {
-    UserProfile,
-} from '@mattermost/types/users';
 export type {UserProfile};
 
 export {
@@ -68,34 +66,27 @@ export {getUserByUsername, getUser} from 'mattermost-redux/actions/users';
 export {getChannelByNameAndTeamName, getChannel, autocompleteChannels} from 'mattermost-redux/actions/channels';
 
 export {doAppFetchForm, doAppLookup} from 'actions/apps';
-import {sendEphemeralPost} from 'actions/global_actions';
 
 export {
     createCallRequest,
     filterEmptyOptions,
 } from 'utils/apps';
 
-import {isMac} from 'utils/user_agent';
-import {localizeAndFormatMessage} from 'utils/utils';
-
 export type Store = {
     dispatch: DispatchFunc;
     getState: () => GlobalState;
 }
 
-import ReduxStore from 'stores/redux_store';
 export const getStore = () => ReduxStore;
 
 export {getChannelSuggestions, getUserSuggestions, inTextMentionSuggestions} from '../mentions';
 
-import {Constants} from 'utils/constants';
 export const EXECUTE_CURRENT_COMMAND_ITEM_ID = Constants.Integrations.EXECUTE_CURRENT_COMMAND_ITEM_ID;
 export const OPEN_COMMAND_IN_MODAL_ITEM_ID = Constants.Integrations.OPEN_COMMAND_IN_MODAL_ITEM_ID;
 export const COMMAND_SUGGESTION_ERROR = Constants.Integrations.COMMAND_SUGGESTION_ERROR;
 export const COMMAND_SUGGESTION_CHANNEL = Constants.Integrations.COMMAND_SUGGESTION_CHANNEL;
 export const COMMAND_SUGGESTION_USER = Constants.Integrations.COMMAND_SUGGESTION_USER;
 
-import type {ParsedCommand} from './app_command_parser';
 export {AppsTypes} from 'mattermost-redux/action_types';
 
 export const getExecuteSuggestion = (parsed: ParsedCommand): AutocompleteSuggestion | null => {

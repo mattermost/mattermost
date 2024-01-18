@@ -19,6 +19,7 @@ import (
 	"path"
 	"path/filepath"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -30,7 +31,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
@@ -70,7 +71,7 @@ func setDefaultPluginConfig(th *TestHelper, pluginID string) {
 	})
 }
 
-func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c *request.Context) string {
+func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests []string, pluginIDs []string, asMain bool, app *App, c request.CTX) string {
 	pluginDir, err := os.MkdirTemp("", "")
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -125,8 +126,7 @@ func setupMultiPluginAPITest(t *testing.T, pluginCodes []string, pluginManifests
 	return pluginDir
 }
 
-func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) string {
-
+func setupPluginAPITest(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c request.CTX) string {
 	asMain := pluginID != "test_db_driver"
 	return setupMultiPluginAPITest(t,
 		[]string{pluginCode}, []string{pluginManifest}, []string{pluginID},
@@ -163,6 +163,42 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 	assert.Equal(t, publicFilesPath, publicFilesFolderInTest)
 }
 
+func TestPluginAPIGetUserPreference(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	err := api.UpdatePreferencesForUser(th.BasicUser.Id, []model.Preference{
+		{
+			UserId:   th.BasicUser.Id,
+			Category: model.PreferenceCategoryDisplaySettings,
+			Name:     model.PreferenceNameUseMilitaryTime,
+			Value:    "true",
+		},
+		{
+			UserId:   th.BasicUser.Id,
+			Category: "test_category",
+			Name:     "test_key",
+			Value:    "test_value",
+		},
+	})
+	require.Nil(t, err)
+
+	preference, err := api.GetPreferenceForUser(th.BasicUser.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime)
+
+	require.Nil(t, err)
+	assert.Equal(t, model.PreferenceCategoryDisplaySettings, preference.Category)
+	assert.Equal(t, model.PreferenceNameUseMilitaryTime, preference.Name)
+	assert.Equal(t, "true", preference.Value)
+
+	preference, err = api.GetPreferenceForUser(th.BasicUser.Id, "test_category", "test_key")
+
+	require.Nil(t, err)
+	assert.Equal(t, "test_category", preference.Category)
+	assert.Equal(t, "test_key", preference.Name)
+	assert.Equal(t, "test_value", preference.Value)
+}
+
 func TestPluginAPIGetUserPreferences(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
@@ -178,21 +214,22 @@ func TestPluginAPIGetUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
 	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
 	assert.Equal(t, "hide", preferences[0].Name)
 	assert.Equal(t, "false", preferences[0].Value)
 
-	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[1].Name)
-	assert.Equal(t, "0", preferences[1].Value)
+	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
+
+	assert.Equal(t, user1.Id, preferences[2].UserId)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+	assert.Equal(t, user1.Id, preferences[2].Name)
+	assert.Equal(t, "0", preferences[2].Value)
 }
 
 func TestPluginAPIDeleteUserPreferences(t *testing.T) {
-	t.Skip("MM-47612")
 	th := Setup(t)
 	defer th.TearDown()
 	api := th.SetupPluginAPI()
@@ -240,9 +277,11 @@ func TestPluginAPIDeleteUserPreferences(t *testing.T) {
 	require.Nil(t, err)
 	preferences, err = api.GetPreferencesForUser(user2.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
-	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
+	assert.Equal(t, 3, len(preferences))
+	assert.ElementsMatch(t,
+		[]string{model.PreferenceRecommendedNextSteps, model.PreferenceCategoryTutorialSteps, model.PreferenceCategorySystemNotice},
+		[]string{preferences[0].Category, preferences[1].Category, preferences[2].Category},
+	)
 }
 
 func TestPluginAPIUpdateUserPreferences(t *testing.T) {
@@ -260,16 +299,17 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 
 	preferences, err := api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
-	assert.Equal(t, 2, len(preferences))
+	assert.Equal(t, 3, len(preferences))
 
 	assert.Equal(t, user1.Id, preferences[0].UserId)
 	assert.Equal(t, model.PreferenceRecommendedNextSteps, preferences[0].Category)
 	assert.Equal(t, "hide", preferences[0].Name)
 	assert.Equal(t, "false", preferences[0].Value)
-	assert.Equal(t, user1.Id, preferences[1].UserId)
-	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[1].Category)
-	assert.Equal(t, user1.Id, preferences[1].Name)
-	assert.Equal(t, "0", preferences[1].Value)
+	assert.Equal(t, model.PreferenceCategorySystemNotice, preferences[1].Category)
+	assert.Equal(t, user1.Id, preferences[2].UserId)
+	assert.Equal(t, model.PreferenceCategoryTutorialSteps, preferences[2].Category)
+	assert.Equal(t, user1.Id, preferences[2].Name)
+	assert.Equal(t, "0", preferences[2].Value)
 
 	preference := model.Preference{
 		Name:     user1.Id,
@@ -284,8 +324,8 @@ func TestPluginAPIUpdateUserPreferences(t *testing.T) {
 	preferences, err = api.GetPreferencesForUser(user1.Id)
 	require.Nil(t, err)
 
-	assert.Equal(t, 3, len(preferences))
-	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps}
+	assert.Equal(t, 4, len(preferences))
+	expectedCategories := []string{model.PreferenceCategoryTutorialSteps, model.PreferenceCategoryTheme, model.PreferenceRecommendedNextSteps, model.PreferenceCategorySystemNotice}
 	for _, pref := range preferences {
 		assert.Contains(t, expectedCategories, pref.Category)
 		assert.Equal(t, user1.Id, pref.UserId)
@@ -509,7 +549,7 @@ func TestPluginAPIUserCustomStatus(t *testing.T) {
 	defer th.App.PermanentDeleteUser(th.Context, user1)
 
 	custom := &model.CustomStatus{
-		Emoji: ":tada:",
+		Emoji: "tada",
 		Text:  "honk",
 	}
 
@@ -560,7 +600,7 @@ func TestPluginAPIGetFile(t *testing.T) {
 	info, err := th.App.DoUploadFile(th.Context, uploadTime, th.BasicTeam.Id, th.BasicChannel.Id, th.BasicUser.Id, filename, fileData)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 		th.App.RemoveFile(info.Path)
 	}()
 
@@ -589,7 +629,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo1.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo1.Id)
 		th.App.RemoveFile(fileInfo1.Path)
 	}()
 
@@ -603,7 +643,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo2.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo2.Id)
 		th.App.RemoveFile(fileInfo2.Path)
 	}()
 
@@ -617,7 +657,7 @@ func TestPluginAPIGetFileInfos(t *testing.T) {
 	)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo3.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo3.Id)
 		th.App.RemoveFile(fileInfo3.Path)
 	}()
 
@@ -911,7 +951,7 @@ func TestInstallPlugin(t *testing.T) {
 	// we need a modified version of setupPluginAPITest() because it wasn't possible to use it directly here
 	// since it removes plugin dirs right after it returns, does not update App configs with the plugin
 	// dirs and this behavior tends to break this test as a result.
-	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c *request.Context) (func(), string) {
+	setupTest := func(t *testing.T, pluginCode string, pluginManifest string, pluginID string, app *App, c request.CTX) (func(), string) {
 		pluginDir, err := os.MkdirTemp("", "")
 		require.NoError(t, err)
 		webappPluginDir, err := os.MkdirTemp("", "")
@@ -1350,7 +1390,7 @@ func TestPluginCreatePostWithUploadedFile(t *testing.T) {
 	fileInfo, err := api.UploadFile(data, channelID, filename)
 	require.Nil(t, err)
 	defer func() {
-		th.App.Srv().Store().FileInfo().PermanentDelete(fileInfo.Id)
+		th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, fileInfo.Id)
 		th.App.RemoveFile(fileInfo.Path)
 	}()
 
@@ -2202,5 +2242,277 @@ func TestConfigurationWillBeSavedHook(t *testing.T) {
 		require.Equal(t, map[string]any{
 			"custom_key": "custom_val",
 		}, newCfg.PluginSettings.Plugins["custom_plugin"])
+	})
+}
+
+func TestSendPushNotification(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping TestSendPushNotification test in short mode")
+	}
+
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	api := th.SetupPluginAPI()
+
+	// Create 3 users, each having 2 sessions.
+	type userSession struct {
+		user    *model.User
+		session *model.Session
+	}
+	var userSessions []userSession
+	for i := 0; i < 3; i++ {
+		u := th.CreateUser()
+		sess, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId:    u.Id,
+			DeviceId:  "deviceID" + u.Id,
+			ExpiresAt: model.GetMillis() + 100000,
+		})
+		require.Nil(t, err)
+		// We don't need to track the 2nd session.
+		_, err = th.App.CreateSession(th.Context, &model.Session{
+			UserId:    u.Id,
+			DeviceId:  "deviceID" + u.Id,
+			ExpiresAt: model.GetMillis() + 100000,
+		})
+		require.Nil(t, err)
+		_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
+		require.Nil(t, err)
+		th.AddUserToChannel(u, th.BasicChannel)
+		userSessions = append(userSessions, userSession{
+			user:    u,
+			session: sess,
+		})
+	}
+
+	handler := &testPushNotificationHandler{
+		t:        t,
+		behavior: "simple",
+	}
+	pushServer := httptest.NewServer(
+		http.HandlerFunc(handler.handleReq),
+	)
+	defer pushServer.Close()
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.EmailSettings.PushNotificationContents = model.FullNotification
+		*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+	})
+
+	var wg sync.WaitGroup
+	for _, data := range userSessions {
+		wg.Add(1)
+		go func(user model.User) {
+			defer wg.Done()
+			post := th.CreatePost(th.BasicChannel)
+			post.Message = "started a conversation"
+			notification := &model.PushNotification{
+				Category:    model.CategoryCanReply,
+				Version:     model.PushMessageV2,
+				Type:        model.PushTypeMessage,
+				TeamId:      th.BasicChannel.TeamId,
+				ChannelId:   th.BasicChannel.Id,
+				PostId:      post.Id,
+				RootId:      post.RootId,
+				SenderId:    post.UserId,
+				SenderName:  "Sender Name",
+				PostType:    post.Type,
+				ChannelType: th.BasicChannel.Type,
+				Message:     "Custom message",
+			}
+			appErr := api.SendPushNotification(notification, user.Id)
+			require.Nil(t, appErr)
+		}(*data.user)
+	}
+	wg.Wait()
+
+	// Hack to let the worker goroutines complete.
+	time.Sleep(1 * time.Second)
+	// Server side verification.
+	var numMessages int
+	for _, n := range handler.notifications() {
+		switch n.Type {
+		case model.PushTypeMessage:
+			numMessages++
+			assert.Equal(t, th.BasicChannel.Id, n.ChannelId)
+			assert.Equal(t, "Custom message", n.Message)
+		default:
+			assert.Fail(t, "should not receive any other push notification types")
+		}
+	}
+	assert.Equal(t, 6, numMessages)
+}
+
+func TestPluginServeMetrics(t *testing.T) {
+	th := Setup(t, StartMetrics)
+	defer th.TearDown()
+
+	var prevEnable *bool
+	var prevAddress *string
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		prevEnable = cfg.MetricsSettings.Enable
+		prevAddress = cfg.MetricsSettings.ListenAddress
+		cfg.MetricsSettings.Enable = model.NewBool(true)
+		cfg.MetricsSettings.ListenAddress = model.NewString(":30067")
+	})
+	defer th.App.UpdateConfig(func(cfg *model.Config) {
+		cfg.MetricsSettings.Enable = prevEnable
+		cfg.MetricsSettings.ListenAddress = prevAddress
+	})
+
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_serve_metrics_plugin", "main.go")
+
+	pluginCode, err := os.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+
+	tearDown, ids, errors := SetAppEnvironmentWithPlugins(t, []string{string(pluginCode)}, th.App, th.NewPluginAPI)
+	defer tearDown()
+	require.NoError(t, errors[0])
+	require.Len(t, ids, 1)
+
+	pluginID := ids[0]
+	require.NotEmpty(t, pluginID)
+
+	reqURL := fmt.Sprintf("http://localhost%s/plugins/%s/metrics", *th.App.Config().MetricsSettings.ListenAddress, pluginID)
+	req, err := http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	require.NoError(t, err)
+
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "METRICS", string(body))
+
+	reqURL = fmt.Sprintf("http://localhost%s/plugins/%s/metrics/subpath", *th.App.Config().MetricsSettings.ListenAddress, pluginID)
+	req, err = http.NewRequest("GET", reqURL, nil)
+	require.NoError(t, err)
+
+	resp, err = client.Do(req)
+	require.NoError(t, err)
+	defer resp.Body.Close()
+
+	body, err = io.ReadAll(resp.Body)
+	require.NoError(t, err)
+	require.Equal(t, "METRICS SUBPATH", string(body))
+}
+
+func TestPluginUpdateChannelMembersNotifications(t *testing.T) {
+	t.Run("using API directly", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		api := th.SetupPluginAPI()
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel)
+		th.AddUserToChannel(th.BasicUser2, channel)
+
+		member1, err := api.GetChannelMember(channel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Equal(t, "", member1.NotifyProps["test_field"])
+		require.Equal(t, model.IgnoreChannelMentionsDefault, member1.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+		member2, err := api.GetChannelMember(channel.Id, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.Equal(t, "", member2.NotifyProps["test_field"])
+		require.Equal(t, model.IgnoreChannelMentionsDefault, member2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+
+		err = api.PatchChannelMembersNotifications(
+			[]*model.ChannelMemberIdentifier{
+				{ChannelId: channel.Id, UserId: th.BasicUser.Id},
+				{ChannelId: channel.Id, UserId: th.BasicUser2.Id},
+			},
+			map[string]string{
+				"test_field":                          "test_value",
+				model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn,
+			},
+		)
+
+		require.Nil(t, err)
+
+		updated1, err := api.GetChannelMember(member1.ChannelId, member1.UserId)
+		require.Nil(t, err)
+		updated2, err := api.GetChannelMember(member2.ChannelId, member2.UserId)
+		require.Nil(t, err)
+
+		assert.Equal(t, member1.NotifyProps[model.MarkUnreadNotifyProp], updated1.NotifyProps[model.MarkUnreadNotifyProp])
+		assert.Equal(t, "test_value", updated1.NotifyProps["test_field"])
+		assert.Equal(t, model.IgnoreChannelMentionsOn, updated1.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+		assert.Equal(t, member2.NotifyProps[model.MarkUnreadNotifyProp], updated2.NotifyProps[model.MarkUnreadNotifyProp])
+		assert.Equal(t, "test_value", updated2.NotifyProps["test_field"])
+		assert.Equal(t, model.IgnoreChannelMentionsOn, updated2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+	})
+
+	t.Run("using plugin", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel)
+		th.AddUserToChannel(th.BasicUser2, channel)
+
+		member1, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Equal(t, "", member1.NotifyProps["test_field"])
+		require.Equal(t, model.IgnoreChannelMentionsDefault, member1.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+		member2, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.Equal(t, "", member2.NotifyProps["test_field"])
+		require.Equal(t, model.IgnoreChannelMentionsDefault, member2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+
+		pluginCode := `
+			package main
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			const (
+				channelID = "` + channel.Id + `"
+				userID1 = "` + th.BasicUser.Id + `"
+				userID2 = "` + th.BasicUser2.Id + `"
+			)
+
+			type TestPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *TestPlugin) OnActivate() error {
+				return p.API.PatchChannelMembersNotifications(
+					[]*model.ChannelMemberIdentifier{
+						{ChannelId: channelID, UserId: userID1},
+						{ChannelId: channelID, UserId: userID2},
+					},
+					map[string]string{
+						"test_field":                          "test_value",
+						model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn,
+					},
+				)
+			}
+
+			func main() {
+				plugin.ClientMain(&TestPlugin{})
+			}`
+		pluginID := "testplugin"
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		updated1, err := th.App.GetChannelMember(th.Context, member1.ChannelId, member1.UserId)
+		require.Nil(t, err)
+		updated2, err := th.App.GetChannelMember(th.Context, member2.ChannelId, member2.UserId)
+		require.Nil(t, err)
+
+		assert.Equal(t, member1.NotifyProps[model.MarkUnreadNotifyProp], updated1.NotifyProps[model.MarkUnreadNotifyProp])
+		assert.Equal(t, "test_value", updated1.NotifyProps["test_field"])
+		assert.Equal(t, model.IgnoreChannelMentionsOn, updated1.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+		assert.Equal(t, member2.NotifyProps[model.MarkUnreadNotifyProp], updated2.NotifyProps[model.MarkUnreadNotifyProp])
+		assert.Equal(t, "test_value", updated2.NotifyProps["test_field"])
+		assert.Equal(t, model.IgnoreChannelMentionsOn, updated2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
 	})
 }

@@ -2,21 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {useIntl, FormattedMessage} from 'react-intl';
-
 import {useSelector} from 'react-redux';
 
 import {Permissions} from 'mattermost-redux/constants';
-
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import ToggleModalButton from 'components/toggle_modal_button';
 import InvitationModal from 'components/invitation_modal';
-import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 import {getAnalyticsCategory} from 'components/onboarding_tasks';
+import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
+import ToggleModalButton from 'components/toggle_modal_button';
 
 import {ModalIdentifiers} from 'utils/constants';
 

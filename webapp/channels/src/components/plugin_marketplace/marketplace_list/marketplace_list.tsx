@@ -5,12 +5,13 @@ import React, {useCallback, useMemo} from 'react';
 import {useIntl} from 'react-intl';
 
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
+
 import {isPlugin, getName} from 'mattermost-redux/utils/marketplace';
 
 import PluginIcon from 'components/widgets/icons/plugin_icon';
 
-import MarketplaceItemPlugin from '../marketplace_item/marketplace_item_plugin';
 import MarketplaceItemApp from '../marketplace_item/marketplace_item_app';
+import MarketplaceItemPlugin from '../marketplace_item/marketplace_item_plugin';
 
 export const ITEMS_PER_PAGE = 15;
 

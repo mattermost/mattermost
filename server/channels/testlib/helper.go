@@ -14,6 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/searchlayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
@@ -28,6 +29,7 @@ type MainHelper struct {
 	SearchEngine     *searchengine.Broker
 	SQLStore         *sqlstore.SqlStore
 	ClusterInterface *FakeClusterInterface
+	Logger           *mlog.Logger
 
 	status           int
 	testResourcePath string
@@ -61,9 +63,16 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 	// Unset environment variables commonly set for development that interfere with tests.
 	os.Unsetenv("MM_SERVICESETTINGS_SITEURL")
 	os.Unsetenv("MM_SERVICESETTINGS_LISTENADDRESS")
+	os.Unsetenv("MM_SERVICESETTINGS_CONNECTIONSECURITY")
 	os.Unsetenv("MM_SERVICESETTINGS_ENABLEDEVELOPER")
 
-	var mainHelper MainHelper
+	logger := mlog.CreateConsoleLogger()
+
+	mainHelper := MainHelper{
+		Logger: logger,
+	}
+
+	mlog.NewLogger()
 	flag.Parse()
 
 	utils.TranslationsPreInit()
@@ -82,6 +91,7 @@ func NewMainHelperWithOptions(options *HelperOptions) *MainHelper {
 }
 
 func (h *MainHelper) Main(m *testing.M) {
+	defer h.Logger.Shutdown()
 	if h.testResourcePath != "" {
 		prevDir, err := os.Getwd()
 		if err != nil {
@@ -118,7 +128,12 @@ func (h *MainHelper) setupStore(withReadReplica bool) {
 
 	h.SearchEngine = searchengine.NewBroker(config)
 	h.ClusterInterface = &FakeClusterInterface{}
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	if err != nil {
+		panic(err)
+	}
 	h.Store = searchlayer.NewSearchLayer(&TestStore{
 		h.SQLStore,
 	}, h.SearchEngine, config)
@@ -130,7 +145,12 @@ func (h *MainHelper) ToggleReplicasOff() {
 	}
 	h.Settings.DataSourceReplicas = []string{}
 	lic := h.SQLStore.GetLicense()
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	if err != nil {
+		panic(err)
+	}
 	h.SQLStore.UpdateLicense(lic)
 }
 
@@ -140,7 +160,13 @@ func (h *MainHelper) ToggleReplicasOn() {
 	}
 	h.Settings.DataSourceReplicas = h.replicas
 	lic := h.SQLStore.GetLicense()
-	h.SQLStore = sqlstore.New(*h.Settings, nil)
+
+	var err error
+	h.SQLStore, err = sqlstore.New(*h.Settings, h.Logger, nil)
+	if err != nil {
+		panic(err)
+	}
+
 	h.SQLStore.UpdateLicense(lic)
 }
 

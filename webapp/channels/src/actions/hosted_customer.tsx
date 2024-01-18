@@ -1,22 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Stripe} from '@stripe/stripe-js';
-
+import type {Stripe} from '@stripe/stripe-js';
 import {getCode} from 'country-list';
 
-import {CreateSubscriptionRequest} from '@mattermost/types/cloud';
-import {SelfHostedExpansionRequest, SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import {ValueOf} from '@mattermost/types/utilities';
+import type {CreateSubscriptionRequest} from '@mattermost/types/cloud';
+import type {SelfHostedExpansionRequest} from '@mattermost/types/hosted_customer';
+import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
+import type {ValueOf} from '@mattermost/types/utilities';
 
-import {Client4} from 'mattermost-redux/client';
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {bindClientFunc} from 'mattermost-redux/actions/helpers';
+import {Client4} from 'mattermost-redux/client';
 import {getSelfHostedErrors} from 'mattermost-redux/selectors/entities/hosted_customer';
-import {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
+import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getConfirmCardSetup} from 'components/payment_form/stripe';
-import {bindClientFunc} from 'mattermost-redux/actions/helpers';
+
+import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
 
 function selfHostedNeedsConfirmation(progress: ValueOf<typeof SelfHostedSignupProgress>): boolean {
     switch (progress) {
@@ -181,7 +182,7 @@ export function retryFailedHostedCustomerFetches() {
     };
 }
 
-export function submitTrueUpReview(): ActionFunc {
+export function submitTrueUpReview() {
     return bindClientFunc({
         clientFunc: Client4.submitTrueUpReview,
         onSuccess: [HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_BUNDLE],
@@ -190,7 +191,7 @@ export function submitTrueUpReview(): ActionFunc {
     });
 }
 
-export function getTrueUpReviewStatus(): ActionFunc {
+export function getTrueUpReviewStatus() {
     return bindClientFunc({
         clientFunc: Client4.getTrueUpReviewStatus,
         onSuccess: [HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_STATUS],

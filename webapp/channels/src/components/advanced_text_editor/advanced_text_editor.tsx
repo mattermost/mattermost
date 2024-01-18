@@ -1,48 +1,58 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {CSSProperties, useCallback, useEffect, useRef, useState} from 'react';
 import classNames from 'classnames';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch} from 'react-redux';
+
 import {EmoticonHappyOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Channel} from '@mattermost/types/channels';
+import type {Emoji} from '@mattermost/types/emojis';
+import type {ServerError} from '@mattermost/types/errors';
+import type {FileInfo} from '@mattermost/types/files';
 
-import {PostDraft} from 'types/store/draft';
+import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import LocalStorageStore from 'stores/local_storage_store';
 
+import AutoHeightSwitcher from 'components/common/auto_height_switcher';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import FilePreview from 'components/file_preview';
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileUpload from 'components/file_upload';
-import MsgTyping from 'components/msg_typing';
-import Textbox, {TextboxElement} from 'components/textbox';
-import TextboxClass from 'components/textbox/textbox';
-import MessageSubmitError from 'components/message_submit_error';
-import {FilePreviewInfo} from 'components/file_preview/file_preview';
-import {SendMessageTour} from 'components/tours/onboarding_tour';
-import {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
-import OverlayTrigger from 'components/overlay_trigger';
+import type {FileUpload as FileUploadClass} from 'components/file_upload/file_upload';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import MessageSubmitError from 'components/message_submit_error';
+import MsgTyping from 'components/msg_typing';
+import OverlayTrigger from 'components/overlay_trigger';
+import RhsSuggestionList from 'components/suggestion/rhs_suggestion_list';
+import Textbox from 'components/textbox';
+import type {TextboxElement} from 'components/textbox';
+import type TextboxClass from 'components/textbox/textbox';
+import Tooltip from 'components/tooltip';
+import {SendMessageTour} from 'components/tours/onboarding_tour';
 
-import * as Utils from 'utils/utils';
-import {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import Constants, {Locations} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
+import {pasteHandler} from 'utils/paste';
+import {isWithinCodeBlock} from 'utils/post_utils';
+import * as UserAgent from 'utils/user_agent';
+import * as Utils from 'utils/utils';
 
-import {Channel} from '@mattermost/types/channels';
-import {ServerError} from '@mattermost/types/errors';
-import {FileInfo} from '@mattermost/types/files';
-import {Emoji} from '@mattermost/types/emojis';
-import AutoHeightSwitcher from '../common/auto_height_switcher';
-import RhsSuggestionList from '../suggestion/rhs_suggestion_list';
-import Tooltip from '../tooltip';
+import type {PostDraft} from 'types/store/draft';
 
-import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
-
-import TexteditorActions from './texteditor_actions';
 import FormattingBar from './formatting_bar';
-import ShowFormat from './show_formatting';
-import SendButton from './send_button';
+import {FormattingBarSpacer, Separator} from './formatting_bar/formatting_bar';
 import {IconContainer} from './formatting_bar/formatting_icon';
+import SendButton from './send_button';
+import ShowFormat from './show_formatting';
+import TexteditorActions from './texteditor_actions';
+import ToggleFormattingBar from './toggle_formatting_bar';
 
 import './advanced_text_editor.scss';
-import ToggleFormattingBar from './toggle_formatting_bar/toggle_formatting_bar';
+
+const KeyCodes = Constants.KeyCodes;
 
 type Props = {
 
@@ -78,7 +88,6 @@ type Props = {
     handlePostError: (postError: React.ReactNode) => void;
     emitTypingEvent: () => void;
     handleMouseUpKeyUp: (e: React.MouseEvent<TextboxElement> | React.KeyboardEvent<TextboxElement>) => void;
-    handleKeyDown: (e: React.KeyboardEvent<TextboxElement>) => void;
     postMsgKeyPress: (e: React.KeyboardEvent<TextboxElement>) => void;
     handleChange: (e: React.ChangeEvent<TextboxElement>) => void;
     toggleEmojiPicker: () => void;
@@ -101,6 +110,15 @@ type Props = {
     additionalControls?: React.ReactNodeArray;
     labels?: React.ReactNode;
     disableSend?: boolean;
+    ctrlSend?: boolean;
+    codeBlockOnCtrlEnter?: boolean;
+    onMessageChange: (message: string, callback?: () => void) => void;
+    onEditLatestPost: (e: React.KeyboardEvent) => void;
+    loadPrevMessage: (e: React.KeyboardEvent) => void;
+    loadNextMessage: (e: React.KeyboardEvent) => void;
+    replyToLastPost?: (e: React.KeyboardEvent) => void;
+    caretPosition: number;
+    placeholder?: string;
 }
 
 const AdvanceTextEditor = ({
@@ -135,7 +153,6 @@ const AdvanceTextEditor = ({
     handlePostError,
     emitTypingEvent,
     handleMouseUpKeyUp,
-    handleKeyDown,
     postMsgKeyPress,
     handleChange,
     toggleEmojiPicker,
@@ -156,6 +173,15 @@ const AdvanceTextEditor = ({
     additionalControls,
     labels,
     disableSend = false,
+    ctrlSend,
+    codeBlockOnCtrlEnter,
+    onMessageChange,
+    onEditLatestPost,
+    loadPrevMessage,
+    loadNextMessage,
+    replyToLastPost,
+    caretPosition,
+    placeholder,
 }: Props) => {
     const readOnlyChannel = !canPost;
     const {formatMessage} = useIntl();
@@ -166,23 +192,22 @@ const AdvanceTextEditor = ({
     const emojiPickerRef = useRef<HTMLButtonElement>(null);
     const editorActionsRef = useRef<HTMLDivElement>(null);
     const editorBodyRef = useRef<HTMLDivElement>(null);
+    const timeout = useRef<NodeJS.Timeout>();
 
-    const [scrollbarWidth, setScrollbarWidth] = useState(0);
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [showFormattingSpacer, setShowFormattingSpacer] = useState(shouldShowPreview);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
+
+    const isNonFormattedPaste = useRef(false);
+    const timeoutId = useRef<number>();
+
+    const dispatch = useDispatch();
 
     const input = textboxRef.current?.getInputBox();
 
     const handleHeightChange = useCallback((height: number, maxHeight: number) => {
         setRenderScrollbar(height > maxHeight);
-
-        window.requestAnimationFrame(() => {
-            if (textboxRef.current) {
-                setScrollbarWidth(Utils.scrollbarWidth(textboxRef.current.getInputBox()));
-            }
-        });
-    }, [textboxRef]);
+    }, []);
 
     const handleShowFormat = useCallback(() => {
         setShowPreview(!shouldShowPreview);
@@ -196,6 +221,8 @@ const AdvanceTextEditor = ({
     const handleFocus = useCallback(() => {
         setKeepEditorInFocus(true);
     }, []);
+
+    const isRHS = location === Locations.RHS_COMMENT;
 
     let attachmentPreview = null;
     if (!readOnlyChannel && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0)) {
@@ -239,10 +266,6 @@ const AdvanceTextEditor = ({
     };
 
     let emojiPicker = null;
-    const emojiButtonAriaLabel = formatMessage({
-        id: 'emoji_picker.emojiPicker',
-        defaultMessage: 'Emoji Picker',
-    }).toLowerCase();
 
     if (enableEmojiPicker && !readOnlyChannel) {
         const emojiPickerTooltip = (
@@ -276,7 +299,7 @@ const AdvanceTextEditor = ({
                         ref={emojiPickerRef}
                         onClick={toggleEmojiPicker}
                         type='button'
-                        aria-label={emojiButtonAriaLabel}
+                        aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                         disabled={shouldShowPreview}
                         className={classNames({active: showEmojiPicker})}
                     >
@@ -306,7 +329,9 @@ const AdvanceTextEditor = ({
     );
 
     let createMessage;
-    if (currentChannel && !readOnlyChannel) {
+    if (placeholder) {
+        createMessage = placeholder;
+    } else if (currentChannel && !readOnlyChannel) {
         createMessage = formatMessage(
             {
                 id: 'create_post.write',
@@ -370,17 +395,211 @@ const AdvanceTextEditor = ({
             return;
         }
 
-        const inputPaddingLeft = parseInt(window.getComputedStyle(input, null).paddingLeft || '0', 10);
-        const inputPaddingRight = parseInt(window.getComputedStyle(input, null).paddingRight || '0', 10);
-        const inputPaddingX = inputPaddingLeft + inputPaddingRight;
-        const currentWidth = width + inputPaddingX;
-
-        if (currentWidth >= maxWidth) {
+        if (width >= maxWidth) {
             setShowFormattingSpacer(true);
         } else {
             setShowFormattingSpacer(false);
         }
     }, [message, input]);
+
+    const handleKeyDown = (e: React.KeyboardEvent<TextboxElement>) => {
+        const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
+        const ctrlEnterKeyCombo = (ctrlSend || codeBlockOnCtrlEnter) &&
+            Keyboard.isKeyPressed(e, KeyCodes.ENTER) &&
+            ctrlOrMetaKeyPressed;
+
+        const ctrlKeyCombo = Keyboard.cmdOrCtrlPressed(e) && !e.altKey && !e.shiftKey;
+        const ctrlAltCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.altKey;
+        const shiftAltCombo = !Keyboard.cmdOrCtrlPressed(e) && e.shiftKey && e.altKey;
+        const ctrlShiftCombo = Keyboard.cmdOrCtrlPressed(e, true) && e.shiftKey;
+
+        // fix for FF not capturing the paste without formatting event when using ctrl|cmd + shift + v
+        if (e.key === KeyCodes.V[0] && ctrlOrMetaKeyPressed) {
+            if (e.shiftKey) {
+                isNonFormattedPaste.current = true;
+                timeoutId.current = window.setTimeout(() => {
+                    isNonFormattedPaste.current = false;
+                }, 250);
+            }
+        }
+
+        // listen for line break key combo and insert new line character
+        if (Utils.isUnhandledLineBreakKeyCombo(e)) {
+            onMessageChange(Utils.insertLineBreakFromKeyEvent(e.nativeEvent));
+            return;
+        }
+
+        if (ctrlEnterKeyCombo) {
+            setShowPreview(false);
+            postMsgKeyPress(e);
+            return;
+        }
+
+        if (Keyboard.isKeyPressed(e, KeyCodes.ESCAPE)) {
+            textboxRef.current?.blur();
+        }
+
+        const upKeyOnly = !ctrlOrMetaKeyPressed && !e.altKey && !e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
+        const messageIsEmpty = message.length === 0;
+        const draftMessageIsEmpty = draft.message.length === 0;
+        const caretIsWithinCodeBlock = caretPosition && isWithinCodeBlock(message, caretPosition);
+
+        if (upKeyOnly && messageIsEmpty) {
+            e.preventDefault();
+            if (textboxRef.current) {
+                textboxRef.current.blur();
+            }
+
+            onEditLatestPost(e);
+        }
+
+        const {
+            selectionStart,
+            selectionEnd,
+            value,
+        } = e.target as TextboxElement;
+
+        if (ctrlKeyCombo && !caretIsWithinCodeBlock) {
+            if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.UP)) {
+                e.stopPropagation();
+                e.preventDefault();
+                loadPrevMessage(e);
+            } else if (draftMessageIsEmpty && Keyboard.isKeyPressed(e, KeyCodes.DOWN)) {
+                e.stopPropagation();
+                e.preventDefault();
+                loadNextMessage(e);
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.B)) {
+                e.stopPropagation();
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'bold',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.I)) {
+                e.stopPropagation();
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'italic',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            } else if (Utils.isTextSelectedInPostOrReply(e) && Keyboard.isKeyPressed(e, KeyCodes.K)) {
+                e.stopPropagation();
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'link',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            }
+        } else if (ctrlAltCombo && !caretIsWithinCodeBlock) {
+            if (Keyboard.isKeyPressed(e, KeyCodes.K)) {
+                e.stopPropagation();
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'link',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.C)) {
+                e.stopPropagation();
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'code',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleEmojiPicker();
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.T)) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleAdvanceTextEditor();
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.P) && message.length && !UserAgent.isMac()) {
+                e.stopPropagation();
+                e.preventDefault();
+                setShowPreview(!shouldShowPreview);
+            }
+        } else if (shiftAltCombo && !caretIsWithinCodeBlock) {
+            if (Keyboard.isKeyPressed(e, KeyCodes.X)) {
+                e.stopPropagation();
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'strike',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.SEVEN)) {
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'ol',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.EIGHT)) {
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'ul',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.NINE)) {
+                e.preventDefault();
+                applyMarkdown({
+                    markdownMode: 'quote',
+                    selectionStart,
+                    selectionEnd,
+                    message: value,
+                });
+            }
+        } else if (ctrlShiftCombo && !caretIsWithinCodeBlock) {
+            if (Keyboard.isKeyPressed(e, KeyCodes.P) && message.length && UserAgent.isMac()) {
+                e.stopPropagation();
+                e.preventDefault();
+                setShowPreview(!shouldShowPreview);
+            } else if (Keyboard.isKeyPressed(e, KeyCodes.E)) {
+                e.stopPropagation();
+                e.preventDefault();
+                toggleEmojiPicker();
+            }
+        }
+
+        if (isRHS) {
+            const lastMessageReactionKeyCombo = ctrlShiftCombo && Keyboard.isKeyPressed(e, KeyCodes.BACK_SLASH);
+            if (lastMessageReactionKeyCombo) {
+                e.stopPropagation();
+                e.preventDefault();
+                dispatch(emitShortcutReactToLastPostFrom(Locations.RHS_ROOT));
+            }
+        } else {
+            const shiftUpKeyCombo = !ctrlOrMetaKeyPressed && !e.altKey && e.shiftKey && Keyboard.isKeyPressed(e, KeyCodes.UP);
+            if (shiftUpKeyCombo && messageIsEmpty) {
+                replyToLastPost?.(e);
+            }
+        }
+    };
+
+    useEffect(() => {
+        function onPaste(event: ClipboardEvent) {
+            pasteHandler(event, location, message, isNonFormattedPaste.current, caretPosition);
+        }
+
+        document.addEventListener('paste', onPaste);
+        return () => {
+            document.removeEventListener('paste', onPaste);
+        };
+    }, [location, message, caretPosition]);
 
     useEffect(() => {
         if (!message) {
@@ -389,20 +608,27 @@ const AdvanceTextEditor = ({
     }, [handleWidthChange, message]);
 
     useEffect(() => {
-        if (!input) {
-            return;
-        }
+        return () => timeout.current && clearTimeout(timeout.current);
+    }, []);
 
-        let padding = 16;
-        if (showFormattingBar) {
-            padding += 32;
-        }
-        if (renderScrollbar) {
-            padding += 8;
-        }
+    const wasNotifiedOfLogIn = LocalStorageStore.getWasNotifiedOfLogIn();
 
-        input.style.paddingRight = `${padding}px`;
-    }, [showFormattingBar, renderScrollbar, input]);
+    const ariaLabel = useMemo(() => {
+        let label;
+        if (!wasNotifiedOfLogIn) {
+            label = Utils.localizeMessage(
+                'channelView.login.successfull',
+                'Login Successful',
+            );
+
+            // set timeout to make sure aria-label is read by a screen reader,
+            // and then set the flag to "true" to make sure it's not read again until a user logs back in
+            timeout.current = setTimeout(() => {
+                LocalStorageStore.setWasNotifiedOfLogIn(true);
+            }, 3000);
+        }
+        return label ? `${label} ${ariaLabelMessageInput}` : ariaLabelMessageInput;
+    }, [ariaLabelMessageInput, wasNotifiedOfLogIn]);
 
     const formattingBar = (
         <AutoHeightSwitcher
@@ -428,23 +654,20 @@ const AdvanceTextEditor = ({
                 className={classNames('AdvancedTextEditor', {
                     'AdvancedTextEditor__attachment-disabled': !canUploadFiles,
                     scroll: renderScrollbar,
+                    'formatting-bar': showFormattingBar,
                 })}
-                style={
-                    renderScrollbar && scrollbarWidth ? ({
-                        '--detected-scrollbar-width': `${scrollbarWidth}px`,
-                    } as CSSProperties) : undefined
-                }
             >
-                <div
-                    id={'speak-'}
-                    aria-live='assertive'
-                    className='sr-only'
-                >
-                    <FormattedMessage
-                        id='channelView.login.successfull'
-                        defaultMessage='Login Successfull'
-                    />
-                </div>
+                {!wasNotifiedOfLogIn && (
+                    <div
+                        aria-live='assertive'
+                        className='sr-only'
+                    >
+                        <FormattedMessage
+                            id='channelView.login.successfull'
+                            defaultMessage='Login Successful'
+                        />
+                    </div>
+                )}
                 <div
                     className={'AdvancedTextEditor__body'}
                     disabled={readOnlyChannel}
@@ -454,10 +677,7 @@ const AdvanceTextEditor = ({
                         role='application'
                         id='advancedTextEditorCell'
                         data-a11y-sort-order='2'
-                        aria-label={Utils.localizeMessage(
-                            'channelView.login.successfull',
-                            'Login Successfull',
-                        ) + ' ' + ariaLabelMessageInput}
+                        aria-label={ariaLabel}
                         tabIndex={-1}
                         className='AdvancedTextEditor__cell a11y__region'
                     >
@@ -485,7 +705,6 @@ const AdvanceTextEditor = ({
                             characterLimit={maxPostSize}
                             preview={shouldShowPreview}
                             badConnection={badConnection}
-                            listenForMentionKeyClick={true}
                             useChannelMentions={useChannelMentions}
                             rootId={postId}
                             onWidthChange={handleWidthChange}

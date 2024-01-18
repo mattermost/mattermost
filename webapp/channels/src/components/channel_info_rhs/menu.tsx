@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
 
-import {Constants} from 'utils/constants';
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {Channel, ChannelStats} from '@mattermost/types/channels';
+import {Constants} from 'utils/constants';
 
 const MenuItemContainer = styled.div`
     padding: 8px 16px;
@@ -143,7 +143,7 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
             )}
             <MenuItem
                 icon={<i className='icon icon-pin-outline'/>}
-                text={formatMessage({id: 'channel_info_rhs.menu.pinned', defaultMessage: 'Pinned Messages'})}
+                text={formatMessage({id: 'channel_info_rhs.menu.pinned', defaultMessage: 'Pinned messages'})}
                 opensSubpanel={true}
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}

@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, MouseEvent, KeyboardEvent} from 'react';
+import React, {memo} from 'react';
+import type {MouseEvent, KeyboardEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -12,28 +13,26 @@ import {
     ChevronRightIcon,
     CheckIcon,
 } from '@mattermost/compass-icons/components';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Channel} from '@mattermost/types/channels';
 
-import {Channel} from '@mattermost/types/channels';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
-
-import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
-
-import {GlobalState} from 'types/store';
-
-import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
-
-import Constants, {ModalIdentifiers} from 'utils/constants';
+import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
 import {openModal} from 'actions/views/modals';
+import {getCategoriesForCurrentTeam} from 'selectors/views/channel_sidebar';
 
 import EditCategoryModal from 'components/edit_category_modal';
 import * as Menu from 'components/menu';
+
+import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 type Props = {
     channel: Channel;

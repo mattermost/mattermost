@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {ChannelTypes, UserTypes, PostTypes, AdminTypes} from 'mattermost-redux/action_types';
+import {General, Permissions} from 'mattermost-redux/constants';
 import TestHelper from 'mattermost-redux/test/test_helper';
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
-
-import {General, Permissions} from 'mattermost-redux/constants';
 
 import channelsReducer, * as Reducers from './channels';
 

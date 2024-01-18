@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
-import BackstageSidebar from './backstage_sidebar';
 import BackstageCategory from './backstage_category';
+import BackstageSidebar from './backstage_sidebar';
 
 describe('components/backstage/components/BackstageSidebar', () => {
     const defaultProps: ComponentProps<typeof BackstageSidebar> = {

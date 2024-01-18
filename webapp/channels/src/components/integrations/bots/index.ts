@@ -2,21 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import type {Bot as BotType} from '@mattermost/types/bots';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
+
 import {loadBots, disableBot, enableBot} from 'mattermost-redux/actions/bots';
 import {getAppsBotIDs as fetchAppsBotIDs} from 'mattermost-redux/actions/integrations';
-import {getAppsBotIDs} from 'mattermost-redux/selectors/entities/integrations';
 import {createUserAccessToken, revokeUserAccessToken, enableUserAccessToken, disableUserAccessToken, getUserAccessTokensForUser, getUser} from 'mattermost-redux/actions/users';
-import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
-import {GlobalState} from '@mattermost/types/store';
-import {GenericAction, ActionResult, ActionFunc} from 'mattermost-redux/types/actions';
-import {Bot as BotType} from '@mattermost/types/bots';
-import {UserProfile} from '@mattermost/types/users';
-
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getAppsBotIDs} from 'mattermost-redux/selectors/entities/integrations';
+import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
+import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import Bots from './bots';
 
@@ -47,25 +48,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    fetchAppsBotIDs: () => Promise<{data: string[]}>;
-    loadBots: (page?: number, perPage?: number) => Promise<{data: BotType[]; error?: Error}>;
-    getUserAccessTokensForUser: (userId: string, page?: number, perPage?: number) => void;
-    createUserAccessToken: (userId: string, description: string) => Promise<{
-        data: {token: string; description: string; id: string; is_active: boolean} | null;
-        error?: Error;
-    }>;
-    revokeUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-    enableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-    disableUserAccessToken: (tokenId: string) => Promise<{data: string; error?: Error}>;
-    getUser: (userId: string) => void;
-    disableBot: (userId: string) => Promise<ActionResult>;
-    enableBot: (userId: string) => Promise<ActionResult>;
-}
-
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             fetchAppsBotIDs,
             loadBots,
             getUserAccessTokensForUser,

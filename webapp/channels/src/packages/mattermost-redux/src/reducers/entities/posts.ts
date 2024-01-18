@@ -1,15 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
-
-import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
-import {Posts} from 'mattermost-redux/constants';
-import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
-
-import {
+import type {
     OpenGraphMetadata,
     Post,
     PostsState,
@@ -19,13 +11,19 @@ import {
     PostEmbed,
     PostPreviewMetadata,
 } from '@mattermost/types/posts';
-import {UserProfile} from '@mattermost/types/users';
-import {Reaction} from '@mattermost/types/reactions';
-import {
+import type {Reaction} from '@mattermost/types/reactions';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
     RelationOneToOne,
     IDMappedObjects,
     RelationOneToMany,
 } from '@mattermost/types/utilities';
+
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {Posts} from 'mattermost-redux/constants';
+import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
+import type {GenericAction} from 'mattermost-redux/types/actions';
+import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
     if (!post.metadata) {
@@ -1357,13 +1355,6 @@ function storeAcknowledgementsForPost(state: any, post: Post) {
 
 export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: GenericAction) {
     switch (action.type) {
-    case PostTypes.RECEIVED_OPEN_GRAPH_METADATA: {
-        const nextState = {...state};
-        nextState[action.url] = action.data;
-
-        return nextState;
-    }
-
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
         const post = action.data;
@@ -1501,23 +1492,6 @@ function messagesHistory(state: Partial<MessageHistory> = {
     }
 }
 
-export function expandedURLs(state: Record<string, string> = {}, action: GenericAction) {
-    switch (action.type) {
-    case GeneralTypes.REDIRECT_LOCATION_SUCCESS:
-        return {
-            ...state,
-            [action.data.url]: action.data.location,
-        };
-    case GeneralTypes.REDIRECT_LOCATION_FAILURE:
-        return {
-            ...state,
-            [action.data.url]: action.data.url,
-        };
-    default:
-        return state;
-    }
-}
-
 export const zeroStateLimitedViews = {
     threads: {},
     channels: {},
@@ -1630,9 +1604,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
 
         // History of posts and comments
         messagesHistory: messagesHistory(state.messagesHistory, action),
-
-        expandedURLs: expandedURLs(state.expandedURLs, action),
-
         acknowledgements: acknowledgements(state.acknowledgements, action),
 
         // For cloud instances with a message limit,
@@ -1651,7 +1622,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
         state.acknowledgements === nextState.acknowledgements &&
         state.openGraph === nextState.openGraph &&
         state.messagesHistory === nextState.messagesHistory &&
-        state.expandedURLs === nextState.expandedURLs &&
         state.limitedViews === nextState.limitedViews) {
         // None of the children have changed so don't even let the parent object change
         return state;

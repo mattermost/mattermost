@@ -7,8 +7,8 @@ import styled from 'styled-components';
 import {CheckIcon} from '@mattermost/compass-icons/components';
 
 import Toggle from 'components/toggle';
-import menuItem from 'components/widgets/menu/menu_items/menu_item';
 import MenuGroup from 'components/widgets/menu/menu_group';
+import menuItem from 'components/widgets/menu/menu_items/menu_item';
 
 type ItemProps = {
     ariaLabel: string;

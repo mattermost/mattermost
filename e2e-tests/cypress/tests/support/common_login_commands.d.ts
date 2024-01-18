@@ -21,5 +21,8 @@ declare namespace Cypress {
         * @returns {boolean} - true if error successfully found.
         */
         checkForLDAPError(): Chainable;
+        checkLoginPage: typeof checkLoginPage;
+        checkLeftSideBar: typeof checkLeftSideBar;
+        checkInvitePeoplePage: typeof checkInvitePeoplePage;
     }
 }

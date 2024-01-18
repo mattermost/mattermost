@@ -87,9 +87,8 @@ func BenchmarkUploadFile(b *testing.B) {
 				if err != nil {
 					b.Fatal(err)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info1.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info1.Id)
 				th.App.RemoveFile(info1.Path)
-
 			},
 		},
 		{
@@ -106,7 +105,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
@@ -124,7 +123,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
@@ -141,7 +140,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},
@@ -158,7 +157,7 @@ func BenchmarkUploadFile(b *testing.B) {
 				if aerr != nil {
 					b.Fatal(aerr)
 				}
-				th.App.Srv().Store().FileInfo().PermanentDelete(info.Id)
+				th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, info.Id)
 				th.App.RemoveFile(info.Path)
 			},
 		},

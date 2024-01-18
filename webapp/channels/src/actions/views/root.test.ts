@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionTypes} from 'utils/constants';
 import * as Actions from 'actions/views/root';
 import * as i18nSelectors from 'selectors/i18n';
 
 import mockStore from 'tests/test_store';
+import {ActionTypes} from 'utils/constants';
 
 jest.mock('mattermost-redux/actions/general', () => {
     const original = jest.requireActual('mattermost-redux/actions/general');
@@ -20,7 +20,7 @@ jest.mock('mattermost-redux/actions/users', () => {
     const original = jest.requireActual('mattermost-redux/actions/users');
     return {
         ...original,
-        loadMeREST: () => ({type: 'MOCK_LOAD_ME'}),
+        loadMe: () => ({type: 'MOCK_LOAD_ME'}),
     };
 });
 

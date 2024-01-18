@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch} from 'redux';
-
-import {withRouter, RouteComponentProps} from 'react-router-dom';
-
-import {memo} from 'react';
+import {withRouter} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 
 import {setRhsExpanded, showChannelInfo, showPinnedPosts, showChannelFiles, openRHSSearch, closeRightHandSide, openAtPrevious, updateSearchTerms} from 'actions/views/rhs';
+import {selectCurrentProductId} from 'selectors/products';
 import {
     getIsRhsExpanded,
     getIsRhsOpen,
@@ -20,12 +20,12 @@ import {
     getSelectedPostId,
     getSelectedPostCardId,
     getPreviousRhsState,
+    getIsRhsSuppressed,
 } from 'selectors/rhs';
+
 import {RHSStates} from 'utils/constants';
 
-import {GlobalState} from 'types/store';
-
-import {selectCurrentProductId} from 'selectors/products';
+import type {GlobalState} from 'types/store';
 
 import SidebarRight from './sidebar_right';
 
@@ -42,6 +42,7 @@ function mapStateToProps(state: GlobalState, props: RouteComponentProps) {
     return {
         isExpanded: getIsRhsExpanded(state),
         isOpen: getIsRhsOpen(state),
+        isSuppressed: getIsRhsSuppressed(state),
         channel,
         postRightVisible: Boolean(selectedPostId) && rhsState !== RHSStates.EDIT_HISTORY,
         postCardVisible: Boolean(selectedPostCardId),
@@ -77,4 +78,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default withRouter(connect(mapStateToProps, mapDispatchToProps)(memo(SidebarRight)));
+export default withRouter(connect(mapStateToProps, mapDispatchToProps)(SidebarRight));

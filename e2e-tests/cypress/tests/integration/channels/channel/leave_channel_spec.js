@@ -30,6 +30,13 @@ describe('Leave channel', () => {
             testUser = user;
             testTeam = team;
 
+            cy.apiSaveUserPreference([{
+                user_id: user.id,
+                category: 'crt_thread_pane_step',
+                name: user.id,
+                value: '0',
+            }], user.id);
+
             cy.apiLogin(testUser);
             cy.apiCreateChannel(testTeam.id, 'channel', 'channel').then(({channel}) => {
                 testChannel = channel;

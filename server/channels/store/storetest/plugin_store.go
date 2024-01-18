@@ -11,22 +11,23 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-func TestPluginStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("SaveOrUpdate", func(t *testing.T) { testPluginSaveOrUpdate(t, ss) })
-	t.Run("CompareAndSet", func(t *testing.T) { testPluginCompareAndSet(t, ss) })
-	t.Run("CompareAndDelete", func(t *testing.T) { testPluginCompareAndDelete(t, ss) })
-	t.Run("SetWithOptions", func(t *testing.T) { testPluginSetWithOptions(t, ss) })
-	t.Run("Get", func(t *testing.T) { testPluginGet(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testPluginDelete(t, ss) })
-	t.Run("DeleteAllForPlugin", func(t *testing.T) { testPluginDeleteAllForPlugin(t, ss) })
-	t.Run("DeleteAllExpired", func(t *testing.T) { testPluginDeleteAllExpired(t, ss) })
-	t.Run("List", func(t *testing.T) { testPluginList(t, ss) })
+func TestPluginStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("SaveOrUpdate", func(t *testing.T) { testPluginSaveOrUpdate(t, rctx, ss) })
+	t.Run("CompareAndSet", func(t *testing.T) { testPluginCompareAndSet(t, rctx, ss) })
+	t.Run("CompareAndDelete", func(t *testing.T) { testPluginCompareAndDelete(t, rctx, ss) })
+	t.Run("SetWithOptions", func(t *testing.T) { testPluginSetWithOptions(t, rctx, ss) })
+	t.Run("Get", func(t *testing.T) { testPluginGet(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testPluginDelete(t, rctx, ss) })
+	t.Run("DeleteAllForPlugin", func(t *testing.T) { testPluginDeleteAllForPlugin(t, rctx, ss) })
+	t.Run("DeleteAllExpired", func(t *testing.T) { testPluginDeleteAllExpired(t, rctx, ss) })
+	t.Run("List", func(t *testing.T) { testPluginList(t, rctx, ss) })
 }
 
-func setupKVs(t *testing.T, ss store.Store) (string, func()) {
+func setupKVs(t *testing.T, rctx request.CTX, ss store.Store) (string, func()) {
 	pluginId := model.NewId()
 	otherPluginId := model.NewId()
 
@@ -63,9 +64,9 @@ func setupKVs(t *testing.T, ss store.Store) (string, func()) {
 	}
 }
 
-func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error)) {
+func doTestPluginSaveOrUpdate(t *testing.T, rctx request.CTX, ss store.Store, doer func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error)) {
 	t.Run("invalid kv", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		kv := &model.PluginKeyValue{
@@ -84,7 +85,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.
 	})
 
 	t.Run("new key", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -114,7 +115,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.
 	})
 
 	t.Run("nil value for new key", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -146,7 +147,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.
 	})
 
 	t.Run("existing key", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -182,7 +183,7 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.
 	})
 
 	t.Run("nil value for existing key", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -219,17 +220,17 @@ func doTestPluginSaveOrUpdate(t *testing.T, ss store.Store, doer func(kv *model.
 	})
 }
 
-func testPluginSaveOrUpdate(t *testing.T, ss store.Store) {
-	doTestPluginSaveOrUpdate(t, ss, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
+func testPluginSaveOrUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
+	doTestPluginSaveOrUpdate(t, rctx, ss, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 		return ss.Plugin().SaveOrUpdate(kv)
 	})
 }
 
 // doTestPluginCompareAndSet exercises the CompareAndSet functionality, but abstracts the actual
 // call to same to allow reuse with SetWithOptions
-func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(kv *model.PluginKeyValue, oldValue []byte) (bool, error)) {
+func doTestPluginCompareAndSet(t *testing.T, rctx request.CTX, ss store.Store, compareAndSet func(kv *model.PluginKeyValue, oldValue []byte) (bool, error)) {
 	t.Run("invalid kv", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		kv := &model.PluginKeyValue{
@@ -310,7 +311,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(
 	// Non-existent keys and expired keys should behave identically.
 	for description, setup := range map[string]func(t *testing.T) (*model.PluginKeyValue, func()){
 		"non-existent key": func(t *testing.T) (*model.PluginKeyValue, func()) {
-			pluginId, tearDown := setupKVs(t, ss)
+			pluginId, tearDown := setupKVs(t, rctx, ss)
 
 			kv := &model.PluginKeyValue{
 				PluginId: pluginId,
@@ -322,7 +323,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(
 			return kv, tearDown
 		},
 		"expired key": func(t *testing.T) (*model.PluginKeyValue, func()) {
-			pluginId, tearDown := setupKVs(t, ss)
+			pluginId, tearDown := setupKVs(t, rctx, ss)
 
 			expiredKV := &model.PluginKeyValue{
 				PluginId: pluginId,
@@ -398,7 +399,7 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(
 
 	t.Run("existing key", func(t *testing.T) {
 		setup := func(t *testing.T) (*model.PluginKeyValue, func()) {
-			pluginId, tearDown := setupKVs(t, ss)
+			pluginId, tearDown := setupKVs(t, rctx, ss)
 
 			existingKV := &model.PluginKeyValue{
 				PluginId: pluginId,
@@ -524,15 +525,15 @@ func doTestPluginCompareAndSet(t *testing.T, ss store.Store, compareAndSet func(
 	})
 }
 
-func testPluginCompareAndSet(t *testing.T, ss store.Store) {
-	doTestPluginCompareAndSet(t, ss, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
+func testPluginCompareAndSet(t *testing.T, rctx request.CTX, ss store.Store) {
+	doTestPluginCompareAndSet(t, rctx, ss, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 		return ss.Plugin().CompareAndSet(kv, oldValue)
 	})
 }
 
-func testPluginCompareAndDelete(t *testing.T, ss store.Store) {
+func testPluginCompareAndDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("invalid kv", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		kv := &model.PluginKeyValue{
@@ -551,7 +552,7 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("non-existent key should fail", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -580,7 +581,7 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("expired key should fail", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -612,7 +613,7 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("existing key should fail given different old value", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -636,7 +637,7 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("existing key should succeed given same old value", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -660,9 +661,9 @@ func testPluginCompareAndDelete(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPluginSetWithOptions(t *testing.T, ss store.Store) {
+func testPluginSetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("invalid options", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		pluginId := ""
@@ -682,7 +683,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("invalid kv", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		pluginId := ""
@@ -699,7 +700,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("atomic", func(t *testing.T) {
-		doTestPluginCompareAndSet(t, ss, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
+		doTestPluginCompareAndSet(t, rctx, ss, func(kv *model.PluginKeyValue, oldValue []byte) (bool, error) {
 			now := model.GetMillis()
 			options := model.PluginKVSetOptions{
 				Atomic:   true,
@@ -715,7 +716,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("non-atomic", func(t *testing.T) {
-		doTestPluginSaveOrUpdate(t, ss, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
+		doTestPluginSaveOrUpdate(t, rctx, ss, func(kv *model.PluginKeyValue) (*model.PluginKeyValue, error) {
 			now := model.GetMillis()
 			options := model.PluginKVSetOptions{
 				Atomic: false,
@@ -734,7 +735,7 @@ func testPluginSetWithOptions(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPluginGet(t *testing.T, ss store.Store) {
+func testPluginGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("no matching key value", func(t *testing.T) {
 		pluginId := model.NewId()
 		key := model.NewId()
@@ -881,9 +882,9 @@ func testPluginGet(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPluginDelete(t *testing.T, ss store.Store) {
+func testPluginDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("no matching key value", func(t *testing.T) {
-		pluginId, tearDown := setupKVs(t, ss)
+		pluginId, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		key := model.NewId()
@@ -918,7 +919,7 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 
 	for _, testCase := range testCases {
 		t.Run(testCase.description, func(t *testing.T) {
-			pluginId, tearDown := setupKVs(t, ss)
+			pluginId, tearDown := setupKVs(t, rctx, ss)
 			defer tearDown()
 
 			key := model.NewId()
@@ -947,7 +948,7 @@ func testPluginDelete(t *testing.T, ss store.Store) {
 	}
 }
 
-func testPluginDeleteAllForPlugin(t *testing.T, ss store.Store) {
+func testPluginDeleteAllForPlugin(t *testing.T, rctx request.CTX, ss store.Store) {
 	setupKVsForDeleteAll := func(t *testing.T) (string, func()) {
 		pluginId := model.NewId()
 		otherPluginId := model.NewId()
@@ -1015,7 +1016,7 @@ func testPluginDeleteAllForPlugin(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPluginDeleteAllExpired(t *testing.T, ss store.Store) {
+func testPluginDeleteAllExpired(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("no keys", func(t *testing.T) {
 		err := ss.Plugin().DeleteAllExpired()
 		require.NoError(t, err)
@@ -1206,9 +1207,9 @@ func testPluginDeleteAllExpired(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPluginList(t *testing.T, ss store.Store) {
+func testPluginList(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("no key values", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		// Ignore the pluginId setup by setupKVs
@@ -1219,7 +1220,7 @@ func testPluginList(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("single key", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		// Ignore the pluginId setup by setupKVs
@@ -1241,7 +1242,7 @@ func testPluginList(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("multiple keys", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		// Ignore the pluginId setup by setupKVs
@@ -1278,7 +1279,7 @@ func testPluginList(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("multiple keys, some expiring", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		// Ignore the pluginId setup by setupKVs
@@ -1293,7 +1294,6 @@ func testPluginList(t *testing.T, ss store.Store) {
 			if i%10 == 0 {
 				// Expire keys 0, 10, 20, ...
 				expireAt = 1
-
 			} else if (i+5)%10 == 0 {
 				// Mark for future expiry keys 5, 15, 25, ...
 				expireAt = now + 5*60*1000
@@ -1329,7 +1329,7 @@ func testPluginList(t *testing.T, ss store.Store) {
 	})
 
 	t.Run("offsets and limits", func(t *testing.T) {
-		_, tearDown := setupKVs(t, ss)
+		_, tearDown := setupKVs(t, rctx, ss)
 		defer tearDown()
 
 		// Ignore the pluginId setup by setupKVs

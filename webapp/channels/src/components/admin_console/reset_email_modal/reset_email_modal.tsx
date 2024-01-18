@@ -5,9 +5,9 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 type State = {
@@ -23,7 +23,7 @@ type Props = {
     onModalSubmit: (user?: UserProfile) => void;
     onModalDismissed: () => void;
     actions: {
-        patchUser: (user: UserProfile) => ActionResult;
+        patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
 }
 
@@ -233,7 +233,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
                     <Modal.Footer>
                         <button
                             type='button'
-                            className='btn btn-link'
+                            className='btn btn-tertiary'
                             onClick={this.doCancel}
                         >
                             <FormattedMessage

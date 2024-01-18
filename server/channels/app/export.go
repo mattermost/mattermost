@@ -21,8 +21,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imports"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -97,17 +97,18 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting channels")
-	if err = a.exportAllChannels(ctx, job, writer, teamNames); err != nil {
+	if err = a.exportAllChannels(ctx, job, writer, teamNames, opts.IncludeArchivedChannels); err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting users")
-	if err = a.exportAllUsers(ctx, job, writer); err != nil {
+	profilePictures, err := a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
+	if err != nil {
 		return err
 	}
 
 	ctx.Logger().Info("Bulk export: exporting posts")
-	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments)
+	attachments, err := a.exportAllPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
 	if err != nil {
 		return err
 	}
@@ -148,6 +149,15 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		}
 
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
+	}
+
+	if opts.IncludeProfilePictures {
+		for _, profilePicture := range profilePictures {
+			if err := a.exportFile(outPath, profilePicture, zipWr); err != nil {
+				ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
+			}
+		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
 	}
 
 	return nil
@@ -219,7 +229,7 @@ func (a *App) exportAllTeams(ctx request.CTX, job *model.Job, writer io.Writer) 
 	return teamNames, nil
 }
 
-func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool) *model.AppError {
+func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Writer, teamNames map[string]bool, withArchived bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
@@ -239,7 +249,7 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 			afterId = channel.Id
 
 			// Skip deleted.
-			if channel.DeleteAt != 0 {
+			if channel.DeleteAt != 0 && !withArchived {
 				continue
 			}
 			// Skip channels on deleted teams.
@@ -257,14 +267,15 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 	return nil
 }
 
-func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
+func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels, includeProfilePictures bool) ([]string, *model.AppError) {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
+	profilePictures := []string{}
 	for {
 		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
 
 		if err != nil {
-			return model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return profilePictures, model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if len(users) == 0 {
@@ -278,9 +289,9 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) 
 
 			// Gathering here the exportable preferences to pass them on to ImportLineFromUser
 			exportedPrefs := make(map[string]*string)
-			allPrefs, err := a.GetPreferencesForUser(user.Id)
+			allPrefs, err := a.GetPreferencesForUser(ctx, user.Id)
 			if err != nil {
-				return err
+				return profilePictures, err
 			}
 			for _, pref := range allPrefs {
 				// We need to manage the special cases
@@ -316,26 +327,38 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer) 
 
 			userLine := ImportLineFromUser(user, exportedPrefs)
 
+			if includeProfilePictures {
+				var pp string
+				pp, err = a.GetProfileImagePath(user)
+				if err != nil {
+					return profilePictures, err
+				}
+				if pp != "" {
+					userLine.User.ProfileImage = &pp
+					profilePictures = append(profilePictures, pp)
+				}
+			}
+
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
 			// Do the Team Memberships.
-			members, err := a.buildUserTeamAndChannelMemberships(user.Id)
+			members, err := a.buildUserTeamAndChannelMemberships(ctx, user.Id, includeArchivedChannels)
 			if err != nil {
-				return err
+				return profilePictures, err
 			}
 
 			userLine.User.Teams = members
 
 			if err := a.exportWriteLine(writer, userLine); err != nil {
-				return err
+				return profilePictures, err
 			}
 		}
 	}
 
-	return nil
+	return profilePictures, nil
 }
 
-func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.UserTeamImportData, *model.AppError) {
+func (a *App) buildUserTeamAndChannelMemberships(c request.CTX, userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
 	var memberships []imports.UserTeamImportData
 
 	members, err := a.Srv().Store().Team().GetTeamMembersForExport(userID)
@@ -353,7 +376,7 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 		memberData := ImportUserTeamDataFromTeamMember(member)
 
 		// Do the Channel Memberships.
-		channelMembers, err := a.buildUserChannelMemberships(userID, member.TeamId)
+		channelMembers, err := a.buildUserChannelMemberships(c, userID, member.TeamId, includeArchivedChannels)
 		if err != nil {
 			return nil, err
 		}
@@ -372,14 +395,14 @@ func (a *App) buildUserTeamAndChannelMemberships(userID string) (*[]imports.User
 	return &memberships, nil
 }
 
-func (a *App) buildUserChannelMemberships(userID string, teamID string) (*[]imports.UserChannelImportData, *model.AppError) {
-	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID)
+func (a *App) buildUserChannelMemberships(c request.CTX, userID string, teamID string, includeArchivedChannels bool) (*[]imports.UserChannelImportData, *model.AppError) {
+	members, nErr := a.Srv().Store().Channel().GetChannelMembersForExport(userID, teamID, includeArchivedChannels)
 	if nErr != nil {
 		return nil, model.NewAppError("buildUserChannelMemberships", "app.channel.get_members.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 	}
 
 	category := model.PreferenceCategoryFavoriteChannel
-	preferences, err := a.GetPreferenceByCategoryForUser(userID, category)
+	preferences, err := a.GetPreferenceByCategoryForUser(c, userID, category)
 	if err != nil && err.StatusCode != http.StatusNotFound {
 		return nil, err
 	}
@@ -411,7 +434,7 @@ func (a *App) buildUserNotifyProps(notifyProps model.StringMap) *imports.UserNot
 	}
 }
 
-func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
@@ -424,7 +447,7 @@ func (a *App) exportAllPosts(ctx request.CTX, job *model.Job, writer io.Writer, 
 			logCheckpoint = time.Now()
 		}
 
-		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId)
+		posts, nErr := a.Srv().Store().Post().GetParentsForExportAfter(1000, afterId, includeArchivedChannels)
 		if nErr != nil {
 			return nil, model.NewAppError("exportAllPosts", "app.post.get_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 		}
@@ -540,7 +563,6 @@ func (a *App) BuildPostReactions(ctx request.CTX, postID string) (*[]ReactionImp
 	}
 
 	return &reactionsOfPost, nil
-
 }
 
 func (a *App) buildPostAttachments(postID string) ([]imports.AttachmentImportData, *model.AppError) {

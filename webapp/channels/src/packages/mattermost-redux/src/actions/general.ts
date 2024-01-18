@@ -3,18 +3,16 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {Client4} from 'mattermost-redux/client';
+import {LogLevel} from '@mattermost/types/client4';
+import type {SystemSetting} from '@mattermost/types/general';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
-
-import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
-import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
-import {LogLevel} from '@mattermost/types/client4';
-import {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import {Client4} from 'mattermost-redux/client';
+import type {GetStateFunc, DispatchFunc, ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
-import {loadRolesIfNeeded} from './roles';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
+import {loadRolesIfNeeded} from './roles';
 
 export function getClientConfig(): ActionFunc {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -58,7 +56,7 @@ export function getDataRetentionPolicy(): ActionFunc {
     };
 }
 
-export function getLicenseConfig(): ActionFunc {
+export function getLicenseConfig() {
     return bindClientFunc({
         clientFunc: Client4.getClientLicenseOld,
         onSuccess: [GeneralTypes.CLIENT_LICENSE_RECEIVED],
@@ -90,29 +88,6 @@ export function setServerVersion(serverVersion: string): ActionFunc {
 export function setUrl(url: string) {
     Client4.setUrl(url);
     return true;
-}
-
-export function getRedirectLocation(url: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let pendingData: Promise<any>;
-        if (isMinimumServerVersion(getServerVersion(getState()), 5, 3)) {
-            pendingData = Client4.getRedirectLocation(url);
-        } else {
-            pendingData = Promise.resolve({location: url});
-        }
-
-        let data;
-        try {
-            data = await pendingData;
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: GeneralTypes.REDIRECT_LOCATION_FAILURE, data: {error, url}});
-            return {error};
-        }
-
-        dispatch({type: GeneralTypes.REDIRECT_LOCATION_SUCCESS, data: {...data, url}});
-        return {data};
-    };
 }
 
 export function getWarnMetricsStatus(): ActionFunc {
@@ -160,8 +135,8 @@ export function getFirstAdminVisitMarketplaceStatus(): ActionFunc {
 }
 
 // accompanying "set" happens as part of Client4.completeSetup
-export function getFirstAdminSetupComplete(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getFirstAdminSetupComplete(): NewActionFuncAsync<SystemSetting> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getFirstAdminSetupComplete();
@@ -183,7 +158,6 @@ export default {
     logClientError,
     setServerVersion,
     setUrl,
-    getRedirectLocation,
     getWarnMetricsStatus,
     getFirstAdminVisitMarketplaceStatus,
 };

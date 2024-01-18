@@ -80,6 +80,10 @@ func TestCreateGroup(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional, "ldap"))
 
+	_, resp, err := th.SystemAdminClient.CreateGroup(context.Background(), nil)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
 	group, _, err := th.SystemAdminClient.CreateGroup(context.Background(), g)
 	require.NoError(t, err)
 
@@ -1107,6 +1111,23 @@ func TestGetGroupsAssociatedToChannelsByTeam(t *testing.T) {
 	groups, _, err = th.SystemAdminClient.GetGroupsAssociatedToChannelsByTeam(context.Background(), model.NewId(), opts)
 	assert.NoError(t, err)
 	assert.Empty(t, groups)
+
+	t.Run("should get the groups ok when belonging to the team", func(t *testing.T) {
+		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
+		require.NotEmpty(t, groups)
+	})
+
+	t.Run("should return forbidden when the user doesn't have the right permissions", func(t *testing.T) {
+		require.Nil(t, th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id))
+		defer th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+
+		groups, resp, err := th.Client.GetGroupsAssociatedToChannelsByTeam(context.Background(), th.BasicTeam.Id, opts)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
+		require.Empty(t, groups)
+	})
 }
 
 func TestGetGroupsByTeam(t *testing.T) {
@@ -1184,6 +1205,36 @@ func TestGetGroupsByTeam(t *testing.T) {
 		groups, _, _, err = client.GetGroupsByTeam(context.Background(), model.NewId(), opts)
 		assert.NoError(t, err)
 		assert.Empty(t, groups)
+	})
+
+	t.Run("groups should be fetched only by users with the right permissions", func(t *testing.T) {
+		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
+			groups, _, _, err := client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+			require.NoError(t, err)
+			require.Len(t, groups, 1)
+			require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
+			require.NotNil(t, groups[0].SchemeAdmin)
+			require.True(t, *groups[0].SchemeAdmin)
+		}, "groups can be fetched by system admins even if they're not part of a team")
+
+		t.Run("user can fetch groups if it's part of the team", func(t *testing.T) {
+			groups, _, _, err := th.Client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+			require.NoError(t, err)
+			require.Len(t, groups, 1)
+			require.ElementsMatch(t, []*model.GroupWithSchemeAdmin{{Group: *group, SchemeAdmin: model.NewBool(true)}}, groups)
+			require.NotNil(t, groups[0].SchemeAdmin)
+			require.True(t, *groups[0].SchemeAdmin)
+		})
+
+		t.Run("user can't fetch groups if it's not part of the team", func(t *testing.T) {
+			require.Nil(t, th.App.RemoveUserFromTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id))
+			defer th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, th.BasicUser.Id, th.SystemAdminUser.Id)
+
+			groups, _, response, err := th.Client.GetGroupsByTeam(context.Background(), th.BasicTeam.Id, opts)
+			require.Error(t, err)
+			CheckForbiddenStatus(t, response)
+			require.Empty(t, groups)
+		})
 	})
 }
 
@@ -1290,6 +1341,21 @@ func TestGetGroups(t *testing.T) {
 	assert.Len(t, groups, 1)
 	// make sure it returned th.Group,not group
 	assert.Equal(t, groups[0].Id, th.Group.Id)
+
+	// Test include_archived parameter
+	opts.IncludeArchived = true
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 2)
+	opts.IncludeArchived = false
+
+	// Test returning only archived groups
+	opts.FilterArchived = true
+	groups, _, err = th.Client.GetGroups(context.Background(), opts)
+	assert.NoError(t, err)
+	assert.Len(t, groups, 1)
+	assert.Equal(t, groups[0].Id, group.Id)
+	opts.FilterArchived = false
 
 	opts.Source = model.GroupSourceCustom
 	groups, _, err = th.Client.GetGroups(context.Background(), opts)
@@ -1407,7 +1473,6 @@ func TestGetGroupsByUserId(t *testing.T) {
 	groups, _, err = th.Client.GetGroupsByUserId(context.Background(), user1.Id)
 	require.NoError(t, err)
 	assert.ElementsMatch(t, []*model.Group{group1, group2}, groups)
-
 }
 
 func TestGetGroupStats(t *testing.T) {
@@ -1567,6 +1632,11 @@ func TestAddMembersToGroup(t *testing.T) {
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
 
+	//Empty group members returns bad request
+	_, resp, nullErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, nil)
+	require.Error(t, nullErr)
+	CheckBadRequestStatus(t, resp)
+
 	groupMembers, response, upsertErr := th.SystemAdminClient.UpsertGroupMembers(context.Background(), group.Id, members)
 	require.NoError(t, upsertErr)
 	CheckOKStatus(t, response)
@@ -1638,6 +1708,10 @@ func TestDeleteMembersFromGroup(t *testing.T) {
 	}
 
 	th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+	_, resp, nullErr := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, nil)
+	require.Error(t, nullErr)
+	CheckBadRequestStatus(t, resp)
 
 	groupMembers, response, deleteErr := th.SystemAdminClient.DeleteGroupMembers(context.Background(), group.Id, members)
 	require.NoError(t, deleteErr)

@@ -26,19 +26,11 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
         }
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Bleve for search queries\\" is enabled. {documentationLink}"
+            defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Bleve for search queries\\" is enabled. <link>Learn more about Bleve in our documentation.</link>"
             id="admin.bleve.enableIndexingDescription"
             values={
               Object {
-                "documentationLink": <ExternalLink
-                  href="https://docs.mattermost.com/deploy/bleve-search.html"
-                  location="bleve_settings"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Learn more about Bleve in our documentation."
-                    id="admin.bleve.enableIndexingDescription.documentationLinkText"
-                  />
-                </ExternalLink>,
+                "link": [Function],
               }
             }
           />
@@ -220,7 +212,7 @@ exports[`components/BleveSettings should match snapshot, disabled 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -285,19 +277,11 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
         }
         helpText={
           <Memo(MemoizedFormattedMessage)
-            defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Bleve for search queries\\" is enabled. {documentationLink}"
+            defaultMessage="When true, indexing of new posts occurs automatically. Search queries will use database search until \\"Enable Bleve for search queries\\" is enabled. <link>Learn more about Bleve in our documentation.</link>"
             id="admin.bleve.enableIndexingDescription"
             values={
               Object {
-                "documentationLink": <ExternalLink
-                  href="https://docs.mattermost.com/deploy/bleve-search.html"
-                  location="bleve_settings"
-                >
-                  <Memo(MemoizedFormattedMessage)
-                    defaultMessage="Learn more about Bleve in our documentation."
-                    id="admin.bleve.enableIndexingDescription.documentationLinkText"
-                  />
-                </ExternalLink>,
+                "link": [Function],
               }
             }
           />
@@ -479,7 +463,7 @@ exports[`components/BleveSettings should match snapshot, enabled 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

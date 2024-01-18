@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
-import {AnyAction} from 'redux';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
+import {TeamTypes} from 'mattermost-redux/action_types';
 import {
     leaveChannel as leaveChannelRedux,
     joinChannel,
@@ -15,12 +16,9 @@ import {
     getChannel as loadChannel,
 } from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
-import {TeamTypes} from 'mattermost-redux/action_types';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {selectTeam} from 'mattermost-redux/actions/teams';
+import {autocompleteUsers} from 'mattermost-redux/actions/users';
 import {Posts, RequestStatus} from 'mattermost-redux/constants';
-
 import {
     getChannel,
     getChannelsNameMapInCurrentTeam,
@@ -33,6 +31,7 @@ import {
     isManuallyUnread,
     getCurrentChannelId,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {
     getCurrentRelativeTeamUrl,
     getCurrentTeam,
@@ -41,36 +40,25 @@ import {
     getTeamsList,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getUserByUsername} from 'mattermost-redux/selectors/entities/users';
-import {getMostRecentPostIdInChannel, getPost} from 'mattermost-redux/selectors/entities/posts';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
-
+import type {DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
-import {closeRightHandSide} from 'actions/views/rhs';
 import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {loadCustomStatusEmojisForPostList} from 'actions/emoji_actions';
+import {closeRightHandSide} from 'actions/views/rhs';
 import {getLastViewedChannelName} from 'selectors/local_storage';
+import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
 import {getLastPostsApiTimeForChannel} from 'selectors/views/channel';
 import {getSocketStatus} from 'selectors/views/websocket';
-import {getSelectedPost, getSelectedPostId} from 'selectors/rhs';
+import LocalStorageStore from 'stores/local_storage_store';
 
 import {getHistory} from 'utils/browser_history';
-import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
-import {isMobile} from 'utils/utils';
-import LocalStorageStore from 'stores/local_storage_store';
 import {isArchivedChannel} from 'utils/channel_utils';
-import type {GlobalState} from 'types/store';
+import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/constants';
 
-export function checkAndSetMobileView() {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.UPDATE_MOBILE_VIEW,
-            data: isMobile(),
-        });
-        return {data: true};
-    };
-}
+import type {GlobalState} from 'types/store';
 
 export function goToLastViewedChannel() {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
@@ -110,8 +98,8 @@ export function loadIfNecessaryAndSwitchToChannelById(channelId: string) {
     };
 }
 
-export function switchToChannel(channel: Channel & {userId?: string}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function switchToChannel(channel: Channel & {userId?: string}): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const selectedTeamId = channel.team_id;
         const teamUrl = selectedTeamId ? `/${getTeam(state, selectedTeamId).name}` : getCurrentRelativeTeamUrl(state);
@@ -246,8 +234,8 @@ export function autocompleteUsersInChannel(prefix: string, channelId: string) {
     };
 }
 
-export function loadUnreads(channelId: string, prefetch = false) {
-    return async (dispatch: DispatchFunc) => {
+export function loadUnreads(channelId: string, prefetch = false): NewActionFuncAsync<{atLatestMessage: boolean; atOldestMessage: boolean}> {
+    return async (dispatch) => {
         const time = Date.now();
         if (prefetch) {
             dispatch({
@@ -271,13 +259,13 @@ export function loadUnreads(channelId: string, prefetch = false) {
                 atOldestmessage: false,
             };
         }
-        dispatch(loadCustomStatusEmojisForPostList(data.posts));
+        dispatch(loadCustomStatusEmojisForPostList(data!.posts));
 
         const actions = [];
         actions.push({
             type: ActionTypes.INCREASE_POST_VISIBILITY,
             data: channelId,
-            amount: data.order.length,
+            amount: data!.order.length,
         });
 
         if (prefetch) {
@@ -288,7 +276,7 @@ export function loadUnreads(channelId: string, prefetch = false) {
             });
         }
 
-        if (data.next_post_id === '') {
+        if (data!.next_post_id === '') {
             actions.push({
                 type: ActionTypes.RECEIVED_POSTS_FOR_CHANNEL_AT_TIME,
                 channelId,
@@ -298,8 +286,8 @@ export function loadUnreads(channelId: string, prefetch = false) {
 
         dispatch(batchActions(actions));
         return {
-            atLatestMessage: data.next_post_id === '',
-            atOldestmessage: data.prev_post_id === '',
+            atLatestMessage: data!.next_post_id === '',
+            atOldestmessage: data!.prev_post_id === '',
         };
     };
 }
@@ -472,8 +460,8 @@ export function syncPostsInChannel(channelId: string, since: number, prefetch = 
     };
 }
 
-export function prefetchChannelPosts(channelId: string, jitter: number) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function prefetchChannelPosts(channelId: string, jitter?: number): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const recentPostIdInChannel = getMostRecentPostIdInChannel(state, channelId);
 

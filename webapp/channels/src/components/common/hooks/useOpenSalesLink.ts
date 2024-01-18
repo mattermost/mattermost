@@ -5,8 +5,9 @@ import {useSelector} from 'react-redux';
 
 import {getCloudCustomer, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {buildMMURL, goToMattermostContactSalesForm} from 'utils/contact_support_sales';
+
 import {LicenseLinks} from 'utils/constants';
+import {buildMMURL, goToMattermostContactSalesForm} from 'utils/contact_support_sales';
 
 export default function useOpenSalesLink(): [() => void, string] {
     const isCloud = useSelector(isCurrentLicenseCloud);

@@ -20,6 +20,7 @@ export type UserNotifyProps = {
     first_name: 'true' | 'false';
     channel: 'true' | 'false';
     mention_keys: string;
+    highlight_keys: string;
     desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
     calls_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful';
     desktop_threads?: 'default' | 'all' | 'mention' | 'none';
@@ -133,6 +134,7 @@ export type GetFilteredUsersStatsOpts = {
     in_channel?: string;
     include_deleted?: boolean;
     include_bots?: boolean;
+    include_remote_users?: boolean;
     roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];
@@ -141,3 +143,11 @@ export type GetFilteredUsersStatsOpts = {
 export type AuthChangeResponse = {
     follow_link: string;
 };
+
+export type UserReport = UserProfile & {
+    last_login_at: number;
+	last_status_at?: number;
+	last_post_date?: number;
+	days_active?: number;
+	total_posts?: number;
+}

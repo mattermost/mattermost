@@ -23,7 +23,7 @@ func TestRoleStoreCache(t *testing.T) {
 	fakeRole := model.Role{Id: "123", Name: "role-name"}
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -39,7 +39,7 @@ func TestRoleStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call not cached, save, and then not cached again", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -52,7 +52,7 @@ func TestRoleStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call not cached, delete, and then not cached again", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)
@@ -65,7 +65,7 @@ func TestRoleStoreCache(t *testing.T) {
 	})
 
 	t.Run("first call not cached, permanent delete all, and then not cached again", func(t *testing.T) {
-		mockStore := getMockStore()
+		mockStore := getMockStore(t)
 		mockCacheProvider := getMockCacheProvider()
 		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
 		require.NoError(t, err)

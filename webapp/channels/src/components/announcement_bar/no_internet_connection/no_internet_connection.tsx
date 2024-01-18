@@ -4,9 +4,9 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-
 import {GenericModal} from '@mattermost/components';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import './no_internet_connection.scss';
 import NoInternetConnectionSvg from './no-internet-connection-svg';
@@ -17,6 +17,7 @@ type NoInternetConnectionProps = {
 const NoInternetConnection: React.FC<NoInternetConnectionProps> = (props: NoInternetConnectionProps) => {
     return (
         <GenericModal
+            compassDesign={true}
             onExited={props.onExited}
             modalHeaderText=''
         >

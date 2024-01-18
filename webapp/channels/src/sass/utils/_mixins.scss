@@ -74,7 +74,6 @@
 
 @mixin clearfix {
     overflow: hidden;
-    *zoom: 1;
 }
 
 @mixin pie-clearfix {
@@ -83,8 +82,6 @@
         clear: both;
         content: "";
     }
-
-    *zoom: 1;
 }
 
 @mixin tertiary-button {
@@ -370,6 +367,16 @@
         &-exit-done {
             transform: translateY(100vh);
         }
+    }
+}
+
+@keyframes emphasis-sidebar-resize-line {
+    50% {
+        transform: scaleX(1.5);
+    }
+
+    100% {
+        transform: scaleX(1);
     }
 }
 

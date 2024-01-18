@@ -5,7 +5,7 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import configureStore from 'store';
 
@@ -74,7 +74,6 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
         configTeammateNameDisplay: '',
         currentUserTimezone: 'America/New_York',
-        enableTimezone: true,
         shouldAutoUpdateTimezone: true,
         lockTeammateNameDisplay: false,
         collapsedReplyThreads: '',

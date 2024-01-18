@@ -1,23 +1,23 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {IntlProvider as BaseIntlProvider, IntlConfig} from 'react-intl';
+import React from 'react';
+import type {ReactNode} from 'react';
+import {IntlProvider as BaseIntlProvider} from 'react-intl';
+import type {IntlConfig} from 'react-intl';
 
 import {Client4} from 'mattermost-redux/client';
 import {setLocalizeFunction} from 'mattermost-redux/utils/i18n_utils';
 
 import * as I18n from 'i18n/i18n';
-
 import {localizeMessage} from 'utils/utils';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
 type Props = {
     children: ReactNode;
     locale: IntlConfig['locale'];
     translations?: IntlConfig['messages'];
     actions: {
-        loadTranslations: ((locale: string, url: string) => ActionFunc) | (() => void);
+        loadTranslations: (locale: string, url: string) => void;
     };
 };
 

@@ -48,7 +48,7 @@ exports[`components/sidebar/sidebar_category should match snapshot 2`] = `
     muted={false}
     onClick={[Function]}
   >
-    <Connect(Component)
+    <Memo(SidebarCategoryMenu)
       category={
         Object {
           "channel_ids": Array [
@@ -127,7 +127,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when collapse
     muted={false}
     onClick={[Function]}
   >
-    <Connect(Component)
+    <Memo(SidebarCategoryMenu)
       category={
         Object {
           "channel_ids": Array [
@@ -224,7 +224,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when isNewCat
         id="sidebar_left.sidebar_category.newLabel"
       />
     </div>
-    <Connect(Component)
+    <Memo(SidebarCategoryMenu)
       category={
         Object {
           "channel_ids": Array [],
@@ -332,7 +332,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when sorting 
     muted={false}
     onClick={[Function]}
   >
-    <Connect(Component)
+    <Memo(SidebarCategorySortingMenu)
       category={
         Object {
           "channel_ids": Array [
@@ -471,7 +471,7 @@ exports[`components/sidebar/sidebar_category should match snapshot when the cate
     muted={false}
     onClick={[Function]}
   >
-    <Connect(Component)
+    <Memo(SidebarCategorySortingMenu)
       category={
         Object {
           "channel_ids": Array [

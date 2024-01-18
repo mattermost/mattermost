@@ -21,8 +21,9 @@
 
         #searchIcon {
             position: absolute;
-            top: 16px;
-            left: 46px;
+            z-index: 1;
+            top: 15px;
+            left: 42px;
             color: rgba(var(--center-channel-color-rgb), 0.64);
             pointer-events: none;
         }
@@ -58,23 +59,6 @@
             line-height: 16px;
         }
 
-        .MenuItem__primary-text {
-            width: 100%;
-            color: var(--center-channel-color);
-            font-size: 14px;
-            font-weight: 400;
-            line-height: 20px;
-
-            svg {
-                margin-left: auto;
-            }
-        }
-
-        .Menu__content {
-            border-color: rgba(var(--center-channel-color-rgb), 0.16);
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
-        }
-
         #channelCountLabel {
             color: var(--center-channel-color);
             font-size: 12px;
@@ -100,37 +84,30 @@
                 cursor: pointer;
             }
 
-            #channelsMoreDropdown {
-                margin: 0 8px;
-            }
-
             #menuWrapper {
                 display: flex;
                 align-items: center;
                 justify-content: center;
                 padding: 4px 6px 4px 8px;
                 border: none;
+                margin-right: 10px;
                 background-color: unset;
+
+                &[aria-expanded='true'] {
+                    background-color: rgba(var(--button-bg-rgb), 0.12);
+                    border-radius: 4px;
+                }
             }
 
-            .MenuWrapper:hover {
+            #menuWrapper:hover {
                 background-color: rgba(var(--center-channel-color-rgb), 0.08);
                 border-radius: 4px;
-            }
-
-            .MenuWrapper--open {
-                background-color: rgba(var(--button-bg-rgb), 0.12);
-                border-radius: 4px;
-
-                &:hover {
-                    background-color: rgba(var(--button-bg-rgb), 0.12);
-                }
             }
         }
     }
 
     .modal-body {
-        padding: 15px 0 0;
+        padding: 0;
 
         .filtered-user-list {
             height: 500px;
@@ -237,7 +214,7 @@
     .modal-header {
         .GenericModal__header {
             display: flex;
-            width: 95%;
+            width: 100%;
             align-items: center;
             justify-content: space-between;
             padding-right: 4px;
@@ -246,20 +223,6 @@
         .close {
             top: 22px;
         }
-    }
-
-    .outlineButton {
-        border: 1px solid var(--button-bg);
-        background: none;
-        border-radius: 4px;
-        color: var(--button-bg);
-        font-size: 12px;
-        font-weight: 600;
-        line-height: 16px;
-    }
-
-    .outlineButton:hover {
-        background-color: rgba(var(--button-bg-rgb), 0.08);
     }
 
     .filter-controls {
@@ -283,15 +246,15 @@
         margin-bottom: 30px;
     }
 
-    .primaryButton {
-        background-color: var(--button-bg);
-        border-radius: 4px;
-        color: var(--button-color);
-        font-size: 14px;
-        font-weight: 600;
-    }
-
     #createNewChannelButton {
         padding: 10px 20px;
+    }
+}
+
+#browseChannelsDropdown {
+    .label-elements {
+        padding: 2px 4px;
+        font-size: 14px;
+        line-height: 20px;
     }
 }

@@ -3,34 +3,32 @@
 
 import React from 'react';
 import {Route, Switch, Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import type {CloudState} from '@mattermost/types/cloud';
+import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
 
-import ModalController from 'components/modal_controller';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
-import DiscardChangesModal from 'components/discard_changes_modal';
-import BackstageNavbar from 'components/backstage/components/backstage_navbar';
-import DelinquencyModal from 'components/delinquency_modal';
 import AnnouncementBarController from 'components/announcement_bar';
+import BackstageNavbar from 'components/backstage/components/backstage_navbar';
+import DiscardChangesModal from 'components/discard_changes_modal';
+import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
-import {LhsItemType} from 'types/store/lhs';
+
 import {applyTheme, resetTheme} from 'utils/utils';
 
-import {Role} from '@mattermost/types/roles';
-import {CloudState, Product} from '@mattermost/types/cloud';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {AdminConfig, EnvironmentConfig, ClientLicense} from '@mattermost/types/config';
+import {LhsItemType} from 'types/store/lhs';
 
 import AdminSidebar from './admin_sidebar';
 import Highlight from './highlight';
+import type {AdminDefinitionSubSection, AdminDefinitionSection} from './types';
 
 import type {PropsFromRedux} from './index';
 
-export interface Props extends PropsFromRedux {
-    match: {url: string};
-    currentTheme: Theme;
-}
+export type Props = PropsFromRedux & RouteComponentProps;
 
 type State = {
     filter: string;
@@ -39,31 +37,15 @@ type State = {
 // not every page in the system console will need the license and config, but the vast majority will
 type ExtraProps = {
     enterpriseReady: boolean;
-    license?: Record<string, any>;
-    config?: DeepPartial<AdminConfig>;
-    environmentConfig?: Partial<EnvironmentConfig>;
-    setNavigationBlocked?: () => void;
-    roles?: Record<string, Role>;
-    editRole?: (role: Role) => void;
-    updateConfig?: (config: AdminConfig) => ActionFunc;
+    license: ClientLicense;
+    config: Partial<AdminConfig>;
+    environmentConfig: Partial<EnvironmentConfig>;
+    setNavigationBlocked: (blocked: boolean) => void;
+    roles: Record<string, Role>;
+    editRole: (role: Role) => void;
+    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
-}
-
-type ConsoleAccess = {
-    read: Record<string, boolean>;
-    write: Record<string, boolean>;
-}
-
-type Item = {
-    isHidden?: (config?: Record<string, any>, state?: Record<string, any>, license?: Record<string, any>, buildEnterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isCurrentUserSystemAdmin?: boolean) => boolean;
-    isDisabled?: (config?: Record<string, any>, state?: Record<string, any>, license?: Record<string, any>, buildEnterpriseReady?: boolean, consoleAccess?: ConsoleAccess, cloud?: CloudState, isCurrentUserSystemAdmin?: boolean) => boolean;
-    schema: Record<string, any>;
-    url: string;
-    restrictedIndicator?: {
-        value: (cloud: CloudState) => React.ReactNode;
-        shouldDisplay: (license: ClientLicense, subscriptionProduct?: Product) => boolean;
-    };
 }
 
 export default class AdminConsole extends React.PureComponent<Props, State> {
@@ -114,30 +96,22 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
     private renderRoutes = (extraProps: ExtraProps) => {
         const {adminDefinition, config, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin} = this.props;
 
-        const schemas: Item[] = Object.values(adminDefinition).reduce((acc, section) => {
-            let items: Item[] = [];
-
+        const schemas: AdminDefinitionSubSection[] = Object.values(adminDefinition).flatMap((section: AdminDefinitionSection) => {
             let isSectionHidden = false;
-            Object.entries(section).find(([key, value]) => {
-                if (key === 'isHidden') {
-                    if (typeof value === 'function') {
-                        isSectionHidden = value(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
-                    } else {
-                        isSectionHidden = Boolean(value);
-                    }
-                }
-                return null;
-            });
-
-            if (!isSectionHidden) {
-                items = Object.values(section).filter((item: Item) => Boolean(item.schema));
+            if (typeof section.isHidden === 'function') {
+                isSectionHidden = section.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin);
+            } else {
+                isSectionHidden = Boolean(section.isHidden);
             }
-            return acc.concat(items);
-        }, [] as Item[]);
+            if (isSectionHidden) {
+                return [];
+            }
+            return Object.values(section.subsections);
+        });
 
         let defaultUrl = '';
 
-        const schemaRoutes = schemas.map((item: Item, index: number) => {
+        const schemaRoutes = schemas.map((item: AdminDefinitionSubSection, index: number) => {
             if (typeof item.isHidden !== 'undefined') {
                 const isHidden = (typeof item.isHidden === 'function') ? item.isHidden(config, this.state, license, buildEnterpriseReady, consoleAccess, cloud, isCurrentUserSystemAdmin) : Boolean(item.isHidden);
                 if (isHidden) {
@@ -253,7 +227,6 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
                     </Highlight>
                 </div>
                 {discardChangesModal}
-                <DelinquencyModal/>
                 <ModalController/>
             </>
         );

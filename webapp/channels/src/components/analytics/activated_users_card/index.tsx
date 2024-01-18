@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import {AlertOutlineIcon} from '@mattermost/compass-icons/components';
 
@@ -16,6 +16,10 @@ type ActivatedUserCardProps = {
     activatedUsers: number | undefined;
     isCloud: boolean;
 }
+
+export const messages = defineMessages({
+    totalUsers: {id: 'analytics.team.totalUsers', defaultMessage: 'Total Active Users'},
+});
 
 export const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: ActivatedUserCardProps) => {
     const {isBetween5PercerntAnd10PercentPurchasedSeats, isOver10PercerntPurchasedSeats} = calculateOverageUserActivated({seatsPurchased, activeUsers: activatedUsers || 0});
@@ -34,8 +38,7 @@ export const ActivatedUserCard = ({activatedUsers, seatsPurchased, isCloud}: Act
         <StatisticCount
             title={
                 <FormattedMessage
-                    id='analytics.team.totalUsers'
-                    defaultMessage='Total Active Users'
+                    {...messages.totalUsers}
                 />
             }
             icon='fa-users'

@@ -1,45 +1,46 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode} from 'react';
-import {IntlShape, injectIntl, FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import type {ReactNode} from 'react';
+import {injectIntl, FormattedDate, FormattedMessage, FormattedTime, defineMessage, defineMessages} from 'react-intl';
+import type {IntlShape, MessageDescriptor} from 'react-intl';
 
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
-import {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
-
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import type {TUserStatus} from '@mattermost/compass-components/shared'; // eslint-disable-line no-restricted-imports
+import {AccountOutlineIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
+import {PulsatingDot} from '@mattermost/components';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import {CustomStatusDuration} from '@mattermost/types/users';
+import type {UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
 
 import * as GlobalActions from 'actions/global_actions';
+
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import CustomStatusModal from 'components/custom_status/custom_status_modal';
 import CustomStatusText from 'components/custom_status/custom_status_text';
 import ExpiryTime from 'components/custom_status/expiry_time';
 import DndCustomTimePicker from 'components/dnd_custom_time_picker_modal';
+import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
 import OverlayTrigger from 'components/overlay_trigger';
 import ResetStatusModal from 'components/reset_status_modal';
+import Tooltip from 'components/tooltip';
 import UserSettingsModal from 'components/user_settings/modal';
 import EmojiIcon from 'components/widgets/icons/emoji_icon';
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
-import Avatar, {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
-import {OnboardingTaskCategory, OnboardingTasksName, TaskNameMapToSteps, CompleteYourProfileTour} from 'components/onboarding_tasks';
-import Tooltip from 'components/tooltip';
-
-import {ModalData} from 'types/actions';
+import Avatar from 'components/widgets/users/avatar/avatar';
+import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
 
 import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
-import {t} from 'utils/i18n';
 import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
-import {localizeMessage} from 'utils/utils';
 
-import {CustomStatusDuration, UserCustomStatus, UserProfile, UserStatus} from '@mattermost/types/users';
-import {PulsatingDot} from '@mattermost/components';
-import {PreferenceType} from '@mattermost/types/preferences';
+import type {ModalData} from 'types/actions';
+import type {Menu as MenuType} from 'types/store/plugins';
 
 import './status_dropdown.scss';
-import {AccountOutlineIcon, CheckIcon, ExitToAppIcon} from '@mattermost/compass-icons/components';
 
 type Props = {
     intl: IntlShape;
@@ -49,8 +50,8 @@ type Props = {
     autoResetPref?: string;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
-        setStatus: (status: UserStatus) => ActionFunc;
-        unsetCustomStatus: () => ActionFunc;
+        setStatus: (status: UserStatus) => void;
+        unsetCustomStatus: () => void;
         savePreferences: (userId: string, preferences: PreferenceType[]) => void;
         setStatusDropdown: (open: boolean) => void;
     };
@@ -71,13 +72,54 @@ type State = {
     isStatusSet: boolean;
 };
 
+export const statusDropdownMessages: Record<string, Record<string, MessageDescriptor>> = {
+    ooo: defineMessages({
+        name: {
+            id: 'status_dropdown.set_ooo',
+            defaultMessage: 'Out of office',
+        },
+        extra: {
+            id: 'status_dropdown.set_ooo.extra',
+            defaultMessage: 'Automatic Replies are enabled',
+        },
+    }),
+    online: defineMessages({
+        name: {
+            id: 'status_dropdown.set_online',
+            defaultMessage: 'Online',
+        },
+    }),
+    away: defineMessages({
+        name: {
+            id: 'status_dropdown.set_away',
+            defaultMessage: 'Away',
+        },
+    }),
+    dnd: defineMessages({
+        name: {
+            id: 'status_dropdown.set_dnd',
+            defaultMessage: 'Do not disturb',
+        },
+        extra: {
+            id: 'status_dropdown.set_dnd.extra',
+            defaultMessage: 'Disables all notifications',
+        },
+    }),
+    offline: defineMessages({
+        name: {
+            id: 'status_dropdown.set_offline',
+            defaultMessage: 'Offline',
+        },
+    }),
+};
+
 export class StatusDropdown extends React.PureComponent<Props, State> {
     dndTimes = [
-        {id: 'thirty_minutes', label: t('status_dropdown.dnd_sub_menu_item.thirty_minutes'), labelDefault: '30 mins'},
-        {id: 'one_hour', label: t('status_dropdown.dnd_sub_menu_item.one_hour'), labelDefault: '1 hour'},
-        {id: 'two_hours', label: t('status_dropdown.dnd_sub_menu_item.two_hours'), labelDefault: '2 hours'},
-        {id: 'tomorrow', label: t('status_dropdown.dnd_sub_menu_item.tomorrow'), labelDefault: 'Tomorrow'},
-        {id: 'custom', label: t('status_dropdown.dnd_sub_menu_item.custom'), labelDefault: 'Custom'},
+        {id: 'thirty_minutes', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.thirty_minutes', defaultMessage: '30 mins'})},
+        {id: 'one_hour', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.one_hour', defaultMessage: '1 hour'})},
+        {id: 'two_hours', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.two_hours', defaultMessage: '2 hours'})},
+        {id: 'tomorrow', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.tomorrow', defaultMessage: 'Tomorrow'})},
+        {id: 'custom', label: defineMessage({id: 'status_dropdown.dnd_sub_menu_item.custom', defaultMessage: 'Custom'})},
     ];
     static defaultProps = {
         userId: '',
@@ -146,8 +188,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             endTime = currentDate.add(2, 'hours');
             break;
         case 3:
-            // add one day in current date
-            endTime = currentDate.add(1, 'day');
+            // set to next day 9 in the morning
+            endTime = currentDate.add(1, 'day').set({hour: 9, minute: 0});
             break;
         }
 
@@ -240,13 +282,13 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             customStatusText = customStatus?.text;
             break;
         case isStatusSet && !customStatus?.text && customStatus?.duration === CustomStatusDuration.DONT_CLEAR:
-            customStatusHelpText = localizeMessage('status_dropdown.set_custom_text', 'Set Custom Status Text...');
+            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom_text', defaultMessage: 'Set Custom Status Text...'});
             break;
         case isStatusSet && !customStatus?.text && customStatus?.duration !== CustomStatusDuration.DONT_CLEAR:
             customStatusText = '';
             break;
         case !isStatusSet:
-            customStatusHelpText = localizeMessage('status_dropdown.set_custom', 'Set a Custom Status');
+            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom', defaultMessage: 'Set a Custom Status'});
         }
 
         const customStatusEmoji = isStatusSet ? (
@@ -359,18 +401,18 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             />
         );
 
-        const dndSubMenuItems = [
+        const dndSubMenuItems = ([
             {
                 id: 'dndSubMenu-header',
                 direction: 'right',
-                text: localizeMessage('status_dropdown.dnd_sub_menu_header', 'Disable notifications until:'),
+                text: this.props.intl.formatMessage({id: 'status_dropdown.dnd_sub_menu_header', defaultMessage: 'Disable notifications until:'}),
                 isHeader: true,
-            } as any,
-        ].concat(
-            this.dndTimes.map(({id, label, labelDefault}, index) => {
-                let text: React.ReactNode = localizeMessage(label, labelDefault);
+            },
+        ] as MenuType[])?.concat(
+            this.dndTimes.map<MenuType>(({id, label}, index) => {
+                let text: MenuType['text'] = this.props.intl.formatMessage(label);
                 if (index === 3) {
-                    const tomorrow = getCurrentMomentForTimezone(this.props.timezone).add(1, 'day').toDate();
+                    const tomorrow = getCurrentMomentForTimezone(this.props.timezone).add(1, 'day').set({hour: 9, minute: 0}).toDate();
                     text = (
                         <>
                             {text}
@@ -397,7 +439,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     text,
                     action:
                         index === 4 ? () => setCustomTimedDnd() : () => setDnd(index),
-                } as any;
+                };
             }),
         );
 
@@ -473,7 +515,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     </div>
                 </button>
                 <Menu
-                    ariaLabel={localizeMessage('status_dropdown.menuAriaLabel', 'Set a status')}
+                    ariaLabel={this.props.intl.formatMessage({id: 'status_dropdown.menuAriaLabel', defaultMessage: 'Set a status'})}
                     id={'statusDropdownMenu'}
                     listId={'status-drop-down-menu-list'}
                 >
@@ -499,17 +541,17 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         <Menu.ItemAction
                             show={this.isUserOutOfOffice()}
                             onClick={() => null}
-                            ariaLabel={localizeMessage('status_dropdown.set_ooo', 'Out of office').toLowerCase()}
-                            text={localizeMessage('status_dropdown.set_ooo', 'Out of office')}
-                            extraText={localizeMessage('status_dropdown.set_ooo.extra', 'Automatic Replies are enabled')}
+                            ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.ooo.name)}
+                            text={this.props.intl.formatMessage(statusDropdownMessages.ooo.name)}
+                            extraText={this.props.intl.formatMessage(statusDropdownMessages.ooo.extra)}
                         />
                     </Menu.Group>
                     {customStatusComponent}
                     <Menu.Group>
                         <Menu.ItemAction
                             onClick={setOnline}
-                            ariaLabel={localizeMessage('status_dropdown.set_online', 'Online').toLowerCase()}
-                            text={localizeMessage('status_dropdown.set_online', 'Online')}
+                            ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.online.name)}
+                            text={this.props.intl.formatMessage(statusDropdownMessages.online.name)}
                             icon={(
                                 <StatusIcon
                                     status={'online'}
@@ -521,8 +563,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         />
                         <Menu.ItemAction
                             onClick={setAway}
-                            ariaLabel={localizeMessage('status_dropdown.set_away', 'Away').toLowerCase()}
-                            text={localizeMessage('status_dropdown.set_away', 'Away')}
+                            ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.away.name)}
+                            text={this.props.intl.formatMessage(statusDropdownMessages.away.name)}
                             icon={(
                                 <StatusIcon
                                     status={'away'}
@@ -534,9 +576,9 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         />
                         <Menu.ItemSubMenu
                             subMenu={dndSubMenuItems}
-                            ariaLabel={`${localizeMessage('status_dropdown.set_dnd', 'Do not disturb').toLowerCase()}. ${localizeMessage('status_dropdown.set_dnd.extra', 'Disables desktop, email and push notifications').toLowerCase()}`}
-                            text={localizeMessage('status_dropdown.set_dnd', 'Do not disturb')}
-                            extraText={localizeMessage('status_dropdown.set_dnd.extra', 'Disables all notifications')}
+                            ariaLabel={`${this.props.intl.formatMessage(statusDropdownMessages.dnd.name)}. ${this.props.intl.formatMessage(statusDropdownMessages.dnd.extra)}`}
+                            text={this.props.intl.formatMessage(statusDropdownMessages.dnd.name)}
+                            extraText={this.props.intl.formatMessage(statusDropdownMessages.dnd.extra)}
                             icon={(
                                 <StatusIcon
                                     status={'dnd'}
@@ -550,8 +592,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         />
                         <Menu.ItemAction
                             onClick={setOffline}
-                            ariaLabel={localizeMessage('status_dropdown.set_offline', 'Offline').toLowerCase()}
-                            text={localizeMessage('status_dropdown.set_offline', 'Offline')}
+                            ariaLabel={this.props.intl.formatMessage(statusDropdownMessages.offline.name)}
+                            text={this.props.intl.formatMessage(statusDropdownMessages.offline.name)}
                             icon={(
                                 <StatusIcon
                                     status={'offline'}
@@ -569,7 +611,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             modalId={ModalIdentifiers.USER_SETTINGS}
                             dialogType={UserSettingsModal}
                             dialogProps={{isContentProductSettings: false}}
-                            text={localizeMessage('navbar_dropdown.profileSettings', 'Profile')}
+                            text={this.props.intl.formatMessage({id: 'navbar_dropdown.profileSettings', defaultMessage: 'Profile'})}
                             icon={<AccountOutlineIcon size={16}/>}
                         >
                             {this.props.showCompleteYourProfileTour && (
@@ -586,7 +628,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         <Menu.ItemAction
                             id='logout'
                             onClick={this.handleEmitUserLoggedOutEvent}
-                            text={localizeMessage('navbar_dropdown.logout', 'Log Out')}
+                            text={this.props.intl.formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
                             icon={<ExitToAppIcon size={16}/>}
                         />
                     </Menu.Group>

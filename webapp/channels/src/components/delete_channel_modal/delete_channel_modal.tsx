@@ -5,11 +5,12 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {getHistory} from 'utils/browser_history';
 import Constants from 'utils/constants';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 export type Props = {
     onExited: () => void;
@@ -18,7 +19,7 @@ export type Props = {
     canViewArchivedChannels?: boolean;
     penultimateViewedChannelName: string;
     actions: {
-        deleteChannel: (channelId: string) => {data: boolean};
+        deleteChannel: (channelId: string) => void;
     };
 }
 
@@ -94,7 +95,7 @@ export default class DeleteChannelModal extends React.PureComponent<Props, State
                 <Modal.Footer>
                     <button
                         type='button'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         onClick={this.onHide}
                     >
                         <FormattedMessage

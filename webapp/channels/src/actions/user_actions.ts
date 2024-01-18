@@ -3,10 +3,8 @@
 
 import PQueue from 'p-queue';
 
-import {UserProfile, UserStatus} from '@mattermost/types/users';
-
-import {Channel} from '@mattermost/types/channels';
-import {GlobalState} from 'types/store';
+import type {Channel} from '@mattermost/types/channels';
+import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getChannelAndMyMember, getChannelMembersByIds} from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
@@ -24,19 +22,18 @@ import {
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
-import {ActionResult, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
+import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 import {loadStatusesForProfilesList, loadStatusesForProfilesMap} from 'actions/status_actions';
-
 import {getDisplayedChannels} from 'selectors/views/channel_sidebar';
+import store from 'stores/redux_store';
 
-import store from 'stores/redux_store.jsx';
-
-import * as Utils from 'utils/utils';
 import {Constants, Preferences, UserStatuses} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
+import type {GlobalState} from 'types/store';
 
 export const queue = new PQueue({concurrency: 4});
 const dispatch = store.dispatch;
@@ -82,8 +79,8 @@ export function loadProfilesAndReloadChannelMembers(page: number, perPage?: numb
     };
 }
 
-export function loadProfilesAndTeamMembers(page: number, perPage: number, teamId: string, options?: Record<string, any>) {
-    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function loadProfilesAndTeamMembers(page: number, perPage: number, teamId: string, options?: Record<string, any>): NewActionFuncAsync {
+    return async (doDispatch, doGetState) => {
         const newTeamId = teamId || getCurrentTeamId(doGetState());
         const {data} = await doDispatch(UserActions.getProfilesInTeam(newTeamId, page, perPage, '', options));
         if (data) {
@@ -125,8 +122,8 @@ export function searchProfilesAndChannelMembers(term: string, options: Record<st
     };
 }
 
-export function loadProfilesAndTeamMembersAndChannelMembers(page: number, perPage: number, teamId: string, channelId: string, options?: {active?: boolean}) {
-    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function loadProfilesAndTeamMembersAndChannelMembers(page: number, perPage: number, teamId: string, channelId: string, options?: {active?: boolean}): NewActionFuncAsync {
+    return async (doDispatch, doGetState) => {
         const state = doGetState();
         const teamIdParam = teamId || getCurrentTeamId(state);
         const channelIdParam = channelId || getCurrentChannelId(state);
@@ -230,10 +227,10 @@ export function loadNewDMIfNeeded(channelId: string) {
             const pref = getBool(state, Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, userId, false);
             if (pref === false) {
                 const now = Utils.getTimestamp();
-                savePreferences(currentUserId, [
+                doDispatch(savePreferences(currentUserId, [
                     {user_id: currentUserId, category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: userId, value: 'true'},
                     {user_id: currentUserId, category: Preferences.CATEGORY_CHANNEL_OPEN_TIME, name: channelId, value: now.toString()},
-                ])(doDispatch);
+                ]));
                 loadProfilesForDM();
                 return {data: true};
             }
@@ -246,7 +243,7 @@ export function loadNewDMIfNeeded(channelId: string) {
         if (channel) {
             result = checkPreference(channel);
         } else {
-            result = await getChannelAndMyMember(channelId)(doDispatch, doGetState) as ActionResult;
+            result = await doDispatch(getChannelAndMyMember(channelId));
             if (result.data) {
                 result = checkPreference(result.data.channel);
             }
@@ -272,7 +269,7 @@ export function loadNewGMIfNeeded(channelId: string) {
 
         const channel = getChannel(state, channelId);
         if (!channel) {
-            await getChannelAndMyMember(channelId)(doDispatch, doGetState);
+            await doDispatch(getChannelAndMyMember(channelId));
         }
         return checkPreference();
     };
@@ -409,13 +406,13 @@ export async function loadProfilesForDM() {
     }
 
     if (newPreferences.length > 0) {
-        savePreferences(currentUserId, newPreferences)(dispatch);
+        dispatch(savePreferences(currentUserId, newPreferences));
     }
 
     if (profilesToLoad.length > 0) {
-        await UserActions.getProfilesByIds(profilesToLoad)(dispatch, getState);
+        await dispatch(UserActions.getProfilesByIds(profilesToLoad));
     }
-    await loadCustomEmojisForCustomStatusesByUserIds(profileIds)(dispatch, getState);
+    await dispatch(loadCustomEmojisForCustomStatusesByUserIds(profileIds));
 }
 
 export function autocompleteUsersInTeam(username: string) {
@@ -434,9 +431,9 @@ export function autocompleteUsers(username: string) {
 }
 
 export function autoResetStatus() {
-    return async (doDispatch: DispatchFunc, doGetState: GetStateFunc): Promise<{data: UserStatus}> => {
+    return async (doDispatch: DispatchFunc): Promise<{data: UserStatus}> => {
         const {currentUserId} = getState().entities.users;
-        const {data: userStatus} = await (UserActions.getStatus(currentUserId)(doDispatch, doGetState) as Promise<{data: UserStatus}>);
+        const {data: userStatus} = await doDispatch(UserActions.getStatus(currentUserId));
 
         if (userStatus.status === UserStatuses.OUT_OF_OFFICE || !userStatus.manual) {
             return {data: userStatus};
@@ -445,7 +442,7 @@ export function autoResetStatus() {
         const autoReset = getBool(getState(), PreferencesRedux.CATEGORY_AUTO_RESET_MANUAL_STATUS, currentUserId, false);
 
         if (autoReset) {
-            UserActions.setStatus({user_id: currentUserId, status: 'online'})(doDispatch, doGetState);
+            doDispatch(UserActions.setStatus({user_id: currentUserId, status: 'online'}));
             return {data: userStatus};
         }
 

@@ -8,15 +8,12 @@ import {
     getThreads as fetchThreads,
     getThreadCounts as fetchThreadCounts,
 } from 'mattermost-redux/actions/threads';
-
+import {Client4} from 'mattermost-redux/client';
 import {
     getThread,
     getThreadsInCurrentTeam,
     getThreadCountsInCurrentTeam,
 } from 'mattermost-redux/selectors/entities/threads';
-
-import {Client4} from 'mattermost-redux/client';
-
 import TestHelper from 'mattermost-redux/test/test_helper';
 import configureStore from 'mattermost-redux/test/test_store';
 

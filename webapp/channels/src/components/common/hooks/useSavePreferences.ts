@@ -2,10 +2,9 @@
 // See LICENSE.txt for license information.
 
 import {useCallback} from 'react';
-
 import {useDispatch, useSelector} from 'react-redux';
 
-import {PreferenceType} from '@mattermost/types/preferences';
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';

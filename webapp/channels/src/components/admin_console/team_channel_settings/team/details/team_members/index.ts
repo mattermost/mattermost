@@ -2,24 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
-import {GenericAction, ActionFunc, ActionResult} from 'mattermost-redux/types/actions';
-
-import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
+import type {UserProfile, UsersStats} from '@mattermost/types/users';
 
 import {getTeamStats as loadTeamStats} from 'mattermost-redux/actions/teams';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
-
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getMembersInTeams, getTeamStats, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getProfilesInTeam, searchProfilesInTeam, filterProfiles, getFilteredUsersStats as selectFilteredUsersStats} from 'mattermost-redux/selectors/entities/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {filterProfilesStartingWithTerm, profileListToMap} from 'mattermost-redux/utils/user_utils';
 
-import {GlobalState} from 'types/store';
 import {loadProfilesAndReloadTeamMembers, searchProfilesAndTeamMembers} from 'actions/user_actions';
 import {setUserGridSearch, setUserGridFilters} from 'actions/views/search';
+
+import type {GlobalState} from 'types/store';
 
 import TeamMembers from './team_members';
 
@@ -27,24 +25,6 @@ type Props = {
     teamId: string;
     usersToAdd: Record<string, UserProfile>;
     usersToRemove: Record<string, UserProfile>;
-};
-
-type Actions = {
-    getTeamStats: (teamId: string) => Promise<{
-        data: boolean;
-    }>;
-    loadProfilesAndReloadTeamMembers: (page: number, perPage: number, teamId?: string, options?: {[key: string]: any}) => Promise<{
-        data: boolean;
-    }>;
-    searchProfilesAndTeamMembers: (term: string, options?: {[key: string]: any}) => Promise<{
-        data: boolean;
-    }>;
-    getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
-        data?: UsersStats;
-        error?: ServerError;
-    }>;
-    setUserGridSearch: (term: string) => ActionResult;
-    setUserGridFilters: (filters: GetFilteredUsersStatsOpts) => ActionResult;
 };
 
 function searchUsersToAdd(users: Record<string, UserProfile>, term: string): Record<string, UserProfile> {
@@ -96,9 +76,9 @@ function mapStateToProps(state: GlobalState, props: Props) {
         enableGuestAccounts: config.EnableGuestAccounts === 'true',
     };
 }
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             getTeamStats: loadTeamStats,
             loadProfilesAndReloadTeamMembers,
             searchProfilesAndTeamMembers,

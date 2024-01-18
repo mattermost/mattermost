@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import * as ThemeUtils from 'mattermost-redux/utils/theme_utils';
+
 import {Preferences} from '../constants';
 
 describe('ThemeUtils', () => {

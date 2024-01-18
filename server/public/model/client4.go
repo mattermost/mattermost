@@ -103,6 +103,15 @@ func (c *Client4) boolString(value bool) string {
 	return "false"
 }
 
+func (c *Client4) ArrayFromJSON(data io.Reader) []string {
+	var objmap []string
+	json.NewDecoder(data).Decode(&objmap)
+	if objmap == nil {
+		return make([]string, 0)
+	}
+	return objmap
+}
+
 func closeBody(r *http.Response) {
 	if r.Body != nil {
 		_, _ = io.Copy(io.Discard, r.Body)
@@ -164,6 +173,10 @@ func (c *Client4) ClearOAuthToken() {
 
 func (c *Client4) usersRoute() string {
 	return "/users"
+}
+
+func (c *Client4) reportsRoute() string {
+	return "/reports"
 }
 
 func (c *Client4) userRoute(userId string) string {
@@ -467,8 +480,12 @@ func (c *Client4) oAuthAppRoute(appId string) string {
 	return fmt.Sprintf("/oauth/apps/%v", appId)
 }
 
-func (c *Client4) openGraphRoute() string {
-	return "/opengraph"
+func (c *Client4) outgoingOAuthConnectionsRoute() string {
+	return "/oauth/outgoing_connections"
+}
+
+func (c *Client4) outgoingOAuthConnectionRoute(id string) string {
+	return fmt.Sprintf("/oauth/outgoing_connections/%s", id)
 }
 
 func (c *Client4) jobsRoute() string {
@@ -559,8 +576,16 @@ func (c *Client4) sharedChannelsRoute() string {
 	return "/sharedchannels"
 }
 
+func (c *Client4) ipFiltersRoute() string {
+	return "/ip_filtering"
+}
+
 func (c *Client4) permissionsRoute() string {
 	return "/permissions"
+}
+
+func (c *Client4) limitsRoute() string {
+	return "/limits"
 }
 
 func (c *Client4) DoAPIGet(ctx context.Context, url string, etag string) (*http.Response, error) {
@@ -1918,6 +1943,57 @@ func (c *Client4) EnableUserAccessToken(ctx context.Context, tokenId string) (*R
 	return BuildResponse(r), nil
 }
 
+func (c *Client4) GetUsersForReporting(ctx context.Context, options *UserReportOptions) ([]*UserReport, *Response, error) {
+	values := url.Values{}
+	if options.Direction != "" {
+		values.Set("direction", options.Direction)
+	}
+	if options.SortColumn != "" {
+		values.Set("sort_column", options.SortColumn)
+	}
+	if options.PageSize > 0 {
+		values.Set("page_size", strconv.Itoa(options.PageSize))
+	}
+	if options.Team != "" {
+		values.Set("team_filter", options.Team)
+	}
+	if options.HideActive {
+		values.Set("hide_active", "true")
+	}
+	if options.HideInactive {
+		values.Set("hide_inactive", "true")
+	}
+	if options.SortDesc {
+		values.Set("sort_direction", "desc")
+	}
+	if options.FromColumnValue != "" {
+		values.Set("from_column_value", options.FromColumnValue)
+	}
+	if options.FromId != "" {
+		values.Set("from_id", options.FromId)
+	}
+	if options.Role != "" {
+		values.Set("role_filter", options.Role)
+	}
+	if options.HasNoTeam {
+		values.Set("has_no_team", "true")
+	}
+	if options.DateRange != "" {
+		values.Set("date_range", options.DateRange)
+	}
+
+	r, err := c.DoAPIGet(ctx, c.reportsRoute()+"/users?"+values.Encode(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*UserReport
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsersForReporting", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // Bots section
 
 // CreateBot creates a bot in the system based on the provided bot struct.
@@ -3069,7 +3145,7 @@ func (c *Client4) GetChannelMembersTimezones(ctx context.Context, channelId stri
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // GetPinnedPosts gets a list of pinned posts.
@@ -3536,6 +3612,27 @@ func (c *Client4) ViewChannel(ctx context.Context, userId string, view *ChannelV
 	err = json.NewDecoder(r.Body).Decode(&ch)
 	if err != nil {
 		return nil, BuildResponse(r), NewAppError("ViewChannel", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return ch, BuildResponse(r), nil
+}
+
+// ReadMultipleChannels performs a view action on several channels at the same time for a user.
+func (c *Client4) ReadMultipleChannels(ctx context.Context, userId string, channelIds []string) (*ChannelViewResponse, *Response, error) {
+	url := fmt.Sprintf(c.channelsRoute()+"/members/%v/mark_read", userId)
+	buf, err := json.Marshal(channelIds)
+	if err != nil {
+		return nil, nil, NewAppError("ReadMultipleChannels", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, url, buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var ch *ChannelViewResponse
+	err = json.NewDecoder(r.Body).Decode(&ch)
+	if err != nil {
+		return nil, BuildResponse(r), NewAppError("ReadMultipleChannels", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return ch, BuildResponse(r), nil
 }
@@ -4113,6 +4210,21 @@ func (c *Client4) GetPostsBefore(ctx context.Context, channelId, postId string, 
 		return nil, nil, NewAppError("GetPostsBefore", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return &list, BuildResponse(r), nil
+}
+
+// MoveThread moves a thread based on provided post id, and channel id string.
+func (c *Client4) MoveThread(ctx context.Context, postId string, params *MoveThreadParams) (*Response, error) {
+	js, err := json.Marshal(params)
+	if err != nil {
+		return nil, NewAppError("MoveThread", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPost(ctx, c.postRoute(postId)+"/move", string(js))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
 }
 
 // GetPostsAroundLastUnread gets a list of posts around last unread post by a user in a channel.
@@ -5493,7 +5605,7 @@ func (c *Client4) GetGroupsAssociatedToChannelsByTeam(ctx context.Context, teamI
 // GetGroups retrieves Mattermost Groups
 func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group, *Response, error) {
 	path := fmt.Sprintf(
-		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v",
+		"%s?include_member_count=%v&not_associated_to_team=%v&not_associated_to_channel=%v&filter_allow_reference=%v&q=%v&filter_parent_team_permitted=%v&group_source=%v&include_channel_member_count=%v&include_timezones=%v&include_archived=%v&filter_archived=%v",
 		c.groupsRoute(),
 		opts.IncludeMemberCount,
 		opts.NotAssociatedToTeam,
@@ -5504,6 +5616,8 @@ func (c *Client4) GetGroups(ctx context.Context, opts GroupSearchOpts) ([]*Group
 		opts.Source,
 		opts.IncludeChannelMemberCount,
 		opts.IncludeTimezones,
+		opts.IncludeArchived,
+		opts.FilterArchived,
 	)
 	if opts.Since > 0 {
 		path = fmt.Sprintf("%s&since=%v", path, opts.Since)
@@ -5713,7 +5827,7 @@ func (c *Client4) GetLogs(ctx context.Context, page, perPage int) ([]string, *Re
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // PostLog is a convenience Web Service call so clients can log messages into
@@ -5904,6 +6018,36 @@ func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*Ac
 	}
 
 	return ar, BuildResponse(rp), nil
+}
+
+// OutgoingOAuthConnection section
+
+// GetOutgoingOAuthConnections retrieves the outgoing OAuth connections.
+func (c *Client4) GetOutgoingOAuthConnections(ctx context.Context, fromID string, limit int) ([]*OutgoingOAuthConnection, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionsRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var connections []*OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&connections); err != nil {
+		return nil, nil, NewAppError("GetOutgoingOAuthConnections", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return connections, BuildResponse(r), nil
+}
+
+// GetOutgoingOAuthConnection retrieves the outgoing OAuth connection with the given ID.
+func (c *Client4) GetOutgoingOAuthConnection(ctx context.Context, id string) (*OutgoingOAuthConnection, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionRoute(id), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var connection *OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&connection); err != nil {
+		return nil, nil, NewAppError("GetOutgoingOAuthConnection", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return connection, BuildResponse(r), nil
 }
 
 // Elasticsearch Section
@@ -6599,6 +6743,26 @@ func (c *Client4) GetSortedEmojiList(ctx context.Context, page, perPage int, sor
 	return list, BuildResponse(r), nil
 }
 
+// GetEmojisByNames takes an array of custom emoji names and returns an array of those emojis.
+func (c *Client4) GetEmojisByNames(ctx context.Context, names []string) ([]*Emoji, *Response, error) {
+	buf, err := json.Marshal(names)
+	if err != nil {
+		return nil, nil, NewAppError("GetEmojisByNames", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.emojisRoute()+"/names", buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var list []*Emoji
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetEmojisByNames", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // DeleteEmoji delete an custom emoji on the provided emoji id string.
 func (c *Client4) DeleteEmoji(ctx context.Context, emojiId string) (*Response, error) {
 	r, err := c.DoAPIDelete(ctx, c.emojiRoute(emojiId))
@@ -6756,21 +6920,6 @@ func (c *Client4) GetSupportedTimezone(ctx context.Context) ([]string, *Response
 	var timezones []string
 	json.NewDecoder(r.Body).Decode(&timezones)
 	return timezones, BuildResponse(r), nil
-}
-
-// Open Graph Metadata Section
-
-// OpenGraph return the open graph metadata for a particular url if the site have the metadata.
-func (c *Client4) OpenGraph(ctx context.Context, url string) (map[string]string, *Response, error) {
-	requestBody := make(map[string]string)
-	requestBody["url"] = url
-
-	r, err := c.DoAPIPost(ctx, c.openGraphRoute(), MapToJSON(requestBody))
-	if err != nil {
-		return nil, BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body), BuildResponse(r), nil
 }
 
 // Jobs Section
@@ -7782,7 +7931,7 @@ func (c *Client4) GetSidebarCategoryOrderForTeamForUser(ctx context.Context, use
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, userID, teamID string, order []string) ([]string, *Response, error) {
@@ -7796,7 +7945,7 @@ func (c *Client4) UpdateSidebarCategoryOrderForTeamForUser(ctx context.Context, 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) GetSidebarCategoryForTeamForUser(ctx context.Context, userID, teamID, categoryID, etag string) (*SidebarCategoryWithChannels, *Response, error) {
@@ -8002,6 +8151,52 @@ func (c *Client4) GetProductLimits(ctx context.Context) (*ProductLimits, *Respon
 	json.NewDecoder(r.Body).Decode(&productLimits)
 
 	return productLimits, BuildResponse(r), nil
+}
+
+func (c *Client4) GetIPFilters(ctx context.Context) (*AllowedIPRanges, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.ipFiltersRoute(), "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var allowedIPRanges *AllowedIPRanges
+	json.NewDecoder(r.Body).Decode(&allowedIPRanges)
+	return allowedIPRanges, BuildResponse(r), nil
+}
+
+func (c *Client4) ApplyIPFilters(ctx context.Context, allowedRanges *AllowedIPRanges) (*AllowedIPRanges, *Response, error) {
+	payload, err := json.Marshal(allowedRanges)
+	if err != nil {
+		return nil, nil, NewAppError("ApplyIPFilters", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	r, err := c.DoAPIPostBytes(ctx, c.ipFiltersRoute(), payload)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var allowedIPRanges *AllowedIPRanges
+	json.NewDecoder(r.Body).Decode(&allowedIPRanges)
+
+	return allowedIPRanges, BuildResponse(r), nil
+}
+
+func (c *Client4) GetMyIP(ctx context.Context) (*GetIPAddressResponse, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.ipFiltersRoute()+"/my_ip", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+
+	defer closeBody(r)
+
+	var response *GetIPAddressResponse
+	json.NewDecoder(r.Body).Decode(&response)
+
+	return response, BuildResponse(r), nil
 }
 
 func (c *Client4) CreateCustomerPayment(ctx context.Context) (*StripeSetupIntent, *Response, error) {
@@ -8210,7 +8405,7 @@ func (c *Client4) ListImports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) {
@@ -8219,7 +8414,7 @@ func (c *Client4) ListExports(ctx context.Context) ([]string, *Response, error) 
 		return nil, BuildResponse(r), err
 	}
 	defer closeBody(r)
-	return ArrayFromJSON(r.Body), BuildResponse(r), nil
+	return c.ArrayFromJSON(r.Body), BuildResponse(r), nil
 }
 
 func (c *Client4) DeleteExport(ctx context.Context, name string) (*Response, error) {
@@ -8650,4 +8845,20 @@ func (c *Client4) SubmitTrueUpReview(ctx context.Context, req map[string]any) (*
 	defer closeBody(r)
 
 	return BuildResponse(r), nil
+}
+
+func (c *Client4) GetUserLimits(ctx context.Context) (*UserLimits, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.limitsRoute()+"/users", "")
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var userLimits UserLimits
+	if r.StatusCode == http.StatusNotModified {
+		return &userLimits, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&userLimits); err != nil {
+		return nil, nil, NewAppError("GetUserLimits", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &userLimits, BuildResponse(r), nil
 }

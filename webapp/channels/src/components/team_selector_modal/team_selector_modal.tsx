@@ -3,19 +3,20 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {Team} from '@mattermost/types/teams';
 
-import {Team} from '@mattermost/types/teams';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
-
-import MultiSelect, {Value} from 'components/multiselect/multiselect';
 import ConfirmModal from 'components/confirm_modal';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import MultiSelect from 'components/multiselect/multiselect';
+import type {Value} from 'components/multiselect/multiselect';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
 
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import Constants, {ModalIdentifiers} from 'utils/constants';
 import {localizeMessage, imageURLForTeam} from 'utils/utils';
 
 const TEAMS_PER_PAGE = 50;
@@ -25,6 +26,7 @@ type TeamValue = (Team & Value);
 export type Props = {
     currentSchemeId?: string;
     alreadySelected?: string[];
+    intl: IntlShape;
     excludeGroupConstrained?: boolean;
     searchTerm: string;
     teams: Team[];
@@ -49,7 +51,7 @@ type State = {
     confirmAddTeam: any;
 };
 
-export default class TeamSelectorModal extends React.PureComponent<Props, State> {
+export class TeamSelectorModal extends React.PureComponent<Props, State> {
     private searchTimeoutId?: number;
     private selectedItemRef?: React.RefObject<HTMLDivElement> | undefined;
     private currentSchemeId?: string;
@@ -297,6 +299,7 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
                         key='addTeamsToSchemeKey'
                         options={teamsValues}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         selectedItemRef={this.selectedItemRef}
                         values={this.state.values}
                         valueRenderer={this.renderValue}
@@ -317,3 +320,5 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
         );
     }
 }
+
+export default injectIntl(TeamSelectorModal);

@@ -1,30 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
 import classNames from 'classnames';
-import {useDispatch, useSelector} from 'react-redux';
 import {noop} from 'lodash';
+import React, {useEffect, useState} from 'react';
+import {FormattedMessage, defineMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
 
-import {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {imageURLForTeam, localizeMessage} from 'utils/utils';
+import type {Team} from '@mattermost/types/teams';
 
-import {Team} from '@mattermost/types/teams';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
+
 import {openModal} from 'actions/views/modals';
 
 import useGetUsage from 'components/common/hooks/useGetUsage';
+import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
+import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import OverlayTrigger from 'components/overlay_trigger';
 import PricingModal from 'components/pricing_modal';
 import Tooltip from 'components/tooltip';
-import OverlayTrigger from 'components/overlay_trigger';
-import useGetUsageDeltas from 'components/common/hooks/useGetUsageDeltas';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
-import ArchiveIcon from 'components/widgets/icons/archive_icon';
-import UnarchiveIcon from 'components/widgets/icons/unarchive_icon';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
+
+import {ModalIdentifiers} from 'utils/constants';
+import {imageURLForTeam} from 'utils/utils';
 
 import './team_profile.scss';
 
@@ -42,6 +41,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
     const dispatch = useDispatch();
     const usage = useGetUsage();
     const license = useSelector(getLicense);
+    const intl = useIntl();
 
     const [overrideRestoreDisabled, setOverrideRestoreDisabled] = useState(false);
     const [restoreDisabled, setRestoreDisabled] = useState(usageDeltas.teams.teamsLoaded && usageDeltas.teams.active >= 0 && isArchived);
@@ -55,15 +55,9 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
         return null;//
     }
 
-    let archiveBtnID: string;
-    let archiveBtnDefault: string;
-    if (isArchived) {
-        archiveBtnID = t('admin.team_settings.team_details.unarchiveTeam');
-        archiveBtnDefault = 'Unarchive Team';
-    } else {
-        archiveBtnID = t('admin.team_settings.team_details.archiveTeam');
-        archiveBtnDefault = 'Archive Team';
-    }
+    const archiveBtn = isArchived ?
+        defineMessage({id: 'admin.team_settings.team_details.unarchiveTeam', defaultMessage: 'Unarchive Team'}) :
+        defineMessage({id: 'admin.team_settings.team_details.archiveTeam', defaultMessage: 'Archive Team'});
 
     const toggleArchive = () => {
         setOverrideRestoreDisabled(true);
@@ -104,7 +98,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                             className={
                                 classNames(
                                     'btn',
-                                    'btn-secondary',
+                                    'btn-danger',
                                     'ArchiveButton',
                                     {ArchiveButton___archived: isArchived},
                                     {ArchiveButton___unarchived: !isArchived},
@@ -115,16 +109,11 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                             onClick={noop}
                         >
                             {isArchived ? (
-                                <UnarchiveIcon
-                                    className='channel-icon channel-icon__unarchive'
-                                />
+                                <i className='icon icon-archive-arrow-up-outline'/>
                             ) : (
-                                <ArchiveIcon className='channel-icon channel-icon__archive'/>
+                                <i className='icon icon-archive-outline'/>
                             )}
-                            <FormattedMessage
-                                id={archiveBtnID}
-                                defaultMessage={archiveBtnDefault}
-                            />
+                            <FormattedMessage {...archiveBtn}/>
                         </button>
                     </div>
                 </OverlayTrigger>
@@ -138,7 +127,6 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                 className={
                     classNames(
                         'btn',
-                        'btn-secondary',
                         'ArchiveButton',
                         {ArchiveButton___archived: isArchived},
                         {ArchiveButton___unarchived: !isArchived},
@@ -149,16 +137,11 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                 onClick={toggleArchive}
             >
                 {isArchived ? (
-                    <UnarchiveIcon
-                        className='channel-icon channel-icon__unarchive'
-                    />
+                    <i className='icon icon-archive-arrow-up-outline'/>
                 ) : (
-                    <ArchiveIcon className='channel-icon channel-icon__archive'/>
+                    <i className='icon icon-archive-outline'/>
                 )}
-                <FormattedMessage
-                    id={archiveBtnID}
-                    defaultMessage={archiveBtnDefault}
-                />
+                <FormattedMessage {...archiveBtn}/>
             </button>
         );
     };
@@ -166,10 +149,8 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
     return (
         <AdminPanel
             id='team_profile'
-            titleId={t('admin.team_settings.team_detail.profileTitle')}
-            titleDefault='Team Profile'
-            subtitleId={t('admin.team_settings.team_detail.profileDescription')}
-            subtitleDefault='Summary of the team, including team name and description.'
+            title={defineMessage({id: 'admin.team_settings.team_detail.profileTitle', defaultMessage: 'Team Profile'})}
+            subtitle={defineMessage({id: 'admin.team_settings.team_detail.profileDescription', defaultMessage: 'Summary of the team, including team name and description.'})}
         >
 
             <div className='group-teams-and-channels'>
@@ -198,7 +179,7 @@ export function TeamProfile({team, isArchived, onToggleArchive, isDisabled, save
                                     defaultMessage='**Team Description**:'
                                 />
                                 <br/>
-                                {team.description || <span className='greyed-out'>{localizeMessage('admin.team_settings.team_detail.profileNoDescription', 'No team description added.')}</span>}
+                                {team.description || <span className='greyed-out'>{intl.formatMessage({id: 'admin.team_settings.team_detail.profileNoDescription', defaultMessage: 'No team description added.'})}</span>}
                             </div>
                         </div>
                     </div>

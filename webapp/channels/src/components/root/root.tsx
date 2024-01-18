@@ -1,59 +1,70 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import deepEqual from 'fast-deep-equal';
-import {Route, Switch, Redirect, RouteComponentProps} from 'react-router-dom';
-import throttle from 'lodash/throttle';
 import classNames from 'classnames';
+import deepEqual from 'fast-deep-equal';
+import React from 'react';
+import {Route, Switch, Redirect} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
+import {ServiceEnvironment} from '@mattermost/types/config';
+import type {UserProfile} from '@mattermost/types/users';
+
+import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
+import {setUrl} from 'mattermost-redux/actions/general';
 import {Client4} from 'mattermost-redux/client';
 import {rudderAnalytics, RudderTelemetryHandler} from 'mattermost-redux/client/rudder';
 import {General} from 'mattermost-redux/constants';
-import {Theme, getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
-import {setUrl} from 'mattermost-redux/actions/general';
-import {setSystemEmojis} from 'mattermost-redux/actions/emojis';
-
-import {ProductComponent, PluginComponent} from 'types/store/plugins';
+import {getCurrentUser, isCurrentUserSystemAdmin, checkIsFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {loadRecentlyUsedCustomEmojis} from 'actions/emoji_actions';
 import * as GlobalActions from 'actions/global_actions';
-import {measurePageLoadTelemetry, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
-
-import SidebarRight from 'components/sidebar_right';
-import AppBar from 'components/app_bar/app_bar';
-import SidebarRightMenu from 'components/sidebar_right_menu';
-import AnnouncementBarController from 'components/announcement_bar';
-import SystemNotice from 'components/system_notice';
-
-import {makeAsyncComponent} from 'components/async_load';
-import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
-import GlobalHeader from 'components/global_header/global_header';
-import CloudEffects from 'components/cloud_effects';
-import ModalController from 'components/modal_controller';
-import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
-import {HFRoute} from 'components/header_footer_route/header_footer_route';
-import LaunchingWorkspace, {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
-import {Animations} from 'components/preparing_workspace/steps';
-import OpenPricingModalPost from 'components/custom_open_pricing_modal_post_renderer';
-import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
+import {measurePageLoadTelemetry, temporarilySetPageLoadContext, trackEvent, trackSelectorMetrics} from 'actions/telemetry_actions.jsx';
+import BrowserStore from 'stores/browser_store';
+import store from 'stores/redux_store';
 
 import AccessProblem from 'components/access_problem';
+import AnnouncementBarController from 'components/announcement_bar';
+import AppBar from 'components/app_bar/app_bar';
+import {makeAsyncComponent} from 'components/async_load';
+import CloudEffects from 'components/cloud_effects';
+import CompassThemeProvider from 'components/compass_theme_provider/compass_theme_provider';
+import OpenPluginInstallPost from 'components/custom_open_plugin_install_post_renderer';
+import OpenPricingModalPost from 'components/custom_open_pricing_modal_post_renderer';
+import GlobalHeader from 'components/global_header/global_header';
+import {HFRoute} from 'components/header_footer_route/header_footer_route';
+import {HFTRoute, LoggedInHFTRoute} from 'components/header_footer_template_route';
+import MobileViewWatcher from 'components/mobile_view_watcher';
+import ModalController from 'components/modal_controller';
+import LaunchingWorkspace, {LAUNCHING_WORKSPACE_FULLSCREEN_Z_INDEX} from 'components/preparing_workspace/launching_workspace';
+import {Animations} from 'components/preparing_workspace/steps';
+import SidebarRight from 'components/sidebar_right';
+import SidebarRightMenu from 'components/sidebar_right_menu';
+import SystemNotice from 'components/system_notice';
+import TeamSidebar from 'components/team_sidebar';
+import WindowSizeObserver from 'components/window_size_observer/WindowSizeObserver';
 
+import webSocketClient from 'client/web_websocket_client';
 import {initializePlugins} from 'plugins';
 import Pluggable from 'plugins/pluggable';
-
-import BrowserStore from 'stores/browser_store';
-
-import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
+import A11yController from 'utils/a11y_controller';
+import {PageLoadContext, StoragePrefixes} from 'utils/constants';
 import {EmojiIndicesByAlias} from 'utils/emoji';
+import {TEAM_NAME_PATH_PATTERN} from 'utils/path';
+import {getSiteURL} from 'utils/url';
 import * as UserAgent from 'utils/user_agent';
 import * as Utils from 'utils/utils';
 
-import webSocketClient from 'client/web_websocket_client.jsx';
+import type {ProductComponent, PluginComponent} from 'types/store/plugins';
+
+import {applyLuxonDefaults} from './effects';
+import RootProvider from './root_provider';
+import RootRedirect from './root_redirect';
 
 import 'plugins/export.js';
 
@@ -75,23 +86,7 @@ const LazyCreateTeam = React.lazy(() => import('components/create_team'));
 const LazyMfa = React.lazy(() => import('components/mfa/mfa_controller'));
 const LazyPreparingWorkspace = React.lazy(() => import('components/preparing_workspace'));
 const LazyTeamController = React.lazy(() => import('components/team_controller'));
-const LazyDelinquencyModalController = React.lazy(() => import('components/delinquency_modal'));
 const LazyOnBoardingTaskList = React.lazy(() => import('components/onboarding_tasklist'));
-
-import store from 'stores/redux_store.jsx';
-import {getSiteURL} from 'utils/url';
-import A11yController from 'utils/a11y_controller';
-import TeamSidebar from 'components/team_sidebar';
-
-import {UserProfile} from '@mattermost/types/users';
-
-import {ActionResult} from 'mattermost-redux/types/actions';
-
-import {applyLuxonDefaults} from './effects';
-
-import RootProvider from './root_provider';
-import RootRedirect from './root_redirect';
-import {ServiceEnvironment} from '@mattermost/types/config';
 
 const CreateTeam = makeAsyncComponent('CreateTeam', LazyCreateTeam);
 const ErrorPage = makeAsyncComponent('ErrorPage', LazyErrorPage);
@@ -111,25 +106,25 @@ const Authorize = makeAsyncComponent('Authorize', LazyAuthorize);
 const Mfa = makeAsyncComponent('Mfa', LazyMfa);
 const PreparingWorkspace = makeAsyncComponent('PreparingWorkspace', LazyPreparingWorkspace);
 const TeamController = makeAsyncComponent('TeamController', LazyTeamController);
-const DelinquencyModalController = makeAsyncComponent('DelinquencyModalController', LazyDelinquencyModalController);
 const OnBoardingTaskList = makeAsyncComponent('OnboardingTaskList', LazyOnBoardingTaskList);
 
-type LoggedInRouteProps<T> = {
-    component: React.ComponentType<T>;
-    path: string;
+type LoggedInRouteProps = {
+    component: React.ComponentType<RouteComponentProps<any>>;
+    path: string | string[];
     theme?: Theme; // the routes that send the theme are the ones that will actually need to show the onboarding tasklist
 };
-function LoggedInRoute<T>(props: LoggedInRouteProps<T>) {
+
+function LoggedInRoute(props: LoggedInRouteProps) {
     const {component: Component, theme, ...rest} = props;
     return (
         <Route
             {...rest}
-            render={(routeProps: RouteComponentProps) => (
+            render={(routeProps) => (
                 <LoggedIn {...routeProps}>
                     {theme && <CompassThemeProvider theme={theme}>
                         <OnBoardingTaskList/>
                     </CompassThemeProvider>}
-                    <Component {...(routeProps as unknown as T)}/>
+                    <Component {...(routeProps)}/>
                 </LoggedIn>
             )}
         />
@@ -139,13 +134,12 @@ function LoggedInRoute<T>(props: LoggedInRouteProps<T>) {
 const noop = () => {};
 
 export type Actions = {
-    emitBrowserWindowResized: (size?: string) => void;
     getFirstAdminSetupComplete: () => Promise<ActionResult>;
     getProfiles: (page?: number, pageSize?: number, options?: Record<string, any>) => Promise<ActionResult>;
     migrateRecentEmojis: () => void;
-    loadConfigAndMe: () => Promise<{data: boolean}>;
+    loadConfigAndMe: () => Promise<ActionResult>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
-    initializeProducts: () => Promise<void[]>;
+    initializeProducts: () => Promise<ActionResult[]>;
 }
 
 type Props = {
@@ -170,10 +164,6 @@ interface State {
 }
 
 export default class Root extends React.PureComponent<Props, State> {
-    private desktopMediaQuery: MediaQueryList;
-    private smallDesktopMediaQuery: MediaQueryList;
-    private tabletMediaQuery: MediaQueryList;
-    private mobileMediaQuery: MediaQueryList;
     private mounted: boolean;
 
     // The constructor adds a bunch of event listeners,
@@ -215,14 +205,6 @@ export default class Root extends React.PureComponent<Props, State> {
         };
 
         this.a11yController = new A11yController();
-
-        // set initial window size state
-        this.desktopMediaQuery = window.matchMedia(`(min-width: ${Constants.DESKTOP_SCREEN_WIDTH + 1}px)`);
-        this.smallDesktopMediaQuery = window.matchMedia(`(min-width: ${Constants.TABLET_SCREEN_WIDTH + 1}px) and (max-width: ${Constants.DESKTOP_SCREEN_WIDTH}px)`);
-        this.tabletMediaQuery = window.matchMedia(`(min-width: ${Constants.MOBILE_SCREEN_WIDTH + 1}px) and (max-width: ${Constants.TABLET_SCREEN_WIDTH}px)`);
-        this.mobileMediaQuery = window.matchMedia(`(max-width: ${Constants.MOBILE_SCREEN_WIDTH}px)`);
-
-        this.updateWindowSize();
 
         store.subscribe(() => applyLuxonDefaults(store.getState()));
     }
@@ -308,7 +290,7 @@ export default class Root extends React.PureComponent<Props, State> {
         });
 
         this.props.actions.migrateRecentEmojis();
-        loadRecentlyUsedCustomEmojis()(store.dispatch, store.getState);
+        store.dispatch(loadRecentlyUsedCustomEmojis());
 
         const iosDownloadLink = getConfig(store.getState()).IosAppDownloadLink;
         const androidDownloadLink = getConfig(store.getState()).AndroidAppDownloadLink;
@@ -433,6 +415,8 @@ export default class Root extends React.PureComponent<Props, State> {
     };
 
     componentDidMount() {
+        temporarilySetPageLoadContext(PageLoadContext.PAGE_LOAD);
+
         this.mounted = true;
 
         this.initiateMeRequests();
@@ -441,20 +425,6 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.actions.registerCustomPostRenderer('custom_up_notification', OpenPricingModalPost, 'upgrade_post_message_renderer');
         this.props.actions.registerCustomPostRenderer('custom_pl_notification', OpenPluginInstallPost, 'plugin_install_post_message_renderer');
 
-        if (this.desktopMediaQuery.addEventListener) {
-            this.desktopMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
-            this.smallDesktopMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
-            this.tabletMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
-            this.mobileMediaQuery.addEventListener('change', this.handleMediaQueryChangeEvent);
-        } else if (this.desktopMediaQuery.addListener) {
-            this.desktopMediaQuery.addListener(this.handleMediaQueryChangeEvent);
-            this.smallDesktopMediaQuery.addListener(this.handleMediaQueryChangeEvent);
-            this.tabletMediaQuery.addListener(this.handleMediaQueryChangeEvent);
-            this.mobileMediaQuery.addListener(this.handleMediaQueryChangeEvent);
-        } else {
-            window.addEventListener('resize', this.handleWindowResizeEvent);
-        }
-
         measurePageLoadTelemetry();
         trackSelectorMetrics();
     }
@@ -462,20 +432,6 @@ export default class Root extends React.PureComponent<Props, State> {
     componentWillUnmount() {
         this.mounted = false;
         window.removeEventListener('storage', this.handleLogoutLoginSignal);
-
-        if (this.desktopMediaQuery.removeEventListener) {
-            this.desktopMediaQuery.removeEventListener('change', this.handleMediaQueryChangeEvent);
-            this.smallDesktopMediaQuery.removeEventListener('change', this.handleMediaQueryChangeEvent);
-            this.tabletMediaQuery.removeEventListener('change', this.handleMediaQueryChangeEvent);
-            this.mobileMediaQuery.removeEventListener('change', this.handleMediaQueryChangeEvent);
-        } else if (this.desktopMediaQuery.removeListener) {
-            this.desktopMediaQuery.removeListener(this.handleMediaQueryChangeEvent);
-            this.smallDesktopMediaQuery.removeListener(this.handleMediaQueryChangeEvent);
-            this.tabletMediaQuery.removeListener(this.handleMediaQueryChangeEvent);
-            this.mobileMediaQuery.removeListener(this.handleMediaQueryChangeEvent);
-        } else {
-            window.removeEventListener('resize', this.handleWindowResizeEvent);
-        }
     }
 
     handleLogoutLoginSignal = (e: StorageEvent) => {
@@ -503,16 +459,6 @@ export default class Root extends React.PureComponent<Props, State> {
         }
     };
 
-    handleWindowResizeEvent = throttle(() => {
-        this.props.actions.emitBrowserWindowResized();
-    }, 100);
-
-    handleMediaQueryChangeEvent = (e: MediaQueryListEvent) => {
-        if (e.matches) {
-            this.updateWindowSize();
-        }
-    };
-
     setRootMeta = () => {
         const root = document.getElementById('root')!;
 
@@ -525,23 +471,6 @@ export default class Root extends React.PureComponent<Props, State> {
         }
     };
 
-    updateWindowSize = () => {
-        switch (true) {
-        case this.desktopMediaQuery.matches:
-            this.props.actions.emitBrowserWindowResized(WindowSizes.DESKTOP_VIEW);
-            break;
-        case this.smallDesktopMediaQuery.matches:
-            this.props.actions.emitBrowserWindowResized(WindowSizes.SMALL_DESKTOP_VIEW);
-            break;
-        case this.tabletMediaQuery.matches:
-            this.props.actions.emitBrowserWindowResized(WindowSizes.TABLET_VIEW);
-            break;
-        case this.mobileMediaQuery.matches:
-            this.props.actions.emitBrowserWindowResized(WindowSizes.MOBILE_VIEW);
-            break;
-        }
-    };
-
     render() {
         if (!this.state.configLoaded) {
             return <div/>;
@@ -549,6 +478,7 @@ export default class Root extends React.PureComponent<Props, State> {
 
         return (
             <RootProvider>
+                <MobileViewWatcher/>
                 <Switch>
                     <Route
                         path={'/error'}
@@ -644,13 +574,13 @@ export default class Root extends React.PureComponent<Props, State> {
                                 transitionDirection={Animations.Reasons.EnterFromBefore}
                             />
                         )}
+                        <WindowSizeObserver/>
                         <ModalController/>
                         <AnnouncementBarController/>
                         <SystemNotice/>
                         <GlobalHeader/>
                         <CloudEffects/>
                         <TeamSidebar/>
-                        <DelinquencyModalController/>
                         <Switch>
                             {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
                                 <Route
@@ -713,7 +643,7 @@ export default class Root extends React.PureComponent<Props, State> {
                             ))}
                             <LoggedInRoute
                                 theme={this.props.theme}
-                                path={'/:team'}
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})`}
                                 component={TeamController}
                             />
                             <RootRedirect/>

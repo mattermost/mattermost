@@ -3,10 +3,10 @@
 
 import React, {memo, useCallback, useEffect, useMemo} from 'react';
 import AutoSizer from 'react-virtualized-auto-sizer';
-import InfiniteLoader from 'react-window-infinite-loader';
 import {FixedSizeList} from 'react-window';
+import InfiniteLoader from 'react-window-infinite-loader';
 
-import {UserThread} from '@mattermost/types/threads';
+import type {UserThread} from '@mattermost/types/threads';
 
 import {Constants} from 'utils/constants';
 

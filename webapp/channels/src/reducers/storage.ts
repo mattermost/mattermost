@@ -3,11 +3,11 @@
 
 import localForage from 'localforage';
 import {combineReducers} from 'redux';
-import {createMigrate, MigrationManifest, PersistedState, persistReducer, REHYDRATE} from 'redux-persist';
-
-import {General} from 'mattermost-redux/constants';
+import {createMigrate, persistReducer, REHYDRATE} from 'redux-persist';
+import type {MigrationManifest, PersistedState} from 'redux-persist';
 
 import {UserTypes} from 'mattermost-redux/action_types';
+import {General} from 'mattermost-redux/constants';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {StoragePrefixes, StorageTypes} from 'utils/constants';

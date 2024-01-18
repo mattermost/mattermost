@@ -42,6 +42,21 @@ function getColorForWorkspace(workspace) {
     return index === -1 ? chalk.white : workspaceColors[index % workspaceColors.length];
 }
 
+/**
+ * @param {import("concurrently").CloseEvent[]} closeEvents - An array of CloseEvents thrown by concurrently when waiting on a result
+ * @param {number} codeOnSignal - Which error code to return when the process is interrupted
+ */
+function getExitCode(closeEvents, codeOnSignal = 1) {
+    const exitCode = closeEvents.find((event) => !event.killed && event.exitCode > 0)?.exitCode;
+
+    if (typeof exitCode === 'string') {
+        return codeOnSignal
+    } else {
+        return exitCode;
+    }
+}
+
 module.exports = {
+    getExitCode,
     getPlatformCommands,
 };

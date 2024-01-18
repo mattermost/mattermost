@@ -3,14 +3,14 @@
 
 import React from 'react';
 
-import {WebSocketClient} from '@mattermost/client';
+import type {WebSocketClient} from '@mattermost/client';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
-import {ProductComponent} from 'types/store/plugins';
-import {GlobalState} from 'types/store';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import webSocketClient from 'client/web_websocket_client';
+
+import type {GlobalState} from 'types/store';
+import type {ProductComponent} from 'types/store/plugins';
 
 import PluggableErrorBoundary from './error_boundary';
 

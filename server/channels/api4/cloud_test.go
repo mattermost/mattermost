@@ -154,7 +154,7 @@ func Test_GetSubscription(t *testing.T) {
 		ProductID:       "SomeProductId",
 		AddOns:          []string{},
 		StartAt:         0,
-		EndAt:           0,
+		EndAt:           2000000000,
 		CreateAt:        0,
 		Seats:           0,
 		IsFreeTrial:     "true",
@@ -329,7 +329,6 @@ func Test_requestTrial(t *testing.T) {
 }
 
 func Test_validateBusinessEmail(t *testing.T) {
-
 	t.Run("Returns forbidden for invalid business email", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()

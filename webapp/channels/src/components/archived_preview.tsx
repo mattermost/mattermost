@@ -5,8 +5,7 @@ import React from 'react';
 import {useIntl} from 'react-intl';
 
 import {ArchiveOutlineIcon} from '@mattermost/compass-icons/components';
-
-import {FileInfo} from '@mattermost/types/files';
+import type {FileInfo} from '@mattermost/types/files';
 
 interface Props {
     fileInfo: FileInfo;

@@ -6,12 +6,14 @@ import {General} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCategory, makeGetChannelIdsForCategory} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {insertMultipleWithoutDuplicates} from 'mattermost-redux/utils/array_utils';
 
 import {getCategoriesForCurrentTeam, getChannelsInCategoryOrder, getDisplayedChannels} from 'selectors/views/channel_sidebar';
-import {DraggingState, GlobalState} from 'types/store';
+
 import {ActionTypes} from 'utils/constants';
+
+import type {DraggingState, GlobalState} from 'types/store';
 
 export function setUnreadFilterEnabled(enabled: boolean) {
     return {
@@ -31,8 +33,8 @@ export function stopDragging() {
     return {type: ActionTypes.SIDEBAR_DRAGGING_STOP};
 }
 
-export function createCategory(teamId: string, displayName: string, channelIds?: string[]) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function createCategory(teamId: string, displayName: string, channelIds?: string[]): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         if (channelIds) {
             const state = getState() as GlobalState;
             const multiSelectedChannelIds = state.views.channelSidebar.multiSelectedChannelIds;

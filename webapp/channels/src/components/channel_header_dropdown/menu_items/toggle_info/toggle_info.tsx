@@ -3,9 +3,11 @@
 
 import React from 'react';
 
-import {Channel} from '@mattermost/types/channels';
-import {localizeMessage} from 'utils/utils';
+import type {Channel} from '@mattermost/types/channels';
+
 import Menu from 'components/widgets/menu/menu';
+
+import {localizeMessage} from 'utils/utils';
 
 type Action = {
     closeRightHandSide: () => void;

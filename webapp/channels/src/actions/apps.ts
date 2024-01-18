@@ -1,28 +1,36 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction, Action as ReduxAction} from 'redux';
+import type {ThunkAction} from 'redux-thunk';
+
+import type {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
+import type {CommandArgs} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+
 import {Client4} from 'mattermost-redux/client';
-import {Action, ActionFunc, DispatchFunc} from 'mattermost-redux/types/actions';
-import {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {Post} from '@mattermost/types/posts';
-import {CommandArgs} from '@mattermost/types/integrations';
+import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {openModal} from 'actions/views/modals';
 
 import AppsForm from 'components/apps_form';
 
+import {createCallRequest, makeCallErrorResponse} from 'utils/apps';
+import {getHistory} from 'utils/browser_history';
 import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
-import {getHistory} from 'utils/browser_history';
-import {createCallRequest, makeCallErrorResponse} from 'utils/apps';
 
-import {cleanForm} from 'mattermost-redux/utils/apps';
+import type {DoAppCallResult} from 'types/apps';
+import type {GlobalState} from 'types/store';
 
 import {sendEphemeralPost} from './global_actions';
 
-export function handleBindingClick<Res=unknown>(binding: AppBinding, context: AppContext, intl: any): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export type AppsActionFunc<Res = unknown> = ThunkAction<Promise<Res>, GlobalState, unknown, ReduxAction>;
+
+export function handleBindingClick<Res=unknown>(binding: AppBinding, context: AppContext, intl: any): AppsActionFunc<DoAppCallResult<Res>> {
+    return async (dispatch) => {
         // Fetch form
         let form = binding.form;
         if (form?.source) {
@@ -31,7 +39,7 @@ export function handleBindingClick<Res=unknown>(binding: AppBinding, context: Ap
             if (res.error) {
                 return res;
             }
-            form = res.data.form;
+            form = res.data!.form;
         }
 
         // Open form
@@ -45,7 +53,7 @@ export function handleBindingClick<Res=unknown>(binding: AppBinding, context: Ap
                 return {error: makeCallErrorResponse(errMsg)};
             }
 
-            const res: AppCallResponse = {
+            const res: AppCallResponse<Res> = {
                 type: AppCallResponseTypes.FORM,
                 form,
             };
@@ -72,7 +80,7 @@ export function handleBindingClick<Res=unknown>(binding: AppBinding, context: Ap
     };
 }
 
-export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): ActionFunc {
+export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): ThunkAction<Promise<DoAppCallResult<Res>>, GlobalState, unknown, ReduxAction> {
     return async () => {
         try {
             const call: AppCallRequest = {
@@ -114,9 +122,7 @@ export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): Act
                     window.open(res.navigate_to_url);
                     return {data: res};
                 }
-                const navigateURL = res.navigate_to_url.startsWith(getSiteURL()) ?
-                    res.navigate_to_url.slice(getSiteURL().length) :
-                    res.navigate_to_url;
+                const navigateURL = res.navigate_to_url.startsWith(getSiteURL()) ? res.navigate_to_url.slice(getSiteURL().length) : res.navigate_to_url;
                 getHistory().push(navigateURL);
                 return {data: res};
             }
@@ -138,7 +144,7 @@ export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): Act
     };
 }
 
-export function doAppFetchForm<Res=unknown>(call: AppCallRequest, intl: any): ActionFunc {
+export function doAppFetchForm<Res=unknown>(call: AppCallRequest, intl: any): ThunkAction<Promise<DoAppCallResult<Res>>, GlobalState, unknown, ReduxAction> {
     return async () => {
         try {
             const res = await Client4.executeAppCall(call, false) as AppCallResponse<Res>;
@@ -175,7 +181,7 @@ export function doAppFetchForm<Res=unknown>(call: AppCallRequest, intl: any): Ac
     };
 }
 
-export function doAppLookup<Res=unknown>(call: AppCallRequest, intl: any): ActionFunc {
+export function doAppLookup<Res=unknown>(call: AppCallRequest, intl: any): ThunkAction<Promise<DoAppCallResult<Res>>, GlobalState, unknown, ReduxAction> {
     return async () => {
         try {
             const res = await Client4.executeAppCall(call, false) as AppCallResponse<Res>;
@@ -205,8 +211,8 @@ export function doAppLookup<Res=unknown>(call: AppCallRequest, intl: any): Actio
     };
 }
 
-export function makeFetchBindings(location: string): (channelId: string, teamId: string) => ActionFunc {
-    return (channelId: string, teamId: string): ActionFunc => {
+export function makeFetchBindings(location: string): (channelId: string, teamId: string) => NewActionFuncAsync<AppBinding[]> {
+    return (channelId: string, teamId: string): NewActionFuncAsync<AppBinding[]> => {
         return async () => {
             try {
                 const allBindings = await Client4.getAppsBindings(channelId, teamId);
@@ -220,7 +226,7 @@ export function makeFetchBindings(location: string): (channelId: string, teamId:
     };
 }
 
-export function openAppsModal(form: AppForm, context: AppContext): Action {
+export function openAppsModal(form: AppForm, context: AppContext): AnyAction {
     return openModal({
         modalId: ModalIdentifiers.APPS_MODAL,
         dialogType: AppsForm,

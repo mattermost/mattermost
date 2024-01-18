@@ -43,7 +43,7 @@ declare namespace Cypress {
          * @example
          *   cy.apiGetBots();
          */
-        apiGetBots(page: number, perPage: number, includeDeleted: boolean): Chainable<{bots: Bot[]}>;
+        apiGetBots(page?: number, perPage?: number, includeDeleted?: boolean): Chainable<{bots: Bot[]}>;
 
         /**
          * Disable bot.

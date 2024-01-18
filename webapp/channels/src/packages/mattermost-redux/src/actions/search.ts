@@ -3,29 +3,26 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import {Client4} from 'mattermost-redux/client';
+import type {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
+import type {PostList, PostSearchResults} from '@mattermost/types/posts';
+import type {SearchParameter} from '@mattermost/types/search';
+
 import {SearchTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-
-import {ActionResult, DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
-
-import {PostList} from '@mattermost/types/posts';
-
-import {FileSearchResults, FileSearchResultItem} from '@mattermost/types/files';
-
-import {SearchParameter} from '@mattermost/types/search';
+import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, NewActionFuncAsync, NewActionFuncOldVariantDoNotUse} from 'mattermost-redux/types/actions';
 
 import {getChannelAndMyMember, getChannelMembers} from './channels';
-import {forceLogoutIfNecessary} from './helpers';
 import {logError} from './errors';
-import {getProfilesAndStatusesForPosts, receivedPosts} from './posts';
 import {receivedFiles} from './files';
+import {forceLogoutIfNecessary} from './helpers';
+import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
 
 const WEBAPP_SEARCH_PER_PAGE = 20;
 
-export function getMissingChannelsFromPosts(posts: PostList['posts']): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingChannelsFromPosts(posts: PostList['posts']): NewActionFuncOldVariantDoNotUse {
+    return async (dispatch, getState) => {
         const {
             channels,
             membersInChannel,
@@ -70,8 +67,8 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
     };
 }
 
-export function searchPostsWithParams(teamId: string, params: SearchParameter): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchPostsWithParams(teamId: string, params: SearchParameter): NewActionFuncAsync<PostSearchResults> {
+    return async (dispatch, getState) => {
         const isGettingMore = params.page > 0;
         dispatch({
             type: SearchTypes.SEARCH_POSTS_REQUEST,
@@ -82,9 +79,9 @@ export function searchPostsWithParams(teamId: string, params: SearchParameter): 
         try {
             posts = await Client4.searchPostsWithParams(teamId, params);
 
-            const profilesAndStatuses = getProfilesAndStatusesForPosts(posts.posts, dispatch, getState);
+            const profilesAndStatuses = getMentionsAndStatusesForPosts(posts.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(posts.posts));
-            const arr: [Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels];
+            const arr = [profilesAndStatuses, missingChannels];
             await Promise.all(arr);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
@@ -120,8 +117,8 @@ export function searchPosts(teamId: string, terms: string, isOrSearch: boolean, 
     return searchPostsWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
 }
 
-export function getMorePostsForSearch(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMorePostsForSearch(): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const teamId = getCurrentTeamId(getState());
         const {params, isEnd} = getState().entities.search.current[teamId];
         if (!isEnd) {
@@ -213,7 +210,7 @@ export function getFlaggedPosts(): ActionFunc {
         try {
             posts = await Client4.getFlaggedPosts(userId);
 
-            await Promise.all([getProfilesAndStatusesForPosts(posts.posts, dispatch, getState) as any, dispatch(getMissingChannelsFromPosts(posts.posts)) as any]);
+            await Promise.all([getMentionsAndStatusesForPosts(posts.posts, dispatch, getState), dispatch(getMissingChannelsFromPosts(posts.posts))]);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch({type: SearchTypes.SEARCH_FLAGGED_POSTS_FAILURE, error});
@@ -244,7 +241,7 @@ export function getPinnedPosts(channelId: string): ActionFunc {
         try {
             result = await Client4.getPinnedPosts(channelId);
 
-            const profilesAndStatuses = getProfilesAndStatusesForPosts(result.posts, dispatch, getState);
+            const profilesAndStatuses = getMentionsAndStatusesForPosts(result.posts, dispatch, getState);
             const missingChannels = dispatch(getMissingChannelsFromPosts(result.posts));
             const arr: [Promise<any>, Promise<any>] = [profilesAndStatuses, missingChannels];
             await Promise.all(arr);

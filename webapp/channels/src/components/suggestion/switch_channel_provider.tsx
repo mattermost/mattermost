@@ -1,21 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {connect} from 'react-redux';
 import classNames from 'classnames';
+import React from 'react';
+import {connect, useSelector} from 'react-redux';
 
-import {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {Channel, ChannelMembership, ChannelType} from '@mattermost/types/channels';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes} from 'mattermost-redux/action_types';
+import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
+import {logError} from 'mattermost-redux/actions/errors';
 import {Client4} from 'mattermost-redux/client';
+import {Preferences} from 'mattermost-redux/constants';
 import {
     getDirectAndGroupChannels,
     getGroupChannels,
@@ -27,15 +27,15 @@ import {
     getSortedAllTeamsUnreadChannels,
     getAllTeamsUnreadChannelIds,
 } from 'mattermost-redux/selectors/entities/channels';
-
-import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getMyPreferences, isGroupChannelManuallyVisible, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getActiveTeamsList,
     getCurrentTeamId,
     getMyTeams,
     getTeam,
 } from 'mattermost-redux/selectors/entities/teams';
+import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
 import {
     getCurrentUserId,
     getUserIdsInChannels,
@@ -43,27 +43,30 @@ import {
     makeSearchProfilesMatchingWithTerm,
     getStatusForUserId,
 } from 'mattermost-redux/selectors/entities/users';
-import {fetchAllMyTeamsChannelsAndChannelMembersREST, searchAllChannels} from 'mattermost-redux/actions/channels';
-import {getThreadCountsInCurrentTeam} from 'mattermost-redux/selectors/entities/threads';
-import {logError} from 'mattermost-redux/actions/errors';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {sortChannelsByTypeAndDisplayName, isChannelMuted} from 'mattermost-redux/utils/channel_utils';
-import SharedChannelIndicator from 'components/shared_channel_indicator';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+import {isGuest} from 'mattermost-redux/utils/user_utils';
+
+import {getPostDraft} from 'selectors/rhs';
+import globalStore from 'stores/redux_store';
+
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
 import ProfilePicture from 'components/profile_picture';
-import {getPostDraft} from 'selectors/rhs';
-import store from 'stores/redux_store.jsx';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
 import {Constants, StoragePrefixes} from 'utils/constants';
 import * as Utils from 'utils/utils';
-import {isGuest} from 'mattermost-redux/utils/user_utils';
-import {Preferences} from 'mattermost-redux/constants';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import Provider, {ResultsCallback} from './provider';
-import {SuggestionContainer, SuggestionProps} from './suggestion';
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
-const getState = store.getState;
+import Provider from './provider';
+import type {ResultsCallback} from './provider';
+import {SuggestionContainer} from './suggestion';
+import type {SuggestionProps} from './suggestion';
+
 const searchProfilesMatchingWithTerm = makeSearchProfilesMatchingWithTerm();
 
 const ThreadsChannel: FakeChannel = {
@@ -120,6 +123,8 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
     const {item, status, collapsedThreads, team, isPartOfOnlyOneTeam} = props;
     const channel = item.channel;
     const channelIsArchived = channel.delete_at && channel.delete_at !== 0;
+
+    const currentUserId = useSelector(getCurrentUserId);
 
     const member = props.channelMember;
     const teammate = props.dmChannelTeammate;
@@ -220,7 +225,6 @@ const SwitchChannelSuggestion = React.forwardRef<HTMLDivElement, Props>((props, 
             description = '@' + teammate.username + deactivated;
         } else {
             name = teammate.username;
-            const currentUserId = getCurrentUserId(getState());
             if (teammate.id === currentUserId) {
                 name += (' ' + Utils.localizeMessage('suggestion.user.isCurrent', '(you)'));
             }
@@ -378,15 +382,15 @@ export function quickSwitchSorter(wrappedA: WrappedChannel, wrappedB: WrappedCha
     return sortChannelsByRecencyAndTypeAndDisplayName(wrappedA, wrappedB);
 }
 
-function makeChannelSearchFilter(channelPrefix: string) {
+function makeChannelSearchFilter(curState: GlobalState, channelPrefix: string) {
     const channelPrefixLower = channelPrefix.toLowerCase();
     const splitPrefixBySpace = channelPrefixLower.trim().split(/[ ,]+/);
-    const curState = getState();
     const usersInChannels = getUserIdsInChannels(curState);
     const userSearchStrings: RelationOneToOne<UserProfile, string> = {};
+    const SEPARATOR = ';|;';
 
     return (channel: ChannelItem) => {
-        let searchString = `${channel.display_name}${channel.name}`;
+        let searchString = `${channel.display_name}${SEPARATOR}${channel.name}`;
         if (channel.type === Constants.GM_CHANNEL || channel.type === Constants.DM_CHANNEL) {
             const usersInChannel = usersInChannels[channel.id] || new Set([]);
 
@@ -408,7 +412,7 @@ function makeChannelSearchFilter(channelPrefix: string) {
                         continue;
                     }
                     const {nickname, username} = user;
-                    userString = `${nickname}${username}${Utils.getFullName(user)}`;
+                    userString = [nickname, username, Utils.getFullName(user)].join(SEPARATOR);
                     userSearchStrings[userId] = userString;
                 }
                 searchString += userString;
@@ -427,6 +431,8 @@ function makeChannelSearchFilter(channelPrefix: string) {
 }
 
 export default class SwitchChannelProvider extends Provider {
+    store = globalStore;
+
     /**
      * whenever this gets adjusted/refactored to not call the callback twice we need to adjust the behavior in
      * the ForwardPostChannelSelect component as well.
@@ -442,9 +448,9 @@ export default class SwitchChannelProvider extends Provider {
             }
 
             // Dispatch suggestions for local data (filter out deleted and archived channels from local store data)
-            let channels = getChannelsInAllTeams(getState()).concat(getDirectAndGroupChannels(getState())).filter((c) => c.delete_at === 0);
+            let channels = getChannelsInAllTeams(this.store.getState()).concat(getDirectAndGroupChannels(this.store.getState())).filter((c) => c.delete_at === 0);
             channels = this.removeChannelsFromArchivedTeams(channels);
-            const users = searchProfilesMatchingWithTerm(getState(), channelPrefix, false);
+            const users = searchProfilesMatchingWithTerm(this.store.getState(), channelPrefix, false);
             const formattedData = this.formatList(channelPrefix, [ThreadsChannel, ...channels], users, true, true);
             if (formattedData) {
                 resultsCallback(formattedData);
@@ -460,7 +466,7 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     async fetchUsersAndChannels(channelPrefix: string, resultsCallback: ResultsCallback<WrappedChannel>) {
-        const state = getState();
+        const state = this.store.getState();
         const teamId = getCurrentTeamId(state);
 
         if (!teamId) {
@@ -475,7 +481,7 @@ export default class SwitchChannelProvider extends Provider {
             usersAsync = Client4.autocompleteUsers(channelPrefix, '', '');
         }
 
-        const channelsAsync = searchAllChannels(channelPrefix, {nonAdminSearch: true})(store.dispatch, store.getState);
+        const channelsAsync = this.store.dispatch(searchAllChannels(channelPrefix, {nonAdminSearch: true}));
 
         let usersFromServer;
         let channelsFromServer;
@@ -485,7 +491,7 @@ export default class SwitchChannelProvider extends Provider {
             const channelsResponse = await channelsAsync;
             channelsFromServer = (channelsResponse as ActionResult).data;
         } catch (err) {
-            store.dispatch(logError(err));
+            this.store.dispatch(logError(err));
             return;
         }
 
@@ -506,7 +512,7 @@ export default class SwitchChannelProvider extends Provider {
         const remoteUserData = usersFromServer.users || [];
         const remoteFormattedData = this.formatList(channelPrefix, remoteChannelData, remoteUserData, false);
 
-        store.dispatch({
+        this.store.dispatch({
             type: UserTypes.RECEIVED_PROFILES_LIST,
             data: [...localUserData.filter((user) => user.id !== currentUserId), ...remoteUserData.filter((user) => user.id !== currentUserId)],
         });
@@ -522,7 +528,7 @@ export default class SwitchChannelProvider extends Provider {
 
     userWrappedChannel(user: UserProfile, channel?: ChannelItem): WrappedChannel {
         let displayName = '';
-        const currentUserId = getCurrentUserId(getState());
+        const currentUserId = getCurrentUserId(this.store.getState());
 
         // The naming format is fullname (nickname)
         // username is shown seperately
@@ -560,13 +566,13 @@ export default class SwitchChannelProvider extends Provider {
     formatList(channelPrefix: string, allChannels: ChannelItem[], users: UserProfile[], skipNotMember = true, localData = false) {
         const channels = [];
 
-        const members = getMyChannelMemberships(getState());
+        const members = getMyChannelMemberships(this.store.getState());
 
         const completedChannels: RelationOneToOne<Channel, boolean> = {};
 
-        const channelFilter = makeChannelSearchFilter(channelPrefix);
+        const channelFilter = makeChannelSearchFilter(this.store.getState(), channelPrefix);
 
-        const state = getState();
+        const state = this.store.getState();
         const config = getConfig(state);
         const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
         const allUnreadChannelIds = getAllTeamsUnreadChannelIds(state);
@@ -695,7 +701,7 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     removeChannelsFromArchivedTeams(channels: Channel[]) {
-        const state = getState();
+        const state = this.store.getState();
         const activeTeams = getActiveTeamsList(state).map((team: Team) => team.id);
         const newChannels = channels.filter((channel: Channel) => {
             if (!channel.team_id) {
@@ -707,7 +713,7 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     fetchAndFormatRecentlyViewedChannels(resultsCallback: ResultsCallback<WrappedChannel>) {
-        const state = getState();
+        const state = this.store.getState();
         let recentChannels = getChannelsInAllTeams(state).concat(getDirectAndGroupChannels(state));
         recentChannels = this.removeChannelsFromArchivedTeams(recentChannels);
         const wrappedRecentChannels = this.wrapChannels(recentChannels, Constants.MENTION_RECENT_CHANNELS);
@@ -741,7 +747,7 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     getThreadsItem(countType = 'total', itemType?: string) {
-        const state = getState();
+        const state = this.store.getState();
         const counts = getThreadCountsInCurrentTeam(state);
         const collapsedThreads = isCollapsedThreadsEnabled(state);
 
@@ -782,7 +788,7 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     wrapChannels(channels: Channel[], channelType: string) {
-        const state = getState();
+        const state = this.store.getState();
         const currentChannel = getCurrentChannel(state);
         const myMembers = getMyChannelMemberships(state);
         const myPreferences = getMyPreferences(state);
@@ -803,7 +809,7 @@ export default class SwitchChannelProvider extends Provider {
             if (channel.type === Constants.GM_CHANNEL) {
                 wrappedChannel.name = channel.display_name;
             } else if (channel.type === Constants.DM_CHANNEL) {
-                const user = getUser(getState(), Utils.getUserIdFromChannelId(channel.name));
+                const user = getUser(this.store.getState(), Utils.getUserIdFromChannelId(channel.name));
 
                 if (!user) {
                     continue;
@@ -826,19 +832,19 @@ export default class SwitchChannelProvider extends Provider {
     }
 
     async fetchChannels(resultsCallback: ResultsCallback<WrappedChannel>) {
-        const state = getState();
+        const state = this.store.getState();
         const teamId = getCurrentTeamId(state);
         if (!teamId) {
             return;
         }
-        const channelsAsync = store.dispatch(fetchAllMyTeamsChannelsAndChannelMembersREST());
+        const channelsAsync = this.store.dispatch(fetchAllMyTeamsChannelsAndChannelMembersREST());
         let channels;
 
         try {
             const {data} = await channelsAsync;
             channels = data.channels as Channel[];
         } catch (err) {
-            store.dispatch(logError(err));
+            this.store.dispatch(logError(err));
             return;
         }
 

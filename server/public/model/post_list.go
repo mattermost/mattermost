@@ -113,7 +113,6 @@ func (o *PostList) MakeNonNil() {
 }
 
 func (o *PostList) AddOrder(id string) {
-
 	if o.Order == nil {
 		o.Order = make([]string, 0, 128)
 	}
@@ -122,7 +121,6 @@ func (o *PostList) AddOrder(id string) {
 }
 
 func (o *PostList) AddPost(post *Post) {
-
 	if o.Posts == nil {
 		o.Posts = make(map[string]*Post)
 	}
@@ -162,7 +160,6 @@ func (o *PostList) SortByCreateAt() {
 }
 
 func (o *PostList) Etag() string {
-
 	id := "0"
 	var t int64
 
@@ -192,4 +189,40 @@ func (o *PostList) IsChannelId(channelId string) bool {
 	}
 
 	return true
+}
+
+func (o *PostList) BuildWranglerPostList() *WranglerPostList {
+	wpl := &WranglerPostList{}
+
+	o.UniqueOrder()
+	o.SortByCreateAt()
+	posts := o.ToSlice()
+
+	if len(posts) == 0 {
+		// Something was sorted wrong or an empty PostList was provided.
+		return wpl
+	}
+
+	// A separate ID key map to ensure no duplicates.
+	idKeys := make(map[string]bool)
+
+	for i := range posts {
+		p := posts[len(posts)-i-1]
+
+		// Add UserID to metadata if it's new.
+		if _, ok := idKeys[p.UserId]; !ok {
+			idKeys[p.UserId] = true
+			wpl.ThreadUserIDs = append(wpl.ThreadUserIDs, p.UserId)
+		}
+
+		wpl.FileAttachmentCount += int64(len(p.FileIds))
+
+		wpl.Posts = append(wpl.Posts, p)
+	}
+
+	// Set metadata for earliest and latest posts
+	wpl.EarlistPostTimestamp = wpl.RootPost().CreateAt
+	wpl.LatestPostTimestamp = wpl.Posts[wpl.NumPosts()-1].CreateAt
+
+	return wpl
 }

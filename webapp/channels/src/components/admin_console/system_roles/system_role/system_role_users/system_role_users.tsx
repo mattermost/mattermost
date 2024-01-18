@@ -2,22 +2,22 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
-import Tag from 'components/widgets/tag/tag';
+import type {Role} from '@mattermost/types/roles';
+import type {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
 
-import {Role} from '@mattermost/types/roles';
-import {ServerError} from '@mattermost/types/errors';
-import {UserProfile, UsersStats, GetFilteredUsersStatsOpts} from '@mattermost/types/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import {t} from 'utils/i18n';
-
-import AdminPanel from 'components/widgets/admin_console/admin_panel';
-import ToggleModalButton from 'components/toggle_modal_button';
 import DataGrid from 'components/admin_console/data_grid/data_grid';
 import UserGridName from 'components/admin_console/user_grid/user_grid_name';
 import UserGridRemove from 'components/admin_console/user_grid/user_grid_remove';
+import ToggleModalButton from 'components/toggle_modal_button';
+import AdminPanel from 'components/widgets/admin_console/admin_panel';
+import Tag from 'components/widgets/tag/tag';
+
+import Constants, {ModalIdentifiers} from 'utils/constants';
+
 import AddUsersToRoleModal from '../add_users_to_role_modal';
 
 export type Props = {
@@ -30,13 +30,10 @@ export type Props = {
     onAddCallback: (users: UserProfile[]) => void;
     onRemoveCallback: (user: UserProfile) => void;
     actions: {
-        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{
-            data?: UsersStats;
-            error?: ServerError;
-        }>;
-        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<any>;
-        searchProfiles: (term: string, options: any) => Promise<any>;
-        setUserGridSearch: (term: string) => Promise<any>;
+        getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<ActionResult<UsersStats>>;
+        getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<ActionResult>;
+        searchProfiles: (term: string, options: any) => Promise<ActionResult>;
+        setUserGridSearch: (term: string) => void;
     };
     readOnly?: boolean;
 }
@@ -246,10 +243,8 @@ export default class SystemRoleUsers extends React.PureComponent<Props, State> {
 
             <AdminPanel
                 id='SystemRoleUsers'
-                titleId={t('admin.permissions.system_role_users.title')}
-                titleDefault='Assigned People'
-                subtitleId={t('admin.permissions.system_role_users.description')}
-                subtitleDefault='List of people assigned to this system role.'
+                title={defineMessage({id: 'admin.permissions.system_role_users.title', defaultMessage: 'Assigned People'})}
+                subtitle={defineMessage({id: 'admin.permissions.system_role_users.description', defaultMessage: 'List of people assigned to this system role.'})}
                 button={
                     <ToggleModalButton
                         id='addRoleMembers'

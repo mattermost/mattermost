@@ -1,16 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
-import {loadMe, loadMeREST} from 'mattermost-redux/actions/users';
-import {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
+import {loadMe} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
-import {Translations} from 'types/store/i18n';
-import {ActionTypes} from 'utils/constants';
+
 import en from 'i18n/en.json';
+import {ActionTypes} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
+import type {Translations} from 'types/store/i18n';
 
 const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 
@@ -18,22 +20,15 @@ export type TranslationPluginFunction = (locale: string) => Translations
 
 export function loadConfigAndMe() {
     return async (dispatch: DispatchFunc) => {
-        const [{data: clientConfig}] = await Promise.all([
+        await Promise.all([
             dispatch(getClientConfig()),
             dispatch(getLicenseConfig()),
         ]);
 
-        const isGraphQLEnabled = clientConfig && clientConfig.FeatureFlagGraphQL === 'true';
-
         let isMeLoaded = false;
         if (document.cookie.includes('MMUSERID=')) {
-            if (isGraphQLEnabled) {
-                const dataFromLoadMe = await dispatch(loadMe());
-                isMeLoaded = dataFromLoadMe?.data ?? false;
-            } else {
-                const dataFromLoadMeREST = await dispatch(loadMeREST());
-                isMeLoaded = dataFromLoadMeREST?.data ?? false;
-            }
+            const dataFromLoadMe = await dispatch(loadMe());
+            isMeLoaded = dataFromLoadMe?.data ?? false;
         }
 
         return {data: isMeLoaded};

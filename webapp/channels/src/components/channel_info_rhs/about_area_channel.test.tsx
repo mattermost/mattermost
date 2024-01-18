@@ -2,15 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
+import type {DeepPartial} from '@mattermost/types/utilities';
+
+import {renderWithContext, screen} from 'tests/react_testing_utils';
+
+import type {GlobalState} from 'types/store';
 
 import AboutAreaChannel from './about_area_channel';
 
-const initialState = {
+const initialState: DeepPartial<GlobalState> = {
     entities: {
         channels: {
             currentChannelId: 'current_channel_id',
@@ -37,7 +39,7 @@ const initialState = {
                     name: 'current_user_id__existingId',
                     display_name: 'Default',
                     delete_at: 0,
-                    type: '0',
+                    type: 'D',
                     team_id: 'team_id',
                 },
             },
@@ -55,7 +57,7 @@ const initialState = {
                 'team-id': {
                     id: 'team_id',
                     name: 'team-1',
-                    displayName: 'Team 1',
+                    display_name: 'Team 1',
                 },
             },
             myMembers: {
@@ -101,7 +103,7 @@ const initialState = {
         general: {
             license: {IsLicensed: 'false'},
             serverVersion: '5.4.0',
-            config: {PostEditTimeLimit: -1},
+            config: {PostEditTimeLimit: '-1'},
         },
     },
 };
@@ -121,28 +123,23 @@ describe('channel_info_rhs/about_area_channel', () => {
         },
     };
 
-    test('should display channel purpose', async () => {
-        const store = await mockStore(initialState);
-
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaChannel
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display channel purpose', () => {
+        renderWithContext(
+            <AboutAreaChannel
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('my channel purpose')).toBeInTheDocument();
     });
 
-    test('should display channel header', async () => {
-        const store = await mockStore(initialState);
-        renderWithIntl(
-            <Provider store={store}>
-                <AboutAreaChannel
-                    {...defaultProps}
-                />
-            </Provider>,
+    test('should display channel header', () => {
+        renderWithContext(
+            <AboutAreaChannel
+                {...defaultProps}
+            />,
+            initialState,
         );
 
         expect(screen.getByText('my channel header')).toBeInTheDocument();

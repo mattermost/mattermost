@@ -1,9 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
-import {General} from 'mattermost-redux/constants';
+import type {GlobalState} from '@mattermost/types/store';
 
+import {General} from 'mattermost-redux/constants';
 import * as Selectors from 'mattermost-redux/selectors/entities/general';
 
 describe('Selectors.General', () => {

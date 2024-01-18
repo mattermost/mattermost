@@ -160,14 +160,6 @@
 
         .modal {
             .settings-modal {
-                &:not(.settings-modal--tabless) {
-                    &:not(.display--content) {
-                        .modal-content {
-                            background: var(--sidebar-bg);
-                        }
-                    }
-                }
-
                 .modal-body {
                     min-height: 100%;
                 }
@@ -195,11 +187,16 @@
                                 padding-right: 15px;
                             }
 
+                            .section-min {
+                                .d-flex {
+                                    flex-direction: column;
+                                }
+                            }
+
                             .section-min__edit {
-                                position: relative;
-                                top: 0;
-                                right: 0;
-                                text-align: left;
+                                span {
+                                    display: none;
+                                }
                             }
 
                             .appearance-section {
@@ -235,7 +232,7 @@
                             position: absolute;
                             z-index: 5;
                             top: 0;
-                            display: block;
+                            display: flex;
                             width: 100%;
 
                             .modal-title {
@@ -247,6 +244,8 @@
                                 >span {
                                     display: block;
                                     overflow: hidden;
+                                    font-family: Metropolis, sans-serif;
+                                    font-weight: 600;
                                     text-overflow: ellipsis;
                                     white-space: nowrap;
                                 }
@@ -274,10 +273,6 @@
                         width: 100%;
                         margin: 0;
 
-                        &.position--top {
-                            top: auto;
-                        }
-
                         >li {
                             >a {
                                 font-size: 1.1em;
@@ -289,37 +284,18 @@
                             }
 
                             > button {
-                                color: var(--sidebar-text);
-                            }
-
-                            &.active {
-                                > button {
-                                    color: var(--sidebar-text);
-                                }
+                                height: 48px;
                             }
                         }
                     }
 
                     .settings-content {
-                        .section-min__edit {
-                            text-align: left;
-
-                            button {
-                                width: 100%;
-                                text-align: left;
-                            }
-
-                            .fa {
-                                display: inline-block;
-                            }
-                        }
-
                         &.minimize-settings {
                             display: none;
                             padding: 0;
 
                             .user-settings {
-                                padding: 70px 20px 30px;
+                                padding: 100px 20px 30px;
                             }
                         }
 
@@ -347,11 +323,6 @@
                                 display: none;
                             }
                         }
-                    }
-
-                    button {
-                        padding: 15px;
-                        border-bottom: 1px solid;
                     }
                 }
             }
@@ -748,34 +719,6 @@
 
         form {
             padding: 0;
-        }
-
-        .post-create-body {
-            padding: 0;
-
-            .send-button {
-                display: block;
-            }
-
-            .custom-textarea {
-                &.custom-textarea--emoji-picker {
-                    max-height: 162px;
-                    padding-right: 135px;
-                }
-            }
-
-            textarea {
-                .app-content & {
-                    border-right: none;
-                    border-left: none;
-                }
-            }
-
-            .post-body__actions {
-                .Menu.dropdown-menu {
-                    max-height: 80vh;
-                }
-            }
         }
 
         .msg-typing {
@@ -1429,10 +1372,6 @@
                 background: var(--center-channel-bg);
                 border-radius: 3px;
             }
-        }
-
-        .channel-header__links {
-            display: none;
         }
     }
 

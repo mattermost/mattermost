@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"sort"
 	"strings"
+	"time"
 	"unicode/utf8"
 
 	sq "github.com/mattermost/squirrel"
@@ -18,6 +19,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
@@ -54,7 +56,7 @@ func newSqlUserStore(sqlStore *SqlStore, metrics einterfaces.MetricsInterface) s
 	// note: we are providing field names explicitly here to maintain order of columns (needed when using raw queries)
 	us.usersQuery = us.getQueryBuilder().
 		Select("u.Id", "u.CreateAt", "u.UpdateAt", "u.DeleteAt", "u.Username", "u.Password", "u.AuthData", "u.AuthService", "u.Email", "u.EmailVerified", "u.Nickname", "u.FirstName", "u.LastName", "u.Position", "u.Roles", "u.AllowMarketing", "u.Props", "u.NotifyProps", "u.LastPasswordUpdate", "u.LastPictureUpdate", "u.FailedAttempts", "u.Locale", "u.Timezone", "u.MfaActive", "u.MfaSecret",
-			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate", "u.RemoteId").
+			"b.UserId IS NOT NULL AS IsBot", "COALESCE(b.Description, '') AS BotDescription", "COALESCE(b.LastIconUpdate, 0) AS BotLastIconUpdate", "u.RemoteId", "u.LastLogin").
 		From("Users u").
 		LeftJoin("Bots b ON ( b.UserId = u.Id )")
 
@@ -162,7 +164,7 @@ func (us SqlUserStore) DeactivateGuests() ([]string, error) {
 	return userIds, nil
 }
 
-func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
+func (us SqlUserStore) Update(rctx request.CTX, user *model.User, trustedUpdateData bool) (*model.UserUpdate, error) {
 	user.PreUpdate()
 
 	if err := user.IsValid(); err != nil {
@@ -193,6 +195,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 	user.FailedAttempts = oldUser.FailedAttempts
 	user.MfaSecret = oldUser.MfaSecret
 	user.MfaActive = oldUser.MfaActive
+	user.LastLogin = oldUser.LastLogin
 
 	if !trustedUpdateData {
 		user.Roles = oldUser.Roles
@@ -222,7 +225,7 @@ func (us SqlUserStore) Update(user *model.User, trustedUpdateData bool) (*model.
 				AllowMarketing=:AllowMarketing, Props=:Props, NotifyProps=:NotifyProps,
 				LastPasswordUpdate=:LastPasswordUpdate, LastPictureUpdate=:LastPictureUpdate,
 				FailedAttempts=:FailedAttempts,Locale=:Locale, Timezone=:Timezone, MfaActive=:MfaActive,
-				MfaSecret=:MfaSecret, RemoteId=:RemoteId
+				MfaSecret=:MfaSecret, RemoteId=:RemoteId, LastLogin=:LastLogin
 			WHERE Id=:Id`
 
 	user.Props = wrapBinaryParamStringMap(us.IsBinaryParamEnabled(), user.Props)
@@ -355,6 +358,27 @@ func (us SqlUserStore) UpdateAuthData(userId string, service string, authData *s
 	return userId, nil
 }
 
+func (us SqlUserStore) UpdateLastLogin(userId string, lastLogin int64) error {
+	updateAt := model.GetMillis()
+
+	updateQuery := us.getQueryBuilder().
+		Update("Users").
+		Set("LastLogin", lastLogin).
+		Set("UpdateAt", updateAt).
+		Where(sq.Eq{"Id": userId})
+
+	queryString, args, err := updateQuery.ToSql()
+	if err != nil {
+		return errors.Wrap(err, "update_last_login_tosql")
+	}
+
+	if _, err := us.GetMasterX().Exec(queryString, args...); err != nil {
+		return errors.Wrapf(err, "failed to update User with userId=%s", userId)
+	}
+
+	return nil
+}
+
 // ResetAuthDataToEmailForUsers resets the AuthData of users whose AuthService
 // is |service| to their Email. If userIDs is non-empty, only the users whose
 // IDs are in userIDs will be affected. If dryRun is true, only the number
@@ -449,13 +473,12 @@ func (us SqlUserStore) Get(ctx context.Context, id string) (*model.User, error) 
 		&user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles,
 		&user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate,
 		&user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret,
-		&user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId)
+		&user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId, &user.LastLogin)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, store.NewErrNotFound("User", id)
 		}
 		return nil, errors.Wrapf(err, "failed to get User with userId=%s", id)
-
 	}
 	if err = json.Unmarshal(props, &user.Props); err != nil {
 		return nil, errors.Wrap(err, "failed to unmarshal user props")
@@ -580,7 +603,6 @@ func applyMultiRoleFilters(query sq.SelectBuilder, systemRoles []string, teamRol
 					sqOr = append(sqOr, sq.Like{"u.Roles": queryRole})
 				}
 			}
-
 		}
 	}
 
@@ -853,7 +875,7 @@ func (us SqlUserStore) GetAllProfilesInChannel(ctx context.Context, channelID st
 	for rows.Next() {
 		var user model.User
 		var props, notifyProps, timezone []byte
-		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId); err != nil {
+		if err = rows.Scan(&user.Id, &user.CreateAt, &user.UpdateAt, &user.DeleteAt, &user.Username, &user.Password, &user.AuthData, &user.AuthService, &user.Email, &user.EmailVerified, &user.Nickname, &user.FirstName, &user.LastName, &user.Position, &user.Roles, &user.AllowMarketing, &props, &notifyProps, &user.LastPasswordUpdate, &user.LastPictureUpdate, &user.FailedAttempts, &user.Locale, &timezone, &user.MfaActive, &user.MfaSecret, &user.IsBot, &user.BotDescription, &user.BotLastIconUpdate, &user.RemoteId, &user.LastLogin); err != nil {
 			return nil, errors.Wrap(err, "failed to scan values from rows into User entity")
 		}
 		if err = json.Unmarshal(props, &user.Props); err != nil {
@@ -1174,6 +1196,26 @@ func (us SqlUserStore) GetByEmail(email string) (*model.User, error) {
 	return &user, nil
 }
 
+func (us SqlUserStore) GetByRemoteID(remoteID string) (*model.User, error) {
+	query := us.usersQuery.Where(sq.Eq{"RemoteId": remoteID})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_by_remote_id_tosql")
+	}
+
+	user := model.User{}
+	if err := us.GetReplicaX().Get(&user, queryString, args...); err != nil {
+		if err == sql.ErrNoRows {
+			return nil, errors.Wrap(store.NewErrNotFound("User", fmt.Sprintf("remoteid=%s", remoteID)), "failed to find User")
+		}
+
+		return nil, errors.Wrapf(err, "failed to get User with RemoteId=%s", remoteID)
+	}
+
+	return &user, nil
+}
+
 func (us SqlUserStore) GetByAuth(authData *string, authService string) (*model.User, error) {
 	if authData == nil || *authData == "" {
 		return nil, store.NewErrInvalidInput("User", "<authData>", "empty or nil")
@@ -1284,7 +1326,6 @@ func (us SqlUserStore) GetForLogin(loginId string, allowSignInWithUsername, allo
 	}
 
 	return users[0], nil
-
 }
 
 func (us SqlUserStore) VerifyEmail(userId, email string) (string, error) {
@@ -1308,6 +1349,10 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 
 	if !options.IncludeDeleted {
 		query = query.Where("u.DeleteAt = 0")
+	}
+
+	if !options.IncludeRemoteUsers {
+		query = query.Where(sq.Or{sq.Eq{"u.RemoteId": ""}, sq.Eq{"u.RemoteId": nil}})
 	}
 
 	isPostgreSQL := us.DriverName() == model.DatabaseDriverPostgres
@@ -1354,7 +1399,6 @@ func (us SqlUserStore) Count(options model.UserCountOptions) (int64, error) {
 }
 
 func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.UserCountOptions) (int64, error) {
-
 	time := model.GetMillis() - timePeriod
 	query := us.getQueryBuilder().Select("COUNT(*)").From("Status AS s").Where("LastActivityAt > ?", time)
 
@@ -1365,8 +1409,17 @@ func (us SqlUserStore) AnalyticsActiveCount(timePeriod int64, options model.User
 			query = query.Where(sq.Expr("UserId NOT IN (SELECT UserId FROM Bots)"))
 		}
 	}
+
+	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id")
+	}
+
+	if !options.IncludeRemoteUsers {
+		query = query.Where(sq.Or{sq.Eq{"Users.RemoteId": ""}, sq.Eq{"Users.RemoteId": nil}})
+	}
+
 	if !options.IncludeDeleted {
-		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+		query = query.Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
@@ -1393,8 +1446,16 @@ func (us SqlUserStore) AnalyticsActiveCountForPeriod(startTime int64, endTime in
 		}
 	}
 
+	if !options.IncludeRemoteUsers || !options.IncludeDeleted {
+		query = query.LeftJoin("Users ON s.UserId = Users.Id")
+	}
+
+	if !options.IncludeRemoteUsers {
+		query = query.Where(sq.Or{sq.Eq{"Users.RemoteId": ""}, sq.Eq{"Users.RemoteId": nil}})
+	}
+
 	if !options.IncludeDeleted {
-		query = query.LeftJoin("Users ON s.UserId = Users.Id").Where("Users.DeleteAt = 0")
+		query = query.Where("Users.DeleteAt = 0")
 	}
 
 	queryStr, args, err := query.ToSql()
@@ -1452,7 +1513,7 @@ func (us SqlUserStore) GetAnyUnreadPostCountForChannel(userId string, channelId 
 	return count, nil
 }
 
-func (us SqlUserStore) Search(teamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+func (us SqlUserStore) Search(rctx request.CTX, teamId string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
 	query := us.usersQuery.
 		OrderBy("Username ASC").
 		Limit(uint64(options.Limit))
@@ -2084,7 +2145,7 @@ func (us SqlUserStore) DemoteUserToGuest(userID string) (_ *model.User, err erro
 	return user, nil
 }
 
-func (us SqlUserStore) AutocompleteUsersInChannel(teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+func (us SqlUserStore) AutocompleteUsersInChannel(rctx request.CTX, teamId, channelId, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
 	var usersInChannel, usersNotInChannel []*model.User
 	g := errgroup.Group{}
 	g.Go(func() (err error) {
@@ -2193,4 +2254,183 @@ func (us SqlUserStore) GetUsersWithInvalidEmails(page int, perPage int, restrict
 	}
 
 	return users, nil
+}
+
+func (us SqlUserStore) RefreshPostStatsForUsers() error {
+	if us.DriverName() == model.DatabaseDriverPostgres {
+		if _, err := us.GetReplicaX().Exec("REFRESH MATERIALIZED VIEW poststats"); err != nil {
+			return errors.Wrap(err, "users_refresh_post_stats_exec")
+		}
+	} else {
+		mlog.Debug("Skipped running refresh post stats, only available on Postgres")
+	}
+
+	return nil
+}
+
+func applyUserReportFilter(query sq.SelectBuilder, filter *model.UserReportOptions, isPostgres bool) sq.SelectBuilder {
+	query = applyRoleFilter(query, filter.Role, isPostgres)
+	if filter.HasNoTeam {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM TeamMembers WHERE DeleteAt = 0)"))
+	} else if filter.Team != "" {
+		query = query.Join("TeamMembers tm ON (tm.UserId = u.Id AND tm.DeleteAt = 0)").
+			Where(sq.Eq{"tm.TeamId": filter.Team})
+	}
+	if filter.HideActive {
+		query = query.Where(sq.Gt{"u.DeleteAt": 0})
+	}
+	if filter.HideInactive {
+		query = query.Where(sq.Eq{"u.DeleteAt": 0})
+	}
+
+	if strings.TrimSpace(filter.SearchTerm) != "" {
+		query = generateSearchQuery(query, strings.Fields(sanitizeSearchTerm(filter.SearchTerm, "*")), UserSearchTypeAll, isPostgres)
+	}
+
+	return query
+}
+
+func (us SqlUserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
+	query := us.getQueryBuilder().
+		Select("COUNT(u.Id)").
+		From("Users u")
+
+	if isPostgres {
+		query = query.LeftJoin("Bots ON u.Id = Bots.UserId").Where("Bots.UserId IS NULL")
+	} else {
+		query = query.Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)"))
+	}
+
+	query = applyUserReportFilter(query, filter, isPostgres)
+	queryStr, args, err := query.ToSql()
+	if err != nil {
+		return 0, errors.Wrap(err, "user_count_report_tosql")
+	}
+	var v int64
+	err = us.GetReplicaX().Get(&v, queryStr, args...)
+	if err != nil {
+		return 0, errors.Wrap(err, "failed to count Users for report")
+	}
+	return v, nil
+}
+
+func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	isPostgres := us.DriverName() == model.DatabaseDriverPostgres
+	selectColumns := []string{"u.*", "MAX(s.LastActivityAt) AS LastStatusAt"}
+	if isPostgres {
+		selectColumns = append(selectColumns,
+			"MAX(ps.LastPostDate) AS LastPostDate",
+			"COUNT(ps.Day) AS DaysActive",
+			"SUM(ps.NumPosts) AS TotalPosts",
+		)
+	} else {
+		selectColumns = append(selectColumns,
+			"MAX(p.CreateAt) AS LastPostDate",
+			"COUNT(DATE(FROM_UNIXTIME(p.CreateAt / 1000))) AS DaysActive",
+			"COUNT(p.Id) AS TotalPosts",
+		)
+	}
+
+	sortDirection := "ASC"
+	if filter.SortDesc {
+		sortDirection = "DESC"
+	}
+
+	query := us.getQueryBuilder().
+		Select(selectColumns...).
+		From("Users u").
+		LeftJoin("Status s ON s.UserId = u.Id").
+		Where(sq.Expr("u.Id NOT IN (SELECT UserId FROM Bots)")).
+		GroupBy("u.Id")
+
+	// no need to apply any filtering and pagination if there are no
+	// previous element ID and value provided.
+	if filter.FromId != "" && filter.FromColumnValue != "" {
+		if (filter.Direction == "prev" && !filter.SortDesc) || (filter.Direction == "next" && filter.SortDesc) {
+			sortDirection = "DESC"
+
+			query = query.Where(sq.Or{
+				sq.Lt{filter.SortColumn: filter.FromColumnValue},
+				sq.And{
+					sq.Eq{filter.SortColumn: filter.FromColumnValue},
+					sq.Lt{"u.Id": filter.FromId},
+				},
+			})
+		} else {
+			sortDirection = "ASC"
+
+			query = query.Where(sq.Or{
+				sq.Gt{filter.SortColumn: filter.FromColumnValue},
+				sq.And{
+					sq.Eq{filter.SortColumn: filter.FromColumnValue},
+					sq.Gt{"u.Id": filter.FromId},
+				},
+			})
+		}
+	}
+
+	query = query.OrderBy(filter.SortColumn+" "+sortDirection, "u.Id")
+
+	if filter.PageSize > 0 {
+		query = query.Limit(uint64(filter.PageSize))
+	}
+
+	if isPostgres {
+		joinSql := sq.And{}
+		if filter.StartAt > 0 {
+			startDate := time.UnixMilli(filter.StartAt)
+			joinSql = append(joinSql, sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")})
+		}
+		if filter.EndAt > 0 {
+			endDate := time.UnixMilli(filter.EndAt)
+			joinSql = append(joinSql, sq.Lt{"ps.Day": endDate.Format("2006-01-02")})
+		}
+		sql, args, err := joinSql.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id AND "+sql, args...)
+	} else {
+		joinSql := sq.And{}
+		if filter.StartAt > 0 {
+			joinSql = append(joinSql, sq.GtOrEq{"p.CreateAt": filter.StartAt})
+		}
+		if filter.EndAt > 0 {
+			joinSql = append(joinSql, sq.Lt{"p.CreateAt": filter.EndAt})
+		}
+		sql, args, err := joinSql.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		query = query.LeftJoin("Posts p ON p.UserId = u.Id AND "+sql, args...)
+	}
+
+	query = applyUserReportFilter(query, filter, isPostgres)
+
+	parentQuery := query
+	// If we're going a page back...
+	//
+	// The way pagination works, we get the previous page's rows
+	// in reverse order. So, we use parent query on it to
+	// reverse the order in database itself.
+	if filter.Direction == "prev" {
+		reverseSortDirection := "ASC"
+		if sortDirection == "ASC" {
+			reverseSortDirection = "DESC"
+		}
+
+		parentQuery = us.getQueryBuilder().
+			Select("*").
+			FromSelect(query, "data").
+			OrderBy(filter.SortColumn+" "+reverseSortDirection, "Id")
+	}
+
+	userResults := []*model.UserReportQuery{}
+	err := us.GetReplicaX().SelectBuilder(&userResults, parentQuery)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get users for reporting")
+	}
+
+	return userResults, nil
 }

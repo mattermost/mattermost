@@ -11,6 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/mfa"
 
@@ -105,6 +106,10 @@ func (us *UserService) GetUserByEmail(email string) (*model.User, error) {
 	return us.store.GetByEmail(email)
 }
 
+func (us *UserService) GetUserByRemoteID(remoteID string) (*model.User, error) {
+	return us.store.GetByRemoteID(remoteID)
+}
+
 func (us *UserService) GetUserByAuth(authData *string, authService string) (*model.User, error) {
 	return us.store.GetByAuth(authData, authService)
 }
@@ -193,8 +198,8 @@ func (us *UserService) GetUsersWithoutTeam(options *model.UserGetOptions) ([]*mo
 	return users, nil
 }
 
-func (us *UserService) UpdateUser(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
-	return us.store.Update(user, allowRoleUpdate)
+func (us *UserService) UpdateUser(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
+	return us.store.Update(rctx, user, allowRoleUpdate)
 }
 
 func (us *UserService) UpdateUserNotifyProps(userID string, props map[string]string) error {

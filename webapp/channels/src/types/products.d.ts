@@ -5,7 +5,7 @@ declare const REMOTE_CONTAINERS: Record<string, string>;
 
 declare module 'boards' {
     // eslint-disable-next-line import/no-duplicates
-    import type {ProductPlugin} from 'plugins/products';
+    import {ProductPlugin} from 'plugins/products';
 
     export default class Plugin extends ProductPlugin {
         initialize(registry: PluginRegistry, store: Store): void;
@@ -22,7 +22,7 @@ declare module 'boards/manifest' {
 
 declare module 'playbooks' {
     // eslint-disable-next-line import/no-duplicates
-    import type {ProductPlugin} from 'plugins/products';
+    import {ProductPlugin} from 'plugins/products';
 
     export default class Plugin extends ProductPlugin {
         initialize(registry: PluginRegistry, store: Store): void;

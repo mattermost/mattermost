@@ -1,5 +1,178 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
+exports[`components/marketplace/ doesn't show web marketplace banner in FeatureFlags.StreamlinedMarketplace for Cloud 1`] = `
+<Modal
+  animation={true}
+  aria-label="App Marketplace"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="marketplace-modal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <div
+    className="GenericModal__wrapper-enter-key-press-catcher"
+    onKeyDown={[Function]}
+    tabIndex={0}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <div
+        className="GenericModal__header"
+      >
+        <h1
+          className="modal-title"
+          id="genericModalLabel"
+        >
+          App Marketplace
+        </h1>
+      </div>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      className="divider"
+      componentClass="div"
+    >
+      <div
+        className="genericModalError"
+      >
+        <i
+          className="icon icon-alert-outline"
+        />
+        <span>
+          Error connecting to the marketplace server. Please check your settings in the 
+          <Link
+            key=".1"
+            to="/admin_console/plugins/plugin_management"
+          >
+            System Console
+          </Link>
+          .
+        </span>
+      </div>
+      <div
+        className="GenericModal__body"
+      >
+        <LoadingScreen
+          className="loading"
+        />
+      </div>
+    </ModalBody>
+  </div>
+</Modal>
+`;
+
+exports[`components/marketplace/ hides search, shows web marketplace banner in FeatureFlags.StreamlinedMarketplace 1`] = `
+<Modal
+  animation={true}
+  aria-label="App Marketplace"
+  autoFocus={true}
+  backdrop={true}
+  bsClass="modal"
+  dialogClassName="a11y__modal GenericModal GenericModal__compassDesign marketplace-modal streamlined-marketplace with-web-marketplace-link"
+  dialogComponentClass={[Function]}
+  enforceFocus={true}
+  id="marketplace-modal"
+  keyboard={true}
+  manager={
+    ModalManager {
+      "add": [Function],
+      "containers": Array [],
+      "data": Array [],
+      "handleContainerOverflow": true,
+      "hideSiblingNodes": true,
+      "isTopModal": [Function],
+      "modals": Array [],
+      "remove": [Function],
+    }
+  }
+  onExited={[Function]}
+  onHide={[Function]}
+  renderBackdrop={[Function]}
+  restoreFocus={true}
+  role="dialog"
+  show={true}
+>
+  <div
+    className="GenericModal__wrapper-enter-key-press-catcher"
+    onKeyDown={[Function]}
+    tabIndex={0}
+  >
+    <ModalHeader
+      bsClass="modal-header"
+      closeButton={true}
+      closeLabel="Close"
+    >
+      <div
+        className="GenericModal__header"
+      >
+        <h1
+          className="modal-title"
+          id="genericModalLabel"
+        >
+          App Marketplace
+        </h1>
+      </div>
+    </ModalHeader>
+    <ModalBody
+      bsClass="modal-body"
+      className="divider"
+      componentClass="div"
+    >
+      <div
+        className="genericModalError"
+      >
+        <i
+          className="icon icon-alert-outline"
+        />
+        <span>
+          Error connecting to the marketplace server. Please check your settings in the 
+          <Link
+            key=".1"
+            to="/admin_console/plugins/plugin_management"
+          >
+            System Console
+          </Link>
+          .
+        </span>
+      </div>
+      <div
+        className="GenericModal__body"
+      >
+        <LoadingScreen
+          className="loading"
+        />
+      </div>
+    </ModalBody>
+    <WebMarketplaceBanner />
+  </div>
+</Modal>
+`;
+
 exports[`components/marketplace/ should render default 1`] = `
 <Modal
   animation={true}
@@ -45,6 +218,7 @@ exports[`components/marketplace/ should render default 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -73,6 +247,7 @@ exports[`components/marketplace/ should render default 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
@@ -181,6 +356,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -209,6 +385,7 @@ exports[`components/marketplace/ should render with error banner 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
@@ -334,6 +511,7 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -362,6 +540,7 @@ exports[`components/marketplace/ should render with no plugins available 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
@@ -478,6 +657,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -506,6 +686,7 @@ exports[`components/marketplace/ should render with plugins available 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div
@@ -640,6 +821,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
         className="GenericModal__header"
       >
         <h1
+          className="modal-title"
           id="genericModalLabel"
         >
           App Marketplace
@@ -668,6 +850,7 @@ exports[`components/marketplace/ should render with plugins installed 1`] = `
     </ModalHeader>
     <ModalBody
       bsClass="modal-body"
+      className=""
       componentClass="div"
     >
       <div

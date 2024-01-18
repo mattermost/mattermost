@@ -6,11 +6,11 @@ import {
 } from 'mattermost-redux/action_types';
 
 import {openModal} from 'actions/views/modals';
-
-import {ModalIdentifiers} from 'utils/constants';
+import store from 'stores/redux_store';
 
 import InteractiveDialog from 'components/interactive_dialog';
-import store from '../stores/redux_store';
+
+import {ModalIdentifiers} from 'utils/constants';
 
 export function openInteractiveDialog(dialog) {
     store.dispatch({type: IntegrationTypes.RECEIVED_DIALOG, data: dialog});
