@@ -8,7 +8,7 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
-import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
+import type {ReportDuration, UserReport, UserReportOptions} from '@mattermost/types/reports';
 
 import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef, VisibilityState} from 'components/admin_console/list_table';
@@ -21,6 +21,7 @@ import type {AdminConsoleUserManagementTableProperties} from 'types/store/views'
 import {ColumnNames} from './constants';
 import {RevokeSessionsButton} from './revoke_sessions_button';
 import {SystemUsersColumnTogglerMenu} from './system_users_column_toggler_menu';
+import {SystemUsersDateRangeSelector} from './system_users_date_range_selector';
 import {SystemUsersExport} from './system_users_export';
 import {SystemUsersFilterMenu} from './system_users_filter_menu';
 import {SystemUsersListAction} from './system_users_list_actions';
@@ -40,6 +41,7 @@ type TableOptions = {
     fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
     direction?: CursorPaginationDirection;
     searchTerm?: string;
+    dateRange?: ReportDuration;
 }
 
 const toUserReportOptions = (tableOptions?: TableOptions): UserReportOptions => {
@@ -51,6 +53,7 @@ const toUserReportOptions = (tableOptions?: TableOptions): UserReportOptions => 
         ...getSortColumnForOptions(tableOptions?.sortColumn),
         ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
         search_term: tableOptions?.searchTerm,
+        date_range: tableOptions?.dateRange,
     };
 };
 
@@ -123,6 +126,7 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            dateRange: props.tablePropertyDateRange,
         });
     }, [
         props.tablePropertyPageSize,
@@ -132,6 +136,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
+        props.tablePropertyDateRange,
     ]);
 
     // Handlers for table actions
@@ -433,6 +438,7 @@ function SystemUsers(props: Props) {
                             allColumns={table.getAllLeafColumns()}
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}
                         />
+                        <SystemUsersDateRangeSelector/>
                         <SystemUsersExport/>
                     </div>
                     <AdminConsoleListTable<UserReport>

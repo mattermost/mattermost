@@ -1,0 +1,19 @@
+.systemUsersDateRangeSelector {
+    margin-inline-end: 8px;
+}
+
+#dateRangeSelectorMenu {
+    hr {
+        margin-top: 10px;
+        margin-bottom: 10px;
+    }
+
+    .systemUsersDateRangeSelector__trailing-message {
+        color: rgba(var(--center-channel-color-rgb),0.56);
+        opacity: 1;
+    }
+
+    i.icon-check {
+        color: var(--button-bg);
+    }
+}
