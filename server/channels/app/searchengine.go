@@ -50,6 +50,23 @@ func (a *App) PurgeElasticsearchIndexes(c request.CTX) *model.AppError {
 	return nil
 }
 
+func (a *App) RebuildIndexes(c request.CTX, indexesToRebuild []string) *model.AppError {
+	engine := a.SearchEngine().ElasticsearchEngine
+	if engine == nil {
+		return model.NewAppError("RebuildIndexes", "ent.elasticsearch.test_config.license.error", nil, "", http.StatusNotImplemented)
+	}
+
+	if !engine.IsActive() {
+		return model.NewAppError("RebuildIndexes", "ent.elasticsearch.not_Active", nil, "", http.StatusBadRequest)
+	}
+
+	go func() {
+
+	}()
+
+	return engine.RebuildIndexes(c, indexesToRebuild)
+}
+
 func (a *App) PurgeBleveIndexes(c request.CTX) *model.AppError {
 	engine := a.SearchEngine().BleveEngine
 	if engine == nil {

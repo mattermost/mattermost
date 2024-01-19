@@ -331,3 +331,7 @@ func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 	}
 	b.cfg = cfg
 }
+
+func (b *BleveEngine) RebuildIndexes(rctx request.CTX, indexesToRebuild []string) *model.AppError {
+	return model.NewAppError("Bleve.RebuildIndexes", "", nil, "not implemented", http.StatusNotFound)
+}

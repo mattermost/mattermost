@@ -49,4 +49,5 @@ type SearchEngineInterface interface {
 	PurgeIndexes(rctx request.CTX) *model.AppError
 	RefreshIndexes(rctx request.CTX) *model.AppError
 	DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError
+	RebuildIndexes(rctx request.CTX, indexesToRebuild []string) *model.AppError
 }

@@ -988,6 +988,7 @@ type AppIface interface {
 	PurgeElasticsearchIndexes(c request.CTX) *model.AppError
 	QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
+	RebuildIndexes(c request.CTX, indexesToRebuild []string) *model.AppError
 	RecycleDatabaseConnection(rctx request.CTX)
 	RegenCommandToken(cmd *model.Command) (*model.Command, *model.AppError)
 	RegenOutgoingWebhookToken(hook *model.OutgoingWebhook) (*model.OutgoingWebhook, *model.AppError)

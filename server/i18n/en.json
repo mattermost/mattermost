@@ -7999,6 +7999,10 @@
     "translation": "Your license does not support Elasticsearch."
   },
   {
+    "id": "ent.elasticsearch.not_Active",
+    "translation": "Elsaticsearch is not active."
+  },
+  {
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },

@@ -15,6 +15,7 @@ import (
 func (api *API) InitElasticsearch() {
 	api.BaseRoutes.Elasticsearch.Handle("/test", api.APISessionRequired(testElasticsearch)).Methods("POST")
 	api.BaseRoutes.Elasticsearch.Handle("/purge_indexes", api.APISessionRequired(purgeElasticsearchIndexes)).Methods("POST")
+	api.BaseRoutes.Elasticsearch.Handle("/channels/rebuild", api.APISessionRequired(rebuildChannelIndex)).Methods("POST")
 }
 
 func testElasticsearch(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -72,6 +73,30 @@ func purgeElasticsearchIndexes(c *Context, w http.ResponseWriter, r *http.Reques
 	}
 
 	if err := c.App.PurgeElasticsearchIndexes(c.AppContext); err != nil {
+		c.Err = err
+		return
+	}
+
+	auditRec.Success()
+
+	ReturnStatusOK(w)
+}
+
+func rebuildChannelIndex(c *Context, w http.ResponseWriter, r *http.Request) {
+	auditRec := c.MakeAuditRecord("rebuildChannelIndex", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionPurgeElasticsearchIndexes) {
+		c.SetPermissionError(model.PermissionPurgeElasticsearchIndexes)
+		return
+	}
+
+	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
+		c.Err = model.NewAppError("rebuildChannelIndex", "api.restricted_system_admin", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if err := c.App.RebuildIndexes(c.AppContext, []string{"channels"}); err != nil {
 		c.Err = err
 		return
 	}
