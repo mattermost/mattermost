@@ -827,8 +827,8 @@ export function getNewestPostThread(rootId: string) {
     };
 }
 
-export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+    return async (dispatch, getState) => {
         let posts;
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
         try {
@@ -890,8 +890,8 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
     };
 }
 
-export function getPostsSince(channelId: string, since: number, fetchThreads = true, collapsedThreadsExtended = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getPostsSince(channelId: string, since: number, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+    return async (dispatch, getState) => {
         let posts;
         try {
             const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
@@ -959,8 +959,8 @@ export function getPostsAfter(channelId: string, postId: string, page = 0, perPa
     };
 }
 
-export function getPostsAround(channelId: string, postId: string, perPage = Posts.POST_CHUNK_SIZE / 2, fetchThreads = true, collapsedThreadsExtended = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getPostsAround(channelId: string, postId: string, perPage = Posts.POST_CHUNK_SIZE / 2, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+    return async (dispatch, getState) => {
         let after;
         let thread;
         let before;
