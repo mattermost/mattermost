@@ -18,7 +18,6 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getSelfHostedSignupProgress} from 'mattermost-redux/selectors/entities/hosted_customer';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, getFilteredUsersStats} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {confirmSelfHostedExpansion} from 'actions/hosted_customer';
 import {pageVisited} from 'actions/telemetry_actions';
@@ -166,7 +165,7 @@ export function canSubmit(formState: FormState, progress: ValueOf<typeof SelfHos
 }
 
 export default function SelfHostedExpansionModal() {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const intl = useIntl();
     const cardRef = useRef<CardInputType | null>(null);
     const theme = useSelector(getTheme);
