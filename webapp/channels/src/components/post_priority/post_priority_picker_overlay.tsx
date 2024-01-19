@@ -13,7 +13,7 @@ import {
     useRole,
     flip,
     shift,
-} from '@floating-ui/react-dom-interactions';
+} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {memo, useCallback, useState} from 'react';
 import {useIntl} from 'react-intl';
@@ -60,10 +60,12 @@ function PostPriorityPickerOverlay({
     const {
         x: pickerX,
         y: pickerY,
-        reference: pickerRef,
-        floating: pickerFloating,
         strategy: pickerStrategy,
         context: pickerContext,
+        refs: {
+            setReference: setPickerReference,
+            setFloating: setPickerFloating,
+        },
     } = useFloating({
         open: pickerOpen,
         onOpenChange: setPickerOpen,
@@ -97,7 +99,7 @@ function PostPriorityPickerOverlay({
             >
                 <IconContainer
                     id='messagePriority'
-                    ref={pickerRef}
+                    ref={setPickerReference}
                     className={classNames({control: true, active: pickerOpen})}
                     disabled={disabled}
                     type='button'
@@ -119,7 +121,7 @@ function PostPriorityPickerOverlay({
                         initialFocus={-1}
                     >
                         <div
-                            ref={pickerFloating}
+                            ref={setPickerFloating}
                             style={{
                                 width: 'max-content',
                                 position: pickerStrategy,
