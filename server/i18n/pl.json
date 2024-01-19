@@ -10218,5 +10218,65 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
     "translation": "Wystąpił błąd aktualizacji wychodzącego połączenia oauth."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Wystąpił błąd podczas przetwarzania ładowania."
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Prosimy o odnowienie, aby uniknąć zakłóceń"
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Odnów teraz"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Roczny rachunek płatny do 30 dni"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Termin płatności rocznego rachunku wynosi 30 dni"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Roczne odnowienie subskrypcji w ciągu 60 dni"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Nie można znaleźć użytkownika."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Roczne odnowienie subskrypcji w ciągu 60 dni"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Wymagane działanie: Roczne odnowienie subskrypcji w ciągu 7 dni"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Za 7 dni utracisz dostęp do swojej przestrzeni roboczej"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Nie można zaktualizować rekwizytów powiadomień członków kanału."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Nie udało się potwierdzić zaproszenia: {{.Error}}"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Błąd podczas sprawdzania, czy użytkownik ma niestandardowe zdjęcie profilowe."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Nie można zaktualizować tak wielu członków kanału. Jednocześnie można aktualizować tylko {{.Max}} członków kanału."
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Nie udało się pobrać liczby użytkowników."
   }
 ]
