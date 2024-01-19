@@ -1662,7 +1662,7 @@
   "admin.permissions.permission.edit_post.name": "Edit Own Posts",
   "admin.permissions.permission.import_team.description": "Import team",
   "admin.permissions.permission.import_team.name": "Import team",
-  "admin.permissions.permission.invite_guest.description": "Invite guests to channels and send guest email invites.",
+  "admin.permissions.permission.invite_guest.description": "Invite guests to teams and send guest email invites.",
   "admin.permissions.permission.invite_guest.name": "Invite guests",
   "admin.permissions.permission.list_team_channels.description": "List team channels",
   "admin.permissions.permission.list_team_channels.name": "List team channels",
