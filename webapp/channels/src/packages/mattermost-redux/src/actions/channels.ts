@@ -407,8 +407,8 @@ export function updateChannelNotifyProps(userId: string, channelId: string, prop
     };
 }
 
-export function getChannelByNameAndTeamName(teamName: string, channelName: string, includeDeleted = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getChannelByNameAndTeamName(teamName: string, channelName: string, includeDeleted = false): NewActionFuncAsync<Channel> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getChannelByNameAndTeamName(teamName, channelName, includeDeleted);
@@ -540,8 +540,8 @@ export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: S
     };
 }
 
-export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function fetchAllMyTeamsChannelsAndChannelMembersREST(): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const {currentUserId} = state.entities.users;
         let channels;
