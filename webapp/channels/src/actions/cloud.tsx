@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {Stripe} from '@stripe/stripe-js';
-import {getCode} from 'country-list';
 
 import type {Address, CloudCustomerPatch, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
 
