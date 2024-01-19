@@ -44,6 +44,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
@@ -1415,7 +1416,8 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsCloud() {
-		mlog.Debug("Skipping license expiration check for Cloud")
+		appInstance := New(ServerConnector(s.Channels()))
+		appInstance.DoSubscriptionRenewalCheck()
 		return
 	}
 
@@ -1676,6 +1678,12 @@ func (s *Server) initJobs() {
 		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
 	)
 
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportUsersToCSV,
+		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
 	s.platform.Jobs = s.Jobs
 }
 
@@ -1747,7 +1755,7 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 		return img, false, nil
 	}
 
-	path := "users/" + user.Id + "/profile.png"
+	path := getProfileImagePath(user.Id)
 
 	data, err := s.ReadFile(path)
 	if err != nil {

@@ -31,7 +31,7 @@ import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError} from './errors';
@@ -1229,15 +1229,15 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
 
 export type ExtendedPost = Post & { system_post_ids?: string[] };
 
-export function removePost(post: ExtendedPost) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removePost(post: ExtendedPost): NewActionFunc {
+    return (dispatch, getState) => {
         if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY && post.system_post_ids) {
             const state = getState();
             for (const systemPostId of post.system_post_ids) {
                 const systemPost = PostSelectors.getPost(state, systemPostId);
 
                 if (systemPost) {
-                    dispatch(removePost(systemPost as any) as any);
+                    dispatch(removePost(systemPost));
                 }
             }
         } else {

@@ -1991,8 +1991,6 @@ func TestGetUsersForReporting(t *testing.T) {
 					CreateAt:  1000,
 					FirstName: "Bob",
 					LastName:  "Bobson",
-				},
-				UserPostStats: model.UserPostStats{
 					LastLogin: 1500,
 				},
 			},

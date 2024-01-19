@@ -287,7 +287,6 @@
   "marketplace_modal.list.update": "अपडेट",
   "marketplace_modal.list.update_confirmation.confirm_button": "अपडेट",
   "mfa.setup.save": "सेब",
-  "modal.manual_status.auto_responder.message_": "के तपाइँ तपाइँको स्ताटस \"{status}\" मा स्विच गर्न र स्वचालित जवाफ अक्षम गर्न चाहानुहुन्छ?",
   "modal.manual_status.auto_responder.message_away": "के तपाइँ तपाइँको स्ताटस \"Away\" मा स्विच गर्न र स्वचालित जवाफ अक्षम गर्न चाहानुहुन्छ?",
   "modal.manual_status.auto_responder.message_dnd": "के तपाइँ तपाइँको स्ताटस \"Do Not Disturb\" मा स्विच गर्न र स्वचालित जवाफ अक्षम गर्न चाहानुहुन्छ?",
   "modal.manual_status.auto_responder.message_offline": "के तपाइँ तपाइँको स्ताटस \"Offline\" मा स्विच गर्न र स्वचालित जवाफ अक्षम गर्न चाहानुहुन्छ?",
