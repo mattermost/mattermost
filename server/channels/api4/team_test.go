@@ -2501,6 +2501,12 @@ func TestAddTeamMembers(t *testing.T) {
 		otherUser.Id,
 	}
 
+	guestUser := th.CreateUser()
+	th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
+	guestList := []string{
+		guestUser.Id,
+	}
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
@@ -2529,6 +2535,23 @@ func TestAddTeamMembers(t *testing.T) {
 
 	require.Equal(t, tm[0].TeamId, team.Id, "team ids should have matched")
 
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Regular user can add a guest member to a team they belong to.
+	th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+	tm, resp, err = client.AddTeamMembers(context.Background(), team.Id, guestList)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	// Check all the returned data.
+	require.NotNil(t, tm[0], "should have returned team member")
+	require.Equal(t, tm[0].UserId, guestUser.Id, "user ids should have matched")
+	require.Equal(t, tm[0].TeamId, team.Id, "team ids should have matched")
+
 	// Check with various invalid requests.
 	_, resp, err = client.AddTeamMembers(context.Background(), "junk", userList)
 	require.Error(t, err)
@@ -2552,12 +2575,6 @@ func TestAddTeamMembers(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout(context.Background())
-
-	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
 
 	// Set the config so that only team admins can add a user to a team.
 	th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
@@ -2594,6 +2611,13 @@ func TestAddTeamMembers(t *testing.T) {
 	// Should work as a regular user.
 	_, _, err = client.AddTeamMembers(context.Background(), team.Id, userList)
 	require.NoError(t, err)
+
+	// remove invite guests
+	th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+	// Regular user can no longer add a guest member to a team they belong to.
+	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, guestList)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
