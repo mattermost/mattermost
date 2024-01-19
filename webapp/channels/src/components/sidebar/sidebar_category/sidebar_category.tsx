@@ -15,6 +15,7 @@ import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {localizeMessage} from 'mattermost-redux/utils/i18n_utils';
 
 import {trackEvent} from 'actions/telemetry_actions';
+
 import KeyboardShortcutSequence, {
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
