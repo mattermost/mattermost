@@ -166,8 +166,8 @@ export function SystemUsersDateRangeSelector() {
                                 id='admin.system_users.date_range_selector.date_range.sublabel'
                                 defaultMessage='{startDate} - {endDate}'
                                 values={{
-                                    startDate: formatDate(get6MonthsBack(now)),
-                                    endDate: formatDate(now),
+                                    startDate: formatDate(get6MonthsBack(now), {month: 'numeric', year: 'numeric'}),
+                                    endDate: formatDate(now, {month: 'numeric', year: 'numeric'}),
                                 }}
                             />
                         </>
