@@ -6400,6 +6400,20 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, users[60].Username, userReport[0].Username)
 	})
 
+	t.Run("should return all users regardless of date range", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    now.AddDate(1000, 0, 0).UnixMilli(),
+				EndAt:      now.AddDate(1000, 0, 0).UnixMilli(),
+			},
+		})
+
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+	})
+
 	t.Run("should return accurate post stats for various date ranges", func(t *testing.T) {
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
