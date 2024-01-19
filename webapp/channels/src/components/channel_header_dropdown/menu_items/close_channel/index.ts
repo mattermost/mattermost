@@ -5,13 +5,11 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {goToLastViewedChannel} from 'actions/views/channel';
 
 import CloseChannel from './close_channel';
 
-const mapDispatchToProps = (dispatch: Dispatch<GenericAction>) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
         goToLastViewedChannel,
     }, dispatch),
