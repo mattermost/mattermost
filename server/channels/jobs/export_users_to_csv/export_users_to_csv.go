@@ -22,7 +22,7 @@ type ExportUsersToCSVAppIFace interface {
 	GetUsersForReporting(filter *model.UserReportOptions) ([]*model.UserReport, *model.AppError)
 }
 
-// MakeWorker creates a batch migration worker to delete empty drafts.
+// MakeWorker creates a batch report worker to generate CSV user reports.
 func MakeWorker(jobServer *jobs.JobServer, store store.Store, app ExportUsersToCSVAppIFace) model.Worker {
 	return jobs.MakeBatchReportWorker(
 		jobServer,
