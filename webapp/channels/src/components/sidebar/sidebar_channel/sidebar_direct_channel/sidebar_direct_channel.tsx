@@ -10,6 +10,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -29,7 +30,7 @@ type Props = {
     redirectChannel: string;
     active: boolean;
     actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
         leaveDirectChannel: (channelId: string) => Promise<{data: boolean}>;
     };
 };
