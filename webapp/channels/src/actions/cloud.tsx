@@ -48,7 +48,7 @@ export function completeStripeAddPaymentMethod(
                             line2: billingDetails.address2,
                             city: billingDetails.city,
                             state: billingDetails.state,
-                            country: getCode(billingDetails.country),
+                            country: billingDetails.country,
                             postal_code: billingDetails.postalCode,
                         },
                     },
