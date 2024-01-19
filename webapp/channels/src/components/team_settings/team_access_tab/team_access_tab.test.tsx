@@ -58,14 +58,14 @@ describe('components/TeamSettings', () => {
     test('should not show allowed domains input if allowed domains is empty', () => {
         const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: ''})};
         renderWithContext(<AccessTab {...props}/>);
-        const allowedDomainsInput = screen.queryByText('Seperate multiple domains with a space or comma.');
+        const allowedDomainsInput = screen.queryByText('Seperate multiple domains with a space, comma, tab or enter.');
         expect(allowedDomainsInput).toBeNull();
     });
 
     test('should show allowed domains input if allowed domains is not empty', () => {
         const props = {...defaultProps, team: TestHelper.getTeamMock({allowed_domains: 'test.com'})};
         renderWithContext(<AccessTab {...props}/>);
-        const allowedDomainsInput = screen.getByText('Seperate multiple domains with a space or comma.');
+        const allowedDomainsInput = screen.getByText('Seperate multiple domains with a space, comma, tab or enter.');
         expect(allowedDomainsInput).toBeInTheDocument();
         const allowedDomainsInputValue = screen.getByText('test.com');
         expect(allowedDomainsInputValue).toBeInTheDocument();

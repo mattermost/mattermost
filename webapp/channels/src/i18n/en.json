@@ -3607,7 +3607,7 @@
   "general_tab.allowedDomains.ariaLabel": "Allowed Domains",
   "general_tab.AllowedDomainsExample": "corp.mattermost.com, mattermost.com",
   "general_tab.AllowedDomainsInfo": "When enabled, users can only join the team if their email matches a specific domain (e.g. \"mattermost.org\")",
-  "general_tab.AllowedDomainsTip": "Seperate multiple domains with a space or comma.",
+  "general_tab.AllowedDomainsTip": "Seperate multiple domains with a space, comma, tab or enter.",
   "general_tab.AllowedDomainsTitle": "Users with a specific email domain",
   "general_tab.codeLongDesc": "The Invite Code is part of the unique team invitation link which is sent to members you’re inviting to this team. Regenerating the code creates a new invitation link and invalidates the previous link.",
   "general_tab.codeTitle": "Invite Code",
