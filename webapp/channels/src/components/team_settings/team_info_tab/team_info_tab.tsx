@@ -48,8 +48,8 @@ const translations = defineMessages({
 type Props = PropsFromRedux & OwnProps;
 
 const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasChangeTabError, setHasChangeTabError, setHasChanges, actions}: Props) => {
-    const [name, setName] = useState<Team['display_name']>(team?.display_name ?? '');
-    const [description, setDescription] = useState<Team['description']>(team?.description ?? '');
+    const [name, setName] = useState<Team['display_name']>(team.display_name);
+    const [description, setDescription] = useState<Team['description']>(team.description);
     const [teamIconFile, setTeamIconFile] = useState<File | undefined>();
     const [loading, setLoading] = useState<boolean>(false);
     const [imageClientError, setImageClientError] = useState<BaseSettingItemProps['error'] | undefined>();
@@ -58,7 +58,7 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
     const {formatMessage} = useIntl();
 
     const handleNameDescriptionSubmit = useCallback(async (): Promise<boolean> => {
-        if (name?.trim() === team?.display_name && description === team?.description) {
+        if (name.trim() === team.display_name && description === team.description) {
             return true;
         }
 
@@ -70,12 +70,12 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
             return false;
         }
         setNameClientError(undefined);
-        const {error} = await actions.patchTeam({id: team?.id, display_name: name, description});
+        const {error} = await actions.patchTeam({id: team.id, display_name: name, description});
         if (error) {
             return false;
         }
         return true;
-    }, [actions, description, name, team?.description, team?.display_name, team?.id]);
+    }, [actions, description, name, team.description, team.display_name, team.id]);
 
     const handleTeamIconSubmit = useCallback(async (): Promise<boolean> => {
         if (!teamIconFile) {
@@ -83,13 +83,13 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
         }
         setLoading(true);
         setImageClientError(undefined);
-        const {error} = await actions.setTeamIcon(team?.id || '', teamIconFile);
+        const {error} = await actions.setTeamIcon(team.id, teamIconFile);
         setLoading(false);
         if (error) {
             return false;
         }
         return true;
-    }, [actions, team?.id, teamIconFile]);
+    }, [actions, team, teamIconFile]);
 
     const handleSaveChanges = useCallback(async () => {
         const nameDescriptionSuccess = await handleNameDescriptionSubmit();
@@ -109,13 +109,13 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
     }, [setHasChangeTabError, setHasChanges]);
 
     const handleCancel = useCallback(() => {
-        setName(team?.display_name ?? team?.name ?? '');
-        setDescription(team?.description ?? '');
+        setName(team.display_name ?? team.name);
+        setDescription(team.description);
         setTeamIconFile(undefined);
         setImageClientError(undefined);
         setNameClientError(undefined);
         handleClose();
-    }, [handleClose, team?.description, team?.display_name, team?.name]);
+    }, [handleClose, team.description, team.display_name, team.name]);
 
     const handleTeamIconRemove = useCallback(async () => {
         setLoading(true);
@@ -123,14 +123,14 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
         setTeamIconFile(undefined);
         handleClose();
 
-        const {error} = await actions.removeTeamIcon(team?.id || '');
+        const {error} = await actions.removeTeamIcon(team.id);
         setLoading(false);
         if (error) {
             setSaveChangesPanelState('error');
             setHasChanges(true);
             setHasChangeTabError(true);
         }
-    }, [actions, handleClose, setHasChangeTabError, setHasChanges, team?.id]);
+    }, [actions, handleClose, setHasChangeTabError, setHasChanges, team.id]);
 
     const updateTeamIcon = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         if (e && e.target && e.target.files && e.target.files[0]) {
@@ -216,7 +216,7 @@ const InfoTab = ({team, hasChanges, maxFileSize, closeModal, collapseModal, hasC
                     disabled={loading}
                     onFileChange={updateTeamIcon}
                     onRemove={handleTeamIconRemove}
-                    teamName={team?.display_name ?? team?.name}
+                    teamName={team.display_name ?? team.name}
                     clientError={imageClientError}
                 />
                 {hasChanges ?

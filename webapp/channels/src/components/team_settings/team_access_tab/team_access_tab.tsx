@@ -26,15 +26,12 @@ const generateAllowedDomainOptions = (allowedDomains?: string) => {
 type Props = PropsFromRedux & OwnProps;
 
 const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, setHasChangeTabError, setHasChanges, team, actions}: Props) => {
-    const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team?.allowed_domains));
-    const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team?.allow_open_invite ?? false);
+    const [allowedDomains, setAllowedDomains] = useState<string[]>(() => generateAllowedDomainOptions(team.allowed_domains));
+    const [allowOpenInvite, setAllowOpenInvite] = useState<boolean>(team.allow_open_invite ?? false);
     const [saveChangesPanelState, setSaveChangesPanelState] = useState<SaveChangesPanelState>();
     const {formatMessage} = useIntl();
 
     const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
-        if (!team || !team.id) {
-            return false;
-        }
         const {error} = await actions.patchTeam({
             id: team.id,
             allowed_domains: allowedDomains.length === 1 ? allowedDomains[0] : allowedDomains.join(', '),
@@ -46,9 +43,6 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
     }, [actions, allowedDomains, team]);
 
     const handleOpenInviteSubmit = useCallback(async (): Promise<boolean> => {
-        if (!team || !team.id) {
-            return false;
-        }
         if (allowOpenInvite === team.allow_open_invite) {
             return true;
         }
@@ -77,10 +71,10 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
     }, [setHasChangeTabError, setHasChanges]);
 
     const handleCancel = useCallback(() => {
-        setAllowedDomains(generateAllowedDomainOptions(team?.allowed_domains));
-        setAllowOpenInvite(team?.allow_open_invite ?? false);
+        setAllowedDomains(generateAllowedDomainOptions(team.allowed_domains));
+        setAllowOpenInvite(team.allow_open_invite ?? false);
         handleClose();
-    }, [handleClose, team?.allow_open_invite, team?.allowed_domains]);
+    }, [handleClose, team.allow_open_invite, team.allowed_domains]);
 
     const collapseModalHandler = useCallback(() => {
         if (hasChanges) {
@@ -130,7 +124,7 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                         </h4>
                     </div>
                     <div className='modal-access-tab-content user-settings'>
-                        {team?.group_constrained ?
+                        {team.group_constrained ?
                             undefined :
                             <AllowedDomainsSelect
                                 allowedDomains={allowedDomains}
@@ -141,12 +135,12 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
                         }
                         <div className='divider-light'/>
                         <OpenInvite
-                            isGroupConstrained={team?.group_constrained}
+                            isGroupConstrained={team.group_constrained}
                             allowOpenInvite={allowOpenInvite}
                             setAllowOpenInvite={updateOpenInvite}
                         />
                         <div className='divider-light'/>
-                        {team?.group_constrained ?
+                        {team.group_constrained ?
                             undefined :
                             <InviteSectionInput regenerateTeamInviteId={actions.regenerateTeamInviteId}/>
                         }

@@ -16,7 +16,7 @@ type Props = {
     setHasChangeTabError: (hasChangesError: boolean) => void;
     closeModal: () => void;
     collapseModal: () => void;
-    team?: Team;
+    team: Team;
 };
 
 const TeamSettings = ({
