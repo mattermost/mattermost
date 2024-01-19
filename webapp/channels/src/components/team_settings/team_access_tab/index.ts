@@ -4,12 +4,11 @@
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
 
 import {patchTeam, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
-import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import TeamAccessTab from './team_access_tab';
 
@@ -23,14 +22,9 @@ export type OwnProps = {
     collapseModal: () => void;
 };
 
-type Actions = {
-    patchTeam: (team: Partial<Team>) => Promise<ActionResult>;
-    regenerateTeamInviteId: (teamId: string) => Promise<ActionResult>;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             patchTeam,
             regenerateTeamInviteId,
         }, dispatch),

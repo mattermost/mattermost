@@ -32,22 +32,28 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
     const {formatMessage} = useIntl();
 
     const handleAllowedDomainsSubmit = useCallback(async (): Promise<boolean> => {
+        if (!team || !team.id) {
+            return false;
+        }
         const {error} = await actions.patchTeam({
-            id: team?.id,
+            id: team.id,
             allowed_domains: allowedDomains.length === 1 ? allowedDomains[0] : allowedDomains.join(', '),
         });
         if (error) {
             return false;
         }
         return true;
-    }, [actions, allowedDomains, team?.id]);
+    }, [actions, allowedDomains, team]);
 
     const handleOpenInviteSubmit = useCallback(async (): Promise<boolean> => {
-        if (allowOpenInvite === team?.allow_open_invite) {
+        if (!team || !team.id) {
+            return false;
+        }
+        if (allowOpenInvite === team.allow_open_invite) {
             return true;
         }
         const data = {
-            id: team?.id,
+            id: team.id,
             allow_open_invite: allowOpenInvite,
         };
 
@@ -56,7 +62,7 @@ const AccessTab = ({closeModal, collapseModal, hasChangeTabError, hasChanges, se
             return false;
         }
         return true;
-    }, [actions, allowOpenInvite, team?.allow_open_invite, team?.id]);
+    }, [actions, allowOpenInvite, team]);
 
     const updateOpenInvite = useCallback((value: boolean) => {
         setHasChanges(true);
