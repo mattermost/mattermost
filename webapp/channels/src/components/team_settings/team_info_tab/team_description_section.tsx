@@ -21,7 +21,7 @@ const translations = defineMessages({
 
 type Props = {
     handleDescriptionChanges: (name: string) => void;
-    description?: Team['description'];
+    description: Team['description'];
     clientError?: BaseSettingItemProps['error'];
 };
 

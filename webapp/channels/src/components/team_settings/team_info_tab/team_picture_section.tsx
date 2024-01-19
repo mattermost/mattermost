@@ -29,12 +29,12 @@ const translations = defineMessages({
 });
 
 type Props = {
-    team?: Team;
+    team: Team;
     file?: File | null;
-    teamName?: string;
-    disabled?: boolean;
+    teamName: string;
+    disabled: boolean;
     onFileChange: (e: ChangeEvent<HTMLInputElement>) => void;
-    onRemove?: () => void;
+    onRemove: () => void;
     clientError?: BaseSettingItemProps['error'];
 };
 
@@ -44,7 +44,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
     const [orientationStyles, setOrientationStyles] = useState<{transform: string; transformOrigin: string}>();
     const {formatMessage} = useIntl();
 
-    const teamImageSource = imageURLForTeam(team || {} as Team);
+    const teamImageSource = imageURLForTeam(team);
 
     const handleInputFile = useCallback(() => {
         if (selectInput.current) {
@@ -109,7 +109,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
                 <span
                     onClick={handleInputFile}
                     className='team-picture-section__team-name'
-                >{teamName ? teamName.charAt(0).toUpperCase() + teamName?.charAt(1) : ''}</span>
+                >{teamName.charAt(0).toUpperCase() + teamName.charAt(1)}</span>
             </div>
         );
     };
