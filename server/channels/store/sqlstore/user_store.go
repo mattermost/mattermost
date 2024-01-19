@@ -2377,35 +2377,33 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 	}
 
 	if isPostgres {
-		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id")
+		joinSql := sq.And{}
 		if filter.StartAt > 0 {
 			startDate := time.UnixMilli(filter.StartAt)
-			query = query.Where(sq.Or{
-				sq.Expr("ps.UserId IS NULL"),
-				sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")},
-			})
+			joinSql = append(joinSql, sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")})
 		}
 		if filter.EndAt > 0 {
 			endDate := time.UnixMilli(filter.EndAt)
-			query = query.Where(sq.Or{
-				sq.Expr("ps.UserId IS NULL"),
-				sq.Lt{"ps.Day": endDate.Format("2006-01-02")},
-			})
+			joinSql = append(joinSql, sq.Lt{"ps.Day": endDate.Format("2006-01-02")})
 		}
+		sql, args, err := joinSql.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id AND "+sql, args...)
 	} else {
-		query = query.LeftJoin("Posts p on p.UserId = u.Id")
+		joinSql := sq.And{}
 		if filter.StartAt > 0 {
-			query = query.Where(sq.Or{
-				sq.Expr("p.UserId IS NULL"),
-				sq.GtOrEq{"p.CreateAt": filter.StartAt},
-			})
+			joinSql = append(joinSql, sq.GtOrEq{"p.CreateAt": filter.StartAt})
 		}
 		if filter.EndAt > 0 {
-			query = query.Where(sq.Or{
-				sq.Expr("p.UserId IS NULL"),
-				sq.Lt{"p.CreateAt": filter.EndAt},
-			})
+			joinSql = append(joinSql, sq.Lt{"p.CreateAt": filter.EndAt})
 		}
+		sql, args, err := joinSql.ToSql()
+		if err != nil {
+			return nil, err
+		}
+		query = query.LeftJoin("Posts p ON p.UserId = u.Id AND "+sql, args...)
 	}
 
 	query = applyUserReportFilter(query, filter, isPostgres)
