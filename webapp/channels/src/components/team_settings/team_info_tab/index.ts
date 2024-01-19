@@ -16,7 +16,7 @@ import type {GlobalState} from 'types/store/index';
 import TeamInfoTab from './team_info_tab';
 
 export type OwnProps = {
-    team: Team & { last_team_icon_update?: number };
+    team: Team;
     hasChanges: boolean;
     hasChangeTabError: boolean;
     setHasChanges: (hasChanges: boolean) => void;

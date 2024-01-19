@@ -1046,7 +1046,7 @@ export function defaultImageURLForUser(userId: UserProfile['id']) {
 }
 
 // in contrast to Client4.getTeamIconUrl, for ui logic this function returns null if last_team_icon_update is unset
-export function imageURLForTeam(team: Team & {last_team_icon_update?: number}) {
+export function imageURLForTeam(team: Team) {
     return team.last_team_icon_update ? Client4.getTeamIconUrl(team.id, team.last_team_icon_update) : null;
 }
 

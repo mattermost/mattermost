@@ -13,7 +13,7 @@ import {patchTeam, regenerateTeamInviteId} from 'mattermost-redux/actions/teams'
 import TeamAccessTab from './team_access_tab';
 
 export type OwnProps = {
-    team?: Team & { last_team_icon_update?: number };
+    team?: Team;
     hasChanges: boolean;
     hasChangeTabError: boolean;
     setHasChanges: (hasChanges: boolean) => void;
