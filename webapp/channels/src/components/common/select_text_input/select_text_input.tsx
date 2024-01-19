@@ -30,7 +30,7 @@ const styles = {
     multiValue: (baseStyles: CSSProperties) => ({
         ...baseStyles,
         borderRadius: '10px',
-        background: 'var(--center-channel-color-8, rgba(63, 67, 80, 0.08))',
+        background: 'rgba(var(--center-channel-color-rgb, 63, 67, 80), 0.08)',
         display: 'flex',
         alignItems: 'center',
     }),
@@ -47,7 +47,7 @@ const styles = {
     multiValueRemove: (baseStyles: CSSProperties) => ({
         ...baseStyles,
         borderRadius: '50%',
-        background: 'var(--center-channel-color-32, rgba(63, 67, 80, 0.32))',
+        background: 'rgba(var(--center-channel-color-rgb, 63, 67, 80), 0.32)',
         fontFamily: 'compass-icons',
         fontSize: '12px',
         fontWeight: 400,
@@ -57,7 +57,7 @@ const styles = {
         padding: 0,
         marginRight: '4px',
         ':hover': {
-            background: 'var(--center-channel-color-32, rgba(63, 67, 80, 0.32))',
+            background: 'rgba(var(--center-channel-color-rgb, 63, 67, 80), 0.32)',
             color: 'white',
         },
     }),
