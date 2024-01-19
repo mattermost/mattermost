@@ -31,7 +31,7 @@ export function openDirectChannelToUserId(userId: UserProfile['id']): NewActionF
         const channel = getChannelByName(state, channelName);
 
         if (!channel) {
-            return dispatch(ChannelActions.createDirectChannel(currentUserId, userId) as any); // HARRISONTODO ActionFunc needs migration
+            return dispatch(ChannelActions.createDirectChannel(currentUserId, userId));
         }
 
         trackEvent('api', 'api_channels_join_direct');
