@@ -40,7 +40,7 @@ const Setting: React.FC<Props> = ({
                 {children}
                 <div
                     data-testid={inputId + 'help-text'}
-                    className='help-text'
+                    className='control-label'
                 >
                     {helpText}
                 </div>
