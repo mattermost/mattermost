@@ -169,6 +169,10 @@ func (a *App) GetUserCountForReport(filter *model.UserReportOptions) (*int64, *m
 }
 
 func (a *App) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64) *model.AppError {
+	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
+		return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.license_error", nil, "", http.StatusBadRequest)
+	}
+
 	options := map[string]string{
 		"requesting_user_id": rctx.Session().UserId,
 		"start_at":           strconv.FormatInt(startAt, 10),
@@ -231,6 +235,10 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64
 }
 
 func (a *App) RetrieveBatchReport(reportID string, format string) (filestore.ReadCloseSeeker, string, *model.AppError) {
+	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
+		return nil, "", model.NewAppError("RetrieveBatchReport", "app.report.retrieve_batch_report.license_error", nil, "", http.StatusBadRequest)
+	}
+
 	filePath := makeCompiledFilePath(reportID, format)
 	reader, err := a.FileReader(filePath)
 	if err != nil {

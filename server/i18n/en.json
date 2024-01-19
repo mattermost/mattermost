@@ -6695,12 +6695,20 @@
     "translation": "Failed to fetch user report."
   },
   {
+    "id": "app.report.retrieve_batch_report.license_error",
+    "translation": "Batch reporting export only available to Pro and Enterprise."
+  },
+  {
     "id": "app.report.send_report_to_user.export_finished",
     "translation": "Report processing is finished. You can download the report [here]({{.Link}})"
   },
   {
     "id": "app.report.start_users_batch_export.job_exists",
     "translation": "Job already exists for this user and date range."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Batch reporting export only available to Pro and Enterprise."
   },
   {
     "id": "app.report.start_users_batch_export.started_export",
