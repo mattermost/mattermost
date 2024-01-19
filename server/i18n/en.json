@@ -192,6 +192,22 @@
     "translation": "Unable to upload file. File is too large."
   },
   {
+    "id": "api.admin.user.failure_reset_authdata_to_email.app_error",
+    "translation": "Failed to reset authdata to email"
+  },
+  {
+    "id": "api.admin.users.invalid_auth_type.app_error",
+    "translation": "{{.AuthService}} is not supported for auth data reset"
+  },
+  {
+    "id": "api.admin.users.invalid_auth_type.gitlab_license.app_error",
+    "translation": "Your license does not support Gitlab OpenId"
+  },
+  {
+    "id": "api.admin.users.invalid_auth_type.license_level.app_error",
+    "translation": "Your license does not support {{.AuthService}}"
+  },
+  {
     "id": "api.back_to_app",
     "translation": "Back to {{.SiteName}}"
   },

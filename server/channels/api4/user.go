@@ -3469,13 +3469,7 @@ func resetUserAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request
 
 	// Check the auth service matches our offerings
 	if authService == "" || (authService != model.UserAuthServiceSaml && authService != model.ServiceOpenid && authService != model.UserAuthServiceGitlab && authService != model.ServiceGoogle && authService != model.ServiceOffice365) {
-		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.app_error", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	// Check they have the right license level to use SAML
-	if authService == model.UserAuthServiceSaml && (c.App.Channels().License() == nil || !*c.App.Channels().License().Features.SAML) {
-		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.saml_license.app_error", nil, "", http.StatusNotImplemented)
+		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.app_error", map[string]any{"AuthService": authService}, "", http.StatusBadRequest)
 		return
 	}
 
@@ -3487,8 +3481,8 @@ func resetUserAuthDataToEmail(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	if (authService == model.ServiceOpenid || authService == model.ServiceGoogle || authService == model.ServiceOffice365) && licenseErr != nil {
-		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.license_level.app_error", nil, "", http.StatusNotImplemented)
+	if (authService == model.ServiceOpenid || authService == model.ServiceGoogle || authService == model.ServiceOffice365 || authService == model.UserAuthServiceSaml) && licenseErr != nil {
+		c.Err = model.NewAppError("api.resetUserAuthDataToEmail", "api.admin.users.invalid_auth_type.license_level.app_error", map[string]any{"AuthService": authService}, "", http.StatusNotImplemented)
 		return
 	}
 

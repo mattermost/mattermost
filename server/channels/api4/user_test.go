@@ -7576,3 +7576,64 @@ func TestUserUpdateEvents(t *testing.T) {
 		})
 	})
 }
+
+func TestResetUserAuthDataToEmail(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	userOpenId := th.CreateUserWithAuth(model.ServiceOpenid)
+	userGitlab := th.CreateUserWithAuth(model.UserAuthServiceGitlab)
+	userGoogle := th.CreateUserWithAuth(model.ServiceGoogle)
+	userOffice365 := th.CreateUserWithAuth(model.ServiceOffice365)
+	userSaml := th.CreateUserWithAuth(model.UserAuthServiceSaml)
+
+	userArr := []*model.User{userOpenId, userGitlab, userGoogle, userOffice365, userSaml}
+
+	t.Run("should error when not a sysadmin", func(t *testing.T) {
+		for _, user := range userArr {
+			_, resp, err := th.Client.ResetUserAuthDataToEmail(context.Background(), *user.AuthData, false, true, []string{user.Id})
+			require.Error(t, err)
+			CheckForbiddenStatus(t, resp)
+		}
+	})
+
+	t.Run("Gitlab oauth should work with no license", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GitLabSettings.Scope = "read_user"
+		})
+
+		impactedUsersCount, _, err := th.SystemAdminClient.ResetUserAuthDataToEmail(context.Background(), model.UserAuthServiceGitlab, false, true, []string{userGitlab.Id})
+		require.NoError(t, err)
+		require.Equal(t, int64(1), impactedUsersCount)
+	})
+
+	t.Run("should error with no license", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.GitLabSettings.Scope = "openid"
+		})
+		for _, user := range userArr {
+			_, resp, err := th.SystemAdminClient.ResetUserAuthDataToEmail(context.Background(), user.AuthService, false, true, []string{user.Id})
+			require.Error(t, err)
+			CheckNotImplementedStatus(t, resp)
+		}
+	})
+
+	t.Run("OpenId, oAuth and SAML should work with a professional license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuProfessional))
+
+		for _, user := range userArr {
+			impactedUsersCount, _, err := th.SystemAdminClient.ResetUserAuthDataToEmail(context.Background(), user.AuthService, false, true, []string{user.Id})
+			require.NoError(t, err)
+			require.Equal(t, int64(1), impactedUsersCount)
+		}
+	})
+
+	t.Run("OpenId, oAuth and SAML should work with an enterprise license", func(t *testing.T) {
+		th.App.Srv().SetLicense(model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise))
+
+		for _, user := range userArr {
+			impactedUsersCount, _, err := th.SystemAdminClient.ResetUserAuthDataToEmail(context.Background(), user.AuthService, false, true, []string{user.Id})
+			require.NoError(t, err)
+			require.Equal(t, int64(1), impactedUsersCount)
+		}
+	})
+}
