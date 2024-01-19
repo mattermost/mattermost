@@ -11,7 +11,7 @@ import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, NewActionFuncAsync, NewActionFuncOldVariantDoNotUse} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
@@ -21,7 +21,7 @@ import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
 
 const WEBAPP_SEARCH_PER_PAGE = 20;
 
-export function getMissingChannelsFromPosts(posts: PostList['posts']): NewActionFuncOldVariantDoNotUse {
+export function getMissingChannelsFromPosts(posts: PostList['posts']): ThunkActionFunc<unknown> {
     return async (dispatch, getState) => {
         const {
             channels,

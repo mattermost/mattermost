@@ -24,7 +24,7 @@ import type {
     ActionFunc,
     DispatchFunc,
     GetStateFunc,
-    NewActionFuncOldVariantDoNotUse,
+    ThunkActionFunc,
 } from 'mattermost-redux/types/actions';
 import {insertMultipleWithoutDuplicates, insertWithoutDuplicates, removeItem} from 'mattermost-redux/utils/array_utils';
 
@@ -135,7 +135,7 @@ function updateCategory(category: ChannelCategory) {
     };
 }
 
-export function fetchMyCategories(teamId: string, isWebSocket?: boolean): NewActionFuncOldVariantDoNotUse {
+export function fetchMyCategories(teamId: string, isWebSocket?: boolean): ThunkActionFunc<unknown> {
     return async (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 

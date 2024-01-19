@@ -29,7 +29,7 @@ export type ActionResult<Data = any, Error = any> = {
     error?: Error;
 };
 
-export type DispatchFunc = (action: Action | NewActionFunc<unknown, any> | NewActionFuncAsync<unknown, any> | NewActionFuncOldVariantDoNotUse<unknown, any>, getState?: GetStateFunc | null) => Promise<ActionResult>;
+export type DispatchFunc = (action: Action | NewActionFunc<unknown, any> | NewActionFuncAsync<unknown, any> | ThunkActionFunc<any>, getState?: GetStateFunc | null) => Promise<ActionResult>;
 
 /**
  * Return type of a redux action.
@@ -54,9 +54,9 @@ export type NewActionFunc<Data = unknown, State extends GlobalState = GlobalStat
 export type NewActionFuncAsync<Data = unknown, State extends GlobalState = GlobalState> = BaseThunkAction<Promise<ActionResult<Data>>, State, unknown, ReduxAction>;
 
 /**
- * NewActionFuncOldVariantDoNotUse is a (hopefully) temporary type to let us migrate actions which previously returned
- * an array of promises to use a ThunkAction without having to modify their logic yet.
+ * ThunkActionFunc is a type that extends ActionFunc with defaults that match our other ActionFunc variants to save
+ * users from having to manually specify GlobalState and other arguments.
+ *
+ * NewActionFunc or NewActionFuncAsync should generally be preferred, but this type is available for legacy code.
  */
-export type NewActionFuncOldVariantDoNotUse<Data = unknown, State extends GlobalState = GlobalState> = BaseThunkAction<Data, State, unknown, ReduxAction>;
-
-export type ThunkActionFunc<ReturnType, State extends GlobalState = GlobalState> = BaseThunkAction<ReturnType, State, unknown, AnyAction>
+export type ThunkActionFunc<ReturnType, State extends GlobalState = GlobalState> = BaseThunkAction<ReturnType, State, unknown, AnyAction>;

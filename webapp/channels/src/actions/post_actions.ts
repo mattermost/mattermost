@@ -15,7 +15,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync, NewActionFuncOldVariantDoNotUse} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
@@ -146,7 +146,7 @@ function storeCommentDraft(rootPostId: string, draft: null) {
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string): NewActionFuncOldVariantDoNotUse {
+export function submitReaction(postId: string, action: string, emojiName: string): NewActionFunc<unknown, GlobalState> {
     return (dispatch, getState) => {
         const state = getState() as GlobalState;
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
@@ -162,9 +162,9 @@ export function submitReaction(postId: string, action: string, emojiName: string
     };
 }
 
-export function toggleReaction(postId: string, emojiName: string): NewActionFuncOldVariantDoNotUse {
-    return (dispatch, getState) => {
-        const state = getState() as GlobalState;
+export function toggleReaction(postId: string, emojiName: string): NewActionFuncAsync<unknown, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
 
         const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
