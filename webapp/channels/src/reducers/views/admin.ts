@@ -67,6 +67,7 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     cursorUserId: '',
     cursorColumnValue: '',
     columnVisibility: {},
+    searchTerm: '',
 };
 
 export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: GenericAction) {
