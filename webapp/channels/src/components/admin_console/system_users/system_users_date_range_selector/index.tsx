@@ -58,7 +58,7 @@ export function SystemUsersDateRangeSelector() {
         <div className='systemUsersDateRangeSelector'>
             <Menu.Container
                 menuButton={{
-                    id: 'systemUsersColumnTogglerMenuButton',
+                    id: 'systemUsersDateRangeSelectorMenuButton',
                     class: 'inputWithMenu',
                     'aria-label': formatMessage({
                         id: 'admin.system_users.date_range_selector.menuButtonAriaLabel',
@@ -187,7 +187,7 @@ export function SystemUsersDateRangeSelector() {
                             <span/>
                             <FormattedMessage
                                 id='admin.system_users.date_range_selector.trailing_message'
-                                defaultMessage='Note: This filter will only effect values in the <strong>Messages Posted</strong> column.'
+                                defaultMessage='Note: This filter will only affect values in the <strong>Last Post, Days Active, and Messages Posted</strong> columns.'
                                 values={{
                                     strong: (chunks: React.ReactNode) => (<strong>{chunks}</strong>),
                                 }}
