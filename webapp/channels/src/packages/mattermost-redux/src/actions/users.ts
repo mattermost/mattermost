@@ -21,7 +21,7 @@ import {General} from 'mattermost-redux/constants';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isMinimumServerVersion} from 'mattermost-redux/utils/helpers';
 
 export function generateMfaSecret(userId: string) {
@@ -33,8 +33,8 @@ export function generateMfaSecret(userId: string) {
     });
 }
 
-export function createUser(user: UserProfile, token: string, inviteId: string, redirect: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function createUser(user: UserProfile, token: string, inviteId: string, redirect: string): NewActionFuncAsync<UserProfile> {
+    return async (dispatch, getState) => {
         let created;
 
         try {
@@ -56,8 +56,8 @@ export function createUser(user: UserProfile, token: string, inviteId: string, r
     };
 }
 
-export function loadMe(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadMe(): NewActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
         // Sometimes the server version is set in one or the other
         const serverVersion = getState().entities.general.serverVersion || Client4.getServerVersion();
         dispatch(setServerVersion(serverVersion));
@@ -85,8 +85,8 @@ export function loadMe(): ActionFunc {
     };
 }
 
-export function logout(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function logout(): NewActionFuncAsync {
+    return async (dispatch) => {
         dispatch({type: UserTypes.LOGOUT_REQUEST, data: null});
 
         try {
@@ -151,8 +151,8 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
     };
 }
 
-export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingProfilesByIds(userIds: string[]): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         const {profiles} = getState().entities.users;
         const missingIds: string[] = [];
         userIds.forEach((id) => {
@@ -170,8 +170,8 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFunc {
     };
 }
 
-export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingProfilesByUsernames(usernames: string[]): NewActionFuncAsync<UserProfile[]> {
+    return async (dispatch, getState) => {
         const {profiles} = getState().entities.users;
 
         const usernameProfiles = Object.values(profiles).reduce((acc, profile: any) => {
@@ -193,8 +193,8 @@ export function getMissingProfilesByUsernames(usernames: string[]): ActionFunc {
     };
 }
 
-export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getProfilesByIds(userIds: string[], options?: any): NewActionFuncAsync<UserProfile[]> { // HARRISONTODO this could be replaced by getMissingProfilesByIds in most cases
+    return async (dispatch, getState) => {
         let profiles: UserProfile[];
 
         try {
@@ -214,8 +214,8 @@ export function getProfilesByIds(userIds: string[], options?: any): ActionFunc {
     };
 }
 
-export function getProfilesByUsernames(usernames: string[]): ActionFunc<UserProfile[]> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getProfilesByUsernames(usernames: string[]): NewActionFuncAsync<UserProfile[]> { // HARRISONTODO this could be replaced by getMissingProfilesByUsernames in most cases
+    return async (dispatch, getState) => {
         let profiles;
 
         try {
@@ -292,8 +292,8 @@ export function getProfilesNotInTeam(teamId: string, groupConstrained: boolean, 
     };
 }
 
-export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let profiles = null;
         try {
             profiles = await Client4.getProfilesWithoutTeam(page, perPage, options);
@@ -351,8 +351,8 @@ export function getProfilesInChannel(channelId: string, page: number, perPage: n
     };
 }
 
-export function getProfilesInGroupChannels(channelsIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getProfilesInGroupChannels(channelsIds: string[]): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let channelProfiles;
 
         try {
@@ -621,8 +621,8 @@ export function getStatus(userId: string) {
     });
 }
 
-export function setStatus(status: UserStatus): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setStatus(status: UserStatus): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.updateStatus(status);
         } catch (error) {
@@ -715,7 +715,7 @@ export function revokeAllSessionsForUser(userId: string): NewActionFuncAsync<boo
     };
 }
 
-export function revokeSessionsForAllUsers(): ActionFunc<boolean, ServerError> {
+export function revokeSessionsForAllUsers(): NewActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.revokeSessionsForAllUsers();
@@ -967,8 +967,8 @@ export function updateUserRoles(userId: string, roles: string): NewActionFuncAsy
     };
 }
 
-export function updateUserMfa(userId: string, activate: boolean, code = ''): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateUserMfa(userId: string, activate: boolean, code = ''): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.updateUserMfa(userId, activate, code);
         } catch (error) {
@@ -1209,8 +1209,8 @@ export function getUserAccessToken(tokenId: string): NewActionFuncAsync<UserAcce
     };
 }
 
-export function getUserAccessTokens(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getUserAccessTokens(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): NewActionFuncAsync { // HARRISONTODO unused
+    return async (dispatch, getState) => {
         let data;
 
         try {
@@ -1326,15 +1326,15 @@ export function getKnownUsers() {
     });
 }
 
-export function clearUserAccessTokens(): ActionFunc {
+export function clearUserAccessTokens(): NewActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: UserTypes.CLEAR_MY_USER_ACCESS_TOKENS, data: null});
         return {data: true};
     };
 }
 
-export function checkForModifiedUsers() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function checkForModifiedUsers(): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const users = getUsers(state);
         const lastDisconnectAt = state.websocket.lastDisconnectAt;

@@ -18,7 +18,6 @@ import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
@@ -71,7 +70,7 @@ type SignupProps = {
 const Signup = ({onCustomizeHeader}: SignupProps) => {
     const intl = useIntl();
     const {formatMessage} = intl;
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {search} = useLocation();
 
@@ -607,7 +606,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 return;
             }
 
-            await handleSignupSuccess(user, data as UserProfile);
+            await handleSignupSuccess(user, data as UserProfile); // HARRISONTODO remove type assertion
             if (subscribeToSecurityNewsletter) {
                 subscribeToSecurityNewsletterFunc();
             }
