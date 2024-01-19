@@ -66,6 +66,15 @@ const styles = {
 const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, isClearable, description}: Props) => {
     const [inputValue, setInputValue] = React.useState('');
 
+    const handleTextEnter = useCallback(() => {
+        // do not add the value if already exists
+        if (value?.includes(inputValue.trim()) || inputValue.length === 0) {
+            return;
+        }
+        handleNewSelection(inputValue);
+        setInputValue('');
+    }, [handleNewSelection, inputValue, value]);
+
     const handleKeyDown: KeyboardEventHandler = useCallback((event) => {
         if (!inputValue) {
             return;
@@ -73,15 +82,11 @@ const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, 
         switch (event.key) {
         case ' ':
         case ',':
-            // do not add the value if already exists
-            if (value?.includes(inputValue.trim())) {
-                return;
-            }
-            handleNewSelection(inputValue);
-            setInputValue('');
+        case 'Enter':
+            handleTextEnter();
             event.preventDefault();
         }
-    }, [value, inputValue, handleNewSelection]);
+    }, [inputValue, handleTextEnter]);
 
     const selectValues = useMemo(() => {
         return value.map((singleValue) => ({label: singleValue, value: singleValue}));
@@ -103,6 +108,7 @@ const SelectTextInput = ({placeholder, value, handleNewSelection, onChange, id, 
                 onKeyDown={handleKeyDown}
                 placeholder={placeholder}
                 value={selectValues}
+                onBlur={handleTextEnter}
             />
             {description ? <p className='select-text-description'>{description}</p> : undefined}
         </>
