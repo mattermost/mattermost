@@ -3,6 +3,7 @@ module github.com/mattermost/mattermost/server/v8
 go 1.20
 
 require (
+	code.sajari.com/docconv/v2 v2.0.0-pre.3.0.20240118234718-6e3f8759fa34
 	github.com/Masterminds/semver/v3 v3.2.1
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/aws/aws-sdk-go v1.49.4
@@ -81,7 +82,6 @@ require (
 )
 
 require (
-	code.sajari.com/docconv/v2 v2.0.0-pre.3.0.20240118234718-6e3f8759fa34 // indirect
 	github.com/HdrHistogram/hdrhistogram-go v0.9.0 // indirect
 	github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 // indirect
 	github.com/PuerkitoBio/goquery v1.8.1 // indirect
