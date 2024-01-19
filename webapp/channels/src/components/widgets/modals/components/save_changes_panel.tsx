@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import {AlertCircleOutlineIcon} from '@mattermost/compass-icons/components';
@@ -23,6 +23,17 @@ function SaveChangesPanel({handleSubmit, handleCancel, handleClose, tabChangeErr
     const messageClassName = classNames('mm-save-changes-panel__message', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const cancelButtonClassName = classNames('mm-save-changes-panel__cancel-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
     const saveButtonClassName = classNames('mm-save-changes-panel__save-btn', {error: tabChangeError || state === 'error'}, {saved: state === 'saved'});
+
+    useEffect(() => {
+        let timeoutId: NodeJS.Timeout;
+        if (state === 'saved') {
+            timeoutId = setTimeout(() => {
+                handleClose();
+            }, 1200);
+        }
+
+        return () => clearTimeout(timeoutId);
+    }, [handleClose, state]);
 
     const generateMessage = () => {
         if (tabChangeError || state === 'editing') {

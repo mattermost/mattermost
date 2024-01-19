@@ -2,9 +2,8 @@
     position: fixed;
     z-index: 1000;
     bottom: 20px;
-    left: 50%;
     display: flex;
-    width: calc(95%);
+    width: calc(63%);
     align-items: center;
     padding: 12px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
@@ -12,7 +11,10 @@
     border-radius: 4px;
     box-shadow: var(--elevation-3);
     font-family: 'Open Sans', sans-serif;
-    transform: translateX(-50%);
+    
+    @media screen and (max-width: 768px) {
+        width: calc(95%);
+    }
 
     &.error {
         border-color: var(--dnd-indicator);
