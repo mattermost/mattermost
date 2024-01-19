@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import {noop} from 'lodash';
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {Team} from '@mattermost/types/teams';
