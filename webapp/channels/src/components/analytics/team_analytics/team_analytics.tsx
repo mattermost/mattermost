@@ -15,7 +15,7 @@ import {General} from 'mattermost-redux/constants';
 import * as AdminActions from 'actions/admin_actions';
 
 import Banner from 'components/admin_console/banner';
-import {ActivatedUserCard} from 'components/analytics/activated_users_card';
+import ActivatedUserCard from 'components/analytics/activated_users_card';
 import LineChart from 'components/analytics/line_chart';
 import StatisticCount from 'components/analytics/statistic_count';
 import TableChart from 'components/analytics/table_chart';
