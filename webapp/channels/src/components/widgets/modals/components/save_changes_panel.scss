@@ -1,16 +1,30 @@
 .mm-save-changes-panel {
     position: fixed;
     z-index: 1000;
-    bottom: 20px;
     display: flex;
     width: calc(63%);
     align-items: center;
     padding: 12px;
     border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    animation-duration: 300ms;
+    animation-fill-mode: forwards;
+    animation-name: entry-animation;
+    animation-timing-function: ease;
     background: var(--center-channel-bg);
     border-radius: 4px;
     box-shadow: var(--elevation-3);
     font-family: 'Open Sans', sans-serif;
+    transition: all 300ms ease;
+
+    @keyframes entry-animation {
+        from {
+            bottom: 0;
+        }
+
+        to {
+            bottom: 20px;
+        }
+    }
 
     @media screen and (max-width: 768px) {
         width: calc(95%);
