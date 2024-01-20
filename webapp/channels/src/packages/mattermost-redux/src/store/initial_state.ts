@@ -74,7 +74,6 @@ const state: GlobalState = {
             postEditHistory: [],
             reactions: {},
             openGraph: {},
-            selectedPostId: '',
             currentFocusedPostId: '',
             messagesHistory: {
                 messages: [],

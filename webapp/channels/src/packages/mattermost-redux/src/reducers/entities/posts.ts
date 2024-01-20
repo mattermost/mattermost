@@ -1136,17 +1136,6 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
     }
 }
 
-function selectedPostId(state = '', action: AnyAction) {
-    switch (action.type) {
-    case PostTypes.RECEIVED_POST_SELECTED:
-        return action.data;
-    case UserTypes.LOGOUT_SUCCESS:
-        return '';
-    default:
-        return state;
-    }
-}
-
 export function postEditHistory(state: Post[] = [], action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST_HISTORY:
@@ -1576,9 +1565,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: AnyActi
         // with no guaranteed order
         postsInThread: postsInThread(state.postsInThread, action, state.posts!),
 
-        // The current selected post
-        selectedPostId: selectedPostId(state.selectedPostId, action),
-
         // The post history of selected post
         postEditHistory: postEditHistory(state.postEditHistory, action),
 
@@ -1604,7 +1590,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: AnyActi
     if (state.posts === nextState.posts && state.postsInChannel === nextState.postsInChannel &&
         state.postsInThread === nextState.postsInThread &&
         state.pendingPostIds === nextState.pendingPostIds &&
-        state.selectedPostId === nextState.selectedPostId &&
         state.postEditHistory === nextState.postEditHistory &&
         state.currentFocusedPostId === nextState.currentFocusedPostId &&
         state.reactions === nextState.reactions &&

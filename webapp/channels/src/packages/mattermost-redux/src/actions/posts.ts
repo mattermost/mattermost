@@ -1197,13 +1197,6 @@ export function removePost(post: ExtendedPost): NewActionFunc<boolean> {
     };
 }
 
-export function selectPost(postId: string) { // HARRISONTODO unused
-    return {
-        type: PostTypes.RECEIVED_POST_SELECTED,
-        data: postId,
-    };
-}
-
 export function moveThread(postId: string, channelId: string): NewActionFuncAsync {
     return async (dispatch, getState) => {
         try {

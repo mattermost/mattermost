@@ -208,9 +208,6 @@ describe('Actions.Users', () => {
         // channel stats is not empty
         expect(channels.stats).toEqual({});
 
-        // selected post id is not empty
-        expect(posts.selectedPostId).toEqual('');
-
         // current focused post id is not empty
         expect(posts.currentFocusedPostId).toEqual('');
 
