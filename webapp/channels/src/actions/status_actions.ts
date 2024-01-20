@@ -8,11 +8,9 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
-
-import {Constants} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
@@ -114,23 +112,4 @@ export function loadProfilesMissingStatus(users: UserProfile[]): NewActionFunc {
         dispatch(loadCustomEmojisForCustomStatusesByUserIds(missingStatusByIds));
         return {data: true};
     };
-}
-
-let intervalId: NodeJS.Timeout;
-
-export function startPeriodicStatusUpdates(): ThunkActionFunc<void, GlobalState> { // HARRISONTODO unused
-    return (dispatch) => {
-        clearInterval(intervalId);
-
-        intervalId = setInterval(
-            () => {
-                dispatch(loadStatusesForChannelAndSidebar());
-            },
-            Constants.STATUS_INTERVAL,
-        );
-    };
-}
-
-export function stopPeriodicStatusUpdates() { // HARRISONTODO used but does nothing
-    clearInterval(intervalId);
 }

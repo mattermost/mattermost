@@ -28,7 +28,6 @@ import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/a
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {handleNewPost} from 'actions/post_actions';
-import {stopPeriodicStatusUpdates} from 'actions/status_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {clearUserCookie} from 'actions/views/cookie';
 import {close as closeLhs} from 'actions/views/lhs';
@@ -252,7 +251,6 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
             BrowserStore.signalLogout();
         }
 
-        stopPeriodicStatusUpdates();
         WebsocketActions.close();
 
         clearUserCookie();
