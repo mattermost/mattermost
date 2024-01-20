@@ -123,10 +123,6 @@ export function selectPostFromRightHandSideSearch(post: Post) {
     return selectPostFromRightHandSideSearchWithPreviousState(post);
 }
 
-export function selectPostCardFromRightHandSideSearch(post: Post) { // HARRISONTODO unused
-    return selectPostCardFromRightHandSideSearchWithPreviousState(post);
-}
-
 export function selectPostFromRightHandSideSearchByPostId(postId: string): NewActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
