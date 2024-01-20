@@ -245,10 +245,6 @@ const state: GlobalState = {
                 status: 'not_started',
                 error: null,
             },
-            updateChannel: {
-                status: 'not_started',
-                error: null,
-            },
         },
         general: {
             websocket: {
