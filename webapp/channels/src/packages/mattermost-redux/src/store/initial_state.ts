@@ -272,10 +272,6 @@ const state: GlobalState = {
                 status: 'not_started',
                 error: null,
             },
-            joinTeam: {
-                status: 'not_started',
-                error: null,
-            },
         },
         users: {
             login: {

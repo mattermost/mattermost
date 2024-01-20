@@ -31,7 +31,6 @@ export type ThreadsRequestStatuses = {
 export type TeamsRequestsStatuses = {
     getMyTeams: RequestStatusType;
     getTeams: RequestStatusType;
-    joinTeam: RequestStatusType;
 };
 
 export type UsersRequestsStatuses = {

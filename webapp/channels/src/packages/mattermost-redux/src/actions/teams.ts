@@ -16,8 +16,6 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
-import {isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -674,37 +672,6 @@ export function checkIfTeamExists(teamName: string): NewActionFuncAsync<boolean>
         }
 
         return {data: data.exists};
-    };
-}
-
-export function joinTeam(inviteId: string, teamId: string): NewActionFuncAsync { // HARRISONTODO
-    return async (dispatch, getState) => {
-        dispatch({type: TeamTypes.JOIN_TEAM_REQUEST, data: null});
-
-        const state = getState();
-        try {
-            if (isCompatibleWithJoinViewTeamPermissions(state)) {
-                const currentUserId = state.entities.users.currentUserId;
-                await Client4.addToTeam(teamId, currentUserId);
-            } else {
-                await Client4.joinTeam(inviteId);
-            }
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: TeamTypes.JOIN_TEAM_FAILURE, error});
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(getMyTeamUnreads(isCollapsedThreadsEnabled(state)));
-
-        await Promise.all([
-            dispatch(getTeam(teamId)),
-            dispatch(getMyTeamMembers()),
-        ]);
-
-        dispatch({type: TeamTypes.JOIN_TEAM_SUCCESS, data: null});
-        return {data: true};
     };
 }
 
