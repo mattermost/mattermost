@@ -872,45 +872,6 @@ export function searchProfiles(term: string, options: any = {}): NewActionFuncAs
     };
 }
 
-let statusIntervalId: NodeJS.Timeout|null;
-export function startPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        if (statusIntervalId) {
-            clearInterval(statusIntervalId);
-        }
-
-        statusIntervalId = setInterval(
-            () => {
-                const {statuses} = getState().entities.users;
-
-                if (!statuses) {
-                    return;
-                }
-
-                const userIds = Object.keys(statuses);
-                if (!userIds.length) {
-                    return;
-                }
-
-                dispatch(getStatusesByIds(userIds));
-            },
-            General.STATUS_INTERVAL,
-        );
-
-        return {data: true};
-    };
-}
-
-export function stopPeriodicStatusUpdates(): NewActionFuncAsync { // HARRISONTODO unused
-    return async () => {
-        if (statusIntervalId) {
-            clearInterval(statusIntervalId);
-        }
-
-        return {data: true};
-    };
-}
-
 export function updateMe(user: Partial<UserProfile>): NewActionFuncAsync<UserProfile> {
     return async (dispatch) => {
         dispatch({type: UserTypes.UPDATE_ME_REQUEST, data: null});
@@ -1369,8 +1330,6 @@ export default {
     revokeSessionsForAllUsers,
     getUserAudits,
     searchProfiles,
-    startPeriodicStatusUpdates,
-    stopPeriodicStatusUpdates,
     updateMe,
     updateUserRoles,
     updateUserMfa,
