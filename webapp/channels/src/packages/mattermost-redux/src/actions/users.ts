@@ -1170,27 +1170,6 @@ export function getUserAccessToken(tokenId: string): NewActionFuncAsync<UserAcce
     };
 }
 
-export function getUserAccessTokens(page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let data;
-
-        try {
-            data = await Client4.getUserAccessTokens(page, perPage);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch({
-            type: AdminTypes.RECEIVED_USER_ACCESS_TOKENS,
-            data,
-        });
-
-        return {data};
-    };
-}
-
 export function getUserAccessTokensForUser(userId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE): NewActionFuncAsync<UserAccessToken[]> {
     return async (dispatch, getState) => {
         let data;
