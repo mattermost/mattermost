@@ -50,8 +50,6 @@ function serverVersion(state = '', action: AnyAction) {
 
 function warnMetricsStatus(state: any = {}, action: AnyAction) {
     switch (action.type) {
-    case GeneralTypes.WARN_METRICS_STATUS_RECEIVED:
-        return action.data;
     case GeneralTypes.WARN_METRIC_STATUS_RECEIVED: {
         const nextState = {...state};
         nextState[action.data.id] = action.data;

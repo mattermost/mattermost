@@ -24,7 +24,6 @@ export default keyMirror({
 
     SET_CONFIG_AND_LICENSE: null,
 
-    WARN_METRICS_STATUS_RECEIVED: null,
     WARN_METRIC_STATUS_RECEIVED: null,
     WARN_METRIC_STATUS_REMOVED: null,
 

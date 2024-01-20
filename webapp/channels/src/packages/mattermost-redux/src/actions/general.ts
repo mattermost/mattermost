@@ -65,21 +65,6 @@ export function setUrl(url: string) {
     return true;
 }
 
-export function getWarnMetricsStatus(): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getWarnMetricsStatus();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
-        }
-        dispatch({type: GeneralTypes.WARN_METRICS_STATUS_RECEIVED, data});
-
-        return {data};
-    };
-}
-
 export function setFirstAdminVisitMarketplaceStatus(): NewActionFuncAsync {
     return async (dispatch) => {
         try {
@@ -132,6 +117,5 @@ export default {
     logClientError,
     setServerVersion,
     setUrl,
-    getWarnMetricsStatus,
     getFirstAdminVisitMarketplaceStatus,
 };
