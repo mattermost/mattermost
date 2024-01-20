@@ -484,36 +484,6 @@ export function addUserToTeam(teamId: string, userId: string): NewActionFuncAsyn
     };
 }
 
-export function addUsersToTeam(teamId: string, userIds: string[]): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let members;
-        try {
-            members = await Client4.addUsersToTeam(teamId, userIds);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        const profiles: Array<Partial<UserProfile>> = [];
-        members.forEach((m: TeamMembership) => profiles.push({id: m.user_id}));
-
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_IN_TEAM,
-                data: profiles,
-                id: teamId,
-            },
-            {
-                type: TeamTypes.RECEIVED_MEMBERS_IN_TEAM,
-                data: members,
-            },
-        ]));
-
-        return {data: members};
-    };
-}
-
 export function addUsersToTeamGracefully(teamId: string, userIds: string[]): NewActionFuncAsync<TeamMemberWithError[]> {
     return async (dispatch, getState) => {
         let result: TeamMemberWithError[];

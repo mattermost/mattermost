@@ -561,33 +561,6 @@ describe('Actions.Teams', () => {
         expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
     });
 
-    it('addUsersToTeam', async () => {
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user2 = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
-            post('/members/batch').
-            reply(201, [{user_id: user.id, team_id: TestHelper.basicTeam!.id}, {user_id: user2.id, team_id: TestHelper.basicTeam!.id}]);
-        await store.dispatch(Actions.addUsersToTeam(TestHelper.basicTeam!.id, [user.id, user2.id]));
-
-        const members = store.getState().entities.teams.membersInTeam;
-        const profilesInTeam = store.getState().entities.users.profilesInTeam;
-
-        expect(members[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user2.id]).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id].has(user.id)).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id].has(user2.id)).toBeTruthy();
-    });
-
     describe('removeUserFromTeam', () => {
         const team = {id: 'team'};
         const user = {id: 'user'};
