@@ -265,35 +265,7 @@ export function getPinnedPosts(channelId: string): NewActionFuncAsync {
     };
 }
 
-export function clearPinnedPosts(channelId: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch) => {
-        dispatch({
-            type: SearchTypes.REMOVE_SEARCH_PINNED_POSTS,
-            data: {
-                channelId,
-            },
-        });
-
-        return {data: true};
-    };
-}
-
-export function removeSearchTerms(teamId: string, terms: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch) => {
-        dispatch({
-            type: SearchTypes.REMOVE_SEARCH_TERM,
-            data: {
-                teamId,
-                terms,
-            },
-        });
-
-        return {data: true};
-    };
-}
-
 export default {
     clearSearch,
-    removeSearchTerms,
     searchPosts,
 };

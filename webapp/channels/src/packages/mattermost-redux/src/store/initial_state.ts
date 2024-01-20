@@ -140,7 +140,6 @@ const state: GlobalState = {
             results: [],
             fileResults: [],
             current: {},
-            recent: {},
             matches: {},
             flagged: [],
             pinned: {},
