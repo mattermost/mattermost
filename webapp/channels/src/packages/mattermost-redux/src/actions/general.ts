@@ -78,22 +78,6 @@ export function setFirstAdminVisitMarketplaceStatus(): NewActionFuncAsync {
     };
 }
 
-export function getFirstAdminVisitMarketplaceStatus(): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getFirstAdminVisitMarketplaceStatus();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
-        }
-
-        data = JSON.parse(data.value);
-        dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data});
-        return {data};
-    };
-}
-
 // accompanying "set" happens as part of Client4.completeSetup
 export function getFirstAdminSetupComplete(): NewActionFuncAsync<SystemSetting> {
     return async (dispatch, getState) => {
@@ -117,5 +101,4 @@ export default {
     logClientError,
     setServerVersion,
     setUrl,
-    getFirstAdminVisitMarketplaceStatus,
 };
