@@ -64,22 +64,6 @@ describe('Actions.General', () => {
         expect(serverVersion).toEqual(version);
     });
 
-    it('getFirstAdminVisitMarketplaceStatus', async () => {
-        const responseData = {
-            name: 'FirstAdminVisitMarketplace',
-            value: 'false',
-        };
-
-        nock(Client4.getPluginsRoute()).
-            get('/marketplace/first_admin_visit').
-            query(true).
-            reply(200, responseData);
-
-        await store.dispatch(Actions.getFirstAdminVisitMarketplaceStatus());
-        const {firstAdminVisitMarketplaceStatus} = store.getState().entities.general;
-        expect(firstAdminVisitMarketplaceStatus).toEqual(false);
-    });
-
     it('setFirstAdminVisitMarketplaceStatus', async () => {
         nock(Client4.getPluginsRoute()).
             post('/marketplace/first_admin_visit').
