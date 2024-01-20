@@ -1171,18 +1171,6 @@ function currentFocusedPostId(state = '', action: AnyAction) {
 
 export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: AnyAction) {
     switch (action.type) {
-    case PostTypes.RECEIVED_REACTIONS: {
-        const reactionsList = action.data;
-        const nextReactions: Record<string, Reaction> = {};
-        reactionsList.forEach((reaction: Reaction) => {
-            nextReactions[reaction.user_id + '-' + reaction.emoji_name] = reaction;
-        });
-
-        return {
-            ...state,
-            [action.postId!]: nextReactions,
-        };
-    }
     case PostTypes.RECEIVED_REACTION: {
         const reaction = action.data as Reaction;
         const nextReactions = {...(state[reaction.post_id] || {})};

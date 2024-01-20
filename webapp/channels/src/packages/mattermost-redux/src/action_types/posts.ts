@@ -45,7 +45,6 @@ export default keyMirror({
     RECEIVED_POST_SELECTED: null,
     RECEIVED_EDIT_POST: null,
     RECEIVED_REACTION: null,
-    RECEIVED_REACTIONS: null,
     REACTION_DELETED: null,
 
     ADD_MESSAGE_INTO_HISTORY: null,

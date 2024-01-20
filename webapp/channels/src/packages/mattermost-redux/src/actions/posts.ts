@@ -6,16 +6,14 @@ import {batchActions} from 'redux-batched-actions';
 
 import type {Channel, ChannelUnread} from '@mattermost/types/channels';
 import type {FetchPaginatedThreadOptions} from '@mattermost/types/client4';
-import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 import type {Post, PostList, PostAcknowledgement} from '@mattermost/types/posts';
-import type {Reaction} from '@mattermost/types/reactions';
 import type {GlobalState} from '@mattermost/types/store';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {PostTypes, ChannelTypes, FileTypes, IntegrationTypes} from 'mattermost-redux/action_types';
 import {selectChannel} from 'mattermost-redux/actions/channels';
-import {systemEmojis, getCustomEmojiByName, getCustomEmojisByName} from 'mattermost-redux/actions/emojis';
+import {systemEmojis, getCustomEmojiByName} from 'mattermost-redux/actions/emojis';
 import {searchGroups} from 'mattermost-redux/actions/groups';
 import {bindClientFunc, forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {
@@ -654,58 +652,6 @@ export function getCustomEmojiForReaction(name: string): NewActionFuncAsync {
         }
 
         return dispatch(getCustomEmojiByName(name));
-    };
-}
-
-export function getReactionsForPost(postId: string): ThunkActionFunc<Promise<Reaction[] | {error: ServerError}>> { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let reactions;
-        try {
-            reactions = await Client4.getReactionsForPost(postId);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        if (reactions && reactions.length > 0) {
-            const nonExistentEmoji = getState().entities.emojis.nonExistentEmoji;
-            const customEmojisByName = selectCustomEmojisByName(getState());
-            const emojisToLoad = new Set<string>();
-
-            reactions.forEach((r: Reaction) => {
-                const name = r.emoji_name;
-
-                if (systemEmojis.has(name)) {
-                    // It's a system emoji, go the next match
-                    return;
-                }
-
-                if (nonExistentEmoji.has(name)) {
-                    // We've previously confirmed this is not a custom emoji
-                    return;
-                }
-
-                if (customEmojisByName.has(name)) {
-                    // We have the emoji, go to the next match
-                    return;
-                }
-
-                emojisToLoad.add(name);
-            });
-
-            dispatch(getCustomEmojisByName(Array.from(emojisToLoad)));
-        }
-
-        dispatch(batchActions([
-            {
-                type: PostTypes.RECEIVED_REACTIONS,
-                data: reactions,
-                postId,
-            },
-        ]));
-
-        return reactions;
     };
 }
 
