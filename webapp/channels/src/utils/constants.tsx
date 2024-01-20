@@ -315,8 +315,6 @@ export const ActionTypes = keyMirror({
     SUPPRESS_RHS: null,
     UNSUPPRESS_RHS: null,
 
-    FIRST_CHANNEL_NAME: null,
-
     SET_EDIT_CHANNEL_MEMBERS: null,
     NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK: null,
 
