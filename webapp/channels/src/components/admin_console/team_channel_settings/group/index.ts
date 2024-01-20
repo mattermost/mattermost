@@ -3,14 +3,10 @@
 
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
-import {bindActionCreators} from 'redux';
-import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
-
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {t} from 'utils/i18n';
 
@@ -42,11 +38,11 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps() {
     return {
-        actions: bindActionCreators({
+        actions: {
             getData: () => Promise.resolve(),
-        }, dispatch),
+        },
     };
 }
 
