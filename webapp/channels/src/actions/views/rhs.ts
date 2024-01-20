@@ -522,17 +522,6 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPostAndParentChannel(post: Post): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const channel = getChannelSelector(getState(), post.channel_id);
-        if (!channel) {
-            await dispatch(getChannel(post.channel_id));
-        }
-        dispatch(selectPost(post));
-        return {data: true};
-    };
-}
-
 export function selectPost(post: Post) {
     return {
         type: ActionTypes.SELECT_POST,
