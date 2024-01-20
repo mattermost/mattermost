@@ -159,7 +159,9 @@ export function addUsersToChannel(channelId: Channel['id'], userIds: Array<UserP
         try {
             const requests = userIds.map((uId) => dispatch(ChannelActions.addChannelMember(channelId, uId)));
 
-            return await Promise.all(requests) as any; // HARRISONTODO This incorrectly returns an ActionResult[]
+            await Promise.all(requests);
+
+            return {data: true};
         } catch (error) {
             return {error};
         }
