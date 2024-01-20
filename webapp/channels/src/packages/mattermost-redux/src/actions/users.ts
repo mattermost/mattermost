@@ -193,7 +193,7 @@ export function getMissingProfilesByUsernames(usernames: string[]): NewActionFun
     };
 }
 
-export function getProfilesByIds(userIds: string[], options?: any): NewActionFuncAsync<UserProfile[]> { // HARRISONTODO this could be replaced by getMissingProfilesByIds in most cases
+export function getProfilesByIds(userIds: string[], options?: any): NewActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
         let profiles: UserProfile[];
 
@@ -214,7 +214,7 @@ export function getProfilesByIds(userIds: string[], options?: any): NewActionFun
     };
 }
 
-export function getProfilesByUsernames(usernames: string[]): NewActionFuncAsync<UserProfile[]> { // HARRISONTODO this could be replaced by getMissingProfilesByUsernames in most cases
+export function getProfilesByUsernames(usernames: string[]): NewActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
         let profiles;
 
