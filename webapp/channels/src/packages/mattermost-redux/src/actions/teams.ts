@@ -566,28 +566,6 @@ export function removeUserFromTeam(teamId: string, userId: string): NewActionFun
     };
 }
 
-export function updateTeamMemberRoles(teamId: string, userId: string, roles: string[]): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        try {
-            await Client4.updateTeamMemberRoles(teamId, userId, roles);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        const membersInTeam = getState().entities.teams.membersInTeam[teamId];
-        if (membersInTeam && membersInTeam[userId]) {
-            dispatch({
-                type: TeamTypes.RECEIVED_MEMBER_IN_TEAM,
-                data: {...membersInTeam[userId], roles},
-            });
-        }
-
-        return {data: true};
-    };
-}
-
 export function sendEmailInvitesToTeam(teamId: string, emails: string[]) {
     return bindClientFunc({
         clientFunc: Client4.sendEmailInvitesToTeam,

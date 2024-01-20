@@ -11,7 +11,7 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/teams';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {General, RequestStatus} from 'mattermost-redux/constants';
+import {RequestStatus} from 'mattermost-redux/constants';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
@@ -596,31 +596,6 @@ describe('Actions.Teams', () => {
             const state = store.getState();
             expect(state.entities.channels.currentChannelId).toBe('');
         });
-    });
-
-    it('updateTeamMemberRoles', async () => {
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
-            post('/members').
-            reply(201, {user_id: user.id, team_id: TestHelper.basicTeam!.id});
-        await store.dispatch(Actions.addUserToTeam(TestHelper.basicTeam!.id, user.id));
-
-        const roles = General.TEAM_USER_ROLE + ' ' + General.TEAM_ADMIN_ROLE;
-
-        nock(Client4.getBaseRoute()).
-            put(`/teams/${TestHelper.basicTeam!.id}/members/${user.id}/roles`).
-            reply(200, {user_id: user.id, team_id: TestHelper.basicTeam!.id, roles});
-        await store.dispatch(Actions.updateTeamMemberRoles(TestHelper.basicTeam!.id, user.id, roles.split(' ')));
-
-        const members = store.getState().entities.teams.membersInTeam;
-
-        expect(members[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id].roles).toEqual(roles.split(' '));
     });
 
     it('sendEmailInvitesToTeam', async () => {
