@@ -19,7 +19,7 @@ import {receivedFiles} from './files';
 import {forceLogoutIfNecessary} from './helpers';
 import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
 
-const WEBAPP_SEARCH_PER_PAGE = 20;
+export const WEBAPP_SEARCH_PER_PAGE = 20;
 
 export function getMissingChannelsFromPosts(posts: PostList['posts']): ThunkActionFunc<unknown> {
     return async (dispatch, getState) => {
@@ -180,10 +180,6 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
 
         return {data: files};
     };
-}
-
-export function searchFiles(teamId: string, terms: string, isOrSearch: boolean, includeDeletedChannels: boolean) { // HARRISONTODO unused
-    return searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
 }
 
 export function getMoreFilesForSearch(): NewActionFuncAsync {

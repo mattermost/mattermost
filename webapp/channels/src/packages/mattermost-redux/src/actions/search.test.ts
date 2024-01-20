@@ -153,7 +153,7 @@ describe('Actions.Search', () => {
             get(`/${TestHelper.basicChannel!.id}/members/me`).
             reply(201, {user_id: TestHelper.basicUser!.id, channel_id: TestHelper.basicChannel!.id});
 
-        await dispatch(Actions.searchFiles(TestHelper.basicTeam!.id, search1, false, false));
+        await dispatch(Actions.searchFilesWithParams(TestHelper.basicTeam!.id, {terms: search1, is_or_search: false, include_deleted_channels: false, page: 0, per_page: Actions.WEBAPP_SEARCH_PER_PAGE}));
 
         let state = getState();
         let {recent, fileResults} = state.entities.search;
