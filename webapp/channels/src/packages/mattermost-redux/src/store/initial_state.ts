@@ -10,7 +10,6 @@ const state: GlobalState = {
     entities: {
         general: {
             config: {},
-            dataRetentionPolicy: {},
             license: {},
             serverVersion: '',
             warnMetricsStatus: {},

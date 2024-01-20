@@ -64,25 +64,6 @@ describe('Actions.General', () => {
         expect(serverVersion).toEqual(version);
     });
 
-    it('getDataRetentionPolicy', async () => {
-        const responseData = {
-            message_deletion_enabled: true,
-            file_deletion_enabled: false,
-            message_retention_cutoff: Date.now(),
-            file_retention_cutoff: 0,
-        };
-
-        nock(Client4.getBaseRoute()).
-            get('/data_retention/policy').
-            query(true).
-            reply(200, responseData);
-
-        await store.dispatch(Actions.getDataRetentionPolicy());
-        await TestHelper.wait(100);
-        const {dataRetentionPolicy} = store.getState().entities.general;
-        expect(dataRetentionPolicy).toEqual(responseData);
-    });
-
     it('getWarnMetricsStatus', async () => {
         const responseData = {
             metric1: true,

@@ -12,8 +12,6 @@ export default keyMirror({
     CLIENT_LICENSE_RECEIVED: null,
     CLIENT_LICENSE_RESET: null,
 
-    RECEIVED_DATA_RETENTION_POLICY: null,
-
     LOG_CLIENT_ERROR_REQUEST: null,
     LOG_CLIENT_ERROR_SUCCESS: null,
     LOG_CLIENT_ERROR_FAILURE: null,
