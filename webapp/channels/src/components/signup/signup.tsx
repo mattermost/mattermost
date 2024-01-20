@@ -606,7 +606,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 return;
             }
 
-            await handleSignupSuccess(user, data as UserProfile); // HARRISONTODO remove type assertion
+            await handleSignupSuccess(user, data!);
             if (subscribeToSecurityNewsletter) {
                 subscribeToSecurityNewsletterFunc();
             }
