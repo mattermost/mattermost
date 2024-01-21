@@ -10103,18 +10103,6 @@
     "translation": "Failed to update the custom status. An emoji with the given name does not exist."
   },
   {
-    "id": "app.post.move_thread_command.channel.multiple_messages",
-    "translation": ""
-  },
-  {
-    "id": "app.post.move_thread_command.channel.one_message",
-    "translation": ""
-  },
-  {
-    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
-    "translation": ""
-  },
-  {
     "id": "app.post.move_thread.from_another_channel",
     "translation": "This thread was moved from another channel"
   },
