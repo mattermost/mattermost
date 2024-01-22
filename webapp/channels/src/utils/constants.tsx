@@ -31,23 +31,23 @@ import logoWebhook from 'images/webhook_icon.jpg';
 import {t} from 'utils/i18n';
 
 export const SettingsTypes = {
-    TYPE_TEXT: 'text',
-    TYPE_LONG_TEXT: 'longtext',
-    TYPE_NUMBER: 'number',
-    TYPE_COLOR: 'color',
-    TYPE_BOOL: 'bool',
-    TYPE_PERMISSION: 'permission',
-    TYPE_RADIO: 'radio',
-    TYPE_BANNER: 'banner',
-    TYPE_DROPDOWN: 'dropdown',
-    TYPE_GENERATED: 'generated',
-    TYPE_USERNAME: 'username',
-    TYPE_BUTTON: 'button',
-    TYPE_LANGUAGE: 'language',
-    TYPE_JOBSTABLE: 'jobstable',
-    TYPE_FILE_UPLOAD: 'fileupload',
-    TYPE_CUSTOM: 'custom',
-    TYPE_ROLES: 'roles',
+    TYPE_TEXT: 'text' as const,
+    TYPE_LONG_TEXT: 'longtext' as const,
+    TYPE_NUMBER: 'number' as const,
+    TYPE_COLOR: 'color' as const,
+    TYPE_BOOL: 'bool' as const,
+    TYPE_PERMISSION: 'permission' as const,
+    TYPE_RADIO: 'radio' as const,
+    TYPE_BANNER: 'banner' as const,
+    TYPE_DROPDOWN: 'dropdown' as const,
+    TYPE_GENERATED: 'generated' as const,
+    TYPE_USERNAME: 'username' as const,
+    TYPE_BUTTON: 'button' as const,
+    TYPE_LANGUAGE: 'language' as const,
+    TYPE_JOBSTABLE: 'jobstable' as const,
+    TYPE_FILE_UPLOAD: 'fileupload' as const,
+    TYPE_CUSTOM: 'custom' as const,
+    TYPE_ROLES: 'roles' as const,
 };
 
 export const InviteTypes = {
@@ -454,6 +454,7 @@ export const ModalIdentifiers = {
     IP_FILTERING_DELETE_CONFIRMATION_MODAL: 'ip_filtering_delete_confirmation_modal',
     IP_FILTERING_SAVE_CONFIRMATION_MODAL: 'ip_filtering_save_confirmation_modal',
     REACTION_LIMIT_REACHED: 'reaction_limit_reached',
+    AIR_GAPPED_CONTACT_SALES: 'air_gapped_contact_sales',
 };
 
 export const UserStatuses = {
@@ -1139,6 +1140,8 @@ export const DeveloperLinks = {
     ENABLE_OAUTH2: 'https://mattermost.com/pl/enable-oauth',
     INCOMING_WEBHOOKS: 'https://mattermost.com/pl/incoming-webhooks',
     OUTGOING_WEBHOOKS: 'https://mattermost.com/pl/outgoing-webhooks',
+    INTERACTIVE_MESSAGES: 'https://mattermost.com/pl/interactive-messages',
+    INTERACTIVE_DIALOGS: 'https://mattermost.com/pl/interactive-dialogs',
     PERSONAL_ACCESS_TOKENS: 'https://mattermost.com/pl/personal-access-tokens',
     PLUGIN_SIGNING: 'https://mattermost.com/pl/sign-plugins',
     PLUGINS: 'https://mattermost.com/pl/plugins',
@@ -1457,7 +1460,7 @@ export const Constants = {
     DEFAULT_CHARACTER_LIMIT: 4000,
     IMAGE_TYPE_GIF: 'gif',
     TEXT_TYPES: ['txt', 'rtf', 'vtt'],
-    IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg', 'tiff', 'tif', 'psd'],
+    IMAGE_TYPES: ['jpg', 'gif', 'bmp', 'png', 'jpeg', 'tiff', 'tif', 'psd', 'webp'],
     AUDIO_TYPES: ['mp3', 'wav', 'wma', 'm4a', 'flac', 'aac', 'ogg', 'm4r'],
     VIDEO_TYPES: ['mp4', 'avi', 'webm', 'mkv', 'wmv', 'mpg', 'mov', 'flv'],
     PRESENTATION_TYPES: ['ppt', 'pptx'],

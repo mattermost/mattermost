@@ -5,6 +5,7 @@ package model
 
 import (
 	"net/http"
+	"strconv"
 	"time"
 
 	pUtils "github.com/mattermost/mattermost/server/public/utils"
@@ -21,11 +22,17 @@ const (
 var (
 	UserReportSortColumns    = []string{"CreateAt", "Username", "FirstName", "LastName", "Nickname", "Email", "Roles"}
 	ChannelReportSortColumns = []string{ChannelReportingSortByDisplayName, ChannelReportingSortByMemberCount, ChannelReportingSortByPostCount}
+
+	ReportExportFormats = []string{"csv"}
 )
+
+type ReportableObject interface {
+	ToReport() []string
+}
 
 type ReportingBaseOptions struct {
 	SortDesc        bool
-	Direction       string // Accepts only "up" or "down"
+	Direction       string // Accepts only "prev" or "next"
 	PageSize        int
 	SortColumn      string
 	FromColumnValue string
@@ -35,19 +42,25 @@ type ReportingBaseOptions struct {
 	EndAt           int64
 }
 
-func (options *ReportingBaseOptions) PopulateDateRange(now time.Time) {
+func GetReportDateRange(dateRange string, now time.Time) (int64, int64) {
 	startAt := int64(0)
 	endAt := int64(0)
 
-	if options.DateRange == ReportDurationLast30Days {
+	if dateRange == ReportDurationLast30Days {
 		startAt = now.AddDate(0, 0, -30).UnixMilli()
-	} else if options.DateRange == ReportDurationPreviousMonth {
+	} else if dateRange == ReportDurationPreviousMonth {
 		startOfMonth := time.Date(now.Year(), now.Month(), 1, 0, 0, 0, 0, time.Local)
 		startAt = startOfMonth.AddDate(0, -1, 0).UnixMilli()
 		endAt = startOfMonth.UnixMilli()
-	} else if options.DateRange == ReportDurationLast6Months {
+	} else if dateRange == ReportDurationLast6Months {
 		startAt = now.AddDate(0, -6, -0).UnixMilli()
 	}
+
+	return startAt, endAt
+}
+
+func (options *ReportingBaseOptions) PopulateDateRange(now time.Time) {
+	startAt, endAt := GetReportDateRange(options.DateRange, now)
 
 	options.StartAt = startAt
 	options.EndAt = endAt
@@ -68,13 +81,45 @@ type UserReportQuery struct {
 }
 
 type UserReport struct {
-	Id          string `json:"id"`
-	Username    string `json:"username"`
-	Email       string `json:"email"`
-	CreateAt    int64  `json:"create_at,omitempty"`
-	DisplayName string `json:"display_name"`
-	Roles       string `json:"roles"`
+	User
 	UserPostStats
+}
+
+func (u *UserReport) ToReport() []string {
+	lastStatusAt := ""
+	if u.LastStatusAt != nil {
+		lastStatusAt = time.UnixMilli(*u.LastStatusAt).String()
+	}
+	lastPostDate := ""
+	if u.LastPostDate != nil {
+		lastPostDate = time.UnixMilli(*u.LastPostDate).String()
+	}
+	daysActive := ""
+	if u.DaysActive != nil {
+		daysActive = strconv.Itoa(*u.DaysActive)
+	}
+	totalPosts := ""
+	if u.TotalPosts != nil {
+		totalPosts = strconv.Itoa(*u.TotalPosts)
+	}
+	lastLogin := ""
+	if u.LastLogin > 0 {
+		lastLogin = time.UnixMilli(u.LastLogin).String()
+	}
+
+	return []string{
+		u.Id,
+		u.Username,
+		u.Email,
+		time.UnixMilli(u.CreateAt).String(),
+		u.User.GetDisplayName(ShowNicknameFullName),
+		u.Roles,
+		lastLogin,
+		lastStatusAt,
+		lastPostDate,
+		daysActive,
+		totalPosts,
+	}
 }
 
 type UserReportOptions struct {
@@ -84,6 +129,7 @@ type UserReportOptions struct {
 	HasNoTeam    bool
 	HideActive   bool
 	HideInactive bool
+	SearchTerm   string
 }
 
 func (u *UserReportOptions) IsValid() *AppError {
@@ -101,14 +147,19 @@ func (u *UserReportOptions) IsValid() *AppError {
 
 func (u *UserReportQuery) ToReport() *UserReport {
 	return &UserReport{
-		Id:            u.Id,
-		Username:      u.Username,
-		Email:         u.Email,
-		CreateAt:      u.CreateAt,
-		DisplayName:   u.GetDisplayName(ShowNicknameFullName),
-		Roles:         u.Roles,
+		User:          u.User,
 		UserPostStats: u.UserPostStats,
 	}
+}
+
+func IsValidReportExportFormat(format string) bool {
+	for _, fmt := range ReportExportFormats {
+		if format == fmt {
+			return true
+		}
+	}
+
+	return false
 }
 
 type ChannelReportOptions struct {

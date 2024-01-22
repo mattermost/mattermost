@@ -33,8 +33,8 @@ export type ClientConfig = {
     CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
-    DataRetentionFileRetentionDays: string;
-    DataRetentionMessageRetentionDays: string;
+    DataRetentionFileRetentionHours: string;
+    DataRetentionMessageRetentionHours: string;
     DefaultClientLocale: string;
     DefaultTheme: string;
     DiagnosticId: string;
@@ -303,6 +303,7 @@ export type ServiceSettings = {
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
     EnableCommands: boolean;
+    OutgoingIntegrationRequestsTimeout: number;
     EnablePostUsernameOverride: boolean;
     EnablePostIconOverride: boolean;
     EnableLinkPreviews: boolean;
@@ -387,6 +388,7 @@ export type ServiceSettings = {
     PersistentNotificationMaxRecipients: number;
     UniqueEmojiReactionLimitPerPost: number;
     RefreshPostStatsRunTime: string;
+    MaximumPayloadSizeBytes: number;
 };
 
 export type TeamSettings = {
@@ -455,6 +457,7 @@ export type LogSettings = {
     EnableSentry: boolean;
     AdvancedLoggingConfig: string;
     AdvancedLoggingJSON: Record<string, any>;
+    MaxFieldSize: number;
 };
 
 export type ExperimentalAuditSettings = {
@@ -827,7 +830,9 @@ export type DataRetentionSettings = {
     EnableMessageDeletion: boolean;
     EnableFileDeletion: boolean;
     MessageRetentionDays: number;
+    MessageRetentionHours: number;
     FileRetentionDays: number;
+    FileRetentionHours: number;
     DeletionJobStartTime: string;
     BatchSize: number;
     EnableBoardsDeletion: boolean,

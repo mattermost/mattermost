@@ -114,7 +114,10 @@ const KeyboardShortcutsModal = ({onExited}: Props): JSX.Element => {
             aria-labelledby='shortcutsModalLabel'
         >
             <div className='shortcuts-content'>
-                <Modal.Header closeButton={true}>
+                <Modal.Header
+                    closeButton={true}
+                    className='divider'
+                >
                     <Modal.Title
                         componentClass='h1'
                         id='shortcutsModalLabel'
