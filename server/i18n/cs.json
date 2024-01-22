@@ -3821,7 +3821,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Chyba serializace"
+    "translation": "Chyba serializace."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -4337,11 +4337,15 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} není členem tohoto kanálu."
+    "translation": "Můžete přidat {{.Users}} do toho kanálu jakmile bude členem týmu **{{.Team}}**."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} je již v kanálu."
+    "translation": {
+      "few": "{{.User}} již jsou v kanálu.",
+      "one": "{{.User}} již je v kanálu.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -4361,7 +4365,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Nelze najít uživatele. Mohl být pravděpodobně deaktivován správcem."
+    "translation": "Nelze najít uživatele {{.User}}. Mohl být deaktivován správcem."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -4369,7 +4373,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -7461,7 +7465,7 @@
   },
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "Nejste oprávněni aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
+    "translation": "Nejste oprávněn aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
   },
   {
     "id": "api.command_custom_status.clear.success",
@@ -7473,7 +7477,7 @@
   },
   {
     "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
-    "translation": "Nejste oprávněni aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
+    "translation": "Nejste oprávněn aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
   },
   {
     "id": "api.command_custom_status.desc",
@@ -7650,5 +7654,21 @@
   {
     "id": "api.command_share.channel_invite.error",
     "translation": "Chyba při zvaní uživatele `{{.Name}}` do kanálu: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Nepodařilo se potvrdit pozvánku: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Nelze zastavit sdílení kanálu, který není sdílený."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Je vyžadováno oprávnění `{{.Permission}}` pro editaci sdílené kanálu."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Neplatná hodnota pro '{{.Arg}}': {{.Error}}"
   }
 ]
