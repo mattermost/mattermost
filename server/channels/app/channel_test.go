@@ -2736,9 +2736,11 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		th.AddUserToChannel(user1, channel2)
 		th.AddUserToChannel(user2, channel1)
 
-		messages1, closeWS1 := connectFakeWebSocket(t, th, user1.Id, "")
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelMemberUpdated}
+
+		messages1, closeWS1 := connectFakeWebSocket(t, th, user1.Id, "", eventTypesFilter)
 		defer closeWS1()
-		messages2, closeWS2 := connectFakeWebSocket(t, th, user2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, user2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		_, appErr := th.App.PatchChannelMembersNotifyProps(th.Context, []*model.ChannelMemberIdentifier{
