@@ -8,6 +8,7 @@ import React from 'react';
 import {IntlProvider} from 'react-intl';
 import {Provider} from 'react-redux';
 import {Router} from 'react-router-dom';
+import type {Reducer} from 'redux';
 
 import type {DeepPartial} from '@mattermost/types/utilities';
 
@@ -23,8 +24,10 @@ export * from '@testing-library/react';
 export {userEvent};
 
 export type FullContextOptions = {
+    intlMessages?: Record<string, string>;
     locale?: string;
     useMockedStore?: boolean;
+    pluginReducers?: string[];
 }
 
 export const renderWithContext = (
@@ -33,11 +36,12 @@ export const renderWithContext = (
     partialOptions?: FullContextOptions,
 ) => {
     const options = {
+        intlMessages: partialOptions?.intlMessages,
         locale: partialOptions?.locale ?? 'en',
         useMockedStore: partialOptions?.useMockedStore ?? false,
     };
 
-    const testStore = configureOrMockStore(initialState, options.useMockedStore);
+    const testStore = configureOrMockStore(initialState, options.useMockedStore, partialOptions?.pluginReducers);
 
     // Store these in an object so that they can be maintained through rerenders
     const renderState = {
@@ -55,6 +59,7 @@ export const renderWithContext = (
                 <Router history={renderState.history}>
                     <IntlProvider
                         locale={renderState.options.locale}
+                        messages={renderState.options.intlMessages}
                     >
                         <WebSocketContext.Provider value={WebSocketClient}>
                             {props.children}
@@ -79,7 +84,7 @@ export const renderWithContext = (
          * Rerenders the component after replacing the entire store state with the provided one.
          */
         replaceStoreState: (newInitialState: DeepPartial<GlobalState>) => {
-            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore);
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
 
             results.rerender(renderState.component);
         },
@@ -89,15 +94,25 @@ export const renderWithContext = (
          */
         updateStoreState: (stateDiff: DeepPartial<GlobalState>) => {
             const newInitialState = mergeObjects(renderState.store.getState(), stateDiff);
-            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore);
+            renderState.store = configureOrMockStore(newInitialState, renderState.options.useMockedStore, partialOptions?.pluginReducers);
 
             results.rerender(renderState.component);
         },
     };
 };
 
-function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean) {
-    let testStore = configureStore(initialState);
+function configureOrMockStore<T>(initialState: DeepPartial<T>, useMockedStore: boolean, extraReducersKeys?: string[]) {
+    let testReducers;
+    if (extraReducersKeys) {
+        const newReducers: Record<string, Reducer> = {};
+        extraReducersKeys.forEach((v) => {
+            newReducers[v] = (state = null) => state;
+        });
+
+        testReducers = newReducers;
+    }
+
+    let testStore = configureStore(initialState, testReducers);
     if (useMockedStore) {
         testStore = mockStore(testStore.getState());
     }

@@ -670,7 +670,7 @@ export function getPostURL(state: GlobalState, post: Post): string {
 }
 
 export function matchUserMentionTriggersWithMessageMentions(userMentionKeys: UserMentionKey[],
-    messageMentionKeys: RegExpMatchArray): boolean {
+    messageMentionKeys: string[]): boolean {
     let isMentioned = false;
     for (const mentionKey of userMentionKeys) {
         const isPresentInMessage = messageMentionKeys.includes(mentionKey.key);
@@ -706,6 +706,49 @@ export function makeGetUniqueReactionsToPost(): (state: GlobalState, postId: Pos
             });
 
             return reactionsForPost;
+        },
+    );
+}
+
+export function makeGetUniqueEmojiNameReactionsForPost(): (state: GlobalState, postId: Post['id']) => string[] | undefined | null {
+    const getReactionsForPost = makeGetReactionsForPost();
+
+    return createSelector(
+        'makeGetUniqueEmojiReactionsForPost',
+        (state: GlobalState, postId: string) => getReactionsForPost(state, postId),
+        getEmojiMap,
+        (reactions, emojiMap) => {
+            if (!reactions) {
+                return null;
+            }
+
+            const emojiNames: string[] = [];
+
+            Object.values(reactions).forEach((reaction) => {
+                if (emojiMap.get(reaction.emoji_name) && !emojiNames.includes(reaction.emoji_name)) {
+                    emojiNames.push(reaction.emoji_name);
+                }
+            });
+
+            return emojiNames;
+        },
+    );
+}
+
+export function makeGetIsReactionAlreadyAddedToPost(): (state: GlobalState, postId: Post['id'], emojiName: string) => boolean {
+    const getUniqueReactionsToPost = makeGetUniqueReactionsToPost();
+
+    return createSelector(
+        'makeGetIsReactionAlreadyAddedToPost',
+        (state: GlobalState, postId: string) => getUniqueReactionsToPost(state, postId),
+        getCurrentUserId,
+        (state: GlobalState, postId: string, emojiName: string) => emojiName,
+        (reactions, currentUserId, emojiName) => {
+            const reactionsForPost = reactions || {};
+
+            const isReactionAlreadyAddedToPost = Object.values(reactionsForPost).some((reaction) => reaction.user_id === currentUserId && reaction.emoji_name === emojiName);
+
+            return isReactionAlreadyAddedToPost;
         },
     );
 }

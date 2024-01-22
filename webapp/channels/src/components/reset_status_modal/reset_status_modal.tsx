@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserStatus} from '@mattermost/types/users';
@@ -12,34 +13,99 @@ import {Preferences} from 'mattermost-redux/constants';
 import ConfirmModal from 'components/confirm_modal';
 
 import {UserStatuses} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {toTitleCase} from 'utils/utils';
 
-t('modal.manual_status.auto_responder.message_');
-t('modal.manual_status.auto_responder.message_away');
-t('modal.manual_status.auto_responder.message_dnd');
-t('modal.manual_status.auto_responder.message_offline');
-t('modal.manual_status.auto_responder.message_online');
-t('modal.manual_status.button_');
-t('modal.manual_status.button_away');
-t('modal.manual_status.button_dnd');
-t('modal.manual_status.button_offline');
-t('modal.manual_status.button_online');
-t('modal.manual_status.cancel_');
-t('modal.manual_status.cancel_away');
-t('modal.manual_status.cancel_dnd');
-t('modal.manual_status.cancel_offline');
-t('modal.manual_status.cancel_ooo');
-t('modal.manual_status.message_');
-t('modal.manual_status.message_away');
-t('modal.manual_status.message_dnd');
-t('modal.manual_status.message_offline');
-t('modal.manual_status.message_online');
-t('modal.manual_status.title_');
-t('modal.manual_status.title_away');
-t('modal.manual_status.title_dnd');
-t('modal.manual_status.title_offline');
-t('modal.manual_status.title_ooo');
+const messages: Record<string, Record<string, MessageDescriptor>> = {
+    away: defineMessages({
+        auto_responder_message: {
+            id: 'modal.manual_status.auto_responder.message_away',
+            defaultMessage: 'Would you like to switch your status to "Away" and disable Automatic Replies?',
+        },
+        button: {
+            id: 'modal.manual_status.button_away',
+            defaultMessage: 'Yes, set my status to "Away"',
+        },
+        cancel: {
+            id: 'modal.manual_status.cancel_away',
+            defaultMessage: 'No, keep it as "Away"',
+        },
+        message: {
+            id: 'modal.manual_status.message_away',
+            defaultMessage: 'Would you like to switch your status to "Away"?',
+        },
+        title: {
+            id: 'modal.manual_status.title_away',
+            defaultMessage: 'Your Status is Set to "Away"',
+        },
+    }),
+    dnd: defineMessages({
+        auto_responder_message: {
+            id: 'modal.manual_status.auto_responder.message_dnd',
+            defaultMessage: 'Would you like to switch your status to "Do Not Disturb" and disable Automatic Replies?',
+        },
+        button: {
+            id: 'modal.manual_status.button_dnd',
+            defaultMessage: 'Yes, set my status to "Do Not Disturb"',
+        },
+        cancel: {
+            id: 'modal.manual_status.cancel_dnd',
+            defaultMessage: 'No, keep it as "Do Not Disturb"',
+        },
+        message: {
+            id: 'modal.manual_status.message_dnd',
+            defaultMessage: 'Would you like to switch your status to "Do Not Disturb"?',
+        },
+        title: {
+            id: 'modal.manual_status.title_dnd',
+            defaultMessage: 'Your Status is Set to "Do Not Disturb"',
+        },
+    }),
+    offline: defineMessages({
+        auto_responder_message: {
+            id: 'modal.manual_status.auto_responder.message_offline',
+            defaultMessage: 'Would you like to switch your status to "Offline" and disable Automatic Replies?',
+        },
+        button: {
+            id: 'modal.manual_status.button_offline',
+            defaultMessage: 'Yes, set my status to "Offline"',
+        },
+        cancel: {
+            id: 'modal.manual_status.cancel_offline',
+            defaultMessage: 'No, keep it as "Offline"',
+        },
+        message: {
+            id: 'modal.manual_status.message_offline',
+            defaultMessage: 'Would you like to switch your status to "Offline"?',
+        },
+        title: {
+            id: 'modal.manual_status.title_offline',
+            defaultMessage: 'Your Status is Set to "Offline"',
+        },
+    }),
+    online: defineMessages({
+        auto_responder_message: {
+            id: 'modal.manual_status.auto_responder.message_online',
+            defaultMessage: 'Would you like to switch your status to "Online" and disable Automatic Replies?',
+        },
+        button: {
+            id: 'modal.manual_status.button_online',
+            defaultMessage: 'Yes, set my status to "Online"',
+        },
+        message: {
+            id: 'modal.manual_status.message_online',
+            defaultMessage: 'Would you like to switch your status to "Online"?',
+        },
+    }),
+    ooo: defineMessages({
+        cancel: {
+            id: 'modal.manual_status.cancel_ooo',
+            defaultMessage: 'No, keep it as "Out of Office"',
+        },
+        title: {
+            id: 'modal.manual_status.title_ooo',
+            defaultMessage: 'Your Status is Set to "Out of Office"',
+        },
+    }),
+};
 
 type Props = {
 
@@ -146,62 +212,19 @@ export default class ResetStatusModal extends React.PureComponent<Props, State> 
 
     private renderModalMessage = () => {
         if (this.props.currentUserStatus === UserStatuses.OUT_OF_OFFICE) {
-            return (
-                <FormattedMessage
-                    id={`modal.manual_status.auto_responder.message_${this.state.newStatus}`}
-                    defaultMessage='Would you like to switch your status to "{status}" and disable Automatic Replies?'
-                    values={{
-                        status: toTitleCase(this.state.newStatus),
-                    }}
-                />
-            );
+            return messages[this.state.newStatus] ? (<FormattedMessage {...messages[this.state.newStatus].auto_responder_message}/>) : '';
         }
 
-        return (
-            <FormattedMessage
-                id={`modal.manual_status.message_${this.state.newStatus}`}
-                defaultMessage='Would you like to switch your status to "{status}"?'
-                values={{
-                    status: toTitleCase(this.state.newStatus),
-                }}
-            />
-        );
+        return messages[this.state.newStatus] ? (<FormattedMessage {...messages[this.state.newStatus].message}/>) : '';
     };
 
     public render(): JSX.Element {
         const userStatus = this.state.currentUserStatus.status || '';
-        const userStatusId = 'modal.manual_status.title_' + userStatus;
-        const manualStatusTitle = (
-            <FormattedMessage
-                id={userStatusId}
-                defaultMessage='Your Status is Set to "{status}"'
-                values={{
-                    status: toTitleCase(userStatus),
-                }}
-            />
-        );
+        const manualStatusTitle = messages[userStatus] ? (<FormattedMessage {...messages[userStatus].title}/>) : '';
 
         const manualStatusMessage = this.renderModalMessage();
-
-        const manualStatusButton = (
-            <FormattedMessage
-                id={`modal.manual_status.button_${this.state.newStatus}`}
-                defaultMessage='Yes, set my status to "{status}"'
-                values={{
-                    status: toTitleCase(this.state.newStatus),
-                }}
-            />
-        );
-        const manualStatusId = 'modal.manual_status.cancel_' + userStatus;
-        const manualStatusCancel = (
-            <FormattedMessage
-                id={manualStatusId}
-                defaultMessage='No, keep it as "{status}"'
-                values={{
-                    status: toTitleCase(userStatus),
-                }}
-            />
-        );
+        const manualStatusButton = messages[this.state.newStatus] ? (<FormattedMessage {...messages[this.state.newStatus].button}/>) : '';
+        const manualStatusCancel = messages[userStatus] ? (<FormattedMessage {...messages[userStatus].cancel}/>) : '';
 
         const manualStatusCheckbox = (
             <FormattedMessage

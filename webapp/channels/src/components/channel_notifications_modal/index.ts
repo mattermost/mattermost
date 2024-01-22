@@ -4,9 +4,7 @@
 import {connect} from 'react-redux';
 import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {ChannelNotifyProps} from '@mattermost/types/channels';
+import type {Dispatch} from 'redux';
 
 import {updateChannelNotifyProps} from 'mattermost-redux/actions/channels';
 import {getMyCurrentChannelMembership} from 'mattermost-redux/selectors/entities/channels';
@@ -14,7 +12,6 @@ import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {
     isCollapsedThreadsEnabled,
 } from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store/index';
 
@@ -26,12 +23,8 @@ const mapStateToProps = (state: GlobalState) => ({
     sendPushNotifications: getConfig(state).SendPushNotifications === 'true',
 });
 
-type Actions = {
-    updateChannelNotifyProps: (userId: string, channelId: string, props: Partial<ChannelNotifyProps>) => Promise<ActionResult>;
-};
-
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+    actions: bindActionCreators({
         updateChannelNotifyProps,
     }, dispatch),
 });

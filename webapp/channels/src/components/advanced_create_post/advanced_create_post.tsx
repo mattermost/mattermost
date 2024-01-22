@@ -169,10 +169,12 @@ export type Props = {
         addMessageIntoHistory: (message: string) => void;
 
         // func called for navigation through messages by Up arrow
-        moveHistoryIndexBack: (index: string) => Promise<void>;
+        moveHistoryIndexBack: (index: string) => Promise<ActionResult>;
 
         // func called for navigation through messages by Down arrow
-        moveHistoryIndexForward: (index: string) => Promise<void>;
+        moveHistoryIndexForward: (index: string) => Promise<ActionResult>;
+
+        submitReaction: (postId: string, action: string, emojiName: string) => void;
 
         // func called for adding a reaction
         addReaction: (postId: string, emojiName: string) => void;
@@ -187,10 +189,10 @@ export type Props = {
         clearDraftUploads: () => void;
 
         //hooks called before a message is sent to the server
-        runMessageWillBePostedHooks: (originalPost: Post) => ActionResult;
+        runMessageWillBePostedHooks: (originalPost: Post) => Promise<ActionResult<Post>>;
 
         //hooks called before a slash command is sent to the server
-        runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => ActionResult;
+        runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => Promise<ActionResult>;
 
         // func called for setting drafts
         setDraft: (name: string, value: PostDraft | null, draftChannelId: string, save?: boolean) => void;
@@ -204,19 +206,19 @@ export type Props = {
         //Function to open a modal
         openModal: <P>(modalData: ModalData<P>) => void;
 
-        executeCommand: (message: string, args: CommandArgs) => ActionResult;
+        executeCommand: (message: string, args: CommandArgs) => Promise<ActionResult>;
 
         //Function to get the users timezones in the channel
-        getChannelTimezones: (channelId: string) => ActionResult;
+        getChannelTimezones: (channelId: string) => Promise<ActionResult<string[]>>;
         scrollPostListToBottom: () => void;
 
         //Function to set or unset emoji picker for last message
-        emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
+        emitShortcutReactToLastPostFrom: (emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') => void;
 
         getChannelMemberCountsByGroup: (channelId: string) => void;
 
         //Function used to advance the tutorial forward
-        savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
 
         searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
     };
@@ -563,8 +565,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         this.isDraftSubmitting = false;
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
-        this.draftsForChannel[channelId] = null;
+        this.removeDraft(channelId);
     };
 
     handleNotifyAllConfirmation = () => {
@@ -734,7 +735,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         await this.doSubmit(e);
     };
 
-    sendMessage = async (originalPost: Post) => {
+    sendMessage = async (originalPost: Post): Promise<ActionResult> => {
         const {
             actions,
             currentChannel,
@@ -782,7 +783,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return hookResult;
         }
 
-        post = hookResult.data;
+        post = hookResult.data!;
 
         actions.onSubmitPost(post, draft.fileInfos);
         actions.scrollPostListToBottom();
@@ -794,19 +795,15 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     sendReaction(isReaction: RegExpExecArray) {
-        const channelId = this.props.currentChannel.id;
         const action = isReaction[1];
         const emojiName = isReaction[2];
         const postId = this.props.latestReplyablePostId;
 
-        if (postId && action === '+') {
-            this.props.actions.addReaction(postId, emojiName);
-        } else if (postId && action === '-') {
-            this.props.actions.removeReaction(postId, emojiName);
+        if (postId) {
+            this.props.actions.submitReaction(postId, action, emojiName);
         }
 
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
-        this.draftsForChannel[channelId] = null;
+        this.removeDraft();
     }
 
     focusTextbox = (keepFocus = false) => {
@@ -891,9 +888,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.handleDraftChange(draft);
     };
 
-    handleDraftChange = (draft: PostDraft, instant = false) => {
-        const channelId = this.props.currentChannel.id;
-
+    handleDraftChange = (draft: PostDraft, channelId = this.props.currentChannel.id, instant = false) => {
         if (this.saveDraftFrame) {
             clearTimeout(this.saveDraftFrame);
         }
@@ -909,6 +904,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.draftsForChannel[channelId] = draft;
     };
 
+    removeDraft = (channelId = this.props.currentChannel.id) => {
+        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
+        this.draftsForChannel[channelId] = null;
+    };
+
     handleFileUploadChange = () => {
         this.focusTextbox();
     };
@@ -921,8 +921,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             uploadsInProgress,
         };
 
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, draft, channelId);
-        this.draftsForChannel[channelId] = draft;
+        this.handleDraftChange(draft, channelId, true);
 
         // this is a bit redundant with the code that sets focus when the file input is clicked,
         // but this also resets the focus after a drag and drop
@@ -955,7 +954,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             draft.fileInfos = sortFileInfos(draft.fileInfos.concat(fileInfos), this.props.locale);
         }
 
-        this.handleDraftChange(draft, true);
+        this.handleDraftChange(draft, channelId, true);
     };
 
     handleUploadError = (uploadError: string | ServerError | null, clientId?: string, channelId?: string) => {
@@ -971,8 +970,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                         ...draft,
                         uploadsInProgress,
                     };
-                    this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, modifiedDraft, channelId);
-                    this.draftsForChannel[channelId] = modifiedDraft;
+                    this.handleDraftChange(modifiedDraft, channelId, true);
                 }
             }
         }
@@ -989,7 +987,6 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     removePreview = (id: string) => {
         let modifiedDraft = {} as PostDraft;
         const draft = {...this.props.draft};
-        const channelId = this.props.currentChannel.id;
 
         // Clear previous errors
         this.setState({serverError: null});
@@ -1020,9 +1017,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             };
         }
 
-        this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, modifiedDraft, channelId, false);
-        this.draftsForChannel[channelId] = modifiedDraft;
-
+        this.handleDraftChange(modifiedDraft, this.props.currentChannel.id, true);
         this.handleFileUploadChange();
 
         if (this.saveDraftFrame) {
@@ -1284,7 +1279,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             updatedDraft.metadata = {};
         }
 
-        this.handleDraftChange(updatedDraft, true);
+        this.handleDraftChange(updatedDraft, this.props.currentChannel.id, true);
         this.focusTextbox();
     };
 

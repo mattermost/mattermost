@@ -856,3 +856,340 @@ func (z UserMap) Msgsize() (s int) {
 	}
 	return
 }
+
+// DecodeMsg implements msgp.Decodable
+func (z *UserPostStats) DecodeMsg(dc *msgp.Reader) (err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, err = dc.ReadMapHeader()
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, err = dc.ReadMapKeyPtr()
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "LastStatusAt":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "LastStatusAt")
+					return
+				}
+				z.LastStatusAt = nil
+			} else {
+				if z.LastStatusAt == nil {
+					z.LastStatusAt = new(int64)
+				}
+				*z.LastStatusAt, err = dc.ReadInt64()
+				if err != nil {
+					err = msgp.WrapError(err, "LastStatusAt")
+					return
+				}
+			}
+		case "LastPostDate":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "LastPostDate")
+					return
+				}
+				z.LastPostDate = nil
+			} else {
+				if z.LastPostDate == nil {
+					z.LastPostDate = new(int64)
+				}
+				*z.LastPostDate, err = dc.ReadInt64()
+				if err != nil {
+					err = msgp.WrapError(err, "LastPostDate")
+					return
+				}
+			}
+		case "DaysActive":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "DaysActive")
+					return
+				}
+				z.DaysActive = nil
+			} else {
+				if z.DaysActive == nil {
+					z.DaysActive = new(int)
+				}
+				*z.DaysActive, err = dc.ReadInt()
+				if err != nil {
+					err = msgp.WrapError(err, "DaysActive")
+					return
+				}
+			}
+		case "TotalPosts":
+			if dc.IsNil() {
+				err = dc.ReadNil()
+				if err != nil {
+					err = msgp.WrapError(err, "TotalPosts")
+					return
+				}
+				z.TotalPosts = nil
+			} else {
+				if z.TotalPosts == nil {
+					z.TotalPosts = new(int)
+				}
+				*z.TotalPosts, err = dc.ReadInt()
+				if err != nil {
+					err = msgp.WrapError(err, "TotalPosts")
+					return
+				}
+			}
+		default:
+			err = dc.Skip()
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	return
+}
+
+// EncodeMsg implements msgp.Encodable
+func (z *UserPostStats) EncodeMsg(en *msgp.Writer) (err error) {
+	// map header, size 4
+	// write "LastStatusAt"
+	err = en.Append(0x84, 0xac, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x41, 0x74)
+	if err != nil {
+		return
+	}
+	if z.LastStatusAt == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteInt64(*z.LastStatusAt)
+		if err != nil {
+			err = msgp.WrapError(err, "LastStatusAt")
+			return
+		}
+	}
+	// write "LastPostDate"
+	err = en.Append(0xac, 0x4c, 0x61, 0x73, 0x74, 0x50, 0x6f, 0x73, 0x74, 0x44, 0x61, 0x74, 0x65)
+	if err != nil {
+		return
+	}
+	if z.LastPostDate == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteInt64(*z.LastPostDate)
+		if err != nil {
+			err = msgp.WrapError(err, "LastPostDate")
+			return
+		}
+	}
+	// write "DaysActive"
+	err = en.Append(0xaa, 0x44, 0x61, 0x79, 0x73, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65)
+	if err != nil {
+		return
+	}
+	if z.DaysActive == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteInt(*z.DaysActive)
+		if err != nil {
+			err = msgp.WrapError(err, "DaysActive")
+			return
+		}
+	}
+	// write "TotalPosts"
+	err = en.Append(0xaa, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x50, 0x6f, 0x73, 0x74, 0x73)
+	if err != nil {
+		return
+	}
+	if z.TotalPosts == nil {
+		err = en.WriteNil()
+		if err != nil {
+			return
+		}
+	} else {
+		err = en.WriteInt(*z.TotalPosts)
+		if err != nil {
+			err = msgp.WrapError(err, "TotalPosts")
+			return
+		}
+	}
+	return
+}
+
+// MarshalMsg implements msgp.Marshaler
+func (z *UserPostStats) MarshalMsg(b []byte) (o []byte, err error) {
+	o = msgp.Require(b, z.Msgsize())
+	// map header, size 4
+	// string "LastStatusAt"
+	o = append(o, 0x84, 0xac, 0x4c, 0x61, 0x73, 0x74, 0x53, 0x74, 0x61, 0x74, 0x75, 0x73, 0x41, 0x74)
+	if z.LastStatusAt == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendInt64(o, *z.LastStatusAt)
+	}
+	// string "LastPostDate"
+	o = append(o, 0xac, 0x4c, 0x61, 0x73, 0x74, 0x50, 0x6f, 0x73, 0x74, 0x44, 0x61, 0x74, 0x65)
+	if z.LastPostDate == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendInt64(o, *z.LastPostDate)
+	}
+	// string "DaysActive"
+	o = append(o, 0xaa, 0x44, 0x61, 0x79, 0x73, 0x41, 0x63, 0x74, 0x69, 0x76, 0x65)
+	if z.DaysActive == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendInt(o, *z.DaysActive)
+	}
+	// string "TotalPosts"
+	o = append(o, 0xaa, 0x54, 0x6f, 0x74, 0x61, 0x6c, 0x50, 0x6f, 0x73, 0x74, 0x73)
+	if z.TotalPosts == nil {
+		o = msgp.AppendNil(o)
+	} else {
+		o = msgp.AppendInt(o, *z.TotalPosts)
+	}
+	return
+}
+
+// UnmarshalMsg implements msgp.Unmarshaler
+func (z *UserPostStats) UnmarshalMsg(bts []byte) (o []byte, err error) {
+	var field []byte
+	_ = field
+	var zb0001 uint32
+	zb0001, bts, err = msgp.ReadMapHeaderBytes(bts)
+	if err != nil {
+		err = msgp.WrapError(err)
+		return
+	}
+	for zb0001 > 0 {
+		zb0001--
+		field, bts, err = msgp.ReadMapKeyZC(bts)
+		if err != nil {
+			err = msgp.WrapError(err)
+			return
+		}
+		switch msgp.UnsafeString(field) {
+		case "LastStatusAt":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.LastStatusAt = nil
+			} else {
+				if z.LastStatusAt == nil {
+					z.LastStatusAt = new(int64)
+				}
+				*z.LastStatusAt, bts, err = msgp.ReadInt64Bytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "LastStatusAt")
+					return
+				}
+			}
+		case "LastPostDate":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.LastPostDate = nil
+			} else {
+				if z.LastPostDate == nil {
+					z.LastPostDate = new(int64)
+				}
+				*z.LastPostDate, bts, err = msgp.ReadInt64Bytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "LastPostDate")
+					return
+				}
+			}
+		case "DaysActive":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.DaysActive = nil
+			} else {
+				if z.DaysActive == nil {
+					z.DaysActive = new(int)
+				}
+				*z.DaysActive, bts, err = msgp.ReadIntBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "DaysActive")
+					return
+				}
+			}
+		case "TotalPosts":
+			if msgp.IsNil(bts) {
+				bts, err = msgp.ReadNilBytes(bts)
+				if err != nil {
+					return
+				}
+				z.TotalPosts = nil
+			} else {
+				if z.TotalPosts == nil {
+					z.TotalPosts = new(int)
+				}
+				*z.TotalPosts, bts, err = msgp.ReadIntBytes(bts)
+				if err != nil {
+					err = msgp.WrapError(err, "TotalPosts")
+					return
+				}
+			}
+		default:
+			bts, err = msgp.Skip(bts)
+			if err != nil {
+				err = msgp.WrapError(err)
+				return
+			}
+		}
+	}
+	o = bts
+	return
+}
+
+// Msgsize returns an upper bound estimate of the number of bytes occupied by the serialized message
+func (z *UserPostStats) Msgsize() (s int) {
+	s = 1 + 13
+	if z.LastStatusAt == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.Int64Size
+	}
+	s += 13
+	if z.LastPostDate == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.Int64Size
+	}
+	s += 11
+	if z.DaysActive == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.IntSize
+	}
+	s += 11
+	if z.TotalPosts == nil {
+		s += msgp.NilSize
+	} else {
+		s += msgp.IntSize
+	}
+	return
+}

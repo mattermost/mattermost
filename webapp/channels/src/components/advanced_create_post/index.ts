@@ -3,12 +3,10 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {FileInfo} from '@mattermost/types/files';
-import type {CommandArgs} from '@mattermost/types/integrations';
 import type {Post} from '@mattermost/types/posts';
-import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
 import {
@@ -32,11 +30,11 @@ import {get, getInt, getBool, isCustomGroupsEnabled} from 'mattermost-redux/sele
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getStatusForUserId, getUser, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
+import type {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
 
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
-import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
+import {addReaction, createPost, setEditingPost, emitShortcutReactToLastPostFrom, submitReaction} from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {scrollPostListToBottom} from 'actions/views/channel';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
@@ -55,7 +53,6 @@ import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers}
 import {AdvancedTextEditor, Constants, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 
-import type {ModalData} from 'types/actions.js';
 import type {PostDraft} from 'types/store/draft';
 import type {GlobalState} from 'types/store/index.js';
 
@@ -145,32 +142,7 @@ function onSubmitPost(post: Post, fileInfos: FileInfo[]) {
     };
 }
 
-type Actions = {
-    setShowPreview: (showPreview: boolean) => void;
-    addMessageIntoHistory: (message: string) => void;
-    moveHistoryIndexBack: (index: string) => Promise<void>;
-    moveHistoryIndexForward: (index: string) => Promise<void>;
-    addReaction: (postId: string, emojiName: string) => void;
-    onSubmitPost: (post: Post, fileInfos: FileInfo[]) => void;
-    removeReaction: (postId: string, emojiName: string) => void;
-    clearDraftUploads: () => void;
-    runMessageWillBePostedHooks: (originalPost: Post) => ActionResult;
-    runSlashCommandWillBePostedHooks: (originalMessage: string, originalArgs: CommandArgs) => ActionResult;
-    setDraft: (name: string, value: PostDraft | null) => void;
-    setEditingPost: (postId?: string, refocusId?: string, title?: string, isRHS?: boolean) => void;
-    selectPostFromRightHandSideSearchByPostId: (postId: string) => void;
-    openModal: <P>(modalData: ModalData<P>) => void;
-    closeModal: (modalId: string) => void;
-    executeCommand: (message: string, args: CommandArgs) => ActionResult;
-    getChannelTimezones: (channelId: string) => ActionResult;
-    scrollPostListToBottom: () => void;
-    emitShortcutReactToLastPostFrom: (emittedFrom: string) => void;
-    getChannelMemberCountsByGroup: (channelId: string) => void;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
-}
-
-function setDraft(key: string, value: PostDraft, draftChannelId: string, save = false) {
+function setDraft(key: string, value: PostDraft | null, draftChannelId: string, save = false) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const channelId = draftChannelId || getCurrentChannelId(getState());
         let updatedValue = null;
@@ -197,11 +169,12 @@ function clearDraftUploads() {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<any>, Actions>({
+        actions: bindActionCreators({
             addMessageIntoHistory,
             onSubmitPost,
             moveHistoryIndexBack,
             moveHistoryIndexForward,
+            submitReaction,
             addReaction,
             removeReaction,
             setDraft,

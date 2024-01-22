@@ -4,6 +4,7 @@
 package sqlstore
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"strings"
@@ -11,8 +12,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 
-	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+
+	sq "github.com/mattermost/squirrel"
 )
 
 const (
@@ -333,8 +335,10 @@ func (s SqlSharedChannelStore) SaveRemote(remote *model.SharedChannelRemote) (*m
 	}
 
 	query, args, err := s.getQueryBuilder().Insert("SharedChannelRemotes").
-		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId", "LastPostUpdateAt", "LastPostId").
-		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId, remote.LastPostUpdateAt, remote.LastPostId).
+		Columns("Id", "ChannelId", "CreatorId", "CreateAt", "UpdateAt", "IsInviteAccepted", "IsInviteConfirmed", "RemoteId",
+			"LastPostCreateAt", "LastPostCreateId", "LastPostUpdateAt", "LastPostId").
+		Values(remote.Id, remote.ChannelId, remote.CreatorId, remote.CreateAt, remote.UpdateAt, remote.IsInviteAccepted, remote.IsInviteConfirmed, remote.RemoteId,
+			remote.LastPostCreateAt, remote.LastPostCreateID, remote.LastPostUpdateAt, remote.LastPostUpdateID).
 		ToSql()
 	if err != nil {
 		return nil, errors.Wrapf(err, "savesharedchannelremote_tosql")
@@ -359,8 +363,10 @@ func (s SqlSharedChannelStore) UpdateRemote(remote *model.SharedChannelRemote) (
 		Set("IsInviteAccepted", remote.IsInviteAccepted).
 		Set("IsInviteConfirmed", remote.IsInviteConfirmed).
 		Set("RemoteId", remote.RemoteId).
+		Set("LastPostCreateAt", remote.LastPostUpdateAt).
+		Set("LastPostCreateId", remote.LastPostCreateID).
 		Set("LastPostUpdateAt", remote.LastPostUpdateAt).
-		Set("LastPostId", remote.LastPostId).
+		Set("LastPostId", remote.LastPostUpdateID).
 		Where(sq.And{
 			sq.Eq{"Id": remote.Id},
 			sq.Eq{"ChannelId": remote.ChannelId},
@@ -398,8 +404,10 @@ func sharedChannelRemoteFields(prefix string) []string {
 		prefix + "IsInviteAccepted",
 		prefix + "IsInviteConfirmed",
 		prefix + "RemoteId",
+		prefix + "LastPostCreateAt",
+		"COALESCE(" + prefix + "LastPostCreateID,'') AS LastPostCreateID",
 		prefix + "LastPostUpdateAt",
-		prefix + "LastPostId",
+		"COALESCE(" + prefix + "LastPostId,'') AS LastPostUpdateID",
 	}
 }
 
@@ -532,14 +540,32 @@ func (s SqlSharedChannelStore) GetRemoteForUser(remoteId string, userId string) 
 	return &rc, nil
 }
 
-// UpdateRemoteCursor updates the LastPostUpdateAt timestamp and LastPostId for the specified SharedChannelRemote.
+// UpdateRemoteCursor updates the cursor for the specified SharedChannelRemote.
 func (s SqlSharedChannelStore) UpdateRemoteCursor(id string, cursor model.GetPostsSinceForSyncCursor) error {
-	squery, args, err := s.getQueryBuilder().
+	var updateNeeded bool
+
+	builder := s.getQueryBuilder().
 		Update("SharedChannelRemotes").
-		Set("LastPostUpdateAt", cursor.LastPostUpdateAt).
-		Set("LastPostId", cursor.LastPostId).
-		Where(sq.Eq{"Id": id}).
-		ToSql()
+		Where(sq.Eq{"Id": id})
+
+	if cursor.LastPostCreateAt > 0 || cursor.LastPostCreateID != "" {
+		builder = builder.Set("LastPostCreateAt", cursor.LastPostCreateAt)
+		builder = builder.Set("LastPostCreateId", cursor.LastPostCreateID)
+		updateNeeded = true
+	}
+
+	if cursor.LastPostUpdateAt > 0 || cursor.LastPostUpdateID != "" {
+		builder = builder.Set("LastPostUpdateAt", cursor.LastPostUpdateAt)
+		builder = builder.Set("LastPostId", cursor.LastPostUpdateID)
+		updateNeeded = true
+	}
+
+	if !updateNeeded {
+		// no new cursor provided.
+		return fmt.Errorf("cursor empty")
+	}
+
+	squery, args, err := builder.ToSql()
 	if err != nil {
 		return errors.Wrap(err, "update_shared_channel_remote_cursor_tosql")
 	}
@@ -649,10 +675,10 @@ func (s SqlSharedChannelStore) GetSingleUser(userID string, channelID string, re
 
 	squery, args, err := s.getQueryBuilder().
 		Select(sharedChannelUserFields("")...).
-		From("SharedChannelUsers").
-		Where(sq.Eq{"SharedChannelUsers.UserId": userID}).
-		Where(sq.Eq{"SharedChannelUsers.RemoteId": remoteID}).
-		Where(sq.Eq{"SharedChannelUsers.ChannelId": channelID}).
+		From("SharedChannelUsers AS scu").
+		Where(sq.Eq{"scu.UserId": userID}).
+		Where(sq.Eq{"scu.ChannelId": channelID}).
+		Where(sq.Eq{"scu.RemoteId": remoteID}).
 		ToSql()
 
 	if err != nil {
@@ -735,45 +761,32 @@ func (s SqlSharedChannelStore) GetUsersForSync(filter model.GetUsersForSyncFilte
 
 // UpdateUserLastSyncAt updates the LastSyncAt timestamp for the specified SharedChannelUser.
 func (s SqlSharedChannelStore) UpdateUserLastSyncAt(userID string, channelID string, remoteID string) error {
-	var query string
-	if s.DriverName() == model.DatabaseDriverPostgres {
-		query = `
-		UPDATE
-			SharedChannelUsers AS scu
-		SET
-			LastSyncAt = GREATEST(Users.UpdateAt, Users.LastPictureUpdate)
-		FROM
-			Users
-		WHERE
-			Users.Id = scu.UserId AND scu.UserId = ? AND scu.ChannelId = ? AND scu.RemoteId = ?
-		`
-	} else if s.DriverName() == model.DatabaseDriverMysql {
-		query = `
-		UPDATE
-			SharedChannelUsers AS scu
-		INNER JOIN
-			Users ON scu.UserId = Users.Id
-		SET
-			LastSyncAt = GREATEST(Users.UpdateAt, Users.LastPictureUpdate)
-		WHERE
-			scu.UserId = ? AND scu.ChannelId = ? AND scu.RemoteId = ?
-		`
-	} else {
-		return errors.New("unsupported DB driver " + s.DriverName())
+	// fetching the user first creates a minor race condition. This is mitigated by ensuring that the
+	// LastUpdateAt is only ever increased. Doing it this way avoids the update with join that has differing
+	// syntax between MySQL and Postgres which Squirrel cannot handle.  It also allows us to return
+	// a proper error when trying to update for a non-existent user, which cannot be done by checking RowsAffected
+	// when doing updates; RowsAffected=0 when the LastUpdateAt doesn't change and is the same result if user doesn't
+	// exist.
+	user, err := s.stores.user.Get(context.Background(), userID)
+	if err != nil {
+		return err
 	}
 
-	result, err := s.GetMasterX().Exec(query, userID, channelID, remoteID)
+	updateAt := maxInt64(user.UpdateAt, user.LastPictureUpdate)
+
+	query := s.getQueryBuilder().
+		Update("SharedChannelUsers AS scu").
+		Set("LastSyncAt", sq.Expr("GREATEST(scu.LastSyncAt, ?)", updateAt)).
+		Where(sq.Eq{
+			"scu.UserId":    userID,
+			"scu.ChannelId": channelID,
+			"scu.RemoteId":  remoteID,
+		})
+
+	_, err = s.GetMasterX().ExecBuilder(query)
 	if err != nil {
 		return fmt.Errorf("failed to update LastSyncAt for SharedChannelUser with userId=%s, channelId=%s, remoteId=%s: %w",
 			userID, channelID, remoteID, err)
-	}
-
-	count, err := result.RowsAffected()
-	if err != nil {
-		return errors.Wrap(err, "failed to determine rows affected")
-	}
-	if count == 0 {
-		return fmt.Errorf("SharedChannelUser not found: userId=%s, channelId=%s, remoteId=%s", userID, channelID, remoteID)
 	}
 	return nil
 }

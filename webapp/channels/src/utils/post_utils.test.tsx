@@ -1240,10 +1240,10 @@ describe('PostUtils.isWithinCodeBlock', () => {
 
     it('should handle whitespace within and around code blocks', () => {
         const [caretPosition, message] = getCaretAndMsg(`
-            |${TRIPLE_BACKTICKS}    
-            |   Test text asd 1   
-            |        ${CARET_MARKER}  
-            |${TRIPLE_BACKTICKS}  
+            |${TRIPLE_BACKTICKS}
+            |   Test text asd 1
+            |        ${CARET_MARKER}
+            |${TRIPLE_BACKTICKS}
         `);
         expect(PostUtils.isWithinCodeBlock(message, caretPosition)).toBe(true);
     });
@@ -1317,5 +1317,79 @@ describe('PostUtils.getUserOrGroupFromMentionName', () => {
         );
 
         expect(result).toEqual(expected);
+    });
+});
+
+describe('makeGetIsReactionAlreadyAddedToPost', () => {
+    const currentUserId = 'current_user_id';
+
+    const baseState = {
+        entities: {
+            users: {
+                currentUserId,
+            },
+            posts: {
+                reactions: {
+                    post_id_1: {
+                        'current_user_id-smile': {
+                            emoji_name: 'smile',
+                            user_id: currentUserId,
+                            post_id: 'post_id_1',
+                        },
+                    },
+
+                },
+            },
+            general: {
+                config: {},
+            },
+            emojis: {},
+        }} as unknown as GlobalState;
+
+    test('should return true if the post has an emoji that the user has reacted to.', () => {
+        const getIsReactionAlreadyAddedToPost = PostUtils.makeGetIsReactionAlreadyAddedToPost();
+
+        expect(getIsReactionAlreadyAddedToPost(baseState, 'post_id_1', 'sad')).toBeFalsy();
+        expect(getIsReactionAlreadyAddedToPost(baseState, 'post_id_1', 'smile')).toBeTruthy();
+    });
+});
+
+describe('makeGetUniqueEmojiNameReactionsForPost', () => {
+    const baseState = {
+        entities: {
+            posts: {
+                reactions: {
+                    post_id_1: {
+                        user_1_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_2_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_3_post_id_1_smile: {
+                            emoji_name: 'smile',
+                            post_id: 'post_id_1',
+                        },
+                        user_1_post_id_1_cry: {
+                            emoji_name: 'cry',
+                            post_id: 'post_id_1',
+                        },
+                    },
+
+                },
+            },
+            general: {
+                config: {},
+            },
+            emojis: {},
+        },
+    } as unknown as GlobalState;
+
+    test('should only return names of unique reactions', () => {
+        const getUniqueEmojiNameReactionsForPost = PostUtils.makeGetUniqueEmojiNameReactionsForPost();
+
+        expect(getUniqueEmojiNameReactionsForPost(baseState, 'post_id_1')).toEqual(['smile', 'cry']);
     });
 });

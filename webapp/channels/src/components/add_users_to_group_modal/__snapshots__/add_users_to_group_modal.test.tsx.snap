@@ -76,7 +76,7 @@ exports[`component/add_users_to_group_modal should match snapshot 1`] = `
         <div
           className="group-add-user"
         >
-          <Connect(AddUserToGroupMultiSelect)
+          <Connect(injectIntl(AddUserToGroupMultiSelect))
             addUserCallback={[Function]}
             backButtonClass="multiselect-back"
             backButtonClick={[Function]}

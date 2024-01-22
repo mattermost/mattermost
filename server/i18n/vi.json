@@ -2061,7 +2061,7 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 60+"
+    "translation": "Version 115+"
   },
   {
     "id": "api.templates.mfa_activated_body.info",
@@ -8972,5 +8972,1009 @@
   {
     "id": "api.unable_to_read_file_from_backend",
     "translation": "Lỗi đọc file từ backend"
+  },
+  {
+    "id": "model.draft.is_valid.user_id.app_error",
+    "translation": "ID người dùng không hợp lệ."
+  },
+  {
+    "id": "model.emoji.system_emoji_name.app_error",
+    "translation": "Tên xung đột với tên biểu tượng cảm xúc hệ thống hiện có."
+  },
+  {
+    "id": "model.group.name.invalid_chars.app_error",
+    "translation": "ký tự không hợp lệ trong thuộc tính tên cho nhóm"
+  },
+  {
+    "id": "model.group.name.reserved_name.app_error",
+    "translation": "tên nhóm đã tồn tại dưới dạng tên dành riêng"
+  },
+  {
+    "id": "model.license_record.is_valid.bytes.app_error",
+    "translation": "Giá trị byte không hợp lệ khi tải lên giấy phép."
+  },
+  {
+    "id": "model.member.is_valid.channel.app_error",
+    "translation": "Tên kênh không hợp lệ"
+  },
+  {
+    "id": "model.member.is_valid.emails.app_error",
+    "translation": "Danh sách email trống"
+  },
+  {
+    "id": "model.oauth.is_valid.mattermost_app_id.app_error",
+    "translation": "Độ dài tối đa của MattermostAppID là 32 ký tự."
+  },
+  {
+    "id": "api.user.delete_channel.not_enabled.app_error",
+    "translation": "Tính năng xóa kênh vĩnh viễn không được bật. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.user.delete_team.not_enabled.app_error",
+    "translation": "Tính năng xóa nhóm vĩnh viễn không được bật. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.user.get_authorization_code.endpoint.app_error",
+    "translation": "Lỗi truy xuất điểm cuối từ Tài liệu Discovery."
+  },
+  {
+    "id": "api.user.get_uploads_for_user.forbidden.app_error",
+    "translation": "Không tải được nội dung tải lên."
+  },
+  {
+    "id": "api.user.get_users.validation.app_error",
+    "translation": "Lỗi tìm nạp vai trò trong quá trình xác thực."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Không thể nhận mã thông báo theo loại khi vô hiệu hóa mã thông báo khôi phục mật khẩu"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Không thể xóa mã thông báo khi vô hiệu hóa mã thông báo khôi phục mật khẩu"
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Không thể phân tích mã thông báo khi vô hiệu hóa mã thông báo khôi phục mật khẩu"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens.error",
+    "translation": "Không thể nhận mã thông báo theo loại khi vô hiệu hóa mã thông báo xác minh email"
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_parse.error",
+    "translation": "Không thể phân tích mã thông báo khi vô hiệu hóa mã thông báo xác minh email"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Đăng nhập không thành công vì người dùng từ xa không được phép đăng nhập."
+  },
+  {
+    "id": "api.user.login_by_cws.invalid_token.app_error",
+    "translation": "Mã thông báo CWS không hợp lệ"
+  },
+  {
+    "id": "api.user.login_cws.license.error",
+    "translation": "Đăng nhập CWS bị cấm."
+  },
+  {
+    "id": "api.user.patch_user.login_provider_attribute_set.app_error",
+    "translation": "Trường '{{.Field}}' phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
+  },
+  {
+    "id": "api.user.send_cloud_welcome_email.error",
+    "translation": "Không gửi được email chào mừng trên đám mây"
+  },
+  {
+    "id": "api.user.update_active.cannot_enable_guest_when_guest_feature_is_disabled.app_error",
+    "translation": "Bạn không thể kích hoạt tài khoản khách vì tính năng Truy cập của khách chưa được bật."
+  },
+  {
+    "id": "api.user.update_password.user_and_hashed.app_error",
+    "translation": "Chỉ quản trị viên hệ thống mới có thể đặt mật khẩu đã được băm."
+  },
+  {
+    "id": "api.user.update_user.login_provider_attribute_set.app_error",
+    "translation": "Trường '{{.Field}}' phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
+  },
+  {
+    "id": "api.user.update_user_auth.invalid_request",
+    "translation": "Yêu cầu thiếu tham số AuthData hoặc AuthService."
+  },
+  {
+    "id": "api.user.update_user_roles.license.app_error",
+    "translation": "Lược đồ cấp phép tùy chỉnh không được giấy phép hiện tại hỗ trợ"
+  },
+  {
+    "id": "api.user.upload_profile_user.check_image_limits.app_error",
+    "translation": "Kiểm tra giới hạn hình ảnh không thành công. Độ phân giải quá cao."
+  },
+  {
+    "id": "api.user.upload_profile_user.login_provider_attribute_set.app_error",
+    "translation": "Ảnh hồ sơ phải được đặt thông qua nhà cung cấp thông tin đăng nhập của người dùng."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
+    "translation": "Không thể truy xuất bài đăng cho kênh đã lưu trữ"
+  },
+  {
+    "id": "app.acknowledgement.delete.app_error",
+    "translation": "Không thể xóa xác nhận."
+  },
+  {
+    "id": "app.acknowledgement.get.app_error",
+    "translation": "Không thể nhận được sự thừa nhận."
+  },
+  {
+    "id": "app.acknowledgement.getforpost.get.app_error",
+    "translation": "Không thể nhận được sự thừa nhận cho bài viết."
+  },
+  {
+    "id": "app.acknowledgement.save.save.app_error",
+    "translation": "Không thể lưu xác nhận cho bài đăng."
+  },
+  {
+    "id": "api.user.invalidate_verify_email_tokens_delete.error",
+    "translation": "Không thể xóa mã thông báo khi vô hiệu hóa mã thông báo xác minh email"
+  },
+  {
+    "id": "api.user.create_user.bad_token_email_data.app_error",
+    "translation": "Địa chỉ email trong mã thông báo không khớp với địa chỉ trong dữ liệu người dùng."
+  },
+  {
+    "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
+    "translation": "Không thể truy xuất người dùng cho kênh đã lưu trữ"
+  },
+  {
+    "id": "api.user.delete_user.not_enabled.app_error",
+    "translation": "Tính năng xóa người dùng vĩnh viễn không được bật. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Không thể lấy được nhiều biểu tượng cảm xúc theo tên như vậy. Chỉ có thể yêu cầu biểu tượng cảm xúc {{.MaxNames}} cùng một lúc."
+  },
+  {
+    "id": "app.group.id.app_error",
+    "translation": "thuộc tính id không hợp lệ cho nhóm."
+  },
+  {
+    "id": "app.group.username_conflict",
+    "translation": "người dùng có tên người dùng \"{{.Username}}\" đã tồn tại."
+  },
+  {
+    "id": "app.import.import_user_channels.channel_not_found.error",
+    "translation": "Lỗi nhập kênh người dùng. Không tìm thấy kênh."
+  },
+  {
+    "id": "app.upload.upload_data.concurrent.app_error",
+    "translation": "Không thể tải lên dữ liệu từ nhiều yêu cầu."
+  },
+  {
+    "id": "app.compliance.get.finding.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi truy xuất báo cáo tuân thủ."
+  },
+  {
+    "id": "model.config.is_valid.tls_cert_file_missing.app_error",
+    "translation": "Giá trị không hợp lệ cho tệp chứng chỉ TLS - Sử dụng LetsEncrypt hoặc đặt đường dẫn đến tệp chứng chỉ hiện có."
+  },
+  {
+    "id": "app.user.get_users_batch_for_indexing.get_users.app_error",
+    "translation": "Không thể lấy được nhóm người dùng để lập chỉ mục."
+  },
+  {
+    "id": "brand.save_brand_image.check_image_limits.app_error",
+    "translation": "Kiểm tra giới hạn hình ảnh không thành công. Độ phân giải quá cao."
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message",
+    "translation": "{{.UsersNum}} thành viên của không gian làm việc {{.WorkspaceName}} đã yêu cầu nâng cấp không gian làm việc cho: "
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.existing",
+    "translation": "Bạn không thể cập nhật CommandWebhook hiện có."
+  },
+  {
+    "id": "app.create_basic_user.save_member.max_accounts.app_error",
+    "translation": "Không thể tạo thành viên nhóm mặc định vì không có thêm thành viên nào được phép vào nhóm đó"
+  },
+  {
+    "id": "app.group.crud_permission",
+    "translation": "Không thể thực hiện thao tác cho loại nguồn đó."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.max_accounts.app_error",
+    "translation": "Không thể nhập thành viên nhóm vì không có thêm thành viên nào được phép vào nhóm đó"
+  },
+  {
+    "id": "app.import.validate_post_import_data.props_too_large.error",
+    "translation": "Post Props dài hơn độ dài tối đa cho phép."
+  },
+  {
+    "id": "app.upload.upload_data.first_part_too_small.app_error",
+    "translation": "Không thể tải lên dữ liệu. Phần đầu tiên phải có ít nhất {{.Size}} Byte."
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.app_error",
+    "translation": "Cài đặt CollapsedThreads phải được tắt, default_on hoặc default_off"
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.bulk_indexing_batch_size.app_error",
+    "translation": "Kích thước lô lập chỉ mục hàng loạt của Elaticsearch phải ít nhất là {{.BatchSize}}."
+  },
+  {
+    "id": "model.config.is_valid.saml_spidentifier_attribute.app_error",
+    "translation": "Bắt buộc phải có Mã định danh nhà cung cấp dịch vụ"
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Giá trị không hợp lệ cho thời gian chờ trạng thái người dùng vắng mặt. Phải là một số dương."
+  },
+  {
+    "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Không truy xuất được thành viên kênh."
+  },
+  {
+    "id": "app.usage.get_storage_usage.app_error",
+    "translation": "Không nhận được mức sử dụng bộ nhớ."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.app_error",
+    "translation": "Không thể có được tư cách thành viên chủ đề người dùng"
+  },
+  {
+    "id": "app.user.get_total_users_count.app_error",
+    "translation": "Chúng tôi không thể đếm được số lượng người dùng."
+  },
+  {
+    "id": "bleveengine.index_file.error",
+    "translation": "Đánh chỉ mục file thất bại."
+  },
+  {
+    "id": "ent.cluster.404.app_error",
+    "translation": "Không tìm thấy điểm cuối API cụm."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_malformed",
+    "translation": "Giải mã chứng chỉ ứng dụng khách cho Elaticsearch không thành công"
+  },
+  {
+    "id": "app.channel.get_channels.get.app_error",
+    "translation": "Không thể nhận được các kênh."
+  },
+  {
+    "id": "app.admin.saml.failure_decode_metadata_xml_from_idp.app_error",
+    "translation": "Không thể giải mã thông tin siêu dữ liệu XML nhận được từ Nhà cung cấp danh tính."
+  },
+  {
+    "id": "app.command.getcommand.internal_error",
+    "translation": "Không thể nhận được lệnh."
+  },
+  {
+    "id": "app.user.get_unread_count.app_error",
+    "translation": "Chúng tôi không thể lấy được số lượng tin nhắn chưa đọc của người dùng."
+  },
+  {
+    "id": "bleveengine.create_post_index.error",
+    "translation": "Lỗi tạo chỉ mục bài viết."
+  },
+  {
+    "id": "app.user.demote_user_to_guest.user_update.app_error",
+    "translation": "Không thể cập nhật người dùng."
+  },
+  {
+    "id": "app.bot.get_disable_bot_sysadmin_message",
+    "translation": "{{if .disableBotsSetting}}{{if .printAllBots}}{{.UserName}} đã bị vô hiệu hóa. Họ quản lý các tài khoản bot sau đây hiện đã bị vô hiệu hóa.\n\n{{.BotNames}}{{else}}{{.UserName}} đã bị vô hiệu hóa. Họ quản lý các tài khoản bot {{.NumBots}} hiện đã bị vô hiệu hóa, bao gồm:\n\n{{.BotNames}}{{end}}Bạn có thể sở hữu từng bot bằng cách bật nó tại **Tích hợp > Tài khoản Bot** và tạo mã thông báo mới cho bot.\n\nĐể biết thêm thông tin, hãy xem [tài liệu](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled) của chúng tôi .{{else}}{{if .printAllBots}}{{.UserName}} đã bị vô hiệu hóa. Họ đã quản lý các tài khoản bot sau vẫn được kích hoạt.\n\n{{.BotNames}}\n{{else}}{{.UserName}} đã bị vô hiệu hóa. Họ đã quản lý các tài khoản bot {{.NumBots}} vẫn được kích hoạt, bao gồm những tài khoản sau:\n\n{{.BotNames}}{{end}}Chúng tôi đặc biệt khuyên bạn nên sở hữu từng bot bằng cách bật lại bot đó tại **Tích hợp > Tài khoản Bot** và tạo mã thông báo mới cho bot.\n\nĐể biết thêm thông tin, hãy xem [tài liệu](https://docs.mattermost.com/developer/bot-accounts.html#what-happens-when-a-user-who-owns-bot-accounts-is-disabled) của chúng tôi .\n\nNếu bạn muốn tài khoản bot tự động vô hiệu hóa sau khi chủ sở hữu vô hiệu hóa, hãy đặt “Vô hiệu hóa tài khoản bot khi chủ sở hữu bị vô hiệu hóa” trong **Bảng điều khiển hệ thống > Tích hợp > Tài khoản Bot** thành đúng.{{end}}"
+  },
+  {
+    "id": "app.user.get_by_auth.missing_account.app_error",
+    "translation": "Không thể tìm thấy tài khoản hiện có phù hợp với loại xác thực của bạn cho nhóm này. Nhóm này có thể yêu cầu lời mời từ chủ sở hữu nhóm để tham gia."
+  },
+  {
+    "id": "app.user.get_new_users.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm người dùng mới."
+  },
+  {
+    "id": "bleveengine.create_user_index.error",
+    "translation": "Lỗi tạo chỉ mục người dùng."
+  },
+  {
+    "id": "ent.compliance.global_relay.write_file.appError",
+    "translation": "Không thể ghi tập tin chuyển tiếp toàn cầu."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_users.batch_error",
+    "translation": "Đánh chỉ mục người dùng thất bại."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.get_oldest_entity.error",
+    "translation": "Không thể truy xuất thực thể cũ nhất (người dùng, kênh hoặc bài đăng) từ cơ sở dữ liệu."
+  },
+  {
+    "id": "ent.cluster.timeout.error",
+    "translation": "Đã hết thời gian chờ phản hồi của cụm"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_malformed",
+    "translation": "Giải mã CA cho Elaticsearch không thành công"
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Không thể tìm thấy số lượng thành viên cho các kênh nhất định."
+  },
+  {
+    "id": "bleveengine.search_files.error",
+    "translation": "Tìm kiếm tệp không thể hoàn tất."
+  },
+  {
+    "id": "app.cloud.trial_plan_bot_message_single",
+    "translation": "Thành viên {{.UsersNum}} của không gian làm việc {{.WorkspaceName}} đã yêu cầu bắt đầu dùng thử Enterprise để có quyền truy cập vào: "
+  },
+  {
+    "id": "app.analytics.getanalytics.internal_error",
+    "translation": "Không thể lấy số liệu phân tích."
+  },
+  {
+    "id": "app.command.createcommand.internal_error",
+    "translation": "Không thể lưu lệnh."
+  },
+  {
+    "id": "app.command.listautocompletecommands.internal_error",
+    "translation": "Không thể liệt kê các lệnh tự động hoàn thành."
+  },
+  {
+    "id": "app.command_webhook.try_use.internal_error",
+    "translation": "Không thể sử dụng webhook."
+  },
+  {
+    "id": "app.draft.get_drafts.app_error",
+    "translation": "Không thể lấy Bản nháp của người dùng."
+  },
+  {
+    "id": "app.draft.get_for_draft.app_error",
+    "translation": "Không thể tải tệp cho Bản nháp."
+  },
+  {
+    "id": "app.draft.save.app_error",
+    "translation": "Không thể lưu bản nháp."
+  },
+  {
+    "id": "app.email.no_rate_limiter.app_error",
+    "translation": "Giới hạn tỷ lệ không được thiết lập."
+  },
+  {
+    "id": "app.email.setup_rate_limiter.app_error",
+    "translation": "Đã xảy ra lỗi trong bộ giới hạn tốc độ."
+  },
+  {
+    "id": "app.emoji.get_by_name.no_result",
+    "translation": "Chúng tôi không thể tìm thấy biểu tượng cảm xúc."
+  },
+  {
+    "id": "app.export.export_attachment.zip_create_header.error",
+    "translation": "Không tạo được tiêu đề zip trong khi xuất."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Không thể giải mã gif."
+  },
+  {
+    "id": "app.export.export_attachment.mkdirall.error",
+    "translation": "Không tạo được thư mục trong khi xuất."
+  },
+  {
+    "id": "app.update_error",
+    "translation": "cập nhật lỗi"
+  },
+  {
+    "id": "app.user.analytics_daily_active_users.app_error",
+    "translation": "Không thể có được người dùng đang hoạt động trong khoảng thời gian được yêu cầu."
+  },
+  {
+    "id": "app.user.get_profiles.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm hồ sơ người dùng."
+  },
+  {
+    "id": "bleveengine.delete_file.error",
+    "translation": "Xóa file thất bại."
+  },
+  {
+    "id": "api.upgrade_to_enterprise.invalid-permission.app_error",
+    "translation": "Matter Extreme không thể nâng cấp lên Phiên bản doanh nghiệp. Người dùng hệ thống Matter Extreme {{.MattermostUsername}} không có quyền ghi vào tệp nhị phân cần thiết. Quản trị viên hệ thống có thể cập nhật quyền của tệp bằng cách thực hiện lệnh sau trên máy chủ nơi Matter Extreme được cài đặt:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nSau khi thay đổi quyền truy cập tệp, hãy thử nâng cấp lại Matter Extreme. Khi bạn đã nâng cấp và khởi động lại, hãy nhớ khôi phục quyền truy cập tệp nhị phân ban đầu:\n\n```\nchmod -w \"{{.Path}}\"\n```"
+  },
+  {
+    "id": "app.admin.saml.failure_read_response_body_from_idp.app_error",
+    "translation": "Đã xảy ra lỗi khi đọc tải trọng phản hồi nhận được từ Nhà cung cấp danh tính."
+  },
+  {
+    "id": "app.admin.saml.invalid_response_from_idp.app_error",
+    "translation": "Không thể đọc phản hồi nhận được từ Nhà cung cấp danh tính."
+  },
+  {
+    "id": "app.audit.get.limit.app_error",
+    "translation": "Đã vượt quá giới hạn cho phân trang."
+  },
+  {
+    "id": "app.bot.get_system_bot.empty_admin_list.app_error",
+    "translation": "Danh sách quản trị viên trống."
+  },
+  {
+    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
+    "translation": "Danh sách quản trị viên trống."
+  },
+  {
+    "id": "app.bot.permanent_delete.internal_error",
+    "translation": "Không thể xóa bot vĩnh viễn."
+  },
+  {
+    "id": "app.channel.analytics_type_count.app_error",
+    "translation": "Không thể lấy số lượng loại kênh."
+  },
+  {
+    "id": "app.channel.autofollow.app_error",
+    "translation": "Không thể cập nhật tư cách thành viên chủ đề cho người dùng được đề cập"
+  },
+  {
+    "id": "app.channel.count_posts_since.app_error",
+    "translation": "Không thể đếm tin nhắn kể từ ngày nhất định."
+  },
+  {
+    "id": "app.channel.count_urgent_posts_since.app_error",
+    "translation": "Không thể đếm các bài viết khẩn cấp kể từ ngày nhất định."
+  },
+  {
+    "id": "app.channel.get_channel_counts.get.app_error",
+    "translation": "Không thể lấy được số lượng kênh."
+  },
+  {
+    "id": "app.channel.get_channels_batch_for_indexing.get.app_error",
+    "translation": "Không thể lấy lô kênh để lập chỉ mục."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.app_error",
+    "translation": "Không thể lấy kênh theo id."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.get.app_error",
+    "translation": "Không thể nhận được các kênh."
+  },
+  {
+    "id": "app.channel.get_channels_by_ids.not_found.app_error",
+    "translation": "Không tìm thấy kênh nào."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Không thể tìm thấy số lượng thành viên."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Không thể kiểm tra chưa đọc và đề cập"
+  },
+  {
+    "id": "app.cloud.upgrade_plan_bot_message_single",
+    "translation": "Thành viên {{.UsersNum}} của không gian làm việc {{.WorkspaceName}} đã yêu cầu nâng cấp không gian làm việc cho: "
+  },
+  {
+    "id": "app.command.listteamcommands.internal_error",
+    "translation": "Không thể liệt kê các lệnh của nhóm."
+  },
+  {
+    "id": "app.command.movecommand.internal_error",
+    "translation": "Không thể di chuyển lệnh."
+  },
+  {
+    "id": "app.command.regencommandtoken.internal_error",
+    "translation": "Không thể tạo lại mã thông báo lệnh."
+  },
+  {
+    "id": "app.command.tryexecutecustomcommand.internal_error",
+    "translation": "Không thể thực hiện lệnh tùy chỉnh."
+  },
+  {
+    "id": "app.command.updatecommand.internal_error",
+    "translation": "Không thể cập nhật lệnh."
+  },
+  {
+    "id": "app.command_webhook.create_command_webhook.internal_error",
+    "translation": "Không thể lưu CommandWebhook."
+  },
+  {
+    "id": "app.command_webhook.get.internal_error",
+    "translation": "Không thể tải webhook."
+  },
+  {
+    "id": "app.command_webhook.get.missing",
+    "translation": "Không thể tìm thấy webhook."
+  },
+  {
+    "id": "app.command_webhook.handle_command_webhook.parse",
+    "translation": "Không thể phân tích dữ liệu đến."
+  },
+  {
+    "id": "app.command_webhook.try_use.invalid",
+    "translation": "Webhook không hợp lệ."
+  },
+  {
+    "id": "app.compliance.save.saving.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi lưu báo cáo tuân thủ."
+  },
+  {
+    "id": "app.create_basic_user.save_member.app_error",
+    "translation": "Không thể tạo thành viên nhóm mặc định"
+  },
+  {
+    "id": "app.create_basic_user.save_member.conflict.app_error",
+    "translation": "Không thể tạo thành viên nhóm mặc định vì họ đã tồn tại"
+  },
+  {
+    "id": "app.custom_group.unique_name",
+    "translation": "tên nhóm không phải là duy nhất"
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Mã thông báo không tồn tại hoặc đã hết hạn"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Mã thông báo không hợp lệ hoặc đã hết hạn"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Không thể tìm thấy người dùng cho mã thông báo này"
+  },
+  {
+    "id": "app.draft.delete.app_error",
+    "translation": "Không thể xóa Bản nháp."
+  },
+  {
+    "id": "app.draft.feature_disabled",
+    "translation": "Tính năng nháp bị tắt."
+  },
+  {
+    "id": "app.command.deletecommand.internal_error",
+    "translation": "Không thể xóa lệnh."
+  },
+  {
+    "id": "app.command.listallcommands.internal_error",
+    "translation": "Không thể liệt kê các lệnh."
+  },
+  {
+    "id": "app.draft.get.app_error",
+    "translation": "Không thể lấy được Bản nháp."
+  },
+  {
+    "id": "app.email.rate_limit_exceeded.app_error",
+    "translation": "Đã vượt quá giới hạn tỷ lệ email mời. Bộ hẹn giờ sẽ được đặt lại sau {{.ResetAfter}} giây. Vui lòng thử lại sau {{.RetryAfter}} giây."
+  },
+  {
+    "id": "app.emoji.create.internal_error",
+    "translation": "Không thể lưu biểu tượng cảm xúc."
+  },
+  {
+    "id": "app.emoji.get.app_error",
+    "translation": "Không thể lấy được biểu tượng cảm xúc."
+  },
+  {
+    "id": "app.emoji.get.no_result",
+    "translation": "Chúng tôi không thể tìm thấy biểu tượng cảm xúc."
+  },
+  {
+    "id": "app.emoji.get_by_name.app_error",
+    "translation": "Không thể lấy được biểu tượng cảm xúc."
+  },
+  {
+    "id": "app.export.marshal.app_error",
+    "translation": "Không thể sắp xếp phản hồi."
+  },
+  {
+    "id": "app.export.zip_create.error",
+    "translation": "Không thể thêm tệp vào kho lưu trữ zip trong khi xuất."
+  },
+  {
+    "id": "app.file.cloud.get.app_error",
+    "translation": "Không thể tìm nạp tệp vì nó đã vượt quá giới hạn của gói đám mây."
+  },
+  {
+    "id": "app.file_info.get.app_error",
+    "translation": "Không thể lấy thông tin tập tin."
+  },
+  {
+    "id": "app.file_info.get_for_post.app_error",
+    "translation": "Không thể lấy thông tin tập tin cho bài viết."
+  },
+  {
+    "id": "app.file_info.get_with_options.app_error",
+    "translation": "Không thể lấy thông tin tệp với các tùy chọn"
+  },
+  {
+    "id": "app.file_info.permanent_delete_by_user.app_error",
+    "translation": "Không thể xóa tệp đính kèm của người dùng."
+  },
+  {
+    "id": "app.file_info.save.app_error",
+    "translation": "Không thể lưu thông tin tập tin."
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Không thể đặt nội dung có thể tìm kiếm của tệp."
+  },
+  {
+    "id": "app.group.group_syncable_already_deleted",
+    "translation": "khả năng đồng bộ hóa nhóm đã bị xóa"
+  },
+  {
+    "id": "app.group.no_rows",
+    "translation": "không tìm thấy nhóm phù hợp"
+  },
+  {
+    "id": "app.group.permanent_delete_members_by_user.app_error",
+    "translation": "Không thể xóa thành viên nhóm có UserID \"{{.UserId}}\"."
+  },
+  {
+    "id": "app.group.uniqueness_error",
+    "translation": "thành viên nhóm đã tồn tại"
+  },
+  {
+    "id": "app.import.attachment.read_file_data.error",
+    "translation": "Không thể đọc tệp đính kèm trong quá trình nhập."
+  },
+  {
+    "id": "app.import.generate_password.app_error",
+    "translation": "Lỗi tạo mật khẩu."
+  },
+  {
+    "id": "app.import.get_teams_by_names.some_teams_not_found.error",
+    "translation": "Một số đội không được tìm thấy"
+  },
+  {
+    "id": "app.import.get_users_by_username.some_users_not_found.error",
+    "translation": "Không tìm thấy một số người dùng"
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Không thể lưu trữ kênh đã nhập."
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.conflict.app_error",
+    "translation": "Không thể nhập thành viên nhóm mới vì nó đã tồn tại"
+  },
+  {
+    "id": "app.import.import_user_teams.save_members.error",
+    "translation": "Không thể nhập thành viên nhóm"
+  },
+  {
+    "id": "app.teams.analytics_teams_count.app_error",
+    "translation": "Không thể lấy được số đội"
+  },
+  {
+    "id": "app.terms_of_service.create.app_error",
+    "translation": "Không thể lưu điều khoản dịch vụ."
+  },
+  {
+    "id": "app.terms_of_service.get.app_error",
+    "translation": "Không thể tìm nạp điều khoản dịch vụ."
+  },
+  {
+    "id": "app.terms_of_service.get.no_rows.app_error",
+    "translation": "Không tìm thấy điều khoản dịch vụ nào."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Không thể đánh dấu tất cả các chủ đề là đã đọc theo kênh"
+  },
+  {
+    "id": "app.upload.create.cannot_upload_to_deleted_channel.app_error",
+    "translation": "Không thể tải lên kênh đã xóa."
+  },
+  {
+    "id": "app.upload.create.incorrect_channel_id.app_error",
+    "translation": "Không thể tải lên kênh được chỉ định."
+  },
+  {
+    "id": "app.upload.create.save.app_error",
+    "translation": "Không lưu được nội dung tải lên."
+  },
+  {
+    "id": "app.upload.get.app_error",
+    "translation": "Không thể tải lên."
+  },
+  {
+    "id": "app.upload.get_for_user.app_error",
+    "translation": "Không tải được nội dung tải lên cho người dùng."
+  },
+  {
+    "id": "app.upload.run_plugins_hook.move_fail",
+    "translation": "Không thể di chuyển tập tin."
+  },
+  {
+    "id": "app.upload.run_plugins_hook.rejected",
+    "translation": "Không thể tải tệp {{.Filename}} lên. Bị từ chối bởi plugin: {{.Reason}}"
+  },
+  {
+    "id": "app.upload.upload_data.gen_info.app_error",
+    "translation": "Không tạo được thông tin tệp từ dữ liệu đã tải lên."
+  },
+  {
+    "id": "app.upload.upload_data.large_image.app_error",
+    "translation": "Kích thước {{.Filename}} ({{.Width}} x {{.Height}} pixel) vượt quá giới hạn."
+  },
+  {
+    "id": "app.upload.upload_data.move_file.app_error",
+    "translation": "Không thể di chuyển tệp đã tải lên."
+  },
+  {
+    "id": "app.upload.upload_data.read_file.app_error",
+    "translation": "Không đọc được tập tin."
+  },
+  {
+    "id": "app.upload.upload_data.save.app_error",
+    "translation": "Không lưu được thông tin tệp."
+  },
+  {
+    "id": "app.upload.upload_data.update.app_error",
+    "translation": "Không cập nhật được phiên tải lên."
+  },
+  {
+    "id": "app.user.analytics_get_inactive_users_count.app_error",
+    "translation": "Chúng tôi không thể đếm số người dùng không hoạt động."
+  },
+  {
+    "id": "app.user.clear_all_custom_role_assignments.select.app_error",
+    "translation": "Không thể truy xuất người dùng."
+  },
+  {
+    "id": "app.user.convert_bot_to_user.app_error",
+    "translation": "Không thể chuyển đổi bot thành người dùng."
+  },
+  {
+    "id": "app.user.get.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm tài khoản."
+  },
+  {
+    "id": "app.user.get_badge_count.app_error",
+    "translation": "Chúng tôi không thể lấy số lượng huy hiệu cho người dùng."
+  },
+  {
+    "id": "app.user.get_by_auth.other.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm tài khoản theo loại xác thực."
+  },
+  {
+    "id": "app.user.get_by_username.app_error",
+    "translation": "Không thể tìm thấy tài khoản hiện có khớp với tên người dùng của bạn cho nhóm này. Nhóm này có thể yêu cầu lời mời từ chủ sở hữu nhóm để tham gia."
+  },
+  {
+    "id": "app.user.get_known_users.get_users.app_error",
+    "translation": "Không thể biết người dùng từ cơ sở dữ liệu."
+  },
+  {
+    "id": "app.user.get_profile_by_group_channel_ids_for_user.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm hồ sơ người dùng."
+  },
+  {
+    "id": "app.user.get_recently_active_users.app_error",
+    "translation": "Chúng tôi đã gặp lỗi khi tìm người dùng hoạt động gần đây."
+  },
+  {
+    "id": "app.user.get_thread_count_for_user.app_error",
+    "translation": "Chúng tôi không thể lấy số lượng chủ đề cho người dùng."
+  },
+  {
+    "id": "app.user.get_thread_membership_for_user.not_found",
+    "translation": "Tư cách thành viên chủ đề người dùng không tồn tại"
+  },
+  {
+    "id": "app.user.get_threads_for_user.app_error",
+    "translation": "Không thể lấy chủ đề của người dùng"
+  },
+  {
+    "id": "app.user.get_threads_for_user.not_found",
+    "translation": "Chủ đề người dùng không tồn tại hoặc không được theo dõi"
+  },
+  {
+    "id": "app.user.missing_account.const",
+    "translation": "Không thể tìm thấy người dùng."
+  },
+  {
+    "id": "app.user.permanent_delete.app_error",
+    "translation": "Không thể xóa tài khoản hiện có."
+  },
+  {
+    "id": "app.user.permanentdeleteuser.internal_error",
+    "translation": "Không thể xóa người dùng."
+  },
+  {
+    "id": "app.user.promote_guest.user_update.app_error",
+    "translation": "Không thể cập nhật người dùng."
+  },
+  {
+    "id": "app.user.save.app_error",
+    "translation": "Không thể lưu tài khoản."
+  },
+  {
+    "id": "bleveengine.already_started.error",
+    "translation": "Bleve đã được bắt đầu."
+  },
+  {
+    "id": "bleveengine.create_file_index.error",
+    "translation": "Lỗi tạo chỉ mục tệp."
+  },
+  {
+    "id": "bleveengine.delete_channel_posts.error",
+    "translation": "Xóa bài viết thất bại"
+  },
+  {
+    "id": "bleveengine.delete_files_batch.error",
+    "translation": "Xóa file thất bại."
+  },
+  {
+    "id": "bleveengine.delete_post_files.error",
+    "translation": "Xóa file của bài viết thất bại."
+  },
+  {
+    "id": "bleveengine.delete_user_files.error",
+    "translation": "Xóa file của người dùng thất bại."
+  },
+  {
+    "id": "bleveengine.delete_user_posts.error",
+    "translation": "Xóa bài viết của người dùng thất bại"
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_channels.batch_error",
+    "translation": "Đánh chỉ mục kênh thất bại."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_files.batch_error",
+    "translation": "Đánh chỉ mục file thất bại."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.bulk_index_posts.batch_error",
+    "translation": "Đánh chỉ mục bài viết thất bại."
+  },
+  {
+    "id": "bleveengine.indexer.do_job.engine_inactive",
+    "translation": "Tác vụ đánh chỉ mục Bleve đã thất bại: engine đã bị vô hiệu."
+  },
+  {
+    "id": "bleveengine.purge_channel_index.error",
+    "translation": "Không thể lọc các chỉ mục kênh."
+  },
+  {
+    "id": "bleveengine.purge_file_index.error",
+    "translation": "Không thể lọc các chỉ mục tệp."
+  },
+  {
+    "id": "bleveengine.purge_post_index.error",
+    "translation": "Không thể lọc các chỉ mục bài viết."
+  },
+  {
+    "id": "bleveengine.purge_user_index.error",
+    "translation": "Không thể xóa chỉ mục người dùng."
+  },
+  {
+    "id": "bleveengine.stop_channel_index.error",
+    "translation": "Không thể đóng chỉ mục kênh."
+  },
+  {
+    "id": "bleveengine.stop_file_index.error",
+    "translation": "Không thể đóng chỉ mục tệp."
+  },
+  {
+    "id": "bleveengine.stop_post_index.error",
+    "translation": "Không thể đóng chỉ mục bài viết."
+  },
+  {
+    "id": "bleveengine.stop_user_index.error",
+    "translation": "Không thể đóng chỉ mục người dùng."
+  },
+  {
+    "id": "common.parse_error_int64",
+    "translation": "Không phân tích được giá trị:{{.Value}} thành int64"
+  },
+  {
+    "id": "ent.actiance.export.marshalToXml.appError",
+    "translation": "Không thể chuyển đổi xuất sang XML."
+  },
+  {
+    "id": "ent.actiance.export.write_file.appError",
+    "translation": "Không thể ghi tập tin xuất."
+  },
+  {
+    "id": "ent.api.post.send_notifications_and_forget.push_image_only",
+    "translation": " đính kèm một tập tin."
+  },
+  {
+    "id": "ent.cluster.json_encode.error",
+    "translation": "Đã xảy ra lỗi khi sắp xếp thứ tự yêu cầu JSON"
+  },
+  {
+    "id": "ent.compliance.csv.write_file.appError",
+    "translation": "Không thể ghi tệp csv."
+  },
+  {
+    "id": "ent.data_retention.policies.internal_error",
+    "translation": "Chúng tôi đã gặp lỗi khi thực hiện thao tác được yêu cầu."
+  },
+  {
+    "id": "ent.data_retention.policies.invalid_policy",
+    "translation": "Chính sách không hợp lệ."
+  },
+  {
+    "id": "ent.data_retention.run_failed.error",
+    "translation": "Công việc lưu giữ dữ liệu không thành công."
+  },
+  {
+    "id": "ent.elasticsearch.create_client.ca_cert_missing",
+    "translation": "Không thể mở tệp CA cho Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_cert_missing",
+    "translation": "Không thể mở tệp chứng chỉ ứng dụng khách cho Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_client.client_key_missing",
+    "translation": "Không thể mở tệp khóa ứng dụng khách cho Elaticsearch"
+  },
+  {
+    "id": "ent.elasticsearch.create_template_file_info_if_not_exists.template_create_failed",
+    "translation": "Không thể tạo mẫu Elaticsearch cho các tệp"
+  },
+  {
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
+    "translation": "ThreadAutoFollow phải đúng để bật CollapsedThreads"
+  },
+  {
+    "id": "model.config.is_valid.directory.app_error",
+    "translation": "Thư mục lưu trữ cục bộ không hợp lệ. Phải là một chuỗi không trống."
+  },
+  {
+    "id": "model.config.is_valid.saml_signature_algorithm.app_error",
+    "translation": "Thuật toán chữ ký không hợp lệ."
+  },
+  {
+    "id": "model.config.is_valid.tls_key_file_missing.app_error",
+    "translation": "Giá trị không hợp lệ cho tệp khóa TLS - Sử dụng LetsEncrypt hoặc đặt đường dẫn đến tệp khóa hiện có."
+  },
+  {
+    "id": "model.draft.is_valid.file_ids.app_error",
+    "translation": "Id tập tin không hợp lệ."
+  },
+  {
+    "id": "model.draft.is_valid.msg.app_error",
+    "translation": "Tin nhắn không hợp lệ."
+  },
+  {
+    "id": "model.draft.is_valid.priority.app_error",
+    "translation": "Mức độ ưu tiên không hợp lệ"
+  },
+  {
+    "id": "model.draft.is_valid.props.app_error",
+    "translation": "Đạo cụ không hợp lệ."
+  },
+  {
+    "id": "model.draft.is_valid.root_id.app_error",
+    "translation": "Id gốc không hợp lệ."
+  },
+  {
+    "id": "model.draft.is_valid.update_at.app_error",
+    "translation": "Cập nhật vào lúc phải là thời điểm hợp lệ."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Không phân tích được JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Định dạng không hợp lệ: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.sql_conn_max_idle_time_milliseconds.app_error",
+    "translation": "Thời gian nhàn rỗi tối đa của kết nối không hợp lệ đối với cài đặt SQL. Phải là số không âm."
+  },
+  {
+    "id": "model.draft.is_valid.channel_id.app_error",
+    "translation": "Id kênh không hợp lệ."
+  },
+  {
+    "id": "model.draft.is_valid.create_at.app_error",
+    "translation": "Thời gian tạo phải hợp lệ."
   }
 ]

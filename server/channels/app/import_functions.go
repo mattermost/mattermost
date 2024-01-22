@@ -15,8 +15,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/mattermost/logr/v2"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -31,7 +29,7 @@ import (
 // These functions import data directly into the database. Security and permission checks are bypassed but validity is
 // still enforced.
 func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("schema_name", *data.Name))
 	}
@@ -121,7 +119,7 @@ func (a *App) importScheme(rctx request.CTX, data *imports.SchemeImportData, dry
 }
 
 func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun bool, isSchemeRole bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("role_name", *data.Name))
 	}
@@ -176,7 +174,7 @@ func (a *App) importRole(rctx request.CTX, data *imports.RoleImportData, dryRun 
 }
 
 func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("team_name", *data.Name))
 	}
@@ -252,7 +250,7 @@ func (a *App) importTeam(rctx request.CTX, data *imports.TeamImportData, dryRun 
 }
 
 func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("channel_name", *data.Name))
 	}
@@ -332,7 +330,7 @@ func (a *App) importChannel(rctx request.CTX, data *imports.ChannelImportData, d
 }
 
 func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Username != nil {
 		fields = append(fields, mlog.String("user_name", *data.Username))
 	}
@@ -621,18 +619,34 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	}
 
 	if data.ProfileImage != nil {
-		var file io.ReadCloser
+		var file io.ReadSeeker
 		var err error
 		if data.ProfileImageData != nil {
-			file, err = data.ProfileImageData.Open()
+			// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
+			var f io.ReadCloser
+			f, err = data.ProfileImageData.Open()
+			if err != nil {
+				rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
+			} else {
+				limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
+				var b []byte
+				b, err = io.ReadAll(limitedReader)
+				if err != nil {
+					rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
+				} else {
+					file = bytes.NewReader(b)
+				}
+			}
 		} else {
 			file, err = os.Open(*data.ProfileImage)
+			if err != nil {
+				rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
+			} else {
+				defer file.(*os.File).Close()
+			}
 		}
 
-		if err != nil {
-			rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
-		} else {
-			defer file.Close()
+		if file != nil {
 			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -1205,7 +1219,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		reply.Message = *replyData.Message
 		reply.CreateAt = *replyData.CreateAt
 		if reply.CreateAt < post.CreateAt {
-			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int64("reply_create_at", reply.CreateAt), mlog.Int64("parent_create_at", post.CreateAt))
+			rctx.Logger().Warn("Reply CreateAt is before parent post CreateAt, setting it to parent post CreateAt", mlog.Int("reply_create_at", reply.CreateAt), mlog.Int("parent_create_at", post.CreateAt))
 			reply.CreateAt = post.CreateAt
 		}
 		if replyData.Type != nil {
@@ -1218,7 +1232,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
 			}
 		}
 		reply.FileIds = make([]string, 0)
@@ -1274,7 +1288,7 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		name = data.Data.Name
 		file = zipFile.(io.Reader)
 
-		rctx.Logger().Info("Preparing file upload from ZIP", mlog.String("file_name", name), mlog.Uint64("file_size", data.Data.UncompressedSize64))
+		rctx.Logger().Info("Preparing file upload from ZIP", mlog.String("file_name", name), mlog.Uint("file_size", data.Data.UncompressedSize64))
 	} else {
 		realFile, err := os.Open(*data.Path)
 		if err != nil {
@@ -1284,9 +1298,9 @@ func (a *App) importAttachment(rctx request.CTX, data *imports.AttachmentImportD
 		name = realFile.Name()
 		file = realFile
 
-		fields := []logr.Field{mlog.String("file_name", name)}
+		fields := []mlog.Field{mlog.String("file_name", name)}
 		if info, err := realFile.Stat(); err != nil {
-			fields = append(fields, mlog.Int64("file_size", info.Size()))
+			fields = append(fields, mlog.Int("file_size", info.Size()))
 		}
 		rctx.Logger().Info("Preparing file upload from file system", fields...)
 	}
@@ -1521,7 +1535,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
 			}
 		}
 		post.FileIds = make([]string, 0)
@@ -1644,7 +1658,7 @@ func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.Attachm
 
 func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 	for _, fileID := range post.FileIds {
-		if err := a.Srv().Store().FileInfo().AttachToPost(fileID, post.Id, post.ChannelId, post.UserId); err != nil {
+		if err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, post.Id, post.ChannelId, post.UserId); err != nil {
 			rctx.Logger().Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Array("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
@@ -1720,7 +1734,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	if data.Header != nil {
 		channel.Header = *data.Header
-		if _, appErr := a.Srv().Store().Channel().Update(channel); appErr != nil {
+		if _, appErr := a.Srv().Store().Channel().Update(rctx, channel); appErr != nil {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, "", http.StatusBadRequest).Wrap(appErr)
 		}
 	}
@@ -1834,7 +1848,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam")
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
 			}
 		}
 		post.FileIds = make([]string, 0)
@@ -1928,7 +1942,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 }
 
 func (a *App) importEmoji(rctx request.CTX, data *imports.EmojiImportData, dryRun bool) *model.AppError {
-	var fields []logr.Field
+	var fields []mlog.Field
 	if data != nil && data.Name != nil {
 		fields = append(fields, mlog.String("emoji_name", *data.Name))
 	}
