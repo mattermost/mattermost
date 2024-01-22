@@ -4457,7 +4457,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.
 	p1, nErr = ss.Post().Save(p1)
 	require.NoError(t, nErr)
 
-	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, nErr)
 
 	assert.Equal(t, p1.Message, r1[0].Message)
@@ -4514,19 +4514,16 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	p1.UserId = u1.Id
 	p1.Message = NewTestId()
 	p1.CreateAt = 1000
-	p1, nErr = ss.Post().Save(p1)
+	_, nErr = ss.Post().Save(p1)
 	require.NoError(t, nErr)
 
-	o1a := p1.Clone()
-	o1a.DeleteAt = 1
-	o1a.Message = p1.Message + "BBBBBBBBBB"
-	_, nErr = ss.Post().Update(rctx, o1a, p1)
-	require.NoError(t, nErr)
-
-	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, nErr)
-
 	assert.Equal(t, 0, len(r1))
+
+	r1, nErr = ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), true)
+	assert.NoError(t, nErr)
+	assert.Equal(t, 1, len(r1))
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")
@@ -4583,7 +4580,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	sort.Slice(postIds, func(i, j int) bool { return postIds[i] < postIds[j] })
 
 	// Get all posts
-	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, err)
 	assert.Equal(t, len(postIds), len(r1))
 	var exportedPostIds []string
@@ -4594,7 +4591,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	assert.ElementsMatch(t, postIds, exportedPostIds)
 
 	// Get 100
-	r1, err = ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
+	r1, err = ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26), false)
 	assert.NoError(t, err)
 	assert.Equal(t, 100, len(r1))
 	exportedPostIds = []string{}
