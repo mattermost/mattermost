@@ -120,7 +120,6 @@ class ButtonBinding extends React.PureComponent<Props, State> {
             <button
                 className='btn btn-sm'
                 onClick={this.handleClick}
-                style={customButtonStyle}
             >
                 <LoadingWrapper
                     loading={this.state.executing}
