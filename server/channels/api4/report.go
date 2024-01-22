@@ -31,6 +31,9 @@ func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	baseOptions := fillReportingBaseOptions(r.URL.Query())
+	if baseOptions.SortColumn == "" {
+		baseOptions.SortColumn = "Username"
+	}
 	options, err := fillUserReportOptions(r.URL.Query())
 	if err != nil {
 		c.Err = err
@@ -123,7 +126,7 @@ func retrieveBatchReportFile(c *Context, w http.ResponseWriter, r *http.Request)
 }
 
 func fillReportingBaseOptions(values url.Values) model.ReportingBaseOptions {
-	sortColumn := "Username"
+	var sortColumn string
 	if values.Get("sort_column") != "" {
 		sortColumn = values.Get("sort_column")
 	}
@@ -196,16 +199,12 @@ func getChannelReport(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	filterOptions := &model.ChannelReportOptions{
-		ReportingBaseOptions: model.ReportingBaseOptions{
-			SortColumn:      sortColumn,
-			SortDesc:        r.URL.Query().Get("sort_direction") == "desc",
-			PageSize:        pageSize,
-			FromColumnValue: r.URL.Query().Get("last_column_value"),
-			DateRange:       r.URL.Query().Get("date_range"),
-			FromId:          r.URL.Query().Get("last_id"),
-		},
+		ReportingBaseOptions: fillReportingBaseOptions(r.URL.Query()),
 	}
 	filterOptions.PopulateDateRange(time.Now())
+	if filterOptions.SortColumn == "" {
+		filterOptions.SortColumn = sortColumn
+	}
 
 	channelReports, appErr := c.App.GetChannelsReport(filterOptions)
 	if appErr != nil {

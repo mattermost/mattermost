@@ -4394,7 +4394,7 @@ func (s SqlChannelStore) GetTeamForChannel(channelID string) (*model.Team, error
 func (s SqlChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) ([]*model.ChannelReport, error) {
 	query := s.getChannelReportGenerateQuery(filter)
 
-	// LOL remove this for PR
+	// LOL remove this for PR. This is only for printing the generated query for debugging and development.
 	q, p, e := query.ToSql()
 	if e != nil {
 		mlog.Err(e)
@@ -4407,6 +4407,10 @@ func (s SqlChannelStore) GetChannelsReport(filter *model.ChannelReportOptions) (
 	channelReport := []*model.ChannelReport{}
 	if err := s.GetReplicaX().SelectBuilder(&channelReport, query); err != nil {
 		return nil, errors.Wrap(err, "failed to get channel report")
+	}
+
+	if filter.Direction == "prev" {
+		channelReport = model.ReverseArray(channelReport)
 	}
 
 	return channelReport, nil
@@ -4444,14 +4448,12 @@ func (s SqlChannelStore) channelReportBaseQuery(filter *model.ChannelReportOptio
 }
 
 func (s SqlChannelStore) channelReportApplyPagination(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
-	// LOL add page direction - next or previous
-
 	if filter.FromColumnValue == "" {
 		return query
 	}
 
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
-		if filter.SortDesc {
+		if (filter.Direction == "prev" && !filter.SortDesc) || (filter.Direction == "next" && filter.SortDesc) {
 			query = query.Where(sq.Or{
 				sq.Lt{"c.displayname": filter.FromColumnValue},
 				sq.And{
@@ -4469,7 +4471,7 @@ func (s SqlChannelStore) channelReportApplyPagination(filter *model.ChannelRepor
 			})
 		}
 	} else if filter.SortColumn == model.ChannelReportingSortByPostCount {
-		if filter.SortDesc {
+		if (filter.Direction == "prev" && !filter.SortDesc) || (filter.Direction == "next" && filter.SortDesc) {
 			query = query.Having(sq.Or{
 				sq.Lt{"COALESCE(SUM(pcs.numposts), 0)": filter.FromColumnValue},
 				sq.And{
@@ -4487,7 +4489,7 @@ func (s SqlChannelStore) channelReportApplyPagination(filter *model.ChannelRepor
 			})
 		}
 	} else if filter.SortColumn == model.ChannelReportingSortByMemberCount {
-		if filter.SortDesc {
+		if (filter.Direction == "prev" && !filter.SortDesc) || (filter.Direction == "next" && filter.SortDesc) {
 			query = query.Where(
 				sq.Or{
 					sq.Lt{"usercount": filter.FromColumnValue},
@@ -4514,17 +4516,17 @@ func (s SqlChannelStore) channelReportApplyPagination(filter *model.ChannelRepor
 }
 
 func (s SqlChannelStore) channelReportApplySorting(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
-	sortDirection := "ASC"
+	sortDirection := "DESC"
 	if filter.SortDesc {
-		sortDirection = "DESC"
+		sortDirection = "ASC"
 	}
 
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
-		query = query.OrderBy("c.displayname "+sortDirection, "c.id")
+		query = query.OrderBy("c.displayname "+sortDirection, "c.id ASC")
 	} else if filter.SortColumn == model.ChannelReportingSortByPostCount {
-		query = query.OrderBy("postcount "+sortDirection, "c.id")
+		query = query.OrderBy("postcount "+sortDirection, "c.id ASC")
 	} else if filter.SortColumn == model.ChannelReportingSortByMemberCount {
-		query = query.OrderBy("membercount "+sortDirection, "c.id")
+		query = query.OrderBy("membercount "+sortDirection, "c.id ASC")
 	}
 
 	return query
@@ -4551,3 +4553,21 @@ func (s SqlChannelStore) channelReportApplyDateFiltering(filter *model.ChannelRe
 
 	return query
 }
+
+//func (s SqlChannelStore) channelReportApplyPrevPageQuery(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
+//	parentQuery := query
+//
+//	if filter.Direction == "prev" {
+//		sortDirection := "ASC"
+//		if filter.SortDesc {
+//			sortDirection = "DESC"
+//		}
+//
+//		parentQuery = s.getQueryBuilder().
+//			Select("*").
+//			FromSelect(query, "data").
+//			OrderBy(filter.SortColumn+" "+sortDirection, "Id "+sortDirection)
+//	}
+//
+//	return parentQuery
+//}

@@ -832,3 +832,11 @@ func filterBlocklist(r rune) rune {
 func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
 }
+
+func ReverseArray[T any](arr []T) []T {
+	for i, j := 0, len(arr)-1; i < j; i, j = i+1, j-1 {
+		arr[i], arr[j] = arr[j], arr[i]
+	}
+
+	return arr
+}
