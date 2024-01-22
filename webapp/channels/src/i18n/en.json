@@ -2251,6 +2251,8 @@
   "admin.service.mobileSessionHours": "Session Length Mobile (hours):",
   "admin.service.mobileSessionHoursDesc": "The number of hours from the last time a user entered their credentials to the expiry of the user's session. After changing this setting, the new session length will take effect after the next time the user enters their credentials.",
   "admin.service.mobileSessionHoursDesc.extendLength": "Set the number of hours from the last activity in Mattermost to the expiry of the user’s session on mobile. After changing this setting, the new session length will take effect after the next time the user enters their credentials.",
+  "admin.service.outgoingOAuthConnectionsDesc": "When true, outgoing webhooks and slash commands will use set up oauth connections to authenticate with third party services.",
+  "admin.service.outgoingOAuthConnectionsTitle": "Enable Outgoing OAuth Connections: ",
   "admin.service.outWebhooksDesc": "When true, outgoing webhooks will be allowed. See <link>documentation</link> to learn more.",
   "admin.service.outWebhooksTitle": "Enable Outgoing Webhooks: ",
   "admin.service.overrideDescription": "When true, webhooks, slash commands and other integrations will be allowed to change the username they are posting as. Note: Combined with allowing integrations to override profile picture icons, users may be able to perform phishing attacks by attempting to impersonate other users.",
