@@ -3725,11 +3725,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Retencja danych musi wynosić jeden dzień lub dłużej."
+    "translation": "Liczba dni przechowywania plików nie może być mniejsza niż 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Retencja wiadomości musi wynosić jeden dzień lub dłużej."
+    "translation": "Liczba dni przechowywania wiadomości nie może być mniejsza niż 0."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -10278,5 +10278,33 @@
   {
     "id": "app.report.get_user_count_for_report.store_error",
     "translation": "Nie udało się pobrać liczby użytkowników."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Liczba godzin przechowywania plików nie może być mniejsza niż 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Liczba dni i godzin przechowywania wiadomości nie może wynosić 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Liczba godzin przechowywania wiadomości nie może być mniejsza niż 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Liczba dni i godzin przechowywania wiadomości nie może być większa niż 0."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Nieprawidłowy maksymalny rozmiar ładunku dla ustawień usługi. Musi być liczbą całkowitą większą od zera."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Liczba dni i godzin przechowywania plików nie może wynosić 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Liczba dni i godzin przechowywania plików nie może być większa niż 0."
   }
 ]
