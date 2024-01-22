@@ -297,3 +297,25 @@ type SyncResponse struct {
 	ReactionsLastUpdateAt int64    `json:"reactions_last_update_at"`
 	ReactionErrors        []string `json:"reaction_errors"`
 }
+
+// RegisterPluginOpts is passed by plugins to the `RegisterPluginForSharedChannels` plugin API
+// to provide options for registering as a shared channels remote.
+type RegisterPluginOpts struct {
+	Displayname  string // a displayname used in status reports
+	PluginID     string // id of this plugin registering
+	CreatorID    string // id of the user/bot registering
+	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
+	AutoInvited  bool   // when true, the plugin is automatically invited and sync'd with all shared channels.
+}
+
+// GetOptionFlags returns a Bitmask of option flags as specified by the boolean options.
+func (po RegisterPluginOpts) GetOptionFlags() Bitmask {
+	var flags Bitmask
+	if po.AutoShareDMs {
+		flags |= BitflagOptionAutoShareDMs
+	}
+	if po.AutoInvited {
+		flags |= BitflagOptionAutoInvited
+	}
+	return flags
+}
