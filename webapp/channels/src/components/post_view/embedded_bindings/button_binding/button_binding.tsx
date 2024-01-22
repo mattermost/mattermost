@@ -105,7 +105,6 @@ class ButtonBinding extends React.PureComponent<Props, State> {
 
     render() {
         const {binding} = this.props;
-        let customButtonStyle;
 
         if (!binding.submit && !binding.form?.submit && !binding.form?.source) {
             return null;
