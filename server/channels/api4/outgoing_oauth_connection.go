@@ -56,8 +56,8 @@ func checkOutgoingOAuthConnectionWritePermissions(c *Context) bool {
 }
 
 func ensureOutgoingOAuthConnectionInterface(c *Context, where string) (einterfaces.OutgoingOAuthConnectionInterface, bool) {
-	if !c.App.Config().FeatureFlags.OutgoingOAuthConnections {
-		c.Err = model.NewAppError(where, "api.context.outgoing_oauth_connection.not_available.feature_flag", nil, "", http.StatusNotImplemented)
+	if c.App.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && !*c.App.Config().ServiceSettings.EnableOutgoingOAuthConnections {
+		c.Err = model.NewAppError(where, "api.context.outgoing_oauth_connection.not_available.configuration_disabled", nil, "", http.StatusNotImplemented)
 		return nil, false
 	}
 

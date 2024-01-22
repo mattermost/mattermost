@@ -1682,8 +1682,8 @@
     "translation": "Invalid input parameters."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "This feature is restricted by a feature flag."
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Outgoing OAuth connections are not available on this server."
   },
   {
     "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
@@ -8275,8 +8275,8 @@
     "translation": "There was an error while deleting the outgoing oauth connection."
   },
   {
-    "id": "ent.outgoing_oauth_connections.feature_disable.app_error",
-    "translation": "Your instance does not have outgoing oauth connections enabled."
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Outgoing OAuth connections are not available on this server."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
