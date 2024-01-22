@@ -6,8 +6,6 @@ import React from 'react';
 import type {ReactNode} from 'react';
 import {injectIntl, FormattedDate, FormattedMessage, FormattedTime, defineMessage, defineMessages} from 'react-intl';
 import type {IntlShape, MessageDescriptor} from 'react-intl';
-import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
-import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 
 import StatusIcon from '@mattermost/compass-components/components/status-icon'; // eslint-disable-line no-restricted-imports
 import Text from '@mattermost/compass-components/components/text'; // eslint-disable-line no-restricted-imports
@@ -35,6 +33,9 @@ import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Avatar from 'components/widgets/users/avatar/avatar';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar/avatar';
+
+import {Constants, ModalIdentifiers, UserStatuses} from 'utils/constants';
+import {getCurrentDateTimeForTimezone, getCurrentMomentForTimezone} from 'utils/timezone';
 
 import type {ModalData} from 'types/actions';
 import type {Menu as MenuType} from 'types/store/plugins';
@@ -610,11 +611,13 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             dialogType={UserSettingsModal}
                             dialogProps={{isContentProductSettings: false}}
                             text={this.props.intl.formatMessage({id: 'navbar_dropdown.profileSettings', defaultMessage: 'Profile'})}
-                            icon={<AccountOutlineIcon
-                                size={16}
-                                color={'rgba(var(--center-channel-color-rgb), 0.56)'}
-                                className={'profile__icon'}
-                            />}
+                            icon={
+                                <AccountOutlineIcon
+                                    size={16}
+                                    color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                                    className={'profile__icon'}
+                                />
+                            }
                         >
                             {this.props.showCompleteYourProfileTour && (
                                 <div
