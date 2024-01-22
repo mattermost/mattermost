@@ -754,5 +754,17 @@
   {
     "id": "api.command_custom_status.name",
     "translation": "būsena"
+  },
+  {
+    "id": "api.command.invite_people.sent",
+    "translation": "Išsiųstas (-i) kvietimas (-ai) el. paštu"
+  },
+  {
+    "id": "api.command_channel_purpose.hint",
+    "translation": "[tekstas]"
+  },
+  {
+    "id": "api.command_channel_rename.hint",
+    "translation": "[tekstas]"
   }
 ]

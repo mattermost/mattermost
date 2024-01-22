@@ -981,7 +981,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM."
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
@@ -1165,11 +1165,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Message retention must be one day or longer."
+    "translation": "Message retention days cannot be less than 0."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "File retention must be one day or longer."
+    "translation": "File retention days cannot be less than 0."
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
@@ -6787,7 +6787,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Error while checking if shared channel exists: {{.Error}}"
+    "translation": "Error while checking if shared channel {{.ChannelID}} exists: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -10101,5 +10101,185 @@
   {
     "id": "api.custom_status.set_custom_statuses.emoji_not_found",
     "translation": "Failed to update the custom status. An emoji with the given name does not exist."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "This thread was moved from another channel"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "A message has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Failed to fetch user count."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Failed to fetch user report."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Cannot invite remote because channel {{.ChannelID}} is not shared."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "This feature is restricted by a feature flag."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "An error occurred while parsing the payload."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Thread moving is disabled"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "You do not have permission to move this thread."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Renew now"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Please renew to avoid any disruption"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "There was an error retrieving the outgoing OAuth connection."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "File retention days and file retention hours cannot both be 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Message retention days and message retention hours cannot both be 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Message retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Message retention days and message retention hours cannot both be greater than 0."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "There was an error while deleting the outgoing OAuth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "The outgoing OAuth connection was not found."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "There was an error retrieving the outgoing OAuth connections."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "There was an error saving the outgoing OAuth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "There was an error updating the outgoing OAuth connection."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "File retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "File retention days and file retention hours cannot both be greater than 0."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Provided sort column is not valid."
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unable to remove thread"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Unable to find the user."
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Annual renewal payment is due in 30 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Your annual renewal payment is due in 30 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Annual subscription renewal in 60 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Annual subscription renewal in 60 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "You are about to lose access to your workspace in 7 days"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "An error occurred while checking if a user has a custom profile image."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Unable to update channel members' notify props."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Unable to update that many channel members. Only {{.Max}} channel members can be updated at once."
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Failed to get user count"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Page size is invalid or too large."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Could not confirm invitation: {{.Error}}"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Action Required: Annual subscription renewal in 7 days"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "There was an error while listing outgoing OAuth connections."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Date range provided is invalid."
   }
 ]

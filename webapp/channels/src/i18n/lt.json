@@ -178,6 +178,7 @@
   "add_outgoing_webhook.displayName": "Pavadinimas",
   "add_outgoing_webhook.displayName.help": "Nurodykite žiniatinklio kablio nustatymų puslapio pavadinimą. Pavadinime gali būti iki 64 simbolių.",
   "add_outgoing_webhook.doneHelp": "Išeinantis žiniatinklio kablio nustatytas. Šis prieigos raktas bus išsiųstas išeinančiame naudingajame krovinyje. Naudokite jį norėdami patvirtinti, kad užklausa gauta iš Jūsų Mattermost komandos (išsamesnė informacija adresu<link> Siunčiami žiniatinklio kabliukai</link> ).",
+  "add_outgoing_webhook.header": "Siunčiami žiniatinklio \"kabliai\"",
   "add_outgoing_webhook.icon_url": "Profilio nuotrauka",
   "add_outgoing_webhook.icon_url.help": "Įveskite .png arba .jpg failo URL, kad šis integravimas būtų naudojamas kaip profilio nuotrauka skelbiant. Failas turi būti ne mažesnis kaip 128 x 128 pikseliai. Jei paliekama tuščia, naudojama profilio nuotrauka, kurią nurodė webhook kūrėjas.",
   "add_outgoing_webhook.save": "Išsaugoti",

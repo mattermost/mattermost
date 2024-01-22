@@ -1126,13 +1126,13 @@ func TestPasswordRecovery(t *testing.T) {
 		assert.Nil(t, err)
 
 		tokenData := struct {
-			UserId string
+			UserID string
 			Email  string
 		}{}
 
 		err2 := json.Unmarshal([]byte(token.Extra), &tokenData)
 		assert.NoError(t, err2)
-		assert.Equal(t, th.BasicUser.Id, tokenData.UserId)
+		assert.Equal(t, th.BasicUser.Id, tokenData.UserID)
 		assert.Equal(t, th.BasicUser.Email, tokenData.Email)
 
 		err = th.App.ResetPasswordFromToken(th.Context, token.Token, "abcdefgh")

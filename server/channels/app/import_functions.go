@@ -812,10 +812,10 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		teamMemberByTeamID       = map[string]*model.TeamMember{}
 		newTeamMembers           = []*model.TeamMember{}
 		oldTeamMembers           = []*model.TeamMember{}
-		rolesByTeamId            = map[string]string{}
-		isGuestByTeamId          = map[string]bool{}
+		rolesByTeamID            = map[string]string{}
+		isGuestByTeamID          = map[string]bool{}
 		isUserByTeamId           = map[string]bool{}
-		isAdminByTeamId          = map[string]bool{}
+		isAdminByTeamID          = map[string]bool{}
 	)
 
 	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(rctx, user.Id, "", true)
@@ -839,9 +839,9 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			})
 		}
 
-		isGuestByTeamId[team.Id] = false
+		isGuestByTeamID[team.Id] = false
 		isUserByTeamId[team.Id] = true
-		isAdminByTeamId[team.Id] = false
+		isAdminByTeamID[team.Id] = false
 
 		if tdata.Roles == nil {
 			isUserByTeamId[team.Id] = true
@@ -850,17 +850,17 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
 				if role == model.TeamGuestRoleId {
-					isGuestByTeamId[team.Id] = true
+					isGuestByTeamID[team.Id] = true
 					isUserByTeamId[team.Id] = false
 				} else if role == model.TeamUserRoleId {
 					isUserByTeamId[team.Id] = true
 				} else if role == model.TeamAdminRoleId {
-					isAdminByTeamId[team.Id] = true
+					isAdminByTeamID[team.Id] = true
 				} else {
 					explicitRoles = append(explicitRoles, role)
 				}
 			}
-			rolesByTeamId[team.Id] = strings.Join(explicitRoles, " ")
+			rolesByTeamID[team.Id] = strings.Join(explicitRoles, " ")
 		}
 
 		member := &model.TeamMember{
@@ -929,13 +929,13 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 	}
 
 	for _, member := range append(newMembers, oldMembers...) {
-		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(rctx, member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
+		if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
+			if _, err = a.UpdateTeamMemberRoles(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId]); err != nil {
 				return err
 			}
 		}
 
-		a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
+		a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId])
 	}
 
 	for _, team := range allTeams {

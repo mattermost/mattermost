@@ -105,7 +105,6 @@ class ButtonBinding extends React.PureComponent<Props, State> {
 
     render() {
         const {binding} = this.props;
-        let customButtonStyle;
 
         if (!binding.submit && !binding.form?.submit && !binding.form?.source) {
             return null;
@@ -118,8 +117,8 @@ class ButtonBinding extends React.PureComponent<Props, State> {
 
         return (
             <button
+                className='btn btn-sm'
                 onClick={this.handleClick}
-                style={customButtonStyle}
             >
                 <LoadingWrapper
                     loading={this.state.executing}

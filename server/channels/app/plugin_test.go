@@ -805,11 +805,11 @@ func TestPluginStatusActivateError(t *testing.T) {
 	})
 }
 
-type byId []*plugin.PrepackagedPlugin
+type byID []*plugin.PrepackagedPlugin
 
-func (a byId) Len() int           { return len(a) }
-func (a byId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byId) Less(i, j int) bool { return a[i].Manifest.Id < a[j].Manifest.Id }
+func (a byID) Len() int           { return len(a) }
+func (a byID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byID) Less(i, j int) bool { return a[i].Manifest.Id < a[j].Manifest.Id }
 
 type pluginStatusById model.PluginStatuses
 
@@ -1027,7 +1027,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1061,7 +1061,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1102,7 +1102,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.2", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1140,7 +1140,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1173,7 +1173,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1201,7 +1201,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1225,7 +1225,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins = initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)

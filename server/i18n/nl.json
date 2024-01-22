@@ -3720,11 +3720,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Het bewaren van bestanden moet een dag of langer zijn."
+    "translation": "Het aantal dagen dat bestanden bewaard wordt mag niet kleiner zijn dan 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Het bewaren van berichten moet een dag of langer zijn."
+    "translation": "Het aantal dagen dat berichten bewaard wordt mag niet kleiner zijn dan 0."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -10184,5 +10184,137 @@
   {
     "id": "api.command_share.channel_not_shared.error",
     "translation": "Kan externe niet uitnodigen omdat kanaal {{.ChannelID}} niet wordt gedeeld."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Er is een fout opgetreden bij het weergeven van uitgaande OAuth-verbindingen."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ongeldige invoerparameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Deze functie wordt beperkt door een feature flag."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Kan niet zoveel rollen op naam krijgen. Alleen {{.MaxNames}} rollen kunnen in één keer worden opgevraagd."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het verwijderen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "De uitgaande oauth-verbinding werd niet gevonden."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Kon uitnodiging niet bevestigen: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Er is een fout opgetreden tijdens het parsen van de payload."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Jaarlijkse abonnementsverlenging binnen 60 dagen"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Het aantal uren dat bestanden bewaard wordt mag niet kleiner zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Het aantal dagen en uren dat bestanden bewaard kunnen niet allebei groter zijn dan 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Het aantal dagen en uren dat bestanden bewaard kunnen niet beiden 0 zijn."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Kan de gebruiker niet vinden."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Nu vernieuwen"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Vernieuw om onderbrekingen te voorkomen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Jaarlijkse factuur verschuldigd over 30 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Je jaarlijkse factuur is verschuldigd binnen 30 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Jaarlijkse abonnementsverlenging binnen 60 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Actie vereist: Jaarlijkse abonnementsverlenging over 7 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Je staat op het punt om binnen 7 dagen de toegang tot je werkruimte te verliezen"
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Fout bij het ophalen van het aantal gebruikers"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Gebruikersaantal kon niet worden opgehaald."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Het aantal uren dat berichten bewaard wordt mag niet kleiner zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Het aantal dagen en uren dat berichten bewaard kunnen niet allebei groter zijn dan 0."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Ongeldige maximale payloadgrootte voor service-instellingen. Moet een geheel getal groter dan nul zijn."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Het aantal dagen en uren om bestanden te bewaren kunnen niet allebei 0 zijn."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fout bij het controleren of een gebruiker een aangepaste profielafbeelding heeft."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Kan de meldingsinstellingen van de kanaalleden niet bijwerken."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Kan niet zoveel kanaalleden updaten. Slechts {{.Max}} kanaalleden kunnen in één keer worden bijgewerkt."
   }
 ]
