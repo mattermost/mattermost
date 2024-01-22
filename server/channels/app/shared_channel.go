@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -301,17 +302,19 @@ func (a *App) SyncSharedChannel(channelID string) error {
 
 // Hooks
 
-var ErrPluginUnavailable = errors.New("plugin unavialable")
+var ErrPluginUnavailable = errors.New("plugin unavailable")
+
+func getPluginHooks(env *plugin.Environment, pluginID string) (plugin.Hooks, error) {
+	if env == nil {
+		return nil, ErrPluginUnavailable
+	}
+	return env.HooksForPlugin(pluginID)
+}
 
 // OnSharedChannelsSyncMsg is called by the Shared Channels service for a registered plugin when there is new content
 // that needs to be synchronized.
 func (a *App) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return model.SyncResponse{}, fmt.Errorf("cannot deliver sync msg to plugin %s: %w", rc.PluginID, ErrPluginUnavailable)
-	}
-
-	pluginHooks, err := pluginsEnvironment.HooksForPlugin(rc.PluginID)
+	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
 	if err != nil {
 		return model.SyncResponse{}, fmt.Errorf("cannot deliver sync msg to plugin %s: %w", rc.PluginID, err)
 	}
@@ -319,20 +322,36 @@ func (a *App) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluste
 	return pluginHooks.OnSharedChannelsSyncMsg(msg, rc)
 }
 
-// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin wto check that the plugin
+// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin to check that the plugin
 // is still responding and has a connection to any upstream services it needs (e.g. MS Graph API).
 func (a *App) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		a.Log().Error("Ping for shared channels cannot get plugins env")
-		return false
-	}
-
-	pluginHooks, err := pluginsEnvironment.HooksForPlugin(rc.PluginID)
+	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
 	if err != nil {
 		a.Log().Error("Ping for shared channels cannot get plugin hooks", mlog.String("plugin_id", rc.PluginID), mlog.Err(err))
 		return false
 	}
 
 	return pluginHooks.OnSharedChannelsPing(rc)
+}
+
+// OnSharedChannelsAttachmentSyncMsg is called by the Shared Channels service for a registered plugin when a file attachment
+// needs to be synchronized.
+func (a *App) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
+	if err != nil {
+		return fmt.Errorf("cannot deliver file attachment sync msg to plugin %s: %w", rc.PluginID, err)
+	}
+
+	return pluginHooks.OnSharedChannelsAttachmentSyncMsg(fi, post, rc)
+}
+
+// OnSharedChannelsProfileImageSyncMsg is called by the Shared Channels service for a registered plugin when a user's
+// profile image needs to be synchronized.
+func (a *App) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
+	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
+	if err != nil {
+		return fmt.Errorf("cannot deliver user profile image sync msg to plugin %s: %w", rc.PluginID, err)
+	}
+
+	return pluginHooks.OnSharedChannelsProfileImageSyncMsg(user, rc)
 }

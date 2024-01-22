@@ -1291,7 +1291,7 @@ function handleStatusChangedEvent(msg) {
 }
 
 function handleHelloEvent(msg) {
-    setServerVersion(msg.data.server_version)(dispatch, getState);
+    dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
 }
 
