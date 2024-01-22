@@ -12,10 +12,7 @@ exports[`admin_console/system_role should match snapshot 1`] = `
         className="fa fa-angle-left back"
         to="/admin_console/user_management/system_roles"
       />
-      <MemoizedFormattedMessage
-        defaultMessage="R O L E _ N A M E"
-        id="admin.permissions.roles.role_name.name"
-      />
+      role_name
     </div>
   </AdminHeader>
   <div
@@ -77,10 +74,7 @@ exports[`admin_console/system_role should match snapshot with isLicensedForCloud
         className="fa fa-angle-left back"
         to="/admin_console/user_management/system_roles"
       />
-      <MemoizedFormattedMessage
-        defaultMessage="R O L E _ N A M E"
-        id="admin.permissions.roles.role_name.name"
-      />
+      role_name
     </div>
   </AdminHeader>
   <div

@@ -6,16 +6,14 @@ import {Route, Switch, Redirect} from 'react-router-dom';
 import type {RouteComponentProps} from 'react-router-dom';
 
 import type {CloudState} from '@mattermost/types/cloud';
-import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
-import type {DeepPartial} from '@mattermost/types/utilities';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SchemaAdminSettings from 'components/admin_console/schema_admin_settings';
 import AnnouncementBarController from 'components/announcement_bar';
 import BackstageNavbar from 'components/backstage/components/backstage_navbar';
-import DelinquencyModal from 'components/delinquency_modal';
 import DiscardChangesModal from 'components/discard_changes_modal';
 import ModalController from 'components/modal_controller';
 import SystemNotice from 'components/system_notice';
@@ -39,13 +37,13 @@ type State = {
 // not every page in the system console will need the license and config, but the vast majority will
 type ExtraProps = {
     enterpriseReady: boolean;
-    license?: Record<string, any>;
-    config?: DeepPartial<AdminConfig>;
-    environmentConfig?: Partial<EnvironmentConfig>;
-    setNavigationBlocked?: () => void;
-    roles?: Record<string, Role>;
-    editRole?: (role: Role) => void;
-    updateConfig?: (config: AdminConfig) => ActionFunc;
+    license: ClientLicense;
+    config: Partial<AdminConfig>;
+    environmentConfig: Partial<EnvironmentConfig>;
+    setNavigationBlocked: (blocked: boolean) => void;
+    roles: Record<string, Role>;
+    editRole: (role: Role) => void;
+    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     cloud: CloudState;
     isCurrentUserSystemAdmin: boolean;
 }
@@ -229,7 +227,6 @@ export default class AdminConsole extends React.PureComponent<Props, State> {
                     </Highlight>
                 </div>
                 {discardChangesModal}
-                <DelinquencyModal/>
                 <ModalController/>
             </>
         );
