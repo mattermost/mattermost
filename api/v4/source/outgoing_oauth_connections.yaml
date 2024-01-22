@@ -8,7 +8,7 @@
       description: >
         List all outgoing OAuth connections.
 
-        __Minimum server version__: 9.5
+        __Minimum server version__: 9.6
       operationId: ListOutgoingOAuthConnections
       responses:
         "200":
@@ -34,7 +34,7 @@
       description: >
         Create an outgoing OAuth connection.
 
-        __Minimum server version__: 9.5
+        __Minimum server version__: 9.6
       operationId: CreateOutgoingOAuthConnection
       requestBody:
         description: Outgoing OAuth connection to create
@@ -67,7 +67,7 @@
       description: >
         Retrieve an outgoing OAuth connection.
 
-        __Minimum server version__: 9.5
+        __Minimum server version__: 9.6
       operationId: GetOutgoingOAuthConnection
       responses:
         "200":
@@ -91,7 +91,7 @@
       description: >
         Update an outgoing OAuth connection.
 
-        __Minimum server version__: 9.5
+        __Minimum server version__: 9.6
       operationId: UpdateOutgoingOAuthConnection
       requestBody:
         description: Outgoing OAuth connection to update
@@ -125,7 +125,7 @@
       description: >
         Delete an outgoing OAuth connection.
 
-        __Minimum server version__: 9.5
+        __Minimum server version__: 9.6
       operationId: DeleteOutgoingOAuthConnection
       responses:
         "200":
@@ -148,7 +148,7 @@
       description: >
         Validate an stored outgoing OAuth connection.
 
-        __Minimum server version__: 9.5
+        __Minimum server version__: 9.6
       operationId: GetOutgoingOAuthConnection
       responses:
         "200":
@@ -172,7 +172,7 @@
       description: >
         Validate an outgoing OAuth connection.
 
-        __Minimum server version__: 9.5
+        __Minimum server version__: 9.6
       operationId: ValidateOutgoingOAuthConnection
       requestBody:
         description: Outgoing OAuth connection to validate
