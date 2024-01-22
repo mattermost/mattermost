@@ -30,7 +30,7 @@ import {getGlobalItem} from 'selectors/storage';
 
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
@@ -144,7 +144,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [isMobileView, setIsMobileView] = useState(false);
     const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
 
-    const canReachCWS = useCWSAvailabilityCheck();
+    const cwsAvailability = useCWSAvailabilityCheck();
 
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
@@ -619,7 +619,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const handleReturnButtonOnClick = () => history.replace('/');
 
     const getNewsletterCheck = () => {
-        if (canReachCWS) {
+        if (cwsAvailability === CSWAvailabilityCheckTypes.Available) {
             return (
                 <CheckInput
                     id='signup-body-card-form-check-newsletter'

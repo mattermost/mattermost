@@ -207,7 +207,9 @@ const (
 	BleveSettingsDefaultBatchSize = 10000
 
 	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultMessageRetentionHours          = 0
 	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultFileRetentionHours             = 0
 	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
@@ -402,6 +404,7 @@ type ServiceSettings struct {
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
 	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
+	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -907,6 +910,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.RefreshPostStatsRunTime == nil {
 		s.RefreshPostStatsRunTime = NewString("00:00")
+	}
+
+	if s.MaximumPayloadSizeBytes == nil {
+		s.MaximumPayloadSizeBytes = NewInt64(100000)
 	}
 }
 
@@ -2906,8 +2913,10 @@ type DataRetentionSettings struct {
 	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
 	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
-	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
-	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
+	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"` // Deprecated: use `MessageRetentionHours`
+	MessageRetentionHours          *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays              *int    `access:"compliance_data_retention_policy"` // Deprecated: use `FileRetentionHours`
+	FileRetentionHours             *int    `access:"compliance_data_retention_policy"`
 	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
@@ -2932,8 +2941,16 @@ func (s *DataRetentionSettings) SetDefaults() {
 		s.MessageRetentionDays = NewInt(DataRetentionSettingsDefaultMessageRetentionDays)
 	}
 
+	if s.MessageRetentionHours == nil {
+		s.MessageRetentionHours = NewInt(DataRetentionSettingsDefaultMessageRetentionHours)
+	}
+
 	if s.FileRetentionDays == nil {
 		s.FileRetentionDays = NewInt(DataRetentionSettingsDefaultFileRetentionDays)
+	}
+
+	if s.FileRetentionHours == nil {
+		s.FileRetentionHours = NewInt(DataRetentionSettingsDefaultFileRetentionHours)
 	}
 
 	if s.BoardsRetentionDays == nil {
@@ -2954,6 +2971,30 @@ func (s *DataRetentionSettings) SetDefaults() {
 	if s.RetentionIdsBatchSize == nil {
 		s.RetentionIdsBatchSize = NewInt(DataRetentionSettingsDefaultRetentionIdsBatchSize)
 	}
+}
+
+// GetMessageRetentionHours returns the message retention time as an int.
+// MessageRetentionHours takes precedence over the deprecated MessageRetentionDays.
+func (s *DataRetentionSettings) GetMessageRetentionHours() int {
+	if s.MessageRetentionHours != nil && *s.MessageRetentionHours > 0 {
+		return *s.MessageRetentionHours
+	}
+	if s.MessageRetentionDays != nil && *s.MessageRetentionDays > 0 {
+		return *s.MessageRetentionDays * 24
+	}
+	return DataRetentionSettingsDefaultMessageRetentionDays * 24
+}
+
+// GetFileRetentionHours returns the message retention time as an int.
+// FileRetentionHours takes precedence over the deprecated FileRetentionDays.
+func (s *DataRetentionSettings) GetFileRetentionHours() int {
+	if s.FileRetentionHours != nil && *s.FileRetentionHours > 0 {
+		return *s.FileRetentionHours
+	}
+	if s.FileRetentionDays != nil && *s.FileRetentionDays > 0 {
+		return *s.FileRetentionDays * 24
+	}
+	return DataRetentionSettingsDefaultFileRetentionDays * 24
 }
 
 type JobSettings struct {
@@ -3978,6 +4019,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		}
 	}
 
+	if *s.MaximumPayloadSizeBytes <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_payload_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.ReadTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.read_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -4132,12 +4177,36 @@ func (bs *BleveSettings) isValid() *AppError {
 }
 
 func (s *DataRetentionSettings) isValid() *AppError {
-	if *s.MessageRetentionDays <= 0 {
+	if s.MessageRetentionDays == nil || *s.MessageRetentionDays < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.FileRetentionDays <= 0 {
+	if s.MessageRetentionHours == nil || *s.MessageRetentionHours < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if s.FileRetentionDays == nil || *s.FileRetentionDays < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if s.FileRetentionHours == nil || *s.FileRetentionHours < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MessageRetentionDays > 0 && *s.MessageRetentionHours > 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.FileRetentionDays > 0 && *s.FileRetentionHours > 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MessageRetentionDays == 0 && *s.MessageRetentionHours == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_both_zero.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.FileRetentionDays == 0 && *s.FileRetentionHours == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_both_zero.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {

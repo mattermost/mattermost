@@ -3,27 +3,17 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getChannel} from 'mattermost-redux/actions/channels';
-import type {ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {postEphemeralCallResponseForPost, handleBindingClick, openAppsModal} from 'actions/apps';
 
-import type {PostEphemeralCallResponseForPost, HandleBindingClick, OpenAppsModal} from 'types/apps';
-
 import SelectBinding from './select_binding';
 
-type Actions = {
-    handleBindingClick: HandleBindingClick;
-    getChannel: (channelId: string) => Promise<ActionResult>;
-    postEphemeralCallResponseForPost: PostEphemeralCallResponseForPost;
-    openAppsModal: OpenAppsModal;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<any>, Actions>({
+        actions: bindActionCreators({
             handleBindingClick,
             getChannel,
             postEphemeralCallResponseForPost,

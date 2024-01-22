@@ -8,8 +8,6 @@ import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import type {SearchType} from 'types/store/rhs';
 
 export type SearchFilterType = 'all' | 'documents' | 'spreadsheets' | 'presentations' | 'code' | 'images' | 'audio' | 'video';
@@ -51,12 +49,12 @@ export type DispatchProps = {
         showFlaggedPosts: () => void;
         setRhsExpanded: (expanded: boolean) => Action;
         closeRightHandSide: () => void;
-        autocompleteChannelsForSearch: (term: string, success: (channels: Channel[]) => void, error: (err: ServerError) => void) => ActionFunc;
+        autocompleteChannelsForSearch: (term: string, success?: (channels: Channel[]) => void, error?: (err: ServerError) => void) => void;
         autocompleteUsersInTeam: (username: string) => Promise<UserAutocomplete>;
         updateRhsState: (rhsState: string) => void;
-        getMorePostsForSearch: () => ActionFunc;
+        getMorePostsForSearch: () => void;
         openRHSSearch: () => void;
-        getMoreFilesForSearch: () => ActionFunc;
+        getMoreFilesForSearch: () => void;
         filterFilesSearchByExt: (extensions: string[]) => void;
     };
 }

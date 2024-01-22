@@ -87,8 +87,8 @@ describe('Actions.Groups', () => {
             get(`/groups/${groupID}/channels`).
             reply(200, groupChannels);
 
-        await Actions.getGroupSyncables(groupID, SyncableType.Team)(store.dispatch, store.getState);
-        await Actions.getGroupSyncables(groupID, SyncableType.Channel)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getGroupSyncables(groupID, SyncableType.Team));
+        await store.dispatch(Actions.getGroupSyncables(groupID, SyncableType.Channel));
 
         const state = store.getState();
 
@@ -121,7 +121,7 @@ describe('Actions.Groups', () => {
             get(`/groups/${groupID}?include_member_count=false`).
             reply(200, response);
 
-        await Actions.getGroup(groupID)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getGroup(groupID));
 
         const state = store.getState();
 
@@ -163,8 +163,8 @@ describe('Actions.Groups', () => {
             post(`/groups/${groupID}/channels/${channelID}/link`).
             reply(200, groupChannelResponse);
 
-        await (Actions.linkGroupSyncable as any)(groupID, teamID, SyncableType.Team)(store.dispatch, store.getState);
-        await (Actions.linkGroupSyncable as any)(groupID, channelID, SyncableType.Channel)(store.dispatch, store.getState);
+        await store.dispatch(Actions.linkGroupSyncable(groupID, teamID, SyncableType.Team, {}));
+        await store.dispatch(Actions.linkGroupSyncable(groupID, channelID, SyncableType.Channel, {}));
 
         const state = store.getState();
         const syncables = state.entities.groups.syncables;
@@ -205,8 +205,8 @@ describe('Actions.Groups', () => {
             post(`/groups/${groupID}/channels/${channelID}/link`).
             reply(200, groupChannelResponse);
 
-        await (Actions.linkGroupSyncable as any)(groupID, teamID, SyncableType.Team)(store.dispatch, store.getState);
-        await (Actions.linkGroupSyncable as any)(groupID, channelID, SyncableType.Channel)(store.dispatch, store.getState);
+        await store.dispatch(Actions.linkGroupSyncable(groupID, teamID, SyncableType.Team, {}));
+        await store.dispatch(Actions.linkGroupSyncable(groupID, channelID, SyncableType.Channel, {}));
 
         let state = store.getState();
         let syncables = state.entities.groups.syncables;
@@ -226,8 +226,8 @@ describe('Actions.Groups', () => {
             delete(`/groups/${groupID}/channels/${channelID}/link`).
             reply(204, {ok: true});
 
-        await Actions.unlinkGroupSyncable(groupID, teamID, SyncableType.Team)(store.dispatch, store.getState);
-        await Actions.unlinkGroupSyncable(groupID, channelID, SyncableType.Channel)(store.dispatch, store.getState);
+        await store.dispatch(Actions.unlinkGroupSyncable(groupID, teamID, SyncableType.Team));
+        await store.dispatch(Actions.unlinkGroupSyncable(groupID, channelID, SyncableType.Channel));
 
         state = store.getState();
         syncables = state.entities.groups.syncables;
@@ -281,7 +281,7 @@ describe('Actions.Groups', () => {
             page: 0,
             per_page: 0,
         };
-        await Actions.getGroups(groupParams)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getGroups(groupParams));
 
         const state = store.getState();
 
@@ -349,7 +349,7 @@ describe('Actions.Groups', () => {
             get(`/teams/${teamID}/groups?paginate=false&filter_allow_reference=false&include_member_count=true`).
             reply(200, response);
 
-        await Actions.getAllGroupsAssociatedToTeam(teamID, false, true)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getAllGroupsAssociatedToTeam(teamID, false, true));
 
         const state = store.getState();
 
@@ -401,7 +401,7 @@ describe('Actions.Groups', () => {
             get(`/teams/${teamID}/groups?page=100&per_page=60&q=0&include_member_count=true&filter_allow_reference=false`).
             reply(200, response);
 
-        await Actions.getGroupsAssociatedToTeam(teamID, '0', 100)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getGroupsAssociatedToTeam(teamID, '0', 100));
 
         const state = store.getState();
 
@@ -450,7 +450,7 @@ describe('Actions.Groups', () => {
             get(`/groups?not_associated_to_team=${teamID}&page=100&per_page=60&q=0&include_member_count=true`).
             reply(200, response);
 
-        await Actions.getGroupsNotAssociatedToTeam(teamID, '0', 100)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getGroupsNotAssociatedToTeam(teamID, '0', 100));
 
         const state = store.getState();
         const groupIDs = state.entities.teams.groupsAssociatedToTeam[teamID].ids;
@@ -513,7 +513,7 @@ describe('Actions.Groups', () => {
             get(`/channels/${channelID}/groups?paginate=false&filter_allow_reference=false&include_member_count=true`).
             reply(200, response);
 
-        await Actions.getAllGroupsAssociatedToChannel(channelID, false, true)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getAllGroupsAssociatedToChannel(channelID, false, true));
 
         const state = store.getState();
 
@@ -613,7 +613,7 @@ describe('Actions.Groups', () => {
             get(`/teams/${teamID}/groups_by_channels?paginate=false&filter_allow_reference=true`).
             reply(200, response2);
 
-        await Actions.getAllGroupsAssociatedToChannelsInTeam(teamID, false)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getAllGroupsAssociatedToChannelsInTeam(teamID, false));
 
         let state = store.getState();
 
@@ -623,7 +623,7 @@ describe('Actions.Groups', () => {
             expect(response1.groups[channelID1].map((group) => group.id).includes(id)).toBeTruthy();
         });
 
-        await Actions.getAllGroupsAssociatedToChannelsInTeam(teamID, true)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getAllGroupsAssociatedToChannelsInTeam(teamID, true));
 
         state = store.getState();
 
@@ -675,7 +675,7 @@ describe('Actions.Groups', () => {
             get(`/channels/${channelID}/groups?page=100&per_page=60&q=0&include_member_count=true&filter_allow_reference=false`).
             reply(200, response);
 
-        await Actions.getGroupsAssociatedToChannel(channelID, '0', 100)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getGroupsAssociatedToChannel(channelID, '0', 100));
 
         const state = store.getState();
 
@@ -724,7 +724,7 @@ describe('Actions.Groups', () => {
             get(`/groups?not_associated_to_channel=${channelID}&page=100&per_page=60&q=0&include_member_count=true`).
             reply(200, response);
 
-        await Actions.getGroupsNotAssociatedToChannel(channelID, '0', 100)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getGroupsNotAssociatedToChannel(channelID, '0', 100));
 
         const state = store.getState();
 
@@ -774,8 +774,8 @@ describe('Actions.Groups', () => {
             put(`/groups/${groupID}/channels/${channelID}/patch`).
             reply(200, groupChannelResponse);
 
-        await Actions.patchGroupSyncable(groupID, teamID, SyncableType.Team, groupSyncablePatch)(store.dispatch, store.getState);
-        await Actions.patchGroupSyncable(groupID, channelID, SyncableType.Channel, groupSyncablePatch)(store.dispatch, store.getState);
+        await store.dispatch(Actions.patchGroupSyncable(groupID, teamID, SyncableType.Team, groupSyncablePatch));
+        await store.dispatch(Actions.patchGroupSyncable(groupID, channelID, SyncableType.Channel, groupSyncablePatch));
 
         const state = store.getState();
         const groupSyncables = state.entities.groups.syncables[groupID];
@@ -813,7 +813,7 @@ describe('Actions.Groups', () => {
             put(`/groups/${groupID}/patch`).
             reply(200, response);
 
-        await Actions.patchGroup(groupID, groupPatch)(store.dispatch, store.getState);
+        await store.dispatch(Actions.patchGroup(groupID, groupPatch));
 
         let state = store.getState();
 
@@ -831,7 +831,7 @@ describe('Actions.Groups', () => {
             put(`/groups/${groupID}/patch`).
             reply(200, response);
 
-        await Actions.patchGroup(groupID, groupPatch)(store.dispatch, store.getState);
+        await store.dispatch(Actions.patchGroup(groupID, groupPatch));
 
         state = store.getState();
 
@@ -849,7 +849,7 @@ describe('Actions.Groups', () => {
             put(`/groups/${groupID}/patch`).
             reply(200, response);
 
-        await Actions.patchGroup(groupID, groupPatch)(store.dispatch, store.getState);
+        await store.dispatch(Actions.patchGroup(groupID, groupPatch));
 
         state = store.getState();
 
@@ -872,7 +872,7 @@ describe('Actions.Groups', () => {
             get(`/groups/${groupID}/stats`).
             reply(200, response);
 
-        await Actions.getGroupStats(groupID)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getGroupStats(groupID));
 
         const state = store.getState();
 

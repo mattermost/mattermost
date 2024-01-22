@@ -4,13 +4,18 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-export default function EllipsisHorizontalIcon(props: React.HTMLAttributes<HTMLSpanElement>) {
+type Props = React.HTMLAttributes<HTMLSpanElement> & {
+    width?: string;
+    height?: string;
+};
+
+export default function EllipsisHorizontalIcon(props: Props) {
     const {formatMessage} = useIntl();
     return (
         <span {...props}>
             <svg
-                width='24px'
-                height='24px'
+                width={props.width || '24px'}
+                height={props.width || '24px'}
                 viewBox='0 0 24 24'
                 role='img'
                 aria-label={formatMessage({id: 'generic_icons.elipsisHorizontalIcon', defaultMessage: 'Ellipsis Horizontal Icon'})}

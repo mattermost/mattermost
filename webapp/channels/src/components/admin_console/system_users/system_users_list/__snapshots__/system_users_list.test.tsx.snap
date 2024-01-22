@@ -63,11 +63,6 @@ exports[`components/admin_console/system_users/list should match default snapsho
     show={false}
   />
   <Connect(ManageTokensModal)
-    actions={
-      Object {
-        "getUserAccessTokensForUser": [Function],
-      }
-    }
     onModalDismissed={[Function]}
     show={false}
   />
@@ -266,11 +261,6 @@ exports[`components/admin_console/system_users/list should match default snapsho
     show={false}
   />
   <Connect(ManageTokensModal)
-    actions={
-      Object {
-        "getUserAccessTokensForUser": [Function],
-      }
-    }
     onModalDismissed={[Function]}
     show={false}
   />
@@ -494,11 +484,6 @@ exports[`components/admin_console/system_users/list should match default snapsho
     show={false}
   />
   <Connect(ManageTokensModal)
-    actions={
-      Object {
-        "getUserAccessTokensForUser": [Function],
-      }
-    }
     onModalDismissed={[Function]}
     show={false}
   />

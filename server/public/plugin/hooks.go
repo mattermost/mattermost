@@ -58,6 +58,8 @@ const (
 	OnSharedChannelsSyncMsgID                 = 40
 	OnSharedChannelsPingID                    = 41
 	PreferencesHaveChangedID                  = 42
+	OnSharedChannelsAttachmentSyncMsgID       = 43
+	OnSharedChannelsProfileImageSyncMsgID     = 44
 	TotalHooksID                              = iota
 )
 
@@ -362,4 +364,22 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.5
 	PreferencesHaveChanged(c *Context, preferences []model.Preference)
+
+	// OnSharedChannelsAttachmentSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each call represents one file attachment
+	// to be synchronized.
+	//
+	// The cursor will be advanced based on the timestamp returned if no error is returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+
+	// OnSharedChannelsProfileImageSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each call represents one user profile
+	// image that should be synchronized. `App.GetProfileImage` can be used to fetch the image bytes.
+	//
+	// The cursor will be advanced based on the timestamp returned if no error is returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 }

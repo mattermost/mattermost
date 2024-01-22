@@ -29,7 +29,7 @@ export type Props = {
         /**
         * The function to call to add new OAuthApp
         */
-        addOAuthApp: (app: OAuthApp) => Promise<ActionResult>;
+        addOAuthApp: (app: OAuthApp) => Promise<ActionResult<OAuthApp>>;
     };
 };
 

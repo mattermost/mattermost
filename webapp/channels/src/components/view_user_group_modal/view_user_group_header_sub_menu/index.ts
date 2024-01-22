@@ -3,25 +3,16 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {addUsersToGroup, archiveGroup, removeUsersFromGroup} from 'mattermost-redux/actions/groups';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
-import type {ModalData} from 'types/actions';
 import type {GlobalState} from 'types/store';
 
 import ViewUserGroupHeaderSubMenu from './view_user_group_header_sub_menu';
-
-type Actions = {
-    openModal: <P>(modalData: ModalData<P>) => void;
-    removeUsersFromGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-    addUsersToGroup: (groupId: string, userIds: string[]) => Promise<ActionResult>;
-    archiveGroup: (groupId: string) => Promise<ActionResult>;
-};
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -31,7 +22,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             openModal,
             removeUsersFromGroup,
             addUsersToGroup,

@@ -49,12 +49,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
       />
     </ToggleModalButton>
   }
-  className=""
   id="channelMembers"
-  subtitleDefault="A list of users who are currently in the channel right now"
-  subtitleId="admin.channel_settings.channel_detail.membersDescription"
-  titleDefault="Members"
-  titleId="admin.channel_settings.channel_detail.membersTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "A list of users who are currently in the channel right now",
+      "id": "admin.channel_settings.channel_detail.membersDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Members",
+      "id": "admin.channel_settings.channel_detail.membersTitle",
+    }
+  }
 >
   <UserGrid
     excludeUsers={Object {}}
@@ -363,12 +370,19 @@ exports[`admin_console/team_channel_settings/channel/ChannelMembers should match
       />
     </ToggleModalButton>
   }
-  className=""
   id="channelMembers"
-  subtitleDefault="A list of users who are currently in the channel right now"
-  subtitleId="admin.channel_settings.channel_detail.membersDescription"
-  titleDefault="Members"
-  titleId="admin.channel_settings.channel_detail.membersTitle"
+  subtitle={
+    Object {
+      "defaultMessage": "A list of users who are currently in the channel right now",
+      "id": "admin.channel_settings.channel_detail.membersDescription",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Members",
+      "id": "admin.channel_settings.channel_detail.membersTitle",
+    }
+  }
 >
   <UserGrid
     excludeUsers={Object {}}

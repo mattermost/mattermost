@@ -1647,3 +1647,105 @@ func TestConfigDefaultCallsPluginState(t *testing.T) {
 		assert.False(t, c1.PluginSettings.PluginStates["com.mattermost.calls"].Enable)
 	})
 }
+
+func TestConfigGetMessageRetentionHours(t *testing.T) {
+	tests := []struct {
+		name   string
+		config Config
+		value  int
+	}{
+		{
+			name:   "should return MessageRetentionDays config value in hours by default",
+			config: Config{},
+			value:  8760,
+		},
+		{
+			name: "should return MessageRetentionHours config value",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					MessageRetentionHours: NewInt(48),
+				},
+			},
+			value: 48,
+		},
+		{
+			name: "should return MessageRetentionHours config value",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					MessageRetentionDays:  NewInt(50),
+					MessageRetentionHours: NewInt(48),
+				},
+			},
+			value: 48,
+		},
+		{
+			name: "should return MessageRetentionDays config value in hours",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					MessageRetentionDays:  NewInt(50),
+					MessageRetentionHours: NewInt(0),
+				},
+			},
+			value: 1200,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.config.SetDefaults()
+
+			require.Equal(t, test.value, test.config.DataRetentionSettings.GetMessageRetentionHours())
+		})
+	}
+}
+
+func TestConfigGetFileRetentionHours(t *testing.T) {
+	tests := []struct {
+		name   string
+		config Config
+		value  int
+	}{
+		{
+			name:   "should return FileRetentionDays config value in hours by default",
+			config: Config{},
+			value:  8760,
+		},
+		{
+			name: "should return FileRetentionHours config value",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					FileRetentionHours: NewInt(48),
+				},
+			},
+			value: 48,
+		},
+		{
+			name: "should return FileRetentionHours config value",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					FileRetentionDays:  NewInt(50),
+					FileRetentionHours: NewInt(48),
+				},
+			},
+			value: 48,
+		},
+		{
+			name: "should return FileRetentionDays config value in hours",
+			config: Config{
+				DataRetentionSettings: DataRetentionSettings{
+					FileRetentionDays:  NewInt(50),
+					FileRetentionHours: NewInt(0),
+				},
+			},
+			value: 1200,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			test.config.SetDefaults()
+
+			require.Equal(t, test.value, test.config.DataRetentionSettings.GetFileRetentionHours())
+		})
+	}
+}

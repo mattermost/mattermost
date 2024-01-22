@@ -7,6 +7,8 @@ import {Modal} from 'react-bootstrap';
 import type {GetGroupsForUserParams, GetGroupsParams, Group, GroupSearchParams} from '@mattermost/types/groups';
 
 import './user_groups_modal.scss';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import Input from 'components/widgets/inputs/input/input';
@@ -33,14 +35,14 @@ export type Props = {
     actions: {
         getGroups: (
             opts: GetGroupsParams,
-        ) => Promise<{data: Group[]}>;
+        ) => Promise<ActionResult<Group[]>>;
         setModalSearchTerm: (term: string) => void;
         getGroupsByUserIdPaginated: (
             opts: GetGroupsForUserParams,
-        ) => Promise<{data: Group[]}>;
+        ) => Promise<ActionResult<Group[]>>;
         searchGroups: (
             params: GroupSearchParams,
-        ) => Promise<{data: Group[]}>;
+        ) => Promise<ActionResult>;
     };
 }
 
@@ -79,7 +81,7 @@ const UserGroupsModal = (props: Props) => {
             per_page: GROUPS_PER_PAGE,
             include_member_count: true,
         };
-        let data: {data: Group[]} = {data: []};
+        let data: ActionResult<Group[]> = {data: []};
 
         if (groupType === 'all') {
             groupsParams.include_archived = true;
@@ -96,7 +98,7 @@ const UserGroupsModal = (props: Props) => {
             data = await actions.getGroups(groupsParams);
         }
 
-        if (data && data.data.length === 0) {
+        if (data && data.data!.length === 0) {
             setGroupsFull(true);
         } else {
             setGroupsFull(false);

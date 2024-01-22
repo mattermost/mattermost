@@ -3,17 +3,13 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
-import type {UserStatus} from '@mattermost/types/users';
+import type {Dispatch} from 'redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {setStatus} from 'mattermost-redux/actions/users';
 import {Preferences} from 'mattermost-redux/constants';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions.js';
 
 import {autoResetStatus} from 'actions/user_actions';
 
@@ -29,15 +25,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    autoResetStatus: () => Promise<{data: UserStatus}>;
-    setStatus: (status: UserStatus) => void;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => void;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             autoResetStatus,
             setStatus,
             savePreferences,

@@ -8,7 +8,7 @@ import SetByEnv from './set_by_env';
 export type Props = {
     inputId?: string;
     label: React.ReactNode;
-    children: React.ReactNode;
+    children?: React.ReactNode;
     helpText?: React.ReactNode;
     setByEnv?: boolean;
 }

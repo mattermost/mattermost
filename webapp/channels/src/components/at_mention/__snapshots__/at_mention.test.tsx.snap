@@ -149,7 +149,7 @@ exports[`components/AtMention should match snapshot when mentioning current user
       rootClose={true}
       show={false}
     >
-      <Connect(injectIntl(ProfilePopover))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
         hide={[Function]}
         src="/api/v4/users/abc1/image"
@@ -189,7 +189,7 @@ exports[`components/AtMention should match snapshot when mentioning user 1`] = `
       rootClose={true}
       show={false}
     >
-      <Connect(injectIntl(ProfilePopover))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
         hide={[Function]}
         src="/api/v4/users/abc2/image"
@@ -229,7 +229,7 @@ exports[`components/AtMention should match snapshot when mentioning user contain
       rootClose={true}
       show={false}
     >
-      <Connect(injectIntl(ProfilePopover))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
         hide={[Function]}
         src="/api/v4/users/abc3/image"
@@ -270,7 +270,7 @@ exports[`components/AtMention should match snapshot when mentioning user contain
       rootClose={true}
       show={false}
     >
-      <Connect(injectIntl(ProfilePopover))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
         hide={[Function]}
         src="/api/v4/users/abc3/image"
@@ -310,7 +310,7 @@ exports[`components/AtMention should match snapshot when mentioning user followe
       rootClose={true}
       show={false}
     >
-      <Connect(injectIntl(ProfilePopover))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
         hide={[Function]}
         src="/api/v4/users/abc2/image"
@@ -351,7 +351,7 @@ exports[`components/AtMention should match snapshot when mentioning user with di
       rootClose={true}
       show={false}
     >
-      <Connect(injectIntl(ProfilePopover))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
         hide={[Function]}
         src="/api/v4/users/abc2/image"
@@ -391,7 +391,7 @@ exports[`components/AtMention should match snapshot when mentioning user with mi
       rootClose={true}
       show={false}
     >
-      <Connect(injectIntl(ProfilePopover))
+      <Memo(ProfilePopover)
         className="user-profile-popover"
         hide={[Function]}
         src="/api/v4/users/abc2/image"

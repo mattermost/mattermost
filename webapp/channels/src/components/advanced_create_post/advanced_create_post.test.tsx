@@ -88,16 +88,16 @@ const baseProp: Props = {
         setShowPreview: jest.fn(),
         savePreferences: jest.fn(),
         executeCommand: () => {
-            return {data: true};
+            return Promise.resolve({data: true});
         },
         getChannelTimezones: jest.fn(() => {
-            return {data: '', error: ''};
+            return Promise.resolve({data: [], error: ''});
         }),
         runMessageWillBePostedHooks: (post: Post) => {
-            return {data: post};
+            return Promise.resolve({data: post});
         },
         runSlashCommandWillBePostedHooks: (message: string, args: CommandArgs) => {
-            return {data: {message, args}};
+            return Promise.resolve({data: {message, args}});
         },
         scrollPostListToBottom: jest.fn(),
         getChannelMemberCountsByGroup: jest.fn(),
@@ -389,7 +389,7 @@ describe('components/advanced_create_post', () => {
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    getChannelTimezones: jest.fn(() => result),
+                    getChannelTimezones: jest.fn(() => Promise.resolve(result)),
                 },
                 currentChannelMembersCount: 9,
             }),
@@ -426,7 +426,7 @@ describe('components/advanced_create_post', () => {
             advancedCreatePost({
                 actions: {
                     ...baseProp.actions,
-                    getChannelTimezones: jest.fn(() => result),
+                    getChannelTimezones: jest.fn(() => Promise.resolve(result)),
                 },
                 currentChannelMembersCount: 9,
             }),
@@ -1014,7 +1014,7 @@ describe('components/advanced_create_post', () => {
         const result: ActionResult = {
             error,
         };
-        const executeCommand = jest.fn(() => result);
+        const executeCommand = jest.fn(() => Promise.resolve(result));
         const onSubmitPost = jest.fn();
 
         const wrapper = shallow(

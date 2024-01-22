@@ -11,6 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {Permissions} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {adminResetMfa} from 'actions/admin_actions.jsx';
@@ -43,12 +44,12 @@ export type Props = {
     bots: Record<string, Bot>;
     isLicensed: boolean;
     actions: {
-        updateUserActive: (id: string, active: boolean) => Promise<{error: ServerError}>;
-        revokeAllSessionsForUser: (id: string) => Promise<{error: ServerError; data: any}>;
-        promoteGuestToUser: (id: string) => Promise<{error: ServerError}>;
-        demoteUserToGuest: (id: string) => Promise<{error: ServerError}>;
+        updateUserActive: (id: string, active: boolean) => Promise<ActionResult>;
+        revokeAllSessionsForUser: (id: string) => Promise<ActionResult<boolean>>;
+        promoteGuestToUser: (id: string) => Promise<ActionResult>;
+        demoteUserToGuest: (id: string) => Promise<ActionResult>;
         loadBots: (page?: number, size?: number) => Promise<unknown>;
-        createGroupTeamsAndChannels: (userId: string) => Promise<{error: ServerError}>;
+        createGroupTeamsAndChannels: (userId: string) => Promise<ActionResult>;
     };
     doPasswordReset: (user: UserProfile) => void;
     doEmailReset: (user: UserProfile) => void;
@@ -146,7 +147,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         this.setState({showDeactivateMemberModal: false});
     };
 
-    onUpdateActiveResult = ({error}: {error: ServerError}) => {
+    onUpdateActiveResult = ({error}: ActionResult) => {
         if (error) {
             this.props.onError({id: error.server_error_id, ...error});
         }
@@ -618,7 +619,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
             currentRoles = (
                 <FormattedMessage
                     id='admin.user_item.inactive'
-                    defaultMessage='Inactive'
+                    defaultMessage='Deactivated'
                 />
             );
             showMakeActive = true;

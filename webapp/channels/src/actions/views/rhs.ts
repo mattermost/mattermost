@@ -24,7 +24,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionResult, DispatchFunc, GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
@@ -72,10 +72,10 @@ function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, prev
 
 export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState) {
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const action = {
+        const action: AnyAction = {
             type: ActionTypes.UPDATE_RHS_STATE,
             state: rhsState,
-        } as GenericAction;
+        };
 
         if ([
             RHSStates.PIN,
@@ -130,7 +130,7 @@ export function selectPostCardFromRightHandSideSearch(post: Post) {
 export function selectPostFromRightHandSideSearchByPostId(postId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const post = getPost(getState(), postId);
-        return selectPostFromRightHandSideSearch(post)(dispatch, getState);
+        return dispatch(selectPostFromRightHandSideSearch(post));
     };
 }
 
@@ -393,7 +393,7 @@ export function showPinnedPosts(channelId?: string) {
 }
 
 export function showChannelFiles(channelId: string) {
-    return async (dispatch: (action: Action, getState?: GetStateFunc | null) => Promise<ActionResult|[ActionResult, ActionResult]>, getState: GetStateFunc) => {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState() as GlobalState;
         const teamId = getCurrentTeamId(state);
 
@@ -614,39 +614,39 @@ export function openRHSSearch() {
 export function openAtPrevious(previous: any) { // TODO Could not find the proper type. Seems to be in several props around
     return (dispatch: DispatchFunc, getState: GetStateFunc) => {
         if (!previous) {
-            return openRHSSearch()(dispatch);
+            return dispatch(openRHSSearch());
         }
 
         if (previous.isChannelInfo) {
             const currentChannelId = getCurrentChannelId(getState());
-            return showChannelInfo(currentChannelId)(dispatch);
+            return dispatch(showChannelInfo(currentChannelId));
         }
         if (previous.isChannelMembers) {
             const currentChannelId = getCurrentChannelId(getState());
-            return showChannelMembers(currentChannelId)(dispatch, getState);
+            return dispatch(showChannelMembers(currentChannelId));
         }
         if (previous.isMentionSearch) {
-            return showMentions()(dispatch, getState);
+            return dispatch(showMentions());
         }
         if (previous.isPinnedPosts) {
-            return showPinnedPosts()(dispatch, getState);
+            return dispatch(showPinnedPosts());
         }
         if (previous.isFlaggedPosts) {
-            return showFlaggedPosts()(dispatch, getState);
+            return dispatch(showFlaggedPosts());
         }
         if (previous.selectedPostId) {
             const post = getPost(getState(), previous.selectedPostId);
-            return post ? selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)(dispatch, getState) : openRHSSearch()(dispatch);
+            return post ? dispatch(selectPostFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.selectedPostCardId) {
             const post = getPost(getState(), previous.selectedPostCardId);
-            return post ? selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)(dispatch, getState) : openRHSSearch()(dispatch);
+            return post ? dispatch(selectPostCardFromRightHandSideSearchWithPreviousState(post, previous.previousRhsState)) : dispatch(openRHSSearch());
         }
         if (previous.searchVisible) {
-            return showSearchResults()(dispatch, getState);
+            return dispatch(showSearchResults());
         }
 
-        return openRHSSearch()(dispatch);
+        return dispatch(openRHSSearch());
     };
 }
 

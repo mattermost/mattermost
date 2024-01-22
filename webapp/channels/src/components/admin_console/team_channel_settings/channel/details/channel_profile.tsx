@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Team} from '@mattermost/types/teams';
@@ -11,8 +11,6 @@ import type {Team} from '@mattermost/types/teams';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import AdminPanel from 'components/widgets/admin_console/admin_panel';
-
-import {t} from 'utils/i18n';
 
 import './channel_profile.scss';
 interface ChannelProfileProps {
@@ -23,20 +21,12 @@ interface ChannelProfileProps {
     isDisabled?: boolean;
 }
 
-export const ChannelProfile: React.SFC<ChannelProfileProps> = (props: ChannelProfileProps): JSX.Element => {
+export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
     const {team, channel, isArchived, isDisabled} = props;
 
-    let archiveBtnID;
-    let archiveBtnDefault;
-    if (isArchived) {
-        t('admin.channel_settings.channel_details.unarchiveChannel');
-        archiveBtnID = 'admin.channel_settings.channel_details.unarchiveChannel';
-        archiveBtnDefault = 'Unarchive Channel';
-    } else {
-        t('admin.channel_settings.channel_details.archiveChannel');
-        archiveBtnID = 'admin.channel_settings.channel_details.archiveChannel';
-        archiveBtnDefault = 'Archive Channel';
-    }
+    const archiveBtn = isArchived ?
+        defineMessage({id: 'admin.channel_settings.channel_details.unarchiveChannel', defaultMessage: 'Unarchive Channel'}) :
+        defineMessage({id: 'admin.channel_settings.channel_details.archiveChannel', defaultMessage: 'Archive Channel'});
 
     let sharedBlock;
     if (channel.shared && channel.type) {
@@ -62,10 +52,8 @@ export const ChannelProfile: React.SFC<ChannelProfileProps> = (props: ChannelPro
     return (
         <AdminPanel
             id='channel_profile'
-            titleId={t('admin.channel_settings.channel_detail.profileTitle')}
-            titleDefault='Channel Profile'
-            subtitleId={t('admin.channel_settings.channel_detail.profileDescription')}
-            subtitleDefault='Summary of the channel, including the channel name.'
+            title={defineMessage({id: 'admin.channel_settings.channel_detail.profileTitle', defaultMessage: 'Channel Profile'})}
+            subtitle={defineMessage({id: 'admin.channel_settings.channel_detail.profileDescription', defaultMessage: 'Summary of the channel, including the channel name.'})}
         >
             <div className='group-teams-and-channels AdminChannelDetails'>
                 <div className='group-teams-and-channels--body channel-desc-col'>
@@ -102,10 +90,7 @@ export const ChannelProfile: React.SFC<ChannelProfileProps> = (props: ChannelPro
                             {isArchived ?
                                 <i className='icon icon-archive-arrow-up-outline'/> :
                                 <i className='icon icon-archive-outline'/>}
-                            <FormattedMessage
-                                id={archiveBtnID}
-                                defaultMessage={archiveBtnDefault}
-                            />
+                            <FormattedMessage {...archiveBtn}/>
                         </button>
                     </div>
                 </div>

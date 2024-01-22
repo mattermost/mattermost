@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
@@ -11,8 +12,6 @@ import {recycleDatabaseConnection, ping} from 'actions/admin_actions';
 import ExternalLink from 'components/external_link';
 
 import {DocLinks} from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 import type {BaseState} from './admin_settings';
 import AdminSettings from './admin_settings';
@@ -22,12 +21,12 @@ import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
 
-interface Props {
+type Props = {
     license: {
         IsLicensed: string;
     };
     isDisabled: boolean;
-}
+};
 
 interface State extends BaseState {
     searchBackend: string;
@@ -42,6 +41,62 @@ interface State extends BaseState {
     dataSource: string;
     driverName: string;
 }
+
+const messages = defineMessages({
+    title: {id: 'admin.database.title', defaultMessage: 'Database Settings'},
+    recycleDescription: {id: 'admin.recycle.recycleDescription', defaultMessage: 'Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'},
+    featureName: {id: 'admin.recycle.recycleDescription.featureName', defaultMessage: 'Recycle Database Connections'},
+    reloadConfiguration: {id: 'admin.recycle.recycleDescription.reloadConfiguration', defaultMessage: 'Environment > Web Server > Reload Configuration from Disk'},
+    button: {id: 'admin.recycle.button', defaultMessage: 'Recycle Database Connections'},
+    noteDescription: {id: 'admin.sql.noteDescription', defaultMessage: 'Changing properties in this section will require a server restart before taking effect.'},
+    disableDatabaseSearchTitle: {id: 'admin.sql.disableDatabaseSearchTitle', defaultMessage: 'Disable database search: '},
+    disableDatabaseSearchDescription: {id: 'admin.sql.disableDatabaseSearchDescription', defaultMessage: 'Disables the use of the database to perform searches. Should only be used when other <link>search engines</link> are configured.'},
+    driverName: {id: 'admin.sql.driverName', defaultMessage: 'Driver Name:'},
+    driverNameDescription: {id: 'admin.sql.driverNameDescription', defaultMessage: 'Set the database driver in the config.json file.'},
+    dataSource: {id: 'admin.sql.dataSource', defaultMessage: 'Data Source:'},
+    dataSourceDescription: {id: 'admin.sql.dataSourceDescription', defaultMessage: 'Set the database source in the config.json file.'},
+    maxConnectionsTitle: {id: 'admin.sql.maxConnectionsTitle', defaultMessage: 'Maximum Idle Connections:'},
+    maxConnectionsDescription: {id: 'admin.sql.maxConnectionsDescription', defaultMessage: 'Maximum number of idle connections held open to the database.'},
+    maxOpenTitle: {id: 'admin.sql.maxOpenTitle', defaultMessage: 'Maximum Open Connections:'},
+    maxOpenDescription: {id: 'admin.sql.maxOpenDescription', defaultMessage: 'Maximum number of open connections held open to the database.'},
+    queryTimeoutTitle: {id: 'admin.sql.queryTimeoutTitle', defaultMessage: 'Query Timeout:'},
+    queryTimeoutDescription: {id: 'admin.sql.queryTimeoutDescription', defaultMessage: 'The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query.'},
+    connMaxLifetimeTitle: {id: 'admin.sql.connMaxLifetimeTitle', defaultMessage: 'Maximum Connection Lifetime:'},
+    connMaxLifetimeDescription: {id: 'admin.sql.connMaxLifetimeDescription', defaultMessage: 'Maximum lifetime for a connection to the database in milliseconds.'},
+    connMaxIdleTimeTitle: {id: 'admin.sql.connMaxIdleTimeTitle', defaultMessage: 'Maximum Connection Idle Time:'},
+    connMaxIdleTimeDescription: {id: 'admin.sql.connMaxIdleTimeDescription', defaultMessage: 'Maximum idle time for a connection to the database in milliseconds.'},
+    minimumHashtagLengthTitle: {id: 'admin.service.minimumHashtagLengthTitle', defaultMessage: 'Minimum Hashtag Length:'},
+    minimumHashtagLengthDescription: {id: 'admin.service.minimumHashtagLengthDescription', defaultMessage: 'Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>.'},
+    traceTitle: {id: 'admin.sql.traceTitle', defaultMessage: 'SQL Statement Logging: '},
+    traceDescription: {id: 'admin.sql.traceDescription', defaultMessage: '(Development Mode) When true, executing SQL statements are written to the log.'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    messages.title,
+    [messages.recycleDescription, {featureName: '', reloadConfiguration: ''}],
+    messages.featureName,
+    messages.reloadConfiguration,
+    messages.button,
+    messages.noteDescription,
+    messages.disableDatabaseSearchTitle,
+    messages.disableDatabaseSearchDescription,
+    messages.driverName,
+    messages.driverNameDescription,
+    messages.dataSource,
+    messages.dataSourceDescription,
+    messages.maxConnectionsTitle,
+    messages.maxConnectionsDescription,
+    messages.maxOpenTitle,
+    messages.maxOpenDescription,
+    messages.queryTimeoutTitle,
+    messages.queryTimeoutDescription,
+    messages.connMaxLifetimeTitle,
+    messages.connMaxLifetimeDescription,
+    messages.connMaxIdleTimeTitle,
+    messages.connMaxIdleTimeDescription,
+    messages.traceTitle,
+    messages.traceDescription,
+];
 
 export default class DatabaseSettings extends AdminSettings<Props, State> {
     constructor(props: Props) {
@@ -95,12 +150,7 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
     }
 
     renderTitle() {
-        return (
-            <FormattedMessage
-                id='admin.database.title'
-                defaultMessage='Database Settings'
-            />
-        );
+        return (<FormattedMessage {...messages.title}/>);
     }
 
     renderSettings = () => {
@@ -113,24 +163,17 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                     requestAction={recycleDatabaseConnection}
                     helpText={
                         <FormattedMessage
-                            id='admin.recycle.recycleDescription'
-                            defaultMessage='Deployments using multiple databases can switch from one master database to another without restarting the Mattermost server by updating "config.json" to the new desired configuration and using the {reloadConfiguration} feature to load the new settings while the server is running. The administrator should then use {featureName} feature to recycle the database connections based on the new settings.'
+                            {...messages.recycleDescription}
                             values={{
                                 featureName: (
                                     <b>
-                                        <FormattedMessage
-                                            id='admin.recycle.recycleDescription.featureName'
-                                            defaultMessage='Recycle Database Connections'
-                                        />
+                                        <FormattedMessage {...messages.featureName}/>
                                     </b>
                                 ),
                                 reloadConfiguration: (
                                     <a href='../environment/web_server'>
                                         <b>
-                                            <FormattedMessage
-                                                id='admin.recycle.recycleDescription.reloadConfiguration'
-                                                defaultMessage='Environment > Web Server > Reload Configuration from Disk'
-                                            />
+                                            <FormattedMessage {...messages.reloadConfiguration}/>
                                         </b>
                                     </a>
                                 ),
@@ -138,16 +181,13 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                         />
                     }
                     buttonText={
-                        <FormattedMessage
-                            id='admin.recycle.button'
-                            defaultMessage='Recycle Database Connections'
-                        />
+                        <FormattedMessage {...messages.button}/>
                     }
                     showSuccessMessage={false}
-                    errorMessage={{
-                        id: t('admin.recycle.reloadFail'),
+                    errorMessage={defineMessage({
+                        id: 'admin.recycle.reloadFail',
                         defaultMessage: 'Recycling unsuccessful: {error}',
-                    }}
+                    })}
                     includeDetailedError={true}
                     disabled={this.props.isDisabled}
                 />
@@ -157,20 +197,14 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
         return (
             <SettingsGroup>
                 <div className='banner'>
-                    <FormattedMessage
-                        id='admin.sql.noteDescription'
-                        defaultMessage='Changing properties in this section will require a server restart before taking effect.'
-                    />
+                    <FormattedMessage {...messages.noteDescription}/>
                 </div>
                 <div className='form-group'>
                     <label
                         className='control-label col-sm-4'
                         htmlFor='DriverName'
                     >
-                        <FormattedMessage
-                            id='admin.sql.driverName'
-                            defaultMessage='Driver Name:'
-                        />
+                        <FormattedMessage {...messages.driverName}/>
                     </label>
                     <div className='col-sm-8'>
                         <input
@@ -180,10 +214,7 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                             disabled={true}
                         />
                         <div className='help-text'>
-                            <FormattedMessage
-                                id='admin.sql.driverNameDescription'
-                                defaultMessage='Set the database driver in the config.json file.'
-                            />
+                            <FormattedMessage {...messages.driverNameDescription}/>
                         </div>
                     </div>
                 </div>
@@ -192,10 +223,7 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                         className='control-label col-sm-4'
                         htmlFor='DataSource'
                     >
-                        <FormattedMessage
-                            id='admin.sql.dataSource'
-                            defaultMessage='Data Source:'
-                        />
+                        <FormattedMessage {...messages.dataSource}/>
                     </label>
                     <div className='col-sm-8'>
                         <input
@@ -205,27 +233,18 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                             disabled={true}
                         />
                         <div className='help-text'>
-                            <FormattedMessage
-                                id='admin.sql.dataSourceDescription'
-                                defaultMessage='Set the database source in the config.json file.'
-                            />
+                            <FormattedMessage {...messages.dataSourceDescription}/>
                         </div>
                     </div>
                 </div>
                 <TextSetting
                     id='maxIdleConns'
                     label={
-                        <FormattedMessage
-                            id='admin.sql.maxConnectionsTitle'
-                            defaultMessage='Maximum Idle Connections:'
-                        />
+                        <FormattedMessage {...messages.maxConnectionsTitle}/>
                     }
-                    placeholder={Utils.localizeMessage('admin.sql.maxConnectionsExample', 'E.g.: "10"')}
+                    placeholder={defineMessage({id: 'admin.sql.maxConnectionsExample', defaultMessage: 'E.g.: "10"'})}
                     helpText={
-                        <FormattedMessage
-                            id='admin.sql.maxConnectionsDescription'
-                            defaultMessage='Maximum number of idle connections held open to the database.'
-                        />
+                        <FormattedMessage {...messages.maxConnectionsDescription}/>
                     }
                     value={this.state.maxIdleConns}
                     onChange={this.handleChange}
@@ -236,17 +255,11 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='maxOpenConns'
                     label={
-                        <FormattedMessage
-                            id='admin.sql.maxOpenTitle'
-                            defaultMessage='Maximum Open Connections:'
-                        />
+                        <FormattedMessage {...messages.maxOpenTitle}/>
                     }
-                    placeholder={Utils.localizeMessage('admin.sql.maxOpenExample', 'E.g.: "10"')}
+                    placeholder={defineMessage({id: 'admin.sql.maxOpenExample', defaultMessage: 'E.g.: "10"'})}
                     helpText={
-                        <FormattedMessage
-                            id='admin.sql.maxOpenDescription'
-                            defaultMessage='Maximum number of open connections held open to the database.'
-                        />
+                        <FormattedMessage {...messages.maxOpenDescription}/>
                     }
                     value={this.state.maxOpenConns}
                     onChange={this.handleChange}
@@ -257,17 +270,11 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='queryTimeout'
                     label={
-                        <FormattedMessage
-                            id='admin.sql.queryTimeoutTitle'
-                            defaultMessage='Query Timeout:'
-                        />
+                        <FormattedMessage {...messages.queryTimeoutTitle}/>
                     }
-                    placeholder={Utils.localizeMessage('admin.sql.queryTimeoutExample', 'E.g.: "30"')}
+                    placeholder={defineMessage({id: 'admin.sql.queryTimeoutExample', defaultMessage: 'E.g.: "30"'})}
                     helpText={
-                        <FormattedMessage
-                            id='admin.sql.queryTimeoutDescription'
-                            defaultMessage='The number of seconds to wait for a response from the database after opening a connection and sending the query. Errors that you see in the UI or in the logs as a result of a query timeout can vary depending on the type of query.'
-                        />
+                        <FormattedMessage {...messages.queryTimeoutDescription}/>
                     }
                     value={this.state.queryTimeout}
                     onChange={this.handleChange}
@@ -278,17 +285,11 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='connMaxLifetimeMilliseconds'
                     label={
-                        <FormattedMessage
-                            id='admin.sql.connMaxLifetimeTitle'
-                            defaultMessage='Maximum Connection Lifetime:'
-                        />
+                        <FormattedMessage {...messages.connMaxLifetimeTitle}/>
                     }
-                    placeholder={Utils.localizeMessage('admin.sql.connMaxLifetimeExample', 'E.g.: "3600000"')}
+                    placeholder={defineMessage({id: 'admin.sql.connMaxLifetimeExample', defaultMessage: 'E.g.: "3600000"'})}
                     helpText={
-                        <FormattedMessage
-                            id='admin.sql.connMaxLifetimeDescription'
-                            defaultMessage='Maximum lifetime for a connection to the database in milliseconds.'
-                        />
+                        <FormattedMessage {...messages.connMaxLifetimeDescription}/>
                     }
                     value={this.state.connMaxLifetimeMilliseconds}
                     onChange={this.handleChange}
@@ -299,17 +300,11 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='connMaxIdleTimeMilliseconds'
                     label={
-                        <FormattedMessage
-                            id='admin.sql.connMaxIdleTimeTitle'
-                            defaultMessage='Maximum Connection Idle Time:'
-                        />
+                        <FormattedMessage {...messages.connMaxIdleTimeTitle}/>
                     }
-                    placeholder={Utils.localizeMessage('admin.sql.connMaxIdleTimeExample', 'E.g.: "300000"')}
+                    placeholder={defineMessage({id: 'admin.sql.connMaxIdleTimeExample', defaultMessage: 'E.g.: "300000"'})}
                     helpText={
-                        <FormattedMessage
-                            id='admin.sql.connMaxIdleTimeDescription'
-                            defaultMessage='Maximum idle time for a connection to the database in milliseconds.'
-                        />
+                        <FormattedMessage {...messages.connMaxIdleTimeDescription}/>
                     }
                     value={this.state.connMaxIdleTimeMilliseconds}
                     onChange={this.handleChange}
@@ -320,16 +315,12 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                 <TextSetting
                     id='minimumHashtagLength'
                     label={
-                        <FormattedMessage
-                            id='admin.service.minimumHashtagLengthTitle'
-                            defaultMessage='Minimum Hashtag Length:'
-                        />
+                        <FormattedMessage {...messages.minimumHashtagLengthTitle}/>
                     }
-                    placeholder={Utils.localizeMessage('admin.service.minimumHashtagLengthExample', 'E.g.: "3"')}
+                    placeholder={defineMessage({id: 'admin.service.minimumHashtagLengthExample', defaultMessage: 'E.g.: "3"'})}
                     helpText={
                         <FormattedMessage
-                            id='admin.service.minimumHashtagLengthDescription'
-                            defaultMessage='Minimum number of characters in a hashtag. This must be greater than or equal to 2. MySQL databases must be configured to support searching strings shorter than three characters, <link>see documentation</link>.'
+                            {...messages.minimumHashtagLengthDescription}
                             values={{
                                 link: (msg) => (
                                     <ExternalLink
@@ -351,16 +342,10 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                 <BooleanSetting
                     id='trace'
                     label={
-                        <FormattedMessage
-                            id='admin.sql.traceTitle'
-                            defaultMessage='SQL Statement Logging: '
-                        />
+                        <FormattedMessage {...messages.traceTitle}/>
                     }
                     helpText={
-                        <FormattedMessage
-                            id='admin.sql.traceDescription'
-                            defaultMessage='(Development Mode) When true, executing SQL statements are written to the log.'
-                        />
+                        <FormattedMessage {...messages.traceDescription}/>
                     }
                     value={this.state.trace}
                     onChange={this.handleChange}
@@ -371,15 +356,11 @@ export default class DatabaseSettings extends AdminSettings<Props, State> {
                 <BooleanSetting
                     id='disableDatabaseSearch'
                     label={
-                        <FormattedMessage
-                            id='admin.sql.disableDatabaseSearchTitle'
-                            defaultMessage='Disable database search: '
-                        />
+                        <FormattedMessage {...messages.disableDatabaseSearchTitle}/>
                     }
                     helpText={
                         <FormattedMessage
-                            id='admin.sql.disableDatabaseSearchDescription'
-                            defaultMessage='Disables the use of the database to perform searches. Should only be used when other <link>search engines</link> are configured.'
+                            {...messages.disableDatabaseSearchDescription}
                             values={{
                                 link: (msg) => (
                                     <ExternalLink

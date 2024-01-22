@@ -12,11 +12,14 @@ describe('components/PluginManagement', () => {
             DataRetentionSettings: {
                 EnableMessageDeletion: true,
                 EnableFileDeletion: true,
-                MessageRetentionDays: 60,
-                FileRetentionDays: 40,
+                MessageRetentionHours: 1440,
+                FileRetentionHours: 960,
                 DeletionJobStartTime: '10:00',
             },
         },
+        messageRetentionHours: '2400',
+        fileRetentionHours: '2400',
+        environmentConfig: {},
         actions: {
             updateConfig: jest.fn(),
             setNavigationBlocked: jest.fn(),

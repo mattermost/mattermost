@@ -43,7 +43,7 @@ export function deletePreferences(userId: string, preferences: PreferenceType[])
     };
 }
 
-export function getMyPreferences(): ActionFunc {
+export function getMyPreferences() {
     return bindClientFunc({
         clientFunc: Client4.getMyPreferences,
         onSuccess: PreferenceTypes.RECEIVED_ALL_PREFERENCES,
@@ -65,8 +65,8 @@ export function makeDirectChannelVisibleIfNecessary(otherUserId: string): Action
                 name: otherUserId,
                 value: 'true',
             };
-            getProfilesByIds([otherUserId])(dispatch, getState);
-            savePreferences(currentUserId, [preference])(dispatch);
+            dispatch(getProfilesByIds([otherUserId]));
+            dispatch(savePreferences(currentUserId, [preference]));
         }
 
         return {data: true};
@@ -91,13 +91,13 @@ export function makeGroupMessageVisibleIfNecessary(channelId: string): ActionFun
             };
 
             if (channels[channelId]) {
-                getMyChannelMember(channelId)(dispatch, getState);
+                dispatch(getMyChannelMember(channelId));
             } else {
-                getChannelAndMyMember(channelId)(dispatch, getState);
+                dispatch(getChannelAndMyMember(channelId));
             }
 
-            getProfilesInChannel(channelId, 0)(dispatch, getState);
-            savePreferences(currentUserId, [preference])(dispatch);
+            dispatch(getProfilesInChannel(channelId, 0));
+            dispatch(savePreferences(currentUserId, [preference]));
         }
 
         return {data: true};
@@ -165,7 +165,7 @@ export function saveTheme(teamId: string, theme: Theme): ActionFunc {
             value: JSON.stringify(theme),
         };
 
-        await savePreferences(currentUserId, [preference])(dispatch);
+        await dispatch(savePreferences(currentUserId, [preference]));
         return {data: true};
     };
 }
@@ -179,7 +179,7 @@ export function deleteTeamSpecificThemes(): ActionFunc {
 
         const toDelete = themePreferences.filter((pref) => pref.name !== '');
         if (toDelete.length > 0) {
-            await deletePreferences(currentUserId, toDelete)(dispatch, getState);
+            await dispatch(deletePreferences(currentUserId, toDelete));
         }
 
         return {data: true};

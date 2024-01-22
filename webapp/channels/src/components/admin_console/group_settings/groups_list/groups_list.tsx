@@ -6,6 +6,8 @@ import {FormattedMessage} from 'react-intl';
 
 import type {GroupSearchOpts, MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import GroupRow from 'components/admin_console/group_settings/group_row';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import NextIcon from 'components/widgets/icons/fa_next_icon';
@@ -22,9 +24,9 @@ type Props = {
     total: number;
     readOnly?: boolean;
     actions: {
-        getLdapGroups: (page?: number, perPage?: number, opts?: GroupSearchOpts) => Promise<any>;
-        link: (key: string) => Promise<any>;
-        unlink: (key: string) => Promise<any>;
+        getLdapGroups: (page?: number, perPage?: number, opts?: GroupSearchOpts) => Promise<ActionResult>;
+        link: (key: string) => Promise<ActionResult>;
+        unlink: (key: string) => Promise<ActionResult>;
     };
 }
 
@@ -445,7 +447,7 @@ export default class GroupsList extends React.PureComponent<Props, State> {
         this.props.actions.getLdapGroups(this.state.page, LDAP_GROUPS_PAGE_SIZE, {q: ''}).then(this.handleGetGroupsResponse);
     };
 
-    handleGetGroupsResponse = (response: any) => {
+    handleGetGroupsResponse = (response: ActionResult) => {
         if (response?.error) {
             this.setState({fetchError: true});
         } else {

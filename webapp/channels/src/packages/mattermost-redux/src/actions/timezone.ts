@@ -25,7 +25,7 @@ export function autoUpdateTimezone(deviceTimezone: string) {
                 timezone,
             };
 
-            updateMe(updatedUser)(dispatch, getState);
+            dispatch(updateMe(updatedUser));
         }
 
         return {data: true};

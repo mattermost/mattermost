@@ -31,8 +31,8 @@ type Props = {
     teamsToAdd: Record<string, Team>;
 
     actions: {
-        searchTeams: (id: string, term: string, opts: TeamSearchOpts) => Promise<{ data: Team[] }>;
-        getDataRetentionCustomPolicyTeams: (id: string, page: number, perPage: number) => Promise<{ data: Team[] }>;
+        searchTeams: (id: string, term: string, opts: TeamSearchOpts) => Promise<ActionResult>;
+        getDataRetentionCustomPolicyTeams: (id: string, page: number, perPage: number) => Promise<ActionResult>;
         setTeamListSearch: (term: string) => ActionResult;
     };
 }

@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
 
 import AccordionToggleIcon from 'components/widgets/icons/accordion_toggle_icon';
 
@@ -12,27 +13,30 @@ type Props = {
     className: string;
     id?: string;
     open: boolean;
-    titleId: string;
-    titleDefault: string;
-    subtitleId: string;
-    subtitleDefault: string;
+    title: MessageDescriptor;
+    subtitle: MessageDescriptor;
     onToggle?: React.EventHandler<React.MouseEvent>;
-    isDisabled?: boolean;
 };
 
-const AdminPanelTogglable: React.FC<Props> = (props: Props) => {
+const AdminPanelTogglable = ({
+    className,
+    open,
+    subtitle,
+    title,
+    children,
+    id,
+    onToggle,
+}: Props) => {
     return (
         <AdminPanel
-            className={'AdminPanelTogglable ' + props.className + (props.open ? '' : ' closed')}
-            id={props.id}
-            titleId={props.titleId}
-            titleDefault={props.titleDefault}
-            subtitleId={props.subtitleId}
-            subtitleDefault={props.subtitleDefault}
-            onHeaderClick={props.onToggle}
+            className={'AdminPanelTogglable ' + className + (open ? '' : ' closed')}
+            id={id}
+            title={title}
+            subtitle={subtitle}
+            onHeaderClick={onToggle}
             button={<AccordionToggleIcon/>}
         >
-            {props.children}
+            {children}
         </AdminPanel>
     );
 };

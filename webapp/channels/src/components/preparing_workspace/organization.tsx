@@ -35,7 +35,7 @@ type Props = PreparingWorkspacePageProps & {
     organization: Form['organization'];
     setOrganization: (organization: Form['organization']) => void;
     className?: string;
-    createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null}>;
+    createTeam: (OrganizationName: string) => Promise<{error: string | null; newTeam: Team | null | undefined}>;
     updateTeam: (teamToUpdate: Team) => Promise<{error: string | null; updatedTeam: Team | null}>;
     setInviteId: (inviteId: string) => void;
 }
@@ -90,7 +90,7 @@ const Organization = (props: Props) => {
 
         if (name) {
             const {error, newTeam} = await props.createTeam(name);
-            if (error !== null || newTeam === null) {
+            if (error !== null || newTeam == null) {
                 props.setInviteId('');
                 setApiCallError();
                 return;

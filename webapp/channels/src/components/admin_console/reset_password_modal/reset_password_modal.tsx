@@ -24,7 +24,7 @@ type State = {
     serverErrorCurrentPass: React.ReactNode;
 }
 
-type Props = {
+export type Props = {
     user?: UserProfile;
     currentUserId: string;
     show: boolean;
@@ -32,7 +32,7 @@ type Props = {
     onModalDismissed: () => void;
     passwordConfig: PasswordConfig;
     actions: {
-        updateUserPassword: (userId: string, currentPassword: string, password: string) => ActionResult;
+        updateUserPassword: (userId: string, currentPassword: string, password: string) => Promise<ActionResult>;
     };
 }
 

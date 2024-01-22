@@ -1,6 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+// Equivalent to MessageDescriptor from react-intl
+type MessageDescriptor = {
+    id: string;
+    defaultMessage: string;
+}
+
 export type PluginManifest = {
     id: string;
     name: string;
@@ -44,7 +50,7 @@ export type PluginSetting = {
     key: string;
     display_name: string;
     type: string;
-    help_text: string;
+    help_text: string | MessageDescriptor;
     regenerate_help_text?: string;
     placeholder: string;
     default: any;

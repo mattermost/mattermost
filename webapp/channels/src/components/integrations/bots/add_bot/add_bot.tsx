@@ -8,7 +8,7 @@ import {Link} from 'react-router-dom';
 
 import type {Bot, BotPatch} from '@mattermost/types/bots';
 import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
 import {General} from 'mattermost-redux/constants';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -70,32 +70,32 @@ export type Props = {
         /**
          * Creates a new bot account.
          */
-        createBot: (bot: Partial<Bot>) => ActionResult;
+        createBot: (bot: Partial<Bot>) => Promise<ActionResult<Bot>>;
 
         /**
          * Patches an existing bot account.
          */
-        patchBot: (botUserId: string, botPatch: Partial<BotPatch>) => ActionResult;
+        patchBot: (botUserId: string, botPatch: Partial<BotPatch>) => Promise<ActionResult<Bot>>;
 
         /**
          * Uploads a user profile image
          */
-        uploadProfileImage: (userId: string, image: File | string) => ActionResult;
+        uploadProfileImage: (userId: string, image: File | string) => Promise<ActionResult>;
 
         /**
          * Set profile image to default
          */
-        setDefaultProfileImage: (userId: string) => ActionResult;
+        setDefaultProfileImage: (userId: string) => Promise<ActionResult>;
 
         /**
          * For creating default access token
          */
-        createUserAccessToken: (userId: string, description: string) => ActionResult;
+        createUserAccessToken: (userId: string, description: string) => Promise<ActionResult<UserAccessToken>>;
 
         /**
          * For creating setting bot to system admin or special posting permissions
          */
-        updateUserRoles: (userId: string, roles: string) => ActionResult;
+        updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
     };
 };
 
@@ -355,7 +355,7 @@ export default class AddBot extends React.PureComponent<Props, State> {
                     return;
                 }
 
-                token = tokenResult.data.token;
+                token = tokenResult.data!.token!;
             }
 
             if (!error && data) {

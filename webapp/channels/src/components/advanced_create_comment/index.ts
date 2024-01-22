@@ -3,9 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Dispatch} from 'redux';
 
 import {getChannelTimezones, getChannelMemberCountsByGroup} from 'mattermost-redux/actions/channels';
 import {moveHistoryIndexBack, moveHistoryIndexForward, resetCreatePostRequest, resetHistoryIndex} from 'mattermost-redux/actions/posts';
@@ -19,7 +17,6 @@ import {makeGetMessageInHistoryItem} from 'mattermost-redux/selectors/entities/p
 import {getBool, isCustomGroupsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {ActionFunc, ActionResult, DispatchFunc} from 'mattermost-redux/types/actions.js';
 
 import {emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {
@@ -39,7 +36,6 @@ import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 
-import type {ModalData} from 'types/actions.js';
 import type {PostDraft} from 'types/store/draft';
 import type {GlobalState} from 'types/store/index.js';
 
@@ -123,33 +119,11 @@ function makeUpdateCommentDraftWithRootId(channelId: string) {
     return (rootId: string, draft?: PostDraft, save = false) => updateCommentDraft(rootId, draft ? {...draft, channelId} : draft, save);
 }
 
-type Actions = {
-    clearCommentDraftUploads: () => void;
-    onUpdateCommentDraft: (draft?: PostDraft, save?: boolean) => void;
-    updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
-    onSubmit: (draft: PostDraft, options: {ignoreSlash: boolean}) => void;
-    onResetHistoryIndex: () => void;
-    moveHistoryIndexBack: (index: string) => Promise<void>;
-    moveHistoryIndexForward: (index: string) => Promise<void>;
-    onEditLatestPost: () => ActionResult;
-    resetCreatePostRequest: () => void;
-    getChannelTimezones: (channelId: string) => Promise<ActionResult>;
-    emitShortcutReactToLastPostFrom: (location: string) => void;
-    setShowPreview: (showPreview: boolean) => void;
-    getChannelMemberCountsByGroup: (channelID: string) => void;
-    openModal: <P>(modalData: ModalData<P>) => void;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => ActionResult;
-    searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<{ data: any }>;
-};
-
 function makeMapDispatchToProps() {
-    let onUpdateCommentDraft: (draft?: PostDraft, save?: boolean) => void;
-    let updateCommentDraftWithRootId: (rootID: string, draft: PostDraft, save?: boolean) => void;
-    let onSubmit: (
-        draft: PostDraft,
-        options: {ignoreSlash: boolean},
-    ) => (dispatch: DispatchFunc, getState: () => GlobalState) => Promise<ActionResult | ActionResult[]> | ActionResult;
-    let onEditLatestPost: () => ActionFunc;
+    let onUpdateCommentDraft: ReturnType<typeof makeOnUpdateCommentDraft>;
+    let updateCommentDraftWithRootId: ReturnType<typeof makeUpdateCommentDraftWithRootId>;
+    let onSubmit: ReturnType<typeof makeOnSubmit>;
+    let onEditLatestPost: ReturnType<typeof makeOnEditLatestPost>;
 
     function onResetHistoryIndex() {
         return resetHistoryIndex(Posts.MESSAGE_TYPES.COMMENT);
@@ -180,7 +154,7 @@ function makeMapDispatchToProps() {
         channelId = ownProps.channelId;
         latestPostId = ownProps.latestPostId;
 
-        return bindActionCreators<ActionCreatorsMapObject<any>, Actions>(
+        return bindActionCreators(
             {
                 clearCommentDraftUploads,
                 onUpdateCommentDraft,

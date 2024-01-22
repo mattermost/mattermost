@@ -123,12 +123,19 @@ exports[`admin_console/system_role_users should match snapshot 1`] = `
       />
     </ToggleModalButton>
   }
-  className=""
   id="SystemRoleUsers"
-  subtitleDefault="List of people assigned to this system role."
-  subtitleId="admin.permissions.system_role_users.description"
-  titleDefault="Assigned People"
-  titleId="admin.permissions.system_role_users.title"
+  subtitle={
+    Object {
+      "defaultMessage": "List of people assigned to this system role.",
+      "id": "admin.permissions.system_role_users.description",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Assigned People",
+      "id": "admin.permissions.system_role_users.title",
+    }
+  }
 >
   <DataGrid
     columns={
@@ -485,12 +492,19 @@ exports[`admin_console/system_role_users should match snapshot with readOnly tru
       />
     </ToggleModalButton>
   }
-  className=""
   id="SystemRoleUsers"
-  subtitleDefault="List of people assigned to this system role."
-  subtitleId="admin.permissions.system_role_users.description"
-  titleDefault="Assigned People"
-  titleId="admin.permissions.system_role_users.title"
+  subtitle={
+    Object {
+      "defaultMessage": "List of people assigned to this system role.",
+      "id": "admin.permissions.system_role_users.description",
+    }
+  }
+  title={
+    Object {
+      "defaultMessage": "Assigned People",
+      "id": "admin.permissions.system_role_users.title",
+    }
+  }
 >
   <DataGrid
     columns={

@@ -71,7 +71,7 @@ exports[`components/sidebar/sidebar_channel should match snapshot when GM channe
   onAnimationStart={[Function]}
   role="listitem"
 >
-  <Connect(SidebarGroupChannel)
+  <Connect(Component)
     channel={
       Object {
         "create_at": 0,

@@ -40,7 +40,7 @@ func (c *SearchChannelStore) indexChannel(rctx request.CTX, channel *model.Chann
 	var userIDs, teamMemberIDs []string
 	var err error
 	if channel.Type == model.ChannelTypePrivate {
-		userIDs, err = c.GetAllChannelMembersById(channel.Id)
+		userIDs, err = c.GetAllChannelMemberIdsByChannelId(channel.Id)
 		if err != nil {
 			rctx.Logger().Warn("Encountered error while indexing channel", mlog.String("channel_id", channel.Id), mlog.Err(err))
 			return

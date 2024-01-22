@@ -20,8 +20,6 @@ interface MMOverlayTrigger extends BaseOverlayTrigger {
 }
 
 type Props = {
-    hasMention?: boolean;
-    isBusy?: boolean;
     isEmoji?: boolean;
     profileSrc?: string;
     size?: ComponentProps<typeof Avatar>['size'];
@@ -80,10 +78,8 @@ export default class ProfilePicture extends React.PureComponent<Props> {
                             className='user-profile-popover'
                             userId={this.props.userId}
                             src={profileSrc}
-                            isBusy={this.props.isBusy}
                             hide={this.hideProfilePopover}
                             channelId={this.props.channelId}
-                            hasMention={this.props.hasMention}
                             overwriteIcon={this.props.overwriteIcon}
                             overwriteName={this.props.overwriteName}
                             fromWebhook={this.props.fromWebhook}

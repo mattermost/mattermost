@@ -82,6 +82,7 @@ func init() {
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
 	BulkExportCmd.Flags().Bool("with-archived-channels", false, "Also exports archived channels.")
+	BulkExportCmd.Flags().Bool("with-profile-pictures", false, "Also exports profile pictures.")
 	BulkExportCmd.Flags().Bool("attachments", false, "Also export file attachments.")
 	BulkExportCmd.Flags().Bool("archive", false, "Outputs a single archive file.")
 
@@ -240,6 +241,11 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "with-archived-channels flag error")
 	}
 
+	includeProfilePictures, err := command.Flags().GetBool("with-profile-pictures")
+	if err != nil {
+		return errors.Wrap(err, "with-profile-pictures flag error")
+	}
+
 	fileWriter, err := os.Create(args[0])
 	if err != nil {
 		return err
@@ -255,6 +261,7 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
 	opts.IncludeArchivedChannels = withArchivedChannels
+	opts.IncludeProfilePictures = includeProfilePictures
 	if err := a.BulkExport(rctx, fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err

@@ -10,6 +10,10 @@
     }
 }
 
+.analytics_tooltip_body {
+    font-weight: 400;
+}
+
 .team_statistics {
     &--warning {
         // Adding the !important because this class has less preference in some html elements
@@ -71,6 +75,11 @@
                 width: calc(100% - 20px);
                 text-overflow: ellipsis;
                 white-space: nowrap;
+
+                svg {
+                    margin-left: 5px;
+                    vertical-align: text-top;
+                }
             }
 
             .fa {

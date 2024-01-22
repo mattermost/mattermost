@@ -9,6 +9,8 @@ import type {Channel} from '@mattermost/types/channels';
 import {SyncableType} from '@mattermost/types/groups';
 import type {Group} from '@mattermost/types/groups';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import AddGroupsToChannelModal from 'components/add_groups_to_channel_modal';
 import ListModal, {DEFAULT_NUM_PER_PAGE} from 'components/list_modal';
 import DropdownIcon from 'components/widgets/icons/fa_dropdown_icon';
@@ -25,10 +27,10 @@ type Props = {
     channel: Channel;
     intl: IntlShape;
     actions: {
-        getGroupsAssociatedToChannel: (channelId: string, searchTerm: string, pageNumber: number, perPage: number) => any;
-        unlinkGroupSyncable: (itemId: string, channelId: string, groupsSyncableTypeChannel: string) => any;
-        patchGroupSyncable: (itemId: string, channelId: string, groupsSyncableTypeChannel: string, params: {scheme_admin: boolean}) => any;
-        getMyChannelMember: (channelId: string) => any;
+        getGroupsAssociatedToChannel: (channelId: string, searchTerm: string, pageNumber: number, perPage: number) => Promise<ActionResult>;
+        unlinkGroupSyncable: (itemId: string, channelId: string, groupsSyncableTypeChannel: SyncableType) => Promise<ActionResult>;
+        patchGroupSyncable: (itemId: string, channelId: string, groupsSyncableTypeChannel: SyncableType, params: {scheme_admin: boolean}) => Promise<ActionResult>;
+        getMyChannelMember: (channelId: string) => void;
         closeModal: (modalId: string) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
     };

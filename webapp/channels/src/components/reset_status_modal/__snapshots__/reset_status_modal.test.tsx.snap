@@ -2,17 +2,7 @@
 
 exports[`components/ResetStatusModal should match snapshot 1`] = `
 <ConfirmModal
-  cancelButtonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="No, keep it as \\"{status}\\""
-      id="modal.manual_status.cancel_"
-      values={
-        Object {
-          "status": "",
-        }
-      }
-    />
-  }
+  cancelButtonText=""
   checkboxText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Do not ask me again"
@@ -22,24 +12,14 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
   confirmButtonClass="btn btn-primary"
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Yes, set my status to \\"{status}\\""
+      defaultMessage="Yes, set my status to \\"Online\\""
       id="modal.manual_status.button_online"
-      values={
-        Object {
-          "status": "Online",
-        }
-      }
     />
   }
   message={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Would you like to switch your status to \\"{status}\\"?"
+      defaultMessage="Would you like to switch your status to \\"Online\\"?"
       id="modal.manual_status.message_online"
-      values={
-        Object {
-          "status": "Online",
-        }
-      }
     />
   }
   modalClass=""
@@ -47,33 +27,13 @@ exports[`components/ResetStatusModal should match snapshot 1`] = `
   onConfirm={[Function]}
   show={false}
   showCheckbox={true}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Your Status is Set to \\"{status}\\""
-      id="modal.manual_status.title_"
-      values={
-        Object {
-          "status": "",
-        }
-      }
-    />
-  }
+  title=""
 />
 `;
 
 exports[`components/ResetStatusModal should match snapshot, render modal for OOF status 1`] = `
 <ConfirmModal
-  cancelButtonText={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="No, keep it as \\"{status}\\""
-      id="modal.manual_status.cancel_"
-      values={
-        Object {
-          "status": "",
-        }
-      }
-    />
-  }
+  cancelButtonText=""
   checkboxText={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Do not ask me again"
@@ -83,24 +43,14 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
   confirmButtonClass="btn btn-primary"
   confirmButtonText={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Yes, set my status to \\"{status}\\""
+      defaultMessage="Yes, set my status to \\"Online\\""
       id="modal.manual_status.button_online"
-      values={
-        Object {
-          "status": "Online",
-        }
-      }
     />
   }
   message={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="Would you like to switch your status to \\"{status}\\" and disable Automatic Replies?"
+      defaultMessage="Would you like to switch your status to \\"Online\\" and disable Automatic Replies?"
       id="modal.manual_status.auto_responder.message_online"
-      values={
-        Object {
-          "status": "Online",
-        }
-      }
     />
   }
   modalClass=""
@@ -108,16 +58,6 @@ exports[`components/ResetStatusModal should match snapshot, render modal for OOF
   onConfirm={[Function]}
   show={false}
   showCheckbox={false}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Your Status is Set to \\"{status}\\""
-      id="modal.manual_status.title_"
-      values={
-        Object {
-          "status": "",
-        }
-      }
-    />
-  }
+  title=""
 />
 `;

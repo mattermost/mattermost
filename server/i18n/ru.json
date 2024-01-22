@@ -3381,7 +3381,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "ID триггера для интерактивного диалога истек. ID триггеров действительны в течение максимум {{.Seconds}} секунд."
+    "translation": "ID триггера для интерактивного диалога истек. ID триггеров действительны в течение максимум {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -8241,7 +8241,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Ошибка при проверке существования общего канала: {{.Error}}"
+    "translation": "Ошибка при проверке существования общего канала {{.ChannelID}}: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -10110,5 +10110,113 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
     "translation": "Если у GlobalRelaySettings.CustomerType выставлено значение 'CUSTOM', то должны быть установлены GlobalRelaySettings.CustomSMTPServerName и GlobalRelaySettings.CustomSMTPPort."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Размер страницы недопустим или слишком велик."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Перемещение обсуждений отключено"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "У вас нет разрешения на перемещение этого обсуждения."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Не удалось получить отчет пользователя."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Недопустимый домен для настроек перемещения обсуждения"
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Указанный диапазон дат недействителен."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Невозможно выполнить поиск начала файла."
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Обсуждение с сообщениями {{.NumMessages}} было перемещено: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Обсуждение с сообщениями {{.NumMessages}} было перемещено в Личные/Групповые сообщения\n"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Это обсуждение было перенесено с другого канала"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Сообщение было перемещено: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Сообщение было перемещено в Личное сообщение/Сообщение группы\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Невозможно удалить обсуждение"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Неверный таймаут запроса исходящих интеграций для настроек сервиса. Должно быть положительное число."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Указанный столбец сортировки недействителен."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Невозможно приглашение абонента, поскольку канал {{.ChannelID}} не является общим."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "При составлении списка исходящих OAuth-соединений произошла ошибка."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Недопустимые входные параметры."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Эта функция ограничена флагом функции."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Невозможно получить такое количество ролей по имени. Одновременно можно запросить только {{.MaxNames}} ролей."
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Не удалось получить количество пользователей"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Произошла ошибка при удалении исходящего oauth-соединения."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Возникла ошибка при получении исходящего oauth-соединения."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Исходящее соединение oauth не найдено."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Возникла ошибка при получении исходящих oauth-соединений."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Произошла ошибка при сохранении исходящего oauth-соединения."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Произошла ошибка при обновлении исходящего oauth-соединения."
   }
 ]

@@ -4,15 +4,14 @@
 import React from 'react';
 import {FormattedMessage, injectIntl, type IntlShape} from 'react-intl';
 
-import type {ServerError} from '@mattermost/types/errors';
-
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import BackButton from 'components/common/back_button';
 
-interface Props {
+export interface Props {
     actions: {
-        sendPasswordResetEmail: (email: string) => Promise<{data: any; error: ServerError}>;
+        sendPasswordResetEmail: (email: string) => Promise<ActionResult>;
     };
     intl: IntlShape;
 }

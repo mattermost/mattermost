@@ -9,18 +9,12 @@ import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import type {ExtendedPost} from 'mattermost-redux/actions/posts';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-type CreatePostAction =
-    (post: Post, files: FileInfo[]) => (dispatch: DispatchFunc) => Promise<{data?: boolean}>;
-type RemovePostAction =
-    (post: ExtendedPost) => (dispatch: DispatchFunc, getState: GetStateFunc) => void;
 
 type Props = {
     post: Post;
     actions: {
-        createPost: CreatePostAction;
-        removePost: RemovePostAction;
+        createPost: (post: Post, files: FileInfo[]) => void;
+        removePost: (post: ExtendedPost) => void;
     };
 };
 

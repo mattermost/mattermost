@@ -30,5 +30,5 @@ export const fakeDate = (expected: Date): () => void => {
 
 export const unixTimestampFromNow = (daysFromNow: number) => {
     const now = new Date();
-    return Math.ceil(new Date(now.getTime() + (daysFromNow * 24 * 60 * 60 * 1000)).getTime() / 1000);
+    return Math.ceil(new Date(now.getTime() + (daysFromNow * 24 * 60 * 60 * 1000)).getTime());
 };

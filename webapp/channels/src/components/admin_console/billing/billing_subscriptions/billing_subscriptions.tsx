@@ -11,7 +11,7 @@ import useGetSubscription from 'components/common/hooks/useGetSubscription';
 import useOpenCloudPurchaseModal from 'components/common/hooks/useOpenCloudPurchaseModal';
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
-import {daysToExpiration} from 'utils/cloud_utils';
+import {daysToCancellation, daysToExpiration} from 'utils/cloud_utils';
 
 export const creditCardExpiredBanner = (setShowCreditCardBanner: (value: boolean) => void) => {
     return (
@@ -61,16 +61,15 @@ export const paymentFailedBanner = () => {
 };
 
 export const CloudAnnualRenewalBanner = () => {
-    // TODO: Update with renewal modal
     const openPurchaseModal = useOpenCloudPurchaseModal({});
     const subscription = useGetSubscription();
     const {formatMessage} = useIntl();
     const [openSalesLink] = useOpenSalesLink();
-    if (!subscription || !subscription.cancel_at) {
+    if (!subscription || !subscription.cancel_at || (subscription.will_renew === 'true' && !subscription.delinquent_since)) {
         return null;
     }
-    const daysUntilExpiration = daysToExpiration(subscription?.end_at * 1000);
-    const daysUntilCancelation = daysToExpiration(subscription?.cancel_at * 1000);
+    const daysUntilExpiration = daysToExpiration(subscription);
+    const daysUntilCancelation = daysToCancellation(subscription);
     const renewButton = (
         <button
             className='btn btn-primary'
@@ -96,6 +95,11 @@ export const CloudAnnualRenewalBanner = () => {
         actionButtonRight: contactSalesButton,
         message: <></>,
     };
+
+    // If outside the 60 day window or on a trial, don't show this banner.
+    if (daysUntilExpiration > 60 || subscription.is_free_trial === 'true') {
+        return null;
+    }
 
     if (daysUntilExpiration <= 7) {
         alertBannerProps.mode = 'danger';

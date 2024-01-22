@@ -63,7 +63,7 @@ export function getFilesForPost(postId: string): ActionFunc {
     };
 }
 
-export function getFilePublicLink(fileId: string): ActionFunc {
+export function getFilePublicLink(fileId: string) {
     return bindClientFunc({
         clientFunc: Client4.getFilePublicLink,
         onSuccess: FileTypes.RECEIVED_FILE_PUBLIC_LINK,

@@ -230,7 +230,6 @@ exports[`components/post_edit_history/edited_post_item should match snapshot whe
           >
             <Connect(UserProfile)
               disablePopover={true}
-              hasMention={true}
               userId="user_id"
             />
           </div>

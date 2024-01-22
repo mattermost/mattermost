@@ -10,7 +10,7 @@ import type {GlobalState} from '@mattermost/types/store';
 import {EmojiTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import type {GetStateFunc, DispatchFunc, ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {parseEmojiNamesFromText} from 'mattermost-redux/utils/emoji_utils';
 
 import {logError} from './errors';
@@ -24,7 +24,7 @@ export function setSystemEmojis(emojis: Set<string>) {
     systemEmojis = emojis;
 }
 
-export function createCustomEmoji(emoji: any, image: any): ActionFunc {
+export function createCustomEmoji(emoji: any, image: any) {
     return bindClientFunc({
         clientFunc: Client4.createCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
@@ -35,7 +35,7 @@ export function createCustomEmoji(emoji: any, image: any): ActionFunc {
     });
 }
 
-export function getCustomEmoji(emojiId: string): ActionFunc {
+export function getCustomEmoji(emojiId: string) {
     return bindClientFunc({
         clientFunc: Client4.getCustomEmoji,
         onSuccess: EmojiTypes.RECEIVED_CUSTOM_EMOJI,
@@ -148,8 +148,8 @@ export function getCustomEmojis(
     perPage: number = General.PAGE_SIZE_DEFAULT,
     sort: string = Emoji.SORT_BY_NAME,
     loadUsers = false,
-): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+): NewActionFuncAsync<CustomEmoji[]> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getCustomEmojis(page, perPage, sort);
@@ -212,8 +212,8 @@ export function deleteCustomEmoji(emojiId: string): ActionFunc {
     };
 }
 
-export function searchCustomEmojis(term: string, options: any = {}, loadUsers = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function searchCustomEmojis(term: string, options: any = {}, loadUsers = false): NewActionFuncAsync<CustomEmoji[]> {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.searchCustomEmoji(term, options);

@@ -7,8 +7,10 @@ import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
 import {injectIntl, FormattedMessage} from 'react-intl';
 
-import type {Group, GroupsWithCount, SyncablePatch} from '@mattermost/types/groups';
+import type {Group, SyncablePatch} from '@mattermost/types/groups';
 import {SyncableType} from '@mattermost/types/groups';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Nbsp from 'components/html_entities/nbsp';
 import MultiSelect from 'components/multiselect/multiselect';
@@ -40,10 +42,10 @@ type Props = {
 }
 
 export type Actions = {
-    getGroupsNotAssociatedToTeam: (teamID: string, q?: string, page?: number, perPage?: number) => Promise<{ data: Group[] } | { error: Error }>;
+    getGroupsNotAssociatedToTeam: (teamID: string, q?: string, page?: number, perPage?: number) => Promise<ActionResult>;
     setModalSearchTerm: (term: string) => void;
-    linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch) => Promise<{ data?: boolean; error?: Error }>;
-    getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<{ data: GroupsWithCount } | { error: Error }>;
+    linkGroupSyncable: (groupID: string, syncableID: string, syncableType: SyncableType, patch: SyncablePatch) => Promise<ActionResult>;
+    getAllGroupsAssociatedToTeam: (teamID: string, filterAllowReference: boolean, includeMemberCount: boolean) => Promise<ActionResult>;
 };
 
 type State = {

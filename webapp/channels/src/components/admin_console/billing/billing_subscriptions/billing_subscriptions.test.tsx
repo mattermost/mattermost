@@ -69,7 +69,7 @@ describe('CloudAnnualRenewalBanner', () => {
         };
         const {getByText} = renderWithContext(<CloudAnnualRenewalBanner/>, state);
 
-        expect(getByText(/Your annual subscription expires in 31 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
+        expect(getByText(/Your annual subscription expires in 30 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
         expect(getByText(/Renew/)).toBeInTheDocument();
         expect(getByText(/Contact Sales/)).toBeInTheDocument();
 
@@ -85,7 +85,7 @@ describe('CloudAnnualRenewalBanner', () => {
         };
         const {getByText, getByTestId} = renderWithContext(<CloudAnnualRenewalBanner/>, state);
 
-        expect(getByText(/Your annual subscription expires in 5 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
+        expect(getByText(/Your annual subscription expires in 4 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
         expect(getByText(/Renew/)).toBeInTheDocument();
         expect(getByText(/Contact Sales/)).toBeInTheDocument();
         expect(getByTestId('cloud_annual_renewal_alert_banner_danger')).toBeInTheDocument();
@@ -100,7 +100,7 @@ describe('CloudAnnualRenewalBanner', () => {
         };
         const {getByText, getByTestId} = renderWithContext(<CloudAnnualRenewalBanner/>, state);
 
-        expect(getByText(/Your subscription has expired. Your workspace will be deleted in 6 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
+        expect(getByText(/Your subscription has expired. Your workspace will be deleted in 5 days. Please renew now to avoid any disruption/)).toBeInTheDocument();
         expect(getByText(/Renew/)).toBeInTheDocument();
         expect(getByText(/Contact Sales/)).toBeInTheDocument();
         expect(getByTestId('cloud_annual_renewal_alert_banner_danger')).toBeInTheDocument();

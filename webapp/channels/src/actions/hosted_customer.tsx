@@ -182,7 +182,7 @@ export function retryFailedHostedCustomerFetches() {
     };
 }
 
-export function submitTrueUpReview(): ActionFunc {
+export function submitTrueUpReview() {
     return bindClientFunc({
         clientFunc: Client4.submitTrueUpReview,
         onSuccess: [HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_BUNDLE],
@@ -191,7 +191,7 @@ export function submitTrueUpReview(): ActionFunc {
     });
 }
 
-export function getTrueUpReviewStatus(): ActionFunc {
+export function getTrueUpReviewStatus() {
     return bindClientFunc({
         clientFunc: Client4.getTrueUpReviewStatus,
         onSuccess: [HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_STATUS],

@@ -8,6 +8,7 @@ import type {RouteComponentProps} from 'react-router';
 
 import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -33,11 +34,11 @@ export interface UpdateMyTermsOfServiceStatusResponse {
 export interface TermsOfServiceProps extends RouteComponentProps {
     termsEnabled: boolean;
     actions: {
-        getTermsOfService: () => Promise<{ data: ReduxTermsOfService }>;
+        getTermsOfService: () => Promise<ActionResult<ReduxTermsOfService>>;
         updateMyTermsOfServiceStatus: (
             termsOfServiceId: string,
             accepted: boolean
-        ) => {data: UpdateMyTermsOfServiceStatusResponse};
+        ) => Promise<ActionResult>;
     };
     emojiMap: EmojiMap;
     onboardingFlowEnabled: boolean;

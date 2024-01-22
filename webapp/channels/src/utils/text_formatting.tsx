@@ -51,7 +51,7 @@ export type Team = {
     display_name: string;
 };
 
-interface TextFormattingOptionsBase {
+export interface TextFormattingOptionsBase {
 
     /**
      * If specified, this word is highlighted in the resulting html.

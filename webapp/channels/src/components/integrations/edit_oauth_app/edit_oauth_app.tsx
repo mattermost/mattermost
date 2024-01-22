@@ -21,7 +21,7 @@ const FOOTER = {id: 'update_incoming_webhook.update', defaultMessage: 'Update'};
 const LOADING = {id: 'update_incoming_webhook.updating', defaultMessage: 'Updating...'};
 
 type Actions = {
-    getOAuthApp: (id: string) => OAuthApp;
+    getOAuthApp: (id: string) => void;
     editOAuthApp: (app: OAuthApp) => Promise<ActionResult>;
 };
 

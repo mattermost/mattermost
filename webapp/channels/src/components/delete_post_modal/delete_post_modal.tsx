@@ -8,6 +8,8 @@ import {matchPath} from 'react-router-dom';
 
 import type {Post} from '@mattermost/types/posts';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {getHistory} from 'utils/browser_history';
 import * as UserAgent from 'utils/user_agent';
 
@@ -22,7 +24,7 @@ type Props = {
     isRHS: boolean;
     onExited: () => void;
     actions: {
-        deleteAndRemovePost: (post: Post) => Promise<{data: boolean}>;
+        deleteAndRemovePost: (post: Post) => Promise<ActionResult<boolean>>;
     };
     location: {
         pathname: string;

@@ -3,18 +3,15 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {Dispatch} from 'redux';
 
 import {autocompleteUsers} from 'actions/user_actions';
 
 import UserAutocompleteSetting from './user_autocomplete_setting';
-import type {Props} from './user_autocomplete_setting';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             autocompleteUsers,
         }, dispatch),
     };

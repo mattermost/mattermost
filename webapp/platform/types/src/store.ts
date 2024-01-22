@@ -29,11 +29,13 @@ import {ThreadsState} from './threads';
 import {Typing} from './typing';
 import {UsersState} from './users';
 import {AppsState} from './apps';
+import {LimitsState} from './limits';
 
 export type GlobalState = {
     entities: {
         general: GeneralState;
         users: UsersState;
+        limits: LimitsState;
         teams: TeamsState;
         channels: ChannelsState;
         posts: PostsState;

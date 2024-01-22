@@ -1991,8 +1991,6 @@ func TestGetUsersForReporting(t *testing.T) {
 					CreateAt:  1000,
 					FirstName: "Bob",
 					LastName:  "Bobson",
-				},
-				UserPostStats: model.UserPostStats{
 					LastLogin: 1500,
 				},
 			},
@@ -2008,6 +2006,5 @@ func TestGetUsersForReporting(t *testing.T) {
 		})
 		require.Nil(t, err)
 		require.NotNil(t, userReports)
-		require.Equal(t, "Bob Bobson", userReports[0].DisplayName)
 	})
 }

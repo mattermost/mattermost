@@ -97,12 +97,15 @@ export type TeamStats = {
     active_member_count: number;
 };
 
-export type TeamSearchOpts = {
-    page?: number;
-    per_page?: number;
+export type TeamSearchOpts = PagedTeamSearchOpts | NotPagedTeamSearchOpts;
+export type PagedTeamSearchOpts = {
+    page: number;
+    per_page: number;
+} & NotPagedTeamSearchOpts;
+export type NotPagedTeamSearchOpts = {
     allow_open_invite?: boolean;
     group_constrained?: boolean;
-}
+};
 
 export type TeamInviteWithError = {
     email: string;

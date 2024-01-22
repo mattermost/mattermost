@@ -156,6 +156,9 @@ type ServiceInterface interface {
 	SendDelinquencyEmail60(email, locale, siteURL string) error
 	SendDelinquencyEmail75(email, locale, siteURL, planName, delinquencyDate string) error
 	SendDelinquencyEmail90(email, locale, siteURL string) error
+	SendCloudRenewalEmail60(email, locale, siteURL string) error
+	SendCloudRenewalEmail30(email, locale, siteURL string) error
+	SendCloudRenewalEmail7(email, locale, siteURL string) error
 	SendNoCardPaymentFailedEmail(email string, locale string, siteURL string) error
 	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError

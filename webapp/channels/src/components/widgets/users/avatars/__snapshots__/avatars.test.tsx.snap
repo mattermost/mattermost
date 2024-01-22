@@ -40,7 +40,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/1/image?_=0"
@@ -266,7 +266,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/6/image?_=0"
@@ -492,7 +492,7 @@ exports[`components/widgets/users/Avatars should fetch missing users 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/7/image?_=0"
@@ -862,7 +862,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/1/image?_=0"
@@ -1088,7 +1088,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/2/image?_=0"
@@ -1314,7 +1314,7 @@ exports[`components/widgets/users/Avatars should properly count overflow 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/3/image?_=0"
@@ -1682,7 +1682,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/1/image?_=0"
@@ -1908,7 +1908,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/2/image?_=0"
@@ -2134,7 +2134,7 @@ exports[`components/widgets/users/Avatars should support userIds 1`] = `
         defaultOverlayShown={false}
         disabled={false}
         overlay={
-          <Memo(Connect(injectIntl(ProfilePopover)))
+          <Memo(ProfilePopover)
             className="user-profile-popover"
             hide={[Function]}
             src="/api/v4/users/3/image?_=0"

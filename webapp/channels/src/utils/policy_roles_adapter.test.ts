@@ -9,7 +9,7 @@ import {rolesFromMapping, mappingValueFromRoles} from 'utils/policy_roles_adapte
 
 describe('PolicyRolesAdapter', () => {
     let roles: Record<string, any> = {};
-    let policies: Record<string, any> = {};
+    let policies: Record<string, string> = {};
 
     beforeEach(() => {
         roles = {

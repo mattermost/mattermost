@@ -5,7 +5,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, GenericAction, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {GenericAction, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 
@@ -63,27 +63,31 @@ export function requestFailure(type: ActionType, error: ServerError): any {
  * @returns {ActionFunc} ActionFunc
  */
 
-export function bindClientFunc({
+export function bindClientFunc<Func extends(...args: any[]) => Promise<any>>({
     clientFunc,
     onRequest,
     onSuccess,
     onFailure,
-    params = [],
+    params,
 }: {
-    clientFunc: (...args: any[]) => Promise<any>;
+    clientFunc: Func;
     onRequest?: ActionType;
     onSuccess?: ActionType | ActionType[];
     onFailure?: ActionType;
-    params?: any[];
-}): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    params?: Parameters<Func>;
+}): NewActionFuncAsync<Awaited<ReturnType<Func>>> {
+    return async (dispatch, getState) => {
         if (onRequest) {
             dispatch(requestData(onRequest));
         }
 
-        let data: any = null;
+        let data: Awaited<ReturnType<Func>>;
         try {
-            data = await clientFunc(...params);
+            if (params) {
+                data = await clientFunc(...params);
+            } else {
+                data = await clientFunc();
+            }
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             if (onFailure) {

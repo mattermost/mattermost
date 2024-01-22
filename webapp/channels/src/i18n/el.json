@@ -326,7 +326,6 @@
   "marketplace_modal.list.update": "Αναβάθμιση",
   "marketplace_modal.list.update_confirmation.confirm_button": "Αναβάθμιση",
   "mfa.setup.save": "Αποθήκευση",
-  "modal.manual_status.auto_responder.message_": "Θέλετε να αλλάξετε την κατάστασή σας σε \"{status}\" και να απενεργοποιήσετε τις Αυτόματες Απαντήσεις;",
   "modal.manual_status.auto_responder.message_away": "Θέλετε να αλλάξετε την κατάστασή σας σε \"Εκτός\" και να απενεργοποιήσετε τις Αυτόματες Απαντήσεις;",
   "modal.manual_status.auto_responder.message_dnd": "Θέλετε να αλλάξετε την κατάστασή σας σε \"Μην Ενοχλείτε\" και να απενεργοποιήσετε τις Αυτόματες Απαντήσεις;",
   "modal.manual_status.auto_responder.message_offline": "Θέλετε να αλλάξετε την κατάστασή σας σε \"Εκτός Σύνδεσης\" και να απενεργοποιήσετε τις Αυτόματες Απαντήσεις;",

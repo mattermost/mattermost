@@ -23,7 +23,7 @@ type Props = {
     onModalSubmit: (user?: UserProfile) => void;
     onModalDismissed: () => void;
     actions: {
-        patchUser: (user: UserProfile) => ActionResult;
+        patchUser: (user: UserProfile) => Promise<ActionResult>;
     };
 }
 

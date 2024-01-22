@@ -15,47 +15,54 @@ type Props = {
     status?: 'warning' | 'error';
 }
 
-export default class StatisticCount extends React.PureComponent<Props> {
-    public render(): JSX.Element {
-        const loading = (
-            <FormattedMessage
-                id='analytics.chart.loading'
-                defaultMessage='Loading...'
-            />
-        );
+const StatisticCount = ({
+    title,
+    icon,
+    count,
+    id,
+    children,
+    status,
+}: Props) => {
+    const loading = (
+        <FormattedMessage
+            id='analytics.chart.loading'
+            defaultMessage='Loading...'
+        />
+    );
 
-        return (
-            <div className='grid-statistics__card'>
+    return (
+        <div className='grid-statistics__card'>
+            <div
+                className={classNames({
+                    'total-count': true,
+                    'total-count--has-message': Boolean(status),
+                })}
+            >
                 <div
+                    data-testid={`${id}Title`}
                     className={classNames({
-                        'total-count': true,
-                        'total-count--has-message': Boolean(this.props.status),
+                        title: true,
+                        'team_statistics--warning': status === 'warning',
+                        'team_statistics--error': status === 'error',
                     })}
                 >
-                    <div
-                        data-testid={`${this.props.id}Title`}
-                        className={classNames({
-                            title: true,
-                            'team_statistics--warning': this.props.status === 'warning',
-                            'team_statistics--error': this.props.status === 'error',
-                        })}
-                    >
-                        {this.props.title}
-                        <i className={'fa ' + this.props.icon}/>
-                    </div>
-                    <div
-                        data-testid={this.props.id}
-                        className={classNames({
-                            content: true,
-                            'team_statistics--warning': this.props.status === 'warning',
-                            'team_statistics--error': this.props.status === 'error',
-                        })}
-                    >
-                        {typeof this.props.count === 'undefined' || isNaN(this.props.count) ? loading : this.props.count}
-                    </div>
+                    {title}
+                    <i className={'fa ' + icon}/>
                 </div>
-                {this.props.children}
+                <div
+                    data-testid={id}
+                    className={classNames({
+                        content: true,
+                        'team_statistics--warning': status === 'warning',
+                        'team_statistics--error': status === 'error',
+                    })}
+                >
+                    {typeof count === 'undefined' || isNaN(count) ? loading : count}
+                </div>
             </div>
-        );
-    }
-}
+            {children}
+        </div>
+    );
+};
+
+export default React.memo(StatisticCount);

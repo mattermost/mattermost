@@ -145,7 +145,6 @@ const EditedPostItem = ({post, isCurrent = false, postCurrentVersion, theme, act
             <div className={'edit-post-history__header__username'}>
                 <UserProfileComponent
                     userId={post.user_id}
-                    hasMention={true}
                     disablePopover={true}
                     overwriteName={overwriteName}
                 />

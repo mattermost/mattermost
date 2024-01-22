@@ -225,7 +225,6 @@ function createDMIntroMessage(channel: Channel, centeredIntro: string, teammate?
                     <UserProfile
                         userId={teammate?.id}
                         disablePopover={false}
-                        hasMention={true}
                     />
                 </div>
                 <p className='channel-intro-text'>

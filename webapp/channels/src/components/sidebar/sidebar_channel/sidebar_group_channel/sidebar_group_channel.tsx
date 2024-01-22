@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo, useCallback} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
@@ -25,40 +25,43 @@ type Props = {
     };
 };
 
-type State = Record<string, never>;
-
-export default class SidebarGroupChannel extends React.PureComponent<Props, State> {
-    handleLeaveChannel = (callback: () => void) => {
-        const id = this.props.channel.id;
+const SidebarGroupChannel = ({
+    channel,
+    currentUserId,
+    actions,
+    active,
+    currentTeamName,
+    redirectChannel,
+    membersCount,
+}: Props) => {
+    const handleLeaveChannel = useCallback((callback: () => void) => {
+        const id = channel.id;
         const category = Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW;
 
-        const currentUserId = this.props.currentUserId;
-        this.props.actions.savePreferences(currentUserId, [{user_id: currentUserId, category, name: id, value: 'false'}]).then(callback);
+        actions.savePreferences(currentUserId, [{user_id: currentUserId, category, name: id, value: 'false'}]).then(callback);
 
         trackEvent('ui', 'ui_direct_channel_x_button_clicked');
 
-        if (this.props.active) {
-            getHistory().push(`/${this.props.currentTeamName}/channels/${this.props.redirectChannel}`);
+        if (active) {
+            getHistory().push(`/${currentTeamName}/channels/${redirectChannel}`);
         }
-    };
+    }, [channel.id, actions, active, currentTeamName, redirectChannel, currentUserId]);
 
-    getIcon = () => {
+    const getIcon = () => {
         return (
-            <div className='status status--group'>{this.props.membersCount}</div>
+            <div className='status status--group'>{membersCount}</div>
         );
     };
 
-    render() {
-        const {channel, currentTeamName} = this.props;
+    return (
+        <SidebarChannelLink
+            channel={channel}
+            link={`/${currentTeamName}/messages/${channel.name}`}
+            label={channel.display_name}
+            channelLeaveHandler={handleLeaveChannel}
+            icon={getIcon()}
+        />
+    );
+};
 
-        return (
-            <SidebarChannelLink
-                channel={channel}
-                link={`/${currentTeamName}/messages/${channel.name}`}
-                label={channel.display_name}
-                channelLeaveHandler={this.handleLeaveChannel}
-                icon={this.getIcon()}
-            />
-        );
-    }
-}
+export default memo(SidebarGroupChannel);

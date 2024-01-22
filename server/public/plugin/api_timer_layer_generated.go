@@ -657,6 +657,13 @@ func (api *apiTimerLayer) UpdateChannelMemberNotifications(channelId, userID str
 	return _returnsA, _returnsB
 }
 
+func (api *apiTimerLayer) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError {
+	startTime := timePkg.Now()
+	_returnsA := api.apiImpl.PatchChannelMembersNotifications(members, notifyProps)
+	api.recordTime(startTime, "PatchChannelMembersNotifications", _returnsA == nil)
+	return _returnsA
+}
+
 func (api *apiTimerLayer) GetGroup(groupId string) (*model.Group, *model.AppError) {
 	startTime := timePkg.Now()
 	_returnsA, _returnsB := api.apiImpl.GetGroup(groupId)

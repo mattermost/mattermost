@@ -21,7 +21,7 @@ import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/user
 import {submitTrueUpReview, getTrueUpReviewStatus} from 'actions/hosted_customer';
 import {pageVisited} from 'actions/telemetry_actions';
 
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import ExternalLink from 'components/external_link';
 import CheckMarkSvg from 'components/widgets/icons/check_mark_icon';
 import WarningIcon from 'components/widgets/icons/fa_warning_icon';
@@ -34,7 +34,8 @@ import './true_up_review.scss';
 const TrueUpReview: React.FC = () => {
     const dispatch = useDispatch();
     const isCloud = useSelector(isCurrentLicenseCloud);
-    const isAirGapped = !useCWSAvailabilityCheck();
+    const cwsAvailability = useCWSAvailabilityCheck();
+    const isAirGapped = cwsAvailability !== CSWAvailabilityCheckTypes.Available;
     const reviewProfile = useSelector(trueUpReviewProfileSelector);
     const reviewStatus = useSelector(trueUpReviewStatusSelector);
     const isSystemAdmin = useSelector(isCurrentUserSystemAdmin);

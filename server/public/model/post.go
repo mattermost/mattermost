@@ -52,6 +52,7 @@ const (
 	PostTypeMe                     = "me"
 	PostCustomTypePrefix           = "custom_"
 	PostTypeReminder               = "reminder"
+	PostTypeAdminReport            = "system_admin_report"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -450,7 +451,8 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeReminder,
 		PostTypeMe,
 		PostTypeWrangler,
-		PostTypeGMConvertedToChannel:
+		PostTypeGMConvertedToChannel,
+		PostTypeAdminReport:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)

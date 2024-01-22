@@ -38,6 +38,7 @@ const (
 	SystemHostedPurchaseNeedsScreening     = "HostedPurchaseNeedsScreening"
 	AwsMeteringReportInterval              = 1
 	AwsMeteringDimensionUsageHrs           = "UsageHrs"
+	CloudRenewalEmail                      = "CloudRenewalEmail"
 )
 
 const (

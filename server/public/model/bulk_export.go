@@ -9,6 +9,7 @@ const ExportDataDir = "data"
 
 type BulkExportOpts struct {
 	IncludeAttachments      bool
+	IncludeProfilePictures  bool
 	IncludeArchivedChannels bool
 	CreateArchive           bool
 }

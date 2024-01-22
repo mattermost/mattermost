@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -25,6 +26,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -1979,4 +1981,57 @@ func findClusterMessages(event model.ClusterEvent, msgs []*model.ClusterMessage)
 		}
 	}
 	return result
+}
+
+func TestPluginWebSocketSession(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	pluginID := "com.mattermost.websocket_session_test"
+
+	// Compile plugin
+	testFolder, found := fileutils.FindDir("channels/app/plugin_api_tests")
+	require.True(t, found, "Cannot find tests folder")
+	fullPath := path.Join(testFolder, "manual.test_websocket_session", "main.go")
+	pluginCode, err := os.ReadFile(fullPath)
+	require.NoError(t, err)
+	require.NotEmpty(t, pluginCode)
+	pluginDir, err := filepath.Abs(*th.App.Config().PluginSettings.Directory)
+	require.NoError(t, err)
+	backend := filepath.Join(pluginDir, pluginID, "backend.exe")
+	utils.CompileGo(t, string(pluginCode), backend)
+	os.WriteFile(filepath.Join(pluginDir, pluginID, "plugin.json"), []byte(`{"id": "`+pluginID+`", "server": {"executable": "backend.exe"}}`), 0600)
+
+	// Activate the plugin
+	manifest, activated, reterr := th.App.GetPluginsEnvironment().Activate(pluginID)
+	require.NoError(t, reterr)
+	require.NotNil(t, manifest)
+	require.True(t, activated)
+
+	// Connect through WebSocket and send a message
+	reqURL := fmt.Sprintf("ws://localhost:%d", th.Server.ListenAddr.Port)
+	wsc, err := model.NewWebSocketClient4(reqURL, th.Client.AuthToken)
+	require.NoError(t, err)
+	require.NotNil(t, wsc)
+	wsc.Listen()
+	defer wsc.Close()
+	resp := <-wsc.ResponseChannel
+	require.Equal(t, resp.Status, model.StatusOk)
+	wsc.SendMessage("custom_action", map[string]any{"value": "test"})
+
+	// Get session for user
+	sessions, _, err := th.Client.GetSessions(context.Background(), th.BasicUser.Id, "")
+	require.NoError(t, err)
+	require.NotEmpty(t, sessions)
+
+	// Verify the session has been set correctly. Check plugin code in
+	// channels/app/plugin_api_tests/manual.test_websocket_session
+	//
+	// Here the MessageWillBePosted hook is used purely as a way to
+	// communicate with the plugin side.
+	hooks, err := th.App.GetPluginsEnvironment().HooksForPlugin(pluginID)
+	require.NoError(t, err)
+	require.NotNil(t, hooks)
+	_, sessionID := hooks.MessageWillBePosted(nil, nil)
+	require.Equal(t, sessions[0].Id, sessionID)
 }

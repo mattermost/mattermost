@@ -20,6 +20,7 @@ export type TestConfig = {
     haClusterEnabled: boolean;
     haClusterNodeCount: number;
     haClusterName: string;
+    pushNotificationServer: string;
     // CI
     isCI: boolean;
     // Playwright

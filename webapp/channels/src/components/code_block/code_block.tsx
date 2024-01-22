@@ -66,7 +66,7 @@ const CodeBlock: React.FC<Props> = ({code, language, searchedContent}: Props) =>
 
     let htmlContent = content;
     if (searchedContent) {
-        htmlContent = `${searchedContent} ${content}`;
+        htmlContent = searchedContent + content;
     }
 
     const codeBlockActions = useSelector((state: GlobalState) => state.plugins.components.CodeBlockAction);

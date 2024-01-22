@@ -13,6 +13,8 @@ import type {
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import BlockableLink from 'components/admin_console/blockable_link';
 import ChannelList from 'components/admin_console/data_retention_settings/channel_list';
 import {keepForeverOption, yearsOption, daysOption, FOREVER, YEARS} from 'components/admin_console/data_retention_settings/dropdown_options/dropdown_options';
@@ -37,14 +39,14 @@ type Props = {
     policy?: DataRetentionCustomPolicy | null;
     teams?: Team[];
     actions: {
-        fetchPolicy: (id: string) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
-        fetchPolicyTeams: (id: string, page: number, perPage: number) => Promise<{ data: Team[]; error?: Error }>;
-        createDataRetentionCustomPolicy: (policy: CreateDataRetentionCustomPolicy) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
-        updateDataRetentionCustomPolicy: (id: string, policy: PatchDataRetentionCustomPolicy) => Promise<{ data: DataRetentionCustomPolicy; error?: Error }>;
-        addDataRetentionCustomPolicyTeams: (id: string, policy: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-        removeDataRetentionCustomPolicyTeams: (id: string, policy: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-        addDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-        removeDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
+        fetchPolicy: (id: string) => Promise<ActionResult>;
+        fetchPolicyTeams: (id: string, page: number, perPage: number) => Promise<ActionResult>;
+        createDataRetentionCustomPolicy: (policy: CreateDataRetentionCustomPolicy) => Promise<ActionResult>;
+        updateDataRetentionCustomPolicy: (id: string, policy: PatchDataRetentionCustomPolicy) => Promise<ActionResult>;
+        addDataRetentionCustomPolicyTeams: (id: string, policy: string[]) => Promise<ActionResult>;
+        removeDataRetentionCustomPolicyTeams: (id: string, policy: string[]) => Promise<ActionResult>;
+        addDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<ActionResult>;
+        removeDataRetentionCustomPolicyChannels: (id: string, policy: string[]) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
 };

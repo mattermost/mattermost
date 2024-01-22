@@ -9,6 +9,7 @@ import type {IntlShape} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -105,26 +106,10 @@ export type Props = {
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
         clearErrors: () => void;
-        updateMe: (user: UserProfile) => Promise<{
-            data: boolean;
-            error?: {
-                server_error_id: string;
-                message: string;
-            };
-        }>;
-        sendVerificationEmail: (email: string) => Promise<{
-            data: boolean;
-            error?: {
-                err: string;
-            };
-        }>;
+        updateMe: (user: UserProfile) => Promise<ActionResult>;
+        sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
-        uploadProfileImage: (id: string, file: File) => Promise<{
-            data: boolean;
-            error?: {
-                message: string;
-            };
-        }>;
+        uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;

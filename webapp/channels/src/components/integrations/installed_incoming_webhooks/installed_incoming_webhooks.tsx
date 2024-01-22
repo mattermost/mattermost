@@ -31,7 +31,7 @@ type Props = {
     actions: {
         removeIncomingHook: (hookId: string) => Promise<ActionResult>;
         loadIncomingHooksAndProfilesForTeam: (teamId: string, startPageNumber: number,
-            pageSize: string) => Promise<ActionResult>;
+            pageSize: number) => Promise<ActionResult>;
     };
 }
 
@@ -53,7 +53,7 @@ export default class InstalledIncomingWebhooks extends React.PureComponent<Props
             this.props.actions.loadIncomingHooksAndProfilesForTeam(
                 this.props.team.id,
                 Constants.Integrations.START_PAGE_NUM,
-                Constants.Integrations.PAGE_SIZE,
+                Constants.Integrations.PAGE_SIZE as any, // HARRISONTODO PAGE_SIZE doesn't seem like it should be a string
             ).then(
                 () => this.setState({loading: false}),
             );

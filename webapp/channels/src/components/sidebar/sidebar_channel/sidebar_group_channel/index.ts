@@ -3,17 +3,15 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {Channel} from '@mattermost/types/channels';
-import type {PreferenceType} from '@mattermost/types/preferences';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getCurrentChannelId, getRedirectChannelNameForTeam, makeGetGmChannelMemberCount} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import SidebarGroupChannel from './sidebar_group_channel';
 
@@ -41,15 +39,9 @@ function makeMapStateToProps() {
     };
 }
 
-type Actions = {
-    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{
-        data: boolean;
-    }>;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             savePreferences,
         }, dispatch),
     };

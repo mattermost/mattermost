@@ -11,6 +11,8 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
@@ -69,7 +71,7 @@ type Props = {
         /*
         * Action creator to patch current channel
         */
-        patchChannel: (channelId: string, patch: Channel) => Promise<{ data: Channel; error: Error }>;
+        patchChannel: (channelId: string, patch: Channel) => Promise<ActionResult>;
     };
 }
 

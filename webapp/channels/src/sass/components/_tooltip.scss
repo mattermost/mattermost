@@ -49,6 +49,29 @@
     .tooltip-help {
         color: rgba(255, 255, 255, 0.64);
     }
+
+    .tooltip-title {
+        font-weight: 600;
+        line-height: 15px;
+    }
+
+    .tooltip-hint {
+        font-size: 11px;
+        line-height: 16px;
+        opacity: 56%;
+    }
+
+    .tooltip-shortcuts-container {
+        display: flex;
+        justify-content: center;
+        padding: 4px 0;
+        gap: 2px;
+    }
+
+    .emoticon {
+        margin-right: 6px;
+        vertical-align: center;
+    }
 }
 
 .floating-ui-tooltip {

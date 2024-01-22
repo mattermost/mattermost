@@ -109,6 +109,9 @@ export const getDefaultConfig = () => {
         ElasticsearchSettings: {
             ConnectionURL: cypressEnv.elasticsearchConnectionURL,
         },
+        EmailSettings: {
+            PushNotificationServer: cypressEnv.pushNotificationServer,
+        },
         LdapSettings: {
             LdapServer: cypressEnv.ldapServer,
             LdapPort: cypressEnv.ldapPort,

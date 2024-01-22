@@ -75,7 +75,7 @@ describe('components/AdvancedCreateComment', () => {
         maxPostSize: Constants.DEFAULT_CHARACTER_LIMIT,
         rhsExpanded: false,
         badConnection: false,
-        getChannelTimezones: jest.fn(() => Promise.resolve({data: '', error: ''})),
+        getChannelTimezones: jest.fn(() => Promise.resolve({data: [], error: ''})),
         selectedPostFocussedAt: 0,
         canPost: true,
         canUploadFiles: true,
@@ -91,7 +91,7 @@ describe('components/AdvancedCreateComment', () => {
         },
         groupsWithAllowReference: null,
         channelMemberCountsByGroup: undefined as any,
-        savePreferences(): ActionResult {
+        savePreferences(): Promise<ActionResult> {
             throw new Error('Function not implemented.');
         },
     };

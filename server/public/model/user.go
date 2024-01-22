@@ -1015,7 +1015,6 @@ func (u *User) EmailDomain() string {
 }
 
 type UserPostStats struct {
-	LastLogin    int64  `json:"last_login_at,omitempty"`
 	LastStatusAt *int64 `json:"last_status_at,omitempty"`
 	LastPostDate *int64 `json:"last_post_date,omitempty"`
 	DaysActive   *int   `json:"days_active,omitempty"`

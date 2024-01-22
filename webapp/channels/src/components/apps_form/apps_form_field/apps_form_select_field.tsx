@@ -10,6 +10,7 @@ import type {UserAutocomplete} from '@mattermost/types/autocomplete';
 import type {Channel} from '@mattermost/types/channels';
 
 import {AppFieldTypes} from 'mattermost-redux/constants/apps';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {imageURLForUser} from 'utils/utils';
@@ -26,7 +27,7 @@ export type Props = {
     performLookup: (name: string, userInput: string) => Promise<AppSelectOption[]>;
     teammateNameDisplay?: string;
     actions: {
-        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => (dispatch: any, getState: any) => Promise<void>;
+        autocompleteChannels: (term: string, success: (channels: Channel[]) => void, error: () => void) => Promise<ActionResult>;
         autocompleteUsers: (search: string) => Promise<UserAutocomplete>;
     };
 };
