@@ -75,7 +75,7 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 		require.Equal(t, 501, response.StatusCode)
 	})
 
-	t.Run("license but no feature flag returns 501", func(t *testing.T) {
+	t.Run("license but no config enabled returns 501", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -88,8 +88,11 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(false)
 		defer func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
 		}()
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
@@ -124,9 +127,12 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -154,6 +160,15 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("GetConnections", mock.Anything, mock.Anything).Return([]*model.OutgoingOAuthConnection{}, nil)
 		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
+
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
@@ -188,6 +203,14 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("GetConnections", mock.Anything, model.OutgoingOAuthConnectionGetConnectionsFilter{Limit: 1, Audience: "knowhere.com"}).Return([]*model.OutgoingOAuthConnection{conn}, nil)
 		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
@@ -224,6 +247,15 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		outgoingOauthIface.Mock.On("GetConnections", mock.Anything, mock.Anything).Return([]*model.OutgoingOAuthConnection{conn}, nil)
 		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
 
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
@@ -254,9 +286,12 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -288,9 +323,12 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 		outgoingOauthIface.Mock.On("SanitizeConnection", mock.Anything)
 
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -327,9 +365,12 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 		outgoingOauthIface.Mock.On("SanitizeConnection", mock.Anything)
 
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -357,9 +398,12 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 		outgoingOauthIface.Mock.On("SanitizeConnection", mock.Anything)
 
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -393,9 +437,12 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -426,9 +473,12 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 		outgoingOauthIface.Mock.On("SanitizeConnection", mock.Anything)
 
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -465,11 +515,13 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 		require.NoError(t, err)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
-
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -498,9 +550,12 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 		outgoingOauthIface.Mock.On("DeleteConnection", mock.Anything, conn.Id).Return(nil)
 
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
@@ -529,12 +584,15 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 		require.False(t, valid)
 	})
 
-	t.Run("feature flag, no interface, no license", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-
+	t.Run("config, no interface, no license", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 
 		c := &Context{}
 		c.AppContext = th.Context
@@ -548,36 +606,46 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 	})
 
 	t.Run("feature flag, interface defined, no license", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		c := &Context{}
 		c.AppContext = th.Context
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		th.App.Srv().OutgoingOAuthConnection = &mocks.OutgoingOAuthConnectionInterface{}
-
 		_, valid := ensureOutgoingOAuthConnectionInterface(c, "api")
 		require.False(t, valid)
 	})
 
 	t.Run("feature flag, interface defined, valid license", func(t *testing.T) {
-		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
-
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		license := model.NewTestLicenseSKU(model.LicenseShortSkuEnterprise, "outgoing_oauth_connections")
 		license.Id = "test-license-id"
 		th.App.Srv().SetLicense(license)
 		defer th.App.Srv().RemoveLicense()
-
-		th.App.Srv().OutgoingOAuthConnection = &mocks.OutgoingOAuthConnectionInterface{}
 
 		c := &Context{}
 		c.AppContext = th.Context
@@ -615,8 +683,16 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 	}
 	c.AppContext = th.Context.WithSession(&session)
 
+	outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+	outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+	outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+	th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+	th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
 	defaultRolePermissions := th.SaveDefaultRolePermissions()
 	defer func() {
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
 		th.RestoreDefaultRolePermissions(defaultRolePermissions)
 	}()
 	th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
@@ -774,6 +850,13 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 		}
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		c.Params = &web.Params{
@@ -819,6 +902,13 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 		}
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		c.Params = &web.Params{
@@ -878,6 +968,13 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 		}
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("GetConnection", c.AppContext, c.Params.OutgoingOAuthConnectionID).Return(conn, nil)
 		outgoingOauthIface.Mock.On("UpdateConnection", c.AppContext, inputConnection).Return(inputConnection, nil)
@@ -905,6 +1002,12 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 	license.Id = "test-license-id"
 	th.App.Srv().SetLicense(license)
 	defer th.App.Srv().RemoveLicense()
+
+	outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+	th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+	t.Cleanup(func() {
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+	})
 
 	t.Run("no permissions", func(t *testing.T) {
 		c := &Context{}
@@ -957,8 +1060,14 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		httpRecorder := httptest.NewRecorder()
@@ -1006,6 +1115,13 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 		handlerConn.CreatorId = session.UserId
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("SaveConnection", c.AppContext, handlerConn).Return(handlerConn, nil)
 		outgoingOauthIface.Mock.On("SanitizeConnection", mock.Anything)
@@ -1061,9 +1177,12 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		httpRecorder := httptest.NewRecorder()
@@ -1148,9 +1267,12 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, "error", http.StatusBadRequest))
 
@@ -1197,9 +1319,12 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, nil)
 
@@ -1249,9 +1374,12 @@ func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 		outgoingOauthIface.Mock.On("GetConnection", c.AppContext, conn.Id).Return(conn, nil)
 		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", c.AppContext, conn).Return(&model.OutgoingOAuthConnectionToken{}, nil)
