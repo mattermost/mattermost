@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import type {Stripe} from '@stripe/stripe-js';
-import {getCode} from 'country-list';
 
 import type {Address, CloudCustomerPatch, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
 
@@ -48,7 +47,7 @@ export function completeStripeAddPaymentMethod(
                             line2: billingDetails.address2,
                             city: billingDetails.city,
                             state: billingDetails.state,
-                            country: getCode(billingDetails.country),
+                            country: billingDetails.country,
                             postal_code: billingDetails.postalCode,
                         },
                     },
