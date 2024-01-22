@@ -102,7 +102,8 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting users")
-	if err = a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels); err != nil {
+	profilePictures, err := a.exportAllUsers(ctx, job, writer, opts.IncludeArchivedChannels, opts.IncludeProfilePictures)
+	if err != nil {
 		return err
 	}
 
@@ -119,7 +120,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct channels")
-	if err = a.exportAllDirectChannels(ctx, job, writer); err != nil {
+	if err = a.exportAllDirectChannels(ctx, job, writer, opts.IncludeArchivedChannels); err != nil {
 		return err
 	}
 
@@ -148,6 +149,15 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 		}
 
 		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "attachments_exported", len(attachments)+len(directAttachments)+len(emojiPaths))
+	}
+
+	if opts.IncludeProfilePictures {
+		for _, profilePicture := range profilePictures {
+			if err := a.exportFile(outPath, profilePicture, zipWr); err != nil {
+				ctx.Logger().Warn("Unable to export profile picture", mlog.String("profile_picture", profilePicture), mlog.Err(err))
+			}
+		}
+		updateJobProgress(ctx.Logger(), a.Srv().Store(), job, "profile_pictures_exported", len(profilePictures))
 	}
 
 	return nil
@@ -257,14 +267,15 @@ func (a *App) exportAllChannels(ctx request.CTX, job *model.Job, writer io.Write
 	return nil
 }
 
-func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels bool) *model.AppError {
+func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels, includeProfilePictures bool) ([]string, *model.AppError) {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
+	profilePictures := []string{}
 	for {
 		users, err := a.Srv().Store().User().GetAllAfter(1000, afterId)
 
 		if err != nil {
-			return model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return profilePictures, model.NewAppError("exportAllUsers", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
 		if len(users) == 0 {
@@ -280,7 +291,7 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 			exportedPrefs := make(map[string]*string)
 			allPrefs, err := a.GetPreferencesForUser(ctx, user.Id)
 			if err != nil {
-				return err
+				return profilePictures, err
 			}
 			for _, pref := range allPrefs {
 				// We need to manage the special cases
@@ -316,23 +327,35 @@ func (a *App) exportAllUsers(ctx request.CTX, job *model.Job, writer io.Writer, 
 
 			userLine := ImportLineFromUser(user, exportedPrefs)
 
+			if includeProfilePictures {
+				var pp string
+				pp, err = a.GetProfileImagePath(user)
+				if err != nil {
+					return profilePictures, err
+				}
+				if pp != "" {
+					userLine.User.ProfileImage = &pp
+					profilePictures = append(profilePictures, pp)
+				}
+			}
+
 			userLine.User.NotifyProps = a.buildUserNotifyProps(user.NotifyProps)
 
 			// Do the Team Memberships.
 			members, err := a.buildUserTeamAndChannelMemberships(ctx, user.Id, includeArchivedChannels)
 			if err != nil {
-				return err
+				return profilePictures, err
 			}
 
 			userLine.User.Teams = members
 
 			if err := a.exportWriteLine(writer, userLine); err != nil {
-				return err
+				return profilePictures, err
 			}
 		}
 	}
 
-	return nil
+	return profilePictures, nil
 }
 
 func (a *App) buildUserTeamAndChannelMemberships(c request.CTX, userID string, includeArchivedChannels bool) (*[]imports.UserTeamImportData, *model.AppError) {
@@ -640,11 +663,11 @@ func (a *App) copyEmojiImages(emojiId string, emojiImagePath string, pathToDir s
 	return nil
 }
 
-func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io.Writer) *model.AppError {
+func (a *App) exportAllDirectChannels(ctx request.CTX, job *model.Job, writer io.Writer, includeArchivedChannels bool) *model.AppError {
 	afterId := strings.Repeat("0", 26)
 	cnt := 0
 	for {
-		channels, err := a.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, afterId)
+		channels, err := a.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, afterId, includeArchivedChannels)
 		if err != nil {
 			return model.NewAppError("exportAllDirectChannels", "app.channel.get_all_direct.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

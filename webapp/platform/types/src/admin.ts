@@ -41,6 +41,13 @@ export type LogFilter = {
     dateTo: LogDateTo;
 }
 
+export type LogFilterQuery = {
+    server_names: LogServerNames;
+    log_levels: LogLevels;
+    date_from: LogDateFrom;
+    date_to: LogDateTo;
+}
+
 export type AdminState = {
     logs: LogObject[];
     plainLogs: string[];
