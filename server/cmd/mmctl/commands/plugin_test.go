@@ -438,9 +438,10 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 			s.Require().Equal(plugin, printer.GetLines()[i+1])
 		}
 
-		s.Require().Equal("Listing disabled plugins", printer.GetLines()[4])
+		s.Require().Equal("", printer.GetLines()[4])
+		s.Require().Equal("Listing disabled plugins", printer.GetLines()[5])
 		for i, plugin := range mockList.Inactive {
-			s.Require().Equal(plugin, printer.GetLines()[i+5])
+			s.Require().Equal(plugin, printer.GetLines()[i+6])
 		}
 	})
 
@@ -513,9 +514,10 @@ func (s *MmctlUnitTestSuite) TestPluginListCmd() {
 			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+1])
 		}
 
-		s.Require().Equal("Listing disabled plugins", printer.GetLines()[4])
+		s.Require().Equal("", printer.GetLines()[4])
+		s.Require().Equal("Listing disabled plugins", printer.GetLines()[5])
 		for i, plugin := range mockList.Inactive {
-			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+5])
+			s.Require().Equal(plugin.Id+": "+plugin.Name+", Version: "+plugin.Version, printer.GetLines()[i+6])
 		}
 	})
 
