@@ -226,11 +226,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create users service")
 	}
 
-	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
-		s.LoadLicense()
-	}
-
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
