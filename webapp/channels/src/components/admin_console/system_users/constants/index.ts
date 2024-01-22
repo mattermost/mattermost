@@ -13,3 +13,9 @@ export enum ColumnNames {
     totalPosts = 'totalPostsColumn',
     actions = 'actionsColumn',
 }
+
+export enum StatusFilter {
+    Any = 'any',
+    Active = 'active',
+    Deactivated = 'deactivated',
+}

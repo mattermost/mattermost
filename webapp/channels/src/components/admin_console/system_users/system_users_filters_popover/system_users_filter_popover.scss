@@ -1,0 +1,25 @@
+.systemUsersFilterContainer {
+    flex-grow: 1;
+}
+
+.systemUsersFilterPopoverContainer {
+    z-index: 2;
+
+    & > #systemUsersFilterPopoverTitle {
+        color: var(--sys-center-channel-color);
+        font-size: 14px;
+        font-weight: 600;
+        line-height: 14px;
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
+    }
+
+    & > .systemUsersFilterPopoverBody {
+        width: 280px;
+        padding: 20px 24px;
+
+        .DropdownInput.Input_container {
+            margin-top: unset;
+        }
+    }
+}

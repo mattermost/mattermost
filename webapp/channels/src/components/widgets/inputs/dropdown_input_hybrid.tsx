@@ -22,6 +22,7 @@ type Props<T extends OptionType> = Omit<SelectProps<T>, 'onChange'> & {
     onDropdownChange: (value: T) => void;
     onInputChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder: string;
+    containerClassName?: string;
     className?: string;
     name?: string;
     exceptionToInput: string[];
@@ -86,6 +87,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
     const {
         value,
         placeholder,
+        containerClassName,
         className,
         name,
         legend,
@@ -174,7 +176,7 @@ const DropdownInputHybrid = <T extends OptionType = OptionType>(props: Props<T>)
 
     return (
         <div
-            className='DropdownInput hybrid_container'
+            className={classNames('DropdownInput hybrid_container', containerClassName)}
             ref={containerRef}
             style={{
                 width: '100%',

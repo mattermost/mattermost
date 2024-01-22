@@ -4,22 +4,26 @@
 import type {ChangeEvent} from 'react';
 import React, {useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
-import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
 import Input from 'components/widgets/inputs/input/input';
 
+import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
+
 import './system_users_search.scss';
 
-export function SystemUsersSearch() {
+type Props = {
+    searchTerm: AdminConsoleUserManagementTableProperties['searchTerm'];
+}
+
+export function SystemUsersSearch(props: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const timeout = useRef<NodeJS.Timeout>();
 
-    const initialValue = useSelector(getAdminConsoleUserManagementTableProperties).searchTerm;
-    const [inputValue, setInputValue] = useState(initialValue);
+    const [inputValue, setInputValue] = useState(props.searchTerm);
 
     function handleChange(event: ChangeEvent<HTMLInputElement>) {
         const {target: {value}} = event;
@@ -47,6 +51,7 @@ export function SystemUsersSearch() {
                 inputPrefix={<i className={'icon icon-magnify'}/>}
                 onChange={handleChange}
                 onClear={handleClear}
+                defaultValue={props.searchTerm}
                 value={inputValue}
             />
         </div>

@@ -22,16 +22,17 @@ import {ColumnNames} from './constants';
 import {RevokeSessionsButton} from './revoke_sessions_button';
 import {SystemUsersColumnTogglerMenu} from './system_users_column_toggler_menu';
 import {SystemUsersExport} from './system_users_export';
-import {SystemUsersFilterMenu} from './system_users_filter_menu';
+import {SystemUsersFilterPopover} from './system_users_filters_popover';
 import {SystemUsersListAction} from './system_users_list_actions';
 import {SystemUsersSearch} from './system_users_search';
-import {getSortableColumnValueBySortColumn, getSortColumnForOptions, getSortDirectionForOptions, getPaginationInfo} from './utils';
+import {getSortableColumnValueBySortColumn, getSortColumnForOptions, getSortDirectionForOptions, getPaginationInfo, getUserStatusFilterOption} from './utils';
 
 import './system_users.scss';
 
 import type {PropsFromRedux} from './index';
 
 type Props = PropsFromRedux;
+
 type TableOptions = {
     pageSize?: PaginationState['pageSize'];
     sortColumn?: SortingState[0]['id'];
@@ -40,6 +41,7 @@ type TableOptions = {
     fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
     direction?: CursorPaginationDirection;
     searchTerm?: string;
+    filterStatus?: AdminConsoleUserManagementTableProperties['filterStatus'];
 }
 
 const toUserReportOptions = (tableOptions?: TableOptions): UserReportOptions => {
@@ -51,6 +53,7 @@ const toUserReportOptions = (tableOptions?: TableOptions): UserReportOptions => 
         ...getSortColumnForOptions(tableOptions?.sortColumn),
         ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
         search_term: tableOptions?.searchTerm,
+        ...getUserStatusFilterOption(tableOptions?.filterStatus),
     };
 };
 
@@ -85,6 +88,7 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            filterStatus: props.tablePropertyFilterStatus,
         });
     }, [
         props.tablePropertyPageSize,
@@ -94,6 +98,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
+        props.tablePropertyFilterStatus,
     ]);
 
     // Effect to get the user reports
@@ -123,6 +128,7 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            filterStatus: props.tablePropertyFilterStatus,
         });
     }, [
         props.tablePropertyPageSize,
@@ -132,6 +138,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
+        props.tablePropertyFilterStatus,
     ]);
 
     // Handlers for table actions
@@ -427,8 +434,12 @@ function SystemUsers(props: Props) {
             <div className='admin-console__wrapper'>
                 <div className='admin-console__container'>
                     <div className='admin-console__filters-rows'>
-                        <SystemUsersSearch/>
-                        <SystemUsersFilterMenu/>
+                        <SystemUsersSearch
+                            searchTerm={props.tablePropertySearchTerm}
+                        />
+                        <SystemUsersFilterPopover
+                            filterStatus={props.tablePropertyFilterStatus}
+                        />
                         <SystemUsersColumnTogglerMenu
                             allColumns={table.getAllLeafColumns()}
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}

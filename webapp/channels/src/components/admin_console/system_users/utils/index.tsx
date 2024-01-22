@@ -11,7 +11,7 @@ import type {SortingState} from 'components/admin_console/list_table';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
-import {ColumnNames} from '../constants';
+import {ColumnNames, StatusFilter} from '../constants';
 
 /**
  * Converts the sorting column name to API compatible sorting column name. Default sorting column name is by username.
@@ -62,6 +62,20 @@ export function getSortableColumnValueBySortColumn(row: UserReport, sortColumn: 
     default:
         return row.username;
     }
+}
+
+export function getUserStatusFilterOption(status?: string): Partial<Pick<UserReportOptions, 'hide_active' | 'hide_inactive'>> {
+    if (status === StatusFilter.Active) {
+        return {
+            hide_inactive: true,
+        };
+    } else if (status === StatusFilter.Deactivated) {
+        return {
+            hide_active: true,
+        };
+    }
+
+    return {};
 }
 
 export function getPaginationInfo(pageIndex: number, pageSize: number, currentLength: number, totalItems?: number) {
