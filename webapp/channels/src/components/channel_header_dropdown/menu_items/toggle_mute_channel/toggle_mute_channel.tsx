@@ -6,15 +6,13 @@ import React from 'react';
 import type {Channel, ChannelNotifyProps} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
-
 import Menu from 'components/widgets/menu/menu';
 
 import {Constants, NotificationLevels} from 'utils/constants';
 import {localizeMessage} from 'utils/utils';
 
 export type Actions = {
-    updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): ActionFunc;
+    updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): void;
 };
 
 type Props = {

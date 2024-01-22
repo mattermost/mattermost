@@ -12,6 +12,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
 import Permissions from 'mattermost-redux/constants/permissions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -83,7 +84,7 @@ export type Props = {
         /**
          * Function to get the post menu bindings for this post.
          */
-        fetchBindings: (channelId: string, teamId: string) => Promise<{data: AppBinding[]}>;
+        fetchBindings: (channelId: string, teamId: string) => Promise<ActionResult<AppBinding[]>>;
 
     }; // TechDebt: Made non-mandatory while converting to typescript
 }

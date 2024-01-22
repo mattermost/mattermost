@@ -8,6 +8,7 @@ import type {Compliance} from '@mattermost/types/compliance';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import LoadingScreen from 'components/loading_screen';
 import ReloadIcon from 'components/widgets/icons/fa_reload_icon';
@@ -44,12 +45,12 @@ type Props = {
         /*
             * Function to get compliance reports
             */
-        getComplianceReports: () => Promise<{data: Compliance[]}>;
+        getComplianceReports: () => Promise<ActionResult<Compliance[]>>;
 
         /*
             * Function to save compliance reports
             */
-        createComplianceReport: (job: Partial<Compliance>) => Promise<{data: Compliance; error?: Error}>;
+        createComplianceReport: (job: Partial<Compliance>) => Promise<ActionResult<Compliance>>;
     };
 }
 

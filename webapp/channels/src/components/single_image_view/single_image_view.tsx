@@ -3,6 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -21,7 +22,7 @@ import type {PropsFromRedux} from './index';
 const PREVIEW_IMAGE_MIN_DIMENSION = 50;
 const DISPROPORTIONATE_HEIGHT_RATIO = 20;
 
-interface Props extends PropsFromRedux {
+export interface Props extends PropsFromRedux {
     postId: string;
     fileInfo: FileInfo;
     isRhsOpen: boolean;
@@ -82,7 +83,7 @@ export default class SingleImageView extends React.PureComponent<Props, State> {
         }
     };
 
-    handleImageClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    handleImageClick = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLDivElement | HTMLImageElement>)) => {
         e.preventDefault();
 
         this.props.actions.openModal({
