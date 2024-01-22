@@ -32,6 +32,27 @@ import './system_users.scss';
 import type {PropsFromRedux} from './index';
 
 type Props = PropsFromRedux;
+type TableOptions = {
+    pageSize?: PaginationState['pageSize'];
+    sortColumn?: SortingState[0]['id'];
+    sortIsDescending?: SortingState[0]['desc'];
+    fromColumnValue?: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
+    fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
+    direction?: CursorPaginationDirection;
+    searchTerm?: string;
+}
+
+const toUserReportOptions = (tableOptions?: TableOptions): UserReportOptions => {
+    return {
+        page_size: tableOptions?.pageSize || PAGE_SIZES[0],
+        from_column_value: tableOptions?.fromColumnValue,
+        from_id: tableOptions?.fromId,
+        direction: tableOptions?.direction,
+        ...getSortColumnForOptions(tableOptions?.sortColumn),
+        ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
+        search_term: tableOptions?.searchTerm,
+    };
+};
 
 const tableId = 'systemUsersTable';
 
@@ -51,36 +72,36 @@ function SystemUsers(props: Props) {
 
     // Effect to get the total user count
     useEffect(() => {
-        const getUserCount = async () => {
-            const {data} = await props.getUserCountForReporting({});
+        const getUserCount = async (tableOptions?: TableOptions) => {
+            const {data} = await props.getUserCountForReporting(toUserReportOptions(tableOptions));
             setUserCount(data);
         };
 
-        getUserCount();
-    }, []);
+        getUserCount({
+            pageSize: props.tablePropertyPageSize,
+            sortColumn: props.tablePropertySortColumn,
+            sortIsDescending: props.tablePropertySortIsDescending,
+            fromColumnValue: props.tablePropertyCursorColumnValue,
+            fromId: props.tablePropertyCursorUserId,
+            direction: props.tablePropertyCursorDirection,
+            searchTerm: props.tablePropertySearchTerm,
+        });
+    }, [
+        props.tablePropertyPageSize,
+        props.tablePropertySortColumn,
+        props.tablePropertySortIsDescending,
+        props.tablePropertyCursorDirection,
+        props.tablePropertyCursorColumnValue,
+        props.tablePropertyCursorUserId,
+        props.tablePropertySearchTerm,
+    ]);
 
     // Effect to get the user reports
     useEffect(() => {
-        async function fetchUserReportsWithOptions(tableOptions?: {
-            pageSize?: PaginationState['pageSize'];
-            sortColumn?: SortingState[0]['id'];
-            sortIsDescending?: SortingState[0]['desc'];
-            fromColumnValue?: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
-            fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
-            direction?: CursorPaginationDirection;
-        }) {
+        async function fetchUserReportsWithOptions(tableOptions?: TableOptions) {
             setLoadingState(LoadingStates.Loading);
 
-            const options: UserReportOptions = {
-                page_size: tableOptions?.pageSize || PAGE_SIZES[0],
-                from_column_value: tableOptions?.fromColumnValue,
-                from_id: tableOptions?.fromId,
-                direction: tableOptions?.direction,
-                ...getSortColumnForOptions(tableOptions?.sortColumn),
-                ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
-            };
-
-            const {data} = await props.getUserReports(options);
+            const {data} = await props.getUserReports(toUserReportOptions(tableOptions));
 
             if (data) {
                 if (data.length > 0) {
@@ -101,6 +122,7 @@ function SystemUsers(props: Props) {
             fromColumnValue: props.tablePropertyCursorColumnValue,
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
+            searchTerm: props.tablePropertySearchTerm,
         });
     }, [
         props.tablePropertyPageSize,
@@ -109,6 +131,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorDirection,
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
+        props.tablePropertySearchTerm,
     ]);
 
     // Handlers for table actions
