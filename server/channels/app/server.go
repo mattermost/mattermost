@@ -44,6 +44,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
@@ -224,11 +225,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
-	}
-
-	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
-		s.LoadLicense()
 	}
 
 	s.licenseWrapper = &licenseWrapper{
@@ -1675,6 +1671,12 @@ func (s *Server) initJobs() {
 		model.JobTypeRefreshPostStats,
 		refresh_post_stats.MakeWorker(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
 		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
+	)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportUsersToCSV,
+		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil,
 	)
 
 	s.platform.Jobs = s.Jobs
