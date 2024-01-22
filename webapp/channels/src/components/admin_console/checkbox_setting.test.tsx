@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+
 import {renderWithContext, screen, fireEvent} from 'tests/react_testing_utils';
 
 import CheckboxSetting from './checkbox_setting';
