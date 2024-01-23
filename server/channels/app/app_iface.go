@@ -1082,7 +1082,7 @@ type AppIface interface {
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	SendPersistentNotifications() error
-	SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError
+	SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError
 	SendTestPushNotification(deviceID string) string
 	SendUpgradeConfirmationEmail(isYearly bool) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
@@ -1127,7 +1127,7 @@ type AppIface interface {
 	SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
 	SoftDeleteTeam(teamID string) *model.AppError
 	Srv() *Server
-	StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64) *model.AppError
+	StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError
 	SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)

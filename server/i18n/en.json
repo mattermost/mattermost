@@ -6683,6 +6683,26 @@
     "translation": "Unable to save the token."
   },
   {
+    "id": "app.report.data_type.export_users_to_csv",
+    "translation": "The CSV file contains user data"
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "all time"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "the last 30 days"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "the last 6 months"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "the previous month"
+  },
+  {
     "id": "app.report.get_user_count_for_report.store_error",
     "translation": "Failed to fetch user count."
   },
@@ -6696,7 +6716,15 @@
   },
   {
     "id": "app.report.send_report_to_user.export_finished",
-    "translation": "Report processing is finished. You can download the report [here]({{.Link}})"
+    "translation": "Your export is ready. {{.DataType}} for {{.DateRange}}. Click on the link below to download the report.\n{{.Link}}"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Missing date range"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "No user id to send the report to"
   },
   {
     "id": "app.report.start_users_batch_export.job_exists",
@@ -6708,7 +6736,7 @@
   },
   {
     "id": "app.report.start_users_batch_export.started_export",
-    "translation": "You have requested the export of user data. A CSV will be delivered to you when the export is complete."
+    "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",

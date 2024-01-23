@@ -15960,7 +15960,7 @@ func (a *OpenTracingAppLayer) SendPersistentNotifications() error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError {
+func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendReportToUser")
 
@@ -15972,7 +15972,7 @@ func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, userID string, 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendReportToUser(rctx, userID, jobId, format)
+	resultVar0 := a.app.SendReportToUser(rctx, job, format)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16923,7 +16923,7 @@ func (a *OpenTracingAppLayer) SoftDeleteTeam(teamID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64) *model.AppError {
+func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StartUsersBatchExport")
 
@@ -16935,7 +16935,7 @@ func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, startAt in
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.StartUsersBatchExport(rctx, startAt, endAt)
+	resultVar0 := a.app.StartUsersBatchExport(rctx, dateRange, startAt, endAt)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

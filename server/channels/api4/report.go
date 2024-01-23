@@ -83,7 +83,7 @@ func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	startAt, endAt := model.GetReportDateRange(r.URL.Query().Get("date_range"), time.Now())
-	if err := c.App.StartUsersBatchExport(c.AppContext, startAt, endAt); err != nil {
+	if err := c.App.StartUsersBatchExport(c.AppContext, r.URL.Query().Get("date_range"), startAt, endAt); err != nil {
 		c.Err = err
 		return
 	}

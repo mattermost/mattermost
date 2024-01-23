@@ -84,26 +84,34 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 	return nil
 }
 
-func (a *App) SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError {
+func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
+	requestingUserId := job.Data["requesting_user_id"]
+	if requestingUserId == "" {
+		return model.NewAppError("SendReportToUser", "app.report.send_report_to_user.missing_user_id", nil, "", http.StatusInternalServerError)
+	}
+	dateRange := job.Data["date_range"]
+	if dateRange == "" {
+		return model.NewAppError("SendReportToUser", "app.report.send_report_to_user.missing_date_range", nil, "", http.StatusInternalServerError)
+	}
 	systemBot, err := a.GetSystemBot()
 	if err != nil {
 		return err
 	}
 
-	channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), userID, systemBot.UserId)
+	channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), requestingUserId, systemBot.UserId)
 	if err != nil {
 		return err
 	}
 
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message:   i18n.T("app.report.send_report_to_user.export_finished", map[string]string{"Link": a.GetSiteURL() + "/api/v4/reports/export/" + jobId + "?format=" + format}),
-		Type:      model.PostTypeAdminReport,
-		UserId:    systemBot.UserId,
-		Props: model.StringInterface{
-			"reportId": jobId,
-			"format":   format,
-		},
+		Message: i18n.T("app.report.send_report_to_user.export_finished", map[string]string{
+			"Link":      a.GetSiteURL() + "/api/v4/reports/export/" + job.Id + "?format=" + format,
+			"DataType":  getDataTypeFromJobType(job.Type),
+			"DateRange": getTranslatedDateRange(dateRange),
+		}),
+		Type:   model.PostTypeDefault,
+		UserId: systemBot.UserId,
 	}
 
 	_, err = a.CreatePost(rctx, post, channel, false, true)
@@ -168,13 +176,14 @@ func (a *App) GetUserCountForReport(filter *model.UserReportOptions) (*int64, *m
 	return &count, nil
 }
 
-func (a *App) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64) *model.AppError {
+func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError {
 	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
 		return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.license_error", nil, "", http.StatusBadRequest)
 	}
 
 	options := map[string]string{
 		"requesting_user_id": rctx.Session().UserId,
+		"date_range":         dateRange,
 		"start_at":           strconv.FormatInt(startAt, 10),
 		"end_at":             strconv.FormatInt(endAt, 10),
 	}
@@ -186,7 +195,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64
 		return err
 	}
 	for _, job := range pendingJobs {
-		if job.Data["start_at"] == options["start_at"] && job.Data["end_at"] == options["end_at"] && job.Data["requesting_user_id"] == rctx.Session().UserId {
+		if job.Data["date_range"] == options["date_range"] && job.Data["requesting_user_id"] == rctx.Session().UserId {
 			return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -196,7 +205,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64
 		return err
 	}
 	for _, job := range inProgressJobs {
-		if job.Data["start_at"] == options["start_at"] && job.Data["end_at"] == options["end_at"] && job.Data["requesting_user_id"] == rctx.Session().UserId {
+		if job.Data["date_range"] == options["date_range"] && job.Data["requesting_user_id"] == rctx.Session().UserId {
 			return model.NewAppError("StartUsersBatchExport", "app.report.start_users_batch_export.job_exists", nil, "", http.StatusBadRequest)
 		}
 	}
@@ -221,7 +230,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64
 
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message:   i18n.T("app.report.start_users_batch_export.started_export"),
+			Message:   i18n.T("app.report.start_users_batch_export.started_export", map[string]string{"DateRange": getTranslatedDateRange(dateRange)}),
 			Type:      model.PostTypeDefault,
 			UserId:    systemBot.UserId,
 		}
@@ -246,4 +255,26 @@ func (a *App) RetrieveBatchReport(reportID string, format string) (filestore.Rea
 	}
 
 	return reader, makeCompiledFilename(reportID, format), nil
+}
+
+func getDataTypeFromJobType(jobType string) string {
+	switch jobType {
+	case model.JobTypeExportUsersToCSV:
+		return i18n.T("app.report.data_type.export_users_to_csv")
+	default:
+		return ""
+	}
+}
+
+func getTranslatedDateRange(dateRange string) string {
+	switch dateRange {
+	case model.ReportDurationLast30Days:
+		return i18n.T("app.report.date_range.last_30_days")
+	case model.ReportDurationPreviousMonth:
+		return i18n.T("app.report.date_range.previous_month")
+	case model.ReportDurationLast6Months:
+		return i18n.T("app.report.date_range.last_6_months")
+	default:
+		return i18n.T("app.report.date_range.all_time")
+	}
 }
