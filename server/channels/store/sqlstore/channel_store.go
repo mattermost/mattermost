@@ -4516,17 +4516,33 @@ func (s SqlChannelStore) channelReportApplyPagination(filter *model.ChannelRepor
 }
 
 func (s SqlChannelStore) channelReportApplySorting(filter *model.ChannelReportOptions, query sq.SelectBuilder) sq.SelectBuilder {
-	sortDirection := "DESC"
+	var sortColumnSortDirection string
+	var idColumnSortDirection string
+
 	if filter.SortDesc {
-		sortDirection = "ASC"
+		if filter.Direction == "next" {
+			sortColumnSortDirection = "DESC"
+			idColumnSortDirection = "DESC"
+		} else {
+			sortColumnSortDirection = "ASC"
+			idColumnSortDirection = "ASC"
+		}
+	} else {
+		if filter.Direction == "next" {
+			sortColumnSortDirection = "ASC"
+			idColumnSortDirection = "ASC"
+		} else {
+			sortColumnSortDirection = "DESC"
+			idColumnSortDirection = "ASC"
+		}
 	}
 
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
-		query = query.OrderBy("c.displayname "+sortDirection, "c.id ASC")
+		query = query.OrderBy("c.displayname "+sortColumnSortDirection, "c.id "+idColumnSortDirection)
 	} else if filter.SortColumn == model.ChannelReportingSortByPostCount {
-		query = query.OrderBy("postcount "+sortDirection, "c.id ASC")
+		query = query.OrderBy("postcount "+sortColumnSortDirection, "c.id "+idColumnSortDirection)
 	} else if filter.SortColumn == model.ChannelReportingSortByMemberCount {
-		query = query.OrderBy("membercount "+sortDirection, "c.id ASC")
+		query = query.OrderBy("membercount "+sortColumnSortDirection, "c.id "+idColumnSortDirection)
 	}
 
 	return query
