@@ -50,6 +50,10 @@ type ServerIface interface {
 	GetMetrics() einterfaces.MetricsInterface
 }
 
+type AppIface interface {
+	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+}
+
 // RemoteClusterServiceIFace is used to allow mocking where a remote cluster service is used (for testing).
 // Unfortunately it lives here because the shared channel service, app layer, and server interface all need it.
 // Putting it in app layer means shared channel service must import app package.
@@ -66,6 +70,8 @@ type RemoteClusterServiceIFace interface {
 	SendProfileImage(ctx context.Context, userID string, rc *model.RemoteCluster, provider ProfileImageProvider, f SendProfileImageResultFunc) error
 	AcceptInvitation(invite *model.RemoteClusterInvite, name string, displayName string, creatorId string, teamId string, siteURL string) (*model.RemoteCluster, error)
 	ReceiveIncomingMsg(rc *model.RemoteCluster, msg model.RemoteClusterMsg) Response
+	ReceiveInviteConfirmation(invite model.RemoteClusterInvite) (*model.RemoteCluster, error)
+	PingNow(rc *model.RemoteCluster)
 }
 
 // TopicListener is a callback signature used to listen for incoming messages for
@@ -78,6 +84,7 @@ type ConnectionStateListener func(rc *model.RemoteCluster, online bool)
 // Service provides inter-cluster communication via topic based messages. In product these are called "Secured Connections".
 type Service struct {
 	server     ServerIface
+	app        AppIface
 	httpClient *http.Client
 	send       []chan any
 
@@ -88,10 +95,11 @@ type Service struct {
 	topicListeners           map[string]map[string]TopicListener // maps topic id to a map of listenerid->listener
 	connectionStateListeners map[string]ConnectionStateListener  // maps listener id to listener
 	done                     chan struct{}
+	pingFreq                 time.Duration
 }
 
 // NewRemoteClusterService creates a RemoteClusterService instance. In product this is called a "Secured Connection".
-func NewRemoteClusterService(server ServerIface) (*Service, error) {
+func NewRemoteClusterService(server ServerIface, app AppIface) (*Service, error) {
 	transport := &http.Transport{
 		Proxy: http.ProxyFromEnvironment,
 		DialContext: (&net.Dialer{
@@ -115,6 +123,7 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 
 	service := &Service{
 		server:                   server,
+		app:                      app,
 		httpClient:               client,
 		topicListeners:           make(map[string]map[string]TopicListener),
 		connectionStateListeners: make(map[string]ConnectionStateListener),
@@ -124,6 +133,7 @@ func NewRemoteClusterService(server ServerIface) (*Service, error) {
 	for i := range service.send {
 		service.send[i] = make(chan any, SendChanBuffer)
 	}
+	service.pingFreq = PingFreq
 
 	return service, nil
 }
@@ -152,6 +162,21 @@ func (rcs *Service) Active() bool {
 	rcs.mux.Lock()
 	defer rcs.mux.Unlock()
 	return rcs.active
+}
+
+// GetPingFreq gets the frequency of pings to each remote.
+func (rcs *Service) GetPingFreq() time.Duration {
+	rcs.mux.Lock()
+	defer rcs.mux.Unlock()
+	return rcs.pingFreq
+}
+
+// SetPingFreq sets the frequency of pings to each remote. Defaults to `PingFreq`.
+// This is typically used to set a higher frequency for testing.
+func (rcs *Service) SetPingFreq(freq time.Duration) {
+	rcs.mux.Lock()
+	defer rcs.mux.Unlock()
+	rcs.pingFreq = freq
 }
 
 // AddTopicListener registers a callback

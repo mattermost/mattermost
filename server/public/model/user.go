@@ -1007,3 +1007,16 @@ type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
 }
+
+func (u *User) EmailDomain() string {
+	at := strings.LastIndex(u.Email, "@")
+	// at >= 0 holds true and this is not checked here. It holds true, because during signup we run `mail.ParseAddress(email)`
+	return u.Email[at+1:]
+}
+
+type UserPostStats struct {
+	LastStatusAt *int64 `json:"last_status_at,omitempty"`
+	LastPostDate *int64 `json:"last_post_date,omitempty"`
+	DaysActive   *int   `json:"days_active,omitempty"`
+	TotalPosts   *int   `json:"total_posts,omitempty"`
+}

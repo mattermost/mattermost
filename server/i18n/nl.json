@@ -1728,7 +1728,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Team beperken tot {{.Domain}} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
+    "translation": "Team beperken tot {{ .Domain }} is niet toegestaan door de systeemconfiguratie. Neem contact op met jouw systeembeheerder."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -2440,7 +2440,7 @@
   },
   {
     "id": "app.import.import_line.unknown_line_type.error",
-    "translation": "Geïmporteerde lijn heeft onbekend type \"\"{.Type}}\"."
+    "translation": "Geïmporteerde lijn heeft onbekend type \"{{.Type}}\"."
   },
   {
     "id": "app.import.import_post.channel_not_found.error",
@@ -2852,15 +2852,15 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nieuw groepsbericht van {{.ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nieuw groepsbericht van {{ .ChannelName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nieuwe Notificatie voor {{.Month}} {{.Day}}, {{.Year}}"
+    "translation": "{{ .SiteName }}[{{.SiteName}}] Nieuw groepsbericht op  {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Nieuw vermelding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Melding in {{ .TeamName}} op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
@@ -2992,7 +2992,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "Clusterconfiguratie is gewijzigd voor id= {{.id}}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet u onmiddellijk een rollende herstart uitvoeren."
+    "translation": "Clusterconfiguratie is gewijzigd voor id= {{ .id }}. De cluster kan instabiel worden en een herstart is vereist. Om ervoor te zorgen dat de cluster correct is geconfigureerd, moet je onmiddellijk een rollende herstart uitvoeren."
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -3376,7 +3376,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger-ID voor interactief dialoogvenster is vervallen. Trigger-ID's hebben een levensduur van maximum {{.Seconds}} seconden."
+    "translation": "Trigger-ID voor interactief dialoogvenster is verlopen. Trigger-ID's blijven maximaal {{.Duration}} geldig."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -3720,11 +3720,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Het bewaren van bestanden moet een dag of langer zijn."
+    "translation": "Het aantal dagen dat bestanden bewaard wordt mag niet kleiner zijn dan 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Het bewaren van berichten moet een dag of langer zijn."
+    "translation": "Het aantal dagen dat berichten bewaard wordt mag niet kleiner zijn dan 0."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -3884,7 +3884,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Bericht Export GlobalRelaySettings. CustomerType moet worden ingesteld op 'A9' of 'A10."
+    "translation": "Message export GlobalRelaySettings.CustomerType moet worden ingesteld op \"A9\", \"A10\" of \"CUSTOM\"."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -4492,7 +4492,7 @@
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number.app_error",
-    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten"
+    "translation": "Het wachtwoord moet minimaal uit {{.Min}} karakters bestaan en minimaal 1 kleine letter, 1 hoofdletter en 1 cijfer bevatten."
   },
   {
     "id": "model.user.is_valid.pwd_lowercase_uppercase_number_symbol.app_error",
@@ -4544,11 +4544,11 @@
   },
   {
     "id": "model.user_access_token.is_valid.token.app_error",
-    "translation": "Ongeldig toegangs token"
+    "translation": "Ongeldig toegangstoken."
   },
   {
     "id": "model.user_access_token.is_valid.user_id.app_error",
-    "translation": "Ongeldige gebruikers id"
+    "translation": "Ongeldige gebruikersid."
   },
   {
     "id": "model.utils.decode_json.app_error",
@@ -4844,7 +4844,7 @@
   },
   {
     "id": "model.user.is_valid.update_at.app_error",
-    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn"
+    "translation": "Het veld 'bijgewerkt op' moet een geldige tijd zijn."
   },
   {
     "id": "model.user.is_valid.position.app_error",
@@ -5716,7 +5716,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{.Team}}** team."
+    "translation": "Je kunt {{.Users}} toevoegen aan dit kanaal zodra ze lid zijn van het **{{.Team}}** team."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -7892,7 +7892,7 @@
   },
   {
     "id": "api.back_to_app",
-    "translation": "Terug naar {{.siteName}}"
+    "translation": "Terug naar {{.SiteName}}"
   },
   {
     "id": "api.user.update_user_auth.invalid_request",
@@ -8396,7 +8396,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Fout tijdens het controleren of een gedeeld kanaal bestaat: {{.Error}}"
+    "translation": "Fout bij het controleren of gedeeld kanaal {{.ChannelID}} bestaat: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8424,7 +8424,7 @@
   },
   {
     "id": "api.command_share.available_actions",
-    "translation": "Beschikbare acties: {{.Acties}}"
+    "translation": "Beschikbare acties: {{.Actions}}"
   },
   {
     "id": "api.command_remote.unknown_action",
@@ -8468,7 +8468,7 @@
   },
   {
     "id": "api.command_remote.remote_add_remove.help",
-    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Acties}}"
+    "translation": "Beveiligde verbindingen toevoegen/verwijderen. Beschikbare acties: {{.Actions}}"
   },
   {
     "id": "api.command_remote.permission_required",
@@ -8532,7 +8532,7 @@
   },
   {
     "id": "api.command_remote.decode_invitation.error",
-    "translation": "Kon de uitnodiging niet decoderen: {{.Fout}}"
+    "translation": "Kon de uitnodiging niet decoderen: {{.Error}}"
   },
   {
     "id": "api.command_remote.cluster_removed",
@@ -8855,7 +8855,7 @@
   },
   {
     "id": "app.notification.body.thread_dm.subTitle",
-    "translation": "Terwijl je weg was, heeft {{.Afzendernaam}} op een draadje in je privé-berichten geantwoord."
+    "translation": "Terwijl je weg was, heeft {{.SenderName}} op een draadje in je privé-bericht geantwoord."
   },
   {
     "id": "app.notification.body.thread_channel_full.subTitle",
@@ -9139,7 +9139,7 @@
   },
   {
     "id": "common.parse_error_int64",
-    "translation": "Mislukt om de waarde te ontleden:{{.Waarde}} naar int64"
+    "translation": "Mislukt om de waarde te ontleden:{{.Value}} naar int64"
   },
   {
     "id": "app.post.cloud.get.app_error",
@@ -9163,7 +9163,7 @@
   },
   {
     "id": "app.post_reminder_dm",
-    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{.Gebruikersnaam}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
+    "translation": "Hoi hoi, hier is jouw herinnering aan dit bericht van @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
     "id": "app.team.clear_cache.app_error",
@@ -9647,7 +9647,7 @@
   },
   {
     "id": "app.group.username_conflict",
-    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Gebruikersnaam}}\"."
+    "translation": "Er bestaat al een gebruiker met gebruikersnaam \"{{.Username}}\"."
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9875,7 +9875,7 @@
   },
   {
     "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
-    "translation": "Berichten met een blijvende meldingen moeten minimaal {{.MaxRecipients}} 1 ontvanger hebben."
+    "translation": "Berichten met een blijvende meldingen moeten minimaal 1 ontvanger hebben."
   },
   {
     "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
@@ -9907,7 +9907,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.messageOverflow",
-    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{.Team}}** team."
+    "translation": "Je kunt {{.FirstUser}} en {{.Others}} anderen aan dit kanaal toevoegen zodra ze lid zijn van het **{{.Team}}** team."
   },
   {
     "id": "api.user.login.remote_users.login.error",
@@ -10035,7 +10035,7 @@
   },
   {
     "id": "app.plugin.subpath_parse.app_error",
-    "translation": "Fout bij het parsen van het subpad van de  SiteURL"
+    "translation": "Fout bij het parsen van het subpad van de SiteURL"
   },
   {
     "id": "api.templates.ip_filters_changed.title",
@@ -10100,5 +10100,221 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
     "translation": "Bijgewerkt op moet een geldige tijd zijn."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Het bijwerken van de aangepaste status is mislukt. Een emoji met de opgegeven naam bestaat niet."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ongeldig team id opgegeven."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Kan niet zowel actieve als inactieve gebruikers verbergen."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "De reactielimiet voor dit bericht is bereikt."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Als GlobalRelaySettings.CustomerType 'CUSTOM' is, dan moeten GlobalRelaySettings.CustomSMTPServerName en GlobalRelaySettings.CustomSMTPPort worden ingesteld."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Paginaformaat is ongeldig of te groot."
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Draadje kan niet worden verwijderd"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Fout bij het ophalen van gebruikersrapport."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Ongeldige time-out voor uitgaand integratieverzoek voor service-instellingen. Moet een positief getal zijn."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Het opgegeven datumbereik is ongeldig."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "De opgegeven sorteerkolom is ongeldig."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Het begin van het bestand kan niet worden gezocht."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Draadjes verplaatsen is uitgeschakeld"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Je hebt geen rechten om dit draadje te verplaatsen."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Dit draadje was verplaatst vanuit een ander kanaal"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Een draadje met {{.NumMessages}} berichten is verplaatst: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Een bericht is verplaatst: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Een draadje met {{.NumMessages}} berichten is verplaatst naar een Direct/Groepsbericht\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Een bericht is verplaatst naar een Direct/Groepsbericht\n"
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Ongeldig domein voor de instellingen van het verplaatsen van draadjes"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Kan externe niet uitnodigen omdat kanaal {{.ChannelID}} niet wordt gedeeld."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Er is een fout opgetreden bij het weergeven van uitgaande OAuth-verbindingen."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ongeldige invoerparameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Deze functie wordt beperkt door een feature flag."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Kan niet zoveel rollen op naam krijgen. Alleen {{.MaxNames}} rollen kunnen in één keer worden opgevraagd."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het verwijderen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "De uitgaande oauth-verbinding werd niet gevonden."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Kon uitnodiging niet bevestigen: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Er is een fout opgetreden tijdens het parsen van de payload."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Jaarlijkse abonnementsverlenging binnen 60 dagen"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Het aantal uren dat bestanden bewaard wordt mag niet kleiner zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Het aantal dagen en uren dat bestanden bewaard kunnen niet allebei groter zijn dan 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Het aantal dagen en uren dat bestanden bewaard kunnen niet beiden 0 zijn."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Kan de gebruiker niet vinden."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Nu vernieuwen"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Vernieuw om onderbrekingen te voorkomen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Jaarlijkse factuur verschuldigd over 30 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Je jaarlijkse factuur is verschuldigd binnen 30 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Jaarlijkse abonnementsverlenging binnen 60 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Actie vereist: Jaarlijkse abonnementsverlenging over 7 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Je staat op het punt om binnen 7 dagen de toegang tot je werkruimte te verliezen"
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Fout bij het ophalen van het aantal gebruikers"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Gebruikersaantal kon niet worden opgehaald."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Het aantal uren dat berichten bewaard wordt mag niet kleiner zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Het aantal dagen en uren dat berichten bewaard kunnen niet allebei groter zijn dan 0."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Ongeldige maximale payloadgrootte voor service-instellingen. Moet een geheel getal groter dan nul zijn."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Het aantal dagen en uren om bestanden te bewaren kunnen niet allebei 0 zijn."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fout bij het controleren of een gebruiker een aangepaste profielafbeelding heeft."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Kan de meldingsinstellingen van de kanaalleden niet bijwerken."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Kan niet zoveel kanaalleden updaten. Slechts {{.Max}} kanaalleden kunnen in één keer worden bijgewerkt."
   }
 ]

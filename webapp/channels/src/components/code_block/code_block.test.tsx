@@ -1,205 +1,94 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {ReactWrapper} from 'enzyme';
-import {mount} from 'enzyme';
 import React from 'react';
-import {act} from 'react-dom/test-utils';
-import {IntlProvider} from 'react-intl';
-import {Provider as ReduxProvider} from 'react-redux';
 
-import mockStore from 'tests/test_store';
+import {act, renderWithContext, screen} from 'tests/react_testing_utils';
 
 import CodeBlock from './code_block';
 
-const actImmediate = (wrapper: ReactWrapper) =>
+const actImmediate = () =>
     act(
         () =>
             new Promise<void>((resolve) => {
                 setImmediate(() => {
-                    wrapper.update();
                     resolve();
                 });
             }),
     );
 
 describe('codeBlock', () => {
-    const state = {
-        plugins: {components: {CodeBlockAction: []}},
-    };
-    const store = mockStore(state);
-
-    test('should render typescript code block before syntax highlighting', async () => {
+    test('should render typescript code block with syntax highlighting', async () => {
         const language = 'typescript';
-        const input = `\`\`\`${language}
-const myFunction = () => {
+        const input = `const myFunction = () => {
     console.log('This is a meaningful function');
-};
-\`\`\`
-`;
+};`;
 
-        const wrapper = mount(
-            <ReduxProvider store={store}>
-                <IntlProvider locale='en'>
-                    <CodeBlock
-                        code={input}
-                        language={language}
-                    />
-                </IntlProvider>
-            </ReduxProvider>,
+        const {container} = renderWithContext(
+            <CodeBlock
+                code={input}
+                language={language}
+            />,
         );
-        await actImmediate(wrapper);
 
-        const languageHeader = wrapper.find('span.post-code__language').text();
-        const lineNumbersDiv = wrapper.find('.post-code__line-numbers').exists();
+        expect(screen.getByText('TypeScript')).toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
 
-        expect(languageHeader).toEqual('TypeScript');
-        expect(lineNumbersDiv).toBeTruthy();
+        expect(container.querySelector('.hljs-keyword')).not.toBeInTheDocument();
 
-        expect(wrapper).toMatchSnapshot();
-    });
+        // Wait for highlight.js to finish loading
+        await actImmediate();
 
-    test('should render typescript code block after syntax highlighting', async () => {
-        const language = 'typescript';
-        const input = `\`\`\`${language}
-const myFunction = () => {
-    console.log('This is a meaningful function');
-};
-\`\`\`
-`;
+        expect(screen.getByText('TypeScript')).toBeInTheDocument();
+        expect(container.querySelector('.post-code__line-numbers')).toBeInTheDocument();
 
-        const wrapper = mount(
-            <ReduxProvider store={store}>
-                <IntlProvider locale='en'>
-                    <CodeBlock
-                        code={input}
-                        language={language}
-                    />
-                </IntlProvider>
-            </ReduxProvider>,
-        );
-        await actImmediate(wrapper);
-
-        const languageHeader = wrapper.find('span.post-code__language').text();
-        const lineNumbersDiv = wrapper.find('.post-code__line-numbers').exists();
-
-        expect(languageHeader).toEqual('TypeScript');
-        expect(lineNumbersDiv).toBeTruthy();
-
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should render html code block with proper indentation before syntax highlighting', async () => {
-        const language = 'html';
-        const input = `\`\`\`${language}
-<div className='myClass'>
-  <a href='https://randomgibberishurl.com'>ClickMe</a>
-</div>
-\`\`\`
-`;
-
-        const wrapper = mount(
-            <ReduxProvider store={store}>
-                <IntlProvider locale='en'>
-                    <CodeBlock
-                        code={input}
-                        language={language}
-                    />
-                </IntlProvider>
-            </ReduxProvider>,
-        );
-        await actImmediate(wrapper);
-
-        const languageHeader = wrapper.find('span.post-code__language').text();
-        const lineNumbersDiv = wrapper.find('.post-code__line-numbers').exists();
-
-        expect(languageHeader).toEqual('HTML, XML');
-        expect(lineNumbersDiv).toBeTruthy();
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should render html code block with proper indentation after syntax highlighting', async () => {
-        const language = 'html';
-        const input = `\`\`\`${language}
-<div className='myClass'>
-  <a href='https://randomgibberishurl.com'>ClickMe</a>
-</div>
-\`\`\`
-`;
-
-        const wrapper = mount(
-            <ReduxProvider store={store}>
-                <IntlProvider locale='en'>
-                    <CodeBlock
-                        code={input}
-                        language={language}
-                    />
-                </IntlProvider>
-            </ReduxProvider>,
-        );
-        await actImmediate(wrapper);
-
-        const languageHeader = wrapper.find('span.post-code__language').text();
-        const lineNumbersDiv = wrapper.find('.post-code__line-numbers').exists();
-
-        expect(languageHeader).toEqual('HTML, XML');
-        expect(lineNumbersDiv).toBeTruthy();
-        expect(wrapper).toMatchSnapshot();
+        expect(container.querySelector('.hljs-keyword')).toBeInTheDocument();
     });
 
     test('should render unknown language before syntax highlighting', async () => {
         const language = 'unknownLanguage';
-        const input = `\`\`\`${language}
-this is my unknown language
-it shouldn't highlight, it's just garbage
-\`\`\`
-`;
+        const input = `this is my unknown language
+it shouldn't highlight, it's just garbage`;
 
-        const wrapper = mount(
-            <ReduxProvider store={store}>
-                <IntlProvider locale='en'>
-                    <CodeBlock
-                        code={input}
-                        language={language}
-                    />
-                </IntlProvider>
-            </ReduxProvider>,
+        const {container} = renderWithContext(
+            <CodeBlock
+                code={input}
+                language={language}
+            />,
         );
-        await actImmediate(wrapper);
 
-        const languageHeader = wrapper.find('span.post-code__language').exists();
-        const lineNumbersDiv = wrapper.find('.post-code__line-numbers').exists();
+        expect(screen.queryByText('unknownLanguage')).toBeFalsy();
+        expect(container.querySelector('.post-code__line-numbers')).toBeFalsy();
 
-        expect(languageHeader).toBeFalsy();
-        expect(lineNumbersDiv).toBeFalsy();
-        expect(wrapper).toMatchSnapshot();
+        // Wait for highlight.js to finish loading
+        await actImmediate();
+
+        expect(screen.queryByText('unknownLanguage')).toBeFalsy();
+        expect(container.querySelector('.post-code__line-numbers')).toBeFalsy();
     });
 
-    test('should render unknown language after syntax highlighting', async () => {
-        const language = 'unknownLanguage';
-        const input = `\`\`\`${language}
-this is my unknown language
-it shouldn't highlight, it's just garbage
-\`\`\`
-`;
+    test('MM-54468 should not add an extra space before highlighted code in search results', async () => {
+        const language = '';
+        const input = 'foo foo foo foo';
+        const searchedInput = '<span class="search-highlight">foo</span> <span class="search-highlight">foo</span> ' +
+            '<span class="search-highlight">foo</span> <span class="search-highlight">foo</span>';
 
-        const wrapper = mount(
-            <ReduxProvider store={store}>
-                <IntlProvider locale='en'>
-                    <CodeBlock
-                        code={input}
-                        language={language}
-                    />
-                </IntlProvider>
-            </ReduxProvider>,
+        const {container} = renderWithContext(
+            <CodeBlock
+                code={input}
+                language={language}
+                searchedContent={searchedInput}
+            />,
         );
-        await actImmediate(wrapper);
 
-        const languageHeader = wrapper.find('span.post-code__language').exists();
-        const lineNumbersDiv = wrapper.find('.post-code__line-numbers').exists();
+        // There shouldn't be a space between the overlay with search highlighting and the code below
+        expect(container.querySelector('code')).toHaveTextContent('foo foo foo foofoo foo foo foo');
+        expect(container.querySelector('code')).not.toHaveTextContent('foo foo foo foo foo foo foo foo');
 
-        expect(languageHeader).toBeFalsy();
-        expect(lineNumbersDiv).toBeFalsy();
-        expect(wrapper).toMatchSnapshot();
+        // Wait for highlight.js to finish loading
+        await actImmediate();
+
+        expect(container.querySelector('code')).toHaveTextContent('foo foo foo foofoo foo foo foo');
+        expect(container.querySelector('code')).not.toHaveTextContent('foo foo foo foo foo foo foo foo');
     });
 });

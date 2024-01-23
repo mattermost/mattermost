@@ -66,6 +66,7 @@ services:
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
       MM_SERVICEENVIRONMENT: "test"
+      MM_FEATUREFLAGS_MOVETHREADSENABLED: "true"
     network_mode: host
     depends_on:
 $(for service in $ENABLED_DOCKER_SERVICES; do
@@ -171,9 +172,6 @@ $(if mme2e_is_token_in_list "cypress" "$ENABLED_DOCKER_SERVICES"; then
     env_file:
       - "../../e2e-tests/.ci/.env.cypress"
     environment:
-      REPO: "mattermost"
-      # Cypress configuration
-      HEADLESS: "true"
       CYPRESS_baseUrl: "http://localhost:8065"
       CYPRESS_dbConnection: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10"
       CYPRESS_smtpUrl: "http://localhost:9001"
@@ -289,6 +287,8 @@ generate_env_files() {
   export BRANCH=${BRANCH:-$BRANCH_DEFAULT}
   export BUILD_ID=${BUILD_ID:-$BUILD_ID_DEFAULT}
   export CI_BASE_URL="${CI_BASE_URL:-localhost}"
+  export REPO=mattermost # Static, but declared here for making generate_test_cycle.js easier to run
+  export HEADLESS=true   # Static, but declared here for making generate_test_cycle.js easier to run
   case "$TEST" in
   cypress)
     mme2e_log "Cypress: Generating .env.cypress"
@@ -297,8 +297,8 @@ generate_env_files() {
 	BUILD_ID
 	CI_BASE_URL
 	BROWSER
-	AUTOMATION_DASHBOARD_URL
-	AUTOMATION_DASHBOARD_TOKEN
+        HEADLESS
+        REPO
 	EOF
     # Adding service-specific cypress variables
     for SERVICE in $ENABLED_DOCKER_SERVICES; do

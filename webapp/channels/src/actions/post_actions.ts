@@ -15,7 +15,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
@@ -47,8 +47,8 @@ import type {GlobalState} from 'types/store';
 import {completePostReceive} from './new_post';
 import type {NewPostMessageProps} from './new_post';
 
-export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & GroupChannel}): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         let websocketMessageProps = {};
         const state = getState();
         if (msg) {
@@ -146,8 +146,8 @@ function storeCommentDraft(rootPostId: string, draft: null) {
     };
 }
 
-export function submitReaction(postId: string, action: string, emojiName: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function submitReaction(postId: string, action: string, emojiName: string): NewActionFunc<unknown, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
 
@@ -162,9 +162,9 @@ export function submitReaction(postId: string, action: string, emojiName: string
     };
 }
 
-export function toggleReaction(postId: string, emojiName: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function toggleReaction(postId: string, emojiName: string): NewActionFuncAsync<unknown, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
         const getIsReactionAlreadyAddedToPost = makeGetIsReactionAlreadyAddedToPost();
 
         const isReactionAlreadyAddedToPost = getIsReactionAlreadyAddedToPost(state, postId, emojiName);
@@ -176,9 +176,9 @@ export function toggleReaction(postId: string, emojiName: string) {
     };
 }
 
-export function addReaction(postId: string, emojiName: string) {
+export function addReaction(postId: string, emojiName: string): NewActionFunc {
     const getUniqueEmojiNameReactionsForPost = makeGetUniqueEmojiNameReactionsForPost();
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
         const config = getConfig(state);
         const uniqueEmojiNames = getUniqueEmojiNameReactionsForPost(state, postId) ?? [];
@@ -277,8 +277,8 @@ export function unpinPost(postId: string) {
     };
 }
 
-export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = false): NewActionFunc<boolean> {
+    return (dispatch, getState) => {
         const state = getState();
         const post = PostSelectors.getPost(state, postId);
 
@@ -316,8 +316,8 @@ export function unsetEditingPost() {
     };
 }
 
-export function markPostAsUnread(post: Post, location: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function markPostAsUnread(post: Post, location?: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const userId = getCurrentUserId(state);
         const currentTeamId = getCurrentTeamId(state);
@@ -355,14 +355,14 @@ export function markMostRecentPostInChannelAsUnread(channelId: string) {
 }
 
 // Action called by DeletePostModal when the post is deleted
-export function deleteAndRemovePost(post: Post) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteAndRemovePost(post: Post): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         const {error} = await dispatch(PostActions.deletePost(post));
         if (error) {
             return {error};
         }
 
-        if (post.id === getSelectedPostId(getState() as GlobalState)) {
+        if (post.id === getSelectedPostId(getState())) {
             dispatch({
                 type: ActionTypes.SELECT_POST,
                 postId: '',
@@ -371,7 +371,7 @@ export function deleteAndRemovePost(post: Post) {
             });
         }
 
-        if (post.id === getSelectedPostCardId(getState() as GlobalState)) {
+        if (post.id === getSelectedPostCardId(getState())) {
             dispatch({
                 type: ActionTypes.SELECT_POST_CARD,
                 postId: '',
@@ -381,7 +381,7 @@ export function deleteAndRemovePost(post: Post) {
 
         if (post.root_id === '') {
             const key = StoragePrefixes.COMMENT_DRAFT + post.id;
-            if (getGlobalItem(getState() as GlobalState, key, null)) {
+            if (getGlobalItem(getState(), key, null)) {
                 dispatch(removeDraft(key, post.channel_id, post.id));
             }
         }
@@ -425,7 +425,7 @@ export function resetInlineImageVisibility() {
  *
  * @param {string} emittedFrom - It can be either "CENTER", "RHS_ROOT" or "NO_WHERE"
  */
-export function emitShortcutReactToLastPostFrom(emittedFrom: 'CENTER' | 'RHS_ROOT' | 'NO_WHERE') {
+export function emitShortcutReactToLastPostFrom(emittedFrom: keyof typeof Constants.Locations) {
     return {
         type: ActionTypes.EMITTED_SHORTCUT_REACT_TO_LAST_POST,
         payload: emittedFrom,

@@ -2,19 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {DeepPartial} from '@mattermost/types/utilities';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
 import type {BaseProps, BaseState} from './admin_settings';
 import BlockableLink from './blockable_link';
 import BooleanSetting from './boolean_setting';
+import CheckboxSetting from './checkbox_setting';
 import Setting from './setting';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
@@ -33,6 +33,75 @@ type State = BaseState & {
     maximumLoginAttempts?: string;
 };
 
+const messages = defineMessages({
+    passwordMinLength: {id: 'user.settings.security.passwordMinLength', defaultMessage: 'Invalid minimum length, cannot show preview.'},
+    password: {id: 'admin.security.password', defaultMessage: 'Password'},
+    minimumLength: {id: 'admin.password.minimumLength', defaultMessage: 'Minimum Password Length:'},
+    minimumLengthDescription: {id: 'admin.password.minimumLengthDescription', defaultMessage: 'Minimum number of characters required for a valid password. Must be a whole number greater than or equal to {min} and less than or equal to {max}.'},
+    lowercase: {id: 'admin.password.lowercase', defaultMessage: 'At least one lowercase letter'},
+    uppercase: {id: 'admin.password.uppercase', defaultMessage: 'At least one uppercase letter'},
+    number: {id: 'admin.password.number', defaultMessage: 'At least one number'},
+    symbol: {id: 'admin.password.symbol', defaultMessage: 'At least one symbol (e.g. "~!@#$%^&*()")'},
+    preview: {id: 'admin.password.preview', defaultMessage: 'Error message preview:'},
+    attemptTitle: {id: 'admin.service.attemptTitle', defaultMessage: 'Maximum Login Attempts:'},
+    attemptDescription: {id: 'admin.service.attemptDescription', defaultMessage: 'Login attempts allowed before user is locked out and required to reset password via email.'},
+    passwordRequirements: {id: 'passwordRequirements', defaultMessage: 'Password Requirements:'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    [messages.minimumLength, {max: '', min: ''}],
+    [messages.minimumLengthDescription, {max: '', min: ''}],
+    messages.passwordMinLength,
+    messages.password,
+    messages.passwordRequirements,
+    messages.lowercase,
+    messages.uppercase,
+    messages.number,
+    messages.symbol,
+    messages.preview,
+    messages.attemptTitle,
+    messages.attemptDescription,
+];
+
+const passwordErrors = defineMessages({
+    passwordError: {id: 'user.settings.security.passwordError', defaultMessage: 'Must be {min}-{max} characters long.'},
+    passwordErrorLowercase: {id: 'user.settings.security.passwordErrorLowercase', defaultMessage: 'Must be {min}-{max} characters long and include lowercase letters.'},
+    passwordErrorLowercaseNumber: {id: 'user.settings.security.passwordErrorLowercaseNumber', defaultMessage: 'Must be {min}-{max} characters long and include lowercase letters and numbers.'},
+    passwordErrorLowercaseNumberSymbol: {id: 'user.settings.security.passwordErrorLowercaseNumberSymbol', defaultMessage: 'Must be {min}-{max} characters long and include lowercase letters, numbers, and special characters.'},
+    passwordErrorLowercaseSymbol: {id: 'user.settings.security.passwordErrorLowercaseSymbol', defaultMessage: 'Must be {min}-{max} characters long and include lowercase letters and special characters.'},
+    passwordErrorLowercaseUppercase: {id: 'user.settings.security.passwordErrorLowercaseUppercase', defaultMessage: 'Must be {min}-{max} characters long and include both lowercase and uppercase letters.'},
+    passwordErrorLowercaseUppercaseNumber: {id: 'user.settings.security.passwordErrorLowercaseUppercaseNumber', defaultMessage: 'Must be {min}-{max} characters long and include both lowercase and uppercase letters, and numbers.'},
+    passwordErrorLowercaseUppercaseNumberSymbol: {id: 'user.settings.security.passwordErrorLowercaseUppercaseNumberSymbol', defaultMessage: 'Must be {min}-{max} characters long and include both lowercase and uppercase letters, numbers, and special characters.'},
+    passwordErrorLowercaseUppercaseSymbol: {id: 'user.settings.security.passwordErrorLowercaseUppercaseSymbol', defaultMessage: 'Must be {min}-{max} characters long and include both lowercase and uppercase letters, and special characters.'},
+    passwordErrorNumber: {id: 'user.settings.security.passwordErrorNumber', defaultMessage: 'Must be {min}-{max} characters long and include numbers.'},
+    passwordErrorNumberSymbol: {id: 'user.settings.security.passwordErrorNumberSymbol', defaultMessage: 'Must be {min}-{max} characters long and include numbers and special characters.'},
+    passwordErrorSymbol: {id: 'user.settings.security.passwordErrorSymbol', defaultMessage: 'Must be {min}-{max} characters long and include special characters.'},
+    passwordErrorUppercase: {id: 'user.settings.security.passwordErrorUppercase', defaultMessage: 'Must be {min}-{max} characters long and include uppercase letters.'},
+    passwordErrorUppercaseNumber: {id: 'user.settings.security.passwordErrorUppercaseNumber', defaultMessage: 'Must be {min}-{max} characters long and include uppercase letters, and numbers.'},
+    passwordErrorUppercaseNumberSymbol: {id: 'user.settings.security.passwordErrorUppercaseNumberSymbol', defaultMessage: 'Must be {min}-{max} characters long and include uppercase letters, numbers, and special characters.'},
+    passwordErrorUppercaseSymbol: {id: 'user.settings.security.passwordErrorUppercaseSymbol', defaultMessage: 'Must be {min}-{max} characters long and include uppercase letters, and special characters.'},
+});
+
+function getPasswordErrorsMessage(lowercase?: boolean, uppercase?: boolean, number?: boolean, symbol?: boolean) {
+    type KeyType = keyof typeof passwordErrors;
+
+    let key: KeyType = 'passwordError';
+
+    if (lowercase) {
+        key += 'Lowercase';
+    }
+    if (uppercase) {
+        key += 'Uppercase';
+    }
+    if (number) {
+        key += 'Number';
+    }
+    if (symbol) {
+        key += 'Symbol';
+    }
+
+    return passwordErrors[key as KeyType];
+}
 export default class PasswordSettings extends AdminSettings<Props, State> {
     sampleErrorMsg: React.ReactNode;
 
@@ -49,40 +118,14 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
             maximumLoginAttempts: props.config.ServiceSettings.MaximumLoginAttempts,
         });
 
-        // Update sample message from config settings
-        t('user.settings.security.passwordErrorLowercase');
-        t('user.settings.security.passwordErrorLowercaseUppercase');
-        t('user.settings.security.passwordErrorLowercaseUppercaseNumber');
-        t('user.settings.security.passwordErrorLowercaseUppercaseNumberSymbol');
-        t('user.settings.security.passwordErrorLowercaseUppercaseSymbol');
-        t('user.settings.security.passwordErrorLowercaseNumber');
-        t('user.settings.security.passwordErrorLowercaseNumberSymbol');
-        t('user.settings.security.passwordErrorLowercaseSymbol');
-        t('user.settings.security.passwordErrorUppercase');
-        t('user.settings.security.passwordErrorUppercaseNumber');
-        t('user.settings.security.passwordErrorUppercaseNumberSymbol');
-        t('user.settings.security.passwordErrorUppercaseSymbol');
-        t('user.settings.security.passwordErrorNumber');
-        t('user.settings.security.passwordErrorNumberSymbol');
-        t('user.settings.security.passwordErrorSymbol');
-
-        let sampleErrorMsgId = 'user.settings.security.passwordError';
-        if (props.config.PasswordSettings.Lowercase) {
-            sampleErrorMsgId += 'Lowercase';
-        }
-        if (props.config.PasswordSettings.Uppercase) {
-            sampleErrorMsgId += 'Uppercase';
-        }
-        if (props.config.PasswordSettings.Number) {
-            sampleErrorMsgId += 'Number';
-        }
-        if (props.config.PasswordSettings.Symbol) {
-            sampleErrorMsgId += 'Symbol';
-        }
         this.sampleErrorMsg = (
             <FormattedMessage
-                id={sampleErrorMsgId}
-                defaultMessage='Your password must contain between {min} and {max} characters.'
+                {...getPasswordErrorsMessage(
+                    props.config.PasswordSettings.Lowercase,
+                    props.config.PasswordSettings.Uppercase,
+                    props.config.PasswordSettings.Number,
+                    props.config.PasswordSettings.Symbol,
+                )}
                 values={{
                     min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -122,30 +165,16 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
 
     getSampleErrorMsg = () => {
         if (this.props.config.PasswordSettings.MinimumLength > Constants.MAX_PASSWORD_LENGTH || this.props.config.PasswordSettings.MinimumLength < Constants.MIN_PASSWORD_LENGTH) {
-            return (
-                <FormattedMessage
-                    id='user.settings.security.passwordMinLength'
-                    defaultMessage='Invalid minimum length, cannot show preview.'
-                />
-            );
-        }
-        let sampleErrorMsgId = 'user.settings.security.passwordError';
-        if (this.state.passwordLowercase) {
-            sampleErrorMsgId += 'Lowercase';
-        }
-        if (this.state.passwordUppercase) {
-            sampleErrorMsgId += 'Uppercase';
-        }
-        if (this.state.passwordNumber) {
-            sampleErrorMsgId += 'Number';
-        }
-        if (this.state.passwordSymbol) {
-            sampleErrorMsgId += 'Symbol';
+            return (<FormattedMessage {...messages.passwordMinLength}/>);
         }
         return (
             <FormattedMessage
-                id={sampleErrorMsgId}
-                defaultMessage='Your password must contain between {min} and {max} characters.'
+                {...getPasswordErrorsMessage(
+                    this.state.passwordLowercase,
+                    this.state.passwordUppercase,
+                    this.state.passwordNumber,
+                    this.state.passwordSymbol,
+                )}
                 values={{
                     min: (this.state.passwordMinimumLength || Constants.MIN_PASSWORD_LENGTH),
                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -154,18 +183,15 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
         );
     };
 
-    handleCheckboxChange = (id: string) => {
-        return (event: React.ChangeEvent<HTMLInputElement>) => {
-            this.handleChange(id, event.target.checked);
+    handleBooleanChange = (id: string) => {
+        return (_: string, value: boolean) => {
+            this.handleChange(id, value);
         };
     };
 
     renderTitle() {
         return (
-            <FormattedMessage
-                id='admin.security.password'
-                defaultMessage='Password'
-            />
+            <FormattedMessage {...messages.password}/>
         );
     }
 
@@ -175,17 +201,11 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                 <div>
                     <TextSetting
                         id='passwordMinimumLength'
-                        label={
-                            <FormattedMessage
-                                id='admin.password.minimumLength'
-                                defaultMessage='Minimum Password Length:'
-                            />
-                        }
-                        placeholder={Utils.localizeMessage('admin.password.minimumLengthExample', 'E.g.: "5"')}
+                        label={<FormattedMessage {...messages.minimumLength}/>}
+                        placeholder={defineMessage({id: 'admin.password.minimumLengthExample', defaultMessage: 'E.g.: "5"'})}
                         helpText={
                             <FormattedMessage
-                                id='admin.password.minimumLengthDescription'
-                                defaultMessage='Minimum number of characters required for a valid password. Must be a whole number greater than or equal to {min} and less than or equal to {max}.'
+                                {...messages.minimumLengthDescription}
                                 values={{
                                     min: Constants.MIN_PASSWORD_LENGTH,
                                     max: Constants.MAX_PASSWORD_LENGTH,
@@ -198,80 +218,60 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                         disabled={this.props.isDisabled}
                     />
                     <Setting
-                        label={
-                            <FormattedMessage
-                                id='passwordRequirements'
-                                defaultMessage='Password Requirements:'
-                            />
-                        }
+                        label={<FormattedMessage {...messages.passwordRequirements}/>}
                     >
                         <div>
-                            <label className='checkbox-inline'>
-                                <input
-                                    type='checkbox'
-                                    defaultChecked={this.state.passwordLowercase}
-                                    name='admin.password.lowercase'
-                                    disabled={this.props.isDisabled}
-                                    onChange={this.handleCheckboxChange('passwordLowercase')}
-                                />
-                                <FormattedMessage
-                                    id='admin.password.lowercase'
-                                    defaultMessage='At least one lowercase letter'
-                                />
-                            </label>
+                            <CheckboxSetting
+                                id='admin.password.lowercase'
+                                label={
+                                    <FormattedMessage {...messages.lowercase}/>
+                                }
+                                defaultChecked={this.state.passwordLowercase}
+                                onChange={this.handleBooleanChange('passwordLowercase')}
+                                setByEnv={this.isSetByEnv('PasswordSettings.Lowercase')}
+                                disabled={this.props.isDisabled}
+                            />
                         </div>
                         <div>
-                            <label className='checkbox-inline'>
-                                <input
-                                    type='checkbox'
-                                    defaultChecked={this.state.passwordUppercase}
-                                    name='admin.password.uppercase'
-                                    disabled={this.props.isDisabled}
-                                    onChange={this.handleCheckboxChange('passwordUppercase')}
-                                />
-                                <FormattedMessage
-                                    id='admin.password.uppercase'
-                                    defaultMessage='At least one uppercase letter'
-                                />
-                            </label>
+                            <CheckboxSetting
+                                id='admin.password.uppercase'
+                                label={
+                                    <FormattedMessage {...messages.uppercase}/>
+                                }
+                                defaultChecked={this.state.passwordUppercase}
+                                onChange={this.handleBooleanChange('passwordUppercase')}
+                                setByEnv={this.isSetByEnv('PasswordSettings.Uppercase')}
+                                disabled={this.props.isDisabled}
+                            />
                         </div>
                         <div>
-                            <label className='checkbox-inline'>
-                                <input
-                                    type='checkbox'
-                                    defaultChecked={this.state.passwordNumber}
-                                    name='admin.password.number'
-                                    disabled={this.props.isDisabled}
-                                    onChange={this.handleCheckboxChange('passwordNumber')}
-                                />
-                                <FormattedMessage
-                                    id='admin.password.number'
-                                    defaultMessage='At least one number'
-                                />
-                            </label>
+                            <CheckboxSetting
+                                id='admin.password.number'
+                                label={
+                                    <FormattedMessage {...messages.number}/>
+                                }
+                                defaultChecked={this.state.passwordNumber}
+                                onChange={this.handleBooleanChange('passwordNumber')}
+                                setByEnv={this.isSetByEnv('PasswordSettings.Number')}
+                                disabled={this.props.isDisabled}
+                            />
                         </div>
                         <div>
-                            <label className='checkbox-inline'>
-                                <input
-                                    type='checkbox'
-                                    defaultChecked={this.state.passwordSymbol}
-                                    name='admin.password.symbol'
-                                    disabled={this.props.isDisabled}
-                                    onChange={this.handleCheckboxChange('passwordSymbol')}
-                                />
-                                <FormattedMessage
-                                    id='admin.password.symbol'
-                                    defaultMessage='At least one symbol (e.g. "~!@#$%^&*()")'
-                                />
-                            </label>
+                            <CheckboxSetting
+                                id='admin.password.symbol'
+                                label={
+                                    <FormattedMessage {...messages.symbol}/>
+                                }
+                                defaultChecked={this.state.passwordSymbol}
+                                onChange={this.handleBooleanChange('passwordSymbol')}
+                                setByEnv={this.isSetByEnv('PasswordSettings.Symbol')}
+                                disabled={this.props.isDisabled}
+                            />
                         </div>
                         <div>
                             <br/>
                             <label>
-                                <FormattedMessage
-                                    id='admin.password.preview'
-                                    defaultMessage='Error message preview:'
-                                />
+                                <FormattedMessage {...messages.preview}/>
                             </label>
                             <br/>
                             {this.getSampleErrorMsg()}
@@ -283,17 +283,11 @@ export default class PasswordSettings extends AdminSettings<Props, State> {
                     <TextSetting
                         id='maximumLoginAttempts'
                         label={
-                            <FormattedMessage
-                                id='admin.service.attemptTitle'
-                                defaultMessage='Maximum Login Attempts:'
-                            />
+                            <FormattedMessage {...messages.attemptTitle}/>
                         }
-                        placeholder={Utils.localizeMessage('admin.service.attemptExample', 'E.g.: "10"')}
+                        placeholder={defineMessage({id: 'admin.service.attemptExample', defaultMessage: 'E.g.: "10"'})}
                         helpText={
-                            <FormattedMessage
-                                id='admin.service.attemptDescription'
-                                defaultMessage='Login attempts allowed before user is locked out and required to reset password via email.'
-                            />
+                            <FormattedMessage {...messages.attemptDescription}/>
                         }
                         value={this.state.maximumLoginAttempts ?? ''}
                         onChange={this.handleChange}
