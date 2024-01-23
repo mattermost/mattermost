@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
 
@@ -25,6 +26,7 @@ type TeamValue = (Team & Value);
 export type Props = {
     currentSchemeId?: string;
     alreadySelected?: string[];
+    intl: IntlShape;
     excludeGroupConstrained?: boolean;
     searchTerm: string;
     teams: Team[];
@@ -49,7 +51,7 @@ type State = {
     confirmAddTeam: any;
 };
 
-export default class TeamSelectorModal extends React.PureComponent<Props, State> {
+export class TeamSelectorModal extends React.PureComponent<Props, State> {
     private searchTimeoutId?: number;
     private selectedItemRef?: React.RefObject<HTMLDivElement> | undefined;
     private currentSchemeId?: string;
@@ -297,6 +299,7 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
                         key='addTeamsToSchemeKey'
                         options={teamsValues}
                         optionRenderer={this.renderOption}
+                        intl={this.props.intl}
                         selectedItemRef={this.selectedItemRef}
                         values={this.state.values}
                         valueRenderer={this.renderValue}
@@ -317,3 +320,5 @@ export default class TeamSelectorModal extends React.PureComponent<Props, State>
         );
     }
 }
+
+export default injectIntl(TeamSelectorModal);

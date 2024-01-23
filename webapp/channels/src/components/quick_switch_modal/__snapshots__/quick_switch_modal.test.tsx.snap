@@ -32,13 +32,10 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
 >
   <ModalHeader
     bsClass="modal-header"
+    className="modal-header"
     closeButton={true}
     closeLabel="Close"
     id="quickSwitchModalLabel"
-  />
-  <ModalBody
-    bsClass="modal-body"
-    componentClass="div"
   >
     <div
       className="channel-switcher__header"
@@ -62,6 +59,11 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
         />
       </div>
     </div>
+  </ModalHeader>
+  <ModalBody
+    bsClass="modal-body"
+    componentClass="div"
+  >
     <div
       className="channel-switcher__suggestion-box"
     >
@@ -90,6 +92,13 @@ exports[`components/QuickSwitchModal should match snapshot 1`] = `
               "latestComplete": true,
               "latestPrefix": "",
               "requestStarted": false,
+              "store": Object {
+                "@@observable": [Function],
+                "dispatch": [Function],
+                "getState": [Function],
+                "replaceReducer": [Function],
+                "subscribe": [Function],
+              },
             },
           ]
         }

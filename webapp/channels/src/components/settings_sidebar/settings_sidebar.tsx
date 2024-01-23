@@ -7,7 +7,6 @@ import {FormattedMessage} from 'react-intl';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
-import * as UserAgent from 'utils/user_agent';
 import {a11yFocus} from 'utils/utils';
 
 export type Tab = {
@@ -52,12 +51,6 @@ export default class SettingsSidebar extends React.PureComponent<Props> {
             }
         }
     };
-
-    public componentDidMount() {
-        if (UserAgent.isFirefox()) {
-            document.querySelector('.settings-modal .settings-table .nav')?.classList.add('position--top');
-        }
-    }
 
     private renderTab(tab: Tab, index: number) {
         const key = `${tab.name}_li`;
