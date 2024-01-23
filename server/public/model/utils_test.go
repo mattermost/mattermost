@@ -1119,3 +1119,164 @@ func TestRemoveDuplicateStrings(t *testing.T) {
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }
+
+func TestStructFromJSONLimited(t *testing.T) {
+	t.Run("successfully parses basic struct", func(t *testing.T) {
+		type TestStruct struct {
+			StringField string
+			IntField    int
+			FloatField  float32
+			BoolField   bool
+		}
+
+		testStruct := TestStruct{
+			StringField: "string",
+			IntField:    2,
+			FloatField:  3.1415,
+			BoolField:   true,
+		}
+		testStructBytes, err := json.Marshal(testStruct)
+		require.NoError(t, err)
+
+		b := &TestStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 1000, b)
+		require.NoError(t, err)
+
+		require.Equal(t, b.StringField, "string")
+		require.Equal(t, b.IntField, 2)
+		require.Equal(t, b.FloatField, float32(3.1415))
+		require.Equal(t, b.BoolField, true)
+	})
+
+	t.Run("error too big", func(t *testing.T) {
+		type TestStruct struct {
+			StringField string
+			IntField    int
+			FloatField  float32
+			BoolField   bool
+		}
+
+		testStruct := TestStruct{
+			StringField: "string",
+			IntField:    2,
+			FloatField:  3.1415,
+			BoolField:   true,
+		}
+		testStructBytes, err := json.Marshal(testStruct)
+		require.NoError(t, err)
+
+		b := &TestStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 10, b)
+		require.Error(t, err)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	})
+
+	t.Run("successfully parses nested struct", func(t *testing.T) {
+		type TestStruct struct {
+			StringField string
+			IntField    int
+			FloatField  float32
+			BoolField   bool
+		}
+
+		type NestedStruct struct {
+			FieldA TestStruct
+			FieldB TestStruct
+			FieldC []int
+		}
+
+		testStructA := TestStruct{
+			StringField: "string A",
+			IntField:    2,
+			FloatField:  3.1415,
+			BoolField:   true,
+		}
+
+		testStructB := TestStruct{
+			StringField: "string B",
+			IntField:    3,
+			FloatField:  100,
+			BoolField:   false,
+		}
+
+		nestedStruct := NestedStruct{
+			FieldA: testStructA,
+			FieldB: testStructB,
+			FieldC: []int{5, 9, 1, 5, 7},
+		}
+
+		nestedStructBytes, err := json.Marshal(nestedStruct)
+		require.NoError(t, err)
+
+		b := &NestedStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(nestedStructBytes), 1000, b)
+		require.NoError(t, err)
+
+		require.Equal(t, b.FieldA.StringField, "string A")
+		require.Equal(t, b.FieldA.IntField, 2)
+		require.Equal(t, b.FieldA.FloatField, float32(3.1415))
+		require.Equal(t, b.FieldA.BoolField, true)
+
+		require.Equal(t, b.FieldB.StringField, "string B")
+		require.Equal(t, b.FieldB.IntField, 3)
+		require.Equal(t, b.FieldB.FloatField, float32(100))
+		require.Equal(t, b.FieldB.BoolField, false)
+
+		require.Equal(t, b.FieldC, []int{5, 9, 1, 5, 7})
+	})
+
+	t.Run("errors on too big nested struct", func(t *testing.T) {
+		type TestStruct struct {
+			StringField string
+			IntField    int
+			FloatField  float32
+			BoolField   bool
+		}
+
+		type NestedStruct struct {
+			FieldA TestStruct
+			FieldB TestStruct
+			FieldC []int
+		}
+
+		testStructA := TestStruct{
+			StringField: "string A",
+			IntField:    2,
+			FloatField:  3.1415,
+			BoolField:   true,
+		}
+
+		testStructB := TestStruct{
+			StringField: "string B",
+			IntField:    3,
+			FloatField:  100,
+			BoolField:   false,
+		}
+
+		nestedStruct := NestedStruct{
+			FieldA: testStructA,
+			FieldB: testStructB,
+			FieldC: []int{5, 9, 1, 5, 7},
+		}
+
+		nestedStructBytes, err := json.Marshal(nestedStruct)
+		require.NoError(t, err)
+
+		b := &NestedStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(nestedStructBytes), 50, b)
+		require.Error(t, err)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	})
+
+	t.Run("handles empty structs", func(t *testing.T) {
+		type TestStruct struct{}
+
+		testStruct := TestStruct{}
+		testStructBytes, err := json.Marshal(testStruct)
+		require.NoError(t, err)
+
+		b := &TestStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 1000, b)
+		require.NoError(t, err)
+	})
+}
