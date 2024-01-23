@@ -2759,6 +2759,14 @@
     "translation": "This action is forbidden to a restricted system admin."
   },
   {
+    "id": "api.retrieveBatchReportFile.invalid_format",
+    "translation": "Report format is invalid."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_report_id",
+    "translation": "Report ID is invalid."
+  },
+  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
@@ -3429,6 +3437,42 @@
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Unable to find the user."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Renew now"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Please renew to avoid any disruption"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Annual bill due in 30 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Your annual bill is due in 30 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Annual subscription renewal in 60 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Annual subscription renewal in 60 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Action Required: Annual subscription renewal in 7 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "You are about to lose access to your workspace in 7 days"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -4387,6 +4431,10 @@
     "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Error while checking if a user has a custom profile image."
+  },
+  {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
     "translation": "Failed to get uploads."
   },
@@ -5115,6 +5163,14 @@
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
   {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Unable to update channel members' notify props."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Unable to update that many channel members. Only {{.Max}} channel members can be updated at once."
+  },
+  {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel."
   },
@@ -5313,6 +5369,14 @@
   {
     "id": "app.command_webhook.try_use.invalid",
     "translation": "Invalid webhook."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Failed to write CSV headers."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Unsupported report format."
   },
   {
     "id": "app.compliance.get.finding.app_error",
@@ -6715,8 +6779,32 @@
     "translation": "Unable to save the token."
   },
   {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Failed to fetch user count."
+  },
+  {
     "id": "app.report.get_user_report.store_error",
     "translation": "Failed to fetch user report."
+  },
+  {
+    "id": "app.report.retrieve_batch_report.license_error",
+    "translation": "Batch reporting export only available to Pro and Enterprise."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Report processing is finished. You can download the report [here]({{.Link}})"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Job already exists for this user and date range."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Batch reporting export only available to Pro and Enterprise."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "You have requested the export of user data. A CSV will be delivered to you when the export is complete."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -6757,6 +6845,14 @@
   {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Failed to write CSV chunk."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Unsupported report format."
   },
   {
     "id": "app.scheme.delete.app_error",

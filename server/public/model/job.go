@@ -38,6 +38,7 @@ const (
 	JobTypeCleanupDesktopTokens         = "cleanup_desktop_tokens"
 	JobTypeDeleteEmptyDraftsMigration   = "delete_empty_drafts_migration"
 	JobTypeRefreshPostStats             = "refresh_post_stats"
+	JobTypeExportUsersToCSV             = "export_users_to_csv"
 
 	JobStatusPending         = "pending"
 	JobStatusInProgress      = "in_progress"

@@ -621,6 +621,11 @@ func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string,
 	return api.app.UpdateChannelMemberNotifyProps(api.ctx, notifications, channelID, userID)
 }
 
+func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifications map[string]string) *model.AppError {
+	_, err := api.app.PatchChannelMembersNotifyProps(api.ctx, members, notifications)
+	return err
+}
+
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
 	return api.app.LeaveChannel(api.ctx, channelID, userID)
 }
