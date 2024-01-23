@@ -2707,6 +2707,14 @@
     "translation": "This action is forbidden to a restricted system admin."
   },
   {
+    "id": "api.retrieveBatchReportFile.invalid_format",
+    "translation": "Report format is invalid."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_report_id",
+    "translation": "Report ID is invalid."
+  },
+  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
@@ -3253,10 +3261,6 @@
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Invalid request body."
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error while parsing the body data."
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
@@ -5271,6 +5275,14 @@
     "translation": "Invalid webhook."
   },
   {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Failed to write CSV headers."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Unsupported report format."
+  },
+  {
     "id": "app.compliance.get.finding.app_error",
     "translation": "We encountered an error retrieving the compliance reports."
   },
@@ -6679,6 +6691,26 @@
     "translation": "Failed to fetch user report."
   },
   {
+    "id": "app.report.retrieve_batch_report.license_error",
+    "translation": "Batch reporting export only available to Pro and Enterprise."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Report processing is finished. You can download the report [here]({{.Link}})"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Job already exists for this user and date range."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Batch reporting export only available to Pro and Enterprise."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "You have requested the export of user data. A CSV will be delivered to you when the export is complete."
+  },
+  {
     "id": "app.role.check_roles_exist.role_not_found",
     "translation": "The provided role does not exist"
   },
@@ -6717,6 +6749,14 @@
   {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Failed to write CSV chunk."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Unsupported report format."
   },
   {
     "id": "app.scheme.delete.app_error",

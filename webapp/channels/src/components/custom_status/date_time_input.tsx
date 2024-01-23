@@ -91,7 +91,7 @@ const DateTimeInputContainer: React.FC<Props> = (props: Props) => {
     const setTimeAndOptions = () => {
         const currentTime = getCurrentMomentForTimezone(timezone);
         let startTime = moment(time).startOf('day');
-        if (time.date() === currentTime.date()) {
+        if (currentTime.isSame(time, 'date')) {
             startTime = getRoundedTime(currentTime);
         }
         setTimeOptions(getTimeInIntervals(startTime));
