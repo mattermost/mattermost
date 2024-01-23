@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS ChannelBookmarks (
     LinkUrl text DEFAULT NULL,
     ImageUrl text DEFAULT NULL,
     Emoji varchar(64) DEFAULT NULL,
-    Type varchar(26) DEFAULT 'link',
+    Type ENUM('link', 'file'),
     OriginalId varchar(26) DEFAULT NULL,
     ParentId varchar(26) DEFAULT NULL,
     PRIMARY KEY (Id),
