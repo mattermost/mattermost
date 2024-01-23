@@ -1015,6 +1015,14 @@ export default class Client4 {
         );
     }
 
+    startUsersBatchExport = (dateRange: string) => {
+        const queryString = buildQueryString({date_range: dateRange});
+        return this.doFetch<StatusOK>(
+            `${this.getReportsRoute()}/users/export${queryString}`,
+            {method: 'post'},
+        );
+    }
+
     /**
      * @deprecated
      */
@@ -1527,7 +1535,7 @@ export default class Client4 {
     sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string) => {
         this.trackEvent('api', 'api_teams_invite_guests', {team_id: teamId, channel_ids: channelIds});
 
-        return this.doFetch<TeamInviteWithError>(
+        return this.doFetch<TeamInviteWithError[]>(
             `${this.getTeamRoute(teamId)}/invite-guests/email?graceful=true`,
             {method: 'post', body: JSON.stringify({emails, channels: channelIds, message})},
         );

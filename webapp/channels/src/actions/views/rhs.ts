@@ -24,7 +24,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
@@ -314,8 +314,8 @@ export function toggleRHSPlugin(pluggableId: string) {
     };
 }
 
-export function showFlaggedPosts() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showFlaggedPosts(): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
 
@@ -325,7 +325,7 @@ export function showFlaggedPosts() {
         });
 
         const results = await dispatch(getFlaggedPosts());
-        let data: any;
+        let data;
         if ('data' in results) {
             data = results.data;
         }
@@ -349,9 +349,9 @@ export function showFlaggedPosts() {
     };
 }
 
-export function showPinnedPosts(channelId?: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function showPinnedPosts(channelId?: string): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
         const currentChannelId = getCurrentChannelId(state);
         const teamId = getCurrentTeamId(state);
 
@@ -368,7 +368,7 @@ export function showPinnedPosts(channelId?: string) {
 
         const results = await dispatch(getPinnedPosts(channelId || currentChannelId));
 
-        let data: any;
+        let data;
         if ('data' in results) {
             data = results.data;
         }
