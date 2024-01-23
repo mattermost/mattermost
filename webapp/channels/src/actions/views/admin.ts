@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ServerError} from '@mattermost/types/errors';
-import type {UserReportOptions, UserReport, UserReportFilter} from '@mattermost/types/reports';
+import type {UserReportOptions, UserReport, UserReportFilter, ReportDuration} from '@mattermost/types/reports';
 
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
@@ -64,5 +64,19 @@ export function getUserCountForReporting(filter = {} as UserReportFilter): NewAc
         }
 
         return {data};
+    };
+}
+
+export function startUsersBatchExport(dateRange: ReportDuration): NewActionFuncAsync {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.startUsersBatchExport(dateRange);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error: error as ServerError};
+        }
+
+        return {data: true};
     };
 }

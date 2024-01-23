@@ -468,6 +468,9 @@ export const ModalIdentifiers = {
     DEMOTE_TO_GUEST_MODAL: 'demote_to_guest_modal',
     REVOKE_SESSIONS_MODAL: 'revoke_sessions_modal',
     CREATE_GROUP_SYNCABLES_MEMBERSHIP_MODAL: 'create_group_syncables_membership_modal',
+    EXPORT_USER_DATA_MODAL: 'export_user_data_modal',
+    UPGRADE_EXPORT_DATA_MODAL: 'upgrade_export_data_modal',
+    EXPORT_ERROR_MODAL: 'export_error_modal',
 };
 
 export const UserStatuses = {
