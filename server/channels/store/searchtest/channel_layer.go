@@ -17,7 +17,7 @@ var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a channel by name",
 		Fn:   testAutocompleteChannelByName,
-		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineMySQL, EngineElasticSearch, EngineBleve},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by name (Postgres)",
@@ -32,7 +32,7 @@ var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by - character",
 		Fn:   testAutocompleteChannelByNameSplittedWithDashChar,
-		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineMySQL, EngineElasticSearch, EngineBleve},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by - character (Postgres)",
@@ -42,12 +42,12 @@ var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete a channel by a part of its name when has parts splitted by _ character",
 		Fn:   testAutocompleteChannelByNameSplittedWithUnderscoreChar,
-		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineMySQL, EngineElasticSearch, EngineBleve},
 	},
 	{
 		Name: "Should be able to autocomplete a channel by a part of its display name when has parts splitted by whitespace character",
 		Fn:   testAutocompleteChannelByDisplayNameSplittedByWhitespaces,
-		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineMySQL, EngineElasticSearch, EngineBleve},
 	},
 	{
 		Name: "Should be able to autocomplete retrieving all channels if the term is empty",
@@ -57,7 +57,7 @@ var searchChannelStoreTests = []searchTest{
 	{
 		Name: "Should be able to autocomplete channels in a case insensitive manner",
 		Fn:   testSearchChannelsInCaseInsensitiveManner,
-		Tags: []string{EngineMySql, EngineElasticSearch, EngineBleve},
+		Tags: []string{EngineMySQL, EngineElasticSearch, EngineBleve},
 	},
 	{
 		Name: "Should be able to autocomplete channels in a case insensitive manner (Postgres)",
