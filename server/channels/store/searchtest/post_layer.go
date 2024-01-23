@@ -33,7 +33,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search for quoted patterns with AND OR combinations",
 		Fn:   testSearchANDORQuotesCombinations,
-		Tags: []string{EnginePostgres, EngineMySql, EngineElasticSearch},
+		Tags: []string{EnginePostgres, EngineMySQL, EngineElasticSearch},
 	},
 	{
 		// Postgres supports search with and without quotes
@@ -45,7 +45,7 @@ var searchPostStoreTests = []searchTest{
 		// MySql supports search with quotes only
 		Name: "Should be able to search for email addresses with quotes",
 		Fn:   testSearchEmailAddressesWithQuotes,
-		Tags: []string{EngineMySql},
+		Tags: []string{EngineMySQL},
 	},
 	{
 		Name: "Should be able to search when markdown underscores are applied",
@@ -100,12 +100,12 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to exclude messages that contain a search term",
 		Fn:   testFilterMessagesWithATerm,
-		Tags: []string{EngineMySql, EnginePostgres},
+		Tags: []string{EngineMySQL, EnginePostgres},
 	},
 	{
 		Name: "Should be able to search using boolean operators",
 		Fn:   testSearchUsingBooleanOperators,
-		Tags: []string{EngineMySql, EnginePostgres, EngineElasticSearch},
+		Tags: []string{EngineMySQL, EnginePostgres, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search with combined filters",
@@ -115,7 +115,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to ignore stop words",
 		Fn:   testSearchIgnoringStopWords,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineMySQL, EngineElasticSearch},
 	},
 	{
 		Name: "Should support search stemming",
@@ -146,7 +146,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should support terms with underscore",
 		Fn:   testSupportTermsWithUnderscore,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineMySQL, EngineElasticSearch},
 	},
 	{
 		Name: "Should search or exclude post using hashtags",
@@ -211,7 +211,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search in deleted/archived channels",
 		Fn:   testSearchInDeletedOrArchivedChannels,
-		Tags: []string{EngineMySql, EnginePostgres},
+		Tags: []string{EngineMySQL, EnginePostgres},
 	},
 	{
 		Name:        "Should be able to search terms with dashes",
@@ -228,7 +228,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms with underscores",
 		Fn:   testSearchTermsWithUnderscores,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineMySQL, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search posts made by bot accounts",
@@ -253,7 +253,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should not support slash as character separator",
 		Fn:   testSlashShouldNotBeCharSeparator,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineMySQL, EngineElasticSearch},
 	},
 	{
 		Name: "Should be able to search in comments",
@@ -263,7 +263,7 @@ var searchPostStoreTests = []searchTest{
 	{
 		Name: "Should be able to search terms within links",
 		Fn:   testSupportSearchTermsWithinLinks,
-		Tags: []string{EngineMySql, EngineElasticSearch},
+		Tags: []string{EngineMySQL, EngineElasticSearch},
 	},
 	{
 		Name: "Should not return links that are embedded in markdown",

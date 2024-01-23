@@ -29,11 +29,11 @@ const CountrySelector = (props: CountrySelectorProps) => {
             }))}
             legend={formatMessage({
                 id: 'payment_form.country',
-                defaultMessage: 'Country',
+                defaultMessage: 'Country/Region',
             })}
             placeholder={formatMessage({
                 id: 'payment_form.country',
-                defaultMessage: 'Country',
+                defaultMessage: 'Country/Region',
             })}
             name={'country_dropdown'}
         />
