@@ -518,6 +518,10 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
 	}
 
+	if isSchemeAdmin && isSchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
 	member.SchemeGuest = isSchemeGuest
