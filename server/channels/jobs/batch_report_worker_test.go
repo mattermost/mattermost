@@ -23,7 +23,7 @@ func (rma *ReportMockApp) SaveReportChunk(format string, prefix string, count in
 func (rma *ReportMockApp) CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError {
 	return nil
 }
-func (rma *ReportMockApp) SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError {
+func (rma *ReportMockApp) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
 	return nil
 }
 func (rma *ReportMockApp) CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError {
