@@ -72,9 +72,9 @@ export function SystemUsersFilterPopover(props: Props) {
                         className='systemUsersFilterPopoverContainer'
                         aria-labelledby='systemUsersFilterPopoverTitle'
                     >
-                        <div id='systemUsersFilterPopoverTitle'>
+                        <h4 id='systemUsersFilterPopoverTitle'>
                             {formatMessage({id: 'admin.system_users.filtersPopover.title', defaultMessage: 'Filter by'})}
-                        </div>
+                        </h4>
                         <div className='systemUsersFilterPopoverBody'>
                             <SystemUsersFiltersStatus
                                 value={props.filterStatus}
