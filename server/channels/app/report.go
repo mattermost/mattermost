@@ -103,9 +103,14 @@ func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) 
 		return err
 	}
 
+	user, err := a.GetUser(requestingUserId)
+	if err != nil {
+		return err
+	}
+	T := i18n.GetUserTranslations(user.Locale)
 	post := &model.Post{
 		ChannelId: channel.Id,
-		Message: i18n.T("app.report.send_report_to_user.export_finished", map[string]string{
+		Message: T("app.report.send_report_to_user.export_finished", map[string]string{
 			"Link":      a.GetSiteURL() + "/api/v4/reports/export/" + job.Id + "?format=" + format,
 			"DataType":  getDataTypeFromJobType(job.Type),
 			"DateRange": getTranslatedDateRange(dateRange),
@@ -228,9 +233,15 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt 
 			return
 		}
 
+		user, err := a.GetUser(rctx.Session().UserId)
+		if err != nil {
+			rctx.Logger().Error("Failed to get the user", mlog.Err(err))
+			return
+		}
+		T := i18n.GetUserTranslations(user.Locale)
 		post := &model.Post{
 			ChannelId: channel.Id,
-			Message:   i18n.T("app.report.start_users_batch_export.started_export", map[string]string{"DateRange": getTranslatedDateRange(dateRange)}),
+			Message:   T("app.report.start_users_batch_export.started_export", map[string]string{"DateRange": getTranslatedDateRange(dateRange)}),
 			Type:      model.PostTypeDefault,
 			UserId:    systemBot.UserId,
 		}
