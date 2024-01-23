@@ -234,3 +234,14 @@ func checkInsecureTLSError(err error, allowInsecureTLS bool) error {
 	}
 	return err
 }
+
+func validateSiteURL(ctx context.Context, siteURL string) error {
+	client := model.NewAPIv4Client(siteURL)
+
+	_, appErr := client.TestSiteURL(ctx, siteURL)
+	if appErr != nil {
+		return appErr
+	}
+
+	return nil
+}
