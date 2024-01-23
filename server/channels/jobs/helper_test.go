@@ -6,6 +6,7 @@ package jobs_test
 import (
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -14,8 +15,10 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
+	"github.com/stretchr/testify/require"
 )
 
 type TestHelper struct {
@@ -220,4 +223,74 @@ func (th *TestHelper) TearDown() {
 	if th.tempWorkspace != "" {
 		os.RemoveAll(th.tempWorkspace)
 	}
+}
+
+func (th *TestHelper) SetupBatchWorker(t *testing.T, worker *jobs.BatchWorker) *model.Job {
+	t.Helper()
+
+	jobId := model.NewId()
+	th.Server.Jobs.RegisterJobType(jobId, worker, nil)
+
+	jobData := make(model.StringMap)
+	jobData["batch_number"] = "1"
+	job, appErr := th.Server.Jobs.CreateJob(th.Context, jobId, jobData)
+
+	if appErr != nil {
+		panic(appErr)
+	}
+
+	done := make(chan bool)
+	go func() {
+		defer close(done)
+		worker.Run()
+	}()
+
+	// When ending the test, ensure we wait for the worker to finish.
+	t.Cleanup(func() {
+		waitDone(t, done, "worker did not stop running")
+	})
+
+	// Give the worker time to start running
+	time.Sleep(500 * time.Millisecond)
+
+	return job
+}
+
+func (th *TestHelper) WaitForJobStatus(t *testing.T, job *model.Job, status string) {
+	t.Helper()
+
+	require.Eventuallyf(t, func() bool {
+		actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, job.Id, actualJob.Id)
+
+		return actualJob.Status == status
+	}, 5*time.Second, 250*time.Millisecond, "job never transitioned to %s", status)
+}
+
+func (th *TestHelper) WaitForBatchNumber(t *testing.T, job *model.Job, batchNumber int) {
+	t.Helper()
+
+	require.Eventuallyf(t, func() bool {
+		actualJob, appErr := th.Server.Jobs.GetJob(th.Context, job.Id)
+		require.Nil(t, appErr)
+		require.Equal(t, job.Id, actualJob.Id)
+
+		finalBatchNumber, err := strconv.Atoi(actualJob.Data["batch_number"])
+		require.NoError(t, err)
+		return finalBatchNumber == batchNumber
+	}, 5*time.Second, 250*time.Millisecond, "job did not stop at batch %d", batchNumber)
+}
+
+func waitDone(t *testing.T, done chan bool, msg string) {
+	t.Helper()
+
+	require.Eventually(t, func() bool {
+		select {
+		case <-done:
+			return true
+		default:
+			return false
+		}
+	}, 5*time.Second, 100*time.Millisecond, msg)
 }
