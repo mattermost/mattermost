@@ -45,10 +45,10 @@ export function createCategory(teamId: string, displayName: string, channelIds?:
             });
         }
 
-        const result: any = await dispatch(createCategoryRedux(teamId, displayName, channelIds));
+        const result = await dispatch(createCategoryRedux(teamId, displayName, channelIds));
         return dispatch({
             type: ActionTypes.ADD_NEW_CATEGORY_ID,
-            data: result.data.id,
+            data: result.data!.id,
         });
     };
 }

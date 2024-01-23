@@ -34,8 +34,9 @@ function mapStateToProps(state: GlobalState) {
     const fromId = tableProperties?.cursorUserId ?? adminConsoleUserManagementTablePropertiesInitialState.cursorUserId;
     const fromColumnValue = tableProperties?.cursorColumnValue ?? adminConsoleUserManagementTablePropertiesInitialState.cursorColumnValue;
     const columnVisibility = tableProperties?.columnVisibility ?? adminConsoleUserManagementTablePropertiesInitialState.columnVisibility;
-    const searchTerm = tableProperties?.searchTerm ?? adminConsoleUserManagementTablePropertiesInitialState.searchTerm;
     const tablePropertyFilterStatus = tableProperties?.filterStatus ?? adminConsoleUserManagementTablePropertiesInitialState.filterStatus;
+    const searchTerm = tableProperties?.searchTerm;
+    const dateRange = tableProperties?.dateRange;
 
     return {
         siteName,
@@ -53,6 +54,7 @@ function mapStateToProps(state: GlobalState) {
         tablePropertyColumnVisibility: columnVisibility,
         tablePropertySearchTerm: searchTerm,
         tablePropertyFilterStatus,
+        tablePropertyDateRange: dateRange,
     };
 }
 

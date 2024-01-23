@@ -18,6 +18,7 @@ export enum ReportSortDirection {
 }
 
 export enum ReportDuration {
+    AllTime = "all_time",
     Last30Days = "last_30_days",
     PreviousMonth = "previous_month",
     Last6Months = "last_6_months",

@@ -67,7 +67,6 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     cursorUserId: '',
     cursorColumnValue: '',
     columnVisibility: {},
-    searchTerm: '',
     filterStatus: '',
 };
 
