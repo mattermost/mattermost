@@ -4,12 +4,12 @@
 
 .systemUsersFilterPopoverContainer {
     & > #systemUsersFilterPopoverTitle {
+        padding: 20px 24px;
+        border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
         color: var(--sys-center-channel-color);
         font-size: 14px;
         font-weight: 600;
         line-height: 14px;
-        padding: 20px 24px;
-        border-bottom: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.08);
     }
 
     & > .systemUsersFilterPopoverBody {
