@@ -96,7 +96,6 @@ export function SystemUsersDateRangeSelector() {
                 <Menu.Item
                     key={ReportDuration.AllTime}
                     id={ReportDuration.AllTime}
-                    role='menuitem'
                     labels={
                         <FormattedMessage
                             id='admin.system_users.date_range_selector.date_range.all_time'
@@ -109,7 +108,6 @@ export function SystemUsersDateRangeSelector() {
                 <Menu.Item
                     key={ReportDuration.Last30Days}
                     id={ReportDuration.Last30Days}
-                    role='menuitem'
                     labels={
                         <>
                             <FormattedMessage
@@ -132,7 +130,6 @@ export function SystemUsersDateRangeSelector() {
                 <Menu.Item
                     key={ReportDuration.PreviousMonth}
                     id={ReportDuration.PreviousMonth}
-                    role='menuitem'
                     labels={
                         <>
                             <FormattedMessage
@@ -155,7 +152,6 @@ export function SystemUsersDateRangeSelector() {
                 <Menu.Item
                     key={ReportDuration.Last6Months}
                     id={ReportDuration.Last6Months}
-                    role='menuitem'
                     labels={
                         <>
                             <FormattedMessage
@@ -180,7 +176,6 @@ export function SystemUsersDateRangeSelector() {
                 <Menu.Item
                     key='trailing_message'
                     id='trailing_message'
-                    role='menuitem'
                     className='systemUsersDateRangeSelector__trailing-message'
                     labels={
                         <>
