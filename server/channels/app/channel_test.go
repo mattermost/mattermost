@@ -272,8 +272,8 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	// figure out the initial number of users in town square
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "town-square", true)
 	require.NoError(t, err)
-	townSquareChannelId := channel.Id
-	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	townSquareChannelID := channel.Id
+	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelID)
 	require.NoError(t, nErr)
 	initialNumTownSquareUsers := len(users)
 
@@ -282,13 +282,13 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelID)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, initialNumTownSquareUsers+1)
 
 	found := false
 	for _, history := range histories {
-		if user.Id == history.UserId && townSquareChannelId == history.ChannelId {
+		if user.Id == history.UserId && townSquareChannelID == history.ChannelId {
 			found = true
 			break
 		}
@@ -2736,9 +2736,11 @@ func TestPatchChannelMembersNotifyProps(t *testing.T) {
 		th.AddUserToChannel(user1, channel2)
 		th.AddUserToChannel(user2, channel1)
 
-		messages1, closeWS1 := connectFakeWebSocket(t, th, user1.Id, "")
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelMemberUpdated}
+
+		messages1, closeWS1 := connectFakeWebSocket(t, th, user1.Id, "", eventTypesFilter)
 		defer closeWS1()
-		messages2, closeWS2 := connectFakeWebSocket(t, th, user2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, user2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		_, appErr := th.App.PatchChannelMembersNotifyProps(th.Context, []*model.ChannelMemberIdentifier{

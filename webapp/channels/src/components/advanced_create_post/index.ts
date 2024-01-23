@@ -30,7 +30,7 @@ import {get, getInt, getBool, isCustomGroupsEnabled} from 'mattermost-redux/sele
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, getStatusForUserId, getUser, isCurrentUserGuestUser} from 'mattermost-redux/selectors/entities/users';
-import type {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions.js';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions.js';
 
 import {executeCommand} from 'actions/command';
 import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'actions/hooks';
@@ -142,8 +142,8 @@ function onSubmitPost(post: Post, fileInfos: FileInfo[]) {
     };
 }
 
-function setDraft(key: string, value: PostDraft | null, draftChannelId: string, save = false) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function setDraft(key: string, value: PostDraft | null, draftChannelId: string, save = false): NewActionFuncAsync<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const channelId = draftChannelId || getCurrentChannelId(getState());
         let updatedValue = null;
         if (value) {

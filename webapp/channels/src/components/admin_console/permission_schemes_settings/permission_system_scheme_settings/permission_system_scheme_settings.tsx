@@ -33,7 +33,7 @@ type Props = {
     isDisabled?: boolean;
     actions: {
         loadRolesIfNeeded: (roles: string[]) => void;
-        editRole: (role: Partial<Role>) => Promise<ActionResult>;
+        editRole: (role: Partial<Role> & {id: string}) => Promise<ActionResult>;
         setNavigationBlocked: (blocked: boolean) => void;
     };
     location: Location;
@@ -45,10 +45,22 @@ type State = {
     saving: boolean;
     saveNeeded: boolean;
     serverError: null;
-    roles: Record<string, Partial<Role>>;
+    roles: RolesState;
     selectedPermission?: string;
     openRoles: Record<string, boolean>;
     urlParams: URLSearchParams;
+}
+
+type RolesState = {
+    system_admin: Role;
+    team_admin: Role;
+    channel_admin: Role;
+    playbook_admin: Role;
+    playbook_member: Role;
+    run_admin: Role;
+    run_member: Role;
+    all_users: {name: string; display_name: string; permissions: Role['permissions']};
+    guests: {name: string; display_name: string; permissions: Role['permissions']};
 }
 
 class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
@@ -62,7 +74,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
             saving: false,
             saveNeeded: false,
             serverError: null,
-            roles: {},
+            roles: {} as RolesState,
             openRoles: {
                 guests: true,
                 all_users: true,
@@ -173,7 +185,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         });
     }
 
-    deriveRolesFromAllUsers = (role: Partial<Role>): Record<string, Partial<Role>> => {
+    deriveRolesFromAllUsers = (role: RolesState['all_users']): Record<string, Role> => {
         return {
             system_user: {
                 ...this.props.roles.system_user,
@@ -198,7 +210,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         };
     };
 
-    deriveRolesFromGuests = (role: Partial<Role>): Record<string, Partial<Role>> => {
+    deriveRolesFromGuests = (role: RolesState['guests']): Record<string, Role> => {
         return {
             system_guest: {
                 ...this.props.roles.system_guest,
@@ -215,7 +227,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         };
     };
 
-    restoreExcludedPermissions = (roles: Record<string, Partial<Role>>) => {
+    restoreExcludedPermissions = (roles: Record<string, Role>) => {
         for (const permission of this.props.roles.system_user.permissions) {
             if (EXCLUDED_PERMISSIONS.includes(permission)) {
                 roles.system_user.permissions?.push(permission);
@@ -239,7 +251,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
         return roles;
     };
 
-    restoreGuestPermissions = (roles: Record<string, Partial<Role>>) => {
+    restoreGuestPermissions = (roles: Record<string, Role>) => {
         for (const permission of this.props.roles.system_guest.permissions) {
             if (!GUEST_INCLUDED_PERMISSIONS.includes(permission)) {
                 roles.system_guest.permissions?.push(permission);
@@ -314,7 +326,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
 
     togglePermission = (roleId: string, permissions: Iterable<string>) => {
         const roles = {...this.state.roles};
-        const role = {...roles[roleId]};
+        const role = {...roles[roleId as keyof RolesState]} as Role;
         const newPermissions = [...role.permissions!];
         for (const permission of permissions) {
             if (newPermissions.indexOf(permission) === -1) {
@@ -324,7 +336,7 @@ class PermissionSystemSchemeSettings extends React.PureComponent<Props, State> {
             }
         }
         role.permissions = newPermissions;
-        roles[roleId] = role;
+        roles[roleId as keyof RolesState] = role;
 
         this.setState({roles, saveNeeded: true});
         this.props.actions.setNavigationBlocked(true);

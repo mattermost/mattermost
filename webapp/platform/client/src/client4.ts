@@ -7,7 +7,7 @@ import FormData from 'form-data';
 
 import {PreferenceType} from '@mattermost/types/preferences';
 import {SystemSetting} from '@mattermost/types/general';
-import {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilter} from '@mattermost/types/admin';
+import {ClusterInfo, AnalyticsRow, SchemaMigration, LogFilterQuery} from '@mattermost/types/admin';
 import type {AppBinding, AppCallRequest, AppCallResponse} from '@mattermost/types/apps';
 import {Audit} from '@mattermost/types/audits';
 import {UserAutocomplete, AutocompleteSuggestion} from '@mattermost/types/autocomplete';
@@ -95,7 +95,7 @@ import {
     OutgoingWebhook,
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
-import {Job} from '@mattermost/types/jobs';
+import {Job, JobTypeBase} from '@mattermost/types/jobs';
 import {MfaSecret} from '@mattermost/types/mfa';
 import {
     ClientPluginManifest,
@@ -1017,6 +1017,14 @@ export default class Client4 {
         );
     }
 
+    startUsersBatchExport = (dateRange: string) => {
+        const queryString = buildQueryString({date_range: dateRange});
+        return this.doFetch<StatusOK>(
+            `${this.getReportsRoute()}/users/export${queryString}`,
+            {method: 'post'},
+        );
+    }
+
     /**
      * @deprecated
      */
@@ -1529,7 +1537,7 @@ export default class Client4 {
     sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string) => {
         this.trackEvent('api', 'api_teams_invite_guests', {team_id: teamId, channel_ids: channelIds});
 
-        return this.doFetch<TeamInviteWithError>(
+        return this.doFetch<TeamInviteWithError[]>(
             `${this.getTeamRoute(teamId)}/invite-guests/email?graceful=true`,
             {method: 'post', body: JSON.stringify({emails, channels: channelIds, message})},
         );
@@ -3003,7 +3011,7 @@ export default class Client4 {
         );
     };
 
-    createJob = (job: Job) => {
+    createJob = (job: JobTypeBase) => {
         return this.doFetch<Job>(
             `${this.getJobsRoute()}`,
             {method: 'post', body: JSON.stringify(job)},
@@ -3019,7 +3027,7 @@ export default class Client4 {
 
     // Admin Routes
 
-    getLogs = (logFilter: LogFilter) => {
+    getLogs = (logFilter: LogFilterQuery) => {
         return this.doFetch<string[]>(
             `${this.getBaseRoute()}/logs/query`,
             {method: 'post', body: JSON.stringify(logFilter)},
@@ -3075,7 +3083,7 @@ export default class Client4 {
         );
     };
 
-    testEmail = (config: AdminConfig) => {
+    testEmail = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/email/test`,
             {method: 'post', body: JSON.stringify(config)},
@@ -3089,7 +3097,7 @@ export default class Client4 {
         );
     };
 
-    testS3Connection = (config: ClientConfig) => {
+    testS3Connection = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/file/s3_test`,
             {method: 'post', body: JSON.stringify(config)},
@@ -3305,7 +3313,7 @@ export default class Client4 {
         );
     };
 
-    testElasticsearch = (config: ClientConfig) => {
+    testElasticsearch = (config?: AdminConfig) => {
         return this.doFetch<StatusOK>(
             `${this.getBaseRoute()}/elasticsearch/test`,
             {method: 'post', body: JSON.stringify(config)},
@@ -3778,7 +3786,7 @@ export default class Client4 {
 
     // Bot Routes
 
-    createBot = (bot: Bot) => {
+    createBot = (bot: Partial<Bot>) => {
         return this.doFetch<Bot>(
             `${this.getBotsRoute()}`,
             {method: 'post', body: JSON.stringify(bot)},

@@ -8,7 +8,7 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
-import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
+import type {ReportDuration, UserReport, UserReportOptions} from '@mattermost/types/reports';
 
 import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef, VisibilityState} from 'components/admin_console/list_table';
@@ -21,6 +21,7 @@ import type {AdminConsoleUserManagementTableProperties} from 'types/store/views'
 import {ColumnNames} from './constants';
 import {RevokeSessionsButton} from './revoke_sessions_button';
 import {SystemUsersColumnTogglerMenu} from './system_users_column_toggler_menu';
+import {SystemUsersDateRangeSelector} from './system_users_date_range_selector';
 import {SystemUsersExport} from './system_users_export';
 import {SystemUsersFilterMenu} from './system_users_filter_menu';
 import {SystemUsersListAction} from './system_users_list_actions';
@@ -32,6 +33,29 @@ import './system_users.scss';
 import type {PropsFromRedux} from './index';
 
 type Props = PropsFromRedux;
+type TableOptions = {
+    pageSize?: PaginationState['pageSize'];
+    sortColumn?: SortingState[0]['id'];
+    sortIsDescending?: SortingState[0]['desc'];
+    fromColumnValue?: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
+    fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
+    direction?: CursorPaginationDirection;
+    searchTerm?: string;
+    dateRange?: ReportDuration;
+}
+
+const toUserReportOptions = (tableOptions?: TableOptions): UserReportOptions => {
+    return {
+        page_size: tableOptions?.pageSize || PAGE_SIZES[0],
+        from_column_value: tableOptions?.fromColumnValue,
+        from_id: tableOptions?.fromId,
+        direction: tableOptions?.direction,
+        ...getSortColumnForOptions(tableOptions?.sortColumn),
+        ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
+        search_term: tableOptions?.searchTerm,
+        date_range: tableOptions?.dateRange,
+    };
+};
 
 type UserReportWithError = UserReport & {error?: ServerError};
 
@@ -53,36 +77,36 @@ function SystemUsers(props: Props) {
 
     // Effect to get the total user count
     useEffect(() => {
-        const getUserCount = async () => {
-            const {data} = await props.getUserCountForReporting({});
+        const getUserCount = async (tableOptions?: TableOptions) => {
+            const {data} = await props.getUserCountForReporting(toUserReportOptions(tableOptions));
             setUserCount(data);
         };
 
-        getUserCount();
-    }, []);
+        getUserCount({
+            pageSize: props.tablePropertyPageSize,
+            sortColumn: props.tablePropertySortColumn,
+            sortIsDescending: props.tablePropertySortIsDescending,
+            fromColumnValue: props.tablePropertyCursorColumnValue,
+            fromId: props.tablePropertyCursorUserId,
+            direction: props.tablePropertyCursorDirection,
+            searchTerm: props.tablePropertySearchTerm,
+        });
+    }, [
+        props.tablePropertyPageSize,
+        props.tablePropertySortColumn,
+        props.tablePropertySortIsDescending,
+        props.tablePropertyCursorDirection,
+        props.tablePropertyCursorColumnValue,
+        props.tablePropertyCursorUserId,
+        props.tablePropertySearchTerm,
+    ]);
 
     // Effect to get the user reports
     useEffect(() => {
-        async function fetchUserReportsWithOptions(tableOptions?: {
-            pageSize?: PaginationState['pageSize'];
-            sortColumn?: SortingState[0]['id'];
-            sortIsDescending?: SortingState[0]['desc'];
-            fromColumnValue?: AdminConsoleUserManagementTableProperties['cursorColumnValue'];
-            fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
-            direction?: CursorPaginationDirection;
-        }) {
+        async function fetchUserReportsWithOptions(tableOptions?: TableOptions) {
             setLoadingState(LoadingStates.Loading);
 
-            const options: UserReportOptions = {
-                page_size: tableOptions?.pageSize || PAGE_SIZES[0],
-                from_column_value: tableOptions?.fromColumnValue,
-                from_id: tableOptions?.fromId,
-                direction: tableOptions?.direction,
-                ...getSortColumnForOptions(tableOptions?.sortColumn),
-                ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
-            };
-
-            const {data} = await props.getUserReports(options);
+            const {data} = await props.getUserReports(toUserReportOptions(tableOptions));
 
             if (data) {
                 if (data.length > 0) {
@@ -103,6 +127,8 @@ function SystemUsers(props: Props) {
             fromColumnValue: props.tablePropertyCursorColumnValue,
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
+            searchTerm: props.tablePropertySearchTerm,
+            dateRange: props.tablePropertyDateRange,
         });
     }, [
         props.tablePropertyPageSize,
@@ -111,6 +137,8 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorDirection,
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
+        props.tablePropertySearchTerm,
+        props.tablePropertyDateRange,
     ]);
 
     // Handlers for table actions
@@ -364,7 +392,7 @@ function SystemUsers(props: Props) {
     // Table state which are correctly formatted for the table component
 
     const sortingTableState = [{
-        id: props?.tablePropertySortColumn ?? ColumnNames.displayName,
+        id: props && props.tablePropertySortColumn && props.tablePropertySortColumn.length > 0 ? props.tablePropertySortColumn : ColumnNames.username,
         desc: props?.tablePropertySortIsDescending ?? false,
     }];
 
@@ -428,6 +456,7 @@ function SystemUsers(props: Props) {
                             allColumns={table.getAllLeafColumns()}
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}
                         />
+                        <SystemUsersDateRangeSelector/>
                         <SystemUsersExport/>
                     </div>
                     <AdminConsoleListTable<UserReport>

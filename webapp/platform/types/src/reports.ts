@@ -18,6 +18,7 @@ export enum ReportSortDirection {
 }
 
 export enum ReportDuration {
+    AllTime = "all_time",
     Last30Days = "last_30_days",
     PreviousMonth = "previous_month",
     Last6Months = "last_6_months",
@@ -34,7 +35,7 @@ export type UserReportFilter = {
     team_filter?: string,
     hide_active?: boolean,
     hide_inactive?: boolean,
-    searchTerm?: string,
+    search_term?: string,
 }
 
 export type UserReportOptions = UserReportFilter & {
