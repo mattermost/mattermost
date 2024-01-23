@@ -305,7 +305,7 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
 
         this.setState({saving: true});
 
-        actions.addUsersToChannel(channel.id, userIds).then((result: any) => {
+        actions.addUsersToChannel(channel.id, userIds).then((result) => {
             if (result.error) {
                 this.handleInviteError(result.error);
             } else {
