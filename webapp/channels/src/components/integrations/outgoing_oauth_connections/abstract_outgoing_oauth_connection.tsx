@@ -3,7 +3,7 @@
 
 import type {ChangeEvent, FormEvent} from 'react';
 import React, {useMemo, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
 import {Link} from 'react-router-dom';
 
@@ -13,8 +13,6 @@ import type {Team} from '@mattermost/types/teams';
 import BackstageHeader from 'components/backstage/components/backstage_header';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
-
-import {localizeMessage} from 'utils/utils';
 
 type Props = {
     team: Team;
@@ -36,8 +34,6 @@ type State = {
     clientId: string;
     clientSecret: string;
     audienceUrls: string;
-    saving: boolean;
-    clientError: JSX.Element | null | string;
 };
 
 const useOutgoingOAuthForm = (connection: OutgoingOAuthConnection): [State, (state: Partial<State>) => void] => {
@@ -48,8 +44,6 @@ const useOutgoingOAuthForm = (connection: OutgoingOAuthConnection): [State, (sta
         clientId: connection.client_id || '',
         clientSecret: connection.client_secret || '',
         grantType: 'client_credentials',
-        saving: false,
-        clientError: null,
     };
 
     const [state, setState] = useState(initialState);
@@ -61,41 +55,44 @@ const useOutgoingOAuthForm = (connection: OutgoingOAuthConnection): [State, (sta
 
 const initialState: OutgoingOAuthConnection = {
     id: '',
-    name: 'some name',
+    name: '',
     creator_id: '',
     create_at: 0,
     update_at: 0,
-    client_id: 'some id',
-    client_secret: 'some secret',
-    oauth_token_url: 'https://tokenurl.com',
+    client_id: '',
+    client_secret: '',
+    oauth_token_url: '',
     grant_type: 'client_credentials',
-    audiences: ['https://audience.com'],
+    audiences: [],
 };
 
 export default function AbstractOutgoingOAuthConnection(props: Props) {
-    const [state, setState] = useOutgoingOAuthForm(props.initialConnection || initialState as OutgoingOAuthConnection);
+    const [formState, setFormState] = useOutgoingOAuthForm(props.initialConnection || initialState);
+    const [submissionStatus, setSubmissionStatus] = useState<{error: string | React.ReactNode; saving: boolean}>({saving: false, error: ''});
     const [isEditingSecret, setIsEditingSecret] = useState(false);
+
+    const intl = useIntl();
 
     const isNewConnection = !props.initialConnection;
 
     const handleSubmit = (e: FormEvent) => {
         e.preventDefault();
 
-        if (state.saving) {
+        if (submissionStatus.saving) {
             return;
         }
 
-        setState({
+        setSubmissionStatus({
             saving: true,
-            clientError: '',
+            error: '',
         });
 
-        if (!state.name) {
-            setState({
+        if (!formState.name) {
+            setSubmissionStatus({
                 saving: false,
-                clientError: (
+                error: (
                     <FormattedMessage
-                        id='add_outgoing_oauth_connection.nameRequired'
+                        id='add_outgoing_oauth_connection.name.required'
                         defaultMessage='Name for the OAuth connection is required.'
                     />
                 ),
@@ -104,12 +101,12 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return;
         }
 
-        if (!state.clientId) {
-            setState({
+        if (!formState.clientId) {
+            setSubmissionStatus({
                 saving: false,
-                clientError: (
+                error: (
                     <FormattedMessage
-                        id='add_outgoing_oauth_connection.client_id'
+                        id='add_outgoing_oauth_connection.client_id.required'
                         defaultMessage='Client Id for the OAuth connection is required.'
                     />
                 ),
@@ -118,12 +115,12 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return;
         }
 
-        if ((isNewConnection || isEditingSecret) && !state.clientSecret) {
-            setState({
+        if ((isNewConnection || isEditingSecret) && !formState.clientSecret) {
+            setSubmissionStatus({
                 saving: false,
-                clientError: (
+                error: (
                     <FormattedMessage
-                        id='add_outgoing_oauth_connection.client_secret'
+                        id='add_outgoing_oauth_connection.client_secret.required'
                         defaultMessage='Client Secret for the OAuth connection is required.'
                     />
                 ),
@@ -132,12 +129,12 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return;
         }
 
-        if (!state.grantType) {
-            setState({
+        if (!formState.grantType) {
+            setSubmissionStatus({
                 saving: false,
-                clientError: (
+                error: (
                     <FormattedMessage
-                        id='add_outgoing_oauth_connection.grant_type'
+                        id='add_outgoing_oauth_connection.grant_type.required'
                         defaultMessage='Grant Type for the OAuth connection is required.'
                     />
                 ),
@@ -146,12 +143,12 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return;
         }
 
-        if (!state.oauthTokenUrl) {
-            setState({
+        if (!formState.oauthTokenUrl) {
+            setSubmissionStatus({
                 saving: false,
-                clientError: (
+                error: (
                     <FormattedMessage
-                        id='add_outgoing_oauth_connection.oauth_token_url'
+                        id='add_outgoing_oauth_connection.oauth_token_url.required'
                         defaultMessage='OAuth Token URL for the OAuth connection is required.'
                     />
                 ),
@@ -161,7 +158,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         }
 
         const audienceUrls = [];
-        for (let audienceUrl of state.audienceUrls.split('\n')) {
+        for (let audienceUrl of formState.audienceUrls.split('\n')) {
             audienceUrl = audienceUrl.trim();
 
             if (audienceUrl.length > 0) {
@@ -170,11 +167,11 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         }
 
         if (audienceUrls.length === 0) {
-            setState({
+            setSubmissionStatus({
                 saving: false,
-                clientError: (
+                error: (
                     <FormattedMessage
-                        id='add_outgoing_oauth_connection.callbackUrlsRequired'
+                        id='add_outgoing_oauth_connection.audienceUrls.required'
                         defaultMessage='One or more audience URLs are required.'
                     />
                 ),
@@ -184,43 +181,43 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         }
 
         const connection = {
-            name: state.name,
+            name: formState.name,
             audiences: audienceUrls,
-            client_id: state.clientId,
-            client_secret: state.clientSecret,
-            grant_type: state.grantType,
-            oauth_token_url: state.oauthTokenUrl,
+            client_id: formState.clientId,
+            client_secret: formState.clientSecret,
+            grant_type: formState.grantType,
+            oauth_token_url: formState.oauthTokenUrl,
         } as OutgoingOAuthConnection;
 
-        props.action(connection).then(() => setState({saving: false}));
+        props.action(connection).then(() => setSubmissionStatus({saving: false, error: ''}));
     };
 
     const updateName = (e: ChangeEvent<HTMLInputElement>) => {
-        setState({
+        setFormState({
             name: e.target.value,
         });
     };
 
     const updateClientId = (e: ChangeEvent<HTMLInputElement>) => {
-        setState({
+        setFormState({
             clientId: e.target.value,
         });
     };
 
     const updateClientSecret = (e: ChangeEvent<HTMLInputElement>) => {
-        setState({
+        setFormState({
             clientSecret: e.target.value,
         });
     };
 
     const updateOAuthTokenURL = (e: ChangeEvent<HTMLInputElement>) => {
-        setState({
+        setFormState({
             oauthTokenUrl: e.target.value,
         });
     };
 
     const updateAudienceUrls = (e: ChangeEvent<HTMLTextAreaElement>) => {
-        setState({
+        setFormState({
             audienceUrls: e.target.value,
         });
     };
@@ -235,10 +232,10 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
 
     let clientSecretSection = (
         <input
-            id='name'
+            id='client_secret'
             type='text'
             className='form-control'
-            value={state.clientSecret}
+            value={formState.clientSecret}
             onChange={updateClientSecret}
         />
     );
@@ -247,7 +244,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         clientSecretSection = (
             <>
                 <input
-                    id='name'
+                    id='client_secret'
                     disabled={true}
                     type='text'
                     className='form-control disabled'
@@ -274,7 +271,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             <BackstageHeader>
                 <Link to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}>
                     <FormattedMessage
-                        id='installed_outgoing_oauth_connections.header'
+                        id='add_outgoing_oauth_connection.header'
                         defaultMessage='Outgoing OAuth Connections'
                     />
                 </Link>
@@ -291,7 +288,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='name'
                         >
                             <FormattedMessage
-                                id='installed_outgoing_oauth_connections.name'
+                                id='add_outgoing_oauth_connection.name.label'
                                 defaultMessage='Name'
                             />
                         </label>
@@ -301,7 +298,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                                 type='text'
                                 maxLength={64}
                                 className='form-control'
-                                value={state.name}
+                                value={formState.name}
                                 onChange={updateName}
                             />
                             <div className='form__help'>
@@ -318,17 +315,17 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='client_id'
                         >
                             <FormattedMessage
-                                id='installed_outgoing_oauth_connections.client_id'
+                                id='add_outgoing_oauth_connection.client_id.label'
                                 defaultMessage='Client ID'
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
                             <input
-                                id='name'
+                                id='client_id'
                                 type='text'
                                 maxLength={64}
                                 className='form-control'
-                                value={state.clientId}
+                                value={formState.clientId}
                                 onChange={updateClientId}
                             />
                             <div className='form__help'>
@@ -345,7 +342,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='client_secret'
                         >
                             <FormattedMessage
-                                id='installed_outgoing_oauth_connections.client_secret'
+                                id='add_outgoing_oauth_connection.client_secret.label'
                                 defaultMessage='Client Secret'
                             />
                         </label>
@@ -365,17 +362,17 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='oauth_token_url'
                         >
                             <FormattedMessage
-                                id='installed_outgoing_oauth_connections.oauth_token_url'
+                                id='add_outgoing_oauth_connection.oauth_token_url.label'
                                 defaultMessage='OAuth Token URL'
                             />
                         </label>
                         <div className='col-md-5 col-sm-8'>
                             <input
-                                id='name'
+                                id='token_url'
                                 type='text'
                                 maxLength={64}
                                 className='form-control'
-                                value={state.oauthTokenUrl}
+                                value={formState.oauthTokenUrl}
                                 onChange={updateOAuthTokenURL}
                             />
                             <div className='form__help'>
@@ -392,7 +389,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             htmlFor='audienceUrls'
                         >
                             <FormattedMessage
-                                id='installed_outgoing_oauth_connections.audienceUrls'
+                                id='add_outgoing_oauth_connection.audienceUrls.label'
                                 defaultMessage='Audience URLs (One Per Line)'
                             />
                         </label>
@@ -402,7 +399,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                                 rows={3}
                                 maxLength={1024}
                                 className='form-control'
-                                value={state.audienceUrls}
+                                value={formState.audienceUrls}
                                 onChange={updateAudienceUrls}
                             />
                             <div className='form__help'>
@@ -416,22 +413,22 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                     <div className='backstage-form__footer'>
                         <FormError
                             type='backstage'
-                            errors={[props.serverError, state.clientError]}
+                            errors={[props.serverError, submissionStatus.error]}
                         />
                         <Link
                             className='btn btn-tertiary'
                             to={`/${props.team.name}/integrations/outgoing-oauth2-connections`}
                         >
                             <FormattedMessage
-                                id='installed_outgoing_oauth_connections.cancel'
+                                id='add_outgoing_oauth_connection.cancel'
                                 defaultMessage='Cancel'
                             />
                         </Link>
                         <SpinnerButton
                             className='btn btn-primary'
                             type='submit'
-                            spinning={state.saving}
-                            spinningText={localizeMessage(props.loading?.id || '', (props.loading?.defaultMessage || '') as string)}
+                            spinning={submissionStatus.saving}
+                            spinningText={intl.formatMessage(props.loading)}
                             onClick={handleSubmit}
                             id='saveOauthApp'
                         >

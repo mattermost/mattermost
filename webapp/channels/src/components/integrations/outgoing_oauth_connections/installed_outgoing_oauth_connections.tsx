@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
@@ -20,7 +20,6 @@ import ExternalLink from 'components/external_link';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import {DeveloperLinks} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
@@ -33,10 +32,11 @@ type Props = {
 const InstalledOutgoingOAuthConnections = (props: Props) => {
     const [loading, setLoading] = useState(true);
     const canManageOutgoingOAuthConnections = useSelector((state) => haveISystemPermission(state as GlobalState, {permission: Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS}));
-    const enableOutgoingOAuthConnections = useSelector(getConfig).EnableOutgoingOAuthConnections === 'true';
+    const enableOutgoingOAuthConnections = (useSelector(getConfig).EnableOutgoingOAuthConnections === 'true') || true;
     const connections = useSelector(getOutgoingOAuthConnections);
 
     const dispatch = useDispatch();
+    const intl = useIntl();
 
     useEffect(() => {
         if (canManageOutgoingOAuthConnections) {
@@ -55,12 +55,12 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
     const outgoingOauthConnectionCompare = (a: OutgoingOAuthConnection, b: OutgoingOAuthConnection): number => {
         let nameA = a.name.toString();
         if (!nameA) {
-            nameA = localizeMessage('installed_integrations.unnamed_outgoing_oauth_connection', 'Unnamed Outgoing OAuth Connection');
+            nameA = intl.formatMessage({id: 'installed_integrations.unnamed_outgoing_oauth_connection', defaultMessage: 'Unnamed Outgoing OAuth Connection'});
         }
 
         let nameB = b.name.toString();
         if (!nameB) {
-            nameB = localizeMessage('installed_integrations.unnamed_outgoing_oauth_connection', 'Unnamed Outgoing OAuth Connection');
+            nameB = intl.formatMessage({id: 'installed_integrations.unnamed_outgoing_oauth_connection', defaultMessage: 'Unnamed Outgoing OAuth Connection'});
         }
 
         return nameA.localeCompare(nameB);
@@ -90,7 +90,7 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
     if (integrationsEnabled) {
         childProps = {
             addLink: '/' + props.team.name + '/integrations/outgoing-oauth2-connections/add',
-            addText: localizeMessage('installed_outgoing_oauth_connections.add', 'Add Outgoing OAuth Connection'),
+            addText: intl.formatMessage({id: 'installed_outgoing_oauth_connections.add', defaultMessage: 'Add Outgoing OAuth Connection'}),
             addButtonId: 'addOutgoingOauthConnection',
         };
     }
@@ -134,7 +134,7 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
                     defaultMessage='No Outgoing OAuth Connections match {searchTerm}'
                 />
             }
-            searchPlaceholder={localizeMessage('installed_outgoing_oauth_connections.search', 'Search Outgoing OAuth Connections')}
+            searchPlaceholder={intl.formatMessage({id: 'installed_outgoing_oauth_connections.search', defaultMessage: 'Search Outgoing OAuth Connections'})}
             loading={loading}
             {...childProps}
         >

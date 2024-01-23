@@ -432,12 +432,10 @@ export function deleteOutgoingOAuthConnection(id: string): ActionFunc {
             return {error};
         }
 
-        dispatch(batchActions([
-            {
-                type: IntegrationTypes.DELETED_OUTGOING_OAUTH_CONNECTION,
-                data: {id},
-            },
-        ]));
+        dispatch({
+            type: IntegrationTypes.DELETED_OUTGOING_OAUTH_CONNECTION,
+            data: {id},
+        });
 
         return {data: true};
     };

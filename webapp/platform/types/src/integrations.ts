@@ -111,7 +111,7 @@ export type OutgoingOAuthConnection = {
     'create_at': number;
     'update_at': number;
     'client_id': string;
-    'client_secret': string;
+    'client_secret'?: string;
     'credentials_username'?: string;
     'credentials_password'?: string;
     'oauth_token_url': string;

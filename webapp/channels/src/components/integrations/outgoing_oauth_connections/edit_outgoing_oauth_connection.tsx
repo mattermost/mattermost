@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
@@ -19,30 +19,14 @@ import {getHistory} from 'utils/browser_history';
 
 import AbstractOutgoingOAuthConnection from './abstract_outgoing_oauth_connection';
 
-const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
-const FOOTER = {id: 'update_incoming_webhook.update', defaultMessage: 'Update'};
-const LOADING = {id: 'update_incoming_webhook.updating', defaultMessage: 'Updating...'};
-
-// type Actions = {
-//     getOutgoingOAuthConnection: (id: string) => OutgoingOAuthConnection;
-//     editOutgoingOAuthConnection: (connection: OutgoingOAuthConnection) => Promise<ActionResult>;
-// };
+const HEADER = defineMessage({id: 'integrations.edit', defaultMessage: 'Edit'});
+const FOOTER = defineMessage({id: 'update_incoming_webhook.update', defaultMessage: 'Update'});
+const LOADING = defineMessage({id: 'update_incoming_webhook.updating', defaultMessage: 'Updating...'});
 
 type Props = {
     team: Team;
-
-    // outgoingOAuthConnectionId: string;
-    // outgoingOAuthConnection: OutgoingOAuthConnection;
-    // actions: Actions;
-    // enableOAuthServiceProvider: boolean;
-
     location: Location;
 };
-
-// type State = {
-//     showConfirmModal: boolean;
-//     serverError: string;
-// };
 
 const getConnectionIdFromSearch = (search: string): string => {
     return (new URLSearchParams(search)).get('id') || '';
@@ -67,7 +51,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
         }
     }, [connectionId, enableOAuthServiceProvider, dispatch]);
 
-    const editOutgoingOAuthConnectionLocal = async (connection: OutgoingOAuthConnection) => {
+    const handleInitialSubmit = async (connection: OutgoingOAuthConnection) => {
         setNewConnection(connection);
 
         if (existingConnection.id) {
@@ -78,7 +62,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
             existingConnection.audiences.every((v, i) => v === connection.audiences[i]);
 
         if (audienceUrlsSame) {
-            await submitOutgoingOAuthConnection();
+            await createOutgoingOAuthConnection(connection);
         } else {
             handleConfirmModal();
         }
@@ -92,10 +76,10 @@ const EditOutgoingOAuthConnection = (props: Props) => {
         setShowConfirmModal(false);
     };
 
-    const submitOutgoingOAuthConnection = async () => {
+    const createOutgoingOAuthConnection = async (connection: OutgoingOAuthConnection) => {
         setServerError('');
 
-        const res = await dispatch(editOutgoingOAuthConnection(newConnection));
+        const res = await dispatch(editOutgoingOAuthConnection(connection));
 
         if ('data' in res && res.data) {
             getHistory().push(`/${props.team.name}/integrations/outgoing-oauth2-connections`);
@@ -138,7 +122,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
                 show={showConfirmModal}
-                onConfirm={submitOutgoingOAuthConnection}
+                onConfirm={() => createOutgoingOAuthConnection(newConnection)}
                 onCancel={confirmModalDismissed}
             />
         );
@@ -155,7 +139,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
             footer={FOOTER}
             loading={LOADING}
             renderExtra={renderExtra()}
-            action={editOutgoingOAuthConnectionLocal}
+            action={handleInitialSubmit}
             serverError={serverError}
             initialConnection={existingConnection}
         />

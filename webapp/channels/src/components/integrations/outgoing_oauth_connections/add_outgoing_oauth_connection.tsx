@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useState} from 'react';
+import {defineMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {useHistory} from 'react-router-dom';
 
@@ -10,13 +11,11 @@ import type {Team} from '@mattermost/types/teams';
 
 import {addOutgoingOAuthConnection} from 'mattermost-redux/actions/integrations';
 
-import {t} from 'utils/i18n';
-
 import AbstractOutgoingOAuthConnection from './abstract_outgoing_oauth_connection';
 
-const HEADER = {id: t('add_oauth_app.header'), defaultMessage: 'Add'};
-const FOOTER = {id: t('installed_oauth_apps.save'), defaultMessage: 'Save'};
-const LOADING = {id: t('installed_oauth_apps.saving'), defaultMessage: 'Saving...'};
+const HEADER = defineMessage({id: 'add_oauth_app.header', defaultMessage: 'Add'});
+const FOOTER = defineMessage({id: 'installed_oauth_apps.save', defaultMessage: 'Save'});
+const LOADING = defineMessage({id: 'installed_oauth_apps.saving', defaultMessage: 'Saving...'});
 
 export type Props = {
     team: Team;

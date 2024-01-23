@@ -149,8 +149,8 @@ export default class InstalledCommand extends React.PureComponent<Props> {
             <div className='backstage-list__item'>
                 <div className='item-details'>
                     <div className='item-details__row d-flex flex-column flex-md-row justify-content-between'>
-                        <div>
-                            <strong className='item-details__name'>
+                        <div className='item-details__name'>
+                            <strong>
                                 {name}
                             </strong>
                             <span className='item-details__trigger'>
