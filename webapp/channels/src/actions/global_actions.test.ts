@@ -576,7 +576,9 @@ describe('actions/global_actions', () => {
 
     test('toggleSideBarRightMenuAction', () => {
         const dispatchMock = (arg: any) => {
-            arg(dispatchMock);
+            if (typeof arg === 'function') {
+                arg(dispatchMock);
+            }
         };
         dispatchMock(toggleSideBarRightMenuAction());
         expect(closeRhsMenu).toHaveBeenCalled();
