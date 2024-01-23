@@ -1208,57 +1208,6 @@ func TestRemoveDuplicateStrings(t *testing.T) {
 	}
 }
 
-func TestObjectFromJSON(t *testing.T) {
-	type TestObject struct {
-		Id   string
-		Name string
-		Age  int
-	}
-
-	t.Run("Empty Reader", func(t *testing.T) {
-		newObject := TestObject{}
-		s := ""
-		err := ObjectFromJSON(strings.NewReader(s), &newObject, 1000)
-		require.Error(t, err)
-	})
-
-	t.Run("Bad Object", func(t *testing.T) {
-		newObject := TestObject{}
-		ss := []string{"string1", "string2"}
-		b, _ := json.Marshal(ss)
-		err := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
-		require.Error(t, err)
-	})
-
-	t.Run("Large Object", func(t *testing.T) {
-		newObject := TestObject{}
-		b, _ := json.Marshal(
-			TestObject{
-				Id:   strings.Repeat("A", 500),
-				Name: strings.Repeat("N", 500),
-				Age:  500,
-			},
-		)
-		err := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
-		require.Error(t, err)
-	})
-
-	t.Run("Successful Parse", func(t *testing.T) {
-		newObject := TestObject{}
-		testObject := TestObject{
-			Id:   NewId(),
-			Name: NewId(),
-			Age:  50,
-		}
-		b, _ := json.Marshal(
-			testObject,
-		)
-		err := ObjectFromJSON(strings.NewReader(string(b)), &newObject, 1000)
-		require.NoError(t, err)
-		require.Equal(t, testObject.Id, newObject.Id)
-	})
-}
-
 func TestStructFromJSONLimited(t *testing.T) {
 	t.Run("successfully parses basic struct", func(t *testing.T) {
 		type TestStruct struct {

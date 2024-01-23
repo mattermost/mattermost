@@ -569,12 +569,6 @@ func ToJSON(v any) []byte {
 	return b
 }
 
-// FromJSON decodes an arbitrary object
-func ObjectFromJSON(rd io.Reader, obj any, maxBytes int64) error {
-	lr := io.LimitedReader{N: maxBytes, R: rd}
-	return json.NewDecoder(&lr).Decode(obj)
-}
-
 func GetServerIPAddress(iface string) string {
 	var addrs []net.Addr
 	if iface == "" {
