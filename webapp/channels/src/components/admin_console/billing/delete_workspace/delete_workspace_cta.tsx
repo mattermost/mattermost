@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
@@ -16,6 +16,9 @@ import {isCloudLicense} from 'utils/license_utils';
 
 import DeleteWorkspaceModal from './delete_workspace_modal';
 
+export const messages = defineMessages({
+    title: {id: 'admin.billing.subscription.deleteWorkspaceSection.title', defaultMessage: 'Delete your workspace'},
+});
 export default function DeleteWorkspaceCTA() {
     const dispatch = useDispatch();
 
@@ -61,10 +64,7 @@ export default function DeleteWorkspaceCTA() {
         <div className='cancelSubscriptionSection'>
             <div className='cancelSubscriptionSection__text'>
                 <div className='cancelSubscriptionSection__text-title'>
-                    <FormattedMessage
-                        id='admin.billing.subscription.deleteWorkspaceSection.title'
-                        defaultMessage='Delete your workspace'
-                    />
+                    <FormattedMessage {...messages.title}/>
                 </div>
                 <div className='cancelSubscriptionSection__text-description'>
                     <FormattedMessage

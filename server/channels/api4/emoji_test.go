@@ -316,25 +316,34 @@ func TestGetEmojisByNames(t *testing.T) {
 	t.Run("should return multiple emojis", func(t *testing.T) {
 		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{emoji1.Name, emoji2.Name})
 
+		var emojiIds []string
+		for _, emoji := range emojis {
+			emojiIds = append(emojiIds, emoji.Id)
+		}
+
 		require.NoError(t, err)
 		require.Len(t, emojis, 2)
-		assert.Equal(t, emoji1.Id, emojis[0].Id)
-		assert.Equal(t, emoji2.Id, emojis[1].Id)
+		assert.Contains(t, emojiIds, emoji1.Id)
+		assert.Contains(t, emojiIds, emoji2.Id)
 	})
 
 	t.Run("should ignore non-existent emojis", func(t *testing.T) {
 		emojis, _, err := client.GetEmojisByNames(context.Background(), []string{emoji1.Name, emoji2.Name, model.NewId()})
+		var emojiIds []string
+		for _, emoji := range emojis {
+			emojiIds = append(emojiIds, emoji.Id)
+		}
 
 		require.NoError(t, err)
 		require.Len(t, emojis, 2)
-		assert.Equal(t, emoji1.Id, emojis[0].Id)
-		assert.Equal(t, emoji2.Id, emojis[1].Id)
+		assert.Contains(t, emojiIds, emoji1.Id)
+		assert.Contains(t, emojiIds, emoji2.Id)
 	})
 
 	t.Run("should return an error when too many emojis are requested", func(t *testing.T) {
 		names := make([]string, GetEmojisByNamesMax+1)
 		for i := 0; i < len(names); i++ {
-			names[i] = emoji1.Name
+			names[i] = model.NewId()
 		}
 
 		_, _, err := client.GetEmojisByNames(context.Background(), names)

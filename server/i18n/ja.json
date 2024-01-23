@@ -2663,7 +2663,7 @@
   },
   {
     "id": "app.import.validate_role_import_data.invalid_permission.error",
-    "translation": "ロールもしくは役割が不正です。"
+    "translation": "ロールに対する不正な権限です。"
   },
   {
     "id": "app.import.validate_role_import_data.name_invalid.error",
@@ -2751,7 +2751,7 @@
   },
   {
     "id": "app.import.validate_user_channels_import_data.invalid_roles.error",
-    "translation": "ユーザーのチャネルメンバーシップのロールが不正です。"
+    "translation": "ユーザーのチャンネルメンバーシップのロールが不正です。"
   },
   {
     "id": "app.import.validate_user_import_data.auth_data_and_password.error",
@@ -2943,7 +2943,7 @@
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
-    "translation": "対話型ダイアログのJSONをエンコードする際にエラーが発生しました。"
+    "translation": "Interactive DialogのJSONをエンコードする際にエラーが発生しました。"
   },
   {
     "id": "app.system_install_date.parse_int.app_error",
@@ -3367,27 +3367,27 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed",
-    "translation": "対話型ダイアログのトリガーIDをbase64でデコードできませんでした。"
+    "translation": "Interactive DialogのTrigger IDをbase64でデコードできませんでした。"
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "対話型ダイアログのトリガーIDが期限切れです。トリガーIDは最大{{.Seconds}}秒間有効です。"
+    "translation": "Interactive DialogのTrigger IDが期限切れです。トリガーIDは最大{{.Duration}}有効です。"
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
-    "translation": "対話型ダイアログに必要なデータであるトリガーIDが含まれていません。"
+    "translation": "Interactive Dialogに必要なデータであるTrigger IDが含まれていません。"
   },
   {
     "id": "interactive_message.decode_trigger_id.signature_decode_failed",
-    "translation": "対話型ダイアログにおけるトリガIDのbase64署名のデコードに失敗しました。"
+    "translation": "Interactive DialogにおけるTrigger IDのbase64署名のデコードに失敗しました。"
   },
   {
     "id": "interactive_message.decode_trigger_id.verify_signature_failed",
-    "translation": "対話型ダイアログのトリガーIDの署名検証に失敗しました。"
+    "translation": "Interactive DialogのTrigger IDの署名検証に失敗しました。"
   },
   {
     "id": "interactive_message.generate_trigger_id.signing_failed",
-    "translation": "対話型ダイアログに対して生成されたトリガーIDに署名できませんでした。"
+    "translation": "Interactive Dialogに対して生成されたTrigger IDに署名できませんでした。"
   },
   {
     "id": "jobs.request_cancellation.status.error",
@@ -3715,11 +3715,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "ファイル保持期間は１日以上でなくてはなりません。"
+    "translation": "ファイル保持日数は0より小さくできません。"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "メッセージ保持期間は１日以上でなくてはなりません。"
+    "translation": "メッセージ保持日数は0より小さくできません。"
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -3879,7 +3879,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomerTypeには 'A9' か 'A10' のいずれかを設定してください。"
+    "translation": "メッセージエクスポートのGlobalRelaySettings.CustomerTypeには 'A9'、'A10'、'CUSTOM'のいずれかを設定してください。"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -4935,7 +4935,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
-    "translation": "対話型ダイアログにおけるトリガIDのbase64署名のデコードに失敗しました。"
+    "translation": "Interactive DialogにおけるTrigger Dのbase64署名のデコードに失敗しました。"
   },
   {
     "id": "groups.unsupported_syncable_type",
@@ -6479,7 +6479,7 @@
   },
   {
     "id": "app.post.delete.app_error",
-    "translation": "役割を削除できませんでした。"
+    "translation": "投稿を削除できませんでした。"
   },
   {
     "id": "app.status.get.missing.app_error",
@@ -8111,7 +8111,7 @@
   },
   {
     "id": "app.sharedchannel.dm_channel_creation.internal_error",
-    "translation": "ダイレクト共有チャネルの作成中にエラーが発生しました。"
+    "translation": "ダイレクト共有チャンネルの作成中にエラーが発生しました。"
   },
   {
     "id": "app.import.generate_password.app_error",
@@ -8391,7 +8391,7 @@
   },
   {
     "id": "api.command_share.invite_remote.help",
-    "translation": "現在の共有チャネルに外部Mattermostインスタンスを招待する"
+    "translation": "現在の共有チャンネルに外部Mattermostインスタンスを招待する"
   },
   {
     "id": "api.command_share.invitation_sent",
@@ -8419,7 +8419,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "共有チャネルの存在確認中にエラーが発生しました: {{.Error}}"
+    "translation": "共有チャンネル {{.ChannelID}} の存在確認中にエラーが発生しました: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8427,7 +8427,7 @@
   },
   {
     "id": "api.command_share.channel_status.help",
-    "translation": "この共有チャネルのステータスを表示"
+    "translation": "この共有チャンネルのステータスを表示"
   },
   {
     "id": "api.command_share.channel_shared",
@@ -8435,11 +8435,11 @@
   },
   {
     "id": "api.command_share.channel_remote_id_not_exists",
-    "translation": "共有チャネルの安全な接続 `{{.RemoteId}}`がこのチャネルには存在しません。"
+    "translation": "共有チャンネルの安全な接続 `{{.RemoteId}}`がこのチャンネルには存在しません。"
   },
   {
     "id": "api.command_share.channel_invite_not_home.error",
-    "translation": "他の場所から発信された共有チャネルに、安全な接続を招待できませんでした。"
+    "translation": "他の場所から発信された共有チャンネルに、安全な接続を招待できませんでした。"
   },
   {
     "id": "api.command_share.channel_invite.error",
@@ -8703,7 +8703,7 @@
   },
   {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
-    "translation": "これらのユーザーはチームを共有していないため、ダイレクトチャネルを作成することはできません。"
+    "translation": "これらのユーザーはチームを共有していないため、ダイレクトチャンネルを作成することはできません。"
   },
   {
     "id": "app.valid_password_generic.app_error",
@@ -8919,7 +8919,7 @@
   },
   {
     "id": "api.user.view_archived_channels.get_users_in_channel.app_error",
-    "translation": "アーカイブされたチャネルのユーザーを取得できません"
+    "translation": "アーカイブされたチャンネルのユーザーを取得できません"
   },
   {
     "id": "api.user.view_archived_channels.get_posts_for_channel.app_error",
@@ -9855,7 +9855,7 @@
   },
   {
     "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
-    "translation": "グループメッセージから非公開チャネルへの変換は許可されていません"
+    "translation": "グループメッセージから非公開チャンネルへの変換は許可されていません"
   },
   {
     "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
@@ -10080,5 +10080,221 @@
   {
     "id": "app.login.doLogin.updateLastLogin.error",
     "translation": "最終ログイン日時を更新できませんでした"
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "この投稿に対するリアクションの上限に達しました。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "不正な入力パラメータです。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "この機能はフィーチャーフラグによって制限されています。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "アクティブなユーザーと非アクティブなユーザーの両方を非表示にすることはできません。"
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "ユーザー数を取得できませんでした"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "スレッドを削除できませんでした"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "外向きの OAuth 接続の削除中にエラーが発生しました。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "外向きの OAuth 接続の取得中にエラーが発生しました。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "外向きのOAuth接続が見つかりませんでした。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "外向きのOAuth接続の取得中にエラーが発生しました。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "外向きの OAuth 接続の保存中にエラーが発生しました。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "外向きの OAuth 接続の更新中にエラーが発生しました。"
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "指定されたソートカラムが無効です。"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "チャンネル{{.ChannelID}} が共有されていないため、リモートを招待できません。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "外向きの OAuth 接続の一覧表示中にエラーが発生しました。"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "このスレッドは別のチャンネルから移動されました"
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "一度に多くのロールを取得することはできません。一度にリクエストできるのは {{.MaxNames}} ロールまでです。"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "メッセージがダイレクト/グループメッセージに移動されました。\n"
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "カスタムステータスを更新できませんでした。指定された名前の絵文字が存在しません。"
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "ファイルの開始位置が見つかりませんでした。"
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "スレッド移動は無効化されています"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "このスレッドを移動する権限がありません。"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "メッセージが移動されました: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "{{.NumMessages}} メッセージのあるスレッドが移動されました: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "{{.NumMessages}} メッセージを含むスレッドがダイレクト/グループメッセージに移動されました。\n"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "ユーザーレポートを取得できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "GlobalRelaySettings.CustomerTypeが 'CUSTOM' の場合、GlobalRelaySettings.CustomSMTPServerNameとGlobalRelaySettings.CustomSMTPPortを設定する必要があります。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "ページサイズが不正、もしくは大きすぎます。"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "不正なチームIDが入力されました。"
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "スレッド移動設定のドメインが不正です"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "サービス設定の外向きの統合機能リクエストタイムアウトが不正です。正の整数を指定してください。"
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "指定された日付範囲が不正です。"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "招待を確認できなせんでした: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "ペイロードの解析中にエラーが発生しました。"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "混乱を避けるため更新してください"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "チャンネルメンバーの通知設定を更新できませんでした。"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "多数のチャンネルメンバーを更新できませんでした。一度に{{.Max}}人まで更新できます。"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "ユーザー数を取得できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "ファイル保持日数とファイル保持時間の両方を0にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "ファイル保持時間は0より小さくできません"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "メッセージ保持日数とメッセージ保持時間の両方を0にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "メッセージ保持時間は0より小さくできません"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "メッセージ保持日数とメッセージ保持時間の両方を0より大きくすることはできません。"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "ユーザーが見つかりませんでした。"
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "更新する"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "年間請求の期限まで30日です"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "年間請求の期限まで30日です"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "年間サブスクリプションの更新日が60日後に迫っています"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "7日後にワークスペースへのアクセスできなくなってしまいます"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "ユーザーがカスタムプロフィール画像を設定しているかチェックする際にエラーが発生しました。"
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "サービス設定の最大ペイロードサイズが不正です。0より大きい整数にしてください。"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "年間サブスクリプションの更新日が60日後に迫っています"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "アクションが必要です: 年間サブスクリプションの更新日が7日後に迫っています"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "ファイル保持日数とファイル保持時間の両方を0より大きくすることはできません。"
   }
 ]

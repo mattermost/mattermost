@@ -26,14 +26,18 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
 
-		mockSyncService := app.NewMockSharedChannelService(nil)
+		mockSyncService := app.NewMockSharedChannelService(nil, app.MockOptionSharedChannelServiceWithActive(true))
 		th.Server.SetSharedChannelSyncService(mockSyncService)
-		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server)
+		remoteClusterService, err := remotecluster.NewRemoteClusterService(th.Server, th.App)
 		require.NoError(t, err)
 
-		th.Server.SetRemoteClusterService(mockRemoteCluster)
+		th.Server.SetRemoteClusterService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
+
+		err = remoteClusterService.Start()
+		require.NoError(t, err)
+		defer remoteClusterService.Shutdown()
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(th.BasicTeam, WithShared(false))
@@ -53,7 +57,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
 			return err == nil && event.EventType() == model.WebsocketEventChannelConverted
 		})
-		assert.Len(t, channelConvertedMessages, 1)
+		assert.Len(t, channelConvertedMessages, 1) // one msg for share creation
 	})
 
 	t.Run("unshare command sends a websocket channel converted event", func(t *testing.T) {
@@ -64,12 +68,16 @@ func TestShareProviderDoCommand(t *testing.T) {
 
 		mockSyncService := app.NewMockSharedChannelService(nil)
 		th.Server.SetSharedChannelSyncService(mockSyncService)
-		mockRemoteCluster, err := remotecluster.NewRemoteClusterService(th.Server)
+		remoteClusterService, err := remotecluster.NewRemoteClusterService(th.Server, th.App)
 		require.NoError(t, err)
 
-		th.Server.SetRemoteClusterService(mockRemoteCluster)
+		th.Server.SetRemoteClusterService(remoteClusterService)
 		testCluster := &testlib.FakeClusterInterface{}
 		th.Server.Platform().SetCluster(testCluster)
+
+		err = remoteClusterService.Start()
+		require.NoError(t, err)
+		defer remoteClusterService.Shutdown()
 
 		commandProvider := ShareProvider{}
 		channel := th.CreateChannel(th.BasicTeam, WithShared(true))
@@ -88,6 +96,6 @@ func TestShareProviderDoCommand(t *testing.T) {
 			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
 			return err == nil && event.EventType() == model.WebsocketEventChannelConverted
 		})
-		require.Len(t, channelConvertedMessages, 1)
+		require.Len(t, channelConvertedMessages, 2) // one msg for share creation, one for unshare.
 	})
 }
