@@ -14398,7 +14398,7 @@ func (a *OpenTracingAppLayer) ResetSamlAuthDataToEmail(includeDeleted bool, dryR
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) ResetUserAuthDataToEmail(authType string, includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError) {
+func (a *OpenTracingAppLayer) ResetUserAuthDataToEmail(authService string, includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResetUserAuthDataToEmail")
 
@@ -14410,7 +14410,7 @@ func (a *OpenTracingAppLayer) ResetUserAuthDataToEmail(authType string, includeD
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.ResetUserAuthDataToEmail(authType, includeDeleted, dryRun, userIDs)
+	resultVar0, resultVar1 := a.app.ResetUserAuthDataToEmail(authService, includeDeleted, dryRun, userIDs)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
