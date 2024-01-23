@@ -53,17 +53,7 @@ export function SystemUsersFiltersStatus(props: Props) {
         ];
     }, []);
 
-    function getInitialValue(value: Props['value']) {
-        const option = options.find((option) => option.value === value);
-
-        if (option) {
-            return option;
-        }
-
-        return options[0];
-    }
-
-    const [value, setValue] = useState(getInitialValue(props.value));
+    const [value, setValue] = useState(getInitialValue(props.value, options));
 
     function handleChange(value: OptionType) {
         setValue(value);
@@ -88,4 +78,14 @@ export function SystemUsersFiltersStatus(props: Props) {
             onChange={handleChange}
         />
     );
+}
+
+function getInitialValue(value: Props['value'], options: OptionType[]) {
+    const option = options.find((option) => option.value === value);
+
+    if (option) {
+        return option;
+    }
+
+    return options[0];
 }
