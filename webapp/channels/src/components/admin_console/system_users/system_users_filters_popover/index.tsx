@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {autoUpdate, useClick, useDismiss, useFloating, useInteractions, useRole, FloatingFocusManager, useTransitionStyles, autoPlacement} from '@floating-ui/react';
+import {autoUpdate, useClick, useDismiss, useFloating, useInteractions, useRole, FloatingFocusManager, useTransitionStyles, autoPlacement, offset} from '@floating-ui/react';
 import React, {useState} from 'react';
 import {useIntl} from 'react-intl';
 
-import {StyledPopoverContainer} from 'components/admin_console/system_users/system_users_filters_popover/styled_popover_container';
+import {StyledPopoverContainer} from 'components/styled_popover_container';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
@@ -27,8 +27,9 @@ export function SystemUsersFilterPopover(props: Props) {
         onOpenChange: setPopoverOpen,
         whileElementsMounted: autoUpdate,
         middleware: [
+            offset(10),
             autoPlacement({
-                allowedPlacements: ['top', 'bottom'],
+                allowedPlacements: ['bottom-start', 'top-start'],
             }),
         ],
     });
@@ -62,7 +63,6 @@ export function SystemUsersFilterPopover(props: Props) {
             {isMounted && (
                 <FloatingFocusManager
                     context={floatingContext}
-                    modal={false}
                 >
                     <StyledPopoverContainer
                         {...getFloatingProps()}
