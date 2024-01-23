@@ -51,7 +51,6 @@ export function SystemUsersSearch(props: Props) {
                 inputPrefix={<i className={'icon icon-magnify'}/>}
                 onChange={handleChange}
                 onClear={handleClear}
-                defaultValue={props.searchTerm}
                 value={inputValue}
             />
         </div>

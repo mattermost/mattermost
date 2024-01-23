@@ -78,13 +78,19 @@ export function getUserStatusFilterOption(status?: string): Partial<Pick<UserRep
     return {};
 }
 
-export function getPaginationInfo(pageIndex: number, pageSize: number, currentLength: number, totalItems?: number) {
+export function getPaginationInfo(pageIndex: number, pageSize: number, currentLength: number, total?: number) {
     if (!currentLength) {
-        return null;
+        return (
+            <FormattedMessage
+                id='admin.system_users_list.pagination.no_users'
+                defaultMessage='0 users'
+            />
+        );
     }
 
     const firstPage = (pageIndex * pageSize) + 1;
     const lastPage = (pageIndex * pageSize) + currentLength;
+    const totalItems = total || 0;
 
     return (
         <FormattedMessage
@@ -93,7 +99,7 @@ export function getPaginationInfo(pageIndex: number, pageSize: number, currentLe
             values={{
                 firstPage,
                 lastPage,
-                totalItems: totalItems || 0,
+                totalItems,
             }}
         />
     );
