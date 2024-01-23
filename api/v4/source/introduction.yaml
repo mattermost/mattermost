@@ -61,7 +61,7 @@ tags:
         * [NPM](https://www.npmjs.com/package/@mattermost/client)
         * [Source](https://github.com/mattermost/mattermost/tree/master/webapp/platform/client)
 
-      * [Mattermost Golang Driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/client4.go)
+      * [Mattermost Golang Driver](https://pkg.go.dev/github.com/mattermost/mattermost/server/public/model#Client4)
 
       #### Community-built Drivers
 
