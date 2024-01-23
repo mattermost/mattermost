@@ -1,20 +1,20 @@
 .system-users-export__keyIndicator {
     position: relative;
-    border-radius: 12px;
-    background: var(--online-indicator, #3DB887);
+    top: -6px;
+    right: 14px;
+    display: flex;
     width: 20px;
     height: 20px;
-    display: flex;
-    justify-content: center;
-    right: 14px;
     align-self: flex-start;
-    top: -6px;
+    justify-content: center;
+    background: var(--online-indicator, #3db887);
+    border-radius: 12px;
 
     i {
+        color: var(--center-channel-bg, #fff);
         font-size: 12px;
-        color: var(--center-channel-bg, #FFF);
 
-        &:before {
+        &::before {
             margin: 0;
         }
     }
