@@ -3211,10 +3211,6 @@
     "translation": "Invalid request body."
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error while parsing the body data."
-  },
-  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
