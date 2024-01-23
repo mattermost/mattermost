@@ -2807,7 +2807,7 @@ func (s *MmctlUnitTestSuite) TestDemoteUserToGuestCmd() {
 func (s *MmctlUnitTestSuite) TestSsoAuthDataReset() {
 	s.Run("Reset auth data without confirmation returns an error", func() {
 		cmd := &cobra.Command{}
-		err := ssoAuthDataResetCmdF(s.client, cmd, nil)
+		err := ssoAuthDataResetCmdF(s.client, cmd, []string{"saml"})
 		s.Require().NotNil(err)
 		s.Require().EqualError(err, "could not proceed, either enable --confirm flag or use an interactive shell to complete operation: this is not an interactive shell")
 	})
@@ -2824,7 +2824,7 @@ func (s *MmctlUnitTestSuite) TestSsoAuthDataReset() {
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
-		err := ssoAuthDataResetCmdF(s.client, cmd, nil)
+		err := ssoAuthDataResetCmdF(s.client, cmd, []string{"openid"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -2840,11 +2840,11 @@ func (s *MmctlUnitTestSuite) TestSsoAuthDataReset() {
 
 		s.client.
 			EXPECT().
-			ResetUserAuthDataToEmail(context.Background(), "saml", false, false, []string{}).
+			ResetUserAuthDataToEmail(context.Background(), "saml", false, true, []string{}).
 			Return(int64(1), &model.Response{}, nil).
 			Times(1)
 
-		err := ssoAuthDataResetCmdF(s.client, cmd, nil)
+		err := ssoAuthDataResetCmdF(s.client, cmd, []string{"saml"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Equal(printer.GetLines()[0], outputMessage)
@@ -2864,7 +2864,7 @@ func (s *MmctlUnitTestSuite) TestSsoAuthDataReset() {
 		cmd.Flags().Bool("yes", true, "")
 		cmd.Flags().StringSlice("users", users, "")
 
-		err := ssoAuthDataResetCmdF(s.client, cmd, nil)
+		err := ssoAuthDataResetCmdF(s.client, cmd, []string{"office365"})
 		s.Require().Nil(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})

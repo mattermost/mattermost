@@ -78,6 +78,26 @@ func TestCreateOAuthUser(t *testing.T) {
 		assert.Equal(t, "e7110007-64be-43d8-9840-4a7e9c26b710", *u.AuthData)
 	})
 
+	t.Run("user exists with email as authdata, update authdata successfully", func(t *testing.T) {
+		dbUser := th.BasicUser
+
+		glUser := oauthgitlab.GitLabUser{Id: 400, Username: dbUser.Username, Email: dbUser.Email, Name: "Ben C"}
+		js, jsonErr := json.Marshal(glUser)
+		require.NoError(t, jsonErr)
+
+		// Update user to use email as Authdata value
+		s, er2 := th.App.Srv().Store().User().UpdateAuthData(dbUser.Id, model.UserAuthServiceGitlab, model.NewString(dbUser.Email), "", false)
+		assert.NoError(t, er2)
+		assert.Equal(t, dbUser.Id, s)
+
+		_, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, bytes.NewReader(js), th.BasicTeam.Id, nil)
+		assert.Nil(t, err)
+		u, er := th.App.Srv().Store().User().GetByEmail(dbUser.Email)
+		assert.NoError(t, er)
+		// make sure authdata is updated to the oauth id
+		assert.Equal(t, "400", *u.AuthData)
+	})
+
 	t.Run("user creation disabled", func(t *testing.T) {
 		*th.App.Config().TeamSettings.EnableUserCreation = false
 		_, err := th.App.CreateOAuthUser(th.Context, model.UserAuthServiceGitlab, strings.NewReader("{}"), th.BasicTeam.Id, nil)

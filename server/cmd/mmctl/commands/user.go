@@ -254,20 +254,20 @@ var MigrateAuthCmd = &cobra.Command{
 var SSOAuthDataResetCmd = &cobra.Command{
 	Use:   "auth-data-reset [auth_service]",
 	Short: "Reset AuthData field to Email",
-	Long:  "Resets the AuthData field for OpenId or SAML users to their email. For SAML, run this utility after setting the 'id' SAML attribute to an empty value.",
+	Long:  "Resets the AuthData field for all OpenId, Gitlab, Office365, Google or SAML users to their email. For SAML, run this utility after setting the 'id' SAML attribute to an empty value.",
 	Example: `  # Reset all SAML users' AuthData field to their email, including deleted users
   $ mmctl user auth-data-reset saml --include-deleted
 
-  # Show how many users would be affected by the reset
-  $ mmctl user auth-data-reset openid --dry-run
+  # Show how many Office365 users would be affected by the reset
+  $ mmctl user auth-data-reset office365 --dry-run
 
   # Skip confirmation for resetting the AuthData for openid users
   $ mmctl user auth-data-reset openid -y
 
-  # Only reset the AuthData for the following SAML users
-  $ mmctl user auth-data-reset saml --users userid1,userid2`,
+  # Only reset the AuthData for the following Gitlab users
+  $ mmctl user auth-data-reset gitlab --users userid1,userid2`,
 	Args: func(command *cobra.Command, args []string) error {
-		if args[0] == "" {
+		if len(args) != 1 || args[0] == "" {
 			return errors.New("auth_service parameter must be provided")
 		}
 		return nil
