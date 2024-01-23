@@ -310,25 +310,27 @@ func TestAddUserToGroupSyncables(t *testing.T) {
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
 
-	id = model.NewId()
-	user = &model.User{
-		Email:       "test123@localhost",
-		Username:    model.NewId(),
-		AuthData:    &id,
-		AuthService: model.UserAuthServiceSaml,
-	}
-	user, err = th.App.Srv().Store().User().Save(user)
-	require.NoError(t, err)
+	t.Run("should sync SAML users when SamlSettings.EnableSyncWithLdap is true", func(t *testing.T) {
+		id = model.NewId()
+		user = &model.User{
+			Email:       "test123@localhost",
+			Username:    model.NewId(),
+			AuthData:    &id,
+			AuthService: model.UserAuthServiceSaml,
+		}
+		user, err = th.App.Srv().Store().User().Save(user)
+		require.NoError(t, err)
 
-	resp, err = th.Client.AddUserToGroupSyncables(context.Background(), user.Id)
-	require.Error(t, err)
-	CheckForbiddenStatus(t, resp)
+		resp, err = th.Client.AddUserToGroupSyncables(context.Background(), user.Id)
+		require.Error(t, err)
+		CheckForbiddenStatus(t, resp)
 
-	th.App.UpdateConfig(func(cfg *model.Config) {
-		*cfg.SamlSettings.EnableSyncWithLdap = true
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			*cfg.SamlSettings.EnableSyncWithLdap = true
+		})
+
+		resp, err = th.SystemAdminClient.AddUserToGroupSyncables(context.Background(), user.Id)
+		require.NoError(t, err)
+		CheckOKStatus(t, resp)
 	})
-
-	resp, err = th.SystemAdminClient.AddUserToGroupSyncables(context.Background(), user.Id)
-	require.NoError(t, err)
-	CheckOKStatus(t, resp)
 }
