@@ -13,9 +13,9 @@ import {addOutgoingOAuthConnection} from 'mattermost-redux/actions/integrations'
 
 import AbstractOutgoingOAuthConnection from './abstract_outgoing_oauth_connection';
 
-const HEADER = defineMessage({id: 'add_oauth_app.header', defaultMessage: 'Add'});
-const FOOTER = defineMessage({id: 'installed_oauth_apps.save', defaultMessage: 'Save'});
-const LOADING = defineMessage({id: 'installed_oauth_apps.saving', defaultMessage: 'Saving...'});
+const HEADER = defineMessage({id: 'add_outgoing_oauth_connection.header', defaultMessage: 'Add'});
+const FOOTER = defineMessage({id: 'add_outgoing_oauth_connection.save', defaultMessage: 'Save'});
+const LOADING = defineMessage({id: 'add_outgoing_oauth_connection.saving', defaultMessage: 'Saving...'});
 
 export type Props = {
     team: Team;
@@ -48,7 +48,7 @@ const AddOutgoingOAuthConnection = ({team}: Props): JSX.Element => {
             header={HEADER}
             footer={FOOTER}
             loading={LOADING}
-            action={submit}
+            submitAction={submit}
             serverError={serverError}
         />
     );

@@ -45,7 +45,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
         renderExtra: <div>{'renderExtra'}</div>,
         serverError: '',
         initialConnection,
-        action: jest.fn(),
+        submitAction: jest.fn(),
     };
 
     test('should match snapshot', () => {

@@ -24,7 +24,7 @@ const OAuthConnectionAudienceInput = (props: Props) => {
     const dispatch = useDispatch();
     useEffect(() => {
         dispatch(fetchOutgoingOAuthConnections());
-    }, []);
+    }, [dispatch]);
 
     const matchedConnection = Object.values(oauthConnections).find((conn) => conn.audiences.find((aud) => props.value.startsWith(aud)));
     let oauthIcon: React.ReactNode | undefined;

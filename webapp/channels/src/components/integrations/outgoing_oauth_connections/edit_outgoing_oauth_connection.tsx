@@ -20,8 +20,8 @@ import {getHistory} from 'utils/browser_history';
 import AbstractOutgoingOAuthConnection from './abstract_outgoing_oauth_connection';
 
 const HEADER = defineMessage({id: 'integrations.edit', defaultMessage: 'Edit'});
-const FOOTER = defineMessage({id: 'update_incoming_webhook.update', defaultMessage: 'Update'});
-const LOADING = defineMessage({id: 'update_incoming_webhook.updating', defaultMessage: 'Updating...'});
+const FOOTER = defineMessage({id: 'edit_outgoing_oauth_connection.update', defaultMessage: 'Update'});
+const LOADING = defineMessage({id: 'edit_outgoing_oauth_connection.updating', defaultMessage: 'Updating...'});
 
 type Props = {
     team: Team;
@@ -139,7 +139,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
             footer={FOOTER}
             loading={LOADING}
             renderExtra={renderExtra()}
-            action={handleInitialSubmit}
+            submitAction={handleInitialSubmit}
             serverError={serverError}
             initialConnection={existingConnection}
         />

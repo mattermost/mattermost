@@ -308,32 +308,41 @@ export function getOutgoingOAuthConnections(page = 0, perPage: number = General.
     });
 }
 
-export function addOutgoingOAuthConnection(app: OutgoingOAuthConnection) {
+export function addOutgoingOAuthConnection(connection: OutgoingOAuthConnection) {
     return bindClientFunc({
         clientFunc: Client4.createOutgoingOAuthConnection,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
         params: [
-            app,
+            connection,
         ],
     });
 }
 
-export function editOutgoingOAuthConnection(app: OutgoingOAuthConnection) {
+export function editOutgoingOAuthConnection(connection: OutgoingOAuthConnection) {
     return bindClientFunc({
         clientFunc: Client4.editOutgoingOAuthConnection,
         onSuccess: IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION,
         params: [
-            app,
+            connection,
         ],
     });
 }
 
-export function getOutgoingOAuthConnection(appId: string) {
+export function getOutgoingOAuthConnection(connectionId: string) {
     return bindClientFunc({
         clientFunc: Client4.getOutgoingOAuthConnection,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
         params: [
-            appId,
+            connectionId,
+        ],
+    });
+}
+
+export function validateOutgoingOAuthConnection(connection: OutgoingOAuthConnection) {
+    return bindClientFunc({
+        clientFunc: Client4.validateOutgoingOAuthConnection,
+        params: [
+            connection,
         ],
     });
 }

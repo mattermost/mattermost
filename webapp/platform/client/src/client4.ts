@@ -2797,19 +2797,26 @@ export default class Client4 {
         );
     };
 
-    createOutgoingOAuthConnection = (app: OutgoingOAuthConnection) => {
-        this.trackEvent('api', 'api_outoing_oauth_connection_register');
+    createOutgoingOAuthConnection = (connection: OutgoingOAuthConnection) => {
+        this.trackEvent('api', 'api_outgoing_oauth_connection_register');
 
         return this.doFetch<OutgoingOAuthConnection>(
             `${this.getOutgoingOAuthConnectionsRoute()}`,
-            {method: 'post', body: JSON.stringify(app)},
+            {method: 'post', body: JSON.stringify(connection)},
         );
     };
 
-    editOutgoingOAuthConnection = (app: OutgoingOAuthConnection) => {
+    editOutgoingOAuthConnection = (connection: OutgoingOAuthConnection) => {
         return this.doFetch<OutgoingOAuthConnection>(
-            `${this.getOutgoingOAuthConnectionsRoute()}/${app.id}`,
-            {method: 'put', body: JSON.stringify(app)},
+            `${this.getOutgoingOAuthConnectionsRoute()}/${connection.id}`,
+            {method: 'put', body: JSON.stringify(connection)},
+        );
+    };
+
+    validateOutgoingOAuthConnection = (connection: OutgoingOAuthConnection) => {
+        return this.doFetch<OutgoingOAuthConnection>(
+            `${this.getOutgoingOAuthConnectionsRoute()}/validate`,
+            {method: 'post', body: JSON.stringify(connection)},
         );
     };
 
