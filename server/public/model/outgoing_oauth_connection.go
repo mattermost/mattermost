@@ -51,9 +51,7 @@ func (oa *OutgoingOAuthConnection) Auditable() map[string]interface{} {
 
 // Sanitize removes any sensitive fields from the OutgoingOAuthConnection object.
 func (oa *OutgoingOAuthConnection) Sanitize() {
-	oa.ClientId = ""
 	oa.ClientSecret = ""
-	oa.CredentialsUsername = nil
 	oa.CredentialsPassword = nil
 }
 

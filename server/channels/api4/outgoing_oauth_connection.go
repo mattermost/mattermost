@@ -26,7 +26,6 @@ func (api *API) InitOutgoingOAuthConnection() {
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(getOutgoingOAuthConnection)).Methods("GET")
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(updateOutgoingOAuthConnection)).Methods("PUT")
 	api.BaseRoutes.OutgoingOAuthConnection.Handle("", api.APISessionRequired(deleteOutgoingOAuthConnection)).Methods("DELETE")
-	api.BaseRoutes.OutgoingOAuthConnection.Handle("/validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods("POST")
 	api.BaseRoutes.OutgoingOAuthConnections.Handle("/validate", api.APISessionRequired(validateOutgoingOAuthConnectionCredentials)).Methods("POST")
 }
 
@@ -354,20 +353,23 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	// Allow checking connections sent in the body or by id if coming from an already existing
 	// connection url.
 	var inputConnection *model.OutgoingOAuthConnection
-	if c.Params != nil && c.Params.OutgoingOAuthConnectionID != "" {
+	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, err.Error(), http.StatusBadRequest)
+		w.WriteHeader(c.Err.StatusCode)
+		return
+	}
+
+	if inputConnection.Id != "" && inputConnection.ClientSecret == "" {
 		var err *model.AppError
-		inputConnection, err = service.GetConnection(c.AppContext, c.Params.OutgoingOAuthConnectionID)
+		var storedConnection *model.OutgoingOAuthConnection
+		storedConnection, err = service.GetConnection(c.AppContext, inputConnection.Id)
 		if err != nil {
 			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, err.Error(), http.StatusInternalServerError)
 			w.WriteHeader(c.Err.StatusCode)
 			return
 		}
-	} else {
-		if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
-			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, err.Error(), http.StatusBadRequest)
-			w.WriteHeader(c.Err.StatusCode)
-			return
-		}
+
+		inputConnection.ClientSecret = storedConnection.ClientSecret
 	}
 
 	audit.AddEventParameterAuditable(auditRec, "outgoing_oauth_connection", inputConnection)
@@ -378,8 +380,11 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	// do not store the token, just check if the credentials are valid and the request can be made
 	_, err := service.RetrieveTokenForConnection(c.AppContext, inputConnection)
 	if err != nil {
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error", nil, err.Error(), err.StatusCode)
 		c.Logger.Error("Failed to retrieve token while validating outgoing oauth connection", logr.Err(err))
 		resultStatusCode = err.StatusCode
+	} else {
+		ReturnStatusOK(w)
 	}
 
 	auditRec.Success()
