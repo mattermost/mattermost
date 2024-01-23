@@ -4,7 +4,7 @@
 package jobs
 
 import (
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -18,10 +18,11 @@ type BatchWorker struct {
 	logger    mlog.LoggerIFace
 	store     store.Store
 
-	stop    chan struct{}
-	stopped chan bool
-	closed  atomic.Bool
-	jobs    chan model.Job
+	stateMut sync.Mutex
+	stop     chan struct{}
+	stopped  chan bool
+	closed   bool
+	jobs     chan model.Job
 
 	timeBetweenBatches time.Duration
 	doBatch            func(rctx *request.Context, job *model.Job) bool
@@ -43,17 +44,27 @@ func MakeBatchWorker(
 		jobs:               make(chan model.Job),
 		timeBetweenBatches: timeBetweenBatches,
 		doBatch:            doBatch,
+		closed:             true,
 	}
 }
 
 // Run starts the worker dedicated to the unique migration batch job it will be given to process.
 func (worker *BatchWorker) Run() {
-	worker.logger.Debug("Worker started")
+	worker.stateMut.Lock()
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
-	if worker.closed.CompareAndSwap(true, false) {
+	if worker.closed {
+		worker.closed = false
 		worker.stop = make(chan struct{})
+	} else {
+		worker.stateMut.Unlock()
+		return
 	}
+	// Run is called from a separate goroutine and doesn't return.
+	// So we cannot Unlock in a defer clause.
+	worker.stateMut.Unlock()
+
+	worker.logger.Debug("Worker started")
 
 	defer func() {
 		worker.logger.Debug("Worker finished")
@@ -73,10 +84,14 @@ func (worker *BatchWorker) Run() {
 
 // Stop interrupts the worker even if the migration has not yet completed.
 func (worker *BatchWorker) Stop() {
+	worker.stateMut.Lock()
+	defer worker.stateMut.Unlock()
+
 	// Set to close, and if already closed before, then return.
-	if !worker.closed.CompareAndSwap(false, true) {
+	if worker.closed {
 		return
 	}
+	worker.closed = true
 
 	worker.logger.Debug("Worker stopping")
 	close(worker.stop)
