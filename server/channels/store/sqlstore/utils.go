@@ -244,3 +244,10 @@ func trimInput(input string) string {
 	}
 	return input
 }
+
+func maxInt64(a, b int64) int64 {
+	if a > b {
+		return a
+	}
+	return b
+}

@@ -20,7 +20,6 @@ import SearchIcon from 'components/widgets/icons/search_icon';
 import {generateIndex} from 'utils/admin_console_index';
 import type {Index} from 'utils/admin_console_index';
 import {getHistory} from 'utils/browser_history';
-import {localizeMessage} from 'utils/utils';
 
 import type AdminDefinition from '../admin_definition';
 
@@ -140,7 +139,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
             currentSiteName = ' - ' + this.props.siteName;
         }
 
-        document.title = localizeMessage('sidebar_right_menu.console', 'System Console') + currentSiteName;
+        document.title = this.props.intl.formatMessage({id: 'sidebar_right_menu.console', defaultMessage: 'System Console'}) + currentSiteName;
     };
 
     visibleSections = () => {
@@ -210,10 +209,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                             name={item.url}
                             restrictedIndicator={item.restrictedIndicator?.shouldDisplay(license, subscriptionProduct) ? item.restrictedIndicator.value(cloud) : undefined}
                             title={
-                                <FormattedMessage
-                                    id={item.title}
-                                    defaultMessage={item.title_default}
-                                />
+                                typeof item.title === 'string' ?
+                                    item.title :
+                                    <FormattedMessage
+                                        {...item.title}
+                                    />
                             }
                         />
                     ));
@@ -238,10 +238,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         icon={section.icon}
                         sectionClass=''
                         title={
-                            <FormattedMessage
-                                id={section.sectionTitle}
-                                defaultMessage={section.sectionTitleDefault}
-                            />
+                            typeof section.sectionTitle === 'string' ?
+                                section.sectionTitle :
+                                <FormattedMessage
+                                    {...section.sectionTitle}
+                                />
                         }
                     >
                         {sidebarItems}
@@ -303,7 +304,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                         type='text'
                         onChange={this.onFilterChange}
                         value={this.state.filter}
-                        placeholder={localizeMessage('admin.sidebar.filter', 'Find settings')}
+                        placeholder={this.props.intl.formatMessage({id: 'admin.sidebar.filter', defaultMessage: 'Find settings'})}
                         ref={this.searchRef}
                         id='adminSidebarFilter'
                         clearable={true}

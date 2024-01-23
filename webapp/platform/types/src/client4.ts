@@ -44,7 +44,16 @@ export enum ReportDuration {
     Last6Months = 'last_6_months',
 }
 
-export type UserReportOptions = {
+export type UserReportFilter = {
+    role_filter?: string,
+    has_no_team?: boolean,
+    team_filter?: string,
+    hide_active?: boolean,
+    hide_inactive?: boolean,
+    searchTerm?: string,
+}
+
+export type UserReportOptions = UserReportFilter & {
     sort_column: 'CreateAt' | 'Username' | 'FirstName' | 'LastName' | 'Nickname' | 'Email',
     page_size: number,
     sort_direction?: 'asc' | 'desc',
@@ -52,9 +61,4 @@ export type UserReportOptions = {
     date_range?: ReportDuration,
     from_column_value?: string,
     from_id?: string,
-    role_filter?: string,
-    has_no_team?: boolean,
-    team_filter?: string,
-    hide_active?: boolean,
-    hide_inactive?: boolean,
 }

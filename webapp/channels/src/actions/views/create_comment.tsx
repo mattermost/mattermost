@@ -18,7 +18,7 @@ import {
 } from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import {executeCommand} from 'actions/command';
@@ -143,8 +143,8 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
     };
 }
 
-export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string) {
-    return (draft: PostDraft, options: {ignoreSlash?: boolean} = {}) => async (dispatch: DispatchFunc, getState: () => GlobalState) => {
+export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string): (draft: PostDraft, options?: {ignoreSlash?: boolean}) => NewActionFuncAsync<boolean, GlobalState> {
+    return (draft, options = {}) => async (dispatch, getState) => {
         const {message} = draft;
 
         dispatch(addMessageIntoHistory(message));
@@ -218,10 +218,10 @@ function makeGetCurrentUsersLatestReply() {
     );
 }
 
-export function makeOnEditLatestPost(rootId: string) {
+export function makeOnEditLatestPost(rootId: string): () => NewActionFunc<boolean> {
     const getCurrentUsersLatestPost = makeGetCurrentUsersLatestReply();
 
-    return () => (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return () => (dispatch, getState) => {
         const state = getState();
 
         const lastPost = getCurrentUsersLatestPost(state, rootId);
