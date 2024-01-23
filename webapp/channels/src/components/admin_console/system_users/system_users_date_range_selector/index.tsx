@@ -176,7 +176,7 @@ export function SystemUsersDateRangeSelector() {
                     trailingElements={inputValue === ReportDuration.Last6Months && <i className='icon icon-check'/>}
                     onClick={() => updateDateRange(ReportDuration.Last6Months)}
                 />
-                <hr/>
+                <Menu.Separator/>
                 <Menu.Item
                     key='trailing_message'
                     id='trailing_message'
