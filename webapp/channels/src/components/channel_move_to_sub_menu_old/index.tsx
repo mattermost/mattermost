@@ -18,7 +18,6 @@ import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 import {getCategoryInTeamWithChannel} from 'mattermost-redux/selectors/entities/channel_categories';
 import {getAllChannels} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {addChannelsInSidebar} from 'actions/views/channel_sidebar';
@@ -42,7 +41,7 @@ type Props = {
 const ChannelMoveToSubMenuOld = (props: Props) => {
     const {formatMessage} = useIntl();
 
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const allChannels = useSelector(getAllChannels);
     const multiSelectedChannelIds = useSelector((state: GlobalState) => state.views.channelSidebar.multiSelectedChannelIds);
