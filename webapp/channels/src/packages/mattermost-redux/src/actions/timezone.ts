@@ -3,12 +3,12 @@
 
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {updateMe} from './users';
 
-export function autoUpdateTimezone(deviceTimezone: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function autoUpdateTimezone(deviceTimezone: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const currentUser = getCurrentUser(getState());
         const currentTimezone = getCurrentTimezoneFull(getState());
         const newTimezoneExists = currentTimezone.automaticTimezone !== deviceTimezone;

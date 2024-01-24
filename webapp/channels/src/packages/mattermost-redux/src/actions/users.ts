@@ -292,7 +292,7 @@ export function getProfilesNotInTeam(teamId: string, groupConstrained: boolean, 
     };
 }
 
-export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): NewActionFuncAsync {
+export function getProfilesWithoutTeam(page: number, perPage: number = General.PROFILE_CHUNK_SIZE, options: any = {}): NewActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
         let profiles = null;
         try {

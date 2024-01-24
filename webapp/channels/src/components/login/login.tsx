@@ -10,23 +10,18 @@ import {useSelector, useDispatch} from 'react-redux';
 import {Link, useLocation, useHistory, Route} from 'react-router-dom';
 
 import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {RequestStatus} from 'mattermost-redux/constants';
-import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getTeamByName, getMyTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {addUserToTeamFromInvite} from 'actions/team_actions';
 import {trackEvent} from 'actions/telemetry_actions';
-import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
 import {login} from 'actions/views/login';
 import LocalStorageStore from 'stores/local_storage_store';
 
@@ -73,7 +68,7 @@ type LoginProps = {
 
 const Login = ({onCustomizeHeader}: LoginProps) => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {pathname, search, hash} = useLocation();
 
@@ -112,7 +107,6 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const experimentalPrimaryTeam = useSelector((state: GlobalState) => (ExperimentalPrimaryTeam ? getTeamByName(state, ExperimentalPrimaryTeam) : undefined));
     const experimentalPrimaryTeamMember = useSelector((state: GlobalState) => getMyTeamMember(state, experimentalPrimaryTeam?.id ?? ''));
     const onboardingFlowEnabled = useSelector(getIsOnboardingFlowEnabled);
-    const isCloud = useSelector(isCurrentLicenseCloud);
 
     const loginIdInput = useRef<HTMLInputElement>(null);
     const passwordInput = useRef<HTMLInputElement>(null);
@@ -578,7 +572,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const submit = async ({loginId, password, token}: SubmitOptions) => {
         setIsWaiting(true);
 
-        const {data: userProfile, error: loginError} = await dispatch(login(loginId, password, token));
+        const {error: loginError} = await dispatch(login(loginId, password, token));
 
         if (loginError && loginError.server_error_id && loginError.server_error_id.length !== 0) {
             if (loginError.server_error_id === 'api.user.login.not_verified.app_error') {
@@ -632,10 +626,10 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             return;
         }
 
-        await postSubmit(userProfile);
+        await postSubmit();
     };
 
-    const postSubmit = async (userProfile: UserProfile) => {
+    const postSubmit = async () => {
         await dispatch(loadMe());
 
         // check for query params brought over from signup_user_complete
@@ -647,21 +641,17 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             const {data: team} = await dispatch(addUserToTeamFromInvite(inviteToken, inviteId));
 
             if (team) {
-                finishSignin(userProfile, team);
+                finishSignin(team);
             } else {
                 // there's not really a good way to deal with this, so just let the user log in like normal
-                finishSignin(userProfile);
+                finishSignin();
             }
         } else {
-            finishSignin(userProfile);
+            finishSignin();
         }
     };
 
-    const finishSignin = (userProfile: UserProfile, team?: Team) => {
-        if (isCloud && isSystemAdmin(userProfile.roles)) {
-            dispatch(setNeedsLoggedInLimitReachedCheck(true));
-        }
-
+    const finishSignin = (team?: Team) => {
         setCSRFFromCookie();
 
         // Record a successful login to local storage. If an unintentional logout occurs, e.g.
