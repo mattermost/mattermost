@@ -467,7 +467,7 @@ function SystemUsers(props: Props) {
                                 <button
                                     type='button'
                                     className='btn btn-primary'
-                                    onClick={() => {}}
+                                    onClick={() => window.open('https://mattermost.com/pl/user-stats-learn-more', '_blank')}
                                 >
                                     <FormattedMessage
                                         id='admin.system_users.mysql_stats.learn_more'
