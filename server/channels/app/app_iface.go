@@ -427,8 +427,6 @@ type AppIface interface {
 	AccountMigration() einterfaces.AccountMigrationInterface
 	ActivateMfa(userID, token string) *model.AppError
 	ActiveSearchBackend() string
-	AddBookmarksToChannelsForSession(c request.CTX, session *model.Session, channels model.ChannelList, since int64) ([]*model.ChannelWithBookmarks, *model.AppError)
-	AddBookmarksToChannelsWithTeamForSession(c request.CTX, session *model.Session, channels model.ChannelListWithTeamData, since int64) ([]*model.ChannelWithTeamDataAndBookmarks, *model.AppError)
 	AddChannelsToRetentionPolicy(policyID string, channelIDs []string) *model.AppError
 	AddConfigListener(listener func(*model.Config, *model.Config)) string
 	AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError
@@ -617,7 +615,6 @@ type AppIface interface {
 	GetAcknowledgementsForPost(postID string) ([]*model.PostAcknowledgement, *model.AppError)
 	GetAcknowledgementsForPostList(postList *model.PostList) (map[string][]*model.PostAcknowledgement, *model.AppError)
 	GetActivePluginManifests() ([]*model.Manifest, *model.AppError)
-	GetAllChannelBookmarks(channelIds []string, since int64) (map[string][]*model.ChannelBookmarkWithFileInfo, *model.AppError)
 	GetAllChannels(c request.CTX, page, perPage int, opts model.ChannelSearchOpts) (model.ChannelListWithTeamData, *model.AppError)
 	GetAllChannelsCount(c request.CTX, opts model.ChannelSearchOpts) (int64, *model.AppError)
 	GetAllPrivateTeams() ([]*model.Team, *model.AppError)

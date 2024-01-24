@@ -30,7 +30,6 @@ func TestChannelBookmarkStore(t *testing.T, rctx request.CTX, ss store.Store, s 
 	t.Run("UpdateSortOrderChannelBookmark", func(t *testing.T) { testUpdateSortOrderChannelBookmark(t, rctx, ss) })
 	t.Run("DeleteChannelBookmark", func(t *testing.T) { testDeleteChannelBookmark(t, rctx, ss) })
 	t.Run("GetChannelBookmark", func(t *testing.T) { testGetChannelBookmark(t, rctx, ss) })
-	t.Run("GetBookmarksForAllChannelByIdSince", func(t *testing.T) { testGetBookmarksForAllChannelByIdSince(t, rctx, ss) })
 }
 
 func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -434,102 +433,5 @@ func testGetChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		bookmarkResp, err = ss.ChannelBookmark().Get(bookmark1.Id, true)
 		assert.NoError(t, err)
 		assert.NotNil(t, bookmarkResp)
-	})
-}
-
-func testGetBookmarksForAllChannelByIdSince(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel1Id := model.NewId()
-	channel2Id := model.NewId()
-	userId := model.NewId()
-
-	bookmark1 := &model.ChannelBookmark{
-		ChannelId:   channel1Id,
-		OwnerId:     userId,
-		DisplayName: "Link bookmark test",
-		LinkUrl:     "https://mattermost.com",
-		Type:        model.ChannelBookmarkLink,
-		Emoji:       ":smile:",
-	}
-
-	file := &model.FileInfo{
-		Id:              model.NewId(),
-		CreatorId:       model.BookmarkFileOwner,
-		Path:            "somepath",
-		ThumbnailPath:   "thumbpath",
-		PreviewPath:     "prevPath",
-		Name:            "test file",
-		Extension:       "png",
-		MimeType:        "images/png",
-		Size:            873182,
-		Width:           3076,
-		Height:          2200,
-		HasPreviewImage: true,
-	}
-
-	bookmark2 := &model.ChannelBookmark{
-		ChannelId:   channel1Id,
-		OwnerId:     userId,
-		DisplayName: "file bookmark test",
-		FileId:      file.Id,
-		Type:        model.ChannelBookmarkFile,
-		Emoji:       ":smile:",
-	}
-
-	_, err := ss.FileInfo().Save(rctx, file)
-	require.NoError(t, err)
-	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
-
-	bookmark3 := &model.ChannelBookmark{
-		ChannelId:   channel2Id,
-		OwnerId:     userId,
-		DisplayName: "Bookmark 3",
-		LinkUrl:     "https://mattermost.com",
-		Type:        model.ChannelBookmarkLink,
-	}
-
-	bookmark4 := &model.ChannelBookmark{
-		ChannelId:   channel2Id,
-		OwnerId:     userId,
-		DisplayName: "Bookmark 4",
-		LinkUrl:     "https://mattermost.com",
-		Type:        model.ChannelBookmarkLink,
-	}
-
-	t.Run("Get all bookmarks from channels since now", func(t *testing.T) {
-		now := model.GetMillis()
-		ss.ChannelBookmark().Save(bookmark1.Clone(), true)
-		ss.ChannelBookmark().Save(bookmark2.Clone(), true)
-		ss.ChannelBookmark().Save(bookmark3.Clone(), true)
-		resp, err := ss.ChannelBookmark().Save(bookmark4.Clone(), true)
-		assert.NoError(t, err)
-		bookmark4 = resp.ChannelBookmark.Clone()
-
-		bookmarks, err := ss.ChannelBookmark().GetBookmarksForAllChannelByIdSince([]string{channel1Id, channel2Id}, now)
-		assert.NoError(t, err)
-		assert.Len(t, bookmarks, 2)
-		assert.Len(t, bookmarks[channel1Id], 2)
-		assert.Len(t, bookmarks[channel2Id], 2)
-	})
-
-	t.Run("Get all bookmarks from channels since now after one was deleted", func(t *testing.T) {
-		now := model.GetMillis()
-		channelWithoutBookmarks := model.NewId()
-
-		ss.ChannelBookmark().Delete(bookmark4.Id)
-		time.Sleep(time.Millisecond * 250)
-
-		bookmarks, err := ss.ChannelBookmark().GetBookmarksForAllChannelByIdSince([]string{channel1Id, channelWithoutBookmarks, channel2Id}, now)
-		assert.NoError(t, err)
-		assert.Len(t, bookmarks, 1)
-		assert.Len(t, bookmarks[channel1Id], 0)              // none has been modified since
-		assert.Len(t, bookmarks[channel2Id], 1)              // only one deleted
-		assert.Len(t, bookmarks[channelWithoutBookmarks], 0) // does not have bookmarks
-
-		bookmarks, err = ss.ChannelBookmark().GetBookmarksForAllChannelByIdSince([]string{channel1Id, channelWithoutBookmarks, channel2Id}, 0)
-		assert.NoError(t, err)
-		assert.Len(t, bookmarks, 2)
-		assert.Len(t, bookmarks[channel1Id], 2)              // none has been modified since
-		assert.Len(t, bookmarks[channel2Id], 1)              // only one not deleted
-		assert.Len(t, bookmarks[channelWithoutBookmarks], 0) // does not have bookmarks
 	})
 }

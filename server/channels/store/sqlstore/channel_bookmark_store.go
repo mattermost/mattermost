@@ -251,20 +251,11 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string) error {
 }
 
 func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
-	bookmarks, err := s.GetBookmarksForAllChannelByIdSince([]string{channelId}, since)
-	if err != nil {
-		return nil, err
-	}
-
-	return bookmarks[channelId], nil
-}
-
-func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId []string, since int64) (map[string][]*model.ChannelBookmarkWithFileInfo, error) {
 	query := s.getQueryBuilder().
 		Select(bookmarkWithFileInfoSliceColumns()...).
 		From("ChannelBookmarks cb").
 		LeftJoin("FileInfo fi ON cb.FileInfoId = fi.Id").
-		Where(sq.Eq{"cb.ChannelId": channelsId})
+		Where(sq.Eq{"cb.ChannelId": channelId})
 
 	if since > 0 {
 		query = query.Where(sq.Or{
@@ -281,17 +272,16 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
 	}
 
-	retrievedRecords := make(map[string][]*model.ChannelBookmarkWithFileInfo)
-	bookmarks := []model.ChannelBookmarkAndFileInfo{}
+	bookmarkRows := []model.ChannelBookmarkAndFileInfo{}
+	bookmarks := []*model.ChannelBookmarkWithFileInfo{}
 
-	if err := s.GetReplicaX().Select(&bookmarks, queryString, args...); err != nil {
+	if err := s.GetReplicaX().Select(&bookmarkRows, queryString, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find bookmarks")
 	}
 
-	for _, bookmark := range bookmarks {
-		records := retrievedRecords[bookmark.ChannelId]
-		retrievedRecords[bookmark.ChannelId] = append(records, bookmark.ToChannelBookmarkWithFileInfo())
+	for _, bookmark := range bookmarkRows {
+		bookmarks = append(bookmarks, bookmark.ToChannelBookmarkWithFileInfo())
 	}
 
-	return retrievedRecords, nil
+	return bookmarks, nil
 }

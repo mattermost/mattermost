@@ -3045,27 +3045,6 @@ func (s *RetryLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*m
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId []string, since int64) (map[string][]*model.ChannelBookmarkWithFileInfo, error) {
-
-	tries := 0
-	for {
-		result, err := s.ChannelBookmarkStore.GetBookmarksForAllChannelByIdSince(channelsId, since)
-		if err == nil {
-			return result, nil
-		}
-		if !isRepeatableError(err) {
-			return result, err
-		}
-		tries++
-		if tries >= 3 {
-			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
-			return result, err
-		}
-		timepkg.Sleep(100 * timepkg.Millisecond)
-	}
-
-}
-
 func (s *RetryLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
 
 	tries := 0

@@ -6,42 +6,18 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"maps"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func (a *App) GetChannelBookmarks(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
 	bookmarks, err := a.Srv().Store().ChannelBookmark().GetBookmarksForChannelSince(channelId, since)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelBookmarks", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	return bookmarks, nil
-}
-
-func (a *App) GetAllChannelBookmarks(channelIds []string, since int64) (map[string][]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
-	if len(channelIds) == 0 {
-		return nil, nil
-	}
-
-	channelIdChunks, err := utils.SplitSliceIntoChunks[string](channelIds, 100)
-	if err != nil {
-		return nil, model.NewAppError("GetAllChannelBookmarks", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-	}
-
-	bookmarks := make(map[string][]*model.ChannelBookmarkWithFileInfo)
-	for _, chunk := range channelIdChunks {
-		results, err := a.Srv().Store().ChannelBookmark().GetBookmarksForAllChannelByIdSince(chunk, since)
-		if err != nil {
-			return nil, model.NewAppError("GetAllChannelBookmarks", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
-		}
-		maps.Copy(bookmarks, results)
 	}
 
 	return bookmarks, nil
@@ -158,54 +134,4 @@ func (a *App) UpdateChannelBookmarkSortOrder(bookmarkId, channelId string, newIn
 	a.Publish(message)
 
 	return bookmarks, nil
-}
-
-func (a *App) AddBookmarksToChannelsForSession(c request.CTX, session *model.Session, channels model.ChannelList, since int64) ([]*model.ChannelWithBookmarks, *model.AppError) {
-	channelIds := []string{}
-	for _, channel := range channels {
-		if a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
-			channelIds = append(channelIds, channel.Id)
-		}
-	}
-
-	bookmarksMap, err := a.GetAllChannelBookmarks(channelIds, since)
-	if err == nil {
-		channelsWithBookmarks := []*model.ChannelWithBookmarks{}
-		for _, channel := range channels {
-			cb := &model.ChannelWithBookmarks{
-				Channel:   channel,
-				Bookmarks: bookmarksMap[channel.Id],
-			}
-			channelsWithBookmarks = append(channelsWithBookmarks, cb)
-		}
-
-		return channelsWithBookmarks, nil
-	}
-
-	return nil, model.NewAppError("AddBookmarksToChannelsForSession", "app.channel.bookmark.add_bookmarks_to_channels_for_session.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-}
-
-func (a *App) AddBookmarksToChannelsWithTeamForSession(c request.CTX, session *model.Session, channels model.ChannelListWithTeamData, since int64) ([]*model.ChannelWithTeamDataAndBookmarks, *model.AppError) {
-	channelIds := []string{}
-	for _, channel := range channels {
-		if a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
-			channelIds = append(channelIds, channel.Id)
-		}
-	}
-
-	bookmarksMap, err := a.GetAllChannelBookmarks(channelIds, since)
-	if err == nil {
-		channelsWithBookmarks := []*model.ChannelWithTeamDataAndBookmarks{}
-		for _, channel := range channels {
-			cb := &model.ChannelWithTeamDataAndBookmarks{
-				ChannelWithTeamData: channel,
-				Bookmarks:           bookmarksMap[channel.Id],
-			}
-			channelsWithBookmarks = append(channelsWithBookmarks, cb)
-		}
-
-		return channelsWithBookmarks, nil
-	}
-
-	return nil, model.NewAppError("AddBookmarksToChannelsForSession", "app.channel.bookmark.add_bookmarks_to_channels_with_team_for_session.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 }

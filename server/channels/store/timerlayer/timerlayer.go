@@ -2536,22 +2536,6 @@ func (s *TimerLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*m
 	return result, err
 }
 
-func (s *TimerLayerChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId []string, since int64) (map[string][]*model.ChannelBookmarkWithFileInfo, error) {
-	start := time.Now()
-
-	result, err := s.ChannelBookmarkStore.GetBookmarksForAllChannelByIdSince(channelsId, since)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.GetBookmarksForAllChannelByIdSince", success, elapsed)
-	}
-	return result, err
-}
-
 func (s *TimerLayerChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
 	start := time.Now()
 
