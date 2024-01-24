@@ -4,8 +4,11 @@
 import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
 
+import {savePreferences} from 'mattermost-redux/actions/preferences';
+import Preferences from 'mattermost-redux/constants/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get as getPreferences} from 'mattermost-redux/selectors/entities/preferences';
 
 import {getUserCountForReporting, getUserReports, setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 import {adminConsoleUserManagementTablePropertiesInitialState} from 'reducers/views/admin';
@@ -23,6 +26,7 @@ function mapStateToProps(state: GlobalState) {
     const enableUserAccessTokens = config.EnableUserAccessTokens === 'true';
     const experimentalEnableAuthenticationTransfer = config.ExperimentalEnableAuthenticationTransfer === 'true';
     const isMySql = config.SQLDriverName === 'mysql';
+    const hideMySqlNotification = getPreferences(state, Preferences.CATEGORY_REPORTING, Preferences.HIDE_MYSQL_STATS_NOTIFICATION, '') === 'true';
 
     const currentUser = getCurrentUser(state);
 
@@ -45,6 +49,7 @@ function mapStateToProps(state: GlobalState) {
         experimentalEnableAuthenticationTransfer,
         currentUser,
         isMySql,
+        hideMySqlNotification,
         tablePropertySortColumn: sortColumn,
         tablePropertySortIsDescending: sortIsDescending,
         tablePropertyPageSize: pageSize,
@@ -61,6 +66,7 @@ function mapStateToProps(state: GlobalState) {
 const mapDispatchToProps = {
     getUserReports,
     getUserCountForReporting,
+    savePreferences,
     setAdminConsoleUsersManagementTableProperties,
 };
 

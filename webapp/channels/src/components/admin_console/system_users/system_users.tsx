@@ -10,6 +10,8 @@ import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
 import type {ReportDuration, UserReport, UserReportOptions} from '@mattermost/types/reports';
 
+import Preferences from 'mattermost-redux/constants/preferences';
+
 import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef, VisibilityState} from 'components/admin_console/list_table';
 import AlertBanner from 'components/alert_banner';
@@ -73,7 +75,7 @@ function SystemUsers(props: Props) {
     const [userReports, setUserReports] = useState<UserReport[]>([]);
     const [userCount, setUserCount] = useState<number | undefined>();
     const [loadingState, setLoadingState] = useState<LoadingStates>(LoadingStates.Loading);
-    const [showMySqlBanner, setShowMySqlBanner] = useState(props.isMySql);
+    const [showMySqlBanner, setShowMySqlBanner] = useState(props.isMySql && !props.hideMySqlNotification);
 
     // Effect to get the total user count
     useEffect(() => {
@@ -143,8 +145,12 @@ function SystemUsers(props: Props) {
 
     function handleDismissMySqlNotice() {
         setShowMySqlBanner(false);
-
-        // TODO more?
+        props.savePreferences(props.currentUser.id, [{
+            category: Preferences.CATEGORY_REPORTING,
+            name: Preferences.HIDE_MYSQL_STATS_NOTIFICATION,
+            user_id: props.currentUser.id,
+            value: 'true',
+        }]);
     }
 
     // Handlers for table actions

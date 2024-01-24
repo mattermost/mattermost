@@ -77,6 +77,9 @@ const Preferences = {
     CATEGORY_DRAFTS: 'drafts',
     DRAFTS_TOUR_TIP_SHOWED: 'drafts_tour_tip_showed',
 
+    CATEGORY_REPORTING: 'reporting',
+    HIDE_MYSQL_STATS_NOTIFICATION: 'hide_mysql_stats_notifcation',
+
     CATEGORY_THEME: 'theme',
     THEMES: {
         denim: {
