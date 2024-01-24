@@ -55,16 +55,21 @@ const (
 	MessageHasBeenDeletedID                   = 37
 	MessagesWillBeConsumedID                  = 38
 	ServeMetricsID                            = 39
-	UserWillJoinChannelID                     = 40
-	UserWillLeaveChannelID                    = 41
-	UserWillJoinTeamID                        = 42
-	UserWillLeaveTeamID                       = 43
-	UserWillBeCreatedID                       = 44
-	UserWillBeDeactivatedID                   = 45
-	ReactionWillBeAddedID                     = 46
-	ReactionWillBeRemovedID                   = 47
-	ChannelWillBeCreatedID                    = 48
-	MessageWillBeDeletedID                    = 49
+	OnSharedChannelsSyncMsgID                 = 40
+	OnSharedChannelsPingID                    = 41
+	PreferencesHaveChangedID                  = 42
+	OnSharedChannelsAttachmentSyncMsgID       = 43
+	OnSharedChannelsProfileImageSyncMsgID     = 44
+	UserWillJoinChannelID                     = 45
+	UserWillLeaveChannelID                    = 46
+	UserWillJoinTeamID                        = 47
+	UserWillLeaveTeamID                       = 48
+	UserWillBeCreatedID                       = 49
+	UserWillBeDeactivatedID                   = 50
+	ReactionWillBeAddedID                     = 51
+	ReactionWillBeRemovedID                   = 52
+	ChannelWillBeCreatedID                    = 53
+	MessageWillBeDeletedID                    = 54
 	TotalHooksID                              = iota
 )
 
@@ -346,7 +351,7 @@ type Hooks interface {
 	// To reject a user joining a channel, return an non-empty string describing why the user was rejected.
 	// To allow the user to join the channel, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	UserWillJoinChannel(c *Context, user *model.User, channel *model.Channel, requester *model.User) string
 
@@ -355,7 +360,7 @@ type Hooks interface {
 	// To reject a user leaving a channel, return an non-empty string describing why the user was rejected.
 	// To allow the user to leave the channel, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	UserWillLeaveChannel(c *Context, channelMember *model.ChannelMember) string
 
@@ -364,7 +369,7 @@ type Hooks interface {
 	// To reject a user joining a team, return an non-empty string describing why the user was rejected.
 	// To allow the user to join the team, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	UserWillJoinTeam(c *Context, user *model.User, team *model.Team) string
 
@@ -373,7 +378,7 @@ type Hooks interface {
 	// To reject a user leaving a team, return an non-empty string describing why the user was rejected.
 	// To allow the user to leave the team, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	UserWillLeaveTeam(c *Context, teamMember *model.TeamMember) string
 
@@ -382,7 +387,7 @@ type Hooks interface {
 	// To reject a user creation, return an non-empty string describing why the user was rejected.
 	// To allow the user to be created, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	UserWillBeCreated(c *Context, user *model.User) string
 
@@ -391,7 +396,7 @@ type Hooks interface {
 	// To reject a user deactivation, return an non-empty string describing why the user was rejected.
 	// To allow the user to be deactivated, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	UserWillBeDeactivated(c *Context, user *model.User) string
 
@@ -400,7 +405,7 @@ type Hooks interface {
 	// To reject a reaction addition, return an non-empty string describing why the reaction was rejected.
 	// To allow the reaction to be added, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	ReactionWillBeAdded(c *Context, reaction *model.Reaction) string
 
@@ -409,7 +414,7 @@ type Hooks interface {
 	// To reject a reaction removal, return an non-empty string describing why the reaction was rejected.
 	// To allow the reaction to be removed, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	ReactionWillBeRemoved(c *Context, reaction *model.Reaction) string
 
@@ -418,7 +423,7 @@ type Hooks interface {
 	// To reject a channel creation, return an non-empty string describing why the channel was rejected.
 	// To allow the channel to be created, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	ChannelWillBeCreated(c *Context, channel *model.Channel) string
 
@@ -427,7 +432,54 @@ type Hooks interface {
 	// To reject a message deletion, return an non-empty string describing why the message was rejected.
 	// To allow the message to be deleted, return an empty string.
 	//
-	// Minimum server version: 9.5
+	// Minimum server version: 9.6
 	// Requires enterprise license
 	MessageWillBeDeleted(c *Context, post *model.Post) string
+
+	// OnSharedChannelsSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each SyncMsg may contain
+	// multiple updates (posts, reactions, attachments, users) for a single channel.
+	//
+	// The cursor will be advanced based on the SyncResponse returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+
+	// OnSharedChannelsPing is invoked for plugins to indicate the health of the plugin and the connection
+	// to the upstream service (e.g. MS Graph APIs).
+	//
+	// Return true to indicate all is well.
+	//
+	// Return false to indicate there is a problem with the plugin or connection to upstream service.
+	// Some number of failed pings will result in the plugin being marked offline and it will stop receiving
+	// OnSharedChannelsSyncMsg calls until it comes back online. The plugin will also appear offline in the status
+	// report via the `secure-connection status` slash command.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+
+	// PreferencesHaveChanged is invoked after one or more of a user's preferences have changed.
+	// Note that this method will be called for preferences changed by plugins, including the plugin that changed
+	// the preferences.
+	//
+	// Minimum server version: 9.5
+	PreferencesHaveChanged(c *Context, preferences []model.Preference)
+
+	// OnSharedChannelsAttachmentSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each call represents one file attachment
+	// to be synchronized.
+	//
+	// The cursor will be advanced based on the timestamp returned if no error is returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+
+	// OnSharedChannelsProfileImageSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each call represents one user profile
+	// image that should be synchronized. `App.GetProfileImage` can be used to fetch the image bytes.
+	//
+	// The cursor will be advanced based on the timestamp returned if no error is returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 }

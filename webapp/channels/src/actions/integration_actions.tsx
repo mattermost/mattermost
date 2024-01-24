@@ -7,11 +7,11 @@ import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 const DEFAULT_PAGE_SIZE = 100;
 
-export function loadIncomingHooksAndProfilesForTeam(teamId: string, page = 0, perPage = DEFAULT_PAGE_SIZE): ActionFunc {
+export function loadIncomingHooksAndProfilesForTeam(teamId: string, page = 0, perPage = DEFAULT_PAGE_SIZE): NewActionFuncAsync<IncomingWebhook[]> {
     return async (dispatch) => {
         const {data} = await dispatch(IntegrationActions.getIncomingHooks(teamId, page, perPage));
         if (data) {
@@ -42,7 +42,7 @@ export function loadProfilesForIncomingHooks(hooks: IncomingWebhook[]): ActionFu
     };
 }
 
-export function loadOutgoingHooksAndProfilesForTeam(teamId: string, page = 0, perPage = DEFAULT_PAGE_SIZE): ActionFunc {
+export function loadOutgoingHooksAndProfilesForTeam(teamId: string, page = 0, perPage = DEFAULT_PAGE_SIZE): NewActionFuncAsync<OutgoingWebhook[]> {
     return async (dispatch) => {
         const {data} = await dispatch(IntegrationActions.getOutgoingHooks('', teamId, page, perPage));
         if (data) {
@@ -104,7 +104,7 @@ export function loadProfilesForCommands(commands: Command[]): ActionFunc {
     };
 }
 
-export function loadOAuthAppsAndProfiles(page = 0, perPage = DEFAULT_PAGE_SIZE): ActionFunc {
+export function loadOAuthAppsAndProfiles(page = 0, perPage = DEFAULT_PAGE_SIZE): NewActionFuncAsync {
     return async (dispatch, getState) => {
         if (appsEnabled(getState())) {
             dispatch(IntegrationActions.getAppsOAuthAppIDs());

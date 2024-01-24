@@ -281,17 +281,17 @@ func (ts *TelemetryService) trackActivity() {
 	var incomingWebhooksCount int64
 	var outgoingWebhooksCount int64
 
-	activeUsersDailyCountChan := make(chan store.GenericStoreResult[int64], 1)
+	activeUsersDailyCountChan := make(chan store.StoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(DayMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersDailyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
+		activeUsersDailyCountChan <- store.StoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersDailyCountChan)
 	}()
 
-	activeUsersMonthlyCountChan := make(chan store.GenericStoreResult[int64], 1)
+	activeUsersMonthlyCountChan := make(chan store.StoreResult[int64], 1)
 	go func() {
 		count, err := ts.dbStore.User().AnalyticsActiveCount(MonthMilliseconds, model.UserCountOptions{IncludeBotAccounts: false, IncludeDeleted: false})
-		activeUsersMonthlyCountChan <- store.GenericStoreResult[int64]{Data: count, NErr: err}
+		activeUsersMonthlyCountChan <- store.StoreResult[int64]{Data: count, NErr: err}
 		close(activeUsersMonthlyCountChan)
 	}()
 
@@ -495,6 +495,7 @@ func (ts *TelemetryService) trackConfig() {
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
+		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -828,7 +829,9 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
 		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
+		"message_retention_hours":       *cfg.DataRetentionSettings.MessageRetentionHours,
 		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
+		"file_retention_hours":          *cfg.DataRetentionSettings.FileRetentionHours,
 		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
 		"time_between_batches":          *cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,

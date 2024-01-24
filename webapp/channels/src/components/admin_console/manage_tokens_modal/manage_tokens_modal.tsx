@@ -8,7 +8,6 @@ import {FormattedMessage} from 'react-intl';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import RevokeTokenButton from 'components/admin_console/revoke_token_button';
@@ -44,7 +43,7 @@ export type Props = {
         /**
          * Function to get a user's access tokens
          */
-        getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => ActionFunc;
+        getUserAccessTokensForUser: (userId: string, page: number, perPage: number) => void;
     };
 };
 
