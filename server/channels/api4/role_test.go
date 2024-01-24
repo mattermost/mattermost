@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 	"testing"
@@ -183,6 +184,18 @@ func TestGetRolesByNames(t *testing.T) {
 		// Empty/whitespace rolenames should be ignored.
 		_, _, err = client.GetRolesByNames(context.Background(), []string{model.NewId(), model.NewId(), "", "    "})
 		require.NoError(t, err)
+	})
+
+	th.TestForAllClients(t, func(t *testing.T, client *model.Client4) {
+		// too many roles should error with bad request
+		roles := []string{}
+		for i := 0; i < GetRolesByNamesMax+10; i++ {
+			roles = append(roles, fmt.Sprintf("role1.Name%v", i))
+		}
+
+		_, resp, err := client.GetRolesByNames(context.Background(), roles)
+		require.Error(t, err)
+		CheckBadRequestStatus(t, resp)
 	})
 }
 

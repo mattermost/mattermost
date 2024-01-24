@@ -3,17 +3,21 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getUserAccessTokensForUser} from 'mattermost-redux/actions/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
 import ManageTokensModal from './manage_tokens_modal';
-import type {Props} from './manage_tokens_modal';
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
+type OwnProps = {
+    user?: UserProfile;
+}
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const userId = ownProps.user ? ownProps.user.id : '';
 
     const userAccessTokens = state.entities.admin.userAccessTokensByUser;
@@ -25,7 +29,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             getUserAccessTokensForUser,
         }, dispatch),
     };
