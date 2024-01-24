@@ -22,6 +22,7 @@ function mapStateToProps(state: GlobalState) {
     const mfaEnabled = config.EnableMultifactorAuthentication === 'true';
     const enableUserAccessTokens = config.EnableUserAccessTokens === 'true';
     const experimentalEnableAuthenticationTransfer = config.ExperimentalEnableAuthenticationTransfer === 'true';
+    const isMySql = config.SQLDriverName === 'mysql';
 
     const currentUser = getCurrentUser(state);
 
@@ -43,6 +44,7 @@ function mapStateToProps(state: GlobalState) {
         enableUserAccessTokens,
         experimentalEnableAuthenticationTransfer,
         currentUser,
+        isMySql,
         tablePropertySortColumn: sortColumn,
         tablePropertySortIsDescending: sortIsDescending,
         tablePropertyPageSize: pageSize,
