@@ -259,7 +259,7 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 		query = query.Where(sq.Eq{"cb.DeleteAt": 0})
 	}
 
-	query = query.OrderBy("cb.SortOrder ASC").OrderBy("cb.DeleteAt ASC")
+	query = query.OrderBy("cb.SortOrder ASC").OrderBy("cb.DeleteAt ASC").Limit(1000)
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
