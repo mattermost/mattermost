@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {SelfHostedSignupProgress} from '@mattermost/types/cloud';
@@ -8,9 +9,8 @@ import type {Product, Subscription, CloudCustomer, Invoice, Limits, LicenseSelfS
 import type {ValueOf} from '@mattermost/types/utilities';
 
 import {CloudTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-export function subscription(state: Subscription | null = null, action: GenericAction) {
+export function subscription(state: Subscription | null = null, action: AnyAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_SUBSCRIPTION: {
         return action.data;
@@ -20,7 +20,7 @@ export function subscription(state: Subscription | null = null, action: GenericA
     }
 }
 
-function customer(state: CloudCustomer | null = null, action: GenericAction) {
+function customer(state: CloudCustomer | null = null, action: AnyAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_CUSTOMER: {
         return action.data;
@@ -30,7 +30,7 @@ function customer(state: CloudCustomer | null = null, action: GenericAction) {
     }
 }
 
-export function subscriptionStats(state: LicenseSelfServeStatusReducer | null = null, action: GenericAction): LicenseSelfServeStatusReducer | null {
+export function subscriptionStats(state: LicenseSelfServeStatusReducer | null = null, action: AnyAction): LicenseSelfServeStatusReducer | null {
     switch (action.type) {
     case CloudTypes.LICENSE_SELF_SERVE_STATS_REQUEST: {
         return {
@@ -55,7 +55,7 @@ export function subscriptionStats(state: LicenseSelfServeStatusReducer | null = 
     }
 }
 
-function products(state: Record<string, Product> | null = null, action: GenericAction) {
+function products(state: Record<string, Product> | null = null, action: AnyAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_PRODUCTS: {
         const productList: Product[] = action.data;
@@ -73,7 +73,7 @@ function products(state: Record<string, Product> | null = null, action: GenericA
     }
 }
 
-function invoices(state: Record<string, Invoice> | null = null, action: GenericAction) {
+function invoices(state: Record<string, Invoice> | null = null, action: AnyAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_INVOICES: {
         const invoiceList: Invoice[] = action.data;
@@ -99,7 +99,7 @@ const emptyLimits = {
     limits: {},
     limitsLoaded: false,
 };
-export function limits(state: LimitsReducer = emptyLimits, action: GenericAction) {
+export function limits(state: LimitsReducer = emptyLimits, action: AnyAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_CLOUD_LIMITS: {
         return {
@@ -123,7 +123,7 @@ export interface ErrorsReducer {
     trueUpReview?: true;
 }
 const emptyErrors = {};
-export function errors(state: ErrorsReducer = emptyErrors, action: GenericAction) {
+export function errors(state: ErrorsReducer = emptyErrors, action: AnyAction) {
     switch (action.type) {
     case CloudTypes.CLOUD_SUBSCRIPTION_FAILED: {
         return {...state, subscription: true};
@@ -205,7 +205,7 @@ interface SelfHostedSignupReducer {
 const initialSelfHostedSignup = {
     progress: SelfHostedSignupProgress.START,
 };
-function selfHostedSignup(state: SelfHostedSignupReducer = initialSelfHostedSignup, action: GenericAction): SelfHostedSignupReducer {
+function selfHostedSignup(state: SelfHostedSignupReducer = initialSelfHostedSignup, action: AnyAction): SelfHostedSignupReducer {
     switch (action.type) {
     case CloudTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS:
         return {
