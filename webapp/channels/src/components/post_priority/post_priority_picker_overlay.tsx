@@ -44,7 +44,7 @@ function PostPriorityPickerOverlay({
 
     const messagePriority = formatMessage({id: 'shortcuts.msgs.formatting_bar.post_priority', defaultMessage: 'Message priority'});
     const {
-        reference: tooltipRef,
+        setReference: setTooltipRef,
         getReferenceProps: getTooltipReferenceProps,
         tooltip,
     } = useTooltip({
@@ -92,7 +92,7 @@ function PostPriorityPickerOverlay({
     return (
         <>
             <div
-                ref={tooltipRef}
+                ref={setTooltipRef}
                 {...getTooltipReferenceProps()}
             >
                 <IconContainer
