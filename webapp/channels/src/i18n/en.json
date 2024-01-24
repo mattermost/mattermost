@@ -998,7 +998,6 @@
   "admin.exportStorage.dedicatedExportStoreDescription": "When enabled, Mattermost will use a dedicated export storage bucket for all export operations. This is required for Mattermost Cloud deployments.",
   "admin.exportStorage.exportDirectory": "Export Directory",
   "admin.exportStorage.exportDriverName": "Export Storage Driver:",
-  "admin.exportStorage.none": "NONE",
   "admin.false": "false",
   "admin.feature_discovery.trial-request.accept-terms": "By clicking <highlight>Start trial</highlight>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy> and receiving product emails.",
   "admin.feature_discovery.trial-request.accept-terms.cloudFree": "By selecting <highlight>Try free for {trialLength} days</highlight>, I agree to the <linkEvaluation>Mattermost Software Evaluation Agreement</linkEvaluation>, <linkPrivacy>Privacy Policy</linkPrivacy>, and receiving product emails.",
