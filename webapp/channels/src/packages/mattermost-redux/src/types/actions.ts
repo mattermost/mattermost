@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Action as ReduxAction, AnyAction} from 'redux';
+import type {Action as ReduxAction, AnyAction, Dispatch} from 'redux';
 import type {ThunkAction as BaseThunkAction} from 'redux-thunk';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -14,6 +14,7 @@ import type {GlobalState} from '@mattermost/types/store';
  */
 import 'redux-thunk/extend-redux';
 
+export type DispatchFunc = Dispatch;
 export type GetStateFunc = () => GlobalState;
 export type GenericAction = AnyAction;
 
@@ -24,8 +25,6 @@ export type ActionResult<Data = any, Error = any> = {
     data?: Data;
     error?: Error;
 };
-
-export type DispatchFunc = (action: AnyAction | NewActionFunc<unknown, any> | NewActionFuncAsync<unknown, any> | ThunkActionFunc<any>, getState?: GetStateFunc | null) => Promise<ActionResult>;
 
 /**
  * NewActionFunc should be the return type of most non-async Thunk action creators. If that action requires web app
