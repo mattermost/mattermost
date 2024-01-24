@@ -16,7 +16,6 @@ import 'redux-thunk/extend-redux';
 
 export type DispatchFunc = Dispatch;
 export type GetStateFunc = () => GlobalState;
-export type GenericAction = AnyAction;
 
 /**
  * ActionResult should be the return value of most Thunk action creators.
