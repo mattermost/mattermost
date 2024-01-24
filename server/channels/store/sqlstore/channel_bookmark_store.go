@@ -84,6 +84,12 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 		return nil, err
 	}
 
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, err
+	}
+	defer finalizeTransactionX(transaction, &err)
+
 	if increaseSortOrder {
 		var sortOrder int64
 		query := s.getQueryBuilder().
@@ -91,7 +97,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 			From("ChannelBookmarks").
 			Where(sq.Eq{"ChannelId": bookmark.ChannelId, "DeleteAt": 0})
 
-		err = s.GetReplicaX().GetBuilder(&sortOrder, query)
+		err = transaction.GetBuilder(&sortOrder, query)
 		if err != nil {
 			return nil, errors.Wrap(err, "failed while getting the sortOrder from ChannelBookmarks")
 		}
@@ -108,7 +114,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 		return nil, errors.Wrap(err, "insert_channel_bookmark_to_sql")
 	}
 
-	if _, insertErr := s.GetMasterX().Exec(sql, args...); insertErr != nil {
+	if _, insertErr := transaction.Exec(sql, args...); insertErr != nil {
 		return nil, errors.Wrap(insertErr, "unable_to_save_channel_bookmark")
 	}
 
@@ -122,12 +128,13 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 		if err != nil {
 			return nil, errors.Wrap(err, "channel_bookmark_get_file_info_to_sql")
 		}
-		if err = s.GetReplicaX().Get(&fileInfo, query, args...); err != nil {
+		if err = transaction.Get(&fileInfo, query, args...); err != nil {
 			return nil, errors.Wrap(err, "unable_to_get_channel_bookmark_file_info")
 		}
 	}
 
-	return bookmark.ToBookmarkWithFileInfo(&fileInfo), nil
+	err = transaction.Commit()
+	return bookmark.ToBookmarkWithFileInfo(&fileInfo), err
 }
 
 func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error {
