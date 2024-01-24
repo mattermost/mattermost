@@ -2402,6 +2402,109 @@ func TestPluginServeMetrics(t *testing.T) {
 	require.Equal(t, "METRICS SUBPATH", string(body))
 }
 
+func TestPluginGetChannelsForTeamForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	team1 := th.CreateTeam()
+	th.LinkUserToTeam(user, team1)
+	team2 := th.CreateTeam()
+	th.LinkUserToTeam(user, team2)
+
+	channel1 := th.CreateChannel(th.Context, team1)
+	th.AddUserToChannel(user, channel1)
+	channel2 := th.CreateChannel(th.Context, team2)
+	th.AddUserToChannel(user, channel2)
+
+	dmChannel := th.CreateDmChannel(user)
+
+	pluginCode := `
+	package main
+	import (
+		"github.com/mattermost/mattermost/server/public/model"
+		"github.com/mattermost/mattermost/server/public/plugin"
+		"github.com/pkg/errors"
+	)
+
+	const (
+		userID = "` + user.Id + `"
+		teamID1 = "` + team1.Id + `"
+		teamID2 = "` + team2.Id + `"
+		channelID1 = "` + channel1.Id + `"
+		channelID2 = "` + channel2.Id + `"
+		dmChannelID = "` + dmChannel.Id + `"
+	)
+
+	type TestPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func checkForChannels(channels []*model.Channel, expectedLength int, channel1Expected, channel2Expected, dmChannelExpected bool) string {
+		if len(channels) != expectedLength {
+			return "Returned the wrong number of channels"
+		}
+
+		var channel1Found, channel2Found, dmChannelFound bool
+		for _, channel := range channels {
+			if channel.Id == channelID1 {
+				channel1Found = true
+			} else if channel.Id == channelID2 {
+				channel2Found = true
+			} else if channel.Id == dmChannelID {
+				dmChannelFound = true
+			}
+		}
+
+		if channel1Found && !channel1Expected {
+			return "Channel 1 found"
+		} else if !channel1Found && channel1Expected {
+			return "Channel 1 not found"
+		} else if channel2Found && !channel2Expected {
+			return "Channel 2 found"
+		} else if !channel2Found && channel2Expected {
+			return "Channel 2 not found"
+		} else if dmChannelFound && !dmChannelExpected {
+			return "DM Channel found"
+		} else if !dmChannelFound && dmChannelExpected {
+			return "DM Channel not found"
+		} else {
+			return ""
+		}
+	}
+
+	func (p *TestPlugin) OnActivate() error {
+		if channels, appErr := p.API.GetChannelsForTeamForUser(teamID1, userID, true); appErr != nil {
+			return appErr
+		} else if msg := checkForChannels(channels, 4, true, false, true); msg != "" {
+			return errors.New(msg + " when called with team ID 1")
+		}
+
+		if channels, appErr := p.API.GetChannelsForTeamForUser(teamID2, userID, true); appErr != nil {
+			return appErr
+		} else if msg := checkForChannels(channels, 4, false, true, true); msg != "" {
+			return errors.New(msg + " when called with team ID 2")
+		}
+
+		if channels, appErr := p.API.GetChannelsForTeamForUser("", userID, true); appErr != nil {
+			return appErr
+		} else if msg := checkForChannels(channels, 7, true, true, true); msg != "" {
+			return errors.New(msg + " when called with empty team ID")
+		}
+
+		return nil
+	}
+
+	func main() {
+		plugin.ClientMain(&TestPlugin{})
+	}`
+	pluginID := "testplugin"
+	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+	setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+}
+
 func TestPluginUpdateChannelMembersNotifications(t *testing.T) {
 	t.Run("using API directly", func(t *testing.T) {
 		th := Setup(t).InitBasic()

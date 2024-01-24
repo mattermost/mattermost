@@ -463,7 +463,8 @@ type API interface {
 	// Minimum server version: 5.2
 	GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError)
 
-	// GetChannelsForTeamForUser gets a list of channels for given user ID in given team ID.
+	// GetChannelsForTeamForUser  gets a list of channels for given user ID in given team ID, including DMs.
+	// If an empty string is passed as the team ID, the user's channels on all teams and their DMs will be returned.
 	//
 	// @tag Channel
 	// @tag Team
