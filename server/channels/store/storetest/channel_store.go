@@ -3266,6 +3266,10 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, rctx request.CTX, ss store
 	}
 	member, nErr = ss.Channel().SaveMember(member)
 	require.NoError(t, nErr)
+	then := member.LastUpdateAt
+
+	// Sleeping for a bit for the lastUpdateAt to be greater than before.
+	time.Sleep(10 * time.Millisecond)
 
 	props := member.NotifyProps
 	props["hello"] = "world"
@@ -3274,6 +3278,7 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, nErr)
 	// Verify props.
 	assert.Equal(t, props, member.NotifyProps)
+	require.Greater(t, member.LastUpdateAt, then)
 
 	t.Run("should fail with invalid input if the notify props are too big", func(t *testing.T) {
 		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
