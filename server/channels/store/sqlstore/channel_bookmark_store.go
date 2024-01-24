@@ -218,7 +218,10 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 	query = query.Set("SortOrder", caseStmt)
 	query = query.Set("UpdateAt", now)
 	query = query.Where(sq.Eq{"Id": ids})
-	queryStr, args, err := query.ToSql()
+	queryStr, args, queryErr := query.ToSql()
+	if queryErr != nil {
+		return nil, queryErr
+	}
 
 	if _, updateSortOrderErr := transaction.Exec(queryStr, args...); updateSortOrderErr != nil {
 		return nil, updateSortOrderErr
