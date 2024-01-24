@@ -57,7 +57,7 @@ export type PostListRowProps = {
     limitsLoaded: boolean;
     exceededLimitChannelId?: string;
     firstInaccessiblePostTime?: number;
-    lastViewedAt: number;
+    lastViewedAt?: number;
     channelId: string;
 
     newMessagesSeparatorActions: PluginComponent[];
