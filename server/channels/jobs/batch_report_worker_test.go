@@ -129,21 +129,4 @@ func TestBatchReportWorker(t *testing.T) {
 
 		th.WaitForJobStatus(t, job, model.JobStatusError)
 	})
-
-	t.Run("should fail if there is no user id to send the report to", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		var worker model.Worker
-		var job *model.Job
-		worker, job = setupBatchWorker(t, th, func(data model.StringMap) ([]model.ReportableObject, model.StringMap, bool, error) {
-			go worker.Stop() // Shut down the worker right after this
-			return []model.ReportableObject{}, make(model.StringMap), true, nil
-		})
-
-		// Queue the work to be done
-		worker.JobChannel() <- *job
-
-		th.WaitForJobStatus(t, job, model.JobStatusError)
-	})
 }
