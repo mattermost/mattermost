@@ -88,6 +88,20 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 	}
 	defer finalizeTransactionX(transaction, &err)
 
+	var currentBookmarksCount int64
+	query := s.getQueryBuilder().
+		Select("COUNT(Id) as count").
+		From("ChannelBookmarks").
+		Where(sq.Eq{"ChannelId": bookmark.ChannelId, "DeleteAt": 0})
+	err = transaction.GetBuilder(&currentBookmarksCount, query)
+	if err != nil {
+		return nil, errors.Wrap(err, "failed while getting the count of ChannelBookmarks")
+	}
+
+	if currentBookmarksCount >= model.MaxBookmarksPerChannel {
+		return nil, store.NewErrLimitExceeded("bookmarks_per_channel", int(currentBookmarksCount), "channelId="+bookmark.ChannelId)
+	}
+
 	if increaseSortOrder {
 		var sortOrder int64
 		query := s.getQueryBuilder().

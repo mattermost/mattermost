@@ -4,6 +4,7 @@
 package app
 
 import (
+	"fmt"
 	"testing"
 	"time"
 
@@ -21,35 +22,53 @@ func find_bookmark(slice []*model.ChannelBookmarkWithFileInfo, id string) *model
 	return nil
 }
 
+func createBookmark(name string, bookmarkType model.ChannelBookmarkType, channelId string, fileId string) *model.ChannelBookmark {
+	bookmark := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		DisplayName: name,
+		LinkUrl:     "https://mattermost.com",
+		Type:        bookmarkType,
+		Emoji:       ":smile:",
+		FileId:      fileId,
+	}
+
+	return bookmark
+}
+
 func TestCreateBookmark(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("create a channel bookmark", func(t *testing.T) {
-		bookmark1 := &model.ChannelBookmark{
-			ChannelId:   th.BasicChannel.Id,
-			DisplayName: "Link bookmark test",
-			LinkUrl:     "https://mattermost.com",
-			Type:        model.ChannelBookmarkLink,
-			Emoji:       ":smile:",
-		}
-
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
+
+		bookmark1 := createBookmark("Link bookmark test", model.ChannelBookmarkLink, th.BasicChannel.Id, "")
 		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
 		assert.Nil(t, err)
 
 		assert.Equal(t, bookmarkResp.ChannelId, th.BasicChannel.Id)
 		assert.NotEmpty(t, bookmarkResp.Id)
 
-		bookmark2 := &model.ChannelBookmark{
-			ChannelId:   th.BasicChannel.Id,
-			OwnerId:     th.BasicUser.Id,
-			DisplayName: "Link bookmark test",
-			LinkUrl:     "https://mattermost.com",
-			Type:        model.ChannelBookmarkFile,
-			Emoji:       ":smile:",
-		}
+		bookmark2 := createBookmark("File bookmark test", model.ChannelBookmarkFile, th.BasicChannel.Id, "")
+
 		bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+		assert.Nil(t, bookmarkResp)
+		assert.NotNil(t, err)
+	})
+
+	t.Run("Cannot create more than MaxBookmarksPerChannel", func(t *testing.T) {
+		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
+
+		for i := 1; i < model.MaxBookmarksPerChannel; i++ {
+			bookmark := createBookmark(fmt.Sprintf("Link bookmark test %d", i), model.ChannelBookmarkLink, th.BasicChannel.Id, "")
+			bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark, "")
+			assert.Nil(t, err)
+			assert.Equal(t, bookmarkResp.ChannelId, th.BasicChannel.Id)
+			assert.NotEmpty(t, bookmarkResp.Id)
+		}
+
+		bookmark := createBookmark("Bookmark that should not be added", model.ChannelBookmarkLink, th.BasicChannel.Id, "")
+		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark, "")
 		assert.Nil(t, bookmarkResp)
 		assert.NotNil(t, err)
 	})

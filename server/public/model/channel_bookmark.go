@@ -10,9 +10,10 @@ import (
 type ChannelBookmarkType string
 
 const (
-	ChannelBookmarkLink ChannelBookmarkType = "link"
-	ChannelBookmarkFile ChannelBookmarkType = "file"
-	BookmarkFileOwner                       = "bookmark"
+	ChannelBookmarkLink    ChannelBookmarkType = "link"
+	ChannelBookmarkFile    ChannelBookmarkType = "file"
+	BookmarkFileOwner                          = "bookmark"
+	MaxBookmarksPerChannel                     = 50
 )
 
 type ChannelBookmark struct {
