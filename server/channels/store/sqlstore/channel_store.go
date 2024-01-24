@@ -4540,8 +4540,14 @@ func (s SqlChannelStore) channelReportApplySorting(filter *model.ChannelReportOp
 	if filter.SortColumn == model.ChannelReportingSortByDisplayName {
 		query = query.OrderBy("c.displayname "+sortColumnSortDirection, "c.id "+idColumnSortDirection)
 	} else if filter.SortColumn == model.ChannelReportingSortByPostCount {
+		if filter.Direction == "prev" {
+			idColumnSortDirection = "DESC"
+		}
 		query = query.OrderBy("postcount "+sortColumnSortDirection, "c.id "+idColumnSortDirection)
 	} else if filter.SortColumn == model.ChannelReportingSortByMemberCount {
+		if filter.Direction == "prev" {
+			idColumnSortDirection = "DESC"
+		}
 		query = query.OrderBy("membercount "+sortColumnSortDirection, "c.id "+idColumnSortDirection)
 	}
 
