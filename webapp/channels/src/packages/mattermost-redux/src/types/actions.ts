@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {Action as ReduxAction, AnyAction} from 'redux';
-import type {BatchAction} from 'redux-batched-actions';
-import type {ThunkAction} from 'redux-thunk';
+import type {Action as ReduxAction, AnyAction, Dispatch} from 'redux';
+import type {ThunkAction as BaseThunkAction} from 'redux-thunk';
 
 import type {GlobalState} from '@mattermost/types/store';
 
@@ -15,11 +14,9 @@ import type {GlobalState} from '@mattermost/types/store';
  */
 import 'redux-thunk/extend-redux';
 
+export type DispatchFunc = Dispatch;
 export type GetStateFunc = () => GlobalState;
 export type GenericAction = AnyAction;
-type Thunk = (b: DispatchFunc, a: GetStateFunc) => Promise<ActionResult> | ActionResult;
-
-type Action = GenericAction | Thunk | BatchAction | ActionFunc;
 
 /**
  * ActionResult should be the return value of most Thunk action creators.
@@ -29,32 +26,22 @@ export type ActionResult<Data = any, Error = any> = {
     error?: Error;
 };
 
-export type DispatchFunc = (action: Action | NewActionFunc<unknown, any> | NewActionFuncAsync<unknown, any> | NewActionFuncOldVariantDoNotUse<unknown, any>, getState?: GetStateFunc | null) => Promise<ActionResult>;
-
-/**
- * Return type of a redux action.
- * @usage
- * ActionFunc<ReturnTypeOfData, ErrorType>
- */
-export type ActionFunc<Data = any, Error = any> = (
-    dispatch: DispatchFunc,
-    getState: GetStateFunc
-) => Promise<ActionResult<Data, Error> | Array<ActionResult<Data, Error>>> | ActionResult<Data, Error>;
-
 /**
  * NewActionFunc should be the return type of most non-async Thunk action creators. If that action requires web app
  * state, the second type parameter should be used to pass the version of GlobalState from 'types/store'.
  */
-export type NewActionFunc<Data = unknown, State extends GlobalState = GlobalState> = ThunkAction<ActionResult<Data>, State, unknown, ReduxAction>;
+export type NewActionFunc<Data = unknown, State extends GlobalState = GlobalState> = BaseThunkAction<ActionResult<Data>, State, unknown, ReduxAction>;
 
 /**
  * NewActionFunc should be the return type of most async Thunk action creators. If that action requires web app
  * state, the second type parameter should be used to pass the version of GlobalState from 'types/store'.
  */
-export type NewActionFuncAsync<Data = unknown, State extends GlobalState = GlobalState> = ThunkAction<Promise<ActionResult<Data>>, State, unknown, ReduxAction>;
+export type NewActionFuncAsync<Data = unknown, State extends GlobalState = GlobalState> = BaseThunkAction<Promise<ActionResult<Data>>, State, unknown, ReduxAction>;
 
 /**
- * NewActionFuncOldVariantDoNotUse is a (hopefully) temporary type to let us migrate actions which previously returned
- * an array of promises to use a ThunkAction without having to modify their logic yet.
+ * ThunkActionFunc is a type that extends ActionFunc with defaults that match our other ActionFunc variants to save
+ * users from having to manually specify GlobalState and other arguments.
+ *
+ * NewActionFunc or NewActionFuncAsync should generally be preferred, but this type is available for legacy code.
  */
-export type NewActionFuncOldVariantDoNotUse<Data = unknown, State extends GlobalState = GlobalState> = ThunkAction<Data, State, unknown, ReduxAction>;
+export type ThunkActionFunc<ReturnType, State extends GlobalState = GlobalState> = BaseThunkAction<ReturnType, State, unknown, AnyAction>;

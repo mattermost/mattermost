@@ -68,7 +68,7 @@ export function sendMembersInvites(teamId: string, users: UserProfile[], emails:
                     data: emails.map((email) => ({
                         email,
                         error: {error: localizeMessage('invite.members.unable-to-add-the-user-to-the-team', 'Unable to add the user to the team.')},
-                    })) as any, // HARRISONTODO These error handling cases return slightly different types
+                    })) as unknown as TeamInviteWithError[],
                 };
             }
             const invitesWithErrors = response.data || [];
@@ -184,8 +184,8 @@ export function sendGuestsInvites(
                     data: emails.map((email) => ({
                         email,
                         error: {error: localizeMessage('invite.guests.unable-to-add-the-user-to-the-channels', 'Unable to add the guest to the channels.')},
-                    })),
-                } as any; // HARRISONTODO These error handling cases return slightly different types
+                    })) as unknown as TeamInviteWithError[],
+                };
             }
 
             if (response.error) {
@@ -281,7 +281,7 @@ export function sendMembersInvitesToChannels(
                     data: emails.map((email) => ({
                         email,
                         error: {error: localizeMessage('invite.members.unable-to-add-the-user-to-the-team', 'Unable to add the user to the team.')},
-                    })) as any, // HARRISONTODO These error handling cases return slightly different types
+                    })) as unknown as TeamInviteWithError[],
                 };
             }
             const invitesWithErrors = response.data || [];

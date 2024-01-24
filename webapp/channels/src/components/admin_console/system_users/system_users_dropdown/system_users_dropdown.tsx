@@ -135,7 +135,7 @@ export default class SystemUsersDropdown extends React.PureComponent<Props, Stat
         if (this.shouldDisableBotsWhenOwnerIsDeactivated()) {
             await this.props.actions.loadBots(
                 Constants.Integrations.START_PAGE_NUM,
-                parseInt(Constants.Integrations.PAGE_SIZE, 10),
+                Constants.Integrations.PAGE_SIZE,
             );
         }
         this.setState({showDeactivateMemberModal: true});
