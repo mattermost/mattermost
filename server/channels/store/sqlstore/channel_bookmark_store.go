@@ -4,9 +4,6 @@
 package sqlstore
 
 import (
-	"fmt"
-	"strings"
-
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -251,7 +248,7 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 		Select(bookmarkWithFileInfoSliceColumns()...).
 		From("ChannelBookmarks cb").
 		LeftJoin("FileInfo fi ON cb.FileInfoId = fi.Id").
-		Where(fmt.Sprintf("cb.ChannelId IN ('%s')", strings.Join(channelsId, "', '")))
+		Where(sq.Eq{"cb.ChannelId": channelsId})
 
 	if since > 0 {
 		query = query.Where(sq.Or{
