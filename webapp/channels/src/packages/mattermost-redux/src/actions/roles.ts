@@ -6,7 +6,7 @@ import type {Role} from '@mattermost/types/roles';
 import {RoleTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
-import type {DispatchFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
@@ -62,9 +62,9 @@ export function editRole(role: Partial<Role> & {id: string}) {
 }
 
 export function setPendingRoles(roles: string[]) {
-    return async (dispatch: DispatchFunc) => {
-        dispatch({type: RoleTypes.SET_PENDING_ROLES, data: roles});
-        return {data: roles};
+    return {
+        type: RoleTypes.SET_PENDING_ROLES,
+        data: roles,
     };
 }
 
