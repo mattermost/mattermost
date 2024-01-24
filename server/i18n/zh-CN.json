@@ -10336,5 +10336,9 @@
   {
     "id": "app.save_report_chunk.unsupported_format",
     "translation": "不支持的报告格式。"
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "报告处理已完成。您可以从[此处]({{.Link}})下载报告"
   }
 ]
