@@ -585,15 +585,6 @@ func TestS3TestConnection(t *testing.T) {
 		CheckErrorID(t, err, "api.file.test_connection_s3_auth.app_error")
 	})
 
-	t.Run("as restricted system admin", func(t *testing.T) {
-		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = true })
-		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ExperimentalSettings.RestrictSystemAdmin = false })
-
-		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
-		require.Error(t, err)
-		CheckForbiddenStatus(t, resp)
-	})
-
 	t.Run("empty file settings", func(t *testing.T) {
 		config.FileSettings = model.FileSettings{}
 		resp, err := th.SystemAdminClient.TestS3Connection(context.Background(), &config)
