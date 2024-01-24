@@ -32,8 +32,8 @@ func TestNewStoreFromDSN(t *testing.T) {
 	})
 
 	t.Run("file dsn", func(t *testing.T) {
-		defer os.Remove("config_test.json")
-		fs, err := NewStoreFromDSN("config_test.json", false, nil, true)
+		defer os.Remove("config.json")
+		fs, err := NewStoreFromDSN("config.json", false, nil, true)
 		require.NoError(t, err)
 		fs.Close()
 	})
@@ -78,7 +78,7 @@ func TestNewStoreReadOnly(t *testing.T) {
 	})
 
 	t.Run("file dsn", func(t *testing.T) {
-		fs, err := NewStoreFromDSN("config_test.json", true, nil, true)
+		fs, err := NewStoreFromDSN("config.json", true, nil, true)
 		require.NoError(t, err)
 
 		t.Run("Set", func(t *testing.T) {
@@ -89,12 +89,12 @@ func TestNewStoreReadOnly(t *testing.T) {
 		})
 
 		t.Run("SetFile", func(t *testing.T) {
-			err := fs.SetFile("config_test.json", []byte{})
+			err := fs.SetFile("config.json", []byte{})
 			require.Equal(t, ErrReadOnlyStore, err)
 		})
 
 		t.Run("RemoveFile", func(t *testing.T) {
-			err := fs.RemoveFile("config_test.json")
+			err := fs.RemoveFile("config.json")
 			require.Equal(t, ErrReadOnlyStore, err)
 		})
 
