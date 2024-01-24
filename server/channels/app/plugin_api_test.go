@@ -164,39 +164,50 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 }
 
 func TestPluginAPIGetUserPreference(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	api := th.SetupPluginAPI()
+	t.Run("should return preferences when called", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
 
-	err := api.UpdatePreferencesForUser(th.BasicUser.Id, []model.Preference{
-		{
-			UserId:   th.BasicUser.Id,
-			Category: model.PreferenceCategoryDisplaySettings,
-			Name:     model.PreferenceNameUseMilitaryTime,
-			Value:    "true",
-		},
-		{
-			UserId:   th.BasicUser.Id,
-			Category: "test_category",
-			Name:     "test_key",
-			Value:    "test_value",
-		},
+		err := api.UpdatePreferencesForUser(th.BasicUser.Id, []model.Preference{
+			{
+				UserId:   th.BasicUser.Id,
+				Category: model.PreferenceCategoryDisplaySettings,
+				Name:     model.PreferenceNameUseMilitaryTime,
+				Value:    "true",
+			},
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_key",
+				Value:    "test_value",
+			},
+		})
+		require.Nil(t, err)
+
+		preference, err := api.GetPreferenceForUser(th.BasicUser.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime)
+
+		require.Nil(t, err)
+		assert.Equal(t, model.PreferenceCategoryDisplaySettings, preference.Category)
+		assert.Equal(t, model.PreferenceNameUseMilitaryTime, preference.Name)
+		assert.Equal(t, "true", preference.Value)
+
+		preference, err = api.GetPreferenceForUser(th.BasicUser.Id, "test_category", "test_key")
+
+		require.Nil(t, err)
+		assert.Equal(t, "test_category", preference.Category)
+		assert.Equal(t, "test_key", preference.Name)
+		assert.Equal(t, "test_value", preference.Value)
 	})
-	require.Nil(t, err)
 
-	preference, err := api.GetPreferenceForUser(th.BasicUser.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime)
+	t.Run("should return an error when a user doesn't have a preference set", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
 
-	require.Nil(t, err)
-	assert.Equal(t, model.PreferenceCategoryDisplaySettings, preference.Category)
-	assert.Equal(t, model.PreferenceNameUseMilitaryTime, preference.Name)
-	assert.Equal(t, "true", preference.Value)
-
-	preference, err = api.GetPreferenceForUser(th.BasicUser.Id, "test_category", "test_key")
-
-	require.Nil(t, err)
-	assert.Equal(t, "test_category", preference.Category)
-	assert.Equal(t, "test_key", preference.Name)
-	assert.Equal(t, "test_value", preference.Value)
+		_, err := api.GetPreferenceForUser(th.BasicUser.Id, "something", "that doesn't exist")
+		assert.NotNil(t, err)
+	})
 }
 
 func TestPluginAPIGetUserPreferences(t *testing.T) {
