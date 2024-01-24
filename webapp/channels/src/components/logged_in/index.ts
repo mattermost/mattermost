@@ -10,7 +10,7 @@ import {autoUpdateTimezone} from 'mattermost-redux/actions/timezone';
 import {getChannel, getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser, shouldShowTermsOfService} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {GenericAction, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelURL} from 'selectors/urls';
 
@@ -44,7 +44,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 }
 
 // NOTE: suggestions where to keep this welcomed
-const getChannelURLAction = (channelId: string, teamId: string, url: string) => (dispatch: DispatchFunc, getState: () => GlobalState) => {
+const getChannelURLAction = (channelId: string, teamId: string, url: string): ThunkActionFunc<void, GlobalState> => (dispatch, getState) => {
     const state = getState();
 
     if (url && isPermalinkURL(url)) {
