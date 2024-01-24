@@ -284,7 +284,7 @@ func unlinkLdapGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 	ReturnStatusOK(w)
 }
 
-func migrateIdLdap(c *Context, w http.ResponseWriter, r *http.Request) {
+func migrateIDLdap(c *Context, w http.ResponseWriter, r *http.Request) {
 	props, err := model.StringInterfaceFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if err != nil {
 		c.SetInvalidParam("props")
