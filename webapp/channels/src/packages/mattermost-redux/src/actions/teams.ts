@@ -21,7 +21,7 @@ import {isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selector
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GetStateFunc, DispatchFunc, ActionFunc, ActionResult, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
@@ -77,8 +77,8 @@ export function getMyTeams() {
 // The argument skipCurrentTeam is a (not ideal) workaround for CRT mention counts. Unread mentions are stored in the reducer per
 // team but we do not track unread mentions for DMs/GMs independently. This results in a bit of funky logic and edge case bugs
 // that need workarounds like this. In the future we should fix the root cause with better APIs and redux state.
-export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = false): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let unreads;
         try {
             unreads = await Client4.getMyTeamUnreads(collapsedThreads);
@@ -130,7 +130,7 @@ export function getTeamByName(teamName: string) {
 }
 
 export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false): NewActionFuncAsync {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
 
         dispatch({type: TeamTypes.GET_TEAMS_REQUEST, data});
@@ -369,8 +369,8 @@ export function getTeamMembers(teamId: string, page = 0, perPage: number = Gener
     });
 }
 
-export function getTeamMember(teamId: string, userId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getTeamMember(teamId: string, userId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let member;
         try {
             const memberRequest = Client4.getTeamMember(teamId, userId);
@@ -488,8 +488,8 @@ export function addUserToTeam(teamId: string, userId: string): NewActionFuncAsyn
     };
 }
 
-export function addUsersToTeam(teamId: string, userIds: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function addUsersToTeam(teamId: string, userIds: string[]): NewActionFuncAsync { // HARRISONTODO unused
+    return async (dispatch, getState) => {
         let members;
         try {
             members = await Client4.addUsersToTeam(teamId, userIds);
@@ -602,8 +602,8 @@ export function removeUserFromTeam(teamId: string, userId: string): NewActionFun
     };
 }
 
-export function updateTeamMemberRoles(teamId: string, userId: string, roles: string[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateTeamMemberRoles(teamId: string, userId: string, roles: string[]): NewActionFuncAsync { // HARRISONTODO unused
+    return async (dispatch, getState) => {
         try {
             await Client4.updateTeamMemberRoles(teamId, userId, roles);
         } catch (error) {
@@ -711,8 +711,8 @@ export function checkIfTeamExists(teamName: string): NewActionFuncAsync<boolean>
     };
 }
 
-export function joinTeam(inviteId: string, teamId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function joinTeam(inviteId: string, teamId: string): NewActionFuncAsync { // HARRISONTODO
+    return async (dispatch, getState) => {
         dispatch({type: TeamTypes.JOIN_TEAM_REQUEST, data: null});
 
         const state = getState();

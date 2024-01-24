@@ -143,7 +143,7 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
     };
 }
 
-export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string): (draft: PostDraft, options?: {ignoreSlash?: boolean}) => NewActionFuncAsync {
+export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string): (draft: PostDraft, options?: {ignoreSlash?: boolean}) => NewActionFuncAsync<boolean, GlobalState> {
     return (draft, options = {}) => async (dispatch, getState) => {
         const {message} = draft;
 

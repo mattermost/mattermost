@@ -9,7 +9,7 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc, NewActionFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
@@ -17,8 +17,8 @@ import {Constants} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
-export function loadStatusesForChannelAndSidebar(): ActionFunc {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadStatusesForChannelAndSidebar(): NewActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState();
         const statusesToLoad: Record<string, true> = {};
 
@@ -26,7 +26,7 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc {
         const postsInChannel = getPostsInCurrentChannel(state);
 
         if (postsInChannel) {
-            const posts = postsInChannel.slice(0, (state as GlobalState).views.channel.postVisibility[channelId] || 0);
+            const posts = postsInChannel.slice(0, state.views.channel.postVisibility[channelId] || 0);
             for (const post of posts) {
                 if (post.user_id) {
                     statusesToLoad[post.user_id] = true;
@@ -67,8 +67,8 @@ export function loadStatusesForProfilesList(users: UserProfile[] | null): NewAct
     };
 }
 
-export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | null) {
-    return (dispatch: DispatchFunc) => {
+export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | null): NewActionFunc {
+    return (dispatch) => {
         if (users == null) {
             return {data: false};
         }
@@ -86,8 +86,8 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
     };
 }
 
-export function loadStatusesByIds(userIds: string[]) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadStatusesByIds(userIds: string[]): NewActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
@@ -101,8 +101,8 @@ export function loadStatusesByIds(userIds: string[]) {
     };
 }
 
-export function loadProfilesMissingStatus(users: UserProfile[]) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function loadProfilesMissingStatus(users: UserProfile[]): NewActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
@@ -124,8 +124,8 @@ export function loadProfilesMissingStatus(users: UserProfile[]) {
 
 let intervalId: NodeJS.Timeout;
 
-export function startPeriodicStatusUpdates() {
-    return (dispatch: DispatchFunc) => {
+export function startPeriodicStatusUpdates(): ThunkActionFunc<void, GlobalState> { // HARRISONTODO unused
+    return (dispatch) => {
         clearInterval(intervalId);
 
         intervalId = setInterval(
@@ -137,6 +137,6 @@ export function startPeriodicStatusUpdates() {
     };
 }
 
-export function stopPeriodicStatusUpdates() {
+export function stopPeriodicStatusUpdates() { // HARRISONTODO used but does nothing
     clearInterval(intervalId);
 }
