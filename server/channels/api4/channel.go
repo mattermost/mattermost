@@ -987,6 +987,10 @@ func getChannelsForTeamForUser(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
+	if c.HandleEtag(channels.Etag(), "Get Channels", w, r) {
+		return
+	}
+
 	err = c.App.FillInChannelsProps(c.AppContext, channels)
 	if err != nil {
 		c.Err = err
