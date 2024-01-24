@@ -41,7 +41,7 @@ func bookmarkWithFileInfoSliceColumns() []string {
 		"cb.Emoji",
 		"cb.Type",
 		"COALESCE(cb.OriginalId, '') as OriginalId",
-		"COALESCE(fi.Id, '') as Id",
+		"COALESCE(fi.Id, '') as FileId",
 		"COALESCE(fi.Name, '') as FileName",
 		"COALESCE(fi.Extension, '') as Extension",
 		"COALESCE(fi.Size, 0) as Size",
@@ -69,30 +69,13 @@ func (s *SqlChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.Ch
 		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
 	}
 
-	row := s.GetReplicaX().DB.QueryRow(queryString, args...)
-	if row == nil {
-		return nil, errors.Wrapf(row.Err(), "failed to find bookmark")
+	bookmark := model.ChannelBookmarkAndFileInfo{}
+
+	if err := s.GetReplicaX().Get(&bookmark, queryString, args...); err != nil {
+		return nil, store.NewErrNotFound("ChannelBookmark", Id)
 	}
 
-	if err = row.Err(); err != nil {
-		return nil, errors.Wrapf(row.Err(), "failed to find bookmark")
-	}
-
-	var bwf model.ChannelBookmarkWithFileInfo
-	var b model.ChannelBookmark
-	var f model.FileInfo
-
-	if err = row.Scan(&b.Id, &b.OwnerId, &b.ChannelId, &b.FileId, &b.CreateAt, &b.UpdateAt, &b.DeleteAt, &b.DisplayName, &b.SortOrder, &b.LinkUrl, &b.ImageUrl, &b.Emoji, &b.Type, &b.OriginalId,
-		&f.Id, &f.Name, &f.Extension, &f.Size, &f.MimeType, &f.Width, &f.Height, &f.HasPreviewImage, &f.MiniPreview); err != nil {
-		return nil, errors.Wrap(err, "failed to find bookmark")
-	}
-
-	bwf.ChannelBookmark = &b
-	if b.FileId != "" && f.Id != "" {
-		bwf.FileInfo = &f
-	}
-
-	return &bwf, nil
+	return bookmark.ToChannelBookmarkWithFileInfo(), nil
 }
 
 func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error) {
@@ -278,36 +261,16 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId 
 		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
 	}
 
-	rows, queryErr := s.GetReplicaX().DB.Query(queryString, args...)
-	if queryErr != nil {
-		return nil, errors.Wrapf(queryErr, "failed to find bookmarks")
-	}
-
 	retrievedRecords := make(map[string][]*model.ChannelBookmarkWithFileInfo)
-	defer rows.Close()
-	for rows.Next() {
-		var bwf model.ChannelBookmarkWithFileInfo
-		var b model.ChannelBookmark
-		f := model.FileInfo{}
+	bookmarks := []model.ChannelBookmarkAndFileInfo{}
 
-		if err = rows.Scan(&b.Id, &b.OwnerId, &b.ChannelId, &b.FileId, &b.CreateAt, &b.UpdateAt, &b.DeleteAt, &b.DisplayName, &b.SortOrder, &b.LinkUrl, &b.ImageUrl, &b.Emoji, &b.Type, &b.OriginalId,
-			&f.Id, &f.Name, &f.Extension, &f.Size, &f.MimeType, &f.Width, &f.Height, &f.HasPreviewImage, &f.MiniPreview); err != nil {
-			return nil, errors.Wrap(err, "channel bookmarks unable to scan from rows")
-		}
-
-		bwf.ChannelBookmark = &b
-		if b.FileId != "" && f.Id != "" {
-			bwf.FileInfo = &f
-			if len(*f.MiniPreview) == 0 {
-				bwf.FileInfo.MiniPreview = nil
-			}
-		}
-
-		bookmarks := retrievedRecords[b.ChannelId]
-		retrievedRecords[b.ChannelId] = append(bookmarks, &bwf)
+	if err := s.GetReplicaX().Select(&bookmarks, queryString, args...); err != nil {
+		return nil, errors.Wrapf(err, "failed to find bookmarks")
 	}
-	if err = rows.Err(); err != nil {
-		return nil, errors.Wrap(err, "channel bookmarks failed while iterating over rows")
+
+	for _, bookmark := range bookmarks {
+		records := retrievedRecords[bookmark.ChannelId]
+		retrievedRecords[bookmark.ChannelId] = append(records, bookmark.ToChannelBookmarkWithFileInfo())
 	}
 
 	return retrievedRecords, nil

@@ -48,94 +48,6 @@ func (o *ChannelBookmark) Auditable() map[string]interface{} {
 	}
 }
 
-type ChannelBookmarkPatch struct {
-	FileId      *string              `json:"file_id"`
-	DisplayName *string              `json:"display_name"`
-	SortOrder   *int64               `json:"sort_order"`
-	LinkUrl     *string              `json:"link_url,omitempty"`
-	ImageUrl    *string              `json:"image_url,omitempty"`
-	Emoji       *string              `json:"emoji,omitempty"`
-	Type        *ChannelBookmarkType `json:"type"`
-}
-
-func (o *ChannelBookmarkPatch) Auditable() map[string]interface{} {
-	return map[string]interface{}{
-		"file_id": o.FileId,
-		"type":    o.Type,
-	}
-}
-
-func (o *ChannelBookmark) Patch(patch *ChannelBookmarkPatch) {
-	if patch.FileId != nil {
-		o.FileId = *patch.FileId
-	}
-
-	if patch.DisplayName != nil {
-		o.DisplayName = *patch.DisplayName
-	}
-	if patch.SortOrder != nil {
-		o.SortOrder = *patch.SortOrder
-	}
-	if patch.LinkUrl != nil {
-		o.LinkUrl = *patch.LinkUrl
-	}
-	if patch.ImageUrl != nil {
-		o.ImageUrl = *patch.ImageUrl
-	}
-	if patch.Emoji != nil {
-		o.Emoji = *patch.Emoji
-	}
-	if patch.Type != nil {
-		o.Type = *patch.Type
-	}
-}
-
-type ChannelBookmarkWithFileInfo struct {
-	*ChannelBookmark
-	FileInfo *FileInfo `json:"file,omitempty"`
-}
-
-func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]interface{} {
-	a := o.ChannelBookmark.Auditable()
-	if o.FileInfo != nil {
-		a["file"] = o.FileInfo.Auditable()
-	}
-
-	return a
-}
-
-// Clone returns a shallow copy of the channel bookmark with file info.
-func (o *ChannelBookmarkWithFileInfo) Clone() *ChannelBookmarkWithFileInfo {
-	bCopy := *o
-	return &bCopy
-}
-
-type ChannelWithBookmarks struct {
-	*Channel
-	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
-}
-
-type ChannelWithTeamDataAndBookmarks struct {
-	*ChannelWithTeamData
-	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
-}
-
-type UpdateChannelBookmarkResponse struct {
-	Updated *ChannelBookmarkWithFileInfo `json:"updated,omitempty"`
-	Deleted *ChannelBookmarkWithFileInfo `json:"deleted,omitempty"`
-}
-
-func (o *UpdateChannelBookmarkResponse) Auditable() map[string]any {
-	a := map[string]any{}
-	if o.Updated != nil {
-		a["updated"] = o.Updated.Auditable()
-	}
-	if o.Deleted != nil {
-		a["updated"] = o.Deleted.Auditable()
-	}
-	return a
-}
-
 // Clone returns a shallow copy of the channel bookmark.
 func (o *ChannelBookmark) Clone() *ChannelBookmark {
 	bCopy := *o
@@ -251,4 +163,156 @@ func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWi
 	}
 
 	return &bwf
+}
+
+type ChannelBookmarkPatch struct {
+	FileId      *string              `json:"file_id"`
+	DisplayName *string              `json:"display_name"`
+	SortOrder   *int64               `json:"sort_order"`
+	LinkUrl     *string              `json:"link_url,omitempty"`
+	ImageUrl    *string              `json:"image_url,omitempty"`
+	Emoji       *string              `json:"emoji,omitempty"`
+	Type        *ChannelBookmarkType `json:"type"`
+}
+
+func (o *ChannelBookmarkPatch) Auditable() map[string]interface{} {
+	return map[string]interface{}{
+		"file_id": o.FileId,
+		"type":    o.Type,
+	}
+}
+
+func (o *ChannelBookmark) Patch(patch *ChannelBookmarkPatch) {
+	if patch.FileId != nil {
+		o.FileId = *patch.FileId
+	}
+
+	if patch.DisplayName != nil {
+		o.DisplayName = *patch.DisplayName
+	}
+	if patch.SortOrder != nil {
+		o.SortOrder = *patch.SortOrder
+	}
+	if patch.LinkUrl != nil {
+		o.LinkUrl = *patch.LinkUrl
+	}
+	if patch.ImageUrl != nil {
+		o.ImageUrl = *patch.ImageUrl
+	}
+	if patch.Emoji != nil {
+		o.Emoji = *patch.Emoji
+	}
+	if patch.Type != nil {
+		o.Type = *patch.Type
+	}
+}
+
+type ChannelBookmarkWithFileInfo struct {
+	*ChannelBookmark
+	FileInfo *FileInfo `json:"file,omitempty"`
+}
+
+func (o *ChannelBookmarkWithFileInfo) Auditable() map[string]interface{} {
+	a := o.ChannelBookmark.Auditable()
+	if o.FileInfo != nil {
+		a["file"] = o.FileInfo.Auditable()
+	}
+
+	return a
+}
+
+// Clone returns a shallow copy of the channel bookmark with file info.
+func (o *ChannelBookmarkWithFileInfo) Clone() *ChannelBookmarkWithFileInfo {
+	bCopy := *o
+	return &bCopy
+}
+
+type ChannelWithBookmarks struct {
+	*Channel
+	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
+}
+
+type ChannelWithTeamDataAndBookmarks struct {
+	*ChannelWithTeamData
+	Bookmarks []*ChannelBookmarkWithFileInfo `json:"bookmarks,omitempty"`
+}
+
+type UpdateChannelBookmarkResponse struct {
+	Updated *ChannelBookmarkWithFileInfo `json:"updated,omitempty"`
+	Deleted *ChannelBookmarkWithFileInfo `json:"deleted,omitempty"`
+}
+
+func (o *UpdateChannelBookmarkResponse) Auditable() map[string]any {
+	a := map[string]any{}
+	if o.Updated != nil {
+		a["updated"] = o.Updated.Auditable()
+	}
+	if o.Deleted != nil {
+		a["updated"] = o.Deleted.Auditable()
+	}
+	return a
+}
+
+type ChannelBookmarkAndFileInfo struct {
+	Id              string
+	CreateAt        int64
+	UpdateAt        int64
+	DeleteAt        int64
+	ChannelId       string
+	OwnerId         string
+	FileInfoId      string
+	DisplayName     string
+	SortOrder       int64
+	LinkUrl         string
+	ImageUrl        string
+	Emoji           string
+	Type            ChannelBookmarkType
+	OriginalId      string
+	ParentId        string
+	FileId          string
+	FileName        string
+	Extension       string
+	Size            int64
+	MimeType        string
+	Width           int
+	Height          int
+	HasPreviewImage bool
+	MiniPreview     *[]byte
+}
+
+func (o *ChannelBookmarkAndFileInfo) ToChannelBookmarkWithFileInfo() *ChannelBookmarkWithFileInfo {
+	bwf := &ChannelBookmarkWithFileInfo{
+		ChannelBookmark: &ChannelBookmark{
+			Id:          o.Id,
+			CreateAt:    o.CreateAt,
+			UpdateAt:    o.UpdateAt,
+			DeleteAt:    o.DeleteAt,
+			ChannelId:   o.ChannelId,
+			OwnerId:     o.OwnerId,
+			FileId:      o.FileInfoId,
+			DisplayName: o.DisplayName,
+			SortOrder:   o.SortOrder,
+			LinkUrl:     o.LinkUrl,
+			ImageUrl:    o.ImageUrl,
+			Emoji:       o.Emoji,
+			Type:        o.Type,
+			OriginalId:  o.OriginalId,
+			ParentId:    o.ParentId,
+		},
+	}
+
+	if o.FileInfoId != "" && o.FileId != "" {
+		bwf.FileInfo = &FileInfo{
+			Id:              o.FileId,
+			Name:            o.FileName,
+			Extension:       o.Extension,
+			Size:            o.Size,
+			MimeType:        o.MimeType,
+			Width:           o.Width,
+			Height:          o.Height,
+			HasPreviewImage: o.HasPreviewImage,
+			MiniPreview:     o.MiniPreview,
+		}
+	}
+	return bwf
 }
