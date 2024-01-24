@@ -1153,13 +1153,9 @@ const AdminDefinition: AdminDefinitionType = {
                             type: 'dropdown',
                             key: 'FileSettings.ExportDriverName',
                             label: defineMessage({id: 'admin.exportStorage.exportDriverName', defaultMessage: 'Export Storage Driver:'}),
-                            isDisabled: it.any(it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                            isDisabled: true,
                             isHidden: it.stateEquals('FileSettings.DedicatedExportStore', false),
                             options: [
-                                {
-                                    value: 'NONE',
-                                    display_name: defineMessage({id: 'admin.exportStorage.none', defaultMessage: 'NONE'}),
-                                },
                                 {
                                     value: FILE_STORAGE_DRIVER_S3,
                                     display_name: defineMessage({id: 'admin.image.storeAmazonS3', defaultMessage: 'Amazon S3'}),
