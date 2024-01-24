@@ -434,3 +434,62 @@ func TestRoundOffToZeroesResolution(t *testing.T) {
 		})
 	}
 }
+
+func TestSplitSliceInChunks(t *testing.T) {
+	tests := []struct {
+		name          string
+		slice         []int
+		chuckSize     int
+		expected      [][]int
+		expectedError bool
+	}{
+		{
+			name:      "",
+			slice:     []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			chuckSize: 1,
+			expected: [][]int{
+				{0}, {1}, {2}, {3}, {4}, {5}, {6}, {7}, {8}, {9},
+			},
+			expectedError: false,
+		},
+		{
+			name:      "",
+			slice:     []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			chuckSize: 10,
+			expected: [][]int{
+				{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			},
+			expectedError: false,
+		},
+		{
+			name:      "",
+			slice:     []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			chuckSize: 3,
+			expected: [][]int{
+				{0, 1, 2}, {3, 4, 5}, {6, 7, 8}, {9},
+			},
+			expectedError: false,
+		},
+		{
+			name:      "",
+			slice:     []int{0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+			chuckSize: 5,
+			expected: [][]int{
+				{0, 1, 2, 3, 4}, {5, 6, 7, 8, 9},
+			},
+			expectedError: false,
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			chunks, err := SplitSliceIntoChunks[int](tt.slice, tt.chuckSize)
+			if (err != nil) != tt.expectedError {
+				t.Errorf("SplitSliceInChunks(%v, %d) error = %v, wantErr %v", tt.slice, tt.chuckSize, err, tt.expectedError)
+				return
+			}
+			if !assert.Equal(t, chunks, tt.expected) {
+				t.Errorf("SplitSliceInChunks(%v, %d) got = %v, want %v", tt.slice, tt.chuckSize, chunks, tt.expected)
+			}
+		})
+	}
+}

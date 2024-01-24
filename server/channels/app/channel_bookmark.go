@@ -6,12 +6,14 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"maps"
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func (a *App) GetChannelBookmarks(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, *model.AppError) {
@@ -28,9 +30,18 @@ func (a *App) GetAllChannelBookmarks(channelIds []string, since int64) (map[stri
 		return nil, nil
 	}
 
-	bookmarks, err := a.Srv().Store().ChannelBookmark().GetBookmarksForAllChannelByIdSince(channelIds, since)
+	channelIdChunks, err := utils.SplitSliceIntoChunks[string](channelIds, 100)
 	if err != nil {
 		return nil, model.NewAppError("GetAllChannelBookmarks", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+	}
+
+	bookmarks := make(map[string][]*model.ChannelBookmarkWithFileInfo)
+	for _, chunk := range channelIdChunks {
+		results, err := a.Srv().Store().ChannelBookmark().GetBookmarksForAllChannelByIdSince(chunk, since)
+		if err != nil {
+			return nil, model.NewAppError("GetAllChannelBookmarks", "app.channel.bookmark.get.app_error", nil, "", http.StatusNotFound).Wrap(err)
+		}
+		maps.Copy(bookmarks, results)
 	}
 
 	return bookmarks, nil

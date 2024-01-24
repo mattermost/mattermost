@@ -87,6 +87,19 @@ func StringSliceDiff(a, b []string) []string {
 	return result
 }
 
+func SplitSliceIntoChunks[T comparable](slice []T, chunkSize int) ([][]T, error) {
+	if chunkSize < 1 {
+		return nil, errors.New("chuckSize must be greater that zero")
+	}
+	chunks := make([][]T, 0, (len(slice)+chunkSize-1)/chunkSize)
+
+	for chunkSize < len(slice) {
+		slice, chunks = slice[chunkSize:], append(chunks, slice[0:chunkSize:chunkSize])
+	}
+	chunks = append(chunks, slice)
+	return chunks, nil
+}
+
 func InsertElementToSliceAtIndex[T comparable](slice []T, element T, index int) []T {
 	if len(slice) == index {
 		return append(slice, element)
