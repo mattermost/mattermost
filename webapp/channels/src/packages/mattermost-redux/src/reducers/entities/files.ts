@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import {FileTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-export function files(state: Record<string, FileInfo> = {}, action: GenericAction) {
+export function files(state: Record<string, FileInfo> = {}, action: AnyAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_UPLOAD_FILES:
     case FileTypes.RECEIVED_FILES_FOR_POST: {
@@ -60,7 +60,7 @@ export function files(state: Record<string, FileInfo> = {}, action: GenericActio
     }
 }
 
-export function filesFromSearch(state: Record<string, FileSearchResultItem> = {}, action: GenericAction) {
+export function filesFromSearch(state: Record<string, FileSearchResultItem> = {}, action: AnyAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILES_FOR_SEARCH: {
         return {...state,
@@ -112,7 +112,7 @@ function storeFilesForPost(state: Record<string, FileInfo>, post: Post) {
     }, state);
 }
 
-export function fileIdsByPostId(state: Record<string, string[]> = {}, action: GenericAction) {
+export function fileIdsByPostId(state: Record<string, string[]> = {}, action: AnyAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILES_FOR_POST: {
         const {data, postId} = action;
@@ -166,7 +166,7 @@ function storeFilesIdsForPost(state: Record<string, string[]>, post: Post) {
     };
 }
 
-function filePublicLink(state: {link: string} = {link: ''}, action: GenericAction) {
+function filePublicLink(state: {link: string} = {link: ''}, action: AnyAction) {
     switch (action.type) {
     case FileTypes.RECEIVED_FILE_PUBLIC_LINK: {
         return action.data;

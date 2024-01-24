@@ -6,14 +6,12 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {leaveChannel} from 'actions/views/channel';
 import {openModal} from 'actions/views/modals';
 
 import LeaveChannel from './leave_channel';
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             leaveChannel,

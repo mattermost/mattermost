@@ -11,7 +11,6 @@ import {
     removeUserFromTeam,
     updateTeamMemberSchemeRoles,
 } from 'mattermost-redux/actions/teams';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale} from 'selectors/i18n';
 
@@ -25,7 +24,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             getTeamsData: getTeamsForUser,
