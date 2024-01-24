@@ -110,5 +110,10 @@ export type NotPagedTeamSearchOpts = {
 
 export type TeamInviteWithError = {
     email: string;
-    error: ServerError;
+
+    // Unlike ServerError, error uses field names directly from model.AppError on the server
+    error: {
+        id: string;
+        message: string;
+    };
 };

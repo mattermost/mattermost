@@ -227,11 +227,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create users service")
 	}
 
-	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
-		s.LoadLicense()
-	}
-
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
@@ -534,9 +529,9 @@ func NewServer(options ...Option) (*Server, error) {
 }
 
 func (s *Server) runJobs() {
+	s.runLicenseExpirationCheckJob()
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
-		s.runLicenseExpirationCheckJob()
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
 	})
