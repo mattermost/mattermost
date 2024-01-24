@@ -302,6 +302,10 @@ func (o *ChannelBookmarkAndFileInfo) ToChannelBookmarkWithFileInfo() *ChannelBoo
 	}
 
 	if o.FileInfoId != "" && o.FileId != "" {
+		miniPreview := o.MiniPreview
+		if len(*miniPreview) == 0 {
+			miniPreview = nil
+		}
 		bwf.FileInfo = &FileInfo{
 			Id:              o.FileId,
 			Name:            o.FileName,
@@ -311,7 +315,7 @@ func (o *ChannelBookmarkAndFileInfo) ToChannelBookmarkWithFileInfo() *ChannelBoo
 			Width:           o.Width,
 			Height:          o.Height,
 			HasPreviewImage: o.HasPreviewImage,
-			MiniPreview:     o.MiniPreview,
+			MiniPreview:     miniPreview,
 		}
 	}
 	return bwf
