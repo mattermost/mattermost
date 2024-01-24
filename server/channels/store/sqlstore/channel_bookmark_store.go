@@ -118,16 +118,16 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 
 	var fileInfo model.FileInfo
 	if bookmark.FileId != "" {
-		query, args, err := s.getQueryBuilder().
+		query, args, queryErr := s.getQueryBuilder().
 			Select("Id, Name, Extension, Size, MimeType, Width, Height, HasPreviewImage, MiniPreview").
 			From("FileInfo").
 			Where(sq.Eq{"Id": bookmark.FileId}).
 			ToSql()
-		if err != nil {
-			return nil, errors.Wrap(err, "channel_bookmark_get_file_info_to_sql")
+		if queryErr != nil {
+			return nil, errors.Wrap(queryErr, "channel_bookmark_get_file_info_to_sql")
 		}
-		if err = transaction.Get(&fileInfo, query, args...); err != nil {
-			return nil, errors.Wrap(err, "unable_to_get_channel_bookmark_file_info")
+		if queryErr = transaction.Get(&fileInfo, query, args...); queryErr != nil {
+			return nil, errors.Wrap(queryErr, "unable_to_get_channel_bookmark_file_info")
 		}
 	}
 
