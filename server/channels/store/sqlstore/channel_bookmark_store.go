@@ -4,7 +4,6 @@
 package sqlstore
 
 import (
-	"database/sql"
 	"fmt"
 	"strings"
 
@@ -142,6 +141,7 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 	if err := bookmark.IsValid(); err != nil {
 		return err
 	}
+
 	query, args, err := s.getQueryBuilder().
 		Update("ChannelBookmarks").
 		Set("DisplayName", bookmark.DisplayName).
@@ -168,7 +168,7 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 		return errors.Wrapf(err, "failed to get affected rows after updating bookmark with id=%s", bookmark.Id)
 	}
 	if rowsAffected == 0 {
-		return errors.Wrapf(sql.ErrNoRows, "cannot find bookmark with id=%s for update", bookmark.Id)
+		return store.NewErrNotFound("ChannelBookmark", bookmark.Id)
 	}
 	return nil
 }
