@@ -5,6 +5,8 @@ import React from 'react';
 import type {ComponentProps} from 'react';
 import {act} from 'react-dom/test-utils';
 
+import {Permissions} from 'mattermost-redux/constants';
+
 import {renderWithContext, screen, userEvent} from 'tests/react_testing_utils';
 import {TestHelper} from 'utils/test_helper';
 
@@ -42,7 +44,31 @@ describe('components/TeamSettings', () => {
     });
 
     test('should call regenerateTeamInviteId on handleRegenerateInviteId', () => {
-        const wrapper = renderWithContext(<AccessTab {...defaultProps}/>);
+        const state = {
+            entities: {
+                roles: {
+                    roles: {
+                        team_admin: {
+                            name: 'team_admin',
+                            permissions: [Permissions.INVITE_USER],
+                        },
+                    },
+                },
+                users: {
+                    profiles: {
+                        test_user: TestHelper.getUserMock({id: 'test_user', roles: 'team_admin'}),
+                    },
+                    currentUserId: 'test_user',
+                },
+                teams: {
+                    currentTeamId: 'team_id',
+                    teams: {
+                        team_id: {...defaultProps.team},
+                    },
+                },
+            },
+        };
+        const wrapper = renderWithContext(<AccessTab {...defaultProps}/>, state);
         wrapper.getByTestId('regenerateButton').click();
         expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledTimes(1);
         expect(baseActions.regenerateTeamInviteId).toHaveBeenCalledWith(defaultProps.team?.id);
