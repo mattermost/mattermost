@@ -4,6 +4,8 @@
 package sqlstore
 
 import (
+	"strconv"
+
 	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -203,12 +205,23 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 
 	bookmarks = utils.RemoveElementFromSliceAtIndex(bookmarks, currentIndex)
 	bookmarks = utils.InsertElementToSliceAtIndex(bookmarks, current, int(newIndex))
+	caseStmt := sq.Case()
+	query := s.getQueryBuilder().
+		Update("ChannelBookmarks")
+
+	ids := []string{}
 	for index, b := range bookmarks {
 		b.SortOrder = int64(index)
-		updateSort := "UPDATE ChannelBookmarks SET SortOrder = ?, UpdateAt = ? WHERE Id = ?"
-		if _, updateSortOrderErr := transaction.Exec(updateSort, index, now, b.Id); updateSortOrderErr != nil {
-			return nil, updateSortOrderErr
-		}
+		caseStmt = caseStmt.When(sq.Eq{"Id": b.Id}, strconv.FormatInt(int64(index), 10))
+		ids = append(ids, b.Id)
+	}
+	query = query.Set("SortOrder", caseStmt)
+	query = query.Set("UpdateAt", now)
+	query = query.Where(sq.Eq{"Id": ids})
+	queryStr, args, err := query.ToSql()
+
+	if _, updateSortOrderErr := transaction.Exec(queryStr, args...); updateSortOrderErr != nil {
+		return nil, updateSortOrderErr
 	}
 
 	err = transaction.Commit()
