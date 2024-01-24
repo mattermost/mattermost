@@ -555,6 +555,18 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	return objmap
 }
 
+func StringInterfaceFromJSONLimited(data io.Reader, maxBytes int64) (map[string]any, error) {
+	var objmap map[string]any
+
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&objmap)
+	if err != nil || objmap == nil {
+		return nil, err
+	}
+
+	return objmap, nil
+}
+
 func StructFromJSONLimited[V any](data io.Reader, maxBytes int64, obj *V) error {
 	lr := io.LimitReader(data, maxBytes)
 	err := json.NewDecoder(lr).Decode(&obj)
