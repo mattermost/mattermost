@@ -1049,11 +1049,11 @@ func (s *RetryLayerChannelStore) GetAll(teamID string) ([]*model.Channel, error)
 
 }
 
-func (s *RetryLayerChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+func (s *RetryLayerChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetAllChannelMembersById(id)
+		result, err := s.ChannelStore.GetAllChannelMemberIdsByChannelId(id)
 		if err == nil {
 			return result, nil
 		}
@@ -1175,11 +1175,11 @@ func (s *RetryLayerChannelStore) GetAllChannelsForExportAfter(limit int, afterID
 
 }
 
-func (s *RetryLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
+func (s *RetryLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID)
+		result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID, includeArchivedChannels)
 		if err == nil {
 			return result, nil
 		}
@@ -1748,6 +1748,27 @@ func (s *RetryLayerChannelStore) GetMemberForPost(postID string, userID string, 
 
 }
 
+func (s *RetryLayerChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.GetMemberLastViewedAt(ctx, channelID, userID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerChannelStore) GetMembers(channelID string, offset int, limit int) (model.ChannelMembers, error) {
 
 	tries := 0
@@ -2242,6 +2263,27 @@ func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fro
 	tries := 0
 	for {
 		result, err := s.ChannelStore.MigrateChannelMembers(fromChannelID, fromUserID)
+		if err == nil {
+			return result, nil
+		}
+		if !isRepeatableError(err) {
+			return result, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
+func (s *RetryLayerChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+
+	tries := 0
+	for {
+		result, err := s.ChannelStore.PatchMultipleMembersNotifyProps(members, notifyProps)
 		if err == nil {
 			return result, nil
 		}

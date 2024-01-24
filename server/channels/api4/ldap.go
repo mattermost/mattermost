@@ -14,16 +14,16 @@ import (
 )
 
 type mixedUnlinkedGroup struct {
-	Id           *string `json:"mattermost_group_id"`
+	ID           *string `json:"mattermost_group_id"`
 	DisplayName  string  `json:"name"`
-	RemoteId     string  `json:"primary_key"`
+	RemoteID     string  `json:"primary_key"`
 	HasSyncables *bool   `json:"has_syncables"`
 }
 
 func (api *API) InitLdap() {
 	api.BaseRoutes.LDAP.Handle("/sync", api.APISessionRequired(syncLdap)).Methods("POST")
 	api.BaseRoutes.LDAP.Handle("/test", api.APISessionRequired(testLdap)).Methods("POST")
-	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIdLdap)).Methods("POST")
+	api.BaseRoutes.LDAP.Handle("/migrateid", api.APISessionRequired(migrateIDLdap)).Methods("POST")
 
 	// GET /api/v4/ldap/groups?page=0&per_page=1000
 	api.BaseRoutes.LDAP.Handle("/groups", api.APISessionRequired(getLdapGroups)).Methods("GET")
@@ -122,10 +122,10 @@ func getLdapGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	for _, group := range groups {
 		mug := &mixedUnlinkedGroup{
 			DisplayName: group.DisplayName,
-			RemoteId:    group.GetRemoteId(),
+			RemoteID:    group.GetRemoteId(),
 		}
 		if len(group.Id) == 26 {
-			mug.Id = &group.Id
+			mug.ID = &group.Id
 			mug.HasSyncables = &group.HasSyncables
 		}
 		mugs = append(mugs, mug)

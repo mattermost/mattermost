@@ -432,8 +432,8 @@ func (_m *ChannelStore) GetAll(teamID string) ([]*model.Channel, error) {
 	return r0, r1
 }
 
-// GetAllChannelMembersById provides a mock function with given fields: id
-func (_m *ChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+// GetAllChannelMemberIdsByChannelId provides a mock function with given fields: id
+func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, error) {
 	ret := _m.Called(id)
 
 	var r0 []string
@@ -586,25 +586,25 @@ func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterID string) 
 	return r0, r1
 }
 
-// GetAllDirectChannelsForExportAfter provides a mock function with given fields: limit, afterID
-func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
-	ret := _m.Called(limit, afterID)
+// GetAllDirectChannelsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
+func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
+	ret := _m.Called(limit, afterID, includeArchivedChannels)
 
 	var r0 []*model.DirectChannelForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string) ([]*model.DirectChannelForExport, error)); ok {
-		return rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) ([]*model.DirectChannelForExport, error)); ok {
+		return rf(limit, afterID, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(int, string) []*model.DirectChannelForExport); ok {
-		r0 = rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) []*model.DirectChannelForExport); ok {
+		r0 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.DirectChannelForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string) error); ok {
-		r1 = rf(limit, afterID)
+	if rf, ok := ret.Get(1).(func(int, string, bool) error); ok {
+		r1 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1314,6 +1314,30 @@ func (_m *ChannelStore) GetMemberForPost(postID string, userID string, includeAr
 	return r0, r1
 }
 
+// GetMemberLastViewedAt provides a mock function with given fields: ctx, channelID, userID
+func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
+	ret := _m.Called(ctx, channelID, userID)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return rf(ctx, channelID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
+		r0 = rf(ctx, channelID, userID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, channelID, userID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetMembers provides a mock function with given fields: channelID, offset, limit
 func (_m *ChannelStore) GetMembers(channelID string, offset int, limit int) (model.ChannelMembers, error) {
 	ret := _m.Called(channelID, offset, limit)
@@ -1912,6 +1936,32 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID s
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(fromChannelID, fromUserID)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PatchMultipleMembersNotifyProps provides a mock function with given fields: members, notifyProps
+func (_m *ChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+	ret := _m.Called(members, notifyProps)
+
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) ([]*model.ChannelMember, error)); ok {
+		return rf(members, notifyProps)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) []*model.ChannelMember); ok {
+		r0 = rf(members, notifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ChannelMemberIdentifier, map[string]string) error); ok {
+		r1 = rf(members, notifyProps)
 	} else {
 		r1 = ret.Error(1)
 	}

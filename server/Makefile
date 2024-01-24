@@ -150,7 +150,7 @@ PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-antivirus-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
 PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.22.2
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.23.1
 PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
 PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
@@ -158,7 +158,7 @@ PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.7
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.7.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
 PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jira-v4.0.1
+PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
@@ -709,7 +709,6 @@ clean: stop-docker ## Clean up everything except persistent server data.
 	rm -f mattermost.log.jsonl
 	rm -f npm-debug.log
 	rm -f .prepare-go
-	rm -f enterprise
 	rm -f cover.out
 	rm -f ecover.out
 	rm -f *.out
@@ -829,7 +828,7 @@ test-migration:
 	@sed -i'' -e 's|{{ .source_schema }}|${MYSQL_SCHEMA}|g' tests/temp.load
 
 	# run pgloader and save the logs
-	pgloader tests/temp.load > migration.log
+	pgloader --debug tests/temp.load > migration.log
 
 	$(GO) install github.com/mattermost/dbcmp/cmd/dbcmp@latest
 	# compare two database contents

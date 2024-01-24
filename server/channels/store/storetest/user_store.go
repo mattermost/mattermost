@@ -98,7 +98,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, rctx, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
 	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
-	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss) })
+	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss, s) })
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6189,7 +6189,7 @@ func testUpdateLastLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, int64(1234567890), user.LastLogin)
 }
 
-func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
+func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	numRegularUsers := 90
 	numSysAdmins := 10
 	numInactiveUsers := 15
@@ -6400,7 +6400,26 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, users[60].Username, userReport[0].Username)
 	})
 
+	t.Run("should return all users regardless of date range", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    now.AddDate(1000, 0, 0).UnixMilli(),
+				EndAt:      now.AddDate(1000, 0, 0).UnixMilli(),
+			},
+		})
+
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+	})
+
 	t.Run("should return accurate post stats for various date ranges", func(t *testing.T) {
+		// These stats are disabled for MySQL
+		if s.DriverName() == model.DatabaseDriverMysql {
+			return
+		}
+
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "Username",

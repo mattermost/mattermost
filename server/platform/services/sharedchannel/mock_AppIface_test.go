@@ -314,6 +314,34 @@ func (_m *MockAppIface) NotifySharedChannelUserUpdate(user *model.User) {
 	_m.Called(user)
 }
 
+// OnSharedChannelsAttachmentSyncMsg provides a mock function with given fields: fi, post, rc
+func (_m *MockAppIface) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	ret := _m.Called(fi, post, rc)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.FileInfo, *model.Post, *model.RemoteCluster) error); ok {
+		r0 = rf(fi, post, rc)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// OnSharedChannelsProfileImageSyncMsg provides a mock function with given fields: user, rc
+func (_m *MockAppIface) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
+	ret := _m.Called(user, rc)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(*model.User, *model.RemoteCluster) error); ok {
+		r0 = rf(user, rc)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // OnSharedChannelsSyncMsg provides a mock function with given fields: msg, rc
 func (_m *MockAppIface) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
 	ret := _m.Called(msg, rc)
