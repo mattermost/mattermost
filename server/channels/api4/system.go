@@ -537,11 +537,6 @@ func testS3(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if *c.App.Config().ExperimentalSettings.RestrictSystemAdmin {
-		c.Err = model.NewAppError("testS3", "api.restricted_system_admin", nil, "", http.StatusForbidden)
-		return
-	}
-
 	appErr := c.App.CheckMandatoryS3Fields(&cfg.FileSettings)
 	if appErr != nil {
 		c.Err = appErr
