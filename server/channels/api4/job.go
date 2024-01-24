@@ -126,17 +126,6 @@ func createJob(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if job.Type == "elasticsearch_post_indexing" {
-		if job.Data == nil {
-			job.Data = model.StringMap{}
-		}
-
-		job.Data["index_posts"] = "false"
-		job.Data["index_users"] = "false"
-		job.Data["index_files"] = "false"
-		job.Data["index_channels"] = "true"
-	}
-
 	rjob, err := c.App.CreateJob(c.AppContext, &job)
 	if err != nil {
 		c.Err = err

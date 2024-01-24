@@ -7851,6 +7851,10 @@
     "translation": "Elasticsearch search is not enabled on this server"
   },
   {
+    "id": "ent.elasticsearch.purgeIndex.indexSetAsIgnored",
+    "translation": "The index you have asked to purge is configured as an index to be ignored while purging"
+  },
+  {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Failed to get all channel members"
   },
@@ -7913,6 +7917,14 @@
   {
     "id": "ent.elasticsearch.purge_indexes.delete_failed",
     "translation": "Failed to delete Elasticsearch index"
+  },
+  {
+    "id": "ent.elasticsearch.purge_index.delete_failed",
+    "translation": "Failed to delete an Elasticsearch index"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.unknown_index",
+    "translation": "Failed to delete an unknown index specified"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",

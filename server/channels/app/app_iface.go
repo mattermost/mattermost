@@ -985,7 +985,7 @@ type AppIface interface {
 	Publish(message *model.WebSocketEvent)
 	PublishUserTyping(userID, channelID, parentId string) *model.AppError
 	PurgeBleveIndexes(c request.CTX) *model.AppError
-	PurgeElasticsearchIndexes(c request.CTX) *model.AppError
+	PurgeElasticsearchIndexes(c request.CTX, indexes []string) *model.AppError
 	QueryLogs(rctx request.CTX, page, perPage int, logFilter *model.LogFilter) (map[string][]string, *model.AppError)
 	ReadFile(path string) ([]byte, *model.AppError)
 	RecycleDatabaseConnection(rctx request.CTX)

@@ -29,6 +29,8 @@ export type Props = {
     className?: string;
     hideJobCreateButton?: boolean;
     createJobButtonText: React.ReactNode;
+    hideTable?: boolean;
+    jobData?: any;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
@@ -75,6 +77,7 @@ class JobTable extends React.PureComponent<Props> {
         e.preventDefault();
         const job = {
             type: this.props.jobType,
+            data: this.props.jobData,
         };
 
         await this.props.actions.createJob(job);
@@ -131,12 +134,14 @@ class JobTable extends React.PureComponent<Props> {
                         {this.props.createJobHelpText}
                     </div>
                 </div>
-                <div className='job-table__table'>
-                    <table
-                        className='table'
-                        data-testid='jobTable'
-                    >
-                        <thead>
+                {
+                    !this.props.hideTable &&
+                    <div className='job-table__table'>
+                        <table
+                            className='table'
+                            data-testid='jobTable'
+                        >
+                            <thead>
                             <tr>
                                 <th className='cancel-button-field'/>
                                 <th>
@@ -172,12 +177,13 @@ class JobTable extends React.PureComponent<Props> {
                                     />
                                 </th>
                             </tr>
-                        </thead>
-                        <tbody>
+                            </thead>
+                            <tbody>
                             {items}
-                        </tbody>
-                    </table>
-                </div>
+                            </tbody>
+                        </table>
+                    </div>
+                }
             </div>
         );
     }

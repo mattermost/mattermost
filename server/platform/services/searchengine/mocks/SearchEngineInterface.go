@@ -383,6 +383,22 @@ func (_m *SearchEngineInterface) IsSearchEnabled() bool {
 	return r0
 }
 
+// PurgeIndexList provides a mock function with given fields: rctx, indexes
+func (_m *SearchEngineInterface) PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError {
+	ret := _m.Called(rctx, indexes)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, []string) *model.AppError); ok {
+		r0 = rf(rctx, indexes)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
+}
+
 // PurgeIndexes provides a mock function with given fields: rctx
 func (_m *SearchEngineInterface) PurgeIndexes(rctx request.CTX) *model.AppError {
 	ret := _m.Called(rctx)

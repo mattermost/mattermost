@@ -13708,7 +13708,7 @@ func (a *OpenTracingAppLayer) PurgeBleveIndexes(c request.CTX) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX) *model.AppError {
+func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX, indexes []string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.PurgeElasticsearchIndexes")
 
@@ -13720,7 +13720,7 @@ func (a *OpenTracingAppLayer) PurgeElasticsearchIndexes(c request.CTX) *model.Ap
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PurgeElasticsearchIndexes(c)
+	resultVar0 := a.app.PurgeElasticsearchIndexes(c, indexes)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

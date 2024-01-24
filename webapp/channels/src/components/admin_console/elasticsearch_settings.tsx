@@ -21,6 +21,7 @@ import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
+import RebuildChannelsIndex from "components/admin_console/rebuild_channels_index/rebuild";
 
 interface State extends BaseState {
     connectionUrl: string;
@@ -62,6 +63,7 @@ export const messages = defineMessages({
     elasticsearch_test_button: {id: 'admin.elasticsearch.elasticsearch_test_button', defaultMessage: 'Test Connection'},
     bulkIndexingTitle: {id: 'admin.elasticsearch.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
     help: {id: 'admin.elasticsearch.createJob.help', defaultMessage: 'All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.'},
+    rebuildChannelsIndexTitle: {id: 'admin.elasticsearch.rebuildChannelsIndexTitle', defaultMessage: 'Rebuild Channels Index'},
     purgeIndexesHelpText: {id: 'admin.elasticsearch.purgeIndexesHelpText', defaultMessage: 'Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.'},
     purgeIndexesButton: {id: 'admin.elasticsearch.purgeIndexesButton', defaultMessage: 'Purge Index'},
     label: {id: 'admin.elasticsearch.purgeIndexesButton.label', defaultMessage: 'Purge Indexes:'},
@@ -396,6 +398,34 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                                 }
                                 createJobHelpText={<FormattedMessage {...messages.help}/>}
                                 getExtraInfoText={this.getExtraInfo}
+                            />
+                        </div>
+                    </div>
+                </div>
+                <div className='form-group'>
+                    <label className='control-label col-sm-4'>
+                        <FormattedMessage {...messages.rebuildChannelsIndexTitle}/>
+                    </label>
+                    <div className='col-sm-8'>
+                        <div className='rebuild-channels-index-action'>
+                            <JobsTable
+                                jobType={JobTypes.ELASTICSEARCH_POST_INDEXING as JobType}
+                                disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
+                                createJobButtonText={
+                                    <FormattedMessage
+                                        id='admin.elasticsearch.rebuildChannelsIndex.title'
+                                        defaultMessage='Rebuild Channels Index'
+                                    />
+                                }
+                                createJobHelpText={<FormattedMessage {...messages.help}/>}
+                                getExtraInfoText={this.getExtraInfo}
+                                hideTable={true}
+                                jobData={{
+                                    "index_posts": "false",
+                                    "index_users": "false",
+                                    "index_files": "false",
+                                    "index_channels": "true",
+                                }}
                             />
                         </div>
                     </div>
