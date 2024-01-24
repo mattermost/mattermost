@@ -8416,7 +8416,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Fel vid kontroll om den delade kanalen finns: {{.Error}}"
+    "translation": "Fel vid kontroll om den delade kanalen {{.ChannelID}} finns: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -10108,5 +10108,113 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
     "translation": "Om GlobalRelaySettings.CustomerType är 'CUSTOM' måste GlobalRelaySettings.CustomSMTPServerName och GlobalRelaySettings.CustomSMTPPort anges."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Sidstorleken är ogiltig eller för stor."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Möjligheten att flytta trådar är inaktiverad"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Du har inte behörighet att flytta tråden."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_report_id",
+    "translation": "Rapport-ID är ogiltigt."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Förnyelse av årsabonnemang inom 60 dagar"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Det gick inte att skriva CSV-rubriker."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Kan inte bjuda in externa användare eftersom kanalen {{.ChannelID}} inte är delad."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Denna funktion begränsas av en funktionsflagga."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Kunde inte bekräfta inbjudan: {{.Error}}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Det uppstod ett fel när utgående OAuth-anslutningar listades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ogiltiga parametrar angavs."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Ett fel uppstod när innehållet analyserades."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Det går inte att få så många roller via namn. Endast {{.MaxNames}} roller kan efterfrågas per gång."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Förnya nu"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Åtgärd krävs: Årlig prenumerationsförnyelse om 7 dagar"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Du kommer att förlora åtkomsten till din arbetsyta om 7 dagar"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Kunde inte uppdatera notifieringsattribut för medlemmarna i kanalen."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Kunde inte uppdatera så många kanalmedlemmar. Endast {{.Max}} kanalmedlemmar kan uppdateras samtidigt."
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Förnya för att undvika avbrott"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Årlig faktura förfaller inom 30 dagar"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Kunde inte hitta användaren."
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Din årliga faktura förfaller om 30 dagar"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Förnyelse av årsabonnemang inom 60 dagar"
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Kan inte söka till början på filen."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_format",
+    "translation": "Rapportformatet är ogiltigt."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fel vid kontroll av om en användare har en anpassad profilbild."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Rapportformatet stöds inte."
   }
 ]
