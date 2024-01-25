@@ -4,6 +4,8 @@
 import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
 
+import {ReportDuration} from '@mattermost/types/reports';
+
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
@@ -40,7 +42,7 @@ function mapStateToProps(state: GlobalState) {
     const fromColumnValue = tableProperties?.cursorColumnValue ?? adminConsoleUserManagementTablePropertiesInitialState.cursorColumnValue;
     const columnVisibility = tableProperties?.columnVisibility ?? adminConsoleUserManagementTablePropertiesInitialState.columnVisibility;
     const searchTerm = tableProperties?.searchTerm;
-    const dateRange = tableProperties?.dateRange;
+    const dateRange = tableProperties?.dateRange ?? ReportDuration.AllTime;
 
     return {
         siteName,
