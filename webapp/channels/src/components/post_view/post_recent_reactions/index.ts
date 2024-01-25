@@ -7,8 +7,6 @@ import type {Dispatch} from 'redux';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {toggleReaction} from 'actions/post_actions';
 import {getEmojiMap} from 'selectors/emojis';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -17,7 +15,7 @@ import type {GlobalState} from 'types/store';
 
 import PostReaction from './post_recent_reactions';
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             toggleReaction,

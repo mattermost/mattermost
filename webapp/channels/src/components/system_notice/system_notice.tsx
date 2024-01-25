@@ -14,7 +14,7 @@ import MattermostLogo from 'components/widgets/icons/mattermost_logo';
 
 import {Preferences} from 'utils/constants';
 
-interface Props extends WrappedComponentProps {
+export interface Props extends WrappedComponentProps {
     currentUserId: string;
     notices: Notice[];
     preferences: {[key: string]: any};

@@ -4,8 +4,6 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {modalState as modalStateReducer} from 'reducers/views/modals';
 
 import {ActionTypes, ModalIdentifiers} from 'utils/constants';
@@ -28,7 +26,7 @@ describe('Reducers.Modals', () => {
     test('Initial state', () => {
         const nextState = modalStateReducer(
             {},
-            {} as GenericAction,
+            {type: undefined},
         );
 
         const expectedState = {};
