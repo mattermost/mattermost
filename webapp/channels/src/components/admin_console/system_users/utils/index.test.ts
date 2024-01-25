@@ -5,7 +5,7 @@ import type {UserReport} from '@mattermost/types/reports';
 
 import {ColumnNames, StatusFilter} from '../constants';
 
-import {getSortColumnForOptions, getSortDirectionForOptions, getSortableColumnValueBySortColumn, getUserStatusFilterOption} from './index';
+import {getSortColumnForOptions, getSortDirectionForOptions, getSortableColumnValueBySortColumn, getStatusFilterOption} from './index';
 
 describe('getSortColumnForOptions', () => {
     it('should return correct sort column for email', () => {
@@ -57,19 +57,19 @@ describe('getSortableColumnValueBySortColumn', () => {
     });
 });
 
-describe('getUserStatusFilterOption', () => {
+describe('getStatusFilterOption', () => {
     it('should return hide_inactive true for Active status', () => {
-        const result = getUserStatusFilterOption(StatusFilter.Active);
+        const result = getStatusFilterOption(StatusFilter.Active);
         expect(result).toEqual({hide_inactive: true});
     });
 
     it('should return hide_active true for Deactivated status', () => {
-        const result = getUserStatusFilterOption(StatusFilter.Deactivated);
+        const result = getStatusFilterOption(StatusFilter.Deactivated);
         expect(result).toEqual({hide_active: true});
     });
 
     it('should return an empty object for other status', () => {
-        const result = getUserStatusFilterOption('SomeOtherStatus' as any);
+        const result = getStatusFilterOption('SomeOtherStatus' as any);
         expect(result).toEqual({});
     });
 });
