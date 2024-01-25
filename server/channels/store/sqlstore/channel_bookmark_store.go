@@ -90,7 +90,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 
 	var currentBookmarksCount int64
 	query := s.getQueryBuilder().
-		Select("COUNT(Id) as count").
+		Select("COUNT(*) as count").
 		From("ChannelBookmarks").
 		Where(sq.Eq{"ChannelId": bookmark.ChannelId, "DeleteAt": 0})
 	err = transaction.GetBuilder(&currentBookmarksCount, query)

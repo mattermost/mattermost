@@ -36,7 +36,7 @@ func (a *App) CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBoo
 	newBookmark.OwnerId = c.Session().UserId
 	bookmark, err := a.Srv().Store().ChannelBookmark().Save(newBookmark, true)
 	if err != nil {
-		a.Log().Error("Error creating channel bookmark", mlog.Err(err))
+		c.Logger().Error("Error creating channel bookmark", mlog.Err(err))
 		return nil, model.NewAppError("CreateChannelBookmark", "app.channel.bookmark.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
