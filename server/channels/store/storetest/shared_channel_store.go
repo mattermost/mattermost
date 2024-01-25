@@ -48,7 +48,7 @@ func TestSharedChannelStore(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 
 func testSaveSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save shared channel (home)", func(t *testing.T) {
-		channel, err := createTestChannel(ss, "test_save")
+		channel, err := createTestChannel(ss, rctx, "test_save")
 		require.NoError(t, err)
 
 		sc := &model.SharedChannel{
@@ -73,7 +73,7 @@ func testSaveSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 
 	t.Run("Save shared channel (remote)", func(t *testing.T) {
-		channel, err := createTestChannel(ss, "test_save2")
+		channel, err := createTestChannel(ss, rctx, "test_save2")
 		require.NoError(t, err)
 
 		sc := &model.SharedChannel{
@@ -125,7 +125,7 @@ func testSaveSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_get")
+	channel, err := createTestChannel(ss, rctx, "test_get")
 	require.NoError(t, err)
 
 	sc := &model.SharedChannel{
@@ -156,7 +156,7 @@ func testGetSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testHasSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_get")
+	channel, err := createTestChannel(ss, rctx, "test_get")
 	require.NoError(t, err)
 
 	sc := &model.SharedChannel{
@@ -206,7 +206,7 @@ func testGetSharedChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 
 	for i, sc := range data {
-		channel, err := createTestChannelWithUser(ss, "test_get2_"+strconv.Itoa(i), user)
+		channel, err := createTestChannelWithUser(ss, rctx, "test_get2_"+strconv.Itoa(i), user)
 		require.NoError(t, err)
 
 		sc.ChannelId = channel.Id
@@ -328,7 +328,7 @@ func testGetSharedChannels(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testUpdateSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_update")
+	channel, err := createTestChannel(ss, rctx, "test_update")
 	require.NoError(t, err)
 
 	sc := &model.SharedChannel{
@@ -372,7 +372,7 @@ func testUpdateSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_delete")
+	channel, err := createTestChannel(ss, rctx, "test_delete")
 	require.NoError(t, err)
 
 	sc := &model.SharedChannel{
@@ -426,7 +426,7 @@ func testDeleteSharedChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testSaveSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Save shared channel remote", func(t *testing.T) {
-		channel, err := createTestChannel(ss, "test_save_remote")
+		channel, err := createTestChannel(ss, rctx, "test_save_remote")
 		require.NoError(t, err)
 
 		remote := &model.SharedChannelRemote{
@@ -467,7 +467,7 @@ func testSaveSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store)
 
 func testUpdateSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Update shared channel remote", func(t *testing.T) {
-		channel, err := createTestChannel(ss, "test_update_remote")
+		channel, err := createTestChannel(ss, rctx, "test_update_remote")
 		require.NoError(t, err)
 
 		remote := &model.SharedChannelRemote{
@@ -513,7 +513,7 @@ func testUpdateSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 func testGetSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_remote_get")
+	channel, err := createTestChannel(ss, rctx, "test_remote_get")
 	require.NoError(t, err)
 
 	remote := &model.SharedChannelRemote{
@@ -543,7 +543,7 @@ func testGetSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) 
 }
 
 func testGetSharedChannelRemoteByIds(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_remote_get_by_ids")
+	channel, err := createTestChannel(ss, rctx, "test_remote_get_by_ids")
 	require.NoError(t, err)
 
 	remote := &model.SharedChannelRemote{
@@ -573,7 +573,7 @@ func testGetSharedChannelRemoteByIds(t *testing.T, rctx request.CTX, ss store.St
 }
 
 func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_remotes_get2")
+	channel, err := createTestChannel(ss, rctx, "test_remotes_get2")
 	require.NoError(t, err)
 
 	creator := model.NewId()
@@ -590,7 +590,7 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 
 	for i, r := range data {
 		if r.ChannelId == "" {
-			c, err := createTestChannel(ss, "test_remotes_get2_"+strconv.Itoa(i))
+			c, err := createTestChannel(ss, rctx, "test_remotes_get2_"+strconv.Itoa(i))
 			require.NoError(t, err)
 			r.ChannelId = c.Id
 		}
@@ -656,7 +656,7 @@ func testGetSharedChannelRemotes(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testHasRemote(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_remotes_get2")
+	channel, err := createTestChannel(ss, rctx, "test_remotes_get2")
 	require.NoError(t, err)
 
 	remote1 := model.NewId()
@@ -699,7 +699,7 @@ func testHasRemote(t *testing.T, rctx request.CTX, ss store.Store) {
 func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 	// add remotes, and users to simulated shared channels.
 	teamId := model.NewId()
-	channel, err := createSharedTestChannel(ss, "share_test_channel", true, nil)
+	channel, err := createSharedTestChannel(ss, rctx, "share_test_channel", true, nil)
 	require.NoError(t, err)
 	remotes := []*model.RemoteCluster{
 		{RemoteId: model.NewId(), SiteURL: model.NewId(), CreatorId: model.NewId(), RemoteTeamId: teamId, Name: "Test_Remote_1"},
@@ -753,7 +753,7 @@ func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_remote_update_next_sync_at")
+	channel, err := createTestChannel(ss, rctx, "test_remote_update_next_sync_at")
 	require.NoError(t, err)
 
 	remote := &model.SharedChannelRemote{
@@ -814,7 +814,7 @@ func testUpdateSharedChannelRemoteCursor(t *testing.T, rctx request.CTX, ss stor
 }
 
 func testDeleteSharedChannelRemote(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := createTestChannel(ss, "test_remote_delete")
+	channel, err := createTestChannel(ss, rctx, "test_remote_delete")
 	require.NoError(t, err)
 
 	remote := &model.SharedChannelRemote{
@@ -851,17 +851,17 @@ func createTestUser(ss store.Store, username string) (*model.User, error) {
 	return ss.User().Save(user)
 }
 
-func createTestChannel(ss store.Store, name string) (*model.Channel, error) {
-	channel, err := createSharedTestChannel(ss, name, false, nil)
+func createTestChannel(ss store.Store, rctx request.CTX, name string) (*model.Channel, error) {
+	channel, err := createSharedTestChannel(ss, rctx, name, false, nil)
 	return channel, err
 }
 
-func createTestChannelWithUser(ss store.Store, name string, member *model.User) (*model.Channel, error) {
-	channel, err := createSharedTestChannel(ss, name, false, member)
+func createTestChannelWithUser(ss store.Store, rctx request.CTX, name string, member *model.User) (*model.Channel, error) {
+	channel, err := createSharedTestChannel(ss, rctx, name, false, member)
 	return channel, err
 }
 
-func createSharedTestChannel(ss store.Store, name string, shared bool, member *model.User) (*model.Channel, error) {
+func createSharedTestChannel(ss store.Store, rctx request.CTX, name string, shared bool, member *model.User) (*model.Channel, error) {
 	channel := &model.Channel{
 		TeamId:      model.NewId(),
 		Type:        model.ChannelTypeOpen,
