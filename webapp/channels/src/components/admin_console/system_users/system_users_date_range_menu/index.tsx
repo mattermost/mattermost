@@ -13,7 +13,7 @@ import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admi
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 
-import './system_users_date_range_selector.scss';
+import './system_users_date_range_menu.scss';
 
 function get30DaysBack(now: Date) {
     const prev = new Date(now);
@@ -41,7 +41,7 @@ function getEndOfLastMonth(now: Date) {
     return endOfMonth;
 }
 
-export function SystemUsersDateRangeSelector() {
+export function SystemUsersDateRangeMenu() {
     const {formatMessage, formatDate} = useIntl();
     const dispatch = useDispatch();
     const now = new Date();

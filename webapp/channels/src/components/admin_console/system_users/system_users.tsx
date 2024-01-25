@@ -8,7 +8,7 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
-import type {UserReport} from '@mattermost/types/reports';
+import type {ReportDuration, UserReport} from '@mattermost/types/reports';
 
 import Preferences from 'mattermost-redux/constants/preferences';
 
@@ -24,7 +24,7 @@ import type {AdminConsoleUserManagementTableProperties} from 'types/store/views'
 import {ColumnNames} from './constants';
 import {RevokeSessionsButton} from './revoke_sessions_button';
 import {SystemUsersColumnTogglerMenu} from './system_users_column_toggler_menu';
-import {SystemUsersDateRangeSelector} from './system_users_date_range_selector';
+import {SystemUsersDateRangeMenu} from './system_users_date_range_menu';
 import {SystemUsersExport} from './system_users_export';
 import {SystemUsersFilterPopover} from './system_users_filters_popover';
 import {SystemUsersListAction} from './system_users_list_actions';
@@ -47,6 +47,7 @@ export type TableOptions = {
     searchTerm?: string;
     filterRole?: AdminConsoleUserManagementTableProperties['filterRole'];
     filterStatus?: AdminConsoleUserManagementTableProperties['filterStatus'];
+    dateRange?: ReportDuration;
 }
 
 const tableId = 'systemUsersTable';
@@ -507,7 +508,7 @@ function SystemUsers(props: Props) {
                             allColumns={table.getAllLeafColumns()}
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}
                         />
-                        <SystemUsersDateRangeSelector/>
+                        <SystemUsersDateRangeMenu/>
                         <SystemUsersExport/>
                     </div>
                     <AdminConsoleListTable<UserReport>

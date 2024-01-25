@@ -22,9 +22,10 @@ export function convertTableOptionsToUserReportOptions(tableOptions?: TableOptio
         direction: tableOptions?.direction,
         ...getSortColumnForOptions(tableOptions?.sortColumn),
         ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
-        search_term: tableOptions?.searchTerm,
-        ...getUserStatusFilterOption(tableOptions?.filterStatus),
+        ...getSearchFilterOption(tableOptions?.searchTerm),
+        ...getStatusFilterOption(tableOptions?.filterStatus),
         ...getRoleFilterOption(tableOptions?.filterRole),
+        date_range: tableOptions?.dateRange,
     };
 }
 
@@ -79,7 +80,7 @@ export function getSortableColumnValueBySortColumn(row: UserReport, sortColumn: 
     }
 }
 
-export function getUserStatusFilterOption(status?: string): Partial<Pick<UserReportOptions, 'hide_active' | 'hide_inactive'>> {
+export function getStatusFilterOption(status?: string): Partial<Pick<UserReportOptions, 'hide_active' | 'hide_inactive'>> {
     if (status === StatusFilter.Active) {
         return {
             hide_inactive: true,
@@ -90,7 +91,10 @@ export function getUserStatusFilterOption(status?: string): Partial<Pick<UserRep
         };
     }
 
-    return {};
+    return {
+        hide_active: undefined,
+        hide_inactive: undefined,
+    };
 }
 
 export function getPaginationInfo(pageIndex: number, pageSize: number, currentLength: number, total?: number) {
@@ -132,7 +136,15 @@ export function getDefaultValueFromList<T extends {value: string}>(value: string
 
 export function getRoleFilterOption(role?: string): Pick<UserReportOptions, 'role_filter'> {
     if (!role || role === RoleFilters.Any) {
-        return {role_filter: ''};
+        return {role_filter: undefined};
     }
     return {role_filter: role};
+}
+
+export function getSearchFilterOption(search?: string): Pick<UserReportOptions, 'search_term'> {
+    if (!search || search.trim().length === 0) {
+        return {search_term: undefined};
+    }
+
+    return {search_term: search};
 }
