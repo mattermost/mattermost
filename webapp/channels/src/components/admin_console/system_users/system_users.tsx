@@ -508,7 +508,9 @@ function SystemUsers(props: Props) {
                             allColumns={table.getAllLeafColumns()}
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}
                         />
-                        <SystemUsersDateRangeMenu/>
+                        <SystemUsersDateRangeMenu
+                            dateRange={props.tablePropertyDateRange}
+                        />
                         <SystemUsersExport
                             currentUserId={props.currentUser.id}
                             dateRange={props.tablePropertyDateRange}

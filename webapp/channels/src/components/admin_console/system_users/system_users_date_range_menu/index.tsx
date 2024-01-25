@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useDispatch} from 'react-redux';
 
 import {ReportDuration} from '@mattermost/types/reports';
 
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
-import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
@@ -41,16 +40,42 @@ function getEndOfLastMonth(now: Date) {
     return endOfMonth;
 }
 
-export function SystemUsersDateRangeMenu() {
+type Props = {
+    dateRange: ReportDuration;
+}
+
+export function SystemUsersDateRangeMenu(props: Props) {
     const {formatMessage, formatDate} = useIntl();
+
     const dispatch = useDispatch();
+
     const now = new Date();
 
-    const initialValue = useSelector(getAdminConsoleUserManagementTableProperties).dateRange;
-    const [inputValue, setInputValue] = useState(initialValue);
+    function getSelectedDateRange(dateRange: ReportDuration) {
+        if (dateRange === ReportDuration.Last30Days) {
+            return formatMessage({
+                id: 'admin.system_users.date_range_selector.date_range.last_30_days',
+                defaultMessage: 'Last 30 days',
+            });
+        } else if (dateRange === ReportDuration.PreviousMonth) {
+            return formatMessage({
+                id: 'admin.system_users.date_range_selector.date_range.previous_month',
+                defaultMessage: 'Previous month',
+            });
+        } else if (dateRange === ReportDuration.Last6Months) {
+            return formatMessage({
+                id: 'admin.system_users.date_range_selector.date_range.last_6_months',
+                defaultMessage: 'Last 6 months',
+            });
+        }
+
+        return formatMessage({
+            id: 'admin.system_users.date_range_selector.date_range.all_time',
+            defaultMessage: 'All time',
+        });
+    }
 
     function updateDateRange(value?: ReportDuration) {
-        setInputValue(value);
         dispatch(setAdminConsoleUsersManagementTableProperties({dateRange: value}));
     }
 
@@ -73,10 +98,7 @@ export function SystemUsersDateRangeMenu() {
                                 defaultMessage: 'Duration',
                             })}
                             name='colXC'
-                            value={formatMessage({
-                                id: `admin.system_users.date_range_selector.date_range.${inputValue}`,
-                                defaultMessage: 'All time',
-                            })}
+                            value={getSelectedDateRange(props.dateRange)}
                             readOnly={true}
                             inputSuffix={
                                 <i className='icon icon-chevron-down'/>
@@ -102,7 +124,7 @@ export function SystemUsersDateRangeMenu() {
                             defaultMessage='All time'
                         />
                     }
-                    trailingElements={!inputValue && <i className='icon icon-check'/>}
+                    trailingElements={props.dateRange === ReportDuration.AllTime && <i className='icon icon-check'/>}
                     onClick={() => updateDateRange()}
                 />
                 <Menu.Item
@@ -124,7 +146,7 @@ export function SystemUsersDateRangeMenu() {
                             />
                         </>
                     }
-                    trailingElements={inputValue === ReportDuration.Last30Days && <i className='icon icon-check'/>}
+                    trailingElements={props.dateRange === ReportDuration.Last30Days && <i className='icon icon-check'/>}
                     onClick={() => updateDateRange(ReportDuration.Last30Days)}
                 />
                 <Menu.Item
@@ -146,7 +168,7 @@ export function SystemUsersDateRangeMenu() {
                             />
                         </>
                     }
-                    trailingElements={inputValue === ReportDuration.PreviousMonth && <i className='icon icon-check'/>}
+                    trailingElements={props.dateRange === ReportDuration.PreviousMonth && <i className='icon icon-check'/>}
                     onClick={() => updateDateRange(ReportDuration.PreviousMonth)}
                 />
                 <Menu.Item
@@ -169,7 +191,7 @@ export function SystemUsersDateRangeMenu() {
                         </>
 
                     }
-                    trailingElements={inputValue === ReportDuration.Last6Months && <i className='icon icon-check'/>}
+                    trailingElements={props.dateRange === ReportDuration.Last6Months && <i className='icon icon-check'/>}
                     onClick={() => updateDateRange(ReportDuration.Last6Months)}
                 />
                 <Menu.Separator/>
