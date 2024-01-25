@@ -10,7 +10,7 @@ import {FileTypes} from 'mattermost-redux/action_types';
 import {getLogErrorAction} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
@@ -28,8 +28,8 @@ export interface UploadFile {
     onError: (err: string | ServerError, clientId: string, channelId: string, rootId: string) => void;
 }
 
-export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc): XMLHttpRequest => {
+export function uploadFile({file, name, type, rootId, channelId, clientId, onProgress, onSuccess, onError}: UploadFile): ThunkActionFunc<XMLHttpRequest> {
+    return (dispatch, getState) => {
         dispatch({type: FileTypes.UPLOAD_FILES_REQUEST});
 
         const xhr = new XMLHttpRequest();
