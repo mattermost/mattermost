@@ -328,18 +328,6 @@ export const PostRequestTypes = keyMirror({
     AFTER_ID: null,
 });
 
-export const WarnMetricTypes = {
-    SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_100: 'warn_metric_number_of_active_users_100',
-    SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_200: 'warn_metric_number_of_active_users_200',
-    SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_300: 'warn_metric_number_of_active_users_300',
-    SYSTEM_WARN_METRIC_NUMBER_OF_ACTIVE_USERS_500: 'warn_metric_number_of_active_users_500',
-    SYSTEM_WARN_METRIC_NUMBER_OF_TEAMS_5: 'warn_metric_number_of_teams_5',
-    SYSTEM_WARN_METRIC_NUMBER_OF_CHANNELS_5: 'warn_metric_number_of_channels_50',
-    SYSTEM_WARN_METRIC_MFA: 'warn_metric_mfa',
-    SYSTEM_WARN_METRIC_EMAIL_DOMAIN: 'warn_metric_email_domain',
-    SYSTEM_WARN_METRIC_NUMBER_OF_POSTS_2M: 'warn_metric_number_of_posts_2M',
-};
-
 export const ModalIdentifiers = {
     ABOUT: 'about',
     TEAM_SETTINGS: 'team_settings',
