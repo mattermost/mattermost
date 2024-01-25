@@ -144,11 +144,7 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	props, err := model.StringInterfaceFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil {
-		c.SetInvalidParam("props")
-		return
-	}
+	props := model.StringInterfaceFromJSON(r.Body)
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
@@ -169,7 +165,7 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = config.Migrate(from, to)
+	err := config.Migrate(from, to)
 	if err != nil {
 		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
