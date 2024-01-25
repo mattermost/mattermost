@@ -20,11 +20,11 @@ type BatchWorker struct {
 
 	// stateMut protects stopCh and helps enforce
 	// ordering in case subsequent Run or Stop calls are made.
-	stateMut sync.Mutex
-	stopCh     chan struct{}
-	stoppedCh  chan bool
+	stateMut  sync.Mutex
+	stopCh    chan struct{}
+	stoppedCh chan bool
 	stopped   bool
-	jobs     chan model.Job
+	jobs      chan model.Job
 
 	timeBetweenBatches time.Duration
 	doBatch            func(rctx *request.Context, job *model.Job) bool
@@ -41,11 +41,11 @@ func MakeBatchWorker(
 		jobServer:          jobServer,
 		logger:             jobServer.Logger(),
 		store:              store,
-		stoppedCh:            make(chan bool, 1),
+		stoppedCh:          make(chan bool, 1),
 		jobs:               make(chan model.Job),
 		timeBetweenBatches: timeBetweenBatches,
 		doBatch:            doBatch,
-		stopped:             true,
+		stopped:            true,
 	}
 }
 
