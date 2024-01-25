@@ -111,12 +111,16 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	/* License */
 
 	licenseTo := ""
+	customerID := ""
+	licenseID := ""
 	supportedUsers := 0
 	var isTrial bool
 	if license := a.Srv().License(); license != nil {
 		supportedUsers = *license.Features.Users
 		licenseTo = license.Customer.Company
 		isTrial = license.IsTrial
+		licenseID = license.Id
+		customerID = license.Customer.Id
 	}
 
 	/* Jobs  */
@@ -187,6 +191,8 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		LicenseTo:             licenseTo,
 		LicenseSupportedUsers: supportedUsers,
 		LicenseIsTrial:        strconv.FormatBool(isTrial),
+		CustomerID:            customerID,
+		LicenseID:             licenseID,
 
 		/* Server stats */
 		ActiveUsers: int(uniqueUserCount),
