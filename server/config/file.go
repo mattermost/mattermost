@@ -61,7 +61,7 @@ func NewFileStore(path string, createFileIfNotExists bool) (fs *FileStore, err e
 func resolveConfigFilePath(path string) (string, error) {
 	// Absolute paths are explicit and require no resolution.
 	if filepath.IsAbs(path) {
-		return fileutils.FindFile(path), nil
+		return path, nil
 	}
 
 	// Search for the relative path to the file in the channels/config folder, taking into account
