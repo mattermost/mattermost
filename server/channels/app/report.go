@@ -127,7 +127,6 @@ func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) 
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message: T("app.report.send_report_to_user.export_finished", map[string]string{
-			"DataType":  getDataTypeFromJobType(job.Type),
 			"DateRange": getTranslatedDateRange(dateRange),
 		}),
 		Type:    model.PostTypeDefault,
@@ -268,15 +267,6 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt 
 	})
 
 	return nil
-}
-
-func getDataTypeFromJobType(jobType string) string {
-	switch jobType {
-	case model.JobTypeExportUsersToCSV:
-		return i18n.T("app.report.data_type.export_users_to_csv")
-	default:
-		return ""
-	}
 }
 
 func getTranslatedDateRange(dateRange string) string {

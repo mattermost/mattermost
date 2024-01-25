@@ -6675,10 +6675,6 @@
     "translation": "Unable to save the token."
   },
   {
-    "id": "app.report.data_type.export_users_to_csv",
-    "translation": "The CSV file contains user data"
-  },
-  {
     "id": "app.report.date_range.all_time",
     "translation": "all time"
   },
@@ -6704,7 +6700,7 @@
   },
   {
     "id": "app.report.send_report_to_user.export_finished",
-    "translation": "Your export is ready. {{.DataType}} for {{.DateRange}}. Click on the link below to download the report."
+    "translation": "Your export is ready. The CSV file contains user data for {{.DateRange}}. Click on the link below to download the report."
   },
   {
     "id": "app.report.send_report_to_user.failed_to_save",
