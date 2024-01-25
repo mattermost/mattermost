@@ -16,7 +16,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Loading..."
+          text={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Loading..."
+              id="admin.requestButton.loading"
+            />
+          }
         >
           <MemoizedFormattedMessage
             defaultMessage="Button Text"
@@ -99,7 +104,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -115,54 +125,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           <div
             className="alert alert-warning"
           >
-            <injectIntl(WarningIcon)>
-              <WarningIcon
-                intl={
-                  Object {
-                    "$t": [Function],
-                    "defaultFormats": Object {},
-                    "defaultLocale": "en",
-                    "defaultRichTextElements": undefined,
-                    "fallbackOnEmptyString": true,
-                    "formatDate": [Function],
-                    "formatDateTimeRange": [Function],
-                    "formatDateToParts": [Function],
-                    "formatDisplayName": [Function],
-                    "formatList": [Function],
-                    "formatListToParts": [Function],
-                    "formatMessage": [Function],
-                    "formatNumber": [Function],
-                    "formatNumberToParts": [Function],
-                    "formatPlural": [Function],
-                    "formatRelativeTime": [Function],
-                    "formatTime": [Function],
-                    "formatTimeToParts": [Function],
-                    "formats": Object {},
-                    "formatters": Object {
-                      "getDateTimeFormat": [Function],
-                      "getDisplayNames": [Function],
-                      "getListFormat": [Function],
-                      "getMessageFormat": [Function],
-                      "getNumberFormat": [Function],
-                      "getPluralRules": [Function],
-                      "getRelativeTimeFormat": [Function],
-                    },
-                    "locale": "en",
-                    "messages": Object {},
-                    "onError": [Function],
-                    "onWarn": [Function],
-                    "textComponent": "span",
-                    "timeZone": "Etc/UTC",
-                    "wrapRichTextChunksInFragment": undefined,
-                  }
-                }
-              >
-                <i
-                  className="fa fa-warning"
-                  title="Warning Icon"
-                />
-              </WarningIcon>
-            </injectIntl(WarningIcon)>
+            <Memo(WarningIcon)>
+              <i
+                className="fa fa-warning"
+                title="Warning Icon"
+              />
+            </Memo(WarningIcon)>
             <FormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
@@ -266,7 +234,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -282,54 +255,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
           <div
             className="alert alert-warning"
           >
-            <injectIntl(WarningIcon)>
-              <WarningIcon
-                intl={
-                  Object {
-                    "$t": [Function],
-                    "defaultFormats": Object {},
-                    "defaultLocale": "en",
-                    "defaultRichTextElements": undefined,
-                    "fallbackOnEmptyString": true,
-                    "formatDate": [Function],
-                    "formatDateTimeRange": [Function],
-                    "formatDateToParts": [Function],
-                    "formatDisplayName": [Function],
-                    "formatList": [Function],
-                    "formatListToParts": [Function],
-                    "formatMessage": [Function],
-                    "formatNumber": [Function],
-                    "formatNumberToParts": [Function],
-                    "formatPlural": [Function],
-                    "formatRelativeTime": [Function],
-                    "formatTime": [Function],
-                    "formatTimeToParts": [Function],
-                    "formats": Object {},
-                    "formatters": Object {
-                      "getDateTimeFormat": [Function],
-                      "getDisplayNames": [Function],
-                      "getListFormat": [Function],
-                      "getMessageFormat": [Function],
-                      "getNumberFormat": [Function],
-                      "getPluralRules": [Function],
-                      "getRelativeTimeFormat": [Function],
-                    },
-                    "locale": "en",
-                    "messages": Object {},
-                    "onError": [Function],
-                    "onWarn": [Function],
-                    "textComponent": "span",
-                    "timeZone": "Etc/UTC",
-                    "wrapRichTextChunksInFragment": undefined,
-                  }
-                }
-              >
-                <i
-                  className="fa fa-warning"
-                  title="Warning Icon"
-                />
-              </WarningIcon>
-            </injectIntl(WarningIcon)>
+            <Memo(WarningIcon)>
+              <i
+                className="fa fa-warning"
+                title="Warning Icon"
+              />
+            </Memo(WarningIcon)>
             <FormattedMessage
               defaultMessage="Error Message: {error}"
               id="error.message"
@@ -425,7 +356,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -545,7 +481,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"

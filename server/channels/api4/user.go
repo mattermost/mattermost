@@ -108,8 +108,6 @@ func (api *API) InitUser() {
 
 	api.BaseRoutes.Users.Handle("/notify-admin", api.APISessionRequired(handleNotifyAdmin)).Methods("POST")
 	api.BaseRoutes.Users.Handle("/trigger-notify-admin-posts", api.APISessionRequired(handleTriggerNotifyAdminPosts)).Methods("POST")
-
-	api.BaseRoutes.Users.Handle("/report", api.APISessionRequired(getUsersForReporting)).Methods("GET")
 }
 
 func createUser(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -625,9 +623,11 @@ func getFilteredUsersStats(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	channelIds := model.ArrayFromJSON(r.Body)
-
-	if len(channelIds) == 0 {
+	channelIds, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil || len(channelIds) == 0 {
+		c.Err = model.NewAppError("getUsersByGroupChannelIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -638,7 +638,7 @@ func getUsersByGroupChannelIds(c *Context, w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	err := json.NewEncoder(w).Encode(usersByChannelId)
+	err = json.NewEncoder(w).Encode(usersByChannelId)
 	if err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
 	}
@@ -947,7 +947,7 @@ func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
 
 	if group.Source == model.GroupSourceLdap {
 		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementGroups) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionSysconsoleReadUserManagementGroups})
 		}
 	}
 
@@ -955,16 +955,14 @@ func requireGroupAccess(c *web.Context, groupID string) *model.AppError {
 }
 
 func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	var userIDs []string
-	err := json.NewDecoder(r.Body).Decode(&userIDs)
-	if err != nil || len(userIDs) == 0 {
-		c.SetInvalidParamWithErr("user_ids", err)
+	userIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.Err = model.NewAppError("getUsersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIDs) == 0 {
+		c.SetInvalidParam("user_ids")
 		return
 	}
-
-	// we remove the duplicate IDs as it can bring a significant load to the
-	// database.
-	userIDs = model.RemoveDuplicateStrings(userIDs)
 
 	sinceString := r.URL.Query().Get("since")
 
@@ -1004,10 +1002,12 @@ func getUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUsersByNames(c *Context, w http.ResponseWriter, r *http.Request) {
-	var usernames []string
-	err := json.NewDecoder(r.Body).Decode(&usernames)
-	if err != nil || len(usernames) == 0 {
-		c.SetInvalidParamWithErr("usernames", err)
+	usernames, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.Err = model.NewAppError("getUsersByNames", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(usernames) == 0 {
+		c.SetInvalidParam("usernames")
 		return
 	}
 
@@ -3443,61 +3443,5 @@ func getUsersWithInvalidEmails(c *Context, w http.ResponseWriter, r *http.Reques
 	err := json.NewEncoder(w).Encode(users)
 	if err != nil {
 		c.Logger.Warn("Error writing response", mlog.Err(err))
-	}
-}
-
-func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin() && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadUserManagementUsers)) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
-		return
-	}
-
-	sortColumn := "Username"
-	if r.URL.Query().Get("sort_column") != "" {
-		sortColumn = r.URL.Query().Get("sort_column")
-	}
-
-	pageSize := 50
-	if pageSizeStr, err := strconv.ParseInt(r.URL.Query().Get("page_size"), 10, 64); err == nil {
-		pageSize = int(pageSizeStr)
-	}
-
-	teamFilter := r.URL.Query().Get("team_filter")
-	if !(teamFilter == "" || model.IsValidId(teamFilter)) {
-		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_team_filter", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	hideActive := r.URL.Query().Get("hide_active") == "true"
-	hideInactive := r.URL.Query().Get("hide_inactive") == "true"
-	if hideActive && hideInactive {
-		c.Err = model.NewAppError("getUsersForReporting", "api.getUsersForReporting.invalid_active_filter", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	options := &model.UserReportOptionsAPI{
-		UserReportOptionsWithoutDateRange: model.UserReportOptionsWithoutDateRange{
-			SortColumn:          sortColumn,
-			SortDesc:            r.URL.Query().Get("sort_direction") == "desc",
-			PageSize:            pageSize,
-			Team:                teamFilter,
-			LastSortColumnValue: r.URL.Query().Get("last_column_value"),
-			LastUserId:          r.URL.Query().Get("last_id"),
-			Role:                r.URL.Query().Get("role_filter"),
-			HasNoTeam:           r.URL.Query().Get("has_no_team") == "true",
-			HideActive:          hideActive,
-			HideInactive:        hideInactive,
-		},
-		DateRange: r.URL.Query().Get("date_range"),
-	}
-
-	userReports, err := c.App.GetUsersForReporting(options.ToBaseOptions(time.Now()))
-	if err != nil {
-		c.Err = err
-		return
-	}
-
-	if jsonErr := json.NewEncoder(w).Encode(userReports); jsonErr != nil {
-		c.Logger.Warn("Error writing response", mlog.Err(jsonErr))
 	}
 }

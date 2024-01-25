@@ -31,7 +31,6 @@ type Props = {
     groupsByName: Record<string, Group>;
     children?: React.ReactNode;
     channelId?: string;
-    hasMention?: boolean;
     disableHighlight?: boolean;
     disableGroupHighlight?: boolean;
 }
@@ -122,7 +121,6 @@ export const AtMention = (props: Props) => {
                     className='user-profile-popover'
                     userId={user.id}
                     src={Client4.getProfilePictureUrl(user.id, user.last_picture_update)}
-                    hasMention={props.hasMention}
                     hide={hideOverlay}
                     channelId={props.channelId}
                 />
@@ -187,7 +185,6 @@ export const AtMention = (props: Props) => {
                             userId={groupUser.id}
                             src={Client4.getProfilePictureUrl(groupUser.id, groupUser.last_picture_update)}
                             channelId={props.channelId}
-                            hasMention={props.hasMention}
                             hide={hideGroupUserOverlay}
                             returnFocus={returnFocus}
                         />

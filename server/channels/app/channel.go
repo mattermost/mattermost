@@ -23,6 +23,10 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
 
+const (
+	UpdateMultipleMaximum = 200
+)
+
 // DefaultChannelNames returns the list of system-wide default channel names.
 //
 // By default the list will be (not necessarily in this order):
@@ -476,7 +480,7 @@ func (a *App) createDirectChannelWithUser(c request.CTX, user, otherUser *model.
 			Type:             channel.Type,
 		}
 
-		if _, err := a.SaveSharedChannel(c, sc); err != nil {
+		if _, err := a.ShareChannel(c, sc); err != nil {
 			return nil, model.NewAppError("CreateDirectChannel", "app.sharedchannel.dm_channel_creation.internal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -1276,15 +1280,66 @@ func (a *App) UpdateChannelMemberNotifyProps(c request.CTX, data map[string]stri
 	a.invalidateCacheForChannelMembersNotifyProps(member.ChannelId)
 
 	// Notify the clients that the member notify props changed
+	err = a.sendUpdateChannelMemberNotifyPropsEvent(member)
+	if err != nil {
+		return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	return member, nil
+}
+
+func (a *App) PatchChannelMembersNotifyProps(c request.CTX, members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, *model.AppError) {
+	if len(members) > UpdateMultipleMaximum {
+		return nil, model.NewAppError("PatchChannelMembersNotifyProps", "app.channel.patch_channel_members_notify_props.too_many", map[string]any{"Max": UpdateMultipleMaximum}, "", http.StatusBadRequest)
+	}
+
+	updated, err := a.Srv().Store().Channel().PatchMultipleMembersNotifyProps(members, notifyProps)
+	if err != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("UpdateMultipleMembersNotifyProps", "app.channel.patch_channel_members_notify_props.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	// Invalidate caches for the users and channels that have changed
+	userIds := make(map[string]bool)
+	channelIds := make(map[string]bool)
+	for _, member := range updated {
+		userIds[member.UserId] = true
+		channelIds[member.ChannelId] = true
+	}
+
+	for userId := range userIds {
+		a.InvalidateCacheForUser(userId)
+	}
+	for channelId := range channelIds {
+		a.invalidateCacheForChannelMembersNotifyProps(channelId)
+	}
+
+	// Notify clients that their notify props have changed
+	for _, member := range updated {
+		err := a.sendUpdateChannelMemberNotifyPropsEvent(member)
+		if err != nil {
+			c.Logger().Warn("Failed to send WebSocket event for updated channel member notify props", mlog.Err(err))
+		}
+	}
+
+	return updated, nil
+}
+
+func (a *App) sendUpdateChannelMemberNotifyPropsEvent(member *model.ChannelMember) error {
 	evt := model.NewWebSocketEvent(model.WebsocketEventChannelMemberUpdated, "", "", member.UserId, nil, "")
 	memberJSON, jsonErr := json.Marshal(member)
 	if jsonErr != nil {
-		return nil, model.NewAppError("UpdateChannelMemberNotifyProps", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		return jsonErr
 	}
 	evt.Add("channelMember", string(memberJSON))
 	a.Publish(evt)
 
-	return member, nil
+	return nil
 }
 
 func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*model.ChannelMember, *model.AppError) {
@@ -1317,18 +1372,18 @@ func (a *App) updateChannelMember(c request.CTX, member *model.ChannelMember) (*
 }
 
 func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	ihc := make(chan store.GenericStoreResult[[]*model.IncomingWebhook], 1)
-	ohc := make(chan store.GenericStoreResult[[]*model.OutgoingWebhook], 1)
+	ihc := make(chan store.StoreResult[[]*model.IncomingWebhook], 1)
+	ohc := make(chan store.StoreResult[[]*model.OutgoingWebhook], 1)
 
 	go func() {
 		webhooks, err := a.Srv().Store().Webhook().GetIncomingByChannel(channel.Id)
-		ihc <- store.GenericStoreResult[[]*model.IncomingWebhook]{Data: webhooks, NErr: err}
+		ihc <- store.StoreResult[[]*model.IncomingWebhook]{Data: webhooks, NErr: err}
 		close(ihc)
 	}()
 
 	go func() {
 		outgoingHooks, err := a.Srv().Store().Webhook().GetOutgoingByChannel(channel.Id, -1, -1)
-		ohc <- store.GenericStoreResult[[]*model.OutgoingWebhook]{Data: outgoingHooks, NErr: err}
+		ohc <- store.StoreResult[[]*model.OutgoingWebhook]{Data: outgoingHooks, NErr: err}
 		close(ohc)
 	}()
 
@@ -1979,19 +2034,19 @@ func (s *Server) getChannelMember(c request.CTX, channelID string, userID string
 	return channelMember, nil
 }
 
-func (s *Server) getChannelMemberOnly(c request.CTX, channelID string, userID string) (*model.ChannelMember, *model.AppError) {
-	channelMember, err := s.Store().Channel().GetMemberOnly(c.Context(), channelID, userID)
+func (s *Server) getChannelMemberLastViewedAt(c request.CTX, channelID string, userID string) (int64, *model.AppError) {
+	lastViewedAt, err := s.Store().Channel().GetMemberLastViewedAt(c.Context(), channelID, userID)
 	if err != nil {
 		var nfErr *store.ErrNotFound
 		switch {
 		case errors.As(err, &nfErr):
-			return nil, model.NewAppError("getChannelMemberOnly", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
+			return 0, model.NewAppError("getChannelMemberLastViewedAt", MissingChannelMemberError, nil, "", http.StatusNotFound).Wrap(err)
 		default:
-			return nil, model.NewAppError("getChannelMemberOnly", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return 0, model.NewAppError("getChannelMemberLastViewedAt", "app.channel.get_member.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
-	return channelMember, nil
+	return lastViewedAt, nil
 }
 
 func (a *App) GetChannelMembersPage(c request.CTX, channelID string, page, perPage int) (model.ChannelMembers, *model.AppError) {
@@ -2126,16 +2181,16 @@ func (a *App) GetChannelUnread(c request.CTX, channelID, userID string) (*model.
 }
 
 func (a *App) JoinChannel(c request.CTX, channel *model.Channel, userID string) *model.AppError {
-	userChan := make(chan store.GenericStoreResult[*model.User], 1)
-	memberChan := make(chan store.GenericStoreResult[*model.ChannelMember], 1)
+	userChan := make(chan store.StoreResult[*model.User], 1)
+	memberChan := make(chan store.StoreResult[*model.ChannelMember], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		userChan <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
+		userChan <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(userChan)
 	}()
 	go func() {
 		member, err := a.Srv().Store().Channel().GetMember(context.Background(), channel.Id, userID)
-		memberChan <- store.GenericStoreResult[*model.ChannelMember]{Data: member, NErr: err}
+		memberChan <- store.StoreResult[*model.ChannelMember]{Data: member, NErr: err}
 		close(memberChan)
 	}()
 
@@ -2227,24 +2282,24 @@ func (a *App) postJoinTeamMessage(c request.CTX, user *model.User, channel *mode
 }
 
 func (a *App) LeaveChannel(c request.CTX, channelID string, userID string) *model.AppError {
-	sc := make(chan store.GenericStoreResult[*model.Channel], 1)
+	sc := make(chan store.StoreResult[*model.Channel], 1)
 	go func() {
 		channel, err := a.Srv().Store().Channel().Get(channelID, true)
-		sc <- store.GenericStoreResult[*model.Channel]{Data: channel, NErr: err}
+		sc <- store.StoreResult[*model.Channel]{Data: channel, NErr: err}
 		close(sc)
 	}()
 
-	uc := make(chan store.GenericStoreResult[*model.User], 1)
+	uc := make(chan store.StoreResult[*model.User], 1)
 	go func() {
 		user, err := a.Srv().Store().User().Get(context.Background(), userID)
-		uc <- store.GenericStoreResult[*model.User]{Data: user, NErr: err}
+		uc <- store.StoreResult[*model.User]{Data: user, NErr: err}
 		close(uc)
 	}()
 
-	mcc := make(chan store.GenericStoreResult[int64], 1)
+	mcc := make(chan store.StoreResult[int64], 1)
 	go func() {
 		count, err := a.Srv().Store().Channel().GetMemberCount(channelID, false)
-		mcc <- store.GenericStoreResult[int64]{Data: count, NErr: err}
+		mcc <- store.StoreResult[int64]{Data: count, NErr: err}
 		close(mcc)
 	}()
 

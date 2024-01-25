@@ -55,6 +55,11 @@ const (
 	MessageHasBeenDeletedID                   = 37
 	MessagesWillBeConsumedID                  = 38
 	ServeMetricsID                            = 39
+	OnSharedChannelsSyncMsgID                 = 40
+	OnSharedChannelsPingID                    = 41
+	PreferencesHaveChangedID                  = 42
+	OnSharedChannelsAttachmentSyncMsgID       = 43
+	OnSharedChannelsProfileImageSyncMsgID     = 44
 	TotalHooksID                              = iota
 )
 
@@ -330,4 +335,51 @@ type Hooks interface {
 	//
 	// Minimum server version: 9.2
 	ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
+
+	// OnSharedChannelsSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each SyncMsg may contain
+	// multiple updates (posts, reactions, attachments, users) for a single channel.
+	//
+	// The cursor will be advanced based on the SyncResponse returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+
+	// OnSharedChannelsPing is invoked for plugins to indicate the health of the plugin and the connection
+	// to the upstream service (e.g. MS Graph APIs).
+	//
+	// Return true to indicate all is well.
+	//
+	// Return false to indicate there is a problem with the plugin or connection to upstream service.
+	// Some number of failed pings will result in the plugin being marked offline and it will stop receiving
+	// OnSharedChannelsSyncMsg calls until it comes back online. The plugin will also appear offline in the status
+	// report via the `secure-connection status` slash command.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsPing(rc *model.RemoteCluster) bool
+
+	// PreferencesHaveChanged is invoked after one or more of a user's preferences have changed.
+	// Note that this method will be called for preferences changed by plugins, including the plugin that changed
+	// the preferences.
+	//
+	// Minimum server version: 9.5
+	PreferencesHaveChanged(c *Context, preferences []model.Preference)
+
+	// OnSharedChannelsAttachmentSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each call represents one file attachment
+	// to be synchronized.
+	//
+	// The cursor will be advanced based on the timestamp returned if no error is returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+
+	// OnSharedChannelsProfileImageSyncMsg is invoked for plugins that wish to receive synchronization messages from the
+	// Shared Channels service for which they have been invited via InviteRemote.  Each call represents one user profile
+	// image that should be synchronized. `App.GetProfileImage` can be used to fetch the image bytes.
+	//
+	// The cursor will be advanced based on the timestamp returned if no error is returned.
+	//
+	// Minimum server version: 9.5
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 }

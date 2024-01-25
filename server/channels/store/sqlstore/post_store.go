@@ -691,7 +691,6 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 	if id == "" {
 		return nil, store.NewErrInvalidInput("Post", "id", id)
 	}
-
 	var post model.Post
 	postFetchQuery := "SELECT p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount FROM Posts p WHERE p.Id = ? AND p.DeleteAt = 0"
 	err := s.DBXFromContext(ctx).Get(&post, postFetchQuery, id)
@@ -715,14 +714,40 @@ func (s *SqlPostStore) Get(ctx context.Context, id string, opts model.GetPostsOp
 			return nil, errors.Wrapf(err, "invalid rootId with value=%s", rootId)
 		}
 
-		query := s.getQueryBuilder().
-			Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
-			From("Posts p").
-			Where(sq.Or{
-				sq.Eq{"p.Id": rootId},
-				sq.Eq{"p.RootId": rootId},
-			}).
-			Where(sq.Eq{"p.DeleteAt": 0})
+		var query sq.SelectBuilder
+		if s.DriverName() == model.DatabaseDriverMysql {
+			query = s.getQueryBuilder().
+				Select("p.*, (SELECT count(*) FROM Posts WHERE Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0) as ReplyCount").
+				From("Posts p").
+				Where(sq.And{
+					sq.Or{
+						sq.Eq{"p.Id": rootId},
+						sq.Eq{"p.RootId": rootId},
+					},
+					sq.Eq{"p.DeleteAt": 0},
+				})
+		} else {
+			query = s.getQueryBuilder().
+				Select("p.*, replycount.num as ReplyCount").
+				PrefixExpr(s.getQueryBuilder().
+					Select().
+					Prefix("WITH replycount as (").
+					Columns("count(*) as num").
+					From("posts").
+					Where(sq.And{
+						sq.Eq{"RootId": rootId},
+						sq.Eq{"DeleteAt": 0},
+					}).Suffix(")"),
+				).
+				From("Posts p, replycount").
+				Where(sq.And{
+					sq.Or{
+						sq.Eq{"p.Id": rootId},
+						sq.Eq{"p.RootId": rootId},
+					},
+					sq.Eq{"p.DeleteAt": 0},
+				})
+		}
 
 		var sort string
 		if opts.Direction != "" {
@@ -815,7 +840,7 @@ func (s *SqlPostStore) GetSingle(id string, inclDeleted bool) (*model.Post, erro
 		Where(sq.Eq{"p.Id": id})
 
 	replyCountSubQuery := s.getQueryBuilder().
-		Select("COUNT(Posts.Id)").
+		Select("COUNT(*)").
 		From("Posts").
 		Where(sq.Expr("Posts.RootId = (CASE WHEN p.RootId = '' THEN p.Id ELSE p.RootId END) AND Posts.DeleteAt = 0"))
 
@@ -1205,16 +1230,16 @@ func (s *SqlPostStore) GetPosts(options model.GetPostsOptions, _ bool, sanitizeO
 	}
 	offset := options.PerPage * options.Page
 
-	rpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
+	rpc := make(chan store.StoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getRootPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		rpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
+		rpc <- store.StoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(rpc)
 	}()
-	cpc := make(chan store.GenericStoreResult[[]*model.Post], 1)
+	cpc := make(chan store.StoreResult[[]*model.Post], 1)
 	go func() {
 		posts, err := s.getParentsPosts(options.ChannelId, offset, options.PerPage, options.SkipFetchThreads, options.IncludeDeleted)
-		cpc <- store.GenericStoreResult[[]*model.Post]{Data: posts, NErr: err}
+		cpc <- store.StoreResult[[]*model.Post]{Data: posts, NErr: err}
 		close(cpc)
 	}()
 
@@ -2744,7 +2769,7 @@ func (s *SqlPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.
 
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
+	pchan := make(chan store.StoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// remove any unquoted term that contains only non-alphanumeric chars
@@ -2756,7 +2781,7 @@ func (s *SqlPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := s.search(teamId, userId, params, false, false)
-			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
+			pchan <- store.StoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 

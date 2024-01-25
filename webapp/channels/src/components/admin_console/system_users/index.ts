@@ -3,11 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {StatusOK} from '@mattermost/types/client4';
-import type {ServerError} from '@mattermost/types/errors';
-import type {GetFilteredUsersStatsOpts, UsersStats} from '@mattermost/types/users';
+import type {Dispatch} from 'redux';
 
 import {logError} from 'mattermost-redux/actions/errors';
 import {getTeams, getTeamStats} from 'mattermost-redux/actions/teams';
@@ -21,7 +17,6 @@ import {
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getFilteredUsersStats as selectFilteredUserStats, getUsers} from 'mattermost-redux/selectors/entities/users';
-import type {Action, ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {loadProfilesAndTeamMembers, loadProfilesWithoutTeam} from 'actions/user_actions';
 import {setSystemUsersSearch} from 'actions/views/search';
@@ -74,28 +69,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type StatusOKFunc = () => Promise<StatusOK>;
-type PromiseStatusFunc = () => Promise<{status: string}>;
-type ActionCreatorTypes = Action | PromiseStatusFunc | StatusOKFunc;
-
-type Actions = {
-    getTeams: (startInde: number, endIndex: number) => void;
-    getTeamStats: (teamId: string) => ActionFunc<any, any>;
-    getUser: (id: string) => ActionFunc<any, any>;
-    getUserAccessToken: (tokenId: string) => Promise<any> | ActionFunc;
-    loadProfilesAndTeamMembers: (page: number, maxItemsPerPage: number, teamId: string, options: Record<string, string | boolean>) => void;
-    loadProfilesWithoutTeam: (page: number, maxItemsPerPage: number, options: Record<string, string | boolean>) => void;
-    getProfiles: (page: number, maxItemsPerPage: number, options: Record<string, string | boolean>) => void;
-    setSystemUsersSearch: (searchTerm: string, teamId: string, filter: string) => void;
-    searchProfiles: (term: string, options?: any) => Promise<any> | ActionFunc;
-    revokeSessionsForAllUsers: () => any;
-    logError: (error: {type: string; message: string}) => void;
-    getFilteredUsersStats: (filters: GetFilteredUsersStatsOpts) => Promise<{ data?: UsersStats | undefined; error?: ServerError | undefined}>;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionCreatorTypes>, Actions>({
+        actions: bindActionCreators({
             getTeams,
             getTeamStats,
             getUser,

@@ -79,7 +79,22 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	}
 
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
-	if err != nil {
+	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
+		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
+		scr = &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         task.channelID,
+			CreatorId:         rc.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc.RemoteId,
+			LastPostCreateAt:  model.GetMillis(),
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		if scr, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			return fmt.Errorf("cannot auto-create shared channel remote (channel_id=%s, remote_id=%s): %w", task.channelID, rc.RemoteId, err)
+		}
+	} else if err != nil {
 		return err
 	}
 
@@ -220,13 +235,17 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt)
 
+	cache := postsSliceToMap(posts)
+
 	// Fill remaining batch capacity with updated posts.
 	if len(posts) < MaxPostsPerSync {
 		options.SinceCreateAt = false
+		// use 'nextcursor' as it has the correct xxxUpdateAt values, and the updsted xxxCreateAt values.
 		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, MaxPostsPerSync-len(posts))
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
+		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt)
 	}
@@ -527,11 +546,15 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
-// sendSyncMsgToRemote synchronously sends the sync message to the remote cluster.
+// sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
 func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, msg.ChannelId)
+	}
+
+	if rc.IsPlugin() {
+		return scs.sendSyncMsgToPlugin(msg, rc, f)
 	}
 
 	b, err := json.Marshal(msg)
@@ -566,6 +589,17 @@ func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteClus
 
 	wg.Wait()
 	return err
+}
+
+// sendSyncMsgToRemote synchronously sends the sync message to a plugin.
+func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
+	syncResp, errResp := scs.app.OnSharedChannelsSyncMsg(msg, rc)
+
+	if f != nil {
+		f(syncResp, errResp)
+	}
+
+	return errResp
 }
 
 func sanitizeSyncData(sd *syncData) {
