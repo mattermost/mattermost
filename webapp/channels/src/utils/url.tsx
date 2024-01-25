@@ -208,6 +208,11 @@ export function isPermalinkURL(url: string): boolean {
     return isInternalURL(url, siteURL) && (regexp.test(url));
 }
 
+export function isValidUrl(url = '') {
+    const regex = /^https?:\/\//i;
+    return regex.test(url);
+}
+
 export function isStringContainingUrl(text: string): boolean {
     const regex = new RegExp('(https?://|www.)');
     return regex.test(text);

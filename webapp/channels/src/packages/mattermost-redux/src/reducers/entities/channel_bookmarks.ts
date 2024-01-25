@@ -4,7 +4,7 @@
 import {combineReducers} from 'redux';
 
 import type {ChannelBookmark, ChannelBookmarksState} from '@mattermost/types/channel_bookmarks';
-import type {Channel, ServerChannelWithBookmarks} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {ChannelBookmarkTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
@@ -36,41 +36,8 @@ export function byChannelId(state: ChannelBookmarksState['byChannelId'] = {}, ac
             ...state,
             [channelId]: {
                 ...state[channelId],
-                [id]: {
-                    ...state[channelId]?.[id],
-                    ...bookmark,
-                },
+                [id]: bookmark,
             },
-        };
-    }
-
-    case ChannelTypes.RECEIVED_CHANNELS: {
-        const channels: ServerChannelWithBookmarks[] = action.data;
-
-        if (!channels) {
-            return state;
-        }
-
-        return channels.reduce((nextState, channel) => {
-            if (!channel.bookmarks) {
-                return nextState;
-            }
-
-            return {...nextState, [channel.id]: toNewObj(nextState[channel.id], channel.bookmarks)};
-        }, {...state});
-    }
-
-    case ChannelTypes.RECEIVED_CHANNEL: {
-        const channelId: Channel['id'] = action.data.id;
-        const bookmarks: ChannelBookmark[] | undefined = action.data.bookmarks;
-
-        if (!bookmarks) {
-            return state;
-        }
-
-        return {
-            ...state,
-            [channelId]: toNewObj(state[channelId], bookmarks),
         };
     }
 

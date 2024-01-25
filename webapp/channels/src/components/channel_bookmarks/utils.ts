@@ -1,16 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useMemo} from 'react';
-import {useSelector} from 'react-redux';
+import {useEffect, useMemo} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 
+import type {Channel} from '@mattermost/types/channels';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
-import {getChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+
+import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
 
 import Constants, {LicenseSkus} from 'utils/constants';
 
@@ -47,9 +50,23 @@ export const useChannelBookmarkPermission = (channelId: string, action: TAction)
 };
 
 export const getHaveIChannelBookmarkPermission = (state: GlobalState, channelId: string, action: TAction) => {
-    const channel = getChannel(state, channelId);
-    const channelType = channel?.type as typeof OPEN_CHANNEL | typeof PRIVATE_CHANNEL;
-    const permission = BOOKMARK_PERMISSION[key(action, channelType)];
+    const channel: Channel | undefined = getChannel(state, channelId);
+
+    if (!channel) {
+        return false;
+    }
+    const {type} = channel;
+
+    if (type === 'threads') {
+        return false;
+    }
+
+    if (type === 'G' || type === 'D') {
+        const myMembership = getMyChannelMember(state, channelId);
+        return myMembership?.channel_id === channelId;
+    }
+
+    const permission = BOOKMARK_PERMISSION[key(action, type)];
 
     return channel && permission && haveIChannelPermission(state, channel.team_id, channelId, permission);
 };
@@ -78,11 +95,18 @@ export const getIsChannelBookmarksEnabled = (state: GlobalState) => {
 };
 
 export const useChannelBookmarks = (channelId: string) => {
+    const dispatch = useDispatch();
     const bookmarks = useSelector((state: GlobalState) => getChannelBookmarks(state, channelId));
 
     const order = useMemo(() => {
         return Object.keys(bookmarks).sort((a, b) => bookmarks[a].sort_order - bookmarks[b].sort_order);
     }, [bookmarks]);
+
+    useEffect(() => {
+        if (channelId) {
+            dispatch(fetchChannelBookmarks(channelId));
+        }
+    }, [channelId]);
 
     return {
         bookmarks,

@@ -40,7 +40,6 @@ import BrowserStore from 'stores/browser_store';
 import LocalStorageStore from 'stores/local_storage_store';
 import store from 'stores/redux_store';
 
-import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
 import SubMenuModal from 'components/widgets/menu/menu_modals/submenu_modal/submenu_modal';
 
 import WebSocketClient from 'client/web_websocket_client';
@@ -310,7 +309,7 @@ export async function getTeamRedirectChannelIfIsAccesible(user: UserProfile, tea
     let teamChannels = getChannelsNameMapInTeam(state, team.id);
     if (!teamChannels || Object.keys(teamChannels).length === 0) {
         // This should be executed in pretty limited scenarios (empty teams)
-        await dispatch(fetchChannelsAndMembers(team.id, getIsChannelBookmarksEnabled(state))); // eslint-disable-line no-await-in-loop
+        await dispatch(fetchChannelsAndMembers(team.id)); // eslint-disable-line no-await-in-loop
         state = getState();
         teamChannels = getChannelsNameMapInTeam(state, team.id);
     }

@@ -408,13 +408,13 @@ func (c *Context) RequireChannelId() *Context {
 	return c
 }
 
-func (c *Context) RequireQ() *Context {
+func (c *Context) RequireUrl() *Context {
 	if c.Err != nil {
 		return c
 	}
 
-	if !model.IsValidId(c.Params.Q) {
-		c.SetInvalidURLParam("q")
+	if !model.IsValidHTTPURL(c.Params.Url) {
+		c.SetInvalidURLParam("url")
 	}
 	return c
 }

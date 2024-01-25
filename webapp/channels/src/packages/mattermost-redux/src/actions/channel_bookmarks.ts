@@ -8,6 +8,9 @@ import {Client4} from 'mattermost-redux/client';
 import {getChannelBookmark} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 
+import {logError} from './errors';
+import {forceLogoutIfNecessary} from './helpers';
+
 export function deleteBookmark(channelId: string, id: string, connectionId: string) {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const state = getState();
@@ -56,15 +59,19 @@ export function editBookmark(channelId: string, id: string, patch: ChannelBookma
         try {
             const {updated, deleted} = await Client4.updateChannelBookmark(channelId, id, patch, connectionId);
 
-            dispatch({
-                type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
-                data: updated,
-            });
+            if (updated) {
+                dispatch({
+                    type: ChannelBookmarkTypes.RECEIVED_BOOKMARK,
+                    data: updated,
+                });
+            }
 
-            dispatch({
-                type: ChannelBookmarkTypes.BOOKMARK_DELETED,
-                data: deleted,
-            });
+            if (deleted) {
+                dispatch({
+                    type: ChannelBookmarkTypes.BOOKMARK_DELETED,
+                    data: deleted,
+                });
+            }
         } catch (error) {
             return {
                 data: false,
@@ -73,5 +80,25 @@ export function editBookmark(channelId: string, id: string, patch: ChannelBookma
         }
 
         return {data: true};
+    };
+}
+
+export function fetchChannelBookmarks(channelId: string) {
+    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+        let bookmarks;
+        try {
+            bookmarks = await Client4.getChannelBookmarks(channelId);
+
+            dispatch({
+                type: ChannelBookmarkTypes.RECEIVED_BOOKMARKS,
+                data: {channelId, bookmarks},
+            });
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+            dispatch(logError(error));
+            return {error};
+        }
+
+        return {data: bookmarks};
     };
 }

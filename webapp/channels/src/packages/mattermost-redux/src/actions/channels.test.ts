@@ -386,7 +386,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: directChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id, false));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         const {channels, channelsInTeam, myMembers} = store.getState().entities.channels;
         expect(channels).toBeTruthy();
@@ -412,7 +412,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id, false));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             put(`/channels/${TestHelper.basicChannel!.id}/members/${TestHelper.basicUser!.id}/notify_props`).
@@ -475,7 +475,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: secondChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id, false));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             post('/hooks/incoming').
@@ -579,7 +579,7 @@ describe('Actions.Channels', () => {
             get(`/users/me/teams/${TestHelper.basicTeam!.id}/channels/members`).
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'channel_user', channel_id: secondChannel.id}, TestHelper.basicChannelMember]);
 
-        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id, false));
+        await store.dispatch(Actions.fetchChannelsAndMembers(TestHelper.basicTeam!.id));
 
         nock(Client4.getBaseRoute()).
             post('/hooks/incoming').

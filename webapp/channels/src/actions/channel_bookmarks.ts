@@ -33,3 +33,7 @@ export function editBookmark(channelId: string, id: string, patch: ChannelBookma
         return dispatch(ChannelBookmarkActions.editBookmark(channelId, id, patch, connectionId));
     };
 }
+
+export function fetchChannelBookmarks(channelId: string) {
+    return ChannelBookmarkActions.fetchChannelBookmarks(channelId);
+}

@@ -7,7 +7,10 @@ import type {FileInfo} from '@mattermost/types/files';
 
 import {getFileThumbnailUrl, getFileUrl} from 'mattermost-redux/utils/file_utils';
 
+import type {FilePreviewInfo} from 'components/file_preview/file_preview';
+
 import Constants, {FileTypes} from 'utils/constants';
+import {getFileTypeFromMime} from 'utils/file_utils';
 import {
     getFileType,
     getIconClassName,
@@ -16,14 +19,15 @@ import {
 
 type Props = {
     enableSVGs: boolean;
-    fileInfo: FileInfo;
+    fileInfo: FileInfo | FilePreviewInfo;
 }
 
 const FileThumbnail = ({
     fileInfo,
     enableSVGs,
 }: Props) => {
-    const type = getFileType(fileInfo.extension);
+    const mimeType = (fileInfo as FilePreviewInfo).type;
+    const type = mimeType && !fileInfo.extension ? getFileTypeFromMime(mimeType) : getFileType(fileInfo.extension);
 
     if (type === FileTypes.IMAGE) {
         let className = 'post-image';

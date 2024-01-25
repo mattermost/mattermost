@@ -189,6 +189,7 @@ export default function FileAttachment(props: Props) {
             defaultItems.push(
                 <Menu.ItemAction
                     data-title='Public Image'
+                    key={fileInfo.id + '_publiclinkmenuitem'}
                     onClick={handleGetPublicLink}
                     ariaLabel={localizeMessage('view_image_popover.publicLink', 'Get a public link')}
                     text={localizeMessage('view_image_popover.publicLink', 'Get a public link')}

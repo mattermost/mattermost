@@ -10,10 +10,14 @@ import {
     PencilOutlineIcon,
     LinkVariantIcon,
     TrashCanOutlineIcon,
+    ArrowExpandIcon,
 } from '@mattermost/compass-icons/components';
-import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
+import type {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
-import {deleteBookmark} from 'actions/channel_bookmarks';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+import {getFileUrl} from 'mattermost-redux/utils/file_utils';
+
+import {editBookmark, deleteBookmark} from 'actions/channel_bookmarks';
 import {openModal} from 'actions/views/modals';
 
 import * as Menu from 'components/menu';
@@ -22,11 +26,13 @@ import {ModalIdentifiers} from 'utils/constants';
 import {copyToClipboard} from 'utils/utils';
 
 import BookmarkDeleteModal from './bookmark_delete_modal';
+import ChannelBookmarksCreateModal from './channel_bookmarks_create_modal';
 import {useChannelBookmarkPermission} from './utils';
 
-type Props = {bookmark: ChannelBookmark};
+type Props = {bookmark: ChannelBookmark; open: () => void};
 const BookmarkItemDotMenu = ({
     bookmark,
+    open,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -35,14 +41,27 @@ const BookmarkItemDotMenu = ({
     const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete');
 
     const editLabel = formatMessage({id: 'channel_bookmarks.edit', defaultMessage: 'Edit'});
+    const openLabel = formatMessage({id: 'channel_bookmarks.open', defaultMessage: 'Open'});
     const copyLabel = formatMessage({id: 'channel_bookmarks.copy', defaultMessage: 'Copy link'});
     const deleteLabel = formatMessage({id: 'channel_bookmarks.delete', defaultMessage: 'Delete'});
+
+    const handleEdit = useCallback(() => {
+        dispatch(openModal({
+            modalId: ModalIdentifiers.CHANNEL_BOOKMARK_CREATE,
+            dialogType: ChannelBookmarksCreateModal,
+            dialogProps: {
+                bookmark,
+                channelId: bookmark.channel_id,
+                onConfirm: async (data: ChannelBookmarkPatch) => dispatch(editBookmark(bookmark.channel_id, bookmark.id, data)) as ActionResult<boolean>,
+            },
+        }));
+    }, [editBookmark, dispatch, bookmark]);
 
     const copyLink = useCallback(() => {
         if (bookmark.type === 'link' && bookmark.link_url) {
             copyToClipboard(bookmark.link_url);
-        } else if (bookmark.type === 'file') {
-            // TODO
+        } else if (bookmark.type === 'file' && bookmark.file_id) {
+            copyToClipboard(getFileUrl(bookmark.file_id));
         }
     }, [bookmark.type, bookmark.link_url]);
 
@@ -70,13 +89,19 @@ const BookmarkItemDotMenu = ({
                 id: 'channelBookmarksDotMenuDropdown',
             }}
         >
+            <Menu.Item
+                key='channelBookmarksOpen'
+                id='channelBookmarksOpen'
+                onClick={open}
+                leadingElement={<ArrowExpandIcon size={18}/>}
+                labels={<span>{openLabel}</span>}
+                aria-label={openLabel}
+            />
             {canEdit && (
                 <Menu.Item
                     key='channelBookmarksEdit'
                     id='channelBookmarksEdit'
-                    onClick={() => {
-
-                    }}
+                    onClick={handleEdit}
                     leadingElement={<PencilOutlineIcon size={18}/>}
                     labels={<span>{editLabel}</span>}
                     aria-label={editLabel}

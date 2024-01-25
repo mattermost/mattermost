@@ -1,49 +1,103 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useSelector} from 'react-redux';
+import type {HTMLAttributes} from 'react';
+import React, {forwardRef, useRef} from 'react';
+import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
+import type {FileInfo} from '@mattermost/types/files';
+
 import {getChannelBookmark} from 'mattermost-redux/selectors/entities/channel_bookmarks';
+import {getFile} from 'mattermost-redux/selectors/entities/files';
+import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
-import RenderEmoji from 'components/emoji/render_emoji';
+import {openModal} from 'actions/views/modals';
+
 import ExternalLink from 'components/external_link';
+import FilePreviewModal from 'components/file_preview_modal';
 
+import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
 import type {GlobalState} from 'types/store';
 
 import BookmarkItemDotMenu from './bookmark_dot_menu';
+import BookmarkIcon from './bookmark_icon';
 
 type Props = {id: string; channelId: string};
-const BookmarkItem = ({
+const BookmarkItem = <T extends HTMLAnchorElement>({
     id,
     channelId,
 }: Props) => {
+    const linkRef = useRef<T>(null);
+    const dispatch = useDispatch();
     const bookmark = useSelector((state: GlobalState) => getChannelBookmark(state, channelId, id));
+    const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
-    let icon;
+    const open = () => {
+        linkRef.current?.click();
+    };
 
-    if (bookmark.emoji) {
-        const emojiName = bookmark.emoji.slice(1, -1);
-        icon = <Icon><RenderEmoji emojiName={emojiName}/></Icon>;
-    }
+    const handleOpenFile = (e: React.MouseEvent<HTMLAnchorElement>) => {
+        e.preventDefault();
+
+        fileInfo && dispatch(openModal({
+            modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
+            dialogType: FilePreviewModal,
+            dialogProps: {
+                postId: '',
+                fileInfos: [fileInfo],
+                startIndex: 0,
+            },
+        }));
+    };
+
+    const icon = (
+        <BookmarkIcon
+            type={bookmark.type}
+            emoji={bookmark.emoji}
+            imageUrl={bookmark.image_url}
+            fileInfo={fileInfo}
+        />
+    );
+    let link;
 
     if (bookmark.type === 'link' && bookmark.link_url) {
-        return (
-            <Chip>
-                <DynamicLink href={bookmark.link_url}>
-                    {icon}
-                    <Label>{bookmark.display_name}</Label>
-                </DynamicLink>
-                <BookmarkItemDotMenu bookmark={bookmark}/>
-            </Chip>
+        link = (
+            <DynamicLink
+                href={bookmark.link_url}
+                ref={linkRef}
+                isFile={false}
+            >
+                {icon}
+                <Label>{bookmark.display_name}</Label>
+            </DynamicLink>
+        );
+    } else if (bookmark.type === 'file' && bookmark.file_id) {
+        link = (
+            <DynamicLink
+                href={getFileUrl(bookmark.file_id)}
+                onClick={handleOpenFile}
+                ref={linkRef}
+                isFile={true}
+            >
+                {icon}
+                <Label>{bookmark.display_name}</Label>
+            </DynamicLink>
         );
     }
 
-    return null;
+    return (
+        <Chip>
+            {link}
+            <BookmarkItemDotMenu
+                bookmark={bookmark}
+                open={open}
+            />
+        </Chip>
+    );
 };
 
 const Chip = styled.div`
@@ -53,7 +107,7 @@ const Chip = styled.div`
     margin: 1px 0;
     flex-shrink: 0;
     min-width: 5rem;
-    max-width: 20rem;
+    max-width: 25rem;
 
     button {
         position: absolute;
@@ -108,16 +162,14 @@ const Chip = styled.div`
 const Label = styled.span`
     white-space: nowrap;
     padding: 4px 0;
-`;
-
-const Icon = styled.span`
-    padding: 3px 1px 3px 2px;
+    text-overflow: ellipsis;
+    overflow: hidden;
 `;
 
 const TARGET_BLANK_URL_PREFIX = '!';
 
-type DynamicLinkProps = {href: string; children: React.ReactNode};
-const DynamicLink = ({href, children}: DynamicLinkProps) => {
+type DynamicLinkProps = {href: string; children: React.ReactNode; isFile: boolean; onClick?: HTMLAttributes<HTMLAnchorElement>['onClick']};
+const DynamicLink = forwardRef<HTMLAnchorElement, DynamicLinkProps>(({href, children, isFile, onClick}, ref) => {
     const siteURL = getSiteURL();
     const openInNewTab = shouldOpenInNewTab(href, siteURL);
 
@@ -129,26 +181,35 @@ const DynamicLink = ({href, children}: DynamicLinkProps) => {
                 href={prefixed ? href.substring(1) : href}
                 rel='noopener noreferrer'
                 target='_blank'
+                ref={ref}
             >
                 {children}
             </StyledExternalLink>
         );
     }
 
-    if (href.startsWith(siteURL)) {
+    if (href.startsWith(siteURL) && !isFile) {
         return (
-            <StyledLink to={href.slice(siteURL.length)}>
+            <StyledLink
+                to={href.slice(siteURL.length)}
+                ref={ref}
+                onClick={onClick}
+            >
                 {children}
             </StyledLink>
         );
     }
 
     return (
-        <StyledAnchor href={href}>
+        <StyledAnchor
+            href={href}
+            ref={ref}
+            onClick={onClick}
+        >
             {children}
         </StyledAnchor>
     );
-};
+});
 
 const linkStyles = css`
     display: flex;

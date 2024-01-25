@@ -309,7 +309,7 @@ func (a *App) getEmbedForPost(c request.CTX, post *model.Post, firstLink string,
 		return nil, nil
 	}
 
-	og, image, permalink, err := a.GetLinkMetadata(c, firstLink, post.CreateAt, isNewPost, post.GetPreviewedPostProp())
+	og, image, permalink, err := a.getLinkMetadata(c, firstLink, post.CreateAt, isNewPost, post.GetPreviewedPostProp())
 	if err != nil {
 		return nil, err
 	}
@@ -394,7 +394,7 @@ func (a *App) getImagesForPost(c request.CTX, post *model.Post, imageURLs []stri
 			continue
 		}
 
-		if _, image, _, err := a.GetLinkMetadata(c, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
+		if _, image, _, err := a.getLinkMetadata(c, imageURL, post.CreateAt, isNewPost, post.GetPreviewedPostProp()); err != nil {
 			appErr, ok := err.(*model.AppError)
 			isNotFound := ok && appErr.StatusCode == http.StatusNotFound
 			// Ignore NotFound errors.
@@ -601,7 +601,7 @@ func (a *App) containsPermalink(post *model.Post) bool {
 	return looksLikeAPermalink(link, a.GetSiteURL())
 }
 
-func (a *App) GetLinkMetadata(c request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
+func (a *App) getLinkMetadata(c request.CTX, requestURL string, timestamp int64, isNewPost bool, previewedPostPropVal string) (*opengraph.OpenGraph, *model.PostImage, *model.Permalink, error) {
 	requestURL = resolveMetadataURL(requestURL, a.GetSiteURL())
 
 	// If it's an embedded image, nothing to do.

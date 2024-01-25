@@ -497,13 +497,13 @@ export function getChannelTimezones(channelId: string): ActionFunc {
     };
 }
 
-export function fetchChannelsAndMembers(teamId: string, fetchBookmarks: boolean): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
+export function fetchChannelsAndMembers(teamId: string): ActionFunc<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         let channels;
         let channelMembers;
         try {
             [channels, channelMembers] = await Promise.all([
-                Client4.getMyChannels(teamId, false, fetchBookmarks),
+                Client4.getMyChannels(teamId, false),
                 Client4.getMyChannelMembers(teamId),
             ]);
         } catch (error) {

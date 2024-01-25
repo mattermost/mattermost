@@ -19,8 +19,6 @@ import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {loadNewDMIfNeeded, loadNewGMIfNeeded, loadProfilesForSidebar} from 'actions/user_actions';
 
-import {getIsChannelBookmarksEnabled} from 'components/channel_bookmarks/utils';
-
 import {getHistory} from 'utils/browser_history';
 import {Constants, Preferences, NotificationLevels} from 'utils/constants';
 import {getDirectChannelName} from 'utils/utils';
@@ -83,7 +81,7 @@ export function loadChannelsForCurrentUser(): ActionFunc {
         const state = getState();
         const unreads = getUnreadChannelIds(state);
 
-        await dispatch(ChannelActions.fetchChannelsAndMembers(getCurrentTeamId(state), getIsChannelBookmarksEnabled(state)));
+        await dispatch(ChannelActions.fetchChannelsAndMembers(getCurrentTeamId(state)));
         for (const id of unreads) {
             const channel = getChannel(state, id);
             if (channel && channel.type === Constants.DM_CHANNEL) {

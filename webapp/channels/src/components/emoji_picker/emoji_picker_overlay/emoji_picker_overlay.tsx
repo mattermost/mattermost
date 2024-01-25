@@ -3,7 +3,7 @@
 
 import memoize from 'memoize-one';
 import React from 'react';
-import type {ReactNode} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
 import {Overlay} from 'react-bootstrap';
 
 import type {Emoji} from '@mattermost/types/emojis';
@@ -23,6 +23,7 @@ export interface Props extends PropsFromRedux {
     onHide: () => void;
     onExited?: () => void;
     show: boolean;
+    placement?: ComponentProps<typeof Overlay>['placement'];
     topOffset?: number;
     rightOffset?: number;
     leftOffset?: number;
@@ -89,7 +90,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
         return (
             <Overlay
                 show={show}
-                placement={placement}
+                placement={this.props.placement ?? placement}
                 rootClose={!isMobileView}
                 container={this.props.container}
                 onHide={this.props.onHide}

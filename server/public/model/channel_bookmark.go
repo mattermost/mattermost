@@ -5,6 +5,8 @@ package model
 
 import (
 	"net/http"
+
+	"github.com/dyatlov/go-opengraph/opengraph"
 )
 
 type ChannelBookmarkType string
@@ -123,6 +125,11 @@ type ChannelWithTeamDataAndBookmarks struct {
 type UpdateChannelBookmarkResponse struct {
 	Updated *ChannelBookmarkWithFileInfo `json:"updated,omitempty"`
 	Deleted *ChannelBookmarkWithFileInfo `json:"deleted,omitempty"`
+}
+
+type ChannelBookmarkOpenGraphResponse struct {
+	OpenGraph *opengraph.OpenGraph `json:"open_graph,omitempty"`
+	Favicon   string               `json:"favicon,omitempty"`
 }
 
 func (o *UpdateChannelBookmarkResponse) Auditable() map[string]any {

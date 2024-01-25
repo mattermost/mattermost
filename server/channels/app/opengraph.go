@@ -4,12 +4,15 @@
 package app
 
 import (
+	"bytes"
 	"html"
 	"io"
 	"net/url"
 	"time"
 
+	"github.com/adampresley/gofavigrab/parser"
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"golang.org/x/net/html/charset"
 
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -49,7 +52,12 @@ func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
 
 func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentType string) *opengraph.OpenGraph {
 	og := opengraph.NewOpenGraph()
+
+	var buf bytes.Buffer
+	body2 := io.TeeReader(body, &buf)
+
 	body = forceHTMLEncodingToUTF8(io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
+	body2 = forceHTMLEncodingToUTF8(io.LimitReader(body2, MaxOpenGraphResponseSize), contentType)
 
 	if err := og.ProcessHTML(body); err != nil {
 		mlog.Warn("parseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
@@ -69,7 +77,47 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 		og.URL = requestURL
 	}
 
+	fav, _ := parseLinkFavicon(requestURL, body2)
+
+	if fav != "" {
+		og.Images = append(og.Images, &image.Image{
+			URL:       fav,
+			SecureURL: "",
+			Type:      "favicon",
+			Width:     0,
+			Height:    0,
+		})
+	}
+
 	return og
+}
+
+func parseLinkFavicon(requestURL string, body io.Reader) (string, error) {
+	html, err := io.ReadAll(body)
+	if err != nil {
+		mlog.Warn("Problem reading HTTP body content:")
+		return "", err
+	}
+
+	htmlParser := parser.NewHTMLParser(string(html))
+
+	url, err := htmlParser.GetFaviconURL()
+	if err != nil {
+		mlog.Warn("Problem reading the HTTP body content: parse")
+		return "", err
+	}
+
+	if url == "" {
+		return url, nil
+	}
+
+	url, err = htmlParser.NormalizeURL(requestURL, url)
+	if err != nil {
+		mlog.Warn("Problem reading the HTTP body content: normalize")
+		return "", err
+	}
+
+	return url, nil
 }
 
 func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {

@@ -3,10 +3,11 @@
 
 import {combineReducers} from 'redux';
 
+import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo, FileSearchResultItem} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
-import {FileTypes, PostTypes, UserTypes} from 'mattermost-redux/action_types';
+import {FileTypes, PostTypes, UserTypes, ChannelBookmarkTypes} from 'mattermost-redux/action_types';
 import type {GenericAction} from 'mattermost-redux/types/actions';
 
 export function files(state: Record<string, FileInfo> = {}, action: GenericAction) {
@@ -51,6 +52,43 @@ export function files(state: Record<string, FileInfo> = {}, action: GenericActio
         }
 
         return state;
+    }
+
+    case ChannelBookmarkTypes.RECEIVED_BOOKMARKS: {
+        const bookmarks: ChannelBookmark[] = action.data.bookmarks;
+
+        const nextState = {...state};
+
+        bookmarks.forEach(({file}) => {
+            if (file) {
+                nextState[file.id] = file;
+            }
+        });
+
+        return nextState;
+    }
+
+    case ChannelBookmarkTypes.RECEIVED_BOOKMARK: {
+        const {file}: ChannelBookmark = action.data;
+
+        if (file) {
+            return {...state, [file.id]: file};
+        }
+
+        return state;
+    }
+
+    case ChannelBookmarkTypes.BOOKMARK_DELETED: {
+        const {file}: ChannelBookmark = action.data;
+
+        if (!file) {
+            return state;
+        }
+
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, file.id);
+
+        return nextState;
     }
 
     case UserTypes.LOGOUT_SUCCESS:

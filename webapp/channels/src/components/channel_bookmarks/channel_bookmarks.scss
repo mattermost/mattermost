@@ -1,8 +1,9 @@
 
-#channelBookmarksPlusMenuButton {
+.channelBookmarksMenuButton {
     position: relative;
     display: flex;
     padding: 4px;
+    gap: 5px;
 
     background: transparent;
     border: none;
@@ -12,7 +13,6 @@
     border-radius: 4px;
     font-size: 12px;
     font-weight: 600;
-    gap: 5px;
 
     &.rounded {
         border-radius: 12px;
@@ -20,7 +20,7 @@
     }
 
     &:hover {
-        background: rgba(var(--center-channel-color-rgb), 8%);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
@@ -72,4 +72,9 @@
         );
         color: rgb(var(--button-bg-rgb));
     }
+}
+
+
+#bookmark-create-file-input {
+    display: none;
 }

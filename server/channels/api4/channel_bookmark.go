@@ -417,28 +417,18 @@ func fetchOpenGraph(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	c.RequireQ()
+	c.RequireUrl()
 	if c.Err != nil {
 		return
 	}
 
-	c.RequireTimestamp()
-	if c.Err != nil {
+	og, err := c.App.GetOpenGraphMetadata(c.Params.Url)
+	if og == nil {
+		c.Logger.Warn("Error while getting opengraph data", mlog.Err(err))
 		return
 	}
-
-	og, _, _, err := c.App.GetLinkMetadata(c.AppContext, c.Params.Q, c.Params.Timestamp, true, "")
-	// auditRec := c.MakeAuditRecord("createChannelBookmark", audit.Fail)
-	// defer c.LogAuditRec(auditRec)
-	// audit.AddEventParameterAuditable(auditRec, "channelBookmark", channelBookmark)
-
-	/* auditRec.Success()
-	auditRec.AddEventResultState(newChannelBookmark)
-	auditRec.AddEventObjectType("channelBookmarkWithFileInfo")
-	c.LogAudit("display_name=" + newChannelBookmark.DisplayName) */
 
 	w.WriteHeader(http.StatusOK)
-	if err := json.NewEncoder(w).Encode(og); err != nil {
-		c.Logger.Warn("Error while writing response", mlog.Err(err))
-	}
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(og)
 }

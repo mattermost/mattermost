@@ -86,6 +86,7 @@ require (
 	github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 // indirect
 	github.com/PuerkitoBio/goquery v1.8.1 // indirect
 	github.com/RoaringBitmap/roaring v1.6.0 // indirect
+	github.com/adampresley/gofavigrab v0.0.0-20150913222647-3e339572468d // indirect
 	github.com/advancedlogic/GoOse v0.0.0-20231203033844-ae6b36caf275 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect

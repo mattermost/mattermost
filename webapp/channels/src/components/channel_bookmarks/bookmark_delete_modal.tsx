@@ -9,12 +9,16 @@ import {GenericModal} from '@mattermost/components';
 type Props = {
     displayName: string;
     onConfirm: () => void;
+    onCancel?: () => void;
     onExited: () => void;
 }
+
+const noop = () => {};
 
 function BookmarkDeleteModal({
     displayName,
     onExited,
+    onCancel,
     onConfirm,
 }: Props) {
     const {formatMessage} = useIntl();
@@ -43,6 +47,7 @@ function BookmarkDeleteModal({
     return (
         <GenericModal
             confirmButtonText={confirmButtonText}
+            handleCancel={onCancel ?? noop}
             handleConfirm={onConfirm}
             modalHeaderText={title}
             onExited={onExited}

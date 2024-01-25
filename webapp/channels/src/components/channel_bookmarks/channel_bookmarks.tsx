@@ -8,7 +8,7 @@ import BookmarkItem from './bookmark_item';
 import PlusMenu from './channel_bookmarks_plus_menu';
 import {useChannelBookmarkPermission, useChannelBookmarks, useIsChannelBookmarksEnabled} from './utils';
 
-import './menu_buttons.scss';
+import './channel_bookmarks.scss';
 
 type Props = {
     channelId: string;
@@ -52,6 +52,7 @@ export default ChannelBookmarks;
 const Container = styled.div`
     display: flex;
     padding: 6px;
+    padding-right: 0;
     align-items: center;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     overflow-x: auto;

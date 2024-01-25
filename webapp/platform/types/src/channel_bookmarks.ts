@@ -14,7 +14,8 @@ export type ChannelBookmark = {
     delete_at: number;
     channel_id: string;
     owner_id: string;
-    file_id: string;
+    file_id?: string;
+    file?: FileInfo;
     display_name: string;
     sort_order: number;
     link_url?: string;
@@ -49,7 +50,7 @@ export type ChannelBookmarkPatch = {
 }
 
 export type ChannelBookmarkWithFileInfo = ChannelBookmark & {
-    fileInfo: FileInfo;
+    file: FileInfo;
 }
 
 export type ChannelBookmarksState = {

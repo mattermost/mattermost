@@ -106,7 +106,7 @@ import type {
     MarketplaceApp,
     MarketplacePlugin,
 } from '@mattermost/types/marketplace';
-import {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo} from '@mattermost/types/posts';
+import {Post, PostList, PostSearchResults, PostsUsageResponse, TeamsUsageResponse, PaginatedPostList, FilesUsageResponse, PostAcknowledgement, PostAnalytics, PostInfo, OpenGraphMetadata} from '@mattermost/types/posts';
 import {Draft} from '@mattermost/types/drafts';
 import {Reaction} from '@mattermost/types/reactions';
 import {Role} from '@mattermost/types/roles';
@@ -1564,7 +1564,6 @@ export default class Client4 {
         includeTotalCount = false,
         includeDeleted = false,
         excludePolicyConstrained = false,
-        includeBookmarks = false
     ) => {
         const queryData = {
             page,
@@ -1574,7 +1573,6 @@ export default class Client4 {
             include_total_count: includeTotalCount,
             include_deleted: includeDeleted,
             exclude_policy_constrained: excludePolicyConstrained,
-            include_bookmarks: includeBookmarks,
         };
         return this.doFetch<ChannelWithTeamData[] | ChannelsWithTotalCount>(
             `${this.getChannelsRoute()}${buildQueryString(queryData)}`,
@@ -1716,9 +1714,9 @@ export default class Client4 {
         );
     };
 
-    getMyChannels = (teamId: string, includeDeleted = false, includeChannelBookmarks = false) => {
+    getMyChannels = (teamId: string, includeDeleted = false) => {
         return this.doFetch<ServerChannel[]>(
-            `${this.getUserRoute('me')}/teams/${teamId}/channels${buildQueryString({include_deleted: includeDeleted, include_bookmarks: includeChannelBookmarks})}`,
+            `${this.getUserRoute('me')}/teams/${teamId}/channels${buildQueryString({include_deleted: includeDeleted})}`,
             {method: 'get'},
         );
     };
@@ -1947,13 +1945,12 @@ export default class Client4 {
         );
     };
 
-    fetchChannelBookmarkOpenGraph = (channelId: string, url: string, timestammp: number) => {
-        return this.doFetch<void>(
-            `${this.getChannelBookmarksRoute(channelId)}/open_graph${buildQueryString({q: url, timestammp})}`,
+    fetchChannelBookmarkOpenGraph = (channelId: string, url: string) => {
+        return this.doFetch<OpenGraphMetadata>(
+            `${this.getChannelBookmarksRoute(channelId)}/open_graph${buildQueryString({url})}`,
             {method: 'get'},
         );
     };
-
 
     //  Channel Category Routes
 
