@@ -78,6 +78,8 @@ const Preferences = {
     DRAFTS_TOUR_TIP_SHOWED: 'drafts_tour_tip_showed',
 
     CATEGORY_REPORTING: 'reporting',
+
+    HIDE_BATCH_EXPORT_CONFIRM_MODAL: 'hide_batch_export_confirm_modal',
     HIDE_MYSQL_STATS_NOTIFICATION: 'hide_mysql_stats_notifcation',
 
     CATEGORY_THEME: 'theme',
