@@ -5,8 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {closeRightHandSide, showPinnedPosts} from 'actions/views/rhs';
 import {getRhsState} from 'selectors/rhs';
 
@@ -20,7 +18,7 @@ const mapStateToProps = (state: GlobalState) => ({
     hasPinnedPosts: getRhsState(state) === RHSStates.PIN,
 });
 
-const mapDispatchToProps = (dispatch: Dispatch<GenericAction>) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
         closeRightHandSide,
         showPinnedPosts,

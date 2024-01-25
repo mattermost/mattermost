@@ -3266,6 +3266,10 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, rctx request.CTX, ss store
 	}
 	member, nErr = ss.Channel().SaveMember(member)
 	require.NoError(t, nErr)
+	then := member.LastUpdateAt
+
+	// Sleeping for a bit for the lastUpdateAt to be greater than before.
+	time.Sleep(10 * time.Millisecond)
 
 	props := member.NotifyProps
 	props["hello"] = "world"
@@ -3274,6 +3278,7 @@ func testChannelUpdateMemberNotifyProps(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, nErr)
 	// Verify props.
 	assert.Equal(t, props, member.NotifyProps)
+	require.Greater(t, member.LastUpdateAt, then)
 
 	t.Run("should fail with invalid input if the notify props are too big", func(t *testing.T) {
 		props["property"] = strings.Repeat("Z", model.ChannelMemberNotifyPropsMaxRunes)
@@ -7746,7 +7751,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss 
 
 	ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
 
-	d1, nErr := ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
+	d1, nErr := ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, nErr)
 
 	assert.Len(t, d1, 2)
@@ -7809,7 +7814,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 
 	ss.Channel().SaveDirectChannel(rctx, &o1, &m1, &m2)
 
-	d1, nErr := ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
+	d1, nErr := ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, nErr)
 	assert.Len(t, d1, 1)
 	assert.Equal(t, o1.DisplayName, d1[0].DisplayName)
@@ -7837,6 +7842,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx re
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
+	u2.DeleteAt = 123000
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(u2)
 	require.NoError(t, err)
@@ -7859,10 +7865,14 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx re
 	nErr = ss.Channel().SetDeleteAt(o1.Id, 1, 1)
 	require.NoError(t, nErr, "channel should have been deleted")
 
-	d1, nErr := ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26))
+	d1, nErr := ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, nErr)
+	assert.Len(t, d1, 0)
 
-	assert.Equal(t, 0, len(d1))
+	d1, nErr = ss.Channel().GetAllDirectChannelsForExportAfter(10000, strings.Repeat("0", 26), true)
+	assert.NoError(t, nErr)
+	assert.Len(t, d1, 1)
+	assert.Len(t, *d1[0].Members, 2)
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")
