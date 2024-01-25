@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -10,28 +10,25 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {demoteUserToGuest} from 'mattermost-redux/actions/users';
 
-import ConfirmModal from 'components/confirm_modal';
+import ConfirmModalRedux from 'components/confirm_modal_redux';
 
 type Props = {
     user: UserProfile;
     onExited: () => void;
+    onSuccess: () => void;
     onError: (error: ServerError) => void;
 }
 
-export default function DemoteToGuestModal({user, onExited, onError}: Props) {
-    const [show, setShow] = useState(true);
+export default function DemoteToGuestModal({user, onExited, onSuccess, onError}: Props) {
     const dispatch = useDispatch();
 
     async function confirm() {
         const {error} = await dispatch(demoteUserToGuest(user.id));
         if (error) {
             onError(error);
+        } else {
+            onSuccess();
         }
-        close();
-    }
-
-    function close() {
-        setShow(false);
     }
 
     const title = (
@@ -62,14 +59,12 @@ export default function DemoteToGuestModal({user, onExited, onError}: Props) {
     );
 
     return (
-        <ConfirmModal
-            show={show}
+        <ConfirmModalRedux
             title={title}
             message={message}
             confirmButtonClass='btn btn-danger'
             confirmButtonText={demoteGuestButton}
             onConfirm={confirm}
-            onCancel={close}
             onExited={onExited}
         />
     );
