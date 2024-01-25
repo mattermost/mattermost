@@ -5,18 +5,17 @@ import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {ReportDuration} from '@mattermost/types/reports';
+import type {ReportDuration} from '@mattermost/types/reports';
 import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Preferences} from 'mattermost-redux/constants';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {get} from 'mattermost-redux/selectors/entities/preferences';
 
 import {startUsersBatchExport} from 'actions/views/admin';
 import {openModal} from 'actions/views/modals';
-import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admin';
 
 import WithTooltip from 'components/with_tooltip';
 
@@ -27,20 +26,24 @@ import {ExportUserDataModal} from './export_user_data_modal';
 import {UpgradeExportDataModal} from './upgrade_export_data_modal';
 
 import './system_users_export.scss';
-export function SystemUsersExport() {
+
+interface Props {
+    currentUserId: UserProfile['id'];
+    dateRange: ReportDuration;
+}
+
+export function SystemUsersExport(props: Props) {
     const {formatMessage} = useIntl();
+
     const dispatch = useDispatch();
 
-    const dateRange = useSelector(getAdminConsoleUserManagementTableProperties).dateRange ?? ReportDuration.AllTime;
-    const currentUser = useSelector(getCurrentUser);
-    const skipDialog = useSelector((state: GlobalState) =>
-        get(state, Preferences.CATEGORY_REPORTING, Preferences.HIDE_BATCH_EXPORT_CONFIRM_MODAL, '')) === 'true';
+    const skipDialog = useSelector((state: GlobalState) => get(state, Preferences.CATEGORY_REPORTING, Preferences.HIDE_BATCH_EXPORT_CONFIRM_MODAL, '')) === 'true';
 
     const license = useSelector(getLicense);
     const isLicensed = license.IsLicensed === 'true' && (license.SkuShortName === LicenseSkus.Professional || license.SkuShortName === LicenseSkus.Enterprise);
 
     async function doExport(checked?: boolean) {
-        const {error} = await dispatch(startUsersBatchExport(dateRange));
+        const {error} = await dispatch(startUsersBatchExport(props.dateRange));
         if (error) {
             dispatch(openModal({
                 modalId: ModalIdentifiers.EXPORT_ERROR_MODAL,
@@ -51,10 +54,10 @@ export function SystemUsersExport() {
         }
 
         if (checked) {
-            dispatch(savePreferences(currentUser.id, [{
+            dispatch(savePreferences(props.currentUserId, [{
                 category: Preferences.CATEGORY_REPORTING,
                 name: Preferences.HIDE_BATCH_EXPORT_CONFIRM_MODAL,
-                user_id: currentUser.id,
+                user_id: props.currentUserId,
                 value: 'true',
             }]));
         }

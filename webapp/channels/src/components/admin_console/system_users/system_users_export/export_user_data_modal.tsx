@@ -11,8 +11,6 @@ import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admi
 
 import ConfirmModalRedux from 'components/confirm_modal_redux';
 
-import {t} from 'utils/i18n';
-
 type Props = {
     onConfirm: (checked: boolean) => void;
     onExited: () => void;
@@ -28,24 +26,34 @@ export function ExportUserDataModal({onConfirm, onExited}: Props) {
         />
     );
 
-    const message = (
-        <>
-            <FormattedMessage
-                id='export_user_data_modal.desc'
-                defaultMessage={'You\'re about to export user data for {dateRange}. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.'}
-                values={{
-                    dateRange: (
-                        <b>
-                            <FormattedMessage
-                                id={`export_user_data_modal.date_range.${dateRange}`}
-                                defaultMessage='all time'
-                            />
-                        </b>
-                    ),
-                }}
-            />
-        </>
+    let message = (
+        <FormattedMessage
+            id='export_user_data_modal.dange_range.all_time'
+            defaultMessage={'You\'re about to export user data for all time. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.'}
+        />
     );
+    if (dateRange === ReportDuration.Last30Days) {
+        message = (
+            <FormattedMessage
+                id='export_user_data_modal.dange_range.last_30_days'
+                defaultMessage={'You\'re about to export user data for the last 30 days. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.'}
+            />
+        );
+    } else if (dateRange === ReportDuration.PreviousMonth) {
+        message = (
+            <FormattedMessage
+                id='export_user_data_modal.dange_range.previous_month'
+                defaultMessage={'You\'re about to export user data for the previous month. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.'}
+            />
+        );
+    } else if (dateRange === ReportDuration.Last6Months) {
+        message = (
+            <FormattedMessage
+                id='export_user_data_modal.dange_range.last_6_months'
+                defaultMessage={'You\'re about to export user data for the last 6 months. When the export is ready, a CSV file will be sent to you in a Mattermost direct message. This export will take a few minutes.'}
+            />
+        );
+    }
 
     const exportDataButton = (
         <FormattedMessage
@@ -74,8 +82,3 @@ export function ExportUserDataModal({onConfirm, onExited}: Props) {
         />
     );
 }
-
-t('export_user_data_modal.date_range.all_time');
-t('export_user_data_modal.date_range.last_30_days');
-t('export_user_data_modal.date_range.previous_month');
-t('export_user_data_modal.date_range.last_6_months');

@@ -506,7 +506,10 @@ function SystemUsers(props: Props) {
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}
                         />
                         <SystemUsersDateRangeSelector/>
-                        <SystemUsersExport/>
+                        <SystemUsersExport
+                            currentUserId={props.currentUser.id}
+                            dateRange={props.tablePropertyDateRange}
+                        />
                     </div>
                     <AdminConsoleListTable<UserReport>
                         table={table}
