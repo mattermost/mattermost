@@ -4831,10 +4831,6 @@
     "translation": "List of admins is empty."
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "List of admins is empty."
-  },
-  {
     "id": "app.bot.getbot.internal_error",
     "translation": "Unable to get the bot."
   },
