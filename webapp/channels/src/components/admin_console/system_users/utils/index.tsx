@@ -7,11 +7,26 @@ import {FormattedMessage} from 'react-intl';
 import {UserReportSortColumns, ReportSortDirection} from '@mattermost/types/reports';
 import type {UserReportOptions, UserReport} from '@mattermost/types/reports';
 
-import type {SortingState} from 'components/admin_console/list_table';
+import {PAGE_SIZES, type SortingState} from 'components/admin_console/list_table';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
-import {ColumnNames, StatusFilter} from '../constants';
+import {ColumnNames, RoleFilters, StatusFilter} from '../constants';
+import type {TableOptions} from '../system_users';
+
+export function convertTableOptionsToUserReportOptions(tableOptions?: TableOptions): UserReportOptions {
+    return {
+        page_size: tableOptions?.pageSize || PAGE_SIZES[0],
+        from_column_value: tableOptions?.fromColumnValue,
+        from_id: tableOptions?.fromId,
+        direction: tableOptions?.direction,
+        ...getSortColumnForOptions(tableOptions?.sortColumn),
+        ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
+        search_term: tableOptions?.searchTerm,
+        ...getUserStatusFilterOption(tableOptions?.filterStatus),
+        ...getRoleFilterOption(tableOptions?.filterRole),
+    };
+}
 
 /**
  * Converts the sorting column name to API compatible sorting column name. Default sorting column name is by username.
@@ -103,4 +118,21 @@ export function getPaginationInfo(pageIndex: number, pageSize: number, currentLe
             }}
         />
     );
+}
+
+export function getDefaultValueFromList<T extends {value: string}>(value: string, options: T[]) {
+    const option = options.find((option) => option.value === value);
+
+    if (option) {
+        return option;
+    }
+
+    return options[0];
+}
+
+export function getRoleFilterOption(role?: string): Pick<UserReportOptions, 'role_filter'> {
+    if (!role || role === RoleFilters.Any) {
+        return {role_filter: ''};
+    }
+    return {role_filter: role};
 }

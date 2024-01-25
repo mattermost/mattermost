@@ -8,7 +8,7 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
-import type {UserReport, UserReportOptions} from '@mattermost/types/reports';
+import type {UserReport} from '@mattermost/types/reports';
 
 import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
 import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef, VisibilityState} from 'components/admin_console/list_table';
@@ -25,7 +25,7 @@ import {SystemUsersExport} from './system_users_export';
 import {SystemUsersFilterPopover} from './system_users_filters_popover';
 import {SystemUsersListAction} from './system_users_list_actions';
 import {SystemUsersSearch} from './system_users_search';
-import {getSortableColumnValueBySortColumn, getSortColumnForOptions, getSortDirectionForOptions, getPaginationInfo, getUserStatusFilterOption} from './utils';
+import {getSortableColumnValueBySortColumn, getPaginationInfo, convertTableOptionsToUserReportOptions} from './utils';
 
 import './system_users.scss';
 
@@ -33,7 +33,7 @@ import type {PropsFromRedux} from './index';
 
 type Props = PropsFromRedux;
 
-type TableOptions = {
+export type TableOptions = {
     pageSize?: PaginationState['pageSize'];
     sortColumn?: SortingState[0]['id'];
     sortIsDescending?: SortingState[0]['desc'];
@@ -41,21 +41,9 @@ type TableOptions = {
     fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
     direction?: CursorPaginationDirection;
     searchTerm?: string;
+    filterRole?: AdminConsoleUserManagementTableProperties['filterRole'];
     filterStatus?: AdminConsoleUserManagementTableProperties['filterStatus'];
 }
-
-const toUserReportOptions = (tableOptions?: TableOptions): UserReportOptions => {
-    return {
-        page_size: tableOptions?.pageSize || PAGE_SIZES[0],
-        from_column_value: tableOptions?.fromColumnValue,
-        from_id: tableOptions?.fromId,
-        direction: tableOptions?.direction,
-        ...getSortColumnForOptions(tableOptions?.sortColumn),
-        ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
-        search_term: tableOptions?.searchTerm,
-        ...getUserStatusFilterOption(tableOptions?.filterStatus),
-    };
-};
 
 const tableId = 'systemUsersTable';
 
@@ -76,7 +64,7 @@ function SystemUsers(props: Props) {
     // Effect to get the total user count
     useEffect(() => {
         const getUserCount = async (tableOptions?: TableOptions) => {
-            const {data} = await props.getUserCountForReporting(toUserReportOptions(tableOptions));
+            const {data} = await props.getUserCountForReporting(convertTableOptionsToUserReportOptions(tableOptions));
             setUserCount(data);
         };
 
@@ -88,6 +76,7 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            filterRole: props.tablePropertyFilterRole,
             filterStatus: props.tablePropertyFilterStatus,
         });
     }, [
@@ -98,6 +87,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
+        props.tablePropertyFilterRole,
         props.tablePropertyFilterStatus,
     ]);
 
@@ -106,7 +96,7 @@ function SystemUsers(props: Props) {
         async function fetchUserReportsWithOptions(tableOptions?: TableOptions) {
             setLoadingState(LoadingStates.Loading);
 
-            const {data} = await props.getUserReports(toUserReportOptions(tableOptions));
+            const {data} = await props.getUserReports(convertTableOptionsToUserReportOptions(tableOptions));
 
             if (data) {
                 if (data.length > 0) {
@@ -128,6 +118,7 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            filterRole: props.tablePropertyFilterRole,
             filterStatus: props.tablePropertyFilterStatus,
         });
     }, [
@@ -138,6 +129,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
+        props.tablePropertyFilterRole,
         props.tablePropertyFilterStatus,
     ]);
 
@@ -438,6 +430,7 @@ function SystemUsers(props: Props) {
                             searchTerm={props.tablePropertySearchTerm}
                         />
                         <SystemUsersFilterPopover
+                            filterRole={props.tablePropertyFilterRole}
                             filterStatus={props.tablePropertyFilterStatus}
                         />
                         <SystemUsersColumnTogglerMenu

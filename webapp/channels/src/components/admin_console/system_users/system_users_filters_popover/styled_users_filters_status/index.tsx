@@ -3,15 +3,13 @@
 
 import React, {useMemo, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
-
-import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 
 import DropdownInput from 'components/dropdown_input';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
 import {StatusFilter} from '../../constants';
+import {getDefaultValueFromList} from '../../utils';
 
 type OptionType = {
     label: string;
@@ -19,13 +17,12 @@ type OptionType = {
 }
 
 interface Props {
-    value: AdminConsoleUserManagementTableProperties['filterStatus'];
+    initialValue: AdminConsoleUserManagementTableProperties['filterStatus'];
+    onChange: (value: AdminConsoleUserManagementTableProperties['filterStatus']) => void;
 }
 
 export function SystemUsersFiltersStatus(props: Props) {
     const {formatMessage} = useIntl();
-
-    const dispatch = useDispatch();
 
     const options = useMemo(() => {
         return [
@@ -53,39 +50,23 @@ export function SystemUsersFiltersStatus(props: Props) {
         ];
     }, []);
 
-    const [value, setValue] = useState(getInitialValue(props.value, options));
+    const [value, setValue] = useState(getDefaultValueFromList(props.initialValue, options));
 
     function handleChange(value: OptionType) {
         setValue(value);
 
-        let filterStatus = '';
-        if (value.value === StatusFilter.Active) {
-            filterStatus = 'active';
-        } else if (value.value === StatusFilter.Deactivated) {
-            filterStatus = 'deactivated';
-        }
-
-        dispatch(setAdminConsoleUsersManagementTableProperties({filterStatus}));
+        props.onChange(value.value);
     }
 
     return (
         <DropdownInput<OptionType>
             name='filterStatus'
             showLegend={true}
+            isSearchable={false}
             legend={formatMessage({id: 'admin.system_users.filters.status.title', defaultMessage: 'Status'})}
             options={options}
             value={value}
             onChange={handleChange}
         />
     );
-}
-
-function getInitialValue(value: Props['value'], options: OptionType[]) {
-    const option = options.find((option) => option.value === value);
-
-    if (option) {
-        return option;
-    }
-
-    return options[0];
 }

@@ -69,6 +69,7 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     columnVisibility: {},
     searchTerm: '',
     filterStatus: '',
+    filterRole: '',
 };
 
 export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: GenericAction) {

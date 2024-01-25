@@ -31,6 +31,7 @@ export type AdminConsoleUserManagementTableProperties = {
     columnVisibility: Record<string, boolean>;
     searchTerm: string;
     filterStatus: string;
+    filterRole: string;
 };
 
 export type ViewsState = {

@@ -19,3 +19,10 @@ export enum StatusFilter {
     Active = 'active',
     Deactivated = 'deactivated',
 }
+
+export enum RoleFilters {
+    Any = 'any',
+    Admin = 'system_admin',
+    Member = 'system_user',
+    Guest = 'system_guest',
+}
