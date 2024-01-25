@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
@@ -10,29 +10,25 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {promoteGuestToUser} from 'mattermost-redux/actions/users';
 
-import ConfirmModal from 'components/confirm_modal';
+import ConfirmModalRedux from 'components/confirm_modal_redux';
 
 type Props = {
     user: UserProfile;
+    onSuccess: () => void;
     onExited: () => void;
     onError: (error: ServerError) => void;
 }
 
-export default function PromoteToMemberModal({user, onExited, onError}: Props) {
-    const [show, setShow] = useState(true);
+export default function PromoteToMemberModal({user, onExited, onSuccess, onError}: Props) {
     const dispatch = useDispatch();
 
     async function confirm() {
         const {error} = await dispatch(promoteGuestToUser(user.id));
         if (error) {
             onError(error);
+        } else {
+            onSuccess();
         }
-
-        close();
-    }
-
-    function close() {
-        setShow(false);
     }
 
     const title = (
@@ -63,14 +59,12 @@ export default function PromoteToMemberModal({user, onExited, onError}: Props) {
     );
 
     return (
-        <ConfirmModal
-            show={show}
+        <ConfirmModalRedux
             title={title}
             message={message}
             confirmButtonClass='btn btn-danger'
             confirmButtonText={promoteUserButton}
             onConfirm={confirm}
-            onCancel={close}
             onExited={onExited}
         />
     );

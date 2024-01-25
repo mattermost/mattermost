@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useState} from 'react';
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -12,7 +12,7 @@ import {updateUserActive} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 
-import ConfirmModal from 'components/confirm_modal';
+import ConfirmModalRedux from 'components/confirm_modal_redux';
 import ExternalLink from 'components/external_link';
 
 import Constants from 'utils/constants';
@@ -20,26 +20,23 @@ import Constants from 'utils/constants';
 type Props = {
     user: UserProfile;
     onExited: () => void;
+    onSuccess: () => void;
     onError: (error: ServerError) => void;
 }
 
-export default function DeactivateMemberModal({user, onExited, onError}: Props) {
+export default function DeactivateMemberModal({user, onExited, onSuccess, onError}: Props) {
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
     const bots = useSelector(getExternalBotAccounts);
     const siteURL = config.ServiceSettings?.SiteURL;
-    const [show, setShow] = useState(true);
 
     async function deactivateMember() {
         const {error} = await dispatch(updateUserActive(user.id, false));
         if (error) {
             onError(error);
+        } else {
+            onSuccess();
         }
-        closeModal();
-    }
-
-    function closeModal() {
-        setShow(false);
     }
 
     const title = (
@@ -155,14 +152,12 @@ export default function DeactivateMemberModal({user, onExited, onError}: Props) 
     );
 
     return (
-        <ConfirmModal
-            show={show}
+        <ConfirmModalRedux
             title={title}
             message={message}
             confirmButtonClass={confirmButtonClass}
             confirmButtonText={deactivateMemberButton}
             onConfirm={deactivateMember}
-            onCancel={closeModal}
             onExited={onExited}
         />
     );
