@@ -9,7 +9,7 @@ import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/consta
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc, GetStateFunc, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
@@ -142,8 +142,8 @@ export function installPlugin(id: string): ThunkActionFunc<void, GlobalState> {
 // installApp installed an App using a given URL a call to the `/install-listed` call path.
 //
 // On success, it also requests the current state of the apps to reflect the newly installed app.
-export function installApp(id: string): ThunkActionFunc<Promise<boolean>> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<boolean> => {
+export function installApp(id: string): ThunkActionFunc<Promise<boolean>, GlobalState> {
+    return async (dispatch, getState) => {
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,

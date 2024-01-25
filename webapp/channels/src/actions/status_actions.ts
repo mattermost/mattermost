@@ -66,7 +66,7 @@ export function loadStatusesForProfilesList(users: UserProfile[] | null): NewAct
     };
 }
 
-export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | null): NewActionFunc {
+export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | UserProfile[] | null): NewActionFunc {
     return (dispatch) => {
         if (users == null) {
             return {data: false};
