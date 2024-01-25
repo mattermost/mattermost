@@ -295,7 +295,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                     disabled={true}
                     type='text'
                     className='form-control disabled'
-                    value={'*'.repeat(16)}
+                    value={'•'.repeat(16)}
                 />
                 <span
                     onClick={startEditingClientSecret}
