@@ -32,7 +32,7 @@ type Props = {
 const InstalledOutgoingOAuthConnections = (props: Props) => {
     const [loading, setLoading] = useState(true);
     const canManageOutgoingOAuthConnections = useSelector((state) => haveISystemPermission(state as GlobalState, {permission: Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS}));
-    const enableOutgoingOAuthConnections = (useSelector(getConfig).EnableOutgoingOAuthConnections === 'true') || true;
+    const enableOutgoingOAuthConnections = (useSelector(getConfig).EnableOutgoingOAuthConnections === 'true');
     const connections = useSelector(getOutgoingOAuthConnections);
 
     const dispatch = useDispatch();

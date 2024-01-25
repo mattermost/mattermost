@@ -26,7 +26,7 @@ function mapStateToProps(state: GlobalState) {
     const enableOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
     const enableCommands = config.EnableCommands === 'true';
     const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
-    const enableOutgoingOAuthConnections = config.EnableOutgoingOAuthConnections === 'true' || true;
+    const enableOutgoingOAuthConnections = config.EnableOutgoingOAuthConnections === 'true';
 
     let canCreateOrDeleteCustomEmoji = (haveISystemPermission(state, {permission: Permissions.CREATE_EMOJIS}) || haveISystemPermission(state, {permission: Permissions.DELETE_EMOJIS}));
     if (!canCreateOrDeleteCustomEmoji) {

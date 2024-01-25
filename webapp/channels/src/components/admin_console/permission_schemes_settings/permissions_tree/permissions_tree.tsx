@@ -222,7 +222,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (config.EnableOAuthServiceProvider === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OAUTH)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OAUTH);
         }
-        if (config.FeatureFlagOutgoingOAuthConnections === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS)) {
+        if (config.EnableOutgoingOAuthConnections === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
         }
         if (config.EnableCommands === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_SLASH_COMMANDS)) {
