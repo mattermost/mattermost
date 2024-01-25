@@ -9,7 +9,7 @@ import DropdownInput from 'components/dropdown_input';
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
 import {RoleFilters} from '../../constants';
-import {getDefaultValueFromList} from '../../utils';
+import {getDefaultSelectedValueFromList} from '../../utils';
 
 type OptionType = {
     label: string;
@@ -57,7 +57,7 @@ export function SystemUsersFilterRole(props: Props) {
         ];
     }, []);
 
-    const [value, setValue] = useState(getDefaultValueFromList(props.initialValue, options));
+    const [value, setValue] = useState(getDefaultSelectedValueFromList(props.initialValue, options));
 
     function handleChange(value: OptionType) {
         setValue(value);

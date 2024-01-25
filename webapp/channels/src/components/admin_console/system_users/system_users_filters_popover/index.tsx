@@ -14,23 +14,25 @@ import type {AdminConsoleUserManagementTableProperties} from 'types/store/views'
 
 import {SystemUsersFiltersStatus} from './styled_users_filters_status';
 import {SystemUsersFilterRole} from './system_users_filter_role';
+import {SystemUsersFilterTeam} from './system_users_filter_team';
 
 import './system_users_filter_popover.scss';
-import {RoleFilters, StatusFilter} from '../constants';
+import {RoleFilters, StatusFilter, TeamFilters} from '../constants';
 
-type FiltersState = Partial<Pick<AdminConsoleUserManagementTableProperties, 'filterRole' | 'filterStatus'>>;
+type FiltersState = Partial<Pick<AdminConsoleUserManagementTableProperties, 'filterTeam' | 'filterTeamLabel' | 'filterRole' | 'filterStatus'>>;
 
 interface Props {
+    filterTeam: AdminConsoleUserManagementTableProperties['filterTeam'];
+    filterTeamLabel: AdminConsoleUserManagementTableProperties['filterTeamLabel'];
     filterRole: AdminConsoleUserManagementTableProperties['filterRole'];
     filterStatus: AdminConsoleUserManagementTableProperties['filterStatus'];
 }
 
 export function SystemUsersFilterPopover(props: Props) {
     const dispatch = useDispatch();
+    const {formatMessage} = useIntl();
 
     const [isPopoverOpen, setPopoverOpen] = useState(false);
-
-    const {formatMessage} = useIntl();
 
     const [filterState, setFilterState] = useState<FiltersState>({});
 
@@ -57,6 +59,24 @@ export function SystemUsersFilterPopover(props: Props) {
         floatingContextDismiss,
         floatingContextRole,
     ]);
+
+    function handleTeamFilterChange(teamFilter: string, teamFilterLabel?: string) {
+        let filterTeam;
+        let filterTeamLabel;
+        if (teamFilter === TeamFilters.AllTeams) {
+            filterTeam = '';
+        } else if (teamFilter === TeamFilters.NoTeams) {
+            filterTeam = TeamFilters.NoTeams;
+        } else {
+            filterTeam = teamFilter;
+
+            // We need to set the label for selected team,
+            // since we might not have the selected team label in the list of teams when we are navigating back from the user details page.
+            filterTeamLabel = teamFilterLabel;
+        }
+
+        setFilterState({...filterState, filterTeam, filterTeamLabel});
+    }
 
     function handleRoleFilterChange(roleFilter: string) {
         let filterRole = '';
@@ -89,7 +109,8 @@ export function SystemUsersFilterPopover(props: Props) {
 
     const filterStatusApplied = props.filterStatus.length > 0 ? 1 : 0;
     const filterRoleApplied = props.filterRole.length > 0 ? 1 : 0;
-    const filtersCount = filterStatusApplied + filterRoleApplied;
+    const filterTeamApplied = props.filterTeam.length > 0 ? 1 : 0;
+    const filtersCount = filterStatusApplied + filterRoleApplied + filterTeamApplied;
 
     return (
         <div className='systemUsersFilterContainer'>
@@ -118,6 +139,11 @@ export function SystemUsersFilterPopover(props: Props) {
                             {formatMessage({id: 'admin.system_users.filtersPopover.title', defaultMessage: 'Filter by'})}
                         </h4>
                         <div className='body'>
+                            <SystemUsersFilterTeam
+                                initialValue={props.filterTeam}
+                                initialLabel={props.filterTeamLabel}
+                                onChange={handleTeamFilterChange}
+                            />
                             <SystemUsersFilterRole
                                 initialValue={props.filterRole}
                                 onChange={handleRoleFilterChange}

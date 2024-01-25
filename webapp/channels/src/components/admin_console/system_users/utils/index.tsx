@@ -6,13 +6,16 @@ import {FormattedMessage} from 'react-intl';
 
 import {UserReportSortColumns, ReportSortDirection} from '@mattermost/types/reports';
 import type {UserReportOptions, UserReport} from '@mattermost/types/reports';
+import type {Team} from '@mattermost/types/teams';
 
-import {PAGE_SIZES, type SortingState} from 'components/admin_console/list_table';
+import {PAGE_SIZES} from 'components/admin_console/list_table';
+import type {SortingState} from 'components/admin_console/list_table';
 
 import type {AdminConsoleUserManagementTableProperties} from 'types/store/views';
 
-import {ColumnNames, RoleFilters, StatusFilter} from '../constants';
+import {ColumnNames, RoleFilters, StatusFilter, TeamFilters} from '../constants';
 import type {TableOptions} from '../system_users';
+import type {OptionType as TeamFilterOptionType} from '../system_users_filters_popover/system_users_filter_team';
 
 export function convertTableOptionsToUserReportOptions(tableOptions?: TableOptions): UserReportOptions {
     return {
@@ -23,6 +26,7 @@ export function convertTableOptionsToUserReportOptions(tableOptions?: TableOptio
         ...getSortColumnForOptions(tableOptions?.sortColumn),
         ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
         ...getSearchFilterOption(tableOptions?.searchTerm),
+        ...getTeamFilterOption(tableOptions?.filterTeam),
         ...getStatusFilterOption(tableOptions?.filterStatus),
         ...getRoleFilterOption(tableOptions?.filterRole),
         date_range: tableOptions?.dateRange,
@@ -80,6 +84,25 @@ export function getSortableColumnValueBySortColumn(row: UserReport, sortColumn: 
     }
 }
 
+export function getTeamFilterOption(teamId?: string): Partial<Pick<UserReportOptions, 'team_filter' | 'has_no_team'>> {
+    if (!teamId || teamId === TeamFilters.AllTeams) {
+        return {
+            team_filter: undefined,
+            has_no_team: undefined,
+        };
+    } else if (teamId === TeamFilters.NoTeams) {
+        return {
+            team_filter: undefined,
+            has_no_team: true,
+        };
+    }
+
+    return {
+        team_filter: teamId,
+        has_no_team: undefined,
+    };
+}
+
 export function getStatusFilterOption(status?: string): Partial<Pick<UserReportOptions, 'hide_active' | 'hide_inactive'>> {
     if (status === StatusFilter.Active) {
         return {
@@ -124,7 +147,7 @@ export function getPaginationInfo(pageIndex: number, pageSize: number, currentLe
     );
 }
 
-export function getDefaultValueFromList<T extends {value: string}>(value: string, options: T[]) {
+export function getDefaultSelectedValueFromList<T extends {value: string}>(value: string, options: T[]) {
     const option = options.find((option) => option.value === value);
 
     if (option) {
@@ -132,6 +155,35 @@ export function getDefaultValueFromList<T extends {value: string}>(value: string
     }
 
     return options[0];
+}
+
+export function getDefaultSelectedTeam(teamId: Team['id'] | string, label?: string): TeamFilterOptionType {
+    if (!teamId || teamId === TeamFilters.AllTeams) {
+        return {
+            value: TeamFilters.AllTeams,
+            label: (
+                <FormattedMessage
+                    id='admin.system_users.filters.team.allTeams'
+                    defaultMessage='All Teams'
+                />
+            ),
+        };
+    } else if (teamId === TeamFilters.NoTeams) {
+        return {
+            value: TeamFilters.NoTeams,
+            label: (
+                <FormattedMessage
+                    id='admin.system_users.filters.team.noTeams'
+                    defaultMessage='No Teams'
+                />
+            ),
+        };
+    }
+
+    return {
+        value: teamId,
+        label: label || '',
+    };
 }
 
 export function getRoleFilterOption(role?: string): Pick<UserReportOptions, 'role_filter'> {

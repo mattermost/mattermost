@@ -45,6 +45,7 @@ export type TableOptions = {
     fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
     direction?: CursorPaginationDirection;
     searchTerm?: string;
+    filterTeam?: AdminConsoleUserManagementTableProperties['filterTeam'];
     filterRole?: AdminConsoleUserManagementTableProperties['filterRole'];
     filterStatus?: AdminConsoleUserManagementTableProperties['filterStatus'];
     dateRange?: ReportDuration;
@@ -84,6 +85,7 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            filterTeam: props.tablePropertyFilterTeam,
             filterRole: props.tablePropertyFilterRole,
             filterStatus: props.tablePropertyFilterStatus,
         });
@@ -95,6 +97,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
+        props.tablePropertyFilterTeam,
         props.tablePropertyFilterRole,
         props.tablePropertyFilterStatus,
     ]);
@@ -126,6 +129,7 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            filterTeam: props.tablePropertyFilterTeam,
             filterRole: props.tablePropertyFilterRole,
             filterStatus: props.tablePropertyFilterStatus,
             dateRange: props.tablePropertyDateRange,
@@ -139,6 +143,7 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
         props.tablePropertyFilterRole,
+        props.tablePropertyFilterTeam,
         props.tablePropertyFilterStatus,
         props.tablePropertyDateRange,
     ]);
@@ -518,6 +523,8 @@ function SystemUsers(props: Props) {
                             searchTerm={props.tablePropertySearchTerm}
                         />
                         <SystemUsersFilterPopover
+                            filterTeam={props.tablePropertyFilterTeam}
+                            filterTeamLabel={props.tablePropertyFilterTeamLabel}
                             filterRole={props.tablePropertyFilterRole}
                             filterStatus={props.tablePropertyFilterStatus}
                         />

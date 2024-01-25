@@ -18,6 +18,7 @@ import {getAdminConsoleUserManagementTableProperties} from 'selectors/views/admi
 
 import type {GlobalState} from 'types/store';
 
+import {RoleFilters, StatusFilter, TeamFilters} from './constants';
 import SystemUsers from './system_users';
 
 function mapStateToProps(state: GlobalState) {
@@ -33,18 +34,20 @@ function mapStateToProps(state: GlobalState) {
     const currentUser = getCurrentUser(state);
 
     const tableProperties = getAdminConsoleUserManagementTableProperties(state);
-    const sortColumn = tableProperties?.sortColumn ?? adminConsoleUserManagementTablePropertiesInitialState.sortColumn;
-    const sortIsDescending = tableProperties?.sortIsDescending ?? adminConsoleUserManagementTablePropertiesInitialState.sortIsDescending;
-    const pageSize = tableProperties?.pageSize ?? adminConsoleUserManagementTablePropertiesInitialState.pageSize;
-    const pageIndex = tableProperties?.pageIndex ?? adminConsoleUserManagementTablePropertiesInitialState.pageIndex;
-    const direction = tableProperties?.cursorDirection ?? adminConsoleUserManagementTablePropertiesInitialState.cursorDirection;
-    const fromId = tableProperties?.cursorUserId ?? adminConsoleUserManagementTablePropertiesInitialState.cursorUserId;
-    const fromColumnValue = tableProperties?.cursorColumnValue ?? adminConsoleUserManagementTablePropertiesInitialState.cursorColumnValue;
-    const columnVisibility = tableProperties?.columnVisibility ?? adminConsoleUserManagementTablePropertiesInitialState.columnVisibility;
-    const searchTerm = tableProperties?.searchTerm ?? adminConsoleUserManagementTablePropertiesInitialState.searchTerm;
-    const tablePropertyFilterRole = tableProperties?.filterRole;
-    const tablePropertyFilterStatus = tableProperties?.filterStatus ?? adminConsoleUserManagementTablePropertiesInitialState.filterStatus;
-    const dateRange = tableProperties?.dateRange ?? ReportDuration.AllTime;
+    const tablePropertySortColumn = tableProperties?.sortColumn ?? adminConsoleUserManagementTablePropertiesInitialState.sortColumn;
+    const tablePropertySortIsDescending = tableProperties?.sortIsDescending ?? adminConsoleUserManagementTablePropertiesInitialState.sortIsDescending;
+    const tablePropertyPageSize = tableProperties?.pageSize ?? adminConsoleUserManagementTablePropertiesInitialState.pageSize;
+    const tablePropertyPageIndex = tableProperties?.pageIndex ?? adminConsoleUserManagementTablePropertiesInitialState.pageIndex;
+    const tablePropertyCursorDirection = tableProperties?.cursorDirection ?? adminConsoleUserManagementTablePropertiesInitialState.cursorDirection;
+    const tablePropertyCursorUserId = tableProperties?.cursorUserId ?? adminConsoleUserManagementTablePropertiesInitialState.cursorUserId;
+    const tablePropertyCursorColumnValue = tableProperties?.cursorColumnValue ?? adminConsoleUserManagementTablePropertiesInitialState.cursorColumnValue;
+    const tablePropertyColumnVisibility = tableProperties?.columnVisibility ?? adminConsoleUserManagementTablePropertiesInitialState.columnVisibility;
+    const tablePropertySearchTerm = tableProperties?.searchTerm ?? adminConsoleUserManagementTablePropertiesInitialState.searchTerm;
+    const tablePropertyFilterTeam = tableProperties?.filterTeam ?? TeamFilters.AllTeams;
+    const tablePropertyFilterTeamLabel = tableProperties?.filterTeamLabel ?? '';
+    const tablePropertyFilterRole = tableProperties?.filterRole ?? RoleFilters.Any;
+    const tablePropertyFilterStatus = tableProperties?.filterStatus ?? StatusFilter.Any;
+    const tablePropertyDateRange = tableProperties?.dateRange ?? ReportDuration.AllTime;
 
     return {
         siteName,
@@ -54,18 +57,20 @@ function mapStateToProps(state: GlobalState) {
         currentUser,
         isMySql,
         hideMySqlNotification,
-        tablePropertySortColumn: sortColumn,
-        tablePropertySortIsDescending: sortIsDescending,
-        tablePropertyPageSize: pageSize,
-        tablePropertyPageIndex: pageIndex,
-        tablePropertyCursorDirection: direction,
-        tablePropertyCursorUserId: fromId,
-        tablePropertyCursorColumnValue: fromColumnValue,
-        tablePropertyColumnVisibility: columnVisibility,
-        tablePropertySearchTerm: searchTerm,
+        tablePropertySortColumn,
+        tablePropertySortIsDescending,
+        tablePropertyPageSize,
+        tablePropertyPageIndex,
+        tablePropertyCursorDirection,
+        tablePropertyCursorUserId,
+        tablePropertyCursorColumnValue,
+        tablePropertyColumnVisibility,
+        tablePropertySearchTerm,
+        tablePropertyFilterTeam,
+        tablePropertyFilterTeamLabel,
         tablePropertyFilterRole,
         tablePropertyFilterStatus,
-        tablePropertyDateRange: dateRange,
+        tablePropertyDateRange,
     };
 }
 

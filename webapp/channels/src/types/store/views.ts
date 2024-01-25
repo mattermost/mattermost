@@ -30,6 +30,8 @@ export type AdminConsoleUserManagementTableProperties = {
     cursorDirection: CursorPaginationDirection;
     columnVisibility: Record<string, boolean>;
     searchTerm: string;
+    filterTeam: string;
+    filterTeamLabel: string;
     filterStatus: string;
     filterRole: string;
     dateRange?: ReportDuration;

@@ -26,3 +26,8 @@ export enum RoleFilters {
     Member = 'system_user',
     Guest = 'system_guest',
 }
+
+export enum TeamFilters {
+    AllTeams = 'teams_filter_for_all_teams',
+    NoTeams = 'teams_filter_for_no_teams',
+}

@@ -68,6 +68,8 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     cursorColumnValue: '',
     columnVisibility: {},
     searchTerm: '',
+    filterTeam: '',
+    filterTeamLabel: '',
     filterStatus: '',
     filterRole: '',
 };
