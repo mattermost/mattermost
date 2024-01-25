@@ -47,6 +47,8 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	license := model.NewTestLicense()
 	license.Features.Users = model.NewInt(licenseUsers)
 	th.App.Srv().SetLicense(license)
+	license.Id = "test-license-id"
+	license.Customer.Id = "test-customer-id"
 
 	t.Run("Happy path", func(t *testing.T) {
 		// Happy path where we have a support packet yaml file without any warnings
