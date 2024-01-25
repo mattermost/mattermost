@@ -22,6 +22,7 @@ describe('components/admin_console/reset_email_modal/reset_email_modal.tsx', () 
         user,
         currentUserId: 'random_user_id',
         onHide: jest.fn(),
+        onSuccess: jest.fn(),
         onExited: jest.fn(),
     };
 

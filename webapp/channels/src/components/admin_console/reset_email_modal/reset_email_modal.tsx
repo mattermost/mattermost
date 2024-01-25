@@ -20,6 +20,7 @@ type State = {
 type Props = {
     user?: UserProfile;
     currentUserId: string;
+    onSuccess: (email: string) => void;
     onExited: () => void;
     actions: {
         patchUser: (user: UserProfile) => Promise<ActionResult>;
@@ -108,6 +109,7 @@ export default class ResetEmailModal extends React.PureComponent<Props, State> {
             return;
         }
 
+        this.props.onSuccess(user.email);
         this.setState({show: false});
     };
 

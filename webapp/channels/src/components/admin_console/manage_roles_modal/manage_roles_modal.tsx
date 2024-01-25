@@ -28,6 +28,7 @@ export type Props = {
 
     // defining custom function type instead of using React.MouseEventHandler
     // to make the event optional
+    onSuccess: (roles: string) => void;
     onExited: () => void;
     actions: {
         updateUserRoles: (userId: string, roles: string) => Promise<ActionResult>;
@@ -147,6 +148,7 @@ export default class ManageRolesModal extends React.PureComponent<Props, State> 
         this.trackRoleChanges(roles, this.props.user!.roles);
 
         if (isSuccess(result)) {
+            this.props.onSuccess(roles);
             this.onHide();
         } else {
             this.handleError(

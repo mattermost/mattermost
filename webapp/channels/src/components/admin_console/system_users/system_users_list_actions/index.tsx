@@ -11,6 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {updateUserActive} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
+import General from 'mattermost-redux/constants/general';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils';
 
@@ -39,9 +40,10 @@ interface Props {
     tableId?: string;
     rowIndex: number;
     onError: (error: ServerError) => void;
+    updateUser: (user: Partial<UserProfile>) => void;
 }
 
-export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onError}: Props) {
+export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onError, updateUser}: Props) {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const config = useSelector(getConfig);
@@ -78,6 +80,13 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
 
     // Disable if SystemAdmin being edited by non SystemAdmin eg. userManager with EditOtherUsers permissions
     const isDisabled = !isSystemAdmin(currentUser.roles) && isSystemAdmin(user.roles);
+
+    const onDeactivateMember = () => updateUser({delete_at: new Date().getMilliseconds()});
+    const onUpdateRoles = (roles: string) => updateUser({roles});
+    const onSwitchToEmailPassword = () => updateUser({auth_service: undefined});
+    const onUpdateEmail = (email: string) => updateUser({email});
+    const onPromoteToMember = () => updateUser({roles: user.roles.replace(General.SYSTEM_GUEST_ROLE, '')});
+    const onDemoteToGuest = () => updateUser({roles: `${user.roles} ${General.SYSTEM_GUEST_ROLE}`});
 
     return (
         <Menu.Container
@@ -125,9 +134,9 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     const {error} = await dispatch(updateUserActive(user.id, true));
                     if (error) {
                         onError(error);
+                    } else {
+                        updateUser({delete_at: 0});
                     }
-
-                    // TODO: add callback to update the user's active status
                 }}
             />}
 
@@ -145,9 +154,11 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.DEACTIVATE_MEMBER_MODAL,
                         dialogType: DeactivateMemberModal,
-
-                        // TODO: add callback to update the user's active status
-                        dialogProps: {user, onError},
+                        dialogProps: {
+                            user,
+                            onError,
+                            onSuccess: onDeactivateMember,
+                        },
                     }));
                 }}
             />}
@@ -165,9 +176,10 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.MANAGE_ROLES_MODAL,
                         dialogType: ManageRolesModal,
-
-                        // TODO: add callback to update the user's role
-                        dialogProps: {user},
+                        dialogProps: {
+                            user,
+                            onSuccess: onUpdateRoles,
+                        },
                     }));
                 }}
             />}
@@ -236,7 +248,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 }
                 onClick={() => {
                     adminResetMfa(user.id, null, onError).then(() => {
-                        // TODO: update the user so this item doesn't appear
+                        updateUser({mfa_active: false});
                     });
                 }}
             />}
@@ -254,9 +266,10 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.RESET_PASSWORD_MODAL,
                         dialogType: ResetPasswordModal,
-
-                        // TODO: add callback to switch the user's auth service
-                        dialogProps: {user},
+                        dialogProps: {
+                            user,
+                            onSuccess: onSwitchToEmailPassword,
+                        },
                     }));
                 }}
             />}
@@ -274,9 +287,10 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.RESET_EMAIL_MODAL,
                         dialogType: ResetEmailModal,
-
-                        // TODO: add callback to update the user's email address
-                        dialogProps: {user},
+                        dialogProps: {
+                            user,
+                            onSuccess: onUpdateEmail,
+                        },
                     }));
                 }}
             />}
@@ -294,9 +308,11 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.PROMOTE_TO_MEMBER_MODAL,
                         dialogType: PromoteToMemberModal,
-
-                        // TODO: add callback to update the user's role
-                        dialogProps: {user, onError},
+                        dialogProps: {
+                            user,
+                            onError,
+                            onSuccess: onPromoteToMember,
+                        },
                     }));
                 }}
             />}
@@ -313,9 +329,11 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     dispatch(openModal({
                         modalId: ModalIdentifiers.DEMOTE_TO_GUEST_MODAL,
                         dialogType: DemoteToGuestModal,
-
-                        // TODO: add callback to update the user's role
-                        dialogProps: {user, onError},
+                        dialogProps: {
+                            user,
+                            onError,
+                            onSuccess: onDemoteToGuest,
+                        },
                     }));
                 }}
             />}
