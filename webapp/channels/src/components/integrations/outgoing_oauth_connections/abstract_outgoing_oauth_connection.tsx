@@ -495,7 +495,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             {submissionStatus.validated ? (
                                 <>
                                     <FormattedMessage
-                                        id={'add_outgoing_oauth_connection.validate'}
+                                        id={'add_outgoing_oauth_connection.validated'}
                                         defaultMessage={'Validated'}
                                     />
                                     <CheckIcon/>

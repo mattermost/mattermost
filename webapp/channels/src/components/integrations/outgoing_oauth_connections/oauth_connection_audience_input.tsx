@@ -2,15 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect} from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
-import {OauthIcon} from '@mattermost/compass-icons/components';
+import {OauthIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {getOutgoingOAuthConnections as fetchOutgoingOAuthConnections} from 'mattermost-redux/actions/integrations';
 import {getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
-
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 
 type Props = {
     value: string;
@@ -26,37 +24,68 @@ const OAuthConnectionAudienceInput = (props: Props) => {
         dispatch(fetchOutgoingOAuthConnections());
     }, [dispatch]);
 
+    const connections = Object.values(oauthConnections);
+
+    const input = (
+        <input
+            autoComplete='off'
+            id='url'
+            maxLength={1024}
+            className='form-control'
+            value={props.value}
+            onChange={props.onChange}
+            placeholder={props.placeholder}
+        />
+    );
+
+    if (!connections.length) {
+        return input;
+    }
+
     const matchedConnection = Object.values(oauthConnections).find((conn) => conn.audiences.find((aud) => props.value.startsWith(aud)));
-    let oauthIcon: React.ReactNode | undefined;
+    let oauthMessage: React.ReactNode;
+
     if (matchedConnection) {
-        oauthIcon = (
-            <OverlayTrigger overlay={<Tooltip id='matched-oauth-connection'>{`Connected to"${matchedConnection.name}"`}</Tooltip>}>
+        oauthMessage = (
+            <>
                 <OauthIcon
-                    title={matchedConnection.name}
-                    size={28}
-                    css={{
-                        position: 'absolute',
-                        right: '-16px',
-                        top: '4px',
-                    }}
+                    size={20}
+                    css={{position: 'absolute', top: '45px'}}
                 />
-            </OverlayTrigger>
+                <strong style={{position: 'absolute', top: '45px', left: '42px'}}>
+                    <FormattedMessage
+                        id='add_outgoing_oauth_connection.connected'
+                        defaultMessage='Connected to "{connectionName}"'
+                        values={{
+                            connectionName: matchedConnection.name,
+                        }}
+                    />
+                </strong>
+            </>
+        );
+    } else {
+        oauthMessage = (
+            <>
+                <InformationOutlineIcon
+                    size={20}
+                    css={{position: 'absolute', top: '45px'}}
+                />
+                <strong style={{position: 'absolute', top: '45px', left: '42px'}}>
+                    <FormattedMessage
+                        id='add_outgoing_oauth_connection.not_connected'
+                        defaultMessage='Not connected to an OAuth connection'
+                    />
+                </strong>
+            </>
         );
     }
 
     return (
         <>
-            <input
-                autoComplete='off'
-                id='url'
-                type='text'
-                maxLength={1024}
-                className='form-control'
-                value={props.value}
-                onChange={props.onChange}
-                placeholder={props.placeholder}
-            />
-            {oauthIcon}
+            {input}
+            <div className='outgoing-oauth-audience-match-message'>
+                {oauthMessage}
+            </div>
         </>
     );
 };
