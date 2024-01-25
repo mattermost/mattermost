@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"net/http"
 	"reflect"
-	"strings"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -155,17 +154,9 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.SetInvalidParam("from")
 		return
 	}
-	if !config.IsDatabaseDSN(from) && (strings.Contains(from, "..") || !strings.HasSuffix(from, "config.json")) {
-		c.SetInvalidParam("from")
-		return
-	}
 
 	to, ok := props["to"].(string)
 	if !ok {
-		c.SetInvalidParam("to")
-		return
-	}
-	if !config.IsDatabaseDSN(to) && (strings.Contains(to, "..") || !strings.HasSuffix(to, "config.json")) {
 		c.SetInvalidParam("to")
 		return
 	}
