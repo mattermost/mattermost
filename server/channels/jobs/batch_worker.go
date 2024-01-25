@@ -18,10 +18,12 @@ type BatchWorker struct {
 	logger    mlog.LoggerIFace
 	store     store.Store
 
+	// stateMut protects stopCh and helps enforce
+	// ordering in case subsequent Run or Stop calls are made.
 	stateMut sync.Mutex
-	stop     chan struct{}
-	stopped  chan bool
-	closed   bool
+	stopCh     chan struct{}
+	stoppedCh  chan bool
+	stopped   bool
 	jobs     chan model.Job
 
 	timeBetweenBatches time.Duration
@@ -39,12 +41,11 @@ func MakeBatchWorker(
 		jobServer:          jobServer,
 		logger:             jobServer.Logger(),
 		store:              store,
-		stop:               make(chan struct{}),
-		stopped:            make(chan bool, 1),
+		stoppedCh:            make(chan bool, 1),
 		jobs:               make(chan model.Job),
 		timeBetweenBatches: timeBetweenBatches,
 		doBatch:            doBatch,
-		closed:             true,
+		stopped:             true,
 	}
 }
 
@@ -53,9 +54,9 @@ func (worker *BatchWorker) Run() {
 	worker.stateMut.Lock()
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
-	if worker.closed {
-		worker.closed = false
-		worker.stop = make(chan struct{})
+	if worker.stopped {
+		worker.stopped = false
+		worker.stopCh = make(chan struct{})
 	} else {
 		worker.stateMut.Unlock()
 		return
@@ -68,12 +69,12 @@ func (worker *BatchWorker) Run() {
 
 	defer func() {
 		worker.logger.Debug("Worker finished")
-		worker.stopped <- true
+		worker.stoppedCh <- true
 	}()
 
 	for {
 		select {
-		case <-worker.stop:
+		case <-worker.stopCh:
 			worker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-worker.jobs:
@@ -88,14 +89,14 @@ func (worker *BatchWorker) Stop() {
 	defer worker.stateMut.Unlock()
 
 	// Set to close, and if already closed before, then return.
-	if worker.closed {
+	if worker.stopped {
 		return
 	}
-	worker.closed = true
+	worker.stopped = true
 
 	worker.logger.Debug("Worker stopping")
-	close(worker.stop)
-	<-worker.stopped
+	close(worker.stopCh)
+	<-worker.stoppedCh
 }
 
 // JobChannel is the means by which the jobs infrastructure provides the worker the job to execute.
@@ -142,7 +143,7 @@ func (worker *BatchWorker) DoJob(job *model.Job) {
 
 	for {
 		select {
-		case <-worker.stop:
+		case <-worker.stopCh:
 			logger.Info("Worker: Batch has been canceled via Worker Stop. Setting the job back to pending.")
 			if err := worker.jobServer.SetJobPending(job); err != nil {
 				worker.logger.Error("Worker: Failed to mark job as pending", mlog.Err(err))
