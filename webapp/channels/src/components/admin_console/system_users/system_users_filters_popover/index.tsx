@@ -47,13 +47,10 @@ export function SystemUsersFilterPopover(props: Props) {
             }),
         ],
     });
-
     const {isMounted, styles: floatingTransistionStyles} = useTransitionStyles(floatingContext);
-
     const floatingContextClick = useClick(floatingContext);
     const floatingContextDismiss = useDismiss(floatingContext);
     const floatingContextRole = useRole(floatingContext);
-
     const {getReferenceProps, getFloatingProps} = useInteractions([
         floatingContextClick,
         floatingContextDismiss,
@@ -65,8 +62,10 @@ export function SystemUsersFilterPopover(props: Props) {
         let filterTeamLabel;
         if (teamFilter === TeamFilters.AllTeams) {
             filterTeam = '';
+            filterTeamLabel = '';
         } else if (teamFilter === TeamFilters.NoTeams) {
             filterTeam = TeamFilters.NoTeams;
+            filterTeamLabel = '';
         } else {
             filterTeam = teamFilter;
 
