@@ -17,6 +17,7 @@ import groups from './groups';
 import hostedCustomer from './hosted_customer';
 import integrations from './integrations';
 import jobs from './jobs';
+import limits from './limits';
 import posts from './posts';
 import preferences from './preferences';
 import roles from './roles';
@@ -31,6 +32,7 @@ import users from './users';
 export default combineReducers({
     general,
     users,
+    limits,
     teams,
     channels,
     posts,

@@ -98,7 +98,6 @@ type Params struct {
 
 	//Bookmarks
 	ChannelBookmarkId string
-	IncludeBookmarks  bool
 	BookmarksSince    int64
 
 	// Cloud
@@ -251,7 +250,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 
 	params.Url = query.Get("url")
 
-	params.IncludeBookmarks, _ = strconv.ParseBool(query.Get("include_bookmarks"))
 	if val, err := strconv.ParseInt(query.Get("bookmarks_since"), 10, 64); err != nil || val < 0 {
 		params.BookmarksSince = 0
 	} else {

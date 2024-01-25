@@ -54,32 +54,6 @@ func (_m *ChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.Chan
 	return r0, r1
 }
 
-// GetBookmarksForAllChannelByIdSince provides a mock function with given fields: channelsId, since
-func (_m *ChannelBookmarkStore) GetBookmarksForAllChannelByIdSince(channelsId []string, since int64) (map[string][]*model.ChannelBookmarkWithFileInfo, error) {
-	ret := _m.Called(channelsId, since)
-
-	var r0 map[string][]*model.ChannelBookmarkWithFileInfo
-	var r1 error
-	if rf, ok := ret.Get(0).(func([]string, int64) (map[string][]*model.ChannelBookmarkWithFileInfo, error)); ok {
-		return rf(channelsId, since)
-	}
-	if rf, ok := ret.Get(0).(func([]string, int64) map[string][]*model.ChannelBookmarkWithFileInfo); ok {
-		r0 = rf(channelsId, since)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(map[string][]*model.ChannelBookmarkWithFileInfo)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func([]string, int64) error); ok {
-		r1 = rf(channelsId, since)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetBookmarksForChannelSince provides a mock function with given fields: channelId, since
 func (_m *ChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {
 	ret := _m.Called(channelId, since)

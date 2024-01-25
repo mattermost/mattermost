@@ -388,6 +388,7 @@ export type ServiceSettings = {
     PersistentNotificationMaxRecipients: number;
     UniqueEmojiReactionLimitPerPost: number;
     RefreshPostStatsRunTime: string;
+    MaximumPayloadSizeBytes: number;
 };
 
 export type TeamSettings = {
@@ -456,6 +457,7 @@ export type LogSettings = {
     EnableSentry: boolean;
     AdvancedLoggingConfig: string;
     AdvancedLoggingJSON: Record<string, any>;
+    MaxFieldSize: number;
 };
 
 export type ExperimentalAuditSettings = {

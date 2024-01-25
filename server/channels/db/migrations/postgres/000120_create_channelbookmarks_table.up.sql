@@ -1,3 +1,16 @@
+DO
+$$
+BEGIN
+  IF NOT EXISTS (SELECT * FROM pg_type typ
+                            INNER JOIN pg_namespace nsp ON nsp.oid = typ.typnamespace
+                        WHERE nsp.nspname = current_schema()
+                            AND typ.typname = 'channel_bookmark_type') THEN
+    CREATE TYPE channel_bookmark_type AS ENUM ('link', 'file');
+  END IF;
+END;
+$$
+LANGUAGE plpgsql;
+
 CREATE TABLE IF NOT EXISTS channelbookmarks (
     id varchar(26) PRIMARY KEY,
     ownerid varchar(26) NOT NULL,
@@ -11,7 +24,7 @@ CREATE TABLE IF NOT EXISTS channelbookmarks (
     linkurl text DEFAULT NULL,
     imageurl text DEFAULT NULL,
     emoji varchar(64) DEFAULT NULL,
-    type varchar(26) DEFAULT 'link',
+    type channel_bookmark_type DEFAULT 'link',
     originalid varchar(26) DEFAULT NULL,
     parentid varchar(26) DEFAULT NULL
 );

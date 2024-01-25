@@ -3,17 +3,15 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getFirstAdminSetupComplete} from 'mattermost-redux/actions/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, isCurrentUserSystemAdmin, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import type {GlobalState} from 'types/store';
 
 import RootRedirect from './root_redirect';
-import type {Props} from './root_redirect';
 
 function mapStateToProps(state: GlobalState) {
     const onboardingFlowEnabled = getIsOnboardingFlowEnabled(state);
@@ -28,9 +26,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<any>, Props['actions']>({
+        actions: bindActionCreators({
             getFirstAdminSetupComplete,
         }, dispatch),
     };
