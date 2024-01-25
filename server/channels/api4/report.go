@@ -18,8 +18,6 @@ func (api *API) InitReports() {
 	api.BaseRoutes.Reports.Handle("/users", api.APISessionRequired(getUsersForReporting)).Methods("GET")
 	api.BaseRoutes.Reports.Handle("/users/count", api.APISessionRequired(getUserCountForReporting)).Methods("GET")
 	api.BaseRoutes.Reports.Handle("/users/export", api.APISessionRequired(startUsersBatchExport)).Methods("POST")
-
-	api.BaseRoutes.Reports.Handle("/export/{report_id:[A-Za-z0-9]+}", api.APISessionRequired(retrieveBatchReportFile)).Methods("GET")
 }
 
 func getUsersForReporting(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -89,35 +87,6 @@ func startUsersBatchExport(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	ReturnStatusOK(w)
-}
-
-func retrieveBatchReportFile(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !(c.IsSystemAdmin()) {
-		c.SetPermissionError(model.PermissionSysconsoleReadUserManagementUsers)
-		return
-	}
-
-	reportId := c.Params.ReportId
-	if !model.IsValidId(reportId) {
-		c.Err = model.NewAppError("retrieveBatchReportFile", "api.retrieveBatchReportFile.invalid_report_id", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	format := r.URL.Query().Get("format")
-	if !model.IsValidReportExportFormat(format) {
-		c.Err = model.NewAppError("retrieveBatchReportFile", "api.retrieveBatchReportFile.invalid_format", nil, "", http.StatusBadRequest)
-		return
-	}
-
-	file, name, err := c.App.RetrieveBatchReport(reportId, format)
-	if err != nil {
-		c.Err = err
-		return
-	}
-	defer file.Close()
-
-	w.Header().Set("Content-Type", "text/csv")
-	http.ServeContent(w, r, name, time.Time{}, file)
 }
 
 func fillReportingBaseOptions(values url.Values) model.ReportingBaseOptions {

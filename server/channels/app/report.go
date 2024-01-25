@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
 
 func (a *App) SaveReportChunk(format string, prefix string, count int, reportData []model.ReportableObject) *model.AppError {
@@ -93,9 +92,26 @@ func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) 
 	if dateRange == "" {
 		return model.NewAppError("SendReportToUser", "app.report.send_report_to_user.missing_date_range", nil, "", http.StatusInternalServerError)
 	}
+
 	systemBot, err := a.GetSystemBot()
 	if err != nil {
 		return err
+	}
+
+	path := makeCompiledFilePath(job.Id, format)
+	size, err := a.FileSize(path)
+	if err != nil {
+		return err
+	}
+	fileInfo, fileErr := a.Srv().Store().FileInfo().Save(rctx, &model.FileInfo{
+		Name:      makeCompiledFilename(job.Id, format),
+		Extension: format,
+		Size:      size,
+		Path:      path,
+		CreatorId: systemBot.UserId,
+	})
+	if fileErr != nil {
+		return model.NewAppError("SendReportToUser", "app.report.send_report_to_user.failed_to_save", nil, "", http.StatusInternalServerError).Wrap(fileErr)
 	}
 
 	channel, err := a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), requestingUserId, systemBot.UserId)
@@ -111,12 +127,12 @@ func (a *App) SendReportToUser(rctx request.CTX, job *model.Job, format string) 
 	post := &model.Post{
 		ChannelId: channel.Id,
 		Message: T("app.report.send_report_to_user.export_finished", map[string]string{
-			"Link":      a.GetSiteURL() + "/api/v4/reports/export/" + job.Id + "?format=" + format,
 			"DataType":  getDataTypeFromJobType(job.Type),
 			"DateRange": getTranslatedDateRange(dateRange),
 		}),
-		Type:   model.PostTypeDefault,
-		UserId: systemBot.UserId,
+		Type:    model.PostTypeDefault,
+		UserId:  systemBot.UserId,
+		FileIds: []string{fileInfo.Id},
 	}
 
 	_, err = a.CreatePost(rctx, post, channel, false, true)
@@ -252,20 +268,6 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt 
 	})
 
 	return nil
-}
-
-func (a *App) RetrieveBatchReport(reportID string, format string) (filestore.ReadCloseSeeker, string, *model.AppError) {
-	if license := a.Srv().License(); license == nil || (license.SkuShortName != model.LicenseShortSkuProfessional && license.SkuShortName != model.LicenseShortSkuEnterprise) {
-		return nil, "", model.NewAppError("RetrieveBatchReport", "app.report.retrieve_batch_report.license_error", nil, "", http.StatusBadRequest)
-	}
-
-	filePath := makeCompiledFilePath(reportID, format)
-	reader, err := a.FileReader(filePath)
-	if err != nil {
-		return nil, "", err
-	}
-
-	return reader, makeCompiledFilename(reportID, format), nil
 }
 
 func getDataTypeFromJobType(jobType string) string {
