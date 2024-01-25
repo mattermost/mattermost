@@ -343,7 +343,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             <input
                                 id='name'
                                 type='text'
-                                maxLength={64}
                                 className='form-control'
                                 value={formState.name}
                                 onChange={updateName}
@@ -370,7 +369,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             <input
                                 id='client_id'
                                 type='text'
-                                maxLength={64}
                                 className='form-control'
                                 value={formState.clientId}
                                 onChange={updateClientId}
@@ -417,7 +415,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             <input
                                 id='token_url'
                                 type='text'
-                                maxLength={64}
                                 className='form-control'
                                 value={formState.oauthTokenUrl}
                                 onChange={updateOAuthTokenURL}
@@ -444,7 +441,6 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             <textarea
                                 id='audienceUrls'
                                 rows={3}
-                                maxLength={1024}
                                 className='form-control'
                                 value={formState.audienceUrls}
                                 onChange={updateAudienceUrls}
