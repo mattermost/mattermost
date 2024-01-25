@@ -2829,6 +2829,10 @@ func (a *App) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *
 	return users, nil
 }
 
+func (a *App) GetAllSystemAdmins() (map[string]*model.User, error) {
+	return a.Srv().Store().User().GetSystemAdminProfiles()
+}
+
 func getProfileImagePath(userID string) string {
 	return filepath.Join("users", userID, "profile.png")
 }

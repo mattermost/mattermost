@@ -21,7 +21,6 @@ import JobsTable from './jobs';
 import RequestButton from './request_button/request_button';
 import SettingsGroup from './settings_group';
 import TextSetting from './text_setting';
-import RebuildChannelsIndex from "components/admin_console/rebuild_channels_index/rebuild";
 
 interface State extends BaseState {
     connectionUrl: string;
@@ -417,7 +416,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                                         defaultMessage='Rebuild Channels Index'
                                     />
                                 }
-                                createJobHelpText={<FormattedMessage {...messages.help}/>}
+                                createJobHelpText={<span>{'TODO'}</span>}
                                 getExtraInfoText={this.getExtraInfo}
                                 hideTable={true}
                                 jobData={{

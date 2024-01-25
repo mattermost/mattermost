@@ -525,6 +525,8 @@ func NewServer(options ...Option) (*Server, error) {
 		}
 	})
 
+	app.initElasticsearchChannelIndexCheck()
+
 	return s, nil
 }
 
@@ -1864,4 +1866,55 @@ func (s *Server) Log() *mlog.Logger {
 
 func (s *Server) NotificationsLog() *mlog.Logger {
 	return s.platform.NotificationsLogger()
+}
+
+func (a *App) initElasticsearchChannelIndexCheck() {
+	elastic := a.SearchEngine().ElasticsearchEngine
+	if elastic == nil {
+		a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because elastic engine is nil")
+		return
+	}
+
+	if !elastic.IsActive() {
+		a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because elastic.IsActive engine is false")
+		return
+	}
+
+	if elastic.IsChannelsIndexVaerified() {
+		a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because channels index is verified")
+		return
+	}
+
+	allSysAdmins, err := a.GetAllSystemAdmins()
+	if err != nil {
+		a.Log().Error("initElasticsearchChannelIndexCheck: error occurred fetching all system admins", mlog.Err(err))
+	}
+
+	systemBot, appErr := a.GetSystemBot()
+	if appErr != nil {
+		a.Log().Error("initElasticsearchChannelIndexCheck: couldn't get system bot", mlog.Err(appErr))
+		return
+	}
+
+	post := &model.Post{
+		Message: "Hello, world!",
+		UserId:  systemBot.UserId,
+	}
+
+	for _, sysAdmin := range allSysAdmins {
+		var channel *model.Channel
+		channel, appErr = a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), sysAdmin.Id, systemBot.UserId)
+		if appErr != nil {
+			a.Log().Error("initElasticsearchChannelIndexCheck: error occurred ensuring DM channel between system bot and sys admin", mlog.Err(appErr))
+			continue
+		}
+
+		post.Id = ""
+		post.ChannelId = channel.Id
+		_, appErr = a.CreatePost(request.EmptyContext(a.Log()), post, channel, true, false)
+		if appErr != nil {
+			a.Log().Error("initElasticsearchChannelIndexCheck: error occurred creating post", mlog.Err(appErr))
+			continue
+		}
+	}
 }

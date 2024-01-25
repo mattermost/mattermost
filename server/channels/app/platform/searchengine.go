@@ -84,3 +84,18 @@ func (ps *PlatformService) StopSearchEngine() {
 		ps.SearchEngine.BleveEngine.Stop()
 	}
 }
+
+func (ps *PlatformService) NotifyAdminsChannelsIndexRebuild() {
+	//systemAdmins, err := ps.Store.User().GetSystemAdminProfiles()
+	//if err != nil {
+	//	ps.logger.Error("NotifyAdminsChannelsIndexRebuild: failed to get all system admins", mlog.Err(err))
+	//	return
+	//}
+	//
+	//post := &model.Post{
+	//	Message: "Hi system admin!",
+	//}
+	//
+	//ps.SendMe
+
+}

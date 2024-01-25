@@ -6751,6 +6751,10 @@
     "translation": "An error occurred running the plugin hook on configuration save."
   },
   {
+    "id": "app.save_config.elasticsearch.autocomplete_cannot_be_enabled_error",
+    "translation": "Channel autocomplete cannot be enabled as channel index schema is out of date. It is recommended to regenerate your channel index. See the Mattermost changelog for more information"
+  },
+  {
     "id": "app.save_csv_chunk.write_error",
     "translation": "Failed to write CSV chunk."
   },
