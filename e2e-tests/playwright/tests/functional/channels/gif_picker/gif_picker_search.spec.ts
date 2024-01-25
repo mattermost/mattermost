@@ -28,7 +28,8 @@ test('MM-T5445 Should search, select and post correct Gif when Gif picker is ope
     await channelPage.emojiGifPickerPopup.searchGif('hello');
 
     // # Select the first gif
-    const {img: firstSearchGifResult, alt: altOfFirstSearchGifResult} = await channelPage.emojiGifPickerPopup.getNthGif(0);
+    const {img: firstSearchGifResult, alt: altOfFirstSearchGifResult} =
+        await channelPage.emojiGifPickerPopup.getNthGif(0);
     await firstSearchGifResult.click();
 
     // # Send the selected gif as a message
@@ -82,7 +83,8 @@ test('MM-T5446 Should search, select and post correct Gif when Gif picker is ope
     await channelPage.emojiGifPickerPopup.searchGif('hello');
 
     // # Select the first gif
-    const {img: firstSearchGifResult, alt: altOfFirstSearchGifResult} = await channelPage.emojiGifPickerPopup.getNthGif(0);
+    const {img: firstSearchGifResult, alt: altOfFirstSearchGifResult} =
+        await channelPage.emojiGifPickerPopup.getNthGif(0);
     await firstSearchGifResult.click();
 
     // # Send the selected gif as a message in the thread

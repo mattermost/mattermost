@@ -71,6 +71,7 @@ const AppBarPluginComponent = (props: PluginComponentProps) => {
         >
             <img
                 src={iconUrl}
+                alt={component.pluginId}
                 onLoad={onImageLoadComplete}
                 onError={onImageLoadError}
             />

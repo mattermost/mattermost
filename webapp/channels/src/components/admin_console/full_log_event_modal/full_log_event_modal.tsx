@@ -120,7 +120,7 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                 <Modal.Footer>
                     <button
                         type='button'
-                        className='btn btn-link'
+                        className='btn btn-tertiary'
                         onClick={this.props.onModalDismissed}
                     >
                         <FormattedMessage

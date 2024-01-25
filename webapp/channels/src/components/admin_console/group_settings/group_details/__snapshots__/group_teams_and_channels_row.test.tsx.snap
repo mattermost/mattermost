@@ -71,7 +71,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
     className="text-right"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       data-testid="Test private-channel_groupsyncable_remove"
       onClick={[Function]}
       type="button"
@@ -149,7 +149,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
     className="text-right"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       data-testid="Test private-team_groupsyncable_remove"
       onClick={[Function]}
       type="button"
@@ -234,7 +234,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
     className="text-right"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       data-testid="Test public-channel_groupsyncable_remove"
       onClick={[Function]}
       type="button"
@@ -312,7 +312,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
     className="text-right"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       data-testid="Test public-team_groupsyncable_remove"
       onClick={[Function]}
       type="button"
@@ -395,7 +395,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
     className="text-right"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       data-testid="Test team with children_groupsyncable_remove"
       onClick={[Function]}
       type="button"
@@ -478,7 +478,7 @@ exports[`components/admin_console/group_settings/group_details/GroupTeamsAndChan
     className="text-right"
   >
     <button
-      className="btn btn-link"
+      className="btn btn-tertiary"
       data-testid="Test team with children_groupsyncable_remove"
       onClick={[Function]}
       type="button"

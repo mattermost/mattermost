@@ -22,7 +22,6 @@ import {openDirectChannelToUserId} from 'actions/channel_actions';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {ListItemType} from 'components/channel_members_rhs/channel_members_rhs';
 import MemberList from 'components/channel_members_rhs/member_list';
 
 import {ModalIdentifiers} from 'utils/constants';
@@ -42,6 +41,12 @@ export interface ChannelMember {
     membership?: ChannelMembership;
     status?: string;
     displayName: string;
+}
+
+enum ListItemType {
+    Member = 'member',
+    FirstSeparator = 'first-separator',
+    Separator = 'separator',
 }
 
 export interface ListItem {
@@ -110,9 +115,14 @@ function NotificationFromMembersModal(props: Props) {
 
     const modalTitle = formatMessage({id: 'postypes.custom_open_pricing_modal_post_renderer.membersThatRequested', defaultMessage: 'Members that requested '});
 
-    const modalHeaderText = (<h1 id='invitation_modal_title'>
-        {`${modalTitle}${mapFeatureIdToTranslation(props.feature, formatMessage)}`}
-    </h1>);
+    const modalHeaderText = (
+        <h1
+            id='invitation_modal_title'
+            className='modal-title'
+        >
+            {`${modalTitle}${mapFeatureIdToTranslation(props.feature, formatMessage)}`}
+        </h1>
+    );
 
     return (
         <GenericModal

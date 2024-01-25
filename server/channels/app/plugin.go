@@ -190,15 +190,15 @@ func (ch *Channels) syncPluginsActiveState() {
 	}
 }
 
-func (a *App) NewPluginAPI(c *request.Context, manifest *model.Manifest) plugin.API {
+func (a *App) NewPluginAPI(c request.CTX, manifest *model.Manifest) plugin.API {
 	return NewPluginAPI(a, c, manifest)
 }
 
-func (a *App) InitPlugins(c *request.Context, pluginDir, webappPluginDir string) {
+func (a *App) InitPlugins(c request.CTX, pluginDir, webappPluginDir string) {
 	a.ch.initPlugins(c, pluginDir, webappPluginDir)
 }
 
-func (ch *Channels) initPlugins(c *request.Context, pluginDir, webappPluginDir string) {
+func (ch *Channels) initPlugins(c request.CTX, pluginDir, webappPluginDir string) {
 	// Acquiring lock manually, as plugins might be disabled. See GetPluginsEnvironment.
 	defer func() {
 		ch.srv.Platform().SetPluginsEnvironment(ch)
@@ -552,7 +552,7 @@ func (a *App) GetPlugins() (*model.PluginsResponse, *model.AppError) {
 func (a *App) GetMarketplacePlugins(filter *model.MarketplacePluginFilter) ([]*model.MarketplacePlugin, *model.AppError) {
 	plugins := map[string]*model.MarketplacePlugin{}
 
-	if *a.Config().PluginSettings.EnableRemoteMarketplace && !a.Config().FeatureFlags.StreamlinedMarketplace && !filter.LocalOnly {
+	if *a.Config().PluginSettings.EnableRemoteMarketplace && !filter.LocalOnly {
 		p, appErr := a.getRemotePlugins()
 		if appErr != nil {
 			return nil, appErr

@@ -1,33 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {PluginRedux} from '@mattermost/types/plugins';
+import {defineMessage} from 'react-intl';
 
-import {Constants} from 'utils/constants';
-import {t} from 'utils/i18n';
+import type {PluginRedux, PluginSetting} from '@mattermost/types/plugins';
 
-import SchemaAdminSettings from '../schema_admin_settings';
+import {escapePathPart} from '../schema_admin_settings';
+import type {AdminDefinitionSetting} from '../types';
 
-export type EnabledPluginSetting = {
-    type: string;
-    key: string;
-    label: string;
-    label_default: string;
-    help_text: string;
-    help_text_default: string;
-    isDisabled?: () => boolean;
-}
-
-export default function getEnablePluginSetting(plugin: PluginRedux): EnabledPluginSetting {
-    const escapedPluginId = SchemaAdminSettings.escapePathPart(plugin.id);
+export default function getEnablePluginSetting(plugin: PluginRedux): Partial<AdminDefinitionSetting & PluginSetting> {
+    const escapedPluginId = escapePathPart(plugin.id);
     const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapedPluginId + '.Enable';
 
     return {
-        type: Constants.SettingsTypes.TYPE_BOOL,
+        type: 'bool',
         key: pluginEnabledConfigKey,
-        label: t('admin.plugin.enable_plugin'),
-        label_default: 'Enable Plugin: ',
-        help_text: t('admin.plugin.enable_plugin.help'),
-        help_text_default: 'When true, this plugin is enabled.',
+        label: defineMessage({id: 'admin.plugin.enable_plugin', defaultMessage: 'Enable Plugin: '}),
+        help_text: defineMessage({id: 'admin.plugin.enable_plugin.help', defaultMessage: 'When true, this plugin is enabled.'}),
     };
 }

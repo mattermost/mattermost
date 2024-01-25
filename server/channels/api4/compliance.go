@@ -40,7 +40,7 @@ func createComplianceReport(c *Context, w http.ResponseWriter, r *http.Request) 
 
 	job.UserId = c.AppContext.Session().UserId
 
-	rjob, err := c.App.SaveComplianceReport(&job)
+	rjob, err := c.App.SaveComplianceReport(c.AppContext, &job)
 	if err != nil {
 		c.Err = err
 		return

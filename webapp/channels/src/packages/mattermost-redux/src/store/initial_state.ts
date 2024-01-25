@@ -35,6 +35,12 @@ const state: GlobalState = {
             myUserAccessTokens: {},
             lastActivity: {},
         },
+        limits: {
+            usersLimits: {
+                activeUserCount: 0,
+                maxUsersLimit: 0,
+            },
+        },
         teams: {
             currentTeamId: '',
             teams: {},
@@ -61,7 +67,6 @@ const state: GlobalState = {
             channelsMemberCount: {},
         },
         posts: {
-            expandedURLs: {},
             posts: {},
             postsReplies: {},
             postsInChannel: {},

@@ -31,7 +31,7 @@ type Props = {
     emptyListTextId: string;
     emptyListTextDefaultMessage: string;
     actions: {
-        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<Array<Group | Team>>;
+        getData: (page: number, perPage: number, notAssociatedToGroup?: string, excludeDefaultChannels?: boolean, includeDeleted?: boolean) => Promise<void>;
     };
     noPadding?: boolean;
 };
@@ -107,7 +107,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
 
         this.props.actions.getData(page, PAGE_SIZE, '', false, true).then((response) => {
             if (this.props.onPageChangedCallback) {
-                this.props.onPageChangedCallback(this.getPaging(), response);
+                this.props.onPageChangedCallback(this.getPaging(), response as unknown as Array<Group | Team>);
             }
             this.setState({loading: false});
         });
@@ -159,7 +159,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                     </div>
                     <button
                         type='button'
-                        className={'btn btn-link prev ' + (firstPage ? 'disabled' : '')}
+                        className={'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')}
                         onClick={firstPage ? undefined : this.previousPage}
                         disabled={firstPage}
                     >
@@ -167,7 +167,7 @@ export default class AbstractList extends React.PureComponent<Props, State> {
                     </button>
                     <button
                         type='button'
-                        className={'btn btn-link next ' + (lastPage ? 'disabled' : '')}
+                        className={'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')}
                         onClick={lastPage ? undefined : this.nextPage}
                         disabled={lastPage}
                         data-testid='page-link-next'

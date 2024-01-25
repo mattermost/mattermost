@@ -135,7 +135,7 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                 <button
                     type='button'
                     className={
-                        'btn btn-link prev ' + (firstPage ? 'disabled' : '')
+                        'btn btn-tertiary prev ' + (firstPage ? 'disabled' : '')
                     }
                     onClick={this.previousPage}
                     disabled={firstPage}
@@ -145,7 +145,7 @@ export default class GroupUsers extends React.PureComponent<Props, State> {
                 <button
                     type='button'
                     className={
-                        'btn btn-link next ' + (lastPage ? 'disabled' : '')
+                        'btn btn-tertiary next ' + (lastPage ? 'disabled' : '')
                     }
                     onClick={this.nextPage}
                     disabled={lastPage}

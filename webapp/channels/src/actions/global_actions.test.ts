@@ -23,7 +23,7 @@ jest.mock('actions/views/lhs', () => ({
 }));
 
 jest.mock('mattermost-redux/actions/users', () => ({
-    loadMeREST: () => ({type: 'MOCK_RECEIVED_ME'}),
+    loadMe: () => ({type: 'MOCK_RECEIVED_ME'}),
 }));
 
 jest.mock('stores/redux_store', () => {
@@ -575,10 +575,12 @@ describe('actions/global_actions', () => {
     });
 
     test('toggleSideBarRightMenuAction', () => {
-        const dispatchMock = async () => {
-            return {data: true};
+        const dispatchMock = (arg: any) => {
+            if (typeof arg === 'function') {
+                arg(dispatchMock);
+            }
         };
-        toggleSideBarRightMenuAction()(dispatchMock);
+        dispatchMock(toggleSideBarRightMenuAction());
         expect(closeRhsMenu).toHaveBeenCalled();
         expect(closeRightHandSide).toHaveBeenCalled();
         expect(closeLhs).toHaveBeenCalled();

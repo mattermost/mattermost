@@ -22,7 +22,7 @@ test('MM-T5435_1 Global Drafts link in sidebar should be hidden when another use
         createRandomPost({
             channel_id: channel.id,
             user_id: adminUser.id,
-        })
+        }),
     );
 
     // # Log in as user in new browser context

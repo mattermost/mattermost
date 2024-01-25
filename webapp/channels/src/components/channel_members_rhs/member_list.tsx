@@ -7,13 +7,28 @@ import {VariableSizeList} from 'react-window';
 import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 
-import type {Channel} from '@mattermost/types/channels';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile} from '@mattermost/types/users';
 
-import {ListItemType} from './channel_members_rhs';
-import type {ChannelMember, ListItem} from './channel_members_rhs';
 import Member from './member';
 
+interface ChannelMember {
+    user: UserProfile;
+    membership?: ChannelMembership;
+    status?: string;
+    displayName: string;
+}
+
+enum ListItemType {
+    Member = 'member',
+    FirstSeparator = 'first-separator',
+    Separator = 'separator',
+}
+
+interface ListItem {
+    type: ListItemType;
+    data: ChannelMember | JSX.Element;
+}
 export interface Props {
     channel: Channel;
     members: ListItem[];

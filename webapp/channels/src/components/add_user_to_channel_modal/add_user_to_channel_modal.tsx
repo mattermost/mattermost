@@ -258,6 +258,8 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
 
         const content = (
             <SuggestionBox
+                // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                // @ts-ignore
                 ref={this.setSearchBoxRef}
                 className='form-control focused'
                 onChange={this.onInputChange}
@@ -321,7 +323,7 @@ export default class AddUserToChannelModal extends React.PureComponent<Props, St
                     <Modal.Footer>
                         <button
                             type='button'
-                            className='btn btn-link'
+                            className='btn btn-tertiary'
                             onClick={this.onHide}
                         >
                             <FormattedMessage

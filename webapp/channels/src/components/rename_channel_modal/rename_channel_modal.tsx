@@ -11,7 +11,8 @@ import type {Channel} from '@mattermost/types/channels';
 import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 
-import LocalizedInput from 'components/localized_input/localized_input';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
@@ -32,10 +33,6 @@ const holders = defineMessages({
     defaultError: {
         id: 'rename_channel.defaultError',
         defaultMessage: ' - Cannot be changed for the default channel',
-    },
-    displayNameHolder: {
-        id: 'rename_channel.displayNameHolder',
-        defaultMessage: 'Enter display name',
     },
 });
 
@@ -74,7 +71,7 @@ type Props = {
         /*
         * Action creator to patch current channel
         */
-        patchChannel: (channelId: string, patch: Channel) => Promise<{ data: Channel; error: Error }>;
+        patchChannel: (channelId: string, patch: Channel) => Promise<ActionResult>;
     };
 }
 
@@ -291,13 +288,16 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                                     defaultMessage='Display Name'
                                 />
                             </label>
-                            <LocalizedInput
+                            <input
                                 onChange={this.onDisplayNameChange}
                                 type='text'
                                 ref={this.getTextbox}
                                 id='display_name'
                                 className='form-control'
-                                placeholder={holders.displayNameHolder}
+                                placeholder={formatMessage({
+                                    id: 'rename_channel.displayNameHolder',
+                                    defaultMessage: 'Enter display name',
+                                })}
                                 value={this.state.displayName}
                                 maxLength={Constants.MAX_CHANNELNAME_LENGTH}
                                 aria-label={formatMessage({id: 'rename_channel.displayName', defaultMessage: 'Display Name'}).toLowerCase()}
@@ -334,7 +334,7 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
                     <Modal.Footer>
                         <button
                             type='button'
-                            className='btn btn-link'
+                            className='btn btn-tertiary'
                             onClick={this.handleCancel}
                         >
                             <FormattedMessage

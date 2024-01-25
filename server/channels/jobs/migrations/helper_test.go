@@ -7,7 +7,6 @@ import (
 	"testing"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/require"
@@ -20,7 +19,7 @@ func Setup(tb testing.TB) store.Store {
 }
 
 func deleteAllJobsByTypeAndMigrationKey(t *testing.T, store store.Store, jobType string, migrationKey string) {
-	ctx := request.EmptyContext(mlog.CreateConsoleTestLogger(t))
+	ctx := request.TestContext(t)
 	jobs, err := store.Job().GetAllByType(ctx, model.JobTypeMigrations)
 	require.NoError(t, err)
 

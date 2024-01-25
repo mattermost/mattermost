@@ -1356,10 +1356,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "連結預覽已被系統管理員停用"
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "無法更新已刪除頻道的訊息。"
   },
@@ -5690,10 +5686,6 @@
   {
     "id": "api.command_invite.user_not_in_team.app_error",
     "translation": "@{{.Username}}不是此頻道的成員。"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "此頻道為群組管理。該使用者不屬於同步此頻道的群組。"
   },
   {
     "id": "api.command.execute_command.format.app_error",

@@ -28,7 +28,7 @@ export type Props = {
     downloadExportResults?: boolean;
     className?: string;
     hideJobCreateButton?: boolean;
-    createJobButtonText: React.ReactElement;
+    createJobButtonText: React.ReactNode;
     actions: {
         getJobsByType: (jobType: JobType) => void;
         cancelJob: (jobId: string) => Promise<ActionResult>;
@@ -119,7 +119,7 @@ class JobTable extends React.PureComponent<Props> {
                         <div>
                             <button
                                 type='button'
-                                className='btn btn-default'
+                                className='btn btn-tertiary'
                                 onClick={this.handleCreateJob}
                                 disabled={this.props.disabled}
                             >

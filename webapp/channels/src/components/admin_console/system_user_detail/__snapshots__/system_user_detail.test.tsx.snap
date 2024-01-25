@@ -8,7 +8,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -36,7 +36,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -68,7 +68,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -123,11 +123,18 @@ exports[`components/admin_console/system_user_detail should match default snapsh
             </button>
           </div>
         }
-        className=""
-        subtitleDefault="Teams to which this user belongs"
-        subtitleId="admin.userManagement.userDetail.teamsSubtitle"
-        titleDefault="Team Membership"
-        titleId="admin.userManagement.userDetail.teamsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
       >
         <Connect(TeamList)
           refreshTeams={true}
@@ -141,7 +148,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -244,7 +251,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -272,7 +279,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -304,7 +311,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -360,11 +367,18 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
             </button>
           </div>
         }
-        className=""
-        subtitleDefault="Teams to which this user belongs"
-        subtitleId="admin.userManagement.userDetail.teamsSubtitle"
-        titleDefault="Team Membership"
-        titleId="admin.userManagement.userDetail.teamsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
       >
         <Connect(TeamList)
           refreshTeams={true}
@@ -378,7 +392,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if LD
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -482,7 +496,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -510,7 +524,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -542,7 +556,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -604,11 +618,18 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
             </button>
           </div>
         }
-        className=""
-        subtitleDefault="Teams to which this user belongs"
-        subtitleId="admin.userManagement.userDetail.teamsSubtitle"
-        titleDefault="Team Membership"
-        titleId="admin.userManagement.userDetail.teamsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
       >
         <Connect(TeamList)
           refreshTeams={true}
@@ -622,7 +643,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -726,7 +747,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -754,7 +775,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -786,7 +807,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -842,11 +863,18 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
             </button>
           </div>
         }
-        className=""
-        subtitleDefault="Teams to which this user belongs"
-        subtitleId="admin.userManagement.userDetail.teamsSubtitle"
-        titleDefault="Team Membership"
-        titleId="admin.userManagement.userDetail.teamsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
       >
         <Connect(TeamList)
           refreshTeams={true}
@@ -860,7 +888,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if SA
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -964,7 +992,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -992,7 +1020,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -1024,7 +1052,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -1079,11 +1107,18 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
             </button>
           </div>
         }
-        className=""
-        subtitleDefault="Teams to which this user belongs"
-        subtitleId="admin.userManagement.userDetail.teamsSubtitle"
-        titleDefault="Team Membership"
-        titleId="admin.userManagement.userDetail.teamsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
       >
         <Connect(TeamList)
           refreshTeams={true}
@@ -1097,7 +1132,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if no
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"
@@ -1200,7 +1235,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
     withBackButton={true}
   >
     <div>
-      <Connect(BlockableLink)
+      <Connect(Component)
         className="fa fa-angle-left back"
         to="/admin_console/user_management/users"
       />
@@ -1228,7 +1263,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
               Email
             </span>
             <div>
-              <EmailIcon
+              <Memo(EmailIcon)
                 className="SystemUserDetail__field-icon"
               />
               <input
@@ -1260,7 +1295,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
             <div
               className="SystemUserDetail__field-text"
             >
-              <ShieldOutlineIcon
+              <Memo(ShieldOutlineIcon)
                 className="SystemUserDetail__field-icon"
               />
               <span
@@ -1316,11 +1351,18 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
             </button>
           </div>
         }
-        className=""
-        subtitleDefault="Teams to which this user belongs"
-        subtitleId="admin.userManagement.userDetail.teamsSubtitle"
-        titleDefault="Team Membership"
-        titleId="admin.userManagement.userDetail.teamsTitle"
+        subtitle={
+          Object {
+            "defaultMessage": "Teams to which this user belongs",
+            "id": "admin.userManagement.userDetail.teamsSubtitle",
+          }
+        }
+        title={
+          Object {
+            "defaultMessage": "Team Membership",
+            "id": "admin.userManagement.userDetail.teamsTitle",
+          }
+        }
       >
         <Connect(TeamList)
           refreshTeams={true}
@@ -1334,7 +1376,7 @@ exports[`components/admin_console/system_user_detail should match snapshot if us
     className="admin-console-save"
   >
     <SaveButton
-      btnClass="btn-primary"
+      btnClass=""
       defaultMessage={
         <Memo(MemoizedFormattedMessage)
           defaultMessage="Save"

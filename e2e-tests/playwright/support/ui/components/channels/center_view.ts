@@ -11,14 +11,12 @@ export default class ChannelsCenterView {
     readonly container: Locator;
 
     readonly header;
-    readonly headerMobile;
     readonly postCreate;
 
     constructor(container: Locator) {
         this.container = container;
 
         this.header = new components.ChannelsHeader(this.container.locator('.channel-header'));
-        this.headerMobile = new components.ChannelsHeaderMobile(this.container.locator('.navbar'));
         this.postCreate = new components.ChannelsPostCreate(container.getByTestId('post-create'));
     }
 
@@ -47,8 +45,8 @@ export default class ChannelsCenterView {
 
     /**
      * Return the Nth post in the Center from the top
-     * @param index 
-     * @returns 
+     * @param index
+     * @returns
      */
     async getNthPost(index: number) {
         const nthPost = this.container.getByTestId('postView').nth(index);
@@ -73,7 +71,7 @@ export default class ChannelsCenterView {
                 const content = await post.container.textContent();
                 return content?.includes(text);
             },
-            {timeout}
+            {timeout},
         );
     }
 
@@ -85,7 +83,7 @@ export default class ChannelsCenterView {
 
                 return content?.includes(text);
             },
-            {timeout}
+            {timeout},
         );
     }
 }

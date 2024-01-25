@@ -29,17 +29,17 @@ func (_m *EmojiStore) Delete(emoji *model.Emoji, timestamp int64) error {
 	return r0
 }
 
-// Get provides a mock function with given fields: ctx, id, allowFromCache
-func (_m *EmojiStore) Get(ctx request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
-	ret := _m.Called(ctx, id, allowFromCache)
+// Get provides a mock function with given fields: c, id, allowFromCache
+func (_m *EmojiStore) Get(c request.CTX, id string, allowFromCache bool) (*model.Emoji, error) {
+	ret := _m.Called(c, id, allowFromCache)
 
 	var r0 *model.Emoji
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.Emoji, error)); ok {
-		return rf(ctx, id, allowFromCache)
+		return rf(c, id, allowFromCache)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.Emoji); ok {
-		r0 = rf(ctx, id, allowFromCache)
+		r0 = rf(c, id, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Emoji)
@@ -47,7 +47,7 @@ func (_m *EmojiStore) Get(ctx request.CTX, id string, allowFromCache bool) (*mod
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
-		r1 = rf(ctx, id, allowFromCache)
+		r1 = rf(c, id, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -55,17 +55,17 @@ func (_m *EmojiStore) Get(ctx request.CTX, id string, allowFromCache bool) (*mod
 	return r0, r1
 }
 
-// GetByName provides a mock function with given fields: ctx, name, allowFromCache
-func (_m *EmojiStore) GetByName(ctx request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
-	ret := _m.Called(ctx, name, allowFromCache)
+// GetByName provides a mock function with given fields: c, name, allowFromCache
+func (_m *EmojiStore) GetByName(c request.CTX, name string, allowFromCache bool) (*model.Emoji, error) {
+	ret := _m.Called(c, name, allowFromCache)
 
 	var r0 *model.Emoji
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) (*model.Emoji, error)); ok {
-		return rf(ctx, name, allowFromCache)
+		return rf(c, name, allowFromCache)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, string, bool) *model.Emoji); ok {
-		r0 = rf(ctx, name, allowFromCache)
+		r0 = rf(c, name, allowFromCache)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Emoji)
@@ -73,7 +73,7 @@ func (_m *EmojiStore) GetByName(ctx request.CTX, name string, allowFromCache boo
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, string, bool) error); ok {
-		r1 = rf(ctx, name, allowFromCache)
+		r1 = rf(c, name, allowFromCache)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -107,17 +107,17 @@ func (_m *EmojiStore) GetList(offset int, limit int, sort string) ([]*model.Emoj
 	return r0, r1
 }
 
-// GetMultipleByName provides a mock function with given fields: ctx, names
-func (_m *EmojiStore) GetMultipleByName(ctx request.CTX, names []string) ([]*model.Emoji, error) {
-	ret := _m.Called(ctx, names)
+// GetMultipleByName provides a mock function with given fields: c, names
+func (_m *EmojiStore) GetMultipleByName(c request.CTX, names []string) ([]*model.Emoji, error) {
+	ret := _m.Called(c, names)
 
 	var r0 []*model.Emoji
 	var r1 error
 	if rf, ok := ret.Get(0).(func(request.CTX, []string) ([]*model.Emoji, error)); ok {
-		return rf(ctx, names)
+		return rf(c, names)
 	}
 	if rf, ok := ret.Get(0).(func(request.CTX, []string) []*model.Emoji); ok {
-		r0 = rf(ctx, names)
+		r0 = rf(c, names)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.Emoji)
@@ -125,7 +125,7 @@ func (_m *EmojiStore) GetMultipleByName(ctx request.CTX, names []string) ([]*mod
 	}
 
 	if rf, ok := ret.Get(1).(func(request.CTX, []string) error); ok {
-		r1 = rf(ctx, names)
+		r1 = rf(c, names)
 	} else {
 		r1 = ret.Error(1)
 	}

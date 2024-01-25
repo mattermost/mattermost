@@ -9,9 +9,9 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-func (a *App) GenerateAndSaveDesktopToken(expiryTime int64, user *model.User) (*string, *model.AppError) {
+func (a *App) GenerateAndSaveDesktopToken(createAt int64, user *model.User) (*string, *model.AppError) {
 	token := model.NewRandomString(64)
-	err := a.Srv().Store().DesktopTokens().Insert(token, expiryTime, user.Id)
+	err := a.Srv().Store().DesktopTokens().Insert(token, createAt, user.Id)
 	if err != nil {
 		// Delete any other related tokens if there's an error
 		a.Srv().Store().DesktopTokens().DeleteByUserId(user.Id)

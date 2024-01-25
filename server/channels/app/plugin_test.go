@@ -27,7 +27,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 )
@@ -394,7 +393,6 @@ func TestPrivateServePluginRequest(t *testing.T) {
 			th.App.ch.servePluginRequest(recorder, request, handler)
 		})
 	}
-
 }
 
 func TestHandlePluginRequest(t *testing.T) {
@@ -506,7 +504,6 @@ func TestPluginSync(t *testing.T) {
 				cfg.FileSettings.AmazonS3Endpoint = model.NewString(s3Endpoint)
 				cfg.FileSettings.AmazonS3Region = model.NewString("")
 				cfg.FileSettings.AmazonS3SSL = model.NewBool(false)
-
 			},
 		},
 	}
@@ -639,11 +636,10 @@ func TestChannelsPluginsInit(t *testing.T) {
 	defer th.TearDown()
 
 	runNoPanicTest := func(t *testing.T) {
-		ctx := request.EmptyContext(th.TestLogger)
 		path, _ := fileutils.FindDir("tests")
 
 		require.NotPanics(t, func() {
-			th.Server.Channels().initPlugins(ctx, path, path)
+			th.Server.Channels().initPlugins(th.Context, path, path)
 		})
 	}
 
@@ -809,11 +805,11 @@ func TestPluginStatusActivateError(t *testing.T) {
 	})
 }
 
-type byId []*plugin.PrepackagedPlugin
+type byID []*plugin.PrepackagedPlugin
 
-func (a byId) Len() int           { return len(a) }
-func (a byId) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
-func (a byId) Less(i, j int) bool { return a[i].Manifest.Id < a[j].Manifest.Id }
+func (a byID) Len() int           { return len(a) }
+func (a byID) Swap(i, j int)      { a[i], a[j] = a[j], a[i] }
+func (a byID) Less(i, j int) bool { return a[i].Manifest.Id < a[j].Manifest.Id }
 
 type pluginStatusById model.PluginStatuses
 
@@ -1031,7 +1027,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1065,7 +1061,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1106,7 +1102,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 		require.NoError(t, err)
 
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.2", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1144,7 +1140,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1177,7 +1173,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1205,7 +1201,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins := initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)
@@ -1229,7 +1225,7 @@ func TestProcessPrepackagedPlugins(t *testing.T) {
 
 		plugins, transitionalPlugins = initPlugins(t, th)
 		require.Len(t, plugins, 2, "expected two prepackaged plugins")
-		sort.Sort(byId(plugins))
+		sort.Sort(byID(plugins))
 		expectPrepackagedPlugin(t, "testplugin", "0.0.1", plugins[0])
 		expectPrepackagedPlugin(t, "testplugin2", "1.2.3", plugins[1])
 		require.Empty(t, transitionalPlugins)

@@ -6,7 +6,7 @@ import React, {useEffect, useCallback, useState, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
-import {CloseIcon, MagnifyIcon} from '@mattermost/compass-icons/components';
+import {MagnifyIcon} from '@mattermost/compass-icons/components';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -202,17 +202,19 @@ const UserGroupPopover = (props: Props) => {
                             {group.display_name}
                         </Title>
                         <CloseButton
-                            className='btn-icon'
+                            className='btn btn-sm btn-compact btn-icon'
                             aria-label={formatMessage({id: 'user_group_popover.close', defaultMessage: 'Close'})}
                             onClick={handleClose}
                             ref={closeRef}
                         >
-                            <CloseIcon/>
+                            <i
+                                className='icon icon-close'
+                            />
                         </CloseButton>
                     </Heading>
                     <Subtitle>
                         <span className='overflow--ellipsis text-nowrap'>{'@'}{group.name}</span>
-                        <Dot>{' • '}</Dot>
+                        <Dot>{'•'}</Dot>
                         <FormattedMessage
                             id='user_group_popover.memberCount'
                             defaultMessage='{member_count} {member_count, plural, one {Member} other {Members}}'

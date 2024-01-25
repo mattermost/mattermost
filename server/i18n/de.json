@@ -604,7 +604,7 @@
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Gruppennachrichten sind auf ein Maximum von {{.MinUsers}} Benutzern beschränkt."
+    "translation": "Gruppennachrichten sind auf ein Maximum von {{.MaxUsers}} Benutzern beschränkt."
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
@@ -676,7 +676,10 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} ist bereits im Kanal."
+    "translation": {
+      "one": "{{.User}} ist bereits im Kanal.",
+      "other": "{{.User}} sind bereits im Kanal."
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -1358,10 +1361,6 @@
       "one": "{{.Count}} Bild versendet: {{.Filenames}}",
       "other": "{{.Count}} Bilder versendet: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Link-Vorschauen wurden vom Systemadministrator deaktiviert."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -2373,7 +2372,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Fehler beim Lesen der importierten Emoji-Bilddatei. Name des Emojis: \"{{.FilePath}}\""
+    "translation": "Fehler beim Lesen der importierten Emoji-Bilddatei. Name des Emojis: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -2853,11 +2852,11 @@
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{ .SiteName }}] Neue Gruppennachricht in {{ .TeamName}} am {{.Day}}.{{.Month}}.{{.Year}}"
+    "translation": "[{{ .SiteName }}] Neue Gruppennachricht in {{ .ChannelName}} am {{.Day}}.{{.Month}}.{{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Neue Gruppennachricht am {{.Day}}. {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Neue Gruppennachricht am {{.Day}}. {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3377,7 +3376,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Auslöse-ID für interaktiven Dialog ist abgelaufen. Auslöse-IDs sind maximal {{.Seconds}} Sekunden aktiv."
+    "translation": "Auslöse-ID für interaktiven Dialog ist abgelaufen. Auslöse-IDs sind maximal {{.Duration}} aktiv."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -3721,11 +3720,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Datenaufbewahrung muss ein Tag oder länger sein."
+    "translation": "Datenaufbewahrung in Tagen darf nicht kleiner 0 sein."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Nachrichtenaufbewahrung muss ein Tag oder länger sein."
+    "translation": "Nachrichtenaufbewahrung in Tagen darf nicht kleiner 0 sein."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -3885,7 +3884,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Nachrichtenexport GlobalRelaySettings.CustomerType muss auf 'A9' oder 'A10' gesetzt werden."
+    "translation": "Nachrichtenexport GlobalRelaySettings.CustomerType muss auf 'A9', 'A10' oder 'CUSTOM' gesetzt werden."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -3933,7 +3932,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identitätsprovider Issuer URL muss eine gültige URL sein und mit http:// oder https:// beginnen."
+    "translation": "Identitätsprovider Issuer URL darf nicht leer sein."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4789,15 +4788,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 112+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5733,11 +5732,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} ist kein Mitglied dieses Teams."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Dieser Kanal wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Kanal synchronisiert ist."
+    "translation": "Du kannst {{.Users}} zu diesem Kanal hinzufügen, sobald sie Mitglieder des **{{.Team}}**-Teams sind."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -7025,7 +7020,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Fehler während der Prüfung, ob der geteilte Kanal existiert: {{.Error}}"
+    "translation": "Fehler während der Prüfung, ob der geteilte Kanal {{.ChannelID}} existiert: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8248,7 +8243,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "E-Mail Einladungsgrenze überschritten. Timer wird nach {{.ResetAfter}} Sekunden zurückgesetzt. Bitte nach {{.ResetAfter}} Sekunden nochmal probieren."
+    "translation": "E-Mail Einladungsgrenze überschritten. Timer wird nach {{.ResetAfter}} Sekunden zurückgesetzt. Bitte nach {{.RetryAfter}} Sekunden nochmal probieren."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -9188,7 +9183,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus drei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n**[Boards](/boards)** - Verwalte Projekte und Aufgaben in einer Kanban-Board Struktur um dein Team beim Erreichen von Zielen zu unterstützen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
+    "translation": "Mattermost ist eine Open Source Plattform für sicher Kommunikation, Zusammenarbeit und Koordination von Aufgaben über Werkzeuge und Teams hinweg.\nMattermost besteht aus zwei Hauptwerkzeugen:\n\n**Channels** - Bleibe mit deinem Team in Verbindung mit 1:1- und Gruppen-Nachrichten.\n**[Playbooks](/playbooks)** - Erstelle und konfiguriere wiederholbare Prozesse um spezifische und vorhersagbare Ergebnisse zu bekommen.\n\n[Zeige Dokumentation und Anleitungen]({{.HelpLink}})"
   },
   {
     "id": "api.templates.delinquency_90.button",
@@ -9644,7 +9639,7 @@
   },
   {
     "id": "app.group.username_conflict",
-    "translation": "Benutzer mit dem Benutzernamen \"{{.Benutzername}}\" existiert bereits."
+    "translation": "Benutzer mit dem Benutzernamen \"{{.Username}}\" existiert bereits."
   },
   {
     "id": "api.config.update_config.translations.app_error",
@@ -9673,13 +9668,6 @@
   {
     "id": "app.oauth.remove_auth_data_by_client_id.app_error",
     "translation": "Oauth-Daten können nicht entfernt werden."
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "Du hast eine zugewiesene Aufgabe:",
-      "other": "Du hast {{.Count}} zugewiesene Aufgaben:"
-    }
   },
   {
     "id": "api.license.request-trial.bad-request.business-email",
@@ -9855,7 +9843,7 @@
   },
   {
     "id": "app.post.delete_post.get_team.app_error",
-    "translation": "Ein Fehler ist beim Aufrufen des Teams aufgetreten"
+    "translation": "Ein Fehler ist beim Abrufen des Teams aufgetreten."
   },
   {
     "id": "app.post_persistent_notification.delete_by_team.app_error",
@@ -9876,5 +9864,445 @@
   {
     "id": "model.config.is_valid.local_mode_socket.app_error",
     "translation": "Das Verzeichnis der lokalen Socket-Dateien kann nicht gefunden werden."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Kanal-Mitgliedschaft des Benutzers kann nicht gefunden werden"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Benutzer darf Gruppennachricht nicht in privaten Kanal umwandeln"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Es kann kein Benutzer für dieses Token gefunden werden"
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Ungelesene Nachrichten und Erwähnungen können nicht überprüft werden"
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Reaktionen für Benutzer können nicht gelöscht werden."
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Die Anmeldung ist fehlgeschlagen, weil Remote-Benutzer sich nicht angemeldet dürfen."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Dieser Kanal wird durch Gruppen verwaltet.  Dieser Benutzer ist nicht Teil einer Gruppe, die mit diesem Kanal synchronisiert wird."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du darfst den Namen, den Anzeigenamen und den Zweck von Direkt- oder Gruppennachrichten nicht ändern."
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "Der zu konvertierende Kanal ist keine Gruppennachricht. Du kannst nur Gruppennachrichten konvertieren"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Gruppennachricht für Kanalumwandlungsbeitrag konnte nicht erstellt werden"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token ist ungültig oder abgelaufen"
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Vorhandene Sidebar-Kategorien für konvertierte Gruppennachrichten konnten nicht gelöscht werden."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Du kannst {{.FirstUser}} und {{.Others}} andere zu diesem Kanal hinzufügen, sobald sie Mitglieder des **{{.Team}}**-Teams sind."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du darfst den Namen, den Anzeigenamen und den Zweck von Direkt- oder Gruppennachrichten nicht ändern."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} und {{.LastItem}}"
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} und {{.Others}} zum Kanal {{.Channel}} hinzugefügt."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Ungültiger Wert für Link-Metadaten-Timeout. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Der importierte Kanal kann nicht archiviert werden."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} und {{.Others}} andere sind bereits im Kanal."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} hat diesen Kanal aus einer Gruppennachricht mit {{.GMMembers}} erstellt."
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Alle Unterhaltungen können nicht als vom Kanal gelesen markiert werden"
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Der Kanal ist keine Gruppennachricht."
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token existiert nicht oder ist abgelaufen"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Konnte keine gemeinsamen Teams abrufen."
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "Die in der Konvertierungsanforderung angegebene Team-ID enthält nicht alle Mitglieder der Gruppennachricht"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Der durchsuchbare Inhalt der Datei kann nicht festgelegt werden."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Ungültiger Wert für den Benutzerstatus Abwesend Timeout. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Es ist nicht möglich, so viele Emojis nach Namen zu erhalten. Es können nur {{.MaxNames}} Emojis auf einmal angefordert werden."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "JSON konnte nicht geparst werden: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Ungültiges Format: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Beim Abrufen von IP-Filtern ist ein Fehler aufgetreten"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP-Filterung ist auf diesem Server nicht verfügbar"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Änderungen prüfen"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} hat die IP-Filtereinstellungen für deinen Arbeitsbereich unter der URL geändert: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Änderungen an den IP-Filtern deines Arbeitsbereichs"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "Änderungen der IP-Filterung für deinen Arbeitsbereich"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Support benachrichtigen"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Sende eine E-Mail an {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Hast du Probleme beim Zugriff auf deinen Arbeitsbereich?"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Zeitstempel der letzten Anmeldung konnte nicht aktualisiert werden"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Beim Abrufen der IP-Adresse des Clients ist ein Fehler aufgetreten"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Bei der Anwendung von IP-Filtern ist ein Fehler aufgetreten"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Melde dich im Kundenportal an, um die IP-Filterung zurückzusetzen"
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "SiteURL-Unterpfad konnte nicht geparst werden"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience darf nicht leer sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Einige Audience URLs sind nicht korrekt."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Ungültige Client-ID."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Ungültiges Client Secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Erstellt am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Ungültiger Grant-Typ."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Ungültiger Name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Ungültige OAuth Token URL."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Ungültige Kennwortdaten."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Aktualisiert am muss eine gültige Zeit sein."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Ungültige Ersteller ID."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Ungültige ID."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Das Reaktionslimit wurde für diesen Beitrag erreicht."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Es können nicht sowohl aktive als auch inaktive Benutzer ausgeblendet werden."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ungültige Team-ID angegeben."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Die Aktualisierung des benutzerdefinierten Status ist fehlgeschlagen. Ein Emoji mit dem angegebenen Namen existiert nicht."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Wenn GlobalRelaySettings.CustomerType 'CUSTOM' ist, müssen GlobalRelaySettings.CustomSMTPServerName und GlobalRelaySettings.CustomSMTPPort gesetzt werden."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Der angegebene Datumsbereich ist ungültig."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Der Dateianfang kann nicht gesucht werden."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Ungültige Zeitüberschreitung für ausgehende Integrationsanfragen für Diensteinstellungen. Muss eine positive Zahl sein."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Die Seitengröße ist ungültig oder zu groß."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Das Verschieben von Unterhaltungen ist deaktiviert"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Du hast keine Berechtigung, diese Unterhaltung zu verschieben."
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Eine Unterhaltung mit {{.NumMessages}} Nachrichten wurde verschoben: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Diese Unterhaltung wurde von einem anderen Kanal verschoben"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Eine Nachricht wurde verschoben: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Eine Nachricht wurde in eine Direkt-/Gruppennachricht verschoben\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Eine Unterhaltung mit {{.NumMessages}} Nachrichten wurde in eine Direkt-/Gruppen-Nachricht verschoben\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unterhaltung kann nicht entfernt werden"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Benutzerbericht konnte nicht abgerufen werden."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Ungültige Domäne für die Einstellungen zum Verschieben von Unterhaltungen"
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Die angegebene Sortierspalte ist nicht gültig."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Beim Auflisten ausgehender OAuth-Verbindungen ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ungültige Eingabeparameter."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Diese Funktion wird durch ein Feature Flag eingeschränkt."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Es ist nicht möglich, so viele Rollen nach Namen zu erhalten. Es können nur {{.MaxNames}} Rollen auf einmal angefordert werden."
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Benutzeranzahl konnte nicht ermittelt werden"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Beim Löschen der ausgehenden oauth-Verbindung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Es ist ein Fehler beim Abrufen der ausgehenden Oauth-Verbindung aufgetreten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Die ausgehende oauth-Verbindung wurde nicht gefunden."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Es ist ein Fehler beim Abrufen der ausgehenden Oauth-Verbindung aufgetreten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Es ist ein Fehler beim Speichern der ausgehenden Oauth-Verbindung aufgetreten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Es ist ein Fehler bei der Aktualisierung der ausgehenden Oauth-Verbindung aufgetreten."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Die Gegenstelle kann nicht eingeladen werden, da der Kanal {{.ChannelID}} nicht geteilt wird."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Ungültige maximale Nutzlastgröße für Diensteinstellungen. Muss eine ganze Zahl größer als Null sein."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Konnte Einladung nicht bestätigen: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Beim Parsen der Nutzdaten ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Jetzt erneuern"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Bitte verlängere, um Unterbrechungen zu vermeiden"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Jahresrechnung fällig in 30 Tagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Deine Jahresrechnung ist in 30 Tagen fällig"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Erneuerung des Jahresabonnements in 60 Tagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Erneuerung des Jahresabonnements in 60 Tagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Aktion erforderlich: Erneuerung des Jahresabonnements in 7 Tagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Du wirst in 7 Tagen den Zugang zu deinem Arbeitsbereich verlieren"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Es können nicht so viele Kanal-Mitglieder aktualisiert werden. Es können nur {{.Max}} Kanal-Mitglieder gleichzeitig aktualisiert werden."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fehler bei der Überprüfung, ob ein Benutzer ein eigenes Profilbild hat."
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Benutzeranzahl konnte nicht ermittelt werden."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Dateiaufbewahrungstage und -stunden können nicht beide 0 sein."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Datenaufbewahrung in Stunden darf nicht kleiner 0 sein"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Die Dateiaufbewahrungstage und -stunden können nicht beide größer als 0 sein."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Nachrichtenaufbewahrungstage und -stunden können nicht beide 0 sein."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Nachrichtenaufbewahrung in Stunden darf nicht kleiner 0 sein"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Die Nachrichtenaufbewahrungstage und -stunden können nicht beide größer als 0 sein."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Die Benachrichtigungseigenschaften der Kanalmitglieder können nicht aktualisiert werden."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Benutzer konnte nicht gefunden werden."
   }
 ]

@@ -36,6 +36,7 @@ const (
 	ChannelMentionsNotifyProp      = "channel"
 	CommentsNotifyProp             = "comments"
 	MentionKeysNotifyProp          = "mention_keys"
+	HighlightsNotifyProp           = "highlight_keys"
 	CommentsNotifyNever            = "never"
 	CommentsNotifyRoot             = "root"
 	CommentsNotifyAny              = "any"
@@ -105,6 +106,7 @@ type User struct {
 	TermsOfServiceId       string    `json:"terms_of_service_id,omitempty"`
 	TermsOfServiceCreateAt int64     `json:"terms_of_service_create_at,omitempty"`
 	DisableWelcomeEmail    bool      `json:"disable_welcome_email"`
+	LastLogin              int64     `json:"last_login,omitempty"`
 }
 
 func (u *User) Auditable() map[string]interface{} {
@@ -137,6 +139,10 @@ func (u *User) Auditable() map[string]interface{} {
 		"terms_of_service_create_at": u.TermsOfServiceCreateAt,
 		"disable_welcome_email":      u.DisableWelcomeEmail,
 	}
+}
+
+func (u *User) LogClone() any {
+	return u.Auditable()
 }
 
 //msgp UserMap
@@ -468,47 +474,6 @@ func (u *User) PreSave() {
 	}
 }
 
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
-
-func (u *User) CreateAt_() float64 {
-	return float64(u.CreateAt)
-}
-
-func (u *User) DeleteAt_() float64 {
-	return float64(u.DeleteAt)
-}
-
-func (u *User) UpdateAt_() float64 {
-	return float64(u.UpdateAt)
-}
-
-func (u *User) LastPictureUpdate_() float64 {
-	return float64(u.LastPictureUpdate)
-}
-
-func (u *User) LastPasswordUpdate_() float64 {
-	return float64(u.LastPasswordUpdate)
-}
-
-func (u *User) FailedAttempts_() float64 {
-	return float64(u.FailedAttempts)
-}
-
-func (u *User) LastActivityAt_() float64 {
-	return float64(u.LastActivityAt)
-}
-
-func (u *User) BotLastIconUpdate_() float64 {
-	return float64(u.BotLastIconUpdate)
-}
-
-func (u *User) TermsOfServiceCreateAt_() float64 {
-	return float64(u.TermsOfServiceCreateAt)
-}
-
 // PreUpdate should be run before updating the user in the db.
 func (u *User) PreUpdate() {
 	u.Username = SanitizeUnicode(u.Username)
@@ -647,6 +612,7 @@ func (u *User) Sanitize(options map[string]bool) {
 	u.Password = ""
 	u.AuthData = NewString("")
 	u.MfaSecret = ""
+	u.LastLogin = 0
 
 	if len(options) != 0 && !options["email"] {
 		u.Email = ""
@@ -796,7 +762,6 @@ func (u *User) GetRawRoles() string {
 }
 
 func IsValidUserRoles(userRoles string) bool {
-
 	roles := strings.Fields(userRoles)
 
 	for _, r := range roles {
@@ -975,7 +940,7 @@ func IsValidUsernameAllowRemote(s string) bool {
 	return !found
 }
 
-func CleanUsername(username string) string {
+func CleanUsername(logger mlog.LoggerIFace, username string) string {
 	s := NormalizeUsername(strings.Replace(username, " ", "-", -1))
 
 	for _, value := range reservedName {
@@ -997,7 +962,7 @@ func CleanUsername(username string) string {
 
 	if !IsValidUsername(s) {
 		s = "a" + NewId()
-		mlog.Warn("Generating new username since provided username was invalid",
+		logger.Warn("Generating new username since provided username was invalid",
 			mlog.String("provided_username", username), mlog.String("new_username", s))
 	}
 
@@ -1041,4 +1006,17 @@ func (u *UserWithGroups) GetGroupIDs() []string {
 type UsersWithGroupsAndCount struct {
 	Users []*UserWithGroups `json:"users"`
 	Count int64             `json:"total_count"`
+}
+
+func (u *User) EmailDomain() string {
+	at := strings.LastIndex(u.Email, "@")
+	// at >= 0 holds true and this is not checked here. It holds true, because during signup we run `mail.ParseAddress(email)`
+	return u.Email[at+1:]
+}
+
+type UserPostStats struct {
+	LastStatusAt *int64 `json:"last_status_at,omitempty"`
+	LastPostDate *int64 `json:"last_post_date,omitempty"`
+	DaysActive   *int   `json:"days_active,omitempty"`
+	TotalPosts   *int   `json:"total_posts,omitempty"`
 }

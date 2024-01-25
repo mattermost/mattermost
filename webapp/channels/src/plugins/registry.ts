@@ -28,7 +28,7 @@ import {
     registerPluginReconnectHandler,
     unregisterPluginReconnectHandler,
 } from 'actions/websocket_actions.jsx';
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 import {ActionTypes} from 'utils/constants';
 import {reArg} from 'utils/func';
@@ -1224,5 +1224,23 @@ export default class PluginRegistry {
         });
 
         return id;
+    });
+
+    // Register a schema for user settings. This will show in the user settings modals
+    // and all values will be stored in the preferences with cateogry pp_${pluginId} and
+    // the name of the setting.
+    //
+    // The settings definition can be found in /src/types/plugins/user_settings.ts
+    //
+    // Malformed settings will be filtered out.
+    registerUserSettings = reArg(['setting'], ({setting}) => {
+        const data = {
+            pluginId: this.id,
+            setting,
+        };
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_USER_SETTINGS,
+            data,
+        });
     });
 }

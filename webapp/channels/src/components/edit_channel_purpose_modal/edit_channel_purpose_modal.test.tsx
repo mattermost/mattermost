@@ -200,7 +200,7 @@ describe('comoponents/EditChannelPurposeModal', () => {
             {disableLifecycleMethods: true},
         );
 
-        wrapper.find('.save-button').simulate('click');
+        wrapper.find('.btn-primary').simulate('click');
 
         expect(patchChannel).toBeCalledWith('channel_id', {purpose: 'testPurpose'});
     });
@@ -261,5 +261,5 @@ describe('comoponents/EditChannelPurposeModal', () => {
             onExited={jest.fn()}
             actions={{patchChannel: jest.fn()}}
         />
-    ), (instance: EditChannelPurposeModalClass) => instance.state.purpose);
+    ), (instance: React.Component<any, any>) => instance.state.purpose);
 });

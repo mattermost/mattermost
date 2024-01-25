@@ -7,6 +7,7 @@ import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} fr
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -59,7 +60,7 @@ export type Props = {
     currentUserId: string;
     currentTeamId: string;
     preview?: boolean;
-    autocompleteGroups: Array<{ id: string }> | null;
+    autocompleteGroups: Group[] | null;
     delayChannelAutocomplete: boolean;
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;
@@ -263,10 +264,7 @@ export default class Textbox extends React.PureComponent<Props> {
     };
 
     render() {
-        let preview = null;
-
-        let textboxClassName = 'form-control custom-textarea';
-        let textWrapperClass = 'textarea-wrapper';
+        let textboxClassName = 'form-control custom-textarea textbox-edit-area';
         if (this.props.emojiEnabled) {
             textboxClassName += ' custom-textarea--emoji-picker';
         }
@@ -276,11 +274,12 @@ export default class Textbox extends React.PureComponent<Props> {
         if (this.props.hasLabels) {
             textboxClassName += ' textarea--has-labels';
         }
-        if (this.props.preview) {
-            textboxClassName += ' custom-textarea--preview';
-            textWrapperClass += ' textarea-wrapper--preview';
 
-            preview = (
+        return (
+            <div
+                ref={this.wrapper}
+                className={classNames('textarea-wrapper', {'textarea-wrapper-preview': this.props.preview})}
+            >
                 <div
                     tabIndex={this.props.tabIndex || 0}
                     ref={this.preview}
@@ -291,22 +290,15 @@ export default class Textbox extends React.PureComponent<Props> {
                 >
                     <PostMarkdown
                         message={this.props.value}
-                        mentionKeys={[]}
                         channelId={this.props.channelId}
                         imageProps={{hideUtilities: true}}
                     />
                 </div>
-            );
-        }
-
-        return (
-            <div
-                ref={this.wrapper}
-                className={textWrapperClass}
-            >
                 <SuggestionBox
-                    id={this.props.id}
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                    // @ts-ignore
                     ref={this.message}
+                    id={this.props.id}
                     className={textboxClassName}
                     spellCheck='true'
                     placeholder={this.props.createMessage}
@@ -326,7 +318,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     listComponent={this.props.suggestionList}
                     listPosition={this.props.suggestionListPosition}
                     providers={this.suggestionProviders}
-                    channelId={this.props.channelId}
                     value={this.props.value}
                     renderDividers={ALL}
                     disabled={this.props.disabled}
@@ -334,7 +325,6 @@ export default class Textbox extends React.PureComponent<Props> {
                     openWhenEmpty={this.props.openWhenEmpty}
                     alignWithTextbox={this.props.alignWithTextbox}
                 />
-                {preview}
             </div>
         );
     }

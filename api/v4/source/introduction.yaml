@@ -57,7 +57,9 @@ tags:
 
       #### Official Drivers
 
-      * [Mattermost JavaScript Driver](https://github.com/mattermost/mattermost-redux/blob/master/src/client/client4.ts)
+      * Mattermost JavaScript/TypeScript Driver
+        * [NPM](https://www.npmjs.com/package/@mattermost/client)
+        * [Source](https://github.com/mattermost/mattermost/tree/master/webapp/platform/client)
 
       * [Mattermost Golang Driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/client4.go)
 
@@ -469,7 +471,7 @@ tags:
       - get_statuses_by_ids
 
 
-      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost-server/blob/master/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost-redux/blob/master/src/client/websocket_client.ts).
+      To see how these actions work, please refer to either the [Golang WebSocket driver](https://github.com/mattermost/mattermost/blob/master/server/public/model/websocket_client.go) or our [JavaScript WebSocket driver](https://github.com/mattermost/mattermost/blob/master/webapp/platform/client/src/websocket.ts).
   - name: APIv3 Deprecation
     description: >
       Since Mattermost 4.6 released on January 16, 2018, API v3 has no longer
@@ -532,8 +534,6 @@ tags:
     description: Endpoints for creating, getting and updating webhooks.
   - name: commands
     description: Endpoints for creating, getting and updating slash commands.
-  - name: OpenGraph
-    description: Endpoint for getting Open Graph metadata.
   - name: system
     description: General endpoints for interacting with the server, such as configuration and logging.
   - name: brand
@@ -608,7 +608,6 @@ x-tagGroups:
       - reactions
       - webhooks
       - commands
-      - OpenGraph
       - system
       - brand
       - OAuth

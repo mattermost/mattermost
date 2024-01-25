@@ -4,7 +4,7 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import 'tests/helpers/localstorage.jsx';
+import 'tests/helpers/localstorage';
 
 import AnnouncementBar from 'components/announcement_bar/default_announcement_bar/announcement_bar';
 

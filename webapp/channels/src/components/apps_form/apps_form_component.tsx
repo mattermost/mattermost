@@ -111,7 +111,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
 
         if (fieldErrors && Object.keys(fieldErrors).length >= 0) {
             hasErrors = true;
-            if (checkIfErrorsMatchElements(fieldErrors as any, elements)) {
+            if (checkIfErrorsMatchElements(fieldErrors, elements)) {
                 state.fieldErrors = {};
                 for (const [key, value] of Object.entries(fieldErrors)) {
                     state.fieldErrors[key] = (<Markdown message={value}/>);
@@ -562,7 +562,7 @@ export class AppsForm extends React.PureComponent<Props, State> {
                     <button
                         id='appsModalCancel'
                         type='button'
-                        className='btn btn-link cancel-button'
+                        className='btn btn-tertiary cancel-button'
                         onClick={this.onHide}
                     >
                         <FormattedMessage

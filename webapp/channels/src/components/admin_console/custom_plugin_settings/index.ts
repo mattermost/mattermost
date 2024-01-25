@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {MessageDescriptor} from 'react-intl';
+import {defineMessage} from 'react-intl';
 import {connect} from 'react-redux';
 
 import type {PluginRedux} from '@mattermost/types/plugins';
@@ -15,7 +17,6 @@ import {getAdminConsoleCustomComponents} from 'selectors/admin_console';
 
 import {appsPluginID} from 'utils/apps';
 import {Constants} from 'utils/constants';
-import {localizeMessage} from 'utils/utils';
 
 import type {AdminConsolePluginComponent} from 'types/store/plugins';
 
@@ -23,7 +24,8 @@ import CustomPluginSettings from './custom_plugin_settings';
 import getEnablePluginSetting from './enable_plugin_setting';
 
 import {it} from '../admin_definition';
-import SchemaAdminSettings from '../schema_admin_settings';
+import {escapePathPart} from '../schema_admin_settings';
+import type {AdminDefinitionSetting, AdminDefinitionSubSectionSchema} from '../types';
 
 type OwnProps = { match: { params: { plugin_id: string } } }
 
@@ -39,17 +41,17 @@ function makeGetPluginSchema() {
                 return null;
             }
 
-            const escapedPluginId = SchemaAdminSettings.escapePathPart(plugin.id);
+            const escapedPluginId = escapePathPart(plugin.id);
             const pluginEnabledConfigKey = 'PluginSettings.PluginStates.' + escapedPluginId + '.Enable';
 
-            let settings: Array<Partial<SchemaAdminSettings>> = [];
+            let settings: Array<Partial<AdminDefinitionSetting>> = [];
             if (plugin.settings_schema && plugin.settings_schema.settings) {
                 settings = plugin.settings_schema.settings.map((setting) => {
                     const key = setting.key.toLowerCase();
                     let component = null;
                     let bannerType = '';
                     let type = setting.type;
-                    let displayName = setting.display_name;
+                    let displayName: string | MessageDescriptor = setting.display_name;
                     let isDisabled = it.any(it.stateIsFalse(pluginEnabledConfigKey), it.not(it.userHasWritePermissionOnResource('plugins')));
 
                     if (customComponents[key]) {
@@ -58,7 +60,7 @@ function makeGetPluginSchema() {
                     } else if (setting.type === Constants.SettingsTypes.TYPE_CUSTOM) {
                         // Show a warning banner to enable the plugin in order to display the custom component.
                         type = Constants.SettingsTypes.TYPE_BANNER;
-                        displayName = localizeMessage('admin.plugin.customSetting.pluginDisabledWarning', 'In order to view this setting, enable the plugin and click Save.');
+                        displayName = defineMessage({id: 'admin.plugin.customSetting.pluginDisabledWarning', defaultMessage: 'In order to view this setting, enable the plugin and click Save.'});
                         bannerType = 'warning';
                         isDisabled = it.any(it.stateIsTrue(pluginEnabledConfigKey), it.not(it.userHasWritePermissionOnResource('plugins')));
                     }
@@ -81,17 +83,25 @@ function makeGetPluginSchema() {
                         component,
                         showTitle: customComponents[key] ? customComponents[key].options.showTitle : false,
                     };
-                });
+                }) as Array<Partial<AdminDefinitionSetting>>;
             }
 
             if (plugin.id !== appsPluginID || appsFeatureFlagIsEnabled) {
                 const pluginEnableSetting = getEnablePluginSetting(plugin);
-                pluginEnableSetting.isDisabled = it.any(pluginEnableSetting.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                if (pluginEnableSetting.isDisabled) {
+                    pluginEnableSetting.isDisabled = it.any(pluginEnableSetting.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                } else {
+                    pluginEnableSetting.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
+                }
                 settings.unshift(pluginEnableSetting);
             }
 
             settings.forEach((s) => {
-                s.isDisabled = it.any(s.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                if (s.isDisabled) {
+                    s.isDisabled = it.any(s.isDisabled, it.not(it.userHasWritePermissionOnResource('plugins')));
+                } else {
+                    s.isDisabled = it.not(it.userHasWritePermissionOnResource('plugins'));
+                }
             });
 
             return {
@@ -100,7 +110,7 @@ function makeGetPluginSchema() {
                 name: plugin.name,
                 settings,
                 translate: Boolean(plugin.translate),
-            };
+            } as AdminDefinitionSubSectionSchema;
         },
     );
 }

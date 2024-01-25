@@ -41,6 +41,7 @@ export type Group = {
     allow_reference: boolean;
     channel_member_count?: number;
     channel_member_timezones_count?: number;
+    member_ids?: string[];
 };
 
 export enum GroupSource {
@@ -157,6 +158,7 @@ export type GetGroupsParams = {
     include_member_count?: boolean;
     include_archived?: boolean;
     filter_archived?: boolean;
+    include_member_ids?: boolean;
 }
 
 export type GetGroupsForUserParams = GetGroupsParams & {

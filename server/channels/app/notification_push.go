@@ -187,7 +187,6 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 
 func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention,
 	hasFiles bool, senderName string, channelType model.ChannelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
-
 	// If the post only has images then push an appropriate message
 	if postMessage == "" && hasFiles {
 		if channelType == model.ChannelTypeDirect {
@@ -378,11 +377,11 @@ func (hub *PushNotificationsHub) start(c request.CTX) {
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(c, notification.userID)
 				default:
-					mlog.Debug("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+					c.Logger().Debug("Invalid notification type", mlog.String("notification_type", notification.notificationType))
 				}
 
 				if err != nil {
-					mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
+					c.Logger().Error("Unable to send push notification", mlog.String("notification_type", notification.notificationType), mlog.Err(err))
 				}
 			}(notification)
 		case <-hub.stopChan:
@@ -474,7 +473,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		mlog.String("ackId", ack.Id),
 		mlog.String("type", ack.NotificationType),
 		mlog.String("deviceType", ack.ClientPlatform),
-		mlog.Int64("receivedAt", ack.ClientReceivedAt),
+		mlog.Int("receivedAt", ack.ClientReceivedAt),
 		mlog.String("status", model.PushReceived),
 	)
 
@@ -512,17 +511,25 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 	return sessions, nil
 }
 
-func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post) bool {
-	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned) &&
+func ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	return DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM) &&
 		DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId)
 }
 
-func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned bool) bool {
+func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) bool {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PushNotifyProp]
 	channelNotify, ok := channelNotifyProps[model.PushNotifyProp]
 	if !ok || channelNotify == "" {
 		channelNotify = model.ChannelNotifyDefault
+	}
+
+	notify := channelNotify
+	if channelNotify == model.ChannelNotifyDefault {
+		notify = userNotify
+		if isGM && userNotify == model.UserNotifyMention {
+			notify = model.ChannelNotifyAll
+		}
 	}
 
 	// If the channel is muted do not send push notifications
@@ -534,26 +541,17 @@ func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps m
 		return false
 	}
 
-	if channelNotify == model.UserNotifyNone {
+	if notify == model.ChannelNotifyNone {
 		return false
 	}
 
-	if channelNotify == model.ChannelNotifyMention && !wasMentioned {
+	if notify == model.ChannelNotifyMention && !wasMentioned {
 		return false
 	}
 
-	if userNotify == model.UserNotifyMention && channelNotify == model.ChannelNotifyDefault && !wasMentioned {
-		return false
-	}
-
-	if (userNotify == model.UserNotifyAll || channelNotify == model.ChannelNotifyAll) &&
+	if (notify == model.ChannelNotifyAll) &&
 		(post.UserId != user.Id || post.GetProp("from_webhook") == "true") {
 		return true
-	}
-
-	if userNotify == model.UserNotifyNone &&
-		channelNotify == model.ChannelNotifyDefault {
-		return false
 	}
 
 	return true
@@ -583,7 +581,6 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 
 func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
-
 	var msg *model.PushNotification
 
 	notificationInterface := a.ch.Notification
@@ -670,7 +667,6 @@ func (a *App) buildIdLoadedPushNotificationMessage(c request.CTX, channel *model
 
 func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.PushNotification {
-
 	msg := &model.PushNotification{
 		Category:     model.CategoryCanReply,
 		Version:      model.PushMessageV2,
@@ -721,7 +717,7 @@ func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig str
 	postMessage := post.Message
 	stripped, err := utils.StripMarkdown(postMessage)
 	if err != nil {
-		mlog.Warn("Failed parse to markdown", mlog.String("post_id", post.Id), mlog.Err(err))
+		c.Logger().Warn("Failed parse to markdown", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		postMessage = stripped
 	}

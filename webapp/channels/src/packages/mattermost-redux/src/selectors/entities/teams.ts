@@ -143,6 +143,11 @@ export const getCurrentRelativeTeamUrl: (state: GlobalState) => string = createS
     },
 );
 
+export function getRelativeTeamUrl(state: GlobalState, teamId: string): string {
+    const team = getTeam(state, teamId);
+    return `/${team.name}`;
+}
+
 export const getCurrentTeamStats: (state: GlobalState) => TeamStats = createSelector(
     'getCurrentTeamStats',
     getCurrentTeamId,
@@ -185,6 +190,15 @@ export const getMembersInCurrentTeam: (state: GlobalState) => RelationOneToOne<U
     getMembersInTeams,
     (currentTeamId, teamMembers) => {
         return teamMembers[currentTeamId];
+    },
+);
+
+export const getMembersInTeam: (state: GlobalState, teamId: string) => RelationOneToOne<UserProfile, TeamMembership> = createSelector(
+    'getMembersInTeam',
+    (state: GlobalState, teamId: string) => teamId,
+    getMembersInTeams,
+    (teamId, teamMembers) => {
+        return teamMembers[teamId];
     },
 );
 

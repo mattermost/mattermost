@@ -21,7 +21,7 @@ export default class SuggestionBox extends React.PureComponent {
         /**
          * The list component to render, usually SuggestionList
          */
-        listComponent: PropTypes.func.isRequired,
+        listComponent: PropTypes.any.isRequired,
 
         /**
          * Where the list will be displayed relative to the input box, defaults to 'top'
@@ -36,7 +36,7 @@ export default class SuggestionBox extends React.PureComponent {
         /**
          * The date component to render
          */
-        dateComponent: PropTypes.func,
+        dateComponent: PropTypes.any,
 
         /**
          * The value of in the input
@@ -152,6 +152,26 @@ export default class SuggestionBox extends React.PureComponent {
         actions: PropTypes.shape({
             addMessageIntoHistory: PropTypes.func.isRequired,
         }).isRequired,
+
+        /**
+         * Props for input
+         */
+        id: PropTypes.string,
+        className: PropTypes.string,
+        placeholder: PropTypes.string,
+        maxLength: PropTypes.string,
+        delayInputUpdate: PropTypes.bool,
+        spellCheck: PropTypes.string,
+        onMouseUp: PropTypes.func,
+        onKeyUp: PropTypes.func,
+        onHeightChange: PropTypes.func,
+        onWidthChange: PropTypes.func,
+        onPaste: PropTypes.func,
+        style: PropTypes.object,
+        tabIndex: PropTypes.string,
+        type: PropTypes.string,
+        clearable: PropTypes.bool,
+        onClear: PropTypes.func,
     };
 
     static defaultProps = {
@@ -544,6 +564,29 @@ export default class SuggestionBox extends React.PureComponent {
         return this.state.items.some((item) => !item.loading);
     };
 
+    confirmPretext = () => {
+        const textbox = this.getTextbox();
+        const pretext = textbox.value.substring(0, textbox.selectionEnd).toLowerCase();
+
+        if (this.pretext !== pretext) {
+            this.handlePretextChanged(pretext);
+        }
+    };
+
+    handleKeyUp = (e) => {
+        this.confirmPretext();
+        if (this.props.onKeyUp) {
+            this.props.onKeyUp(e);
+        }
+    };
+
+    handleMouseUp = (e) => {
+        this.confirmPretext();
+        if (this.props.onMouseUp) {
+            this.props.onMouseUp(e);
+        }
+    };
+
     handleKeyDown = (e) => {
         if ((this.props.openWhenEmpty || this.props.value) && this.hasSuggestions()) {
             const ctrlOrMetaKeyPressed = e.ctrlKey || e.metaKey;
@@ -796,6 +839,8 @@ export default class SuggestionBox extends React.PureComponent {
                     onCompositionUpdate={this.handleCompositionUpdate}
                     onCompositionEnd={this.handleCompositionEnd}
                     onKeyDown={this.handleKeyDown}
+                    onKeyUp={this.handleKeyUp}
+                    onMouseUp={this.handleMouseUp}
                 />
                 {(this.props.openWhenEmpty || this.props.value.length >= this.props.requiredCharacters) && this.state.presentationType === 'text' && (
                     <SuggestionListComponent

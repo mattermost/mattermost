@@ -106,7 +106,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -146,7 +146,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -161,7 +161,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -260,7 +260,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -309,7 +309,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -454,7 +454,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -494,7 +494,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -509,7 +509,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -608,7 +608,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
             disabled={true}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -657,7 +657,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -753,7 +753,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -898,7 +898,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -938,7 +938,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -953,7 +953,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -1052,7 +1052,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
             disabled={true}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1101,7 +1101,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -1246,7 +1246,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -1286,7 +1286,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   disabled={true}
                   type="button"
                 >
@@ -1303,7 +1303,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -1402,7 +1402,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1451,7 +1451,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -1596,7 +1596,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -1636,7 +1636,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -1651,7 +1651,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -1750,7 +1750,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -1803,7 +1803,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -1948,7 +1948,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -1988,7 +1988,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -2003,7 +2003,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -2102,7 +2102,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -2151,7 +2151,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -2296,7 +2296,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -2336,7 +2336,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   disabled={true}
                   type="button"
                 >
@@ -2353,7 +2353,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -2452,7 +2452,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             disabled={true}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -2476,7 +2476,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -2621,7 +2621,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -2661,7 +2661,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -2676,7 +2676,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -2775,7 +2775,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -2824,7 +2824,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -2969,7 +2969,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -3026,7 +3026,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -3179,7 +3179,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -3324,7 +3324,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -3364,7 +3364,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -3379,7 +3379,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -3478,7 +3478,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -3590,7 +3590,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -3735,7 +3735,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -3775,7 +3775,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -3790,7 +3790,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -3889,7 +3889,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -3969,7 +3969,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -4114,7 +4114,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -4154,7 +4154,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -4169,7 +4169,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -4268,7 +4268,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -4348,7 +4348,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -4493,7 +4493,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -4533,7 +4533,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -4548,7 +4548,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -4647,7 +4647,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -4727,7 +4727,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"
@@ -4872,7 +4872,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               />
             }
             helpText={
-              <FormattedMarkdownMessage
+              <Memo(MemoizedFormattedMessage)
                 defaultMessage="When true, automatically installs any prepackaged plugin found to be enabled in the server configuration."
                 id="admin.plugins.settings.automaticPrepackagedPluginsDesc"
               />
@@ -4912,7 +4912,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 className="file__upload"
               >
                 <button
-                  className="btn btn-primary"
+                  className="btn btn-tertiary"
                   type="button"
                 >
                   <MemoizedFormattedMessage
@@ -4927,7 +4927,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
                 />
               </div>
               <button
-                className="btn"
+                className="btn btn-primary"
                 disabled={true}
                 id="uploadPlugin"
                 onClick={[Function]}
@@ -5026,7 +5026,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
             disabled={false}
             helpText={
               <div>
-                <FormattedMarkdownMessage
+                <Memo(MemoizedFormattedMessage)
                   defaultMessage="URL of the marketplace server."
                   id="admin.plugins.settings.marketplaceUrlDesc"
                 />
@@ -5138,7 +5138,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       className="admin-console-save"
     >
       <SaveButton
-        btnClass="btn-primary"
+        btnClass=""
         defaultMessage={
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Save"

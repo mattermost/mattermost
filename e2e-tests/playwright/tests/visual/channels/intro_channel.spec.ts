@@ -15,16 +15,8 @@ test('Intro to channel as regular user', async ({pw, pages, browserName, viewpor
     await channelsPage.goto();
     await channelsPage.toBeVisible();
 
-    // Wait for Boards' bot image to be loaded
-    // await pw.shouldHaveFeatureFlag('OnboardingAutoShowLinkedBoard', true);
-    // const boardsWelcomePost = await channelsPage.getFirstPost();
-    // await expect(await boardsWelcomePost.getProfileImage('boards')).toBeVisible();
-    // await wait(duration.one_sec);
-
     // Wait for Playbooks icon to be loaded in App bar, except in iphone
-    if (!pw.isSmallScreen()) {
-        await expect(channelsPage.appBar.playbooksIcon).toBeVisible();
-    }
+    await expect(channelsPage.appBar.playbooksIcon).toBeVisible();
 
     // Hide dynamic elements of Channels page
     await pw.hideDynamicChannelsContent(page);

@@ -640,6 +640,13 @@ func TestPatchConfig(t *testing.T) {
 	th := Setup(t)
 	defer th.TearDown()
 
+	// Ensure ConsoleLevel is set to DEBUG
+	config := model.Config{LogSettings: model.LogSettings{
+		ConsoleLevel: model.NewString("DEBUG"),
+	}}
+	_, _, err := th.SystemAdminClient.PatchConfig(context.Background(), &config)
+	require.NoError(t, err)
+
 	t.Run("config is missing", func(t *testing.T) {
 		_, response, err := th.Client.PatchConfig(context.Background(), nil)
 		require.Error(t, err)

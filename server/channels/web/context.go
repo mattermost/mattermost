@@ -19,15 +19,12 @@ import (
 )
 
 type Context struct {
-	App        app.AppIface
-	AppContext *request.Context
-	Logger     *mlog.Logger
-	Params     *Params
-	Err        *model.AppError
-	// This is used to track the graphQL query that's being executed,
-	// so that we can monitor the timings in Grafana.
-	GraphQLOperationName string
-	siteURLHeader        string
+	App           app.AppIface
+	AppContext    request.CTX
+	Logger        *mlog.Logger
+	Params        *Params
+	Err           *model.AppError
+	siteURLHeader string
 }
 
 // LogAuditRec logs an audit record using default LevelAPI.
@@ -127,7 +124,6 @@ func (c *Context) SessionRequired() {
 	if !*c.App.Config().ServiceSettings.EnableUserAccessTokens &&
 		c.AppContext.Session().Props[model.SessionPropType] == model.SessionTypeUserAccessToken &&
 		c.AppContext.Session().Props[model.SessionPropIsBot] != model.SessionPropIsBotValue {
-
 		c.Err = model.NewAppError("", "api.context.session_expired.app_error", nil, "UserAccessToken", http.StatusUnauthorized)
 		return
 	}
@@ -199,7 +195,7 @@ func (c *Context) MfaRequired() {
 // ExtendSessionExpiryIfNeeded will update Session.ExpiresAt based on session lengths in config.
 // Session cookies will be resent to the client with updated max age.
 func (c *Context) ExtendSessionExpiryIfNeeded(w http.ResponseWriter, r *http.Request) {
-	if ok := c.App.ExtendSessionExpiryIfNeeded(c.AppContext.Session()); ok {
+	if ok := c.App.ExtendSessionExpiryIfNeeded(c.AppContext, c.AppContext.Session()); ok {
 		c.App.AttachSessionCookies(c.AppContext, w, r)
 	}
 }
@@ -220,6 +216,10 @@ func (c *Context) RemoveSessionCookie(w http.ResponseWriter, r *http.Request) {
 
 func (c *Context) SetInvalidParam(parameter string) {
 	c.Err = NewInvalidParamError(parameter)
+}
+
+func (c *Context) SetInvalidParamWithDetails(parameter string, details string) {
+	c.Err = NewInvalidParamDetailedError(parameter, details)
 }
 
 func (c *Context) SetInvalidParamWithErr(parameter string, err error) {
@@ -270,6 +270,10 @@ func (c *Context) HandleEtag(etag string, routeName string, w http.ResponseWrite
 	return false
 }
 
+func NewInvalidParamDetailedError(parameter string, details string) *model.AppError {
+	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, details, http.StatusBadRequest)
+	return err
+}
 func NewInvalidParamError(parameter string) *model.AppError {
 	err := model.NewAppError("Context", "api.context.invalid_body_param.app_error", map[string]any{"Name": parameter}, "", http.StatusBadRequest)
 	return err
@@ -301,7 +305,7 @@ func NewJSONEncodingError(err error) *model.AppError {
 }
 
 func (c *Context) SetPermissionError(permissions ...*model.Permission) {
-	c.Err = c.App.MakePermissionError(c.AppContext.Session(), permissions)
+	c.Err = model.MakePermissionError(c.AppContext.Session(), permissions)
 }
 
 func (c *Context) SetSiteURLHeader(url string) {
@@ -445,6 +449,17 @@ func (c *Context) RequireAppId() *Context {
 
 	if !model.IsValidId(c.Params.AppId) {
 		c.SetInvalidURLParam("app_id")
+	}
+	return c
+}
+
+func (c *Context) RequireOutgoingOAuthConnectionId() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidId(c.Params.OutgoingOAuthConnectionID) {
+		c.SetInvalidURLParam("outgoing_oauth_connection_id")
 	}
 	return c
 }

@@ -45,11 +45,14 @@ const (
 	PostTypeChannelRestored        = "system_channel_restored"
 	PostTypeEphemeral              = "system_ephemeral"
 	PostTypeChangeChannelPrivacy   = "system_change_chan_privacy"
+	PostTypeWrangler               = "system_wrangler"
+	PostTypeGMConvertedToChannel   = "system_gm_to_channel"
 	PostTypeAddBotTeamsChannels    = "add_bot_teams_channels"
 	PostTypeSystemWarnMetricStatus = "warn_metric_status"
 	PostTypeMe                     = "me"
 	PostCustomTypePrefix           = "custom_"
 	PostTypeReminder               = "reminder"
+	PostTypeAdminReport            = "system_admin_report"
 
 	PostFileidsMaxRunes   = 300
 	PostFilenamesMaxRunes = 4000
@@ -62,15 +65,18 @@ const (
 
 	PropsAddChannelMember = "add_channel_member"
 
-	PostPropsAddedUserId       = "addedUserId"
-	PostPropsDeleteBy          = "deleteBy"
-	PostPropsOverrideIconURL   = "override_icon_url"
-	PostPropsOverrideIconEmoji = "override_icon_emoji"
-
+	PostPropsAddedUserId              = "addedUserId"
+	PostPropsDeleteBy                 = "deleteBy"
+	PostPropsOverrideIconURL          = "override_icon_url"
+	PostPropsOverrideIconEmoji        = "override_icon_emoji"
+	PostPropsOverrideUsername         = "override_username"
+	PostPropsFromWebhook              = "from_webhook"
+	PostPropsFromBot                  = "from_bot"
+	PostPropsFromOAuthApp             = "from_oauth_app"
+	PostPropsWebhookDisplayName       = "webhook_display_name"
 	PostPropsMentionHighlightDisabled = "mentionHighlightDisabled"
 	PostPropsGroupHighlightDisabled   = "disable_group_highlight"
-
-	PostPropsPreviewedPost = "previewed_post"
+	PostPropsPreviewedPost            = "previewed_post"
 
 	PostPriorityUrgent               = "urgent"
 	PostPropsRequestedAck            = "requested_ack"
@@ -142,6 +148,10 @@ func (o *Post) Auditable() map[string]interface{} {
 	}
 }
 
+func (o *Post) LogClone() any {
+	return o.Auditable()
+}
+
 type PostEphemeral struct {
 	UserID string `json:"user_id"`
 	Post   *Post  `json:"post"`
@@ -183,6 +193,10 @@ type GetPersistentNotificationsPostsParams struct {
 	MaxTime      int64
 	MaxSentCount int16
 	PerPage      int
+}
+
+type MoveThreadParams struct {
+	ChannelId string `json:"channel_id"`
 }
 
 type SearchParameter struct {
@@ -319,13 +333,20 @@ type GetPostsSinceOptions struct {
 
 type GetPostsSinceForSyncCursor struct {
 	LastPostUpdateAt int64
-	LastPostId       string
+	LastPostUpdateID string
+	LastPostCreateAt int64
+	LastPostCreateID string
+}
+
+func (c GetPostsSinceForSyncCursor) IsEmpty() bool {
+	return c.LastPostCreateAt == 0 && c.LastPostCreateID == "" && c.LastPostUpdateAt == 0 && c.LastPostUpdateID == ""
 }
 
 type GetPostsSinceForSyncOptions struct {
 	ChannelId       string
 	ExcludeRemoteId string
 	IncludeDeleted  bool
+	SinceCreateAt   bool // determines whether the cursor will be based on CreateAt or UpdateAt
 }
 
 type GetPostsOptions struct {
@@ -428,7 +449,10 @@ func (o *Post) IsValid(maxPostSize int) *AppError {
 		PostTypeAddBotTeamsChannels,
 		PostTypeSystemWarnMetricStatus,
 		PostTypeReminder,
-		PostTypeMe:
+		PostTypeMe,
+		PostTypeWrangler,
+		PostTypeGMConvertedToChannel,
+		PostTypeAdminReport:
 	default:
 		if !strings.HasPrefix(o.Type, PostCustomTypePrefix) {
 			return NewAppError("Post.IsValid", "model.post.is_valid.type.app_error", nil, "id="+o.Type, http.StatusBadRequest)
@@ -466,6 +490,39 @@ func (o *Post) SanitizeProps() {
 	for _, p := range o.Participants {
 		p.Sanitize(map[string]bool{})
 	}
+}
+
+func (o *Post) ContainsIntegrationsReservedProps() []string {
+	return containsIntegrationsReservedProps(o.GetProps())
+}
+
+func (o *PostPatch) ContainsIntegrationsReservedProps() []string {
+	if o == nil || o.Props == nil {
+		return nil
+	}
+	return containsIntegrationsReservedProps(*o.Props)
+}
+
+func containsIntegrationsReservedProps(props StringInterface) []string {
+	foundProps := []string{}
+
+	if props != nil {
+		reservedProps := []string{
+			PostPropsFromWebhook,
+			PostPropsOverrideUsername,
+			PostPropsWebhookDisplayName,
+			PostPropsOverrideIconURL,
+			PostPropsOverrideIconEmoji,
+		}
+
+		for _, key := range reservedProps {
+			if _, ok := props[key]; ok {
+				foundProps = append(foundProps, key)
+			}
+		}
+	}
+
+	return foundProps
 }
 
 func (o *Post) PreSave() {
@@ -843,4 +900,12 @@ func (o *Post) IsUrgent() bool {
 	}
 
 	return *postPriority.Priority == PostPriorityUrgent
+}
+
+func (o *Post) CleanPost() *Post {
+	o.Id = ""
+	o.CreateAt = 0
+	o.UpdateAt = 0
+	o.EditAt = 0
+	return o
 }

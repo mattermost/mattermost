@@ -15,6 +15,7 @@ import ChannelInviteModal from 'components/channel_invite_modal';
 import ChannelMoveToSubMenuOld from 'components/channel_move_to_sub_menu_old';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
 import ConvertChannelModal from 'components/convert_channel_modal';
+import ConvertGmToChannelModal from 'components/convert_gm_to_channel_modal';
 import DeleteChannelModal from 'components/delete_channel_modal';
 import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
@@ -221,6 +222,18 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                         dialogProps={{channel}}
                         text={localizeMessage('channel_header.setConversationHeader', 'Edit Conversation Header')}
                     />
+
+                    <Menu.ItemToggleModalRedux
+                        id='convertGMPrivateChannel'
+                        show={channel.type === Constants.GM_CHANNEL && !isArchived && !isReadonly && !isGuest(user.roles)}
+                        modalId={ModalIdentifiers.CONVERT_GM_TO_CHANNEL}
+                        dialogType={ConvertGmToChannelModal}
+                        dialogProps={{channel}}
+                        text={localizeMessage('sidebar_left.sidebar_channel_menu_convert_to_channel', 'Convert to Private Channel')}
+                    />
+                </Menu.Group>
+
+                <Menu.Group divider={divider}>
                     <ChannelPermissionGate
                         channelId={channel.id}
                         teamId={channel.team_id}

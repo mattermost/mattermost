@@ -10,7 +10,7 @@ import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import ExternalLink from 'components/external_link';
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import type SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
+import type SettingItemMinComponent from 'components/setting_item_min';
 import ImportThemeModal from 'components/user_settings/import_theme_modal';
 
 import {Constants, ModalIdentifiers} from 'utils/constants';

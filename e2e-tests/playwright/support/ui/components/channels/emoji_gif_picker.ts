@@ -15,7 +15,7 @@ export default class EmojiGifPicker {
 
         this.gifTab = container.getByText('GIFs');
         this.gifSearchInput = container.getByPlaceholder('Search GIPHY');
-        this.gifPickerItems = container.locator('.gif-picker__items')
+        this.gifPickerItems = container.locator('.gif-picker__items');
     }
 
     async toBeVisible() {
@@ -24,7 +24,7 @@ export default class EmojiGifPicker {
 
     async openGifTab() {
         await expect(this.gifTab).toBeVisible();
-        
+
         await this.gifTab.click({force: true});
 
         await expect(this.gifSearchInput).toBeVisible();
@@ -41,7 +41,7 @@ export default class EmojiGifPicker {
 
         await this.gifPickerItems.locator('img').nth(n).waitFor();
         const nthGif = this.gifPickerItems.locator('img').nth(n);
-        await expect(nthGif).toBeVisible()
+        await expect(nthGif).toBeVisible();
 
         const nthGifSrc = await nthGif.getAttribute('src');
         const nthGifAlt = await nthGif.getAttribute('alt');

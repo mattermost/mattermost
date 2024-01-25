@@ -6,6 +6,8 @@ import React from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {loadProfilesForSidebar} from 'actions/user_actions';
 
 import {Constants} from 'utils/constants';
@@ -21,8 +23,9 @@ type Props = {
     sidebarLoaded: boolean;
 
     unreadChannels: Channel[];
+
     actions: {
-        prefetchChannelPosts: (channelId: string, delay?: number) => Promise<any>;
+        prefetchChannelPosts: (channelId: string, delay?: number) => Promise<ActionResult>;
         trackPreloadedChannels: (prefetchQueueObj: Record<string, string[]>) => void;
     };
 }

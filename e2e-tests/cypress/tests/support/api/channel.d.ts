@@ -212,5 +212,14 @@ declare namespace Cypress {
          *   });
          */
         apiCreateArchivedChannel(name: string, displayName: string, type: string, teamId: string, messages?: string[], user?: UserProfile): Chainable<Channel>;
+
+        /**
+         * Command to convert a GM to a private channel
+         * @param {string} channelId - channel id of GM to be converted
+         * @param {string} teamId - id of team to move the converted private channel to
+         * @param {string} displayName - display name of converted channel
+         * @param {string} name - name of converted channel
+         */
+        apiConvertGMToPrivateChannel(channelId: string, teamId: string, displayName: string, name: string): Chainable;
     }
 }

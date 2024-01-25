@@ -1,17 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {BoardsSidebar} from './boards/sidebar';
 import {ChannelsHeader} from './channels/header';
-import {ChannelsHeaderMobile} from './channels/header_mobile';
 import {ChannelsAppBar} from './channels/app_bar';
 import {ChannelsPostCreate} from './channels/post_create';
 import {ChannelsPost} from './channels/post';
-import {ChannelsCenterView} from './channels/center_view'
+import {ChannelsCenterView} from './channels/center_view';
 import {ChannelsSidebarLeft} from './channels/sidebar_left';
 import {ChannelsSidebarRight} from './channels/sidebar_right';
 import {DeletePostModal} from './channels/delete_post_modal';
 import {FindChannelsModal} from './channels/find_channels_modal';
+import {SettingsModal} from './channels/settings/settings_modal';
 import {Footer} from './footer';
 import {GlobalHeader} from './global_header';
 import {MainHeader} from './main_header';
@@ -22,18 +21,17 @@ import {ThreadFooter} from './channels/thread_footer';
 import {EmojiGifPicker} from './channels/emoji_gif_picker';
 
 const components = {
-    BoardsSidebar,
     GlobalHeader,
     ChannelsCenterView,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     ChannelsAppBar,
     ChannelsHeader,
-    ChannelsHeaderMobile,
     ChannelsPostCreate,
     ChannelsPost,
     FindChannelsModal,
     DeletePostModal,
+    SettingsModal,
     PostDotMenu,
     PostMenu,
     ThreadFooter,
@@ -45,14 +43,12 @@ const components = {
 
 export {
     components,
-    BoardsSidebar,
     GlobalHeader,
     ChannelsCenterView,
     ChannelsSidebarLeft,
     ChannelsSidebarRight,
     ChannelsAppBar,
     ChannelsHeader,
-    ChannelsHeaderMobile,
     ChannelsPostCreate,
     ChannelsPost,
     FindChannelsModal,
