@@ -49,10 +49,10 @@ func testSaveDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 
-	_, err := ss.Channel().SaveMember(member1)
+	_, err := ss.Channel().SaveMember(rctx, member1)
 	require.NoError(t, err)
 
-	_, err = ss.Channel().SaveMember(member2)
+	_, err = ss.Channel().SaveMember(rctx, member2)
 	require.NoError(t, err)
 
 	draft1 := &model.Draft{
@@ -105,7 +105,7 @@ func testUpdateDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 
-	_, err := ss.Channel().SaveMember(member)
+	_, err := ss.Channel().SaveMember(rctx, member)
 	require.NoError(t, err)
 
 	t.Run("update drafts", func(t *testing.T) {
@@ -171,10 +171,10 @@ func testDeleteDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 
-	_, err := ss.Channel().SaveMember(member1)
+	_, err := ss.Channel().SaveMember(rctx, member1)
 	require.NoError(t, err)
 
-	_, err = ss.Channel().SaveMember(member2)
+	_, err = ss.Channel().SaveMember(rctx, member2)
 	require.NoError(t, err)
 
 	draft1 := &model.Draft{
@@ -240,10 +240,10 @@ func testGetDraft(t *testing.T, rctx request.CTX, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 
-	_, err := ss.Channel().SaveMember(member1)
+	_, err := ss.Channel().SaveMember(rctx, member1)
 	require.NoError(t, err)
 
-	_, err = ss.Channel().SaveMember(member2)
+	_, err = ss.Channel().SaveMember(rctx, member2)
 	require.NoError(t, err)
 
 	draft1 := &model.Draft{
@@ -305,10 +305,10 @@ func testGetDraftsForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 
-	_, err := ss.Channel().SaveMember(member1)
+	_, err := ss.Channel().SaveMember(rctx, member1)
 	require.NoError(t, err)
 
-	_, err = ss.Channel().SaveMember(member2)
+	_, err = ss.Channel().SaveMember(rctx, member2)
 	require.NoError(t, err)
 
 	draft1 := &model.Draft{

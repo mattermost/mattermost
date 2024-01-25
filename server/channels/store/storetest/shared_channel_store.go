@@ -723,7 +723,7 @@ func testGetRemoteForUser(t *testing.T, rctx request.CTX, ss store.Store) {
 			SchemeGuest: false,
 			SchemeUser:  true,
 		}
-		_, err := ss.Channel().SaveMember(member)
+		_, err := ss.Channel().SaveMember(rctx, member)
 		require.NoError(t, err)
 	}
 
@@ -886,7 +886,7 @@ func createSharedTestChannel(ss store.Store, name string, shared bool, member *m
 			SchemeUser:  !member.IsGuest(),
 		}
 
-		_, err = ss.Channel().SaveMember(newMember)
+		_, err = ss.Channel().SaveMember(rctx, newMember)
 		if err != nil {
 			return nil, err
 		}

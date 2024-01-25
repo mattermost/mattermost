@@ -104,7 +104,7 @@ func (c *SearchChannelStore) SaveMember(cm *model.ChannelMember) (*model.Channel
 	// TODO: Use the actuall request context from the App layer
 	// https://mattermost.atlassian.net/browse/MM-55734
 	rctx := request.EmptyContext(c.rootStore.Logger())
-	member, err := c.ChannelStore.SaveMember(cm)
+	member, err := c.ChannelStore.SaveMember(rctx, cm)
 	if err == nil {
 		c.rootStore.indexUserFromID(rctx, cm.UserId)
 		channel, channelErr := c.ChannelStore.Get(member.ChannelId, true)
