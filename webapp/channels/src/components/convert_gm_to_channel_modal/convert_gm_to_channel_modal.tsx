@@ -11,11 +11,9 @@ import './convert_gm_to_channel_modal.scss';
 
 import {GenericModal} from '@mattermost/components';
 import type {Channel} from '@mattermost/types/channels';
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {getGroupMessageMembersCommonTeams} from 'actions/team_actions';
@@ -85,7 +83,7 @@ const ConvertGmToChannelModal = (props: Props) => {
 
     useEffect(() => {
         const work = async () => {
-            const response = await dispatch(getGroupMessageMembersCommonTeams(props.channel.id)) as ActionResult<Team[], ServerError>;
+            const response = await dispatch(getGroupMessageMembersCommonTeams(props.channel.id));
             if (!mounted.current) {
                 return;
             }

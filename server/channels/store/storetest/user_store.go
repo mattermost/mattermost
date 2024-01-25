@@ -6,6 +6,8 @@ package storetest
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -96,7 +98,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, rctx, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
 	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
-	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss) })
+	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss, s) })
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6187,59 +6189,72 @@ func testUpdateLastLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Equal(t, int64(1234567890), user.LastLogin)
 }
 
-func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
+func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	numRegularUsers := 90
+	numSysAdmins := 10
+	numInactiveUsers := 15
+	numUsers := numRegularUsers + numSysAdmins + numInactiveUsers
+
+	numPostsPerUser := 10
+
 	now := time.Now()
 
-	u1 := &model.User{Username: "u1" + model.NewId(), DeleteAt: 0}
-	u1.Email = MakeEmail()
-	u1, err := ss.User().Save(u1)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
+	users := make([]*model.User, numUsers)
+	for i := 0; i < numUsers; i++ {
+		user := &model.User{Username: fmt.Sprintf("username_%d", i), DeleteAt: 0}
+		user.Email = MakeEmail()
 
-	for i := 0; i < 5; i++ {
-		p := model.Post{UserId: u1.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
-		_, err = ss.Post().Save(&p)
+		if i >= numRegularUsers && i < numRegularUsers+numSysAdmins {
+			user.Roles = "system"
+		}
+
+		if i >= numRegularUsers+numSysAdmins {
+			user.DeleteAt = now.UnixMilli()
+		}
+
+		user, err := ss.User().Save(user)
 		require.NoError(t, err)
+		users[i] = user
 	}
 
-	u2 := &model.User{Username: "u2" + model.NewId(), Roles: "system", DeleteAt: 0}
-	u2.Email = MakeEmail()
-	u2, err = ss.User().Save(u2)
-	require.NoError(t, err)
-	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Username < users[j].Username
+	})
 
-	for i := 0; i < 5; i++ {
-		p := model.Post{UserId: u2.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
-		_, err = ss.Post().Save(&p)
-		require.NoError(t, err)
+	// cleanup users after the test
+	defer func() {
+		for _, user := range users {
+			require.NoError(t, ss.User().PermanentDelete(user.Id))
+		}
+	}()
+
+	for _, user := range users {
+		for i := 0; i < numPostsPerUser; i++ {
+			post := model.Post{UserId: user.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
+			_, err := ss.Post().Save(&post)
+			require.NoError(t, err)
+		}
 	}
-
-	u3 := &model.User{Username: "u3" + model.NewId(), Roles: "guest", DeleteAt: now.UnixMilli()}
-	u3.Email = MakeEmail()
-	u3, err = ss.User().Save(u3)
-	require.NoError(t, err)
 
 	team, err := ss.Team().Save(&model.Team{
-		DisplayName: "DisplayName",
+		DisplayName: model.NewId(),
 		Name:        NewTestId(),
 		Email:       MakeEmail(),
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
-	_, err = ss.Team().SaveMember(&model.TeamMember{UserId: u3.Id, TeamId: team.Id}, 1)
+
+	_, err = ss.Team().SaveMember(&model.TeamMember{UserId: users[0].Id, TeamId: team.Id}, 100)
 	require.NoError(t, err)
+
+	_, err = ss.Team().SaveMember(&model.TeamMember{UserId: users[1].Id, TeamId: team.Id}, 100)
+	require.NoError(t, err)
+
 	defer func() {
-		require.NoError(t, ss.Team().RemoveMember(rctx, team.Id, u3.Id))
+		require.NoError(t, ss.Team().RemoveMember(rctx, team.Id, users[0].Id))
+		require.NoError(t, ss.Team().RemoveMember(rctx, team.Id, users[1].Id))
 		require.NoError(t, ss.Team().PermanentDelete(team.Id))
 	}()
-
-	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
-
-	for i := 0; i < 5; i++ {
-		p := model.Post{UserId: u3.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
-		_, err = ss.Post().Save(&p)
-		require.NoError(t, err)
-	}
 
 	err = ss.User().RefreshPostStatsForUsers()
 	require.NoError(t, err)
@@ -6253,16 +6268,16 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
-		require.Len(t, userReport, 3)
+		require.Len(t, userReport, 50)
 
 		require.NotNil(t, userReport[0])
-		require.Equal(t, u1.Username, userReport[0].Username)
+		require.Equal(t, users[0].Username, userReport[0].Username)
 
 		require.NotNil(t, userReport[1])
-		require.Equal(t, u2.Username, userReport[1].Username)
+		require.Equal(t, users[1].Username, userReport[1].Username)
 
 		require.NotNil(t, userReport[2])
-		require.Equal(t, u3.Username, userReport[2].Username)
+		require.Equal(t, users[2].Username, userReport[2].Username)
 	})
 
 	t.Run("should return in the correct order", func(t *testing.T) {
@@ -6275,16 +6290,16 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
-		require.Equal(t, 3, len(userReport))
+		require.Len(t, userReport, 50)
 
 		require.NotNil(t, userReport[0])
-		require.Equal(t, u3.Username, userReport[0].Username)
+		require.Equal(t, users[numUsers-1].Username, userReport[0].Username)
 
 		require.NotNil(t, userReport[1])
-		require.Equal(t, u2.Username, userReport[1].Username)
+		require.Equal(t, users[numUsers-2].Username, userReport[1].Username)
 
 		require.NotNil(t, userReport[2])
-		require.Equal(t, u1.Username, userReport[2].Username)
+		require.Equal(t, users[numUsers-3].Username, userReport[2].Username)
 	})
 
 	t.Run("should fail on invalid sort column", func(t *testing.T) {
@@ -6311,81 +6326,100 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, 2, len(userReport))
 
 		require.NotNil(t, userReport[0])
-		require.Equal(t, u1.Username, userReport[0].Username)
+		require.Equal(t, users[0].Username, userReport[0].Username)
 
 		require.NotNil(t, userReport[1])
-		require.Equal(t, u2.Username, userReport[1].Username)
+		require.Equal(t, users[1].Username, userReport[1].Username)
 	})
 
 	t.Run("should return correct paging", func(t *testing.T) {
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn:      "Username",
-				Direction:       "down",
+				Direction:       "next",
 				PageSize:        50,
-				FromColumnValue: u2.Username,
-				FromId:          u2.Id,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
 			},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
-		require.Equal(t, 1, len(userReport))
+		require.Equal(t, 50, len(userReport))
 
 		require.NotNil(t, userReport[0])
-		require.Equal(t, u3.Username, userReport[0].Username)
+		require.Equal(t, users[11].Username, userReport[0].Username)
 
 		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn:      "Username",
 				SortDesc:        true,
-				Direction:       "down",
+				Direction:       "next",
 				PageSize:        50,
-				FromColumnValue: u2.Username,
-				FromId:          u2.Id,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
 			},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
-		require.Equal(t, 1, len(userReport))
+		require.Equal(t, 10, len(userReport))
 
 		require.NotNil(t, userReport[0])
-		require.Equal(t, u1.Username, userReport[0].Username)
+		require.Equal(t, users[9].Username, userReport[0].Username)
 
 		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn:      "Username",
-				Direction:       "up",
+				Direction:       "prev",
 				PageSize:        50,
-				FromColumnValue: u2.Username,
-				FromId:          u2.Id,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
 			},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
-		require.Equal(t, 1, len(userReport))
+		require.Equal(t, 10, len(userReport))
 
 		require.NotNil(t, userReport[0])
-		require.Equal(t, u1.Username, userReport[0].Username)
+		require.Equal(t, users[0].Username, userReport[0].Username)
 
 		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn:      "Username",
 				SortDesc:        true,
-				Direction:       "up",
+				Direction:       "prev",
 				PageSize:        50,
-				FromColumnValue: u2.Username,
-				FromId:          u2.Id,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
 			},
 		})
 		require.NoError(t, err)
 		require.NotNil(t, userReport)
-		require.Equal(t, 1, len(userReport))
+		require.Equal(t, 50, len(userReport))
 
 		require.NotNil(t, userReport[0])
-		require.Equal(t, u3.Username, userReport[0].Username)
+		require.Equal(t, users[60].Username, userReport[0].Username)
+	})
+
+	t.Run("should return all users regardless of date range", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    now.AddDate(1000, 0, 0).UnixMilli(),
+				EndAt:      now.AddDate(1000, 0, 0).UnixMilli(),
+			},
+		})
+
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
 	})
 
 	t.Run("should return accurate post stats for various date ranges", func(t *testing.T) {
+		// These stats are disabled for MySQL
+		if s.DriverName() == model.DatabaseDriverMysql {
+			return
+		}
+
 		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
 				SortColumn: "Username",
@@ -6393,16 +6427,16 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 3)
+		require.Len(t, userReport, 50)
 
-		require.Equal(t, 5, *userReport[0].TotalPosts)
-		require.Equal(t, 5, *userReport[0].DaysActive)
+		require.Equal(t, numPostsPerUser, *userReport[0].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[0].DaysActive)
 		require.Equal(t, now.UnixMilli(), *userReport[0].LastPostDate)
-		require.Equal(t, 5, *userReport[1].TotalPosts)
-		require.Equal(t, 5, *userReport[1].DaysActive)
+		require.Equal(t, numPostsPerUser, *userReport[1].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[1].DaysActive)
 		require.Equal(t, now.UnixMilli(), *userReport[1].LastPostDate)
-		require.Equal(t, 5, *userReport[2].TotalPosts)
-		require.Equal(t, 5, *userReport[2].DaysActive)
+		require.Equal(t, numPostsPerUser, *userReport[2].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[2].DaysActive)
 		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
 
 		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
@@ -6413,7 +6447,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 3)
+		require.Len(t, userReport, 50)
 
 		require.Equal(t, 3, *userReport[0].TotalPosts)
 		require.Equal(t, 3, *userReport[0].DaysActive)
@@ -6433,16 +6467,16 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 3)
+		require.Len(t, userReport, 50)
 
-		require.Equal(t, 2, *userReport[0].TotalPosts)
-		require.Equal(t, 2, *userReport[0].DaysActive)
+		require.Equal(t, 7, *userReport[0].TotalPosts)
+		require.Equal(t, 7, *userReport[0].DaysActive)
 		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[0].LastPostDate)
-		require.Equal(t, 2, *userReport[1].TotalPosts)
-		require.Equal(t, 2, *userReport[1].DaysActive)
+		require.Equal(t, 7, *userReport[1].TotalPosts)
+		require.Equal(t, 7, *userReport[1].DaysActive)
 		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[1].LastPostDate)
-		require.Equal(t, 2, *userReport[2].TotalPosts)
-		require.Equal(t, 2, *userReport[2].DaysActive)
+		require.Equal(t, 7, *userReport[2].TotalPosts)
+		require.Equal(t, 7, *userReport[2].DaysActive)
 		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
 
 		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
@@ -6454,7 +6488,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			},
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 3)
+		require.Len(t, userReport, 50)
 
 		require.Equal(t, 1, *userReport[0].TotalPosts)
 		require.Equal(t, 1, *userReport[0].DaysActive)
@@ -6476,9 +6510,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			Role: "system",
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 1)
-		require.Equal(t, u2.Id, userReport[0].Id)
-		require.Equal(t, u2.Roles, "system")
+		require.Len(t, userReport, 10)
 	})
 
 	t.Run("should filter on teams", func(t *testing.T) {
@@ -6490,9 +6522,9 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			HasNoTeam: true,
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 2)
-		require.Equal(t, u1.Id, userReport[0].Id)
-		require.Equal(t, u2.Id, userReport[1].Id)
+		require.Len(t, userReport, 50)
+		require.Equal(t, users[2].Id, userReport[0].Id)
+		require.Equal(t, users[3].Id, userReport[1].Id)
 
 		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
@@ -6502,8 +6534,9 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			Team: team.Id,
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 1)
-		require.Equal(t, u3.Id, userReport[0].Id)
+		require.Len(t, userReport, 2)
+		require.Equal(t, users[0].Id, userReport[0].Id)
+		require.Equal(t, users[1].Id, userReport[1].Id)
 	})
 
 	t.Run("should filter on activation", func(t *testing.T) {
@@ -6515,9 +6548,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			HideInactive: true,
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 2)
-		require.Equal(t, u1.Id, userReport[0].Id)
-		require.Equal(t, u2.Id, userReport[1].Id)
+		require.Len(t, userReport, 50)
 
 		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
 			ReportingBaseOptions: model.ReportingBaseOptions{
@@ -6527,7 +6558,28 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store) {
 			HideActive: true,
 		})
 		require.NoError(t, err)
-		require.Len(t, userReport, 1)
-		require.Equal(t, u3.Id, userReport[0].Id)
+		require.Len(t, userReport, 15)
+	})
+
+	t.Run("should filter on search term", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			SearchTerm: "username_1",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 26)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			SearchTerm: "username_2",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 11)
 	})
 }

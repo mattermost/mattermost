@@ -157,7 +157,7 @@ func (s sqlRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteClus
 
 	var rc model.RemoteCluster
 	if err := s.GetReplicaX().Get(&rc, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find RemoteCluster by plugin_id")
+		return nil, errors.Wrap(err, "failed to find RemoteCluster by plugin_id")
 	}
 	return &rc, nil
 }
@@ -189,6 +189,10 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 
 	if filter.PluginID != "" {
 		query = query.Where(sq.Eq{"rc.PluginID": filter.PluginID})
+	}
+
+	if filter.RequireOptions != 0 {
+		query = query.Where(sq.NotEq{fmt.Sprintf("(rc.Options & %d)", filter.RequireOptions): 0})
 	}
 
 	if filter.Topic != "" {

@@ -3,14 +3,11 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
-
-import type {Channel} from '@mattermost/types/channels';
+import type {Dispatch} from 'redux';
 
 import {patchChannel} from 'mattermost-redux/actions/channels';
 import {Preferences} from 'mattermost-redux/constants';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import {setShowPreviewOnEditChannelHeaderModal} from 'actions/views/textbox';
 import {showPreviewOnEditChannelHeaderModal} from 'selectors/views/textbox';
@@ -30,14 +27,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    patchChannel: (channelId: string, patch: Partial<Channel>) => Promise<ActionResult>;
-    setShowPreview: (showPreview: boolean) => void;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             patchChannel,
             setShowPreview: setShowPreviewOnEditChannelHeaderModal,
         }, dispatch),
