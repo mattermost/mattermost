@@ -2707,14 +2707,6 @@
     "translation": "This action is forbidden to a restricted system admin."
   },
   {
-    "id": "api.retrieveBatchReportFile.invalid_format",
-    "translation": "Report format is invalid."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_report_id",
-    "translation": "Report ID is invalid."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
@@ -6711,12 +6703,12 @@
     "translation": "Failed to fetch user report."
   },
   {
-    "id": "app.report.retrieve_batch_report.license_error",
-    "translation": "Batch reporting export only available to Pro and Enterprise."
-  },
-  {
     "id": "app.report.send_report_to_user.export_finished",
     "translation": "Your export is ready. {{.DataType}} for {{.DateRange}}. Click on the link below to download the report."
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Failed to save file info."
   },
   {
     "id": "app.report.send_report_to_user.missing_date_range",
