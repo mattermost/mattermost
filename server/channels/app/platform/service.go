@@ -367,9 +367,7 @@ func (ps *PlatformService) Start(broadcastHooks map[string]BroadcastHook) error 
 
 		message := model.NewWebSocketEvent(model.WebsocketEventLicenseChanged, "", "", "", nil, "")
 		message.Add("license", ps.GetSanitizedClientLicense())
-		ps.Go(func() {
-			ps.Publish(message)
-		})
+		ps.Publish(message)
 	})
 	return nil
 }

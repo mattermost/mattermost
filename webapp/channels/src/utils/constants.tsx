@@ -1551,6 +1551,7 @@ export const Constants = {
     SUGGESTION_LIST_MAXHEIGHT: 292,
     SUGGESTION_LIST_MAXWIDTH: 496,
     SUGGESTION_LIST_SPACE_RHS: 420,
+    MOBILE_SUGGESTION_LIST_SPACE_RHS: 220,
     SUGGESTION_LIST_MODAL_WIDTH: 496,
     MENTION_NAME_PADDING_LEFT: 2.4,
     AVATAR_WIDTH: 24,
@@ -1931,7 +1932,7 @@ export const Constants = {
     },
     Integrations: {
         COMMAND: 'commands',
-        PAGE_SIZE: '10000',
+        PAGE_SIZE: 10000,
         START_PAGE_NUM: 0,
         INCOMING_WEBHOOK: 'incoming_webhooks',
         OUTGOING_WEBHOOK: 'outgoing_webhooks',

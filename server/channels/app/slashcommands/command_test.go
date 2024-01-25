@@ -465,9 +465,12 @@ func TestDoCommandRequest(t *testing.T) {
 	t.Run("with a url that matches an outgoing oauth connection", func(t *testing.T) {
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		defer func() {
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
 			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-		}()
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
 		serverCommand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {

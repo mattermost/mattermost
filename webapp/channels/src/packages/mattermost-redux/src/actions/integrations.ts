@@ -3,14 +3,14 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook, SubmitDialogResponse} from '@mattermost/types/integrations';
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -450,8 +450,8 @@ export function deleteOutgoingOAuthConnection(id: string): ActionFunc {
     };
 }
 
-export function submitInteractiveDialog(submission: DialogSubmission): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function submitInteractiveDialog(submission: DialogSubmission): NewActionFuncAsync<SubmitDialogResponse> {
+    return async (dispatch, getState) => {
         const state = getState();
         submission.channel_id = getCurrentChannelId(state);
         submission.team_id = getCurrentTeamId(state);

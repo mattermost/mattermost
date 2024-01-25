@@ -121,7 +121,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 			var accessToken *model.OutgoingOAuthConnectionToken
 
 			// Retrieve an access token from a connection if one exists to use for the webhook request
-			if a.OutgoingOAuthConnections() != nil {
+			if a.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && *a.Config().ServiceSettings.EnableOutgoingOAuthConnections && a.OutgoingOAuthConnections() != nil {
 				connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(c, url)
 				if err != nil {
 					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))

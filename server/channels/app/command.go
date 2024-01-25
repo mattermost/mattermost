@@ -488,7 +488,7 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	var accessToken *model.OutgoingOAuthConnectionToken
 
 	// Retrieve an access token from a connection if one exists to use for the webhook request
-	if a.OutgoingOAuthConnections() != nil {
+	if a.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && *a.Config().ServiceSettings.EnableOutgoingOAuthConnections && a.OutgoingOAuthConnections() != nil {
 		connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(rctx, cmd.URL)
 		if err != nil {
 			a.Log().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
