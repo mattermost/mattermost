@@ -12,7 +12,7 @@ import './channel_bookmarks.scss';
 
 type Props = {
     channelId: string;
-}
+};
 
 const ChannelBookmarks = ({
     channelId,

@@ -1910,9 +1910,9 @@ export default class Client4 {
 
     // Channel Bookmark Routes
 
-    getChannelBookmarks = (channelId: string) => {
+    getChannelBookmarks = (channelId: string, bookmarksSince?: number) => {
         return this.doFetch<ChannelBookmark[]>(
-            `${this.getChannelBookmarksRoute(channelId)}`,
+            `${this.getChannelBookmarksRoute(channelId)}${buildQueryString({bookmarks_since: bookmarksSince})}`,
             {method: 'get'},
         );
     };
@@ -1925,7 +1925,7 @@ export default class Client4 {
     };
 
     deleteChannelBookmark = (channelId: string, channelBookmarkId: string, connectionId: string) => {
-        return this.doFetch<void>(
+        return this.doFetch<ChannelBookmark>(
             `${this.getChannelBookmarkRoute(channelId, channelBookmarkId)}`,
             {method: 'delete', headers: {'Connection-Id': connectionId}},
         );
@@ -1939,7 +1939,7 @@ export default class Client4 {
     };
 
     updateChannelBookmarkSortOrder = (channelId: string, channelBookmarkId: string, newOrder: number, connectionId: string) => {
-        return this.doFetch<void>(
+        return this.doFetch<ChannelBookmark[]>(
             `${this.getChannelBookmarksRoute(channelId)}/${channelBookmarkId}/sort_order`,
             {method: 'post', body: JSON.stringify(newOrder), headers: {'Connection-Id': connectionId}},
         );

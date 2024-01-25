@@ -46,7 +46,7 @@ type Props = {
 } | {
     bookmark?: never;
     onConfirm: (data: ChannelBookmarkCreate) => Promise<ActionResult<boolean, any>> | ActionResult<boolean, any>;
-})
+});
 
 function validHttpUrl(val: string) {
     if (!isValidUrl(val)) {
@@ -242,7 +242,7 @@ function ChannelBookmarkCreateModal({
     }, [file]);
 
     const handleOnExited = () => {
-        handleFileRemove();
+        uploadRequestRef.current?.abort();
         onExited?.();
     };
 
@@ -269,7 +269,11 @@ function ChannelBookmarkCreateModal({
     const isValid = type === 'file' ? fileInfo && displayNameValue && !fileError : link && !linkError;
     const showControls = type === 'file' || (isValid || bookmark);
 
-    const cancel = () => {};
+    const cancel = () => {
+        if (type === 'file') {
+            uploadRequestRef.current?.abort();
+        }
+    };
     const confirm = async () => {
         if (type === 'link') {
             const {data: success} = await onConfirm({
@@ -442,7 +446,7 @@ const FileInputContainer = styled.div`
 
         &.empty {
             border: 2px dashed rgba(var(--center-channel-color-rgb), 0.16);
-            border-radius : 8px;
+            border-radius : 4px;
         }
 
         .post-image__column {
