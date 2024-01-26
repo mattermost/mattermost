@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessage, defineMessages, injectIntl} from 'react-intl';
 
 import type {AdminConfig, ClientLicense, EmailSettings} from '@mattermost/types/config';
 
 import ExternalLink from 'components/external_link';
 
 import {Constants, DocLinks} from 'utils/constants';
-import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
 import type {BaseProps, BaseState} from './admin_settings';
@@ -20,7 +20,7 @@ import TextSetting from './text_setting';
 type Props = BaseProps & {
     config: AdminConfig;
     license: ClientLicense;
-};
+} & WrappedComponentProps;
 
 type State = BaseState & {
     pushNotificationServer: string;
@@ -45,7 +45,19 @@ const PUSH_NOTIFICATIONS_SERVER_DIC = {
 const DROPDOWN_ID_SERVER_TYPE = 'pushNotificationServerType';
 const DROPDOWN_ID_SERVER_LOCATION = 'pushNotificationServerLocation';
 
-export default class PushSettings extends AdminSettings<Props, State> {
+const messages = defineMessages({
+    pushNotificationServer: {id: 'admin.environment.pushNotificationServer', defaultMessage: 'Push Notification Server'},
+    pushTitle: {id: 'admin.email.pushTitle', defaultMessage: 'Enable Push Notifications: '},
+    pushServerTitle: {id: 'admin.email.pushServerTitle', defaultMessage: 'Push Notification Server:'},
+});
+
+export const searchableStrings = [
+    messages.pushNotificationServer,
+    messages.pushTitle,
+    messages.pushServerTitle,
+];
+
+class PushSettings extends AdminSettings<Props, State> {
     canSave = () => {
         return this.state.pushNotificationServerType !== PUSH_NOTIFICATIONS_MHPNS || this.state.agree;
     };
@@ -143,22 +155,17 @@ export default class PushSettings extends AdminSettings<Props, State> {
     };
 
     renderTitle() {
-        return (
-            <FormattedMessage
-                id='admin.environment.pushNotificationServer'
-                defaultMessage='Push Notification Server'
-            />
-        );
+        return (<FormattedMessage {...messages.pushNotificationServer}/>);
     }
 
     renderSettings = () => {
         const pushNotificationServerTypes = [];
-        pushNotificationServerTypes.push({value: PUSH_NOTIFICATIONS_OFF, text: Utils.localizeMessage('admin.email.pushOff', 'Do not send push notifications')});
+        pushNotificationServerTypes.push({value: PUSH_NOTIFICATIONS_OFF, text: this.props.intl.formatMessage({id: 'admin.email.pushOff', defaultMessage: 'Do not send push notifications'})});
         if (this.props.license.IsLicensed === 'true' && this.props.license.MHPNS === 'true') {
-            pushNotificationServerTypes.push({value: PUSH_NOTIFICATIONS_MHPNS, text: Utils.localizeMessage('admin.email.mhpns', 'Use HPNS connection with uptime SLA to send notifications to iOS and Android apps')});
+            pushNotificationServerTypes.push({value: PUSH_NOTIFICATIONS_MHPNS, text: this.props.intl.formatMessage({id: 'admin.email.mhpns', defaultMessage: 'Use HPNS connection with uptime SLA to send notifications to iOS and Android apps'})});
         }
-        pushNotificationServerTypes.push({value: PUSH_NOTIFICATIONS_MTPNS, text: Utils.localizeMessage('admin.email.mtpns', 'Use TPNS connection to send notifications to iOS and Android apps')});
-        pushNotificationServerTypes.push({value: PUSH_NOTIFICATIONS_CUSTOM, text: Utils.localizeMessage('admin.email.selfPush', 'Manually enter Push Notification Service location')});
+        pushNotificationServerTypes.push({value: PUSH_NOTIFICATIONS_MTPNS, text: this.props.intl.formatMessage({id: 'admin.email.mtpns', defaultMessage: 'Use TPNS connection to send notifications to iOS and Android apps'})});
+        pushNotificationServerTypes.push({value: PUSH_NOTIFICATIONS_CUSTOM, text: this.props.intl.formatMessage({id: 'admin.email.selfPush', defaultMessage: 'Manually enter Push Notification Service location'})});
 
         let sendHelpText = null;
         let pushServerHelpText = null;
@@ -306,8 +313,8 @@ export default class PushSettings extends AdminSettings<Props, State> {
         let locationDropdown;
         if (this.state.pushNotificationServerType === PUSH_NOTIFICATIONS_MHPNS) {
             const pushNotificationServerLocations = [
-                {value: PUSH_NOTIFICATIONS_LOCATION_US, text: Utils.localizeMessage('admin.email.pushServerLocationUS', 'US')},
-                {value: PUSH_NOTIFICATIONS_LOCATION_DE, text: Utils.localizeMessage('admin.email.pushServerLocationDE', 'Germany')},
+                {value: PUSH_NOTIFICATIONS_LOCATION_US, text: this.props.intl.formatMessage({id: 'admin.email.pushServerLocationUS', defaultMessage: 'US'})},
+                {value: PUSH_NOTIFICATIONS_LOCATION_DE, text: this.props.intl.formatMessage({id: 'admin.email.pushServerLocationDE', defaultMessage: 'Germany'})},
             ];
 
             locationDropdown = (
@@ -333,12 +340,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                 <DropdownSetting
                     id={DROPDOWN_ID_SERVER_TYPE}
                     values={pushNotificationServerTypes}
-                    label={
-                        <FormattedMessage
-                            id='admin.email.pushTitle'
-                            defaultMessage='Enable Push Notifications: '
-                        />
-                    }
+                    label={<FormattedMessage {...messages.pushTitle}/>}
                     value={this.state.pushNotificationServerType}
                     onChange={this.handleDropdownChange}
                     helpText={sendHelpText}
@@ -349,13 +351,8 @@ export default class PushSettings extends AdminSettings<Props, State> {
                 {tosCheckbox}
                 <TextSetting
                     id='pushNotificationServer'
-                    label={
-                        <FormattedMessage
-                            id='admin.email.pushServerTitle'
-                            defaultMessage='Push Notification Server:'
-                        />
-                    }
-                    placeholder={Utils.localizeMessage('admin.email.pushServerEx', 'E.g.: "https://push-test.mattermost.com"')}
+                    label={<FormattedMessage {...messages.pushServerTitle}/>}
+                    placeholder={defineMessage({id: 'admin.email.pushServerEx', defaultMessage: 'E.g.: "https://push-test.mattermost.com"'})}
                     helpText={pushServerHelpText}
                     value={this.state.pushNotificationServer}
                     onChange={this.handleChange}
@@ -371,7 +368,7 @@ export default class PushSettings extends AdminSettings<Props, State> {
                             defaultMessage='Max Notifications Per Channel:'
                         />
                     }
-                    placeholder={Utils.localizeMessage('admin.team.maxNotificationsPerChannelExample', 'E.g.: "1000"')}
+                    placeholder={defineMessage({id: 'admin.team.maxNotificationsPerChannelExample', defaultMessage: 'E.g.: "1000"'})}
                     helpText={
                         <FormattedMessage
                             id='admin.team.maxNotificationsPerChannelDescription'
@@ -387,3 +384,5 @@ export default class PushSettings extends AdminSettings<Props, State> {
         );
     };
 }
+
+export default injectIntl(PushSettings);

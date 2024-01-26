@@ -41,7 +41,7 @@ import {
 
 export {getCurrentUser, getCurrentUserId, getUsers};
 
-type Filters = {
+export type Filters = {
     role?: string;
     inactive?: boolean;
     active?: boolean;
@@ -162,7 +162,7 @@ export const currentUserHasAnAdminRole: (state: GlobalState) => boolean = create
     },
 );
 
-export const getCurrentUserRoles: (a: GlobalState) => UserProfile['roles'] = createSelector(
+export const getCurrentUserRoles: (_: GlobalState) => UserProfile['roles'] = createSelector(
     'getCurrentUserRoles',
     getMyCurrentChannelMembership,
     (state) => state.entities.teams.myMembers[state.entities.teams.currentTeamId],

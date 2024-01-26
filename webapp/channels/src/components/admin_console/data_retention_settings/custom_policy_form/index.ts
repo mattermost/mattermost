@@ -3,14 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import type {
-    DataRetentionCustomPolicy,
-    CreateDataRetentionCustomPolicy,
-    PatchDataRetentionCustomPolicy,
-} from '@mattermost/types/data_retention';
-import type {Team} from '@mattermost/types/teams';
+import type {Dispatch} from 'redux';
 
 import {
     getDataRetentionCustomPolicy as fetchPolicy,
@@ -24,25 +17,12 @@ import {
 } from 'mattermost-redux/actions/admin';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
 import {getTeamsInPolicy} from 'mattermost-redux/selectors/entities/teams';
-import type {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
 import type {GlobalState} from 'types/store';
 
 import CustomPolicyForm from './custom_policy_form';
-
-type Actions = {
-    fetchPolicy: (id: string) => Promise<{ data: DataRetentionCustomPolicy }>;
-    fetchPolicyTeams: (id: string, page: number, perPage: number) => Promise<{ data: Team[] }>;
-    createDataRetentionCustomPolicy: (policy: CreateDataRetentionCustomPolicy) => Promise<{ data: DataRetentionCustomPolicy }>;
-    updateDataRetentionCustomPolicy: (id: string, policy: PatchDataRetentionCustomPolicy) => Promise<{ data: DataRetentionCustomPolicy }>;
-    addDataRetentionCustomPolicyTeams: (id: string, teams: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-    removeDataRetentionCustomPolicyTeams: (id: string, teams: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-    addDataRetentionCustomPolicyChannels: (id: string, channels: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-    removeDataRetentionCustomPolicyChannels: (id: string, channels: string[]) => Promise<{ data?: {status: string}; error?: Error }>;
-    setNavigationBlocked: (blocked: boolean) => void;
-};
 
 type OwnProps = {
     match: {
@@ -66,9 +46,9 @@ function mapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             fetchPolicy,
             fetchPolicyTeams,
             createDataRetentionCustomPolicy,

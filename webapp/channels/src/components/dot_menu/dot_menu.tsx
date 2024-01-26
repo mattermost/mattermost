@@ -63,7 +63,7 @@ type Props = {
     intl: IntlShape;
     post: Post;
     teamId: string;
-    location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
+    location?: keyof typeof Constants.Locations;
     isFlagged?: boolean;
     handleCommentClick?: React.EventHandler<any>;
     handleDropdownOpened: (open: boolean) => void;
@@ -115,7 +115,7 @@ type Props = {
         /**
          * Function to set the unread mark at given post
          */
-        markPostAsUnread: (post: Post, location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | string) => void;
+        markPostAsUnread: (post: Post, location?: string) => void;
 
         /**
          * Function to set the thread as followed/unfollowed

@@ -13,7 +13,6 @@ import type {GlobalState} from '@mattermost/types/store';
 import {getCurrentChannel, getUnreadStatus} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import UnreadsStatusHandler from './unreads_status_handler';
 
@@ -36,7 +35,7 @@ function mapStateToProps(state: GlobalState, {location: {pathname}}: Props): Com
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
         }, dispatch),

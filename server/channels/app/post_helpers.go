@@ -94,15 +94,15 @@ func linearFilterPostList(postList *model.PostList, earliestAccessibleTime int64
 	order := postList.Order
 
 	n := 0
-	for i, postId := range order {
-		if createAt := posts[postId].CreateAt; createAt >= earliestAccessibleTime {
+	for i, postID := range order {
+		if createAt := posts[postID].CreateAt; createAt >= earliestAccessibleTime {
 			order[n] = order[i]
 			n++
 		} else {
 			if createAt > postList.FirstInaccessiblePostTime {
 				postList.FirstInaccessiblePostTime = createAt
 			}
-			delete(posts, postId)
+			delete(posts, postID)
 		}
 	}
 	postList.Order = order[:n]

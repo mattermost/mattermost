@@ -16,7 +16,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
       >
         <Memo(LoadingWrapper)
           loading={false}
-          text="Loading..."
+          text={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Loading..."
+              id="admin.requestButton.loading"
+            />
+          }
         >
           <MemoizedFormattedMessage
             defaultMessage="Button Text"
@@ -99,7 +104,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -224,7 +234,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -341,7 +356,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
@@ -461,7 +481,12 @@ exports[`components/admin_console/request_button/request_button.jsx should match
         >
           <Memo(LoadingWrapper)
             loading={false}
-            text="Loading..."
+            text={
+              <Memo(MemoizedFormattedMessage)
+                defaultMessage="Loading..."
+                id="admin.requestButton.loading"
+              />
+            }
           >
             <FormattedMessage
               defaultMessage="Button Text"
