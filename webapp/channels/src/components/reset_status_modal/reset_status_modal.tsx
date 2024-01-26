@@ -9,6 +9,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserStatus} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 
@@ -139,7 +140,7 @@ type Props = {
         /*
          * Function to get and then reset the user's status if needed
          */
-        autoResetStatus: () => Promise<{data: UserStatus}>;
+        autoResetStatus: () => Promise<ActionResult<UserStatus>>;
 
         /*
          * Function to set the status for a user
@@ -172,8 +173,8 @@ export default class ResetStatusModal extends React.PureComponent<Props, State> 
 
     public componentDidMount(): void {
         this.props.actions.autoResetStatus().then(
-            (result: {data: UserStatus}) => {
-                const status = result.data;
+            (result) => {
+                const status = result.data!;
                 const statusIsManual = status?.manual;
                 const autoResetPrefNotSet = this.props.autoResetPref === '';
 

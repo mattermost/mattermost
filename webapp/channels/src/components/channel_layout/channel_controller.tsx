@@ -6,7 +6,6 @@ import React, {useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 
@@ -28,8 +27,8 @@ type Props = {
 }
 
 export default function ChannelController(props: Props) {
-    const dispatch = useDispatch<DispatchFunc>();
     const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const isMsBrowser = isInternetExplorer() || isEdge();
@@ -54,8 +53,7 @@ export default function ChannelController(props: Props) {
         return () => {
             clearInterval(loadStatusesIntervalId);
         };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [enabledUserStatuses]);
+    }, [dispatch, enabledUserStatuses]);
 
     return (
         <>
