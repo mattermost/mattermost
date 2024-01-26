@@ -3026,6 +3026,7 @@ type CloudSettings struct {
 	CWSURL    *string `access:"write_restrictable"`
 	CWSAPIURL *string `access:"write_restrictable"`
 	CWSMock   *bool   `access:"write_restrictable"`
+	Disable   *bool   `access:"write_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -3048,6 +3049,10 @@ func (s *CloudSettings) SetDefaults() {
 	if s.CWSMock == nil {
 		isMockCws := MockCWS == "true"
 		s.CWSMock = &isMockCws
+	}
+
+	if s.Disable == nil {
+		s.Disable = NewBool(false)
 	}
 }
 
