@@ -439,7 +439,7 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         }
 
         const handleRequestAction = (success: () => void, error: (error: {message: string}) => void) => {
-            if (this.state.saveNeeded !== false) {
+            if (!setting.skipSaveNeeded && this.state.saveNeeded !== false) {
                 error({
                     message: this.props.intl.formatMessage({id: 'admin_settings.save_unsaved_changes', defaultMessage: 'Please save unsaved changes first'}),
                 });
