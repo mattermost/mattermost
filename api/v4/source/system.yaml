@@ -1075,40 +1075,6 @@
                 $ref: "#/components/schemas/StatusOK"
         "403":
           $ref: "#/components/responses/Forbidden"
-    post:
-      tags:
-        - system
-      summary: Request trial license and acknowledge a warning of a metric status
-      description: |
-        Request a trial license and acknowledge a warning for the warn_metric_id metric crossing a threshold (or some
-        similar condition being fulfilled) - sets the "ack" status for all the warn metrics in the system.
-
-        __Minimum server version__: 5.28
-
-        ##### Permissions
-
-        Must have `manage_system` permission.
-      operationId: SendTrialLicenseWarnMetricAck
-      parameters:
-        - name: warn_metric_id
-          in: path
-          description: Warn Metric Id.
-          required: true
-          schema:
-            type: string
-      responses:
-        "200":
-          description: The trial license request and the subsequent acknowledgement of the warning for the metric have been successful.
-          content:
-            application/json:
-              schema:
-                $ref: "#/components/schemas/StatusOK"
-        "400":
-          $ref: "#/components/responses/BadRequest"
-        "401":
-          $ref: "#/components/responses/Unauthorized"
-        "403":
-          $ref: "#/components/responses/Forbidden"
   /api/v4/integrity:
     post:
       tags:
