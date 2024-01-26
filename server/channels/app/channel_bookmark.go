@@ -57,7 +57,15 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		response.Updated = updateBookmark.ToBookmarkWithFileInfo(updateBookmark.FileInfo)
+		if updateBookmark.FileInfo != nil && updateBookmark.FileId != "" && updateBookmark.FileId != updateBookmark.FileInfo.Id {
+			fileInfo, fileErr := a.Srv().Store().FileInfo().Get(updateBookmark.FileId)
+			if fileErr != nil {
+				return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.get_existing.app_err", nil, "", http.StatusNotFound).Wrap(fileErr)
+			}
+			response.Updated = updateBookmark.ToBookmarkWithFileInfo(fileInfo)
+		} else {
+			response.Updated = updateBookmark.ToBookmarkWithFileInfo(updateBookmark.FileInfo)
+		}
 	} else {
 		existingBookmark, ebErr := a.Srv().Store().ChannelBookmark().Get(updateBookmark.Id, false)
 		if ebErr != nil {
