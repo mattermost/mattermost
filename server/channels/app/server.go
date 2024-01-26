@@ -530,9 +530,9 @@ func NewServer(options ...Option) (*Server, error) {
 }
 
 func (s *Server) runJobs() {
+	s.runLicenseExpirationCheckJob()
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
-		s.runLicenseExpirationCheckJob()
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
 	})

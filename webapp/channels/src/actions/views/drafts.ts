@@ -15,7 +15,7 @@ import {Client4} from 'mattermost-redux/client';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {makeGetDrafts} from 'selectors/drafts';
@@ -37,11 +37,11 @@ type Draft = {
  * Gets drafts stored on the server and reconciles them with any locally stored drafts.
  * @param teamId Only drafts for the given teamId will be fetched.
  */
-export function getDrafts(teamId: string) {
+export function getDrafts(teamId: string): NewActionFuncAsync<boolean, GlobalState> {
     const getLocalDrafts = makeGetDrafts(false);
 
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+    return async (dispatch, getState) => {
+        const state = getState();
 
         let serverDrafts: Draft[] = [];
         try {
@@ -98,9 +98,9 @@ export function getDrafts(teamId: string) {
     };
 }
 
-export function removeDraft(key: string, channelId: string, rootId = '') {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function removeDraft(key: string, channelId: string, rootId = ''): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
 
         // set draft to empty to re-render the component
         await dispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: []}));
@@ -109,7 +109,7 @@ export function removeDraft(key: string, channelId: string, rootId = '') {
         await dispatch(removeGlobalItem(key));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
-            const connectionId = getConnectionId(getState() as GlobalState);
+            const connectionId = getConnectionId(getState());
 
             try {
                 await Client4.deleteDraft(channelId, rootId, connectionId);
@@ -124,9 +124,9 @@ export function removeDraft(key: string, channelId: string, rootId = '') {
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
         let updatedValue: PostDraft|null = null;
         if (value) {
             const timestamp = new Date().getTime();
@@ -171,8 +171,8 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
     return Client4.upsertDraft(newDraft, connectionId);
 }
 
-export function setDraftsTourTipPreference(initializationState: Record<string, boolean>): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setDraftsTourTipPreference(initializationState: Record<string, boolean>): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const preference: PreferenceType = {
@@ -186,8 +186,8 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
     };
 }
 
-export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean) {
-    return (dispatch: DispatchFunc) => {
+export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean): NewActionFunc {
+    return (dispatch) => {
         dispatch(setGlobalItem(key, value));
         dispatch(setGlobalDraftSource(key, isRemote));
         return {data: true};

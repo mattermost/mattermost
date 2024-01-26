@@ -10,8 +10,6 @@ import {useHistory, useLocation} from 'react-router-dom';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {loginWithDesktopToken} from 'actions/views/login';
 
 import DesktopApp from 'utils/desktop_api';
@@ -35,7 +33,7 @@ type Props = {
 }
 
 const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {search} = useLocation();
     const query = new URLSearchParams(search);
