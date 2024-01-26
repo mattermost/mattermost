@@ -6779,7 +6779,7 @@ func (s *OpenTracingLayerPostStore) PermanentDeleteByUser(rctx request.CTX, user
 	return err
 }
 
-func (s *OpenTracingLayerPostStore) Save(post *model.Post) (*model.Post, error) {
+func (s *OpenTracingLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -6788,7 +6788,7 @@ func (s *OpenTracingLayerPostStore) Save(post *model.Post) (*model.Post, error) 
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.Save(post)
+	result, err := s.PostStore.Save(rctx, post)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

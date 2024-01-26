@@ -177,22 +177,22 @@ func createOutgoingWebhook(ss store.Store, userId, channelId, teamId string) *mo
 	return wh
 }
 
-func createPost(ss store.Store, channelId, userId, rootId, parentId string) *model.Post {
+func createPost(rctx request.CTX, ss store.Store, channelId, userId, rootId, parentId string) *model.Post {
 	m := model.Post{}
 	m.ChannelId = channelId
 	m.UserId = userId
 	m.RootId = rootId
 	m.Message = "zz" + model.NewId() + "b"
-	p, _ := ss.Post().Save(&m)
+	p, _ := ss.Post().Save(rctx, &m)
 	return p
 }
 
-func createPostWithChannelId(ss store.Store, id string) *model.Post {
-	return createPost(ss, id, model.NewId(), "", "")
+func createPostWithChannelId(rctx request.CTX, ss store.Store, id string) *model.Post {
+	return createPost(rctx, ss, id, model.NewId(), "", "")
 }
 
-func createPostWithUserId(ss store.Store, id string) *model.Post {
-	return createPost(ss, model.NewId(), id, "", "")
+func createPostWithUserId(rctx request.CTX, ss store.Store, id string) *model.Post {
+	return createPost(rctx, ss, model.NewId(), id, "", "")
 }
 
 func createPreferences(ss store.Store, userId string) model.Preferences {
@@ -569,7 +569,7 @@ func TestCheckChannelsPostsIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			post := createPostWithChannelId(ss, model.NewId())
+			post := createPostWithChannelId(rctx, ss, model.NewId())
 			result := checkChannelsPostsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
@@ -653,9 +653,9 @@ func TestCheckPostsPostsRootIdIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			channel := createChannel(ss, model.NewId(), model.NewId())
-			root := createPost(ss, channel.Id, model.NewId(), "", "")
+			root := createPost(rctx, ss, channel.Id, model.NewId(), "", "")
 			rootId := root.Id
-			post := createPost(ss, channel.Id, model.NewId(), root.Id, root.Id)
+			post := createPost(rctx, ss, channel.Id, model.NewId(), root.Id, root.Id)
 			dbmap.Exec(`DELETE FROM Posts WHERE Id=?`, root.Id)
 			result := checkPostsPostsRootIdIntegrity(store)
 			require.NoError(t, result.Err)
@@ -1402,7 +1402,7 @@ func TestCheckUsersPostsIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			post := createPostWithUserId(ss, model.NewId())
+			post := createPostWithUserId(rctx, ss, model.NewId())
 			result := checkUsersPostsIntegrity(store)
 			require.NoError(t, result.Err)
 			data := result.Data.(model.RelationalIntegrityCheckData)
@@ -1623,8 +1623,8 @@ func TestCheckThreadsTeamsIntegrity(t *testing.T) {
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			team := createTeam(ss)
 			channel := createChannel(ss, team.Id, model.NewId())
-			root := createPost(ss, channel.Id, model.NewId(), "", "")
-			post := createPost(ss, channel.Id, model.NewId(), root.Id, root.Id)
+			root := createPost(rctx, ss, channel.Id, model.NewId(), "", "")
+			post := createPost(rctx, ss, channel.Id, model.NewId(), root.Id, root.Id)
 
 			dbmap.Exec(`DELETE FROM Teams WHERE Id=?`, team.Id)
 			result := checkThreadsTeamsIntegrity(store)

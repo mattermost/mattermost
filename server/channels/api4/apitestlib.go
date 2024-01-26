@@ -782,7 +782,7 @@ func (th *TestHelper) CreateMessagePostWithClient(client *model.Client4, channel
 }
 
 func (th *TestHelper) CreateMessagePostNoClient(channel *model.Channel, message string, createAtTime int64) *model.Post {
-	post, err := th.App.Srv().Store().Post().Save(&model.Post{
+	post, err := th.App.Srv().Store().Post().Save(th.Context, &model.Post{
 		UserId:    th.BasicUser.Id,
 		ChannelId: channel.Id,
 		Message:   message,

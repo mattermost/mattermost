@@ -338,7 +338,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
 	}
 
-	rpost, nErr := a.Srv().Store().Post().Save(post)
+	rpost, nErr := a.Srv().Store().Post().Save(c, post)
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput

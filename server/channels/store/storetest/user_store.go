@@ -2468,7 +2468,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	p1.Message = "this is a message for @" + u2.Username + " and " + "@" + u3.Username
 
 	// Post one message with mention to open channel
-	_, nErr = ss.Post().Save(&p1)
+	_, nErr = ss.Post().Save(rctx, &p1)
 	require.NoError(t, nErr)
 	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u2.Id, u3.Id}, false, false)
 	require.NoError(t, nErr)
@@ -2479,7 +2479,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	p2.UserId = u1.Id
 	p2.Message = "first message"
 
-	_, nErr = ss.Post().Save(&p2)
+	_, nErr = ss.Post().Save(rctx, &p2)
 	require.NoError(t, nErr)
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false, false)
 	require.NoError(t, nErr)
@@ -2488,7 +2488,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	p3.ChannelId = c2.Id
 	p3.UserId = u1.Id
 	p3.Message = "second message"
-	_, nErr = ss.Post().Save(&p3)
+	_, nErr = ss.Post().Save(rctx, &p3)
 	require.NoError(t, nErr)
 
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false, false)
@@ -6231,7 +6231,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	for _, user := range users {
 		for i := 0; i < numPostsPerUser; i++ {
 			post := model.Post{UserId: user.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
-			_, err := ss.Post().Save(&post)
+			_, err := ss.Post().Save(rctx, &post)
 			require.NoError(t, err)
 		}
 	}

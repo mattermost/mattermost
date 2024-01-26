@@ -369,7 +369,7 @@ func (th *SearchTestHelper) createPost(userID, channelID, message, hashtags, pos
 		creationTime = createAt
 	}
 	postModel := th.createPostModel(userID, channelID, message, hashtags, postType, creationTime, pinned)
-	return th.Store.Post().Save(postModel)
+	return th.Store.Post().Save(th.Context, postModel)
 }
 
 func (th *SearchTestHelper) createFileInfoModel(creatorID, postID, channelID, name, content, extension, mimeType string, createAt, size int64) *model.FileInfo {
@@ -401,7 +401,7 @@ func (th *SearchTestHelper) createFileInfo(creatorID, postID, channelID, name, c
 func (th *SearchTestHelper) createReply(userID, message, hashtags string, parent *model.Post, createAt int64, pinned bool) (*model.Post, error) {
 	replyModel := th.createPostModel(userID, parent.ChannelId, message, hashtags, parent.Type, createAt, pinned)
 	replyModel.RootId = parent.Id
-	return th.Store.Post().Save(replyModel)
+	return th.Store.Post().Save(th.Context, replyModel)
 }
 
 func (th *SearchTestHelper) deleteUserPosts(userID string) error {

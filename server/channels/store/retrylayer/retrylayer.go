@@ -7676,11 +7676,11 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID str
 
 }
 
-func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, error) {
+func (s *RetryLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Save(post)
+		result, err := s.PostStore.Save(rctx, post)
 		if err == nil {
 			return result, nil
 		}
