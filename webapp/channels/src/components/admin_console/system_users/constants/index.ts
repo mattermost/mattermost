@@ -13,3 +13,21 @@ export enum ColumnNames {
     totalPosts = 'totalPostsColumn',
     actions = 'actionsColumn',
 }
+
+export enum StatusFilter {
+    Any = 'any',
+    Active = 'active',
+    Deactivated = 'deactivated',
+}
+
+export enum RoleFilters {
+    Any = 'any',
+    Admin = 'system_admin',
+    Member = 'system_user',
+    Guest = 'system_guest',
+}
+
+export enum TeamFilters {
+    AllTeams = 'teams_filter_for_all_teams',
+    NoTeams = 'teams_filter_for_no_teams',
+}

@@ -67,6 +67,11 @@ export const adminConsoleUserManagementTablePropertiesInitialState: AdminConsole
     cursorUserId: '',
     cursorColumnValue: '',
     columnVisibility: {},
+    searchTerm: '',
+    filterTeam: '',
+    filterTeamLabel: '',
+    filterStatus: '',
+    filterRole: '',
 };
 
 export function adminConsoleUserManagementTableProperties(state = adminConsoleUserManagementTablePropertiesInitialState, action: AnyAction) {

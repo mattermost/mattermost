@@ -8,7 +8,7 @@ import {useHistory} from 'react-router-dom';
 
 import type {ServerError} from '@mattermost/types/errors';
 import {CursorPaginationDirection} from '@mattermost/types/reports';
-import type {ReportDuration, UserReport, UserReportOptions} from '@mattermost/types/reports';
+import type {ReportDuration, UserReport} from '@mattermost/types/reports';
 
 import Preferences from 'mattermost-redux/constants/preferences';
 
@@ -24,19 +24,20 @@ import type {AdminConsoleUserManagementTableProperties} from 'types/store/views'
 import {ColumnNames} from './constants';
 import {RevokeSessionsButton} from './revoke_sessions_button';
 import {SystemUsersColumnTogglerMenu} from './system_users_column_toggler_menu';
-import {SystemUsersDateRangeSelector} from './system_users_date_range_selector';
+import {SystemUsersDateRangeMenu} from './system_users_date_range_menu';
 import {SystemUsersExport} from './system_users_export';
-import {SystemUsersFilterMenu} from './system_users_filter_menu';
+import {SystemUsersFilterPopover} from './system_users_filters_popover';
 import {SystemUsersListAction} from './system_users_list_actions';
 import {SystemUsersSearch} from './system_users_search';
-import {getSortableColumnValueBySortColumn, getSortColumnForOptions, getSortDirectionForOptions, getPaginationInfo} from './utils';
+import {getSortableColumnValueBySortColumn, getPaginationInfo, convertTableOptionsToUserReportOptions} from './utils';
 
 import './system_users.scss';
 
 import type {PropsFromRedux} from './index';
 
 type Props = PropsFromRedux;
-type TableOptions = {
+
+export type TableOptions = {
     pageSize?: PaginationState['pageSize'];
     sortColumn?: SortingState[0]['id'];
     sortIsDescending?: SortingState[0]['desc'];
@@ -44,21 +45,11 @@ type TableOptions = {
     fromId?: AdminConsoleUserManagementTableProperties['cursorUserId'];
     direction?: CursorPaginationDirection;
     searchTerm?: string;
+    filterTeam?: AdminConsoleUserManagementTableProperties['filterTeam'];
+    filterRole?: AdminConsoleUserManagementTableProperties['filterRole'];
+    filterStatus?: AdminConsoleUserManagementTableProperties['filterStatus'];
     dateRange?: ReportDuration;
 }
-
-const toUserReportOptions = (tableOptions?: TableOptions): UserReportOptions => {
-    return {
-        page_size: tableOptions?.pageSize || PAGE_SIZES[0],
-        from_column_value: tableOptions?.fromColumnValue,
-        from_id: tableOptions?.fromId,
-        direction: tableOptions?.direction,
-        ...getSortColumnForOptions(tableOptions?.sortColumn),
-        ...getSortDirectionForOptions(tableOptions?.sortIsDescending),
-        search_term: tableOptions?.searchTerm,
-        date_range: tableOptions?.dateRange,
-    };
-};
 
 type UserReportWithError = UserReport & {error?: ServerError};
 
@@ -82,7 +73,7 @@ function SystemUsers(props: Props) {
     // Effect to get the total user count
     useEffect(() => {
         const getUserCount = async (tableOptions?: TableOptions) => {
-            const {data} = await props.getUserCountForReporting(toUserReportOptions(tableOptions));
+            const {data} = await props.getUserCountForReporting(convertTableOptionsToUserReportOptions(tableOptions));
             setUserCount(data);
         };
 
@@ -94,6 +85,9 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            filterTeam: props.tablePropertyFilterTeam,
+            filterRole: props.tablePropertyFilterRole,
+            filterStatus: props.tablePropertyFilterStatus,
         });
     }, [
         props.tablePropertyPageSize,
@@ -103,6 +97,9 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
+        props.tablePropertyFilterTeam,
+        props.tablePropertyFilterRole,
+        props.tablePropertyFilterStatus,
     ]);
 
     // Effect to get the user reports
@@ -110,7 +107,7 @@ function SystemUsers(props: Props) {
         async function fetchUserReportsWithOptions(tableOptions?: TableOptions) {
             setLoadingState(LoadingStates.Loading);
 
-            const {data} = await props.getUserReports(toUserReportOptions(tableOptions));
+            const {data} = await props.getUserReports(convertTableOptionsToUserReportOptions(tableOptions));
 
             if (data) {
                 if (data.length > 0) {
@@ -132,6 +129,9 @@ function SystemUsers(props: Props) {
             fromId: props.tablePropertyCursorUserId,
             direction: props.tablePropertyCursorDirection,
             searchTerm: props.tablePropertySearchTerm,
+            filterTeam: props.tablePropertyFilterTeam,
+            filterRole: props.tablePropertyFilterRole,
+            filterStatus: props.tablePropertyFilterStatus,
             dateRange: props.tablePropertyDateRange,
         });
     }, [
@@ -142,6 +142,9 @@ function SystemUsers(props: Props) {
         props.tablePropertyCursorColumnValue,
         props.tablePropertyCursorUserId,
         props.tablePropertySearchTerm,
+        props.tablePropertyFilterRole,
+        props.tablePropertyFilterTeam,
+        props.tablePropertyFilterStatus,
         props.tablePropertyDateRange,
     ]);
 
@@ -516,14 +519,23 @@ function SystemUsers(props: Props) {
                 }
                 <div className='admin-console__container'>
                     <div className='admin-console__filters-rows'>
-                        <SystemUsersSearch/>
-                        <SystemUsersFilterMenu/>
+                        <SystemUsersSearch
+                            searchTerm={props.tablePropertySearchTerm}
+                        />
+                        <SystemUsersFilterPopover
+                            filterTeam={props.tablePropertyFilterTeam}
+                            filterTeamLabel={props.tablePropertyFilterTeamLabel}
+                            filterRole={props.tablePropertyFilterRole}
+                            filterStatus={props.tablePropertyFilterStatus}
+                        />
                         <SystemUsersColumnTogglerMenu
                             isMySql={props.isMySql}
                             allColumns={table.getAllLeafColumns()}
                             visibleColumnsLength={table.getVisibleLeafColumns()?.length ?? 0}
                         />
-                        <SystemUsersDateRangeSelector/>
+                        <SystemUsersDateRangeMenu
+                            dateRange={props.tablePropertyDateRange}
+                        />
                         <SystemUsersExport
                             currentUserId={props.currentUser.id}
                             dateRange={props.tablePropertyDateRange}

@@ -29,7 +29,11 @@ export type AdminConsoleUserManagementTableProperties = {
     cursorColumnValue: string;
     cursorDirection: CursorPaginationDirection;
     columnVisibility: Record<string, boolean>;
-    searchTerm?: string;
+    searchTerm: string;
+    filterTeam: string;
+    filterTeamLabel: string;
+    filterStatus: string;
+    filterRole: string;
     dateRange?: ReportDuration;
 };
 
