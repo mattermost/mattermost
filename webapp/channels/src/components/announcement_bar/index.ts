@@ -13,7 +13,6 @@ import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
 import {getDisplayableErrors} from 'mattermost-redux/selectors/errors';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {dismissNotice} from 'actions/views/notice';
 
@@ -47,7 +46,7 @@ function mapStateToProps(state: GlobalState) {
 }
 
 //
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     const dismissFirstError = dismissError.bind(null, 0);
     return {
         actions: bindActionCreators({
