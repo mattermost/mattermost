@@ -123,7 +123,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		customerID = license.Customer.Id
 	}
 
-	diagnosticID := a.TelemetryId()
+	serverID := a.TelemetryId()
 	/* Jobs  */
 
 	uniqueUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
@@ -194,7 +194,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		LicenseIsTrial:        strconv.FormatBool(isTrial),
 		CustomerID:            customerID,
 		LicenseID:             licenseID,
-		DiagnosticID:          diagnosticID,
+		ServerID:              serverID,
 
 		/* Server stats */
 		ActiveUsers: int(uniqueUserCount),

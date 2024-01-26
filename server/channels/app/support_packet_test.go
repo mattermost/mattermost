@@ -65,7 +65,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
 		assert.Equal(t, license.Id, packet.LicenseID)
 		assert.Equal(t, license.Customer.Id, packet.CustomerID)
-		assert.Equal(t, th.App.TelemetryId(), packet.DiagnosticID)
+		assert.Equal(t, th.App.TelemetryId(), packet.ServerID)
 
 		assert.Empty(t, packet.ClusterID)
 		assert.Equal(t, "local", packet.FileDriver)

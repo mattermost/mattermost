@@ -121,7 +121,7 @@ type SupportPacket struct {
 	LicenseIsTrial        string `yaml:"license_is_trial,omitempty"`
 	CustomerID            string `yaml:"customer_id"`
 	LicenseID             string `yaml:"license_id"`
-	DiagnosticID          string `yaml:"diagnostic_id"`
+	ServerID              string `yaml:"server_id"`
 
 	/* Server stats */
 
