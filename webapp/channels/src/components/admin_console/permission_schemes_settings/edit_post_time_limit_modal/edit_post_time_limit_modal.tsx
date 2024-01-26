@@ -7,7 +7,7 @@ import {FormattedMessage} from 'react-intl';
 
 import type {AdminConfig} from '@mattermost/types/config';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
@@ -22,13 +22,8 @@ type Props ={
     show: boolean;
     onClose: () => void;
     actions: {
-        updateConfig: (config: AdminConfig) => ActionFunc & {error?: ClientErrorPlaceholder};
+        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     };
-}
-
-type ClientErrorPlaceholder = {
-    message: string;
-    server_error_id: string;
 }
 
 export default function EditPostTimeLimitModal(props: Props) {

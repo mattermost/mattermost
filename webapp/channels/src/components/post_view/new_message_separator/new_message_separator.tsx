@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {memo} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import NotificationSeparator from 'components/widgets/separator/notification-separator';
@@ -17,38 +17,45 @@ type Props = {
     threadId?: string;
 }
 
-export default class NewMessageSeparator extends React.PureComponent<Props> {
-    render(): JSX.Element {
-        const pluginItems = this.props.newMessagesSeparatorActions?.
-            map((item) => {
-                if (!item.component) {
-                    return null;
-                }
+const NewMessageSeparator = ({
+    newMessagesSeparatorActions,
+    lastViewedAt,
+    channelId,
+    threadId,
+    wrapperRef,
+    separatorId,
+}: Props) => {
+    const pluginItems = newMessagesSeparatorActions?.
+        map((item) => {
+            if (!item.component) {
+                return null;
+            }
 
-                const Component = item.component as any;
-                return (
-                    <Component
-                        key={item.id}
-                        lastViewedAt={this.props.lastViewedAt}
-                        channelId={this.props.channelId}
-                        threadId={this.props.threadId}
-                    />
-                );
-            });
+            const Component = item.component as any;
+            return (
+                <Component
+                    key={item.id}
+                    lastViewedAt={lastViewedAt}
+                    channelId={channelId}
+                    threadId={threadId}
+                />
+            );
+        });
 
-        return (
-            <div
-                ref={this.props.wrapperRef}
-                className='new-separator'
-            >
-                <NotificationSeparator id={this.props.separatorId}>
-                    <FormattedMessage
-                        id='posts_view.newMsg'
-                        defaultMessage='New Messages'
-                    />
-                    {pluginItems}
-                </NotificationSeparator>
-            </div>
-        );
-    }
-}
+    return (
+        <div
+            ref={wrapperRef}
+            className='new-separator'
+        >
+            <NotificationSeparator id={separatorId}>
+                <FormattedMessage
+                    id='posts_view.newMsg'
+                    defaultMessage='New Messages'
+                />
+                {pluginItems}
+            </NotificationSeparator>
+        </div>
+    );
+};
+
+export default memo(NewMessageSeparator);

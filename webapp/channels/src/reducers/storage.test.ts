@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import storageReducer from 'reducers/storage';
 
 import {StorageTypes} from 'utils/constants';
@@ -119,7 +117,7 @@ describe('Reducers.Storage', () => {
                     prefix_key2: {value: 2, timestamp: now},
                     not_prefix_key: {value: 3, timestamp: now},
                 },
-            } as unknown as ReducerState, {} as GenericAction);
+            } as unknown as ReducerState, {type: undefined});
 
             const nextState = storageReducer(state, {
                 type: StorageTypes.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX,
@@ -144,7 +142,7 @@ describe('Reducers.Storage', () => {
                     prefix_key2: {value: 2, timestamp: now},
                     not_prefix_key: {value: 3, timestamp: now},
                 },
-            } as unknown as ReducerState, {} as GenericAction);
+            } as unknown as ReducerState, {type: undefined});
 
             const nextState = storageReducer(state, {
                 type: StorageTypes.ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX,

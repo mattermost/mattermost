@@ -20,7 +20,7 @@ import {isDateWithinDaysRange, TimeInformation} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
 
-export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus {
+export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus | undefined {
     return createSelector(
         'makeGetCustomStatus',
         (state: GlobalState, userID?: string) => (userID ? getUser(state, userID) : getCurrentUser(state)),
