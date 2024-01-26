@@ -1214,7 +1214,7 @@ const AdminDefinition: AdminDefinitionType = {
                             key: 'FileSettings.ExportAmazonS3Bucket',
                             label: defineMessage({id: 'admin.image.amazonS3BucketTitle', defaultMessage: 'Amazon S3 Bucket:'}),
                             help_text: defineMessage({id: 'admin.image.amazonS3BucketDescription', defaultMessage: 'Name you selected for your S3 bucket in AWS.'}),
-                            placeholder: defineMessage({id: 'admin.image.amazonS3BucketExample', defaultMessage: 'E.g.: "mattermost-media"'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3BucketExample', defaultMessage: 'E.g.: "mattermost-export"'}),
                             isDisabled: it.any(
                                 it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
                                 it.stateEquals('FileSettings.DedicatedExportStore', false),
