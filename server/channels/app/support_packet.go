@@ -71,6 +71,8 @@ func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
 func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) {
 	var rErr error
 
+	generatedAt := model.GetMillis()
+
 	/* DB */
 
 	databaseType, databaseSchemaVersion := a.Srv().DatabaseTypeAndSchemaVersion()
@@ -162,6 +164,9 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 
 	// Creating the struct for support packet yaml file
 	supportPacket := model.SupportPacket{
+
+		GeneratedAt: generatedAt,
+
 		/* Build information */
 		ServerOS:           runtime.GOOS,
 		ServerArchitecture: runtime.GOARCH,

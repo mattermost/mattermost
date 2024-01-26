@@ -51,6 +51,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 	license.Customer.Id = "test-customer-id"
 
 	t.Run("Happy path", func(t *testing.T) {
+		currentTime := model.GetMillis()
 		// Happy path where we have a support packet yaml file without any warnings
 
 		fileData, err := th.App.generateSupportPacketYaml(th.Context)
@@ -61,6 +62,7 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		var packet model.SupportPacket
 		require.NoError(t, yaml.Unmarshal(fileData.Body, &packet))
 
+		assert.True(t, packet.GeneratedAt >= currentTime)
 		assert.Equal(t, 3, packet.ActiveUsers) // from InitBasic.
 		assert.Equal(t, licenseUsers, packet.LicenseSupportedUsers)
 		assert.Equal(t, license.Id, packet.LicenseID)

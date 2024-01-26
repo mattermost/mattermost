@@ -79,6 +79,8 @@ type ServerBusyState struct {
 }
 
 type SupportPacket struct {
+	GeneratedAt int64 `json:"generated_at"`
+
 	/* Build information */
 
 	ServerOS           string `yaml:"server_os"`
