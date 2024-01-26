@@ -71,7 +71,7 @@ func (a *App) ExportFileBackend() filestore.FileBackend {
 
 func (a *App) CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError {
 	var fileBackendSettings filestore.FileBackendSettings
-	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI {
+	if a.License().IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
 		fileBackendSettings = filestore.NewExportFileBackendSettingsFromConfig(settings, false, false)
 	} else {
 		fileBackendSettings = filestore.NewFileBackendSettingsFromConfig(settings, false, false)
@@ -108,11 +108,12 @@ func (a *App) TestFileStoreConnectionWithConfig(cfg *model.FileSettings) *model.
 	insecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections
 	var backend filestore.FileBackend
 	var err error
-	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI {
-		// TODO - allow configure insecure to false? Probably not, since cloud
-		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, license != nil && license.IsCloud() && *license.Features.Compliance, false))
+	complianceEnabled := license != nil && *license.Features.Compliance
+	if license.IsCloud() && a.Config().FeatureFlags.CloudDedicatedExportUI && a.Config().FileSettings.DedicatedExportStore != nil && *a.Config().FileSettings.DedicatedExportStore {
+		allowInsecure := a.Config().ServiceSettings.EnableInsecureOutgoingConnections != nil && *a.Config().ServiceSettings.EnableInsecureOutgoingConnections
+		backend, err = filestore.NewFileBackend(filestore.NewExportFileBackendSettingsFromConfig(cfg, complianceEnabled && license.IsCloud(), allowInsecure))
 	} else {
-		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, license != nil && *license.Features.Compliance, insecure != nil && *insecure))
+		backend, err = filestore.NewFileBackend(filestore.NewFileBackendSettingsFromConfig(cfg, complianceEnabled, insecure != nil && *insecure))
 	}
 	if err != nil {
 		return model.NewAppError("FileBackend", "api.file.no_driver.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
