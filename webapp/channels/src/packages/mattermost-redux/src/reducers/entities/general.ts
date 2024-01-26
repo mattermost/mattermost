@@ -60,7 +60,6 @@ function serverVersion(state = '', action: AnyAction) {
 }
 
 function firstAdminVisitMarketplaceStatus(state = false, action: AnyAction) {
-
     switch (action.type) {
     case GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED:
         return action.data;
