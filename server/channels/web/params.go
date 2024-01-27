@@ -12,6 +12,8 @@ import (
 	"github.com/gorilla/mux"
 
 	"github.com/mattermost/mattermost/server/public/model"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
 const (
@@ -257,6 +259,7 @@ func getPerPageFromQuery(query url.Values) int {
 	if err != nil || val < 0 {
 		return PerPageDefault
 	} else if val > PerPageMaximum {
+		mlog.Warn("Per page value is greater than the maximum allowed.", mlog.Int("value", val), mlog.Int("maximum", PerPageMaximum))
 		return PerPageMaximum
 	}
 	return val
