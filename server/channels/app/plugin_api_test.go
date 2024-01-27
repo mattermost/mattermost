@@ -2516,53 +2516,8 @@ func TestPluginGetChannelsForTeamForUser(t *testing.T) {
 	setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
 }
 
-func TestPluginUpdateChannelMembersNotifications(t *testing.T) {
-	t.Run("using API directly", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		api := th.SetupPluginAPI()
-
-		channel := th.CreateChannel(th.Context, th.BasicTeam)
-		th.AddUserToChannel(th.BasicUser, channel)
-		th.AddUserToChannel(th.BasicUser2, channel)
-
-		member1, err := api.GetChannelMember(channel.Id, th.BasicUser.Id)
-		require.Nil(t, err)
-		require.Equal(t, "", member1.NotifyProps["test_field"])
-		require.Equal(t, model.IgnoreChannelMentionsDefault, member1.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
-		member2, err := api.GetChannelMember(channel.Id, th.BasicUser2.Id)
-		require.Nil(t, err)
-		require.Equal(t, "", member2.NotifyProps["test_field"])
-		require.Equal(t, model.IgnoreChannelMentionsDefault, member2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
-
-		err = api.PatchChannelMembersNotifications(
-			[]*model.ChannelMemberIdentifier{
-				{ChannelId: channel.Id, UserId: th.BasicUser.Id},
-				{ChannelId: channel.Id, UserId: th.BasicUser2.Id},
-			},
-			map[string]string{
-				"test_field":                          "test_value",
-				model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn,
-			},
-		)
-
-		require.Nil(t, err)
-
-		updated1, err := api.GetChannelMember(member1.ChannelId, member1.UserId)
-		require.Nil(t, err)
-		updated2, err := api.GetChannelMember(member2.ChannelId, member2.UserId)
-		require.Nil(t, err)
-
-		assert.Equal(t, member1.NotifyProps[model.MarkUnreadNotifyProp], updated1.NotifyProps[model.MarkUnreadNotifyProp])
-		assert.Equal(t, "test_value", updated1.NotifyProps["test_field"])
-		assert.Equal(t, model.IgnoreChannelMentionsOn, updated1.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
-		assert.Equal(t, member2.NotifyProps[model.MarkUnreadNotifyProp], updated2.NotifyProps[model.MarkUnreadNotifyProp])
-		assert.Equal(t, "test_value", updated2.NotifyProps["test_field"])
-		assert.Equal(t, model.IgnoreChannelMentionsOn, updated2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
-	})
-
-	t.Run("using plugin", func(t *testing.T) {
+func TestPluginPatchChannelMembersNotifications(t *testing.T) {
+	t.Run("should be able to set fields for multiple members", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -2628,5 +2583,64 @@ func TestPluginUpdateChannelMembersNotifications(t *testing.T) {
 		assert.Equal(t, member2.NotifyProps[model.MarkUnreadNotifyProp], updated2.NotifyProps[model.MarkUnreadNotifyProp])
 		assert.Equal(t, "test_value", updated2.NotifyProps["test_field"])
 		assert.Equal(t, model.IgnoreChannelMentionsOn, updated2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+	})
+
+	t.Run("should be able to clear a field", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel)
+
+		member, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		member.NotifyProps["test_field"] = "test_value"
+		_, err = th.App.updateChannelMember(th.Context, member)
+		require.Nil(t, err)
+
+		member, err = th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Equal(t, "test_value", member.NotifyProps["test_field"])
+
+		pluginCode := `
+			package main
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			const (
+				channelID = "` + channel.Id + `"
+				userID = "` + th.BasicUser.Id + `"
+			)
+
+			type TestPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *TestPlugin) OnActivate() error {
+				return p.API.PatchChannelMembersNotifications(
+					[]*model.ChannelMemberIdentifier{
+						{ChannelId: channelID, UserId: userID},
+					},
+					map[string]string{
+						"test_field": "",
+					},
+				)
+			}
+
+			func main() {
+				plugin.ClientMain(&TestPlugin{})
+			}`
+		pluginID := "testplugin"
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		updated, err := th.App.GetChannelMember(th.Context, member.ChannelId, member.UserId)
+		require.Nil(t, err)
+
+		assert.Equal(t, "", updated.NotifyProps["test_field"])
 	})
 }
