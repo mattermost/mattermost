@@ -7,7 +7,6 @@ import (
 	"crypto/sha1"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"io"
 	"net/http"
 	"regexp"
@@ -81,6 +80,10 @@ func (o *Channel) Auditable() map[string]interface{} {
 		"type":                 o.Type,
 		"update_at":            o.UpdateAt,
 	}
+}
+
+func (o *Channel) LogClone() any {
+	return o.Auditable()
 }
 
 type ChannelWithTeamData struct {
@@ -199,47 +202,6 @@ func WithID(ID string) ChannelOption {
 	return func(channel *Channel) {
 		channel.Id = ID
 	}
-}
-
-// The following are some GraphQL methods necessary to return the
-// data in float64 type. The spec doesn't support 64 bit integers,
-// so we have to pass the data in float64. The _ at the end is
-// a hack to keep the attribute name same in GraphQL schema.
-
-func (o *Channel) CreateAt_() float64 {
-	return float64(o.CreateAt)
-}
-
-func (o *Channel) UpdateAt_() float64 {
-	return float64(o.UpdateAt)
-}
-
-func (o *Channel) DeleteAt_() float64 {
-	return float64(o.DeleteAt)
-}
-
-func (o *Channel) LastPostAt_() float64 {
-	return float64(o.LastPostAt)
-}
-
-func (o *Channel) TotalMsgCount_() float64 {
-	return float64(o.TotalMsgCount)
-}
-
-func (o *Channel) TotalMsgCountRoot_() float64 {
-	return float64(o.TotalMsgCountRoot)
-}
-
-func (o *Channel) LastRootPostAt_() float64 {
-	return float64(o.LastRootPostAt)
-}
-
-func (o *Channel) ExtraUpdateAt_() float64 {
-	return float64(o.ExtraUpdateAt)
-}
-
-func (o *Channel) Props_() StringInterface {
-	return StringInterface(o.Props)
 }
 
 func (o *Channel) DeepCopy() *Channel {
@@ -377,6 +339,9 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	}
 
 	userIds := strings.Split(o.Name, "__")
+	if len(userIds) != 2 {
+		return ""
+	}
 
 	var otherUserId string
 
@@ -391,22 +356,8 @@ func (o *Channel) GetOtherUserIdForDM(userId string) string {
 	return otherUserId
 }
 
-func (ChannelType) ImplementsGraphQLType(name string) bool {
-	return name == "ChannelType"
-}
-
 func (t ChannelType) MarshalJSON() ([]byte, error) {
 	return json.Marshal(string(t))
-}
-
-func (t *ChannelType) UnmarshalGraphQL(input any) error {
-	chType, ok := input.(string)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*t = ChannelType(chType)
-	return nil
 }
 
 func GetDMNameFromIds(userId1, userId2 string) string {

@@ -143,7 +143,7 @@ const Menu = ({channel, channelStats, isArchived, className, actions}: MenuProps
             )}
             <MenuItem
                 icon={<i className='icon icon-pin-outline'/>}
-                text={formatMessage({id: 'channel_info_rhs.menu.pinned', defaultMessage: 'Pinned Messages'})}
+                text={formatMessage({id: 'channel_info_rhs.menu.pinned', defaultMessage: 'Pinned messages'})}
                 opensSubpanel={true}
                 badge={channelStats?.pinnedpost_count}
                 onClick={() => actions.showPinnedPosts(channel.id)}

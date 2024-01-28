@@ -244,10 +244,6 @@ export function getIsOnboardingFlowEnabled(state: GlobalState): boolean {
     return getConfig(state).EnableOnboardingFlow === 'true';
 }
 
-export function isGraphQLEnabled(state: GlobalState): boolean {
-    return getFeatureFlagValue(state, 'GraphQL') === 'true';
-}
-
 export function getHasDismissedSystemConsoleLimitReached(state: GlobalState): boolean {
     return getBool(state, Preferences.CATEGORY_UPGRADE_CLOUD, Preferences.SYSTEM_CONSOLE_LIMIT_REACHED, false);
 }
@@ -278,6 +274,10 @@ export function deprecateCloudFree(state: GlobalState): boolean {
 
 export function cloudReverseTrial(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'CloudReverseTrial') === 'true';
+}
+
+export function moveThreadsEnabled(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'MoveThreadsEnabled') === 'true' && getLicense(state).IsLicensed === 'true';
 }
 
 export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {

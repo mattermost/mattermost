@@ -20,6 +20,7 @@ import {isThreadOpen} from 'selectors/views/threads';
 
 import {getHistory} from 'utils/browser_history';
 import Constants, {NotificationLevels, UserStatuses, IgnoreChannelMentions} from 'utils/constants';
+import DesktopApp from 'utils/desktop_api';
 import {t} from 'utils/i18n';
 import {stripMarkdown, formatWithRenderer} from 'utils/markdown';
 import MentionableRenderer from 'utils/markdown/mentionable_renderer';
@@ -52,6 +53,9 @@ const getNotificationSoundFromChannelMemberAndUser = (member, user) => {
     return user.notify_props?.desktop_notification_sound ? user.notify_props.desktop_notification_sound : 'Bing';
 };
 
+/**
+ * @returns {import('mattermost-redux/types/actions').ThunkActionFunc<void>}
+ */
 export function sendDesktopNotification(post, msgProps) {
     return async (dispatch, getState) => {
         const state = getState();
@@ -312,24 +316,7 @@ export function sendDesktopNotification(post, msgProps) {
 export const notifyMe = (title, body, channel, teamId, silent, soundName, url) => (dispatch) => {
     // handle notifications in desktop app
     if (isDesktopApp()) {
-        const msg = {
-            title,
-            body,
-            channel,
-            teamId,
-            silent,
-        };
-        msg.data = {soundName};
-        msg.url = url;
-
-        // get the desktop app to trigger the notification
-        window.postMessage(
-            {
-                type: 'dispatch-notification',
-                message: msg,
-            },
-            window.location.origin,
-        );
+        DesktopApp.dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
     } else {
         showNotification({
             title,

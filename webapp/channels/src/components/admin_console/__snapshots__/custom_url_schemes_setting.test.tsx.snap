@@ -52,7 +52,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multi
     ]
   }
 >
-  <Settings
+  <Memo(Settings)
     helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
     inputId="MySetting"
     label="Custom URL Schemes:"
@@ -88,7 +88,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with multi
         </div>
       </div>
     </div>
-  </Settings>
+  </Memo(Settings)>
 </CustomURLSchemesSetting>
 `;
 
@@ -138,7 +138,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no it
   setByEnv={false}
   value={Array []}
 >
-  <Settings
+  <Memo(Settings)
     helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
     inputId="MySetting"
     label="Custom URL Schemes:"
@@ -174,7 +174,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with no it
         </div>
       </div>
     </div>
-  </Settings>
+  </Memo(Settings)>
 </CustomURLSchemesSetting>
 `;
 
@@ -228,7 +228,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one i
     ]
   }
 >
-  <Settings
+  <Memo(Settings)
     helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
     inputId="MySetting"
     label="Custom URL Schemes:"
@@ -264,7 +264,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting initial state with one i
         </div>
       </div>
     </div>
-  </Settings>
+  </Memo(Settings)>
 </CustomURLSchemesSetting>
 `;
 
@@ -319,7 +319,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when di
     ]
   }
 >
-  <Settings
+  <Memo(Settings)
     helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
     inputId="MySetting"
     label="Custom URL Schemes:"
@@ -355,7 +355,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when di
         </div>
       </div>
     </div>
-  </Settings>
+  </Memo(Settings)>
 </CustomURLSchemesSetting>
 `;
 
@@ -410,7 +410,7 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when se
     ]
   }
 >
-  <Settings
+  <Memo(Settings)
     helpText="Allows message text to link if it begins with any of the comma-separated URL schemes listed. By default, the following schemes will create links: \\"http\\", \\"https\\", \\"ftp\\", \\"tel\\", and \\"mailto\\"."
     inputId="MySetting"
     label="Custom URL Schemes:"
@@ -460,6 +460,6 @@ exports[`components/AdminConsole/CustomUrlSchemeSetting renders properly when se
         </SetByEnv>
       </div>
     </div>
-  </Settings>
+  </Memo(Settings)>
 </CustomURLSchemesSetting>
 `;

@@ -54,10 +54,13 @@ func (api *API) InitCloud() {
 	// POST /api/v4/cloud/webhook
 	api.BaseRoutes.Cloud.Handle("/webhook", api.CloudAPIKeyRequired(handleCWSWebhook)).Methods("POST")
 
+	// GET /api/v4/cloud/installation
+	api.BaseRoutes.Cloud.Handle("/installation", api.APISessionRequired(getInstallation)).Methods("GET")
+
 	// GET /api/v4/cloud/cws-health-check
 	api.BaseRoutes.Cloud.Handle("/check-cws-connection", api.APIHandler(handleCheckCWSConnection)).Methods("GET")
 
-	api.BaseRoutes.Cloud.Handle("/delete-workspace", api.APISessionRequired(selfServeDeleteWorkspace)).Methods(http.MethodDelete)
+	api.BaseRoutes.Cloud.Handle("/delete-workspace", api.APISessionRequired(selfServeDeleteWorkspace)).Methods("DELETE")
 }
 
 func ensureCloudInterface(c *Context, where string) bool {
@@ -93,18 +96,28 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			ProductID:       subscription.ProductID,
 			IsFreeTrial:     subscription.IsFreeTrial,
 			TrialEndAt:      subscription.TrialEndAt,
+			EndAt:           subscription.EndAt,
+			CancelAt:        subscription.CancelAt,
+			DelinquentSince: subscription.DelinquentSince,
 			CustomerID:      "",
 			AddOns:          []string{},
 			StartAt:         0,
-			EndAt:           0,
 			CreateAt:        0,
 			Seats:           0,
 			Status:          "",
 			DNS:             "",
 			LastInvoice:     &model.Invoice{},
-			DelinquentSince: subscription.DelinquentSince,
 			BillingType:     "",
 		}
+	}
+
+	if model.GetServiceEnvironment() != model.ServiceEnvironmentTest {
+		subscription.SimulatedCurrentTimeMs = nil
+	}
+
+	if !c.App.Config().FeatureFlags.CloudAnnualRenewals {
+		subscription.WillRenew = ""
+		subscription.CancelAt = nil
 	}
 
 	json, err := json.Marshal(subscription)
@@ -319,7 +332,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 			c.Err = model.NewAppError("Api4.validateWorkspaceBusinessEmail", "api.cloud.request_error", nil, errValidatingAdminEmail.Error(), http.StatusForbidden)
 			emailResp := model.ValidateBusinessEmailResponse{IsValid: false}
 			if err := json.NewEncoder(w).Encode(emailResp); err != nil {
-				mlog.Warn("Error while writing response", mlog.Err(err))
+				c.Logger.Warn("Error while writing response", mlog.Err(err))
 			}
 			return
 		}
@@ -328,7 +341,7 @@ func validateWorkspaceBusinessEmail(c *Context, w http.ResponseWriter, r *http.R
 	// if any of the emails is valid, return ok
 	emailResp := model.ValidateBusinessEmailResponse{IsValid: true}
 	if err := json.NewEncoder(w).Encode(emailResp); err != nil {
-		mlog.Warn("Error while writing response", mlog.Err(err))
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }
 
@@ -472,6 +485,29 @@ func getCloudCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(json)
+}
+
+func getInstallation(c *Context, w http.ResponseWriter, r *http.Request) {
+	ensured := ensureCloudInterface(c, "Api4.getInstallation")
+	if !ensured {
+		return
+	}
+
+	if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionSysconsoleReadIPFilters) {
+		c.SetPermissionError(model.PermissionSysconsoleReadIPFilters)
+		return
+	}
+
+	installation, err := c.App.Cloud().GetInstallation(c.AppContext.Session().UserId)
+	if err != nil {
+		c.Err = model.NewAppError("Api4.getInstallation", "api.cloud.request_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
+
+	if err := json.NewEncoder(w).Encode(installation); err != nil {
+		c.Err = model.NewAppError("Api4.getInstallation", "api.cloud.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		return
+	}
 }
 
 // getLicenseSelfServeStatus makes check for the license in the CWS self-serve portal and establishes if the license is renewable, expandable etc.

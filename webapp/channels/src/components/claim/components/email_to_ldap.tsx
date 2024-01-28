@@ -12,8 +12,6 @@ import {emailToLdap} from 'actions/admin_actions.jsx';
 import LoginMfa from 'components/login/login_mfa';
 
 import {ClaimErrors} from 'utils/constants';
-import {t} from 'utils/i18n';
-import {localizeMessage} from 'utils/utils';
 
 import ErrorLabel from './error_label';
 
@@ -52,7 +50,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
 
         const password = emailPasswordInput.current?.value;
         if (!password) {
-            setPasswordError(localizeMessage('claim.email_to_ldap.pwdError', 'Please enter your password.'));
+            setPasswordError(formatMessage({id: 'claim.email_to_ldap.pwdError', defaultMessage: 'Please enter your password.'}));
             setLdapError('');
             setLdapPasswordError('');
             setServerError('');
@@ -61,7 +59,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
 
         const ldapId = ldapIdInput.current?.value.trim();
         if (!ldapId) {
-            setLdapError(localizeMessage('claim.email_to_ldap.ldapIdError', 'Please enter your AD/LDAP ID.'));
+            setLdapError(formatMessage({id: 'claim.email_to_ldap.ldapIdError', defaultMessage: 'Please enter your AD/LDAP ID.'}));
             setPasswordError('');
             setLdapPasswordError('');
             setServerError('');
@@ -70,7 +68,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
 
         const ldapPassword = ldapPasswordInput.current?.value;
         if (!ldapPassword) {
-            setLdapPasswordError(localizeMessage('claim.email_to_ldap.ldapPasswordError', 'Please enter your AD/LDAP password.'));
+            setLdapPasswordError(formatMessage({id: 'claim.email_to_ldap.ldapPasswordError', defaultMessage: 'Please enter your AD/LDAP password.'}));
             setLdapError('');
             setPasswordError('');
             setServerError('');
@@ -126,15 +124,14 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
         );
     };
 
-    const loginPlaceholder = ldapLoginFieldName || localizeMessage('claim.email_to_ldap.ldapId', 'AD/LDAP ID');
-    const titleMessage = {id: t('claim.email_to_ldap.title'), defaultMessage: 'Switch Email/Password Account to AD/LDAP'};
+    const loginPlaceholder = ldapLoginFieldName || formatMessage({id: 'claim.email_to_ldap.ldapId', defaultMessage: 'AD/LDAP ID'});
 
     if (showMfa) {
         return (
             <LoginMfa
                 loginId={email}
                 password={password}
-                title={titleMessage}
+                title={formatMessage({id: 'claim.email_to_ldap.title', defaultMessage: 'Switch Email/Password Account to AD/LDAP'})}
                 onSubmit={submit}
             />
         );
@@ -212,7 +209,7 @@ const EmailToLDAP = ({email, siteName, ldapLoginFieldName}: Props) => {
                         name='ldapPassword'
                         ref={ldapPasswordInput}
                         autoComplete='off'
-                        placeholder={formatMessage({id: t('claim.email_to_ldap.ldapPwd'), defaultMessage: 'AD/LDAP Password'})}
+                        placeholder={formatMessage({id: 'claim.email_to_ldap.ldapPwd', defaultMessage: 'AD/LDAP Password'})}
                         spellCheck='false'
                     />
                 </div>

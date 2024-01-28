@@ -3,7 +3,8 @@
 
 import percySnapshot from '@percy/playwright';
 
-import testConfig, {TestArgs} from '@e2e-test.config';
+import testConfig from '@e2e-test.config';
+import {TestArgs} from '@e2e-types';
 
 export default async function snapshotWithPercy(name: string, testArgs: TestArgs) {
     if (testArgs.browserName === 'chromium' && testConfig.percyEnabled && testArgs.viewport) {

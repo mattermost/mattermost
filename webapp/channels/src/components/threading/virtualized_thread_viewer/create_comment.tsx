@@ -26,6 +26,7 @@ type Props = {
     threadId: string;
     latestPostId: Post['id'];
     isThreadView?: boolean;
+    placeholder?: string;
 };
 
 const CreateComment = forwardRef<HTMLDivElement, Props>(({
@@ -34,6 +35,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
     threadId,
     latestPostId,
     isThreadView,
+    placeholder,
 }: Props, ref) => {
     const getChannel = useMemo(makeGetChannel, []);
     const rootPost = useSelector((state: GlobalState) => getPost(state, threadId));
@@ -95,6 +97,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
             data-testid='comment-create'
         >
             <AdvancedCreateComment
+                placeholder={placeholder}
                 focusOnMount={focusOnMount}
                 channelId={channel.id}
                 latestPostId={latestPostId}

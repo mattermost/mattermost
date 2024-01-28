@@ -10,18 +10,17 @@ import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import styled, {css} from 'styled-components';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
-import LocalizedIcon from 'components/localized_icon';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 import SimpleTooltip from 'components/widgets/simple_tooltip';
 import Avatar from 'components/widgets/users/avatar';
 
-import {t} from 'utils/i18n';
 import * as Utils from 'utils/utils';
 
 import {Load} from '../constants';
@@ -74,8 +73,8 @@ export type Props = {
     searchTerm: string;
 
     actions: {
-        getUsersInGroup: (groupId: string, page: number, perPage: number, sort: string) => Promise<{ data: UserProfile[] }>;
-        openDirectChannelToUserId: (userId?: string) => Promise<{ error: ServerError }>;
+        getUsersInGroup: (groupId: string, page: number, perPage: number, sort: string) => Promise<ActionResult<UserProfile[]>>;
+        openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
         closeRightHandSide: () => void;
     };
 }
@@ -132,7 +131,7 @@ const GroupMemberList = (props: Props) => {
             return;
         }
         setCurrentDMLoading(user.id);
-        actions.openDirectChannelToUserId(user.id).then((result: { error: ServerError }) => {
+        actions.openDirectChannelToUserId(user.id).then((result: ActionResult) => {
             if (!result.error) {
                 actions.closeRightHandSide();
                 setCurrentDMLoading(undefined);
@@ -197,9 +196,8 @@ const GroupMemberList = (props: Props) => {
                                     {user: name})}
                                 onClick={() => showDirectChannel(user)}
                             >
-                                <LocalizedIcon
+                                <i
                                     className='icon icon-send'
-                                    ariaLabel={{id: t('user_group_popover.close'), defaultMessage: 'Close'}}
                                 />
                             </DMButton>
                         </SimpleTooltip>

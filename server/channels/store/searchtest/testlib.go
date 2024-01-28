@@ -13,7 +13,7 @@ import (
 
 const (
 	EngineAll           = "all"
-	EngineMySql         = "mysql"
+	EngineMySQL         = "mysql"
 	EnginePostgres      = "postgres"
 	EngineElasticSearch = "elasticsearch"
 	EngineBleve         = "bleve"
@@ -60,7 +60,6 @@ func runTestSearch(t *testing.T, testEngine *SearchTestEngine, tests []searchTes
 	filteredTests := filterTestsByTag(tests, testEngine.Driver)
 
 	for _, test := range filteredTests {
-
 		if test.Skip {
 			t.Log("SKIPPED: " + test.Name + ". Reason: " + test.SkipMessage)
 			continue

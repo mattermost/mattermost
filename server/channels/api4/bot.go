@@ -98,7 +98,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedBot, appErr := c.App.PatchBot(botUserId, botPatch)
+	updatedBot, appErr := c.App.PatchBot(c.AppContext, botUserId, botPatch)
 	if appErr != nil {
 		c.Err = appErr
 		return

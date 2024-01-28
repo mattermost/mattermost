@@ -197,10 +197,10 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                 animation={false}
             >
                 <Modal.Header
+                    className='modal-header'
                     id='quickSwitchModalLabel'
                     closeButton={true}
-                />
-                <Modal.Body>
+                >
                     <div
                         className='channel-switcher__header'
                         id='quickSwitchHeaderWithHint'
@@ -213,19 +213,23 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                             {help}
                         </div>
                     </div>
+                </Modal.Header>
+                <Modal.Body>
                     <div className='channel-switcher__suggestion-box'>
                         <i className='icon icon-magnify icon-16'/>
                         <SuggestionBox
+                            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+                            // @ts-ignore
+                            ref={this.setSwitchBoxRef}
                             id='quickSwitchInput'
                             aria-label={Utils.localizeMessage('quick_switch_modal.input', 'quick switch input')}
-                            ref={this.setSwitchBoxRef}
                             className='form-control focused'
                             onChange={this.onChange}
                             value={this.state.text}
                             onItemSelected={this.handleSubmit}
                             listComponent={SuggestionList}
                             listPosition='bottom'
-                            maxLength={64}
+                            maxLength='64'
                             providers={providers}
                             completeOnTab={false}
                             spellCheck='false'
@@ -238,8 +242,8 @@ export default class QuickSwitchModal extends React.PureComponent<Props, State> 
                         />
                         {!this.state.shouldShowLoadingSpinner && !this.state.hasSuggestions && this.state.text &&
                             <NoResultsIndicator
-                                variant={NoResultsVariant.ChannelSearch}
-                                titleValues={{channelName: `"${this.state.pretext}"`}}
+                                variant={NoResultsVariant.Search}
+                                titleValues={{channelName: `${this.state.pretext}`}}
                             />
                         }
                     </div>

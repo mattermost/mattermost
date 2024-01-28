@@ -109,7 +109,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Singer should be in team and channel
-	_, err = th.App.GetTeamMember(singersTeam.Id, singer1.Id)
+	_, err = th.App.GetTeamMember(th.Context, singersTeam.Id, singer1.Id)
 	if err != nil {
 		t.Errorf("error retrieving team member: %s", err.Error())
 	}
@@ -137,7 +137,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Scientist should not be in team or channel
-	_, err = th.App.GetTeamMember(nerdsTeam.Id, scientist1.Id)
+	_, err = th.App.GetTeamMember(th.Context, nerdsTeam.Id, scientist1.Id)
 	if err.Id != "app.team.get_member.missing.app_error" {
 		t.Errorf("wrong error: %s", err.Id)
 	}
@@ -179,7 +179,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Scientist should be in team but not the channel
-	_, err = th.App.GetTeamMember(nerdsTeam.Id, scientist1.Id)
+	_, err = th.App.GetTeamMember(th.Context, nerdsTeam.Id, scientist1.Id)
 	if err != nil {
 		t.Errorf("error retrieving team member: %s", err.Error())
 	}
@@ -247,7 +247,7 @@ func TestCreateDefaultMemberships(t *testing.T) {
 	}
 
 	// Singer should not be in team or channel
-	tMember, err := th.App.GetTeamMember(singersTeam.Id, singer1.Id)
+	tMember, err := th.App.GetTeamMember(th.Context, singersTeam.Id, singer1.Id)
 	if err != nil {
 		t.Errorf("error retrieving team member: %s", err.Error())
 	}
@@ -608,7 +608,7 @@ func TestSyncSyncableRoles(t *testing.T) {
 	require.Nil(t, err)
 
 	for _, user := range []*model.User{user1, user2} {
-		tm, err := th.App.GetTeamMember(team.Id, user.Id)
+		tm, err := th.App.GetTeamMember(th.Context, team.Id, user.Id)
 		require.Nil(t, err)
 		require.True(t, tm.SchemeAdmin)
 

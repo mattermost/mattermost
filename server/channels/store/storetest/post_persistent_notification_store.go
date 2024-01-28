@@ -8,18 +8,19 @@ import (
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestPostPersistentNotificationStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("Get", func(t *testing.T) { testPostPersistentNotificationStoreGet(t, ss) })
-	t.Run("Delete", func(t *testing.T) { testPostPersistentNotificationStoreDelete(t, ss) })
-	t.Run("UpdateLastSentAt", func(t *testing.T) { testPostPersistentNotificationStoreUpdateLastSentAt(t, ss) })
+func TestPostPersistentNotificationStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("Get", func(t *testing.T) { testPostPersistentNotificationStoreGet(t, rctx, ss) })
+	t.Run("Delete", func(t *testing.T) { testPostPersistentNotificationStoreDelete(t, rctx, ss) })
+	t.Run("UpdateLastSentAt", func(t *testing.T) { testPostPersistentNotificationStoreUpdateLastSentAt(t, rctx, ss) })
 }
 
-func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
+func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
@@ -84,7 +85,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 
-	defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+	defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 	defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id, p4.Id, p5.Id})
 
 	t.Run("Get Single", func(t *testing.T) {
@@ -141,7 +142,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, ss store.Store) {
 	})
 }
 
-func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.Store) {
+func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx request.CTX, ss store.Store) {
 	p1 := model.Post{}
 	p1.ChannelId = model.NewId()
 	p1.UserId = model.NewId()
@@ -159,7 +160,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 
-	defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+	defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 	defer ss.PostPersistentNotification().Delete([]string{p1.Id})
 
 	// Update from 0 value
@@ -193,7 +194,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, ss store.
 	assert.WithinDuration(t, now, model.GetTimeForMillis(pn[0].LastSentAt), delta)
 }
 
-func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
+func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("Delete", func(t *testing.T) {
 		p1 := model.Post{}
 		p1.ChannelId = model.NewId()
@@ -238,7 +239,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 		defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id})
 
 		err = ss.PostPersistentNotification().Delete([]string{p1.Id, p3.Id})
@@ -324,8 +325,8 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
-		defer ss.Post().PermanentDeleteByChannel(p4.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p4.ChannelId)
 		defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id, p4.Id, p5.Id})
 
 		err = ss.PostPersistentNotification().DeleteByChannel([]string{p1.ChannelId})
@@ -428,9 +429,9 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, ss store.Store) {
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(c1.Id)
-		defer ss.Post().PermanentDeleteByChannel(c2.Id)
-		defer ss.Post().PermanentDeleteByChannel(c3.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c1.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c2.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c3.Id)
 		defer ss.Channel().PermanentDeleteByTeam(t1.Id)
 		defer ss.Channel().PermanentDeleteByTeam(t2.Id)
 		defer ss.Team().PermanentDelete(t1.Id)

@@ -100,17 +100,19 @@ const (
 
 	SitenameMaxLength = 30
 
-	ServiceSettingsDefaultSiteURL          = "http://localhost:8065"
-	ServiceSettingsDefaultTLSCertFile      = ""
-	ServiceSettingsDefaultTLSKeyFile       = ""
-	ServiceSettingsDefaultReadTimeout      = 300
-	ServiceSettingsDefaultWriteTimeout     = 300
-	ServiceSettingsDefaultIdleTimeout      = 60
-	ServiceSettingsDefaultMaxLoginAttempts = 10
-	ServiceSettingsDefaultAllowCorsFrom    = ""
-	ServiceSettingsDefaultListenAndAddress = ":8065"
-	ServiceSettingsDefaultGiphySdkKeyTest  = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
-	ServiceSettingsDefaultDeveloperFlags   = ""
+	ServiceSettingsDefaultSiteURL                = "http://localhost:8065"
+	ServiceSettingsDefaultTLSCertFile            = ""
+	ServiceSettingsDefaultTLSKeyFile             = ""
+	ServiceSettingsDefaultReadTimeout            = 300
+	ServiceSettingsDefaultWriteTimeout           = 300
+	ServiceSettingsDefaultIdleTimeout            = 60
+	ServiceSettingsDefaultMaxLoginAttempts       = 10
+	ServiceSettingsDefaultAllowCorsFrom          = ""
+	ServiceSettingsDefaultListenAndAddress       = ":8065"
+	ServiceSettingsDefaultGiphySdkKeyTest        = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
+	ServiceSettingsDefaultDeveloperFlags         = ""
+	ServiceSettingsDefaultUniqueReactionsPerPost = 50
+	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"
 	TeamSettingsDefaultMaxUsersPerTeam       = 50
@@ -205,12 +207,16 @@ const (
 	BleveSettingsDefaultBatchSize = 10000
 
 	DataRetentionSettingsDefaultMessageRetentionDays           = 365
+	DataRetentionSettingsDefaultMessageRetentionHours          = 0
 	DataRetentionSettingsDefaultFileRetentionDays              = 365
+	DataRetentionSettingsDefaultFileRetentionHours             = 0
 	DataRetentionSettingsDefaultBoardsRetentionDays            = 365
 	DataRetentionSettingsDefaultDeletionJobStartTime           = "02:00"
 	DataRetentionSettingsDefaultBatchSize                      = 3000
 	DataRetentionSettingsDefaultTimeBetweenBatchesMilliseconds = 100
 	DataRetentionSettingsDefaultRetentionIdsBatchSize          = 100
+
+	OutgoingIntegrationRequestsDefaultTimeout = 30
 
 	PluginSettingsDefaultDirectory         = "./plugins"
 	PluginSettingsDefaultClientDirectory   = "./client/plugins"
@@ -224,6 +230,7 @@ const (
 	ComplianceExportTypeGlobalrelayZip = "globalrelay-zip"
 	GlobalrelayCustomerTypeA9          = "A9"
 	GlobalrelayCustomerTypeA10         = "A10"
+	GlobalrelayCustomerTypeCustom      = "CUSTOM"
 
 	ClientSideCertCheckPrimaryAuth   = "primary"
 	ClientSideCertCheckSecondaryAuth = "secondary"
@@ -306,6 +313,7 @@ type ServiceSettings struct {
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableCommands                      *bool    `access:"integrations_integration_management"`
+	OutgoingIntegrationRequestsTimeout  *int64   `access:"integrations_integration_management"` // In seconds.
 	EnablePostUsernameOverride          *bool    `access:"integrations_integration_management"`
 	EnablePostIconOverride              *bool    `access:"integrations_integration_management"`
 	GoogleDeveloperKey                  *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
@@ -394,6 +402,9 @@ type ServiceSettings struct {
 	EnableCustomGroups                                *bool   `access:"site_users_and_teams"`
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
+	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
+	RefreshPostStatsRunTime                           *string `access:"site_users_and_teams"`
+	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -502,6 +513,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOutgoingWebhooks == nil {
 		s.EnableOutgoingWebhooks = NewBool(true)
+	}
+
+	if s.OutgoingIntegrationRequestsTimeout == nil {
+		s.OutgoingIntegrationRequestsTimeout = NewInt64(OutgoingIntegrationRequestsDefaultTimeout)
 	}
 
 	if s.ConnectionSecurity == nil {
@@ -883,6 +898,22 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.SelfHostedPurchase == nil {
 		s.SelfHostedPurchase = NewBool(true)
+	}
+
+	if s.UniqueEmojiReactionLimitPerPost == nil {
+		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsDefaultUniqueReactionsPerPost)
+	}
+
+	if *s.UniqueEmojiReactionLimitPerPost > ServiceSettingsMaxUniqueReactionsPerPost {
+		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsMaxUniqueReactionsPerPost)
+	}
+
+	if s.RefreshPostStatsRunTime == nil {
+		s.RefreshPostStatsRunTime = NewString("00:00")
+	}
+
+	if s.MaximumPayloadSizeBytes == nil {
+		s.MaximumPayloadSizeBytes = NewInt64(100000)
 	}
 }
 
@@ -1283,6 +1314,21 @@ func NewLogSettings() *LogSettings {
 	settings := &LogSettings{}
 	settings.SetDefaults()
 	return settings
+}
+
+func (s *LogSettings) isValid() *AppError {
+	cfg := make(mlog.LoggerConfiguration)
+	err := json.Unmarshal(s.AdvancedLoggingJSON, &cfg)
+	if err != nil {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.json", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	err = cfg.IsValid()
+	if err != nil {
+		return NewAppError("LogSettings.isValid", "model.config.is_valid.log.advanced_logging.parse", map[string]any{"Error": err}, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	return nil
 }
 
 func (s *LogSettings) SetDefaults() {
@@ -2090,7 +2136,6 @@ func (s *AnnouncementSettings) SetDefaults() {
 	if s.NoticesFetchFrequency == nil {
 		s.NoticesFetchFrequency = NewInt(AnnouncementSettingsDefaultNoticesFetchFrequencySeconds)
 	}
-
 }
 
 type ThemeSettings struct {
@@ -2146,7 +2191,6 @@ type TeamSettings struct {
 }
 
 func (s *TeamSettings) SetDefaults() {
-
 	if s.SiteName == nil || *s.SiteName == "" {
 		s.SiteName = NewString(TeamSettingsDefaultSiteName)
 	}
@@ -2297,6 +2341,7 @@ type LdapSettings struct {
 	LoginButtonBorderColor *string `access:"experimental_features"`
 	LoginButtonTextColor   *string `access:"experimental_features"`
 
+	// Deprecated: Use LogSettings.AdvancedLoggingJSON with the LDAPTrace level instead.
 	Trace *bool `access:"authentication_ldap"` // telemetry: none
 }
 
@@ -2868,8 +2913,10 @@ type DataRetentionSettings struct {
 	EnableMessageDeletion          *bool   `access:"compliance_data_retention_policy"`
 	EnableFileDeletion             *bool   `access:"compliance_data_retention_policy"`
 	EnableBoardsDeletion           *bool   `access:"compliance_data_retention_policy"`
-	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"`
-	FileRetentionDays              *int    `access:"compliance_data_retention_policy"`
+	MessageRetentionDays           *int    `access:"compliance_data_retention_policy"` // Deprecated: use `MessageRetentionHours`
+	MessageRetentionHours          *int    `access:"compliance_data_retention_policy"`
+	FileRetentionDays              *int    `access:"compliance_data_retention_policy"` // Deprecated: use `FileRetentionHours`
+	FileRetentionHours             *int    `access:"compliance_data_retention_policy"`
 	BoardsRetentionDays            *int    `access:"compliance_data_retention_policy"`
 	DeletionJobStartTime           *string `access:"compliance_data_retention_policy"`
 	BatchSize                      *int    `access:"compliance_data_retention_policy"`
@@ -2894,8 +2941,16 @@ func (s *DataRetentionSettings) SetDefaults() {
 		s.MessageRetentionDays = NewInt(DataRetentionSettingsDefaultMessageRetentionDays)
 	}
 
+	if s.MessageRetentionHours == nil {
+		s.MessageRetentionHours = NewInt(DataRetentionSettingsDefaultMessageRetentionHours)
+	}
+
 	if s.FileRetentionDays == nil {
 		s.FileRetentionDays = NewInt(DataRetentionSettingsDefaultFileRetentionDays)
+	}
+
+	if s.FileRetentionHours == nil {
+		s.FileRetentionHours = NewInt(DataRetentionSettingsDefaultFileRetentionHours)
 	}
 
 	if s.BoardsRetentionDays == nil {
@@ -2916,6 +2971,30 @@ func (s *DataRetentionSettings) SetDefaults() {
 	if s.RetentionIdsBatchSize == nil {
 		s.RetentionIdsBatchSize = NewInt(DataRetentionSettingsDefaultRetentionIdsBatchSize)
 	}
+}
+
+// GetMessageRetentionHours returns the message retention time as an int.
+// MessageRetentionHours takes precedence over the deprecated MessageRetentionDays.
+func (s *DataRetentionSettings) GetMessageRetentionHours() int {
+	if s.MessageRetentionHours != nil && *s.MessageRetentionHours > 0 {
+		return *s.MessageRetentionHours
+	}
+	if s.MessageRetentionDays != nil && *s.MessageRetentionDays > 0 {
+		return *s.MessageRetentionDays * 24
+	}
+	return DataRetentionSettingsDefaultMessageRetentionDays * 24
+}
+
+// GetFileRetentionHours returns the message retention time as an int.
+// FileRetentionHours takes precedence over the deprecated FileRetentionDays.
+func (s *DataRetentionSettings) GetFileRetentionHours() int {
+	if s.FileRetentionHours != nil && *s.FileRetentionHours > 0 {
+		return *s.FileRetentionHours
+	}
+	if s.FileRetentionDays != nil && *s.FileRetentionDays > 0 {
+		return *s.FileRetentionDays * 24
+	}
+	return DataRetentionSettingsDefaultFileRetentionDays * 24
 }
 
 type JobSettings struct {
@@ -3077,12 +3156,59 @@ func (s *PluginSettings) SetDefaults(ls LogSettings) {
 	}
 }
 
+type WranglerSettings struct {
+	PermittedWranglerRoles                   []string
+	AllowedEmailDomain                       []string
+	MoveThreadMaxCount                       *int64
+	MoveThreadToAnotherTeamEnable            *bool
+	MoveThreadFromPrivateChannelEnable       *bool
+	MoveThreadFromDirectMessageChannelEnable *bool
+	MoveThreadFromGroupMessageChannelEnable  *bool
+}
+
+func (w *WranglerSettings) SetDefaults() {
+	if w.PermittedWranglerRoles == nil {
+		w.PermittedWranglerRoles = make([]string, 0)
+	}
+	if w.AllowedEmailDomain == nil {
+		w.AllowedEmailDomain = make([]string, 0)
+	}
+	if w.MoveThreadMaxCount == nil {
+		w.MoveThreadMaxCount = NewInt64(100)
+	}
+	if w.MoveThreadToAnotherTeamEnable == nil {
+		w.MoveThreadToAnotherTeamEnable = NewBool(false)
+	}
+	if w.MoveThreadFromPrivateChannelEnable == nil {
+		w.MoveThreadFromPrivateChannelEnable = NewBool(false)
+	}
+	if w.MoveThreadFromDirectMessageChannelEnable == nil {
+		w.MoveThreadFromDirectMessageChannelEnable = NewBool(false)
+	}
+	if w.MoveThreadFromGroupMessageChannelEnable == nil {
+		w.MoveThreadFromGroupMessageChannelEnable = NewBool(false)
+	}
+}
+
+func (w *WranglerSettings) IsValid() *AppError {
+	validDomainRegex := regexp.MustCompile(`^(([a-zA-Z]{1})|([a-zA-Z]{1}[a-zA-Z]{1})|([a-zA-Z]{1}[0-9]{1})|([0-9]{1}[a-zA-Z]{1})|([a-zA-Z0-9][a-zA-Z0-9-_]{1,61}[a-zA-Z0-9]))\.([a-zA-Z]{2,6}|[a-zA-Z0-9-]{2,30}\.[a-zA-Z]{2,3})$`)
+	for _, domain := range w.AllowedEmailDomain {
+		if !validDomainRegex.MatchString(domain) && domain != "localhost" {
+			return NewAppError("Config.IsValid", "model.config.is_valid.move_thread.domain_invalid.app_error", nil, "", http.StatusBadRequest)
+		}
+	}
+
+	return nil
+}
+
 type GlobalRelayMessageExportSettings struct {
-	CustomerType      *string `access:"compliance_compliance_export"` // must be either A9 or A10, dictates SMTP server url
-	SMTPUsername      *string `access:"compliance_compliance_export"`
-	SMTPPassword      *string `access:"compliance_compliance_export"`
-	EmailAddress      *string `access:"compliance_compliance_export"` // the address to send messages to
-	SMTPServerTimeout *int    `access:"compliance_compliance_export"`
+	CustomerType         *string `access:"compliance_compliance_export"` // must be either A9, A10 or CUSTOM, dictates SMTP server url
+	SMTPUsername         *string `access:"compliance_compliance_export"`
+	SMTPPassword         *string `access:"compliance_compliance_export"`
+	EmailAddress         *string `access:"compliance_compliance_export"` // the address to send messages to
+	SMTPServerTimeout    *int    `access:"compliance_compliance_export"`
+	CustomSMTPServerName *string `access:"compliance_compliance_export"`
+	CustomSMTPPort       *string `access:"compliance_compliance_export"`
 }
 
 func (s *GlobalRelayMessageExportSettings) SetDefaults() {
@@ -3100,6 +3226,12 @@ func (s *GlobalRelayMessageExportSettings) SetDefaults() {
 	}
 	if s.SMTPServerTimeout == nil || *s.SMTPServerTimeout == 0 {
 		s.SMTPServerTimeout = NewInt(1800)
+	}
+	if s.CustomSMTPServerName == nil {
+		s.CustomSMTPServerName = NewString("")
+	}
+	if s.CustomSMTPPort == nil {
+		s.CustomSMTPPort = NewString("25")
 	}
 }
 
@@ -3147,9 +3279,8 @@ func (s *MessageExportSettings) SetDefaults() {
 }
 
 type DisplaySettings struct {
-	CustomURLSchemes     []string `access:"site_posts"`
-	MaxMarkdownNodes     *int     `access:"site_posts"`
-	ExperimentalTimezone *bool    `access:"experimental_features"`
+	CustomURLSchemes []string `access:"site_posts"`
+	MaxMarkdownNodes *int     `access:"site_posts"`
 }
 
 func (s *DisplaySettings) SetDefaults() {
@@ -3160,10 +3291,6 @@ func (s *DisplaySettings) SetDefaults() {
 
 	if s.MaxMarkdownNodes == nil {
 		s.MaxMarkdownNodes = NewInt(0)
-	}
-
-	if s.ExperimentalTimezone == nil {
-		s.ExperimentalTimezone = NewBool(true)
 	}
 }
 
@@ -3371,6 +3498,7 @@ type Config struct {
 	FeatureFlags              *FeatureFlags  `access:"*_read" json:",omitempty"`
 	ImportSettings            ImportSettings // telemetry: none
 	ExportSettings            ExportSettings
+	WranglerSettings          WranglerSettings
 }
 
 func (o *Config) Auditable() map[string]interface{} {
@@ -3486,6 +3614,7 @@ func (o *Config) SetDefaults() {
 	}
 	o.ImportSettings.SetDefaults()
 	o.ExportSettings.SetDefaults()
+	o.WranglerSettings.SetDefaults()
 }
 
 func (o *Config) IsValid() *AppError {
@@ -3553,6 +3682,10 @@ func (o *Config) IsValid() *AppError {
 		return appErr
 	}
 
+	if appErr := o.LogSettings.isValid(); appErr != nil {
+		return appErr
+	}
+
 	if appErr := o.LocalizationSettings.isValid(); appErr != nil {
 		return appErr
 	}
@@ -3572,6 +3705,11 @@ func (o *Config) IsValid() *AppError {
 	if appErr := o.ImportSettings.isValid(); appErr != nil {
 		return appErr
 	}
+
+	if appErr := o.WranglerSettings.IsValid(); appErr != nil {
+		return appErr
+	}
+
 	return nil
 }
 
@@ -3781,7 +3919,7 @@ func (s *SamlSettings) isValid() *AppError {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
-		if *s.IdpDescriptorURL == "" || !IsValidHTTPURL(*s.IdpDescriptorURL) {
+		if *s.IdpDescriptorURL == "" {
 			return NewAppError("Config.IsValid", "model.config.is_valid.saml_idp_descriptor_url.app_error", nil, "", http.StatusBadRequest)
 		}
 
@@ -3881,6 +4019,10 @@ func (s *ServiceSettings) isValid() *AppError {
 		}
 	}
 
+	if *s.MaximumPayloadSizeBytes <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_payload_size.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	if *s.ReadTimeout <= 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.read_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -3919,6 +4061,10 @@ func (s *ServiceSettings) isValid() *AppError {
 	portInt, err := strconv.Atoi(port)
 	if err != nil || !isValidHost || portInt < 0 || portInt > math.MaxUint16 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.listen_address.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.OutgoingIntegrationRequestsTimeout <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.outgoing_integrations_request_timeout.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.ExperimentalGroupUnreadChannels != GroupUnreadChannelsDisabled &&
@@ -4031,12 +4177,36 @@ func (bs *BleveSettings) isValid() *AppError {
 }
 
 func (s *DataRetentionSettings) isValid() *AppError {
-	if *s.MessageRetentionDays <= 0 {
+	if s.MessageRetentionDays == nil || *s.MessageRetentionDays < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
 	}
 
-	if *s.FileRetentionDays <= 0 {
+	if s.MessageRetentionHours == nil || *s.MessageRetentionHours < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if s.FileRetentionDays == nil || *s.FileRetentionDays < 0 {
 		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_days_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if s.FileRetentionHours == nil || *s.FileRetentionHours < 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MessageRetentionDays > 0 && *s.MessageRetentionHours > 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.FileRetentionDays > 0 && *s.FileRetentionHours > 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.MessageRetentionDays == 0 && *s.MessageRetentionHours == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.message_retention_both_zero.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if *s.FileRetentionDays == 0 && *s.FileRetentionHours == 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.data_retention.file_retention_both_zero.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if _, err := time.Parse("15:04", *s.DeletionJobStartTime); err != nil {
@@ -4076,8 +4246,10 @@ func (s *MessageExportSettings) isValid() *AppError {
 		if *s.ExportFormat == ComplianceExportTypeGlobalrelay {
 			if s.GlobalRelaySettings == nil {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.config_missing.app_error", nil, "", http.StatusBadRequest)
-			} else if s.GlobalRelaySettings.CustomerType == nil || (*s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA9 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA10) {
+			} else if s.GlobalRelaySettings.CustomerType == nil || (*s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA9 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeA10 && *s.GlobalRelaySettings.CustomerType != GlobalrelayCustomerTypeCustom) {
 				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type.app_error", nil, "", http.StatusBadRequest)
+			} else if *s.GlobalRelaySettings.CustomerType == GlobalrelayCustomerTypeCustom && ((s.GlobalRelaySettings.CustomSMTPServerName == nil || *s.GlobalRelaySettings.CustomSMTPServerName == "") || (s.GlobalRelaySettings.CustomSMTPPort == nil || *s.GlobalRelaySettings.CustomSMTPPort == "")) {
+				return NewAppError("Config.IsValid", "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error", nil, "", http.StatusBadRequest)
 			} else if s.GlobalRelaySettings.EmailAddress == nil || !strings.Contains(*s.GlobalRelaySettings.EmailAddress, "@") {
 				// validating email addresses is hard - just make sure it contains an '@' sign
 				// see https://stackoverflow.com/questions/201323/using-a-regular-expression-to-validate-an-email-address

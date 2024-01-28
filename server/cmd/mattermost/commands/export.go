@@ -82,6 +82,7 @@ func init() {
 
 	BulkExportCmd.Flags().Bool("all-teams", true, "Export all teams from the server.")
 	BulkExportCmd.Flags().Bool("with-archived-channels", false, "Also exports archived channels.")
+	BulkExportCmd.Flags().Bool("with-profile-pictures", false, "Also exports profile pictures.")
 	BulkExportCmd.Flags().Bool("attachments", false, "Also export file attachments.")
 	BulkExportCmd.Flags().Bool("archive", false, "Outputs a single archive file.")
 
@@ -104,6 +105,8 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 	if !*a.Config().MessageExportSettings.EnableExport {
 		return errors.New("ERROR: The message export feature is not enabled")
 	}
+
+	var rctx request.CTX = request.EmptyContext(a.Log())
 
 	// for now, format is hard-coded to actiance. In time, we'll have to support other formats and inject them into job data
 	format, err := command.Flags().GetString("format")
@@ -138,19 +141,18 @@ func scheduleExportCmdF(command *cobra.Command, args []string) error {
 			defer cancel()
 		}
 
-		c := request.EmptyContext(a.Log())
-		c.SetContext(ctx)
+		rctx = rctx.WithContext(ctx)
 
-		job, err := messageExportI.StartSynchronizeJob(c, startTime)
+		job, err := messageExportI.StartSynchronizeJob(rctx, startTime)
 		if err != nil || job.Status == model.JobStatusError || job.Status == model.JobStatusCanceled {
 			CommandPrintErrorln("ERROR: Message export job failed. Please check the server logs")
 		} else {
 			CommandPrettyPrintln("SUCCESS: Message export job complete")
 
-			auditRec := a.MakeAuditRecord("scheduleExport", audit.Success)
+			auditRec := a.MakeAuditRecord(rctx, "scheduleExport", audit.Success)
 			auditRec.AddMeta("format", format)
 			auditRec.AddMeta("start", startTime)
-			a.LogAuditRec(auditRec, nil)
+			a.LogAuditRec(rctx, auditRec, nil)
 		}
 	}
 	return nil
@@ -164,6 +166,8 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return err
 		}
 		defer a.Srv().Shutdown()
+
+		rctx := request.EmptyContext(a.Log())
 
 		startTime, err := command.Flags().GetInt64("exportFrom")
 		if err != nil {
@@ -182,7 +186,7 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			return errors.New("message export feature not available")
 		}
 
-		warningsCount, appErr := a.MessageExport().RunExport(format, startTime, limit)
+		warningsCount, appErr := a.MessageExport().RunExport(rctx, format, startTime, limit)
 		if appErr != nil {
 			return appErr
 		}
@@ -196,10 +200,10 @@ func buildExportCmdF(format string) func(command *cobra.Command, args []string) 
 			}
 		}
 
-		auditRec := a.MakeAuditRecord("buildExport", audit.Success)
+		auditRec := a.MakeAuditRecord(rctx, "buildExport", audit.Success)
 		auditRec.AddMeta("format", format)
 		auditRec.AddMeta("start", startTime)
-		a.LogAuditRec(auditRec, nil)
+		a.LogAuditRec(rctx, auditRec, nil)
 
 		return nil
 	}
@@ -211,6 +215,8 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return err
 	}
 	defer a.Srv().Shutdown()
+
+	rctx := request.EmptyContext(a.Log())
 
 	allTeams, err := command.Flags().GetBool("all-teams")
 	if err != nil {
@@ -235,6 +241,11 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 		return errors.Wrap(err, "with-archived-channels flag error")
 	}
 
+	includeProfilePictures, err := command.Flags().GetBool("with-profile-pictures")
+	if err != nil {
+		return errors.Wrap(err, "with-profile-pictures flag error")
+	}
+
 	fileWriter, err := os.Create(args[0])
 	if err != nil {
 		return err
@@ -250,15 +261,16 @@ func bulkExportCmdF(command *cobra.Command, args []string) error {
 	opts.IncludeAttachments = attachments
 	opts.CreateArchive = archive
 	opts.IncludeArchivedChannels = withArchivedChannels
-	if err := a.BulkExport(request.EmptyContext(a.Log()), fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
+	opts.IncludeProfilePictures = includeProfilePictures
+	if err := a.BulkExport(rctx, fileWriter, filepath.Dir(outPath), nil /* nil job since it's spawned from CLI */, opts); err != nil {
 		CommandPrintErrorln(err.Error())
 		return err
 	}
 
-	auditRec := a.MakeAuditRecord("bulkExport", audit.Success)
+	auditRec := a.MakeAuditRecord(rctx, "bulkExport", audit.Success)
 	auditRec.AddMeta("all_teams", allTeams)
 	auditRec.AddMeta("file", args[0])
-	a.LogAuditRec(auditRec, nil)
+	a.LogAuditRec(rctx, auditRec, nil)
 
 	return nil
 }

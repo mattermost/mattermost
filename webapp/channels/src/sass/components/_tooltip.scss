@@ -6,19 +6,38 @@
     pointer-events: none;
     word-wrap: break-word;
 
+    &.in {
+        opacity: 1;
+    }
+
     &#announcement-bar__tooltip {
+        width: 50%;
+        max-width: 100%;
         pointer-events: auto;
     }
 
     .tooltip-inner {
         max-width: 100%;
         padding: 4px 8px;
+        background: rgba(0, 0, 0, 0.9);
         box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
         font-size: 12px;
         font-weight: 600;
         line-height: 18px;
         text-align: center;
         word-break: break-word;
+    }
+
+    &.top {
+        .tooltip-arrow {
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+        }
+    }
+
+    &.bottom {
+        .tooltip-arrow {
+            box-shadow: 0 6px 14px rgba(0, 0, 0, 0.12);
+        }
     }
 
     &.text-nowrap {
@@ -29,6 +48,29 @@
 
     .tooltip-help {
         color: rgba(255, 255, 255, 0.75);
+    }
+
+    .tooltip-title {
+        font-weight: 600;
+        line-height: 15px;
+    }
+
+    .tooltip-hint {
+        font-size: 11px;
+        line-height: 16px;
+        opacity: 56%;
+    }
+
+    .tooltip-shortcuts-container {
+        display: flex;
+        justify-content: center;
+        padding: 4px 0;
+        gap: 2px;
+    }
+
+    .emoticon {
+        margin-right: 6px;
+        vertical-align: center;
     }
 }
 

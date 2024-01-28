@@ -17,7 +17,6 @@
 
     &:not(.expanded):not(.resize-disabled) {
         min-width: 400px;
-        max-width: 400px;
 
         &.sidebar--right--width-holder {
             @media screen and (min-width: 901px) and (max-width: 1200px) {
@@ -86,30 +85,6 @@
         display: flex;
         height: 100%;
         flex-direction: column;
-    }
-
-    .sidebar--right__back {
-        display: flex;
-        width: 2.4rem;
-        height: 2.4rem;
-        align-items: center;
-        justify-content: center;
-        margin-right: 4px;
-        border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-size: 12px;
-        text-decoration: none;
-        transition: all 0.2s ease-in;
-
-        &:hover {
-            background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-        }
-
-        &:active {
-            background-color: rgba(var(--button-bg-rgb), 0.08);
-            color: v(button-bg);
-        }
     }
 
     .sidebar-right__body {
@@ -238,6 +213,10 @@
             font-size: 20px;
         }
 
+        .sidebar--right__back {
+            margin-right: 4px !important;
+        }
+
         .controls {
             display: flex;
             align-items: center;
@@ -280,13 +259,6 @@
         li {
             padding-bottom: 10px;
             font-size: 0.95em;
-        }
-
-        .usage__icon {
-            position: relative;
-            top: 3px;
-            margin: 0 3px;
-            opacity: 0.9;
         }
 
         &.sidebar-expanded {

@@ -163,10 +163,18 @@
     .form-control {
         border-color: rgba(var(--center-channel-color-rgb), 0.16);
         background: v(center-channel-bg);
+        border-radius: 4px;
+        box-shadow: none;
         color: v(center-channel-color);
 
         &:focus {
-            border-color: rgba(var(--center-channel-color-rgb), 0.4);
+            border-color: rgba(var(--button-bg-rgb), 1);
+            box-shadow: 0 0 0 1px var(--button-bg);
+        }
+
+        &[disabled],
+        &[readonly] {
+            color: var(--center-channel-color);
         }
 
         &.inline {

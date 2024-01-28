@@ -48,6 +48,12 @@
         background-color: var(--sys-center-channel-bg);
         color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     }
+
+    .alert {
+        &.alert-warning {
+            margin-top: 10px;
+        }
+    }
 }
 
 .CustomPolicy__error {

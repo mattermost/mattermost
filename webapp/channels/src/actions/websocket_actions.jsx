@@ -101,7 +101,7 @@ import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
 import {setGlobalItem} from 'actions/storage';
-import {loadProfilesForSidebar} from 'actions/user_actions';
+import {loadProfilesForDM, loadProfilesForGM} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
 import {openModal} from 'actions/views/modals';
@@ -118,8 +118,10 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, WarnMetricTypes, PageLoadContext} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
+
+import {temporarilySetPageLoadContext} from './telemetry_actions';
 
 const dispatch = store.dispatch;
 const getState = store.getState;
@@ -211,6 +213,8 @@ export function reconnect() {
     // eslint-disable-next-line
     console.log('Reconnecting WebSocket');
 
+    temporarilySetPageLoadContext(PageLoadContext.RECONNECT);
+
     dispatch({
         type: GeneralTypes.WEBSOCKET_SUCCESS,
         timestamp: Date.now(),
@@ -252,6 +256,10 @@ export function reconnect() {
                 syncThreads(team.id, currentUserId);
             }
         }
+
+        // Re-syncing the current channel and team ids.
+        WebSocketClient.updateActiveChannel(currentChannelId);
+        WebSocketClient.updateActiveTeam(currentTeamId);
     }
 
     loadPluginsIfNecessary();
@@ -640,7 +648,8 @@ export function handleChannelUpdatedEvent(msg) {
 
         if (channel.id === getCurrentChannelId(state)) {
             // using channel's team_id to ensure we always redirect to current channel even if channel's team changes.
-            getHistory().replace(`${getRelativeTeamUrl(state, channel.team_id)}/channels/${channel.name}`);
+            const teamId = channel.team_id || getCurrentTeamId(state);
+            getHistory().replace(`${getRelativeTeamUrl(state, teamId)}/channels/${channel.name}`);
         }
     };
 }
@@ -985,7 +994,6 @@ function handleUserAddedEvent(msg) {
         const state = doGetState();
         const config = getConfig(state);
         const license = getLicense(state);
-        const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
         const currentChannelId = getCurrentChannelId(state);
         if (currentChannelId === msg.broadcast.channel_id) {
             doDispatch(getChannelStats(currentChannelId));
@@ -994,7 +1002,7 @@ function handleUserAddedEvent(msg) {
                 data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
             });
             if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
-                doDispatch(getChannelMemberCountsByGroup(currentChannelId, isTimezoneEnabled));
+                doDispatch(getChannelMemberCountsByGroup(currentChannelId));
             }
         }
 
@@ -1028,7 +1036,6 @@ export function handleUserRemovedEvent(msg) {
     const currentUser = getCurrentUser(state);
     const config = getConfig(state);
     const license = getLicense(state);
-    const isTimezoneEnabled = config.ExperimentalTimezone === 'true';
 
     if (msg.broadcast.user_id === currentUser.id) {
         dispatch(loadChannelsForCurrentUser());
@@ -1081,7 +1088,7 @@ export function handleUserRemovedEvent(msg) {
             data: {id: msg.broadcast.channel_id, user_id: msg.data.user_id},
         });
         if (license?.IsLicensed === 'true' && license?.LDAPGroups === 'true' && config.EnableConfirmNotificationsToChannel === 'true') {
-            dispatch(getChannelMemberCountsByGroup(currentChannel.id, isTimezoneEnabled));
+            dispatch(getChannelMemberCountsByGroup(currentChannel.id));
         }
     }
 
@@ -1229,7 +1236,11 @@ function handlePreferenceChangedEvent(msg) {
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: [preference]});
 
     if (addedNewDmUser(preference)) {
-        loadProfilesForSidebar();
+        loadProfilesForDM();
+    }
+
+    if (addedNewGmUser(preference)) {
+        loadProfilesForGM();
     }
 }
 
@@ -1238,7 +1249,11 @@ function handlePreferencesChangedEvent(msg) {
     dispatch({type: PreferenceTypes.RECEIVED_PREFERENCES, data: preferences});
 
     if (preferences.findIndex(addedNewDmUser) !== -1) {
-        loadProfilesForSidebar();
+        loadProfilesForDM();
+    }
+
+    if (preferences.findIndex(addedNewGmUser) !== -1) {
+        loadProfilesForGM();
     }
 }
 
@@ -1251,6 +1266,10 @@ function addedNewDmUser(preference) {
     return preference.category === Constants.Preferences.CATEGORY_DIRECT_CHANNEL_SHOW && preference.value === 'true';
 }
 
+function addedNewGmUser(preference) {
+    return preference.category === Constants.Preferences.CATEGORY_GROUP_CHANNEL_SHOW && preference.value === 'true';
+}
+
 function handleStatusChangedEvent(msg) {
     dispatch({
         type: UserTypes.RECEIVED_STATUSES,
@@ -1259,7 +1278,7 @@ function handleStatusChangedEvent(msg) {
 }
 
 function handleHelloEvent(msg) {
-    setServerVersion(msg.data.server_version)(dispatch, getState);
+    dispatch(setServerVersion(msg.data.server_version));
     dispatch(setConnectionId(msg.data.connection_id));
 }
 

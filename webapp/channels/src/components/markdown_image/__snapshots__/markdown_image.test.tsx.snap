@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/MarkdownImage should match snapshot 1`] = `
-<Connect(ExternalImage)
+<Connect(Component)
   imageMetadata={
     Object {
       "format": "png",
@@ -13,7 +13,7 @@ exports[`components/MarkdownImage should match snapshot 1`] = `
   src="/images/logo.png"
 >
   <Component />
-</Connect(ExternalImage)>
+</Connect(Component)>
 `;
 
 exports[`components/MarkdownImage should match snapshot for SizeAwareImage dimensions 1`] = `
@@ -40,7 +40,7 @@ exports[`components/MarkdownImage should match snapshot for SizeAwareImage dimen
 `;
 
 exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
-<Connect(ExternalImage)
+<Connect(Component)
   imageMetadata={
     Object {
       "format": "png",
@@ -52,7 +52,7 @@ exports[`components/MarkdownImage should match snapshot for broken link 1`] = `
   src="brokenLink"
 >
   <Component />
-</Connect(ExternalImage)>
+</Connect(Component)>
 `;
 
 exports[`components/MarkdownImage should provide image src as an alt text for MarkdownImageExpand if image has no own alt text 1`] = `

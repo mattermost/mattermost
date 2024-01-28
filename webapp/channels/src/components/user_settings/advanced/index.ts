@@ -3,21 +3,19 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {updateUserActive, revokeAllSessionsForUser} from 'mattermost-redux/actions/users';
-import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {get, getUnreadScrollPositionPreference, makeGetCategory, syncedDraftsAreAllowed} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
 
 import AdvancedSettingsDisplay from './user_settings_advanced';
-import type {Props} from './user_settings_advanced';
 
 function makeMapStateToProps() {
     const getAdvancedSettingsCategory = makeGetCategory();
@@ -27,7 +25,6 @@ function makeMapStateToProps() {
 
         const enablePreviewFeatures = config.EnablePreviewFeatures === 'true';
         const enableUserDeactivation = config.EnableUserDeactivation === 'true';
-        const disableWebappPrefetchAllowed = isPerformanceDebuggingEnabled(state);
         const enableJoinLeaveMessage = config.EnableJoinLeaveMessageByDefault === 'true';
 
         return {
@@ -42,15 +39,13 @@ function makeMapStateToProps() {
             enablePreviewFeatures,
             enableUserDeactivation,
             syncedDraftsAreAllowed: syncedDraftsAreAllowed(state),
-            disableWebappPrefetchAllowed,
-            dataPrefetchEnabled: get(state, Preferences.CATEGORY_ADVANCED_SETTINGS, 'data_prefetch', 'true'),
         };
     };
 }
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             savePreferences,
             updateUserActive,
             revokeAllSessionsForUser,

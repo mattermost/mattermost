@@ -81,7 +81,7 @@
 
             .upsell-confirm-foreground {
                 height: 148px;
-                padding: 16px 24px;
+                padding: 16px 32px;
                 background: var(--button-color);
             }
 
@@ -133,11 +133,7 @@
             h1#createGroupsModalTitleWithBack,
             h1#updateGroupsModalTitle,
             h1#addUsersToGroupsModalLabel {
-                margin-left: 44px;
-            }
-
-            .user-groups-create {
-                margin-right: 42px;
+                margin-left: 16px;
             }
         }
     }
@@ -153,7 +149,7 @@
 
         .user-groups-search {
             position: relative;
-            margin: 6px 24px 8px;
+            margin: 6px 32px 8px;
 
             .Input_container {
                 .Input_wrapper {
@@ -179,7 +175,7 @@
 
         .more-modal__dropdown {
             width: 100%;
-            padding: 0 24px 24px;
+            padding: 0 32px 24px;
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
             #groupsFilterDropdown {
@@ -369,7 +365,7 @@
 
             .group-mention-input-wrapper,
             .group-name-input-wrapper {
-                padding: 6px 24px 12px;
+                padding: 6px 32px 12px;
 
                 .Input_container {
                     :focus {
@@ -391,11 +387,11 @@
             }
 
             .group-mention-input-wrapper {
-                padding: 12px 24px 24px;
+                padding: 12px 32px 24px;
             }
 
             h2 {
-                padding: 0 24px;
+                padding: 0 32px;
                 color: inherit;
                 font-size: 18px;
                 font-weight: 600;
@@ -405,10 +401,6 @@
             .group-add-user {
                 .multi-select__wrapper {
                     margin-top: 0;
-                }
-
-                .multi-select__footer {
-                    padding-top: 24px;
                 }
             }
         }

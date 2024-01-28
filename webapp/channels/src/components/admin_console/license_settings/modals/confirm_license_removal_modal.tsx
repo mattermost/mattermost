@@ -7,8 +7,6 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
@@ -27,7 +25,7 @@ type Props = {
 }
 
 const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.CONFIRM_LICENSE_REMOVAL));
     if (!show) {
@@ -50,6 +48,7 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
 
     return (
         <GenericModal
+            compassDesign={true}
             className={'ConfirmLicenseRemovalModal'}
             show={show}
             id='ConfirmLicenseRemovalModal'

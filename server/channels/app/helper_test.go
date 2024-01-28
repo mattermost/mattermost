@@ -4,7 +4,11 @@
 package app
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
+	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"strings"
@@ -59,6 +63,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
 	configStore.Set(memoryConfig)
@@ -99,7 +104,6 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		IncludeCacheLayer: includeCacheLayer,
 		ConfigStore:       configStore,
 	}
-	th.Context.SetLogger(testLogger)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
@@ -374,7 +378,7 @@ func (th *TestHelper) createChannel(c request.CTX, team *model.Team, channelType
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.SaveSharedChannel(c, &model.SharedChannel{
+		_, err := th.App.ShareChannel(c, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,
@@ -723,4 +727,25 @@ func NewTestId() string {
 
 func (th *TestHelper) NewPluginAPI(manifest *model.Manifest) plugin.API {
 	return th.App.NewPluginAPI(th.Context, manifest)
+}
+
+func decodeJSON[T any](o any, result *T) *T {
+	var r io.Reader
+	switch v := o.(type) {
+	case string:
+		r = strings.NewReader(v)
+	case []byte:
+		r = bytes.NewReader(v)
+	case io.Reader:
+		r = v
+	default:
+		panic(fmt.Sprintf("Unable to decode JSON from %T (%v)", v, v))
+	}
+
+	err := json.NewDecoder(r).Decode(result)
+	if err != nil {
+		panic(err)
+	}
+
+	return result
 }

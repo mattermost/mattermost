@@ -1,37 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
-
-import LocalizedIcon from 'components/localized_icon';
-
-import {t} from 'utils/i18n';
+import {useIntl} from 'react-intl';
 
 type Props = {
-    text: React.ReactNode;
+    text?: React.ReactNode;
     style?: React.CSSProperties;
 }
-
-export default class LoadingSpinner extends React.PureComponent<Props> {
-    public static defaultProps: Props = {
-        text: null,
-    };
-
-    public render() {
-        return (
+const LoadingSpinner = ({text = null, style}: Props) => {
+    const {formatMessage} = useIntl();
+    return (
+        <span
+            id='loadingSpinner'
+            className={classNames('LoadingSpinner', {'with-text': Boolean(text)})}
+            style={style}
+            data-testid='loadingSpinner'
+        >
             <span
-                id='loadingSpinner'
-                className={'LoadingSpinner' + (this.props.text ? ' with-text' : '')}
-                style={this.props.style}
-                data-testid='loadingSpinner'
-            >
-                <LocalizedIcon
-                    className='fa fa-spinner fa-fw fa-pulse spinner'
-                    component='span'
-                    title={{id: t('generic_icons.loading'), defaultMessage: 'Loading Icon'}}
-                />
-                {this.props.text}
-            </span>
-        );
-    }
-}
+                className='fa fa-spinner fa-fw fa-pulse spinner'
+                title={formatMessage({id: 'generic_icons.loading', defaultMessage: 'Loading Icon'})}
+            />
+            {text}
+        </span>
+    );
+};
+
+export default React.memo(LoadingSpinner);

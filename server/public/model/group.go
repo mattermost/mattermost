@@ -62,6 +62,10 @@ func (group *Group) Auditable() map[string]interface{} {
 	}
 }
 
+func (group *Group) LogClone() any {
+	return group.Auditable()
+}
+
 type GroupWithUserIds struct {
 	Group
 	UserIds []string `json:"user_ids"`
@@ -243,7 +247,6 @@ func (group *Group) IsValidForUpdate() *AppError {
 var validGroupnameChars = regexp.MustCompile(`^[a-z0-9\.\-_]+$`)
 
 func (group *Group) IsValidName() *AppError {
-
 	if group.Name == nil {
 		if group.AllowReference {
 			return NewAppError("Group.IsValidName", "model.group.name.app_error", map[string]any{"GroupNameMaxLength": GroupNameMaxLength}, "", http.StatusBadRequest)

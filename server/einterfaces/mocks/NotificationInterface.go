@@ -32,15 +32,15 @@ func (_m *NotificationInterface) CheckLicense() *model.AppError {
 }
 
 // GetNotificationMessage provides a mock function with given fields: c, ack, userID
-func (_m *NotificationInterface) GetNotificationMessage(c *request.Context, ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError) {
+func (_m *NotificationInterface) GetNotificationMessage(c request.CTX, ack *model.PushNotificationAck, userID string) (*model.PushNotification, *model.AppError) {
 	ret := _m.Called(c, ack, userID)
 
 	var r0 *model.PushNotification
 	var r1 *model.AppError
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.PushNotificationAck, string) (*model.PushNotification, *model.AppError)); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PushNotificationAck, string) (*model.PushNotification, *model.AppError)); ok {
 		return rf(c, ack, userID)
 	}
-	if rf, ok := ret.Get(0).(func(*request.Context, *model.PushNotificationAck, string) *model.PushNotification); ok {
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.PushNotificationAck, string) *model.PushNotification); ok {
 		r0 = rf(c, ack, userID)
 	} else {
 		if ret.Get(0) != nil {
@@ -48,7 +48,7 @@ func (_m *NotificationInterface) GetNotificationMessage(c *request.Context, ack 
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*request.Context, *model.PushNotificationAck, string) *model.AppError); ok {
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.PushNotificationAck, string) *model.AppError); ok {
 		r1 = rf(c, ack, userID)
 	} else {
 		if ret.Get(1) != nil {

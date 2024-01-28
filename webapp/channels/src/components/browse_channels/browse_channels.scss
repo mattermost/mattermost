@@ -106,7 +106,7 @@
     }
 
     .modal-body {
-        padding: 15px 0 0;
+        padding: 0;
 
         .filtered-user-list {
             height: 500px;
@@ -213,7 +213,7 @@
     .modal-header {
         .GenericModal__header {
             display: flex;
-            width: 95%;
+            width: 100%;
             align-items: center;
             justify-content: space-between;
             padding-right: 4px;

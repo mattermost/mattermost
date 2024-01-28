@@ -5,7 +5,7 @@ import nock from 'nock';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/preferences';
-import {loadMeREST} from 'mattermost-redux/actions/users';
+import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
@@ -65,7 +65,7 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             get('/me/preferences').
             reply(200, existingPreferences);
-        await Actions.getMyPreferences()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getMyPreferences());
 
         const state = store.getState();
         const {myPreferences} = state.entities.preferences;
@@ -98,7 +98,7 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             get('/me/preferences').
             reply(200, existingPreferences);
-        await Actions.getMyPreferences()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getMyPreferences());
 
         const preferences = [
             {
@@ -118,7 +118,7 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        await Actions.savePreferences(user.id, preferences)(store.dispatch);
+        await store.dispatch(Actions.savePreferences(user.id, preferences));
 
         const state = store.getState();
         const {myPreferences} = state.entities.preferences;
@@ -167,15 +167,15 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             get('/me/preferences').
             reply(200, existingPreferences);
-        await Actions.getMyPreferences()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getMyPreferences());
 
         nock(Client4.getUsersRoute()).
             post(`/${TestHelper.basicUser!.id}/preferences/delete`).
             reply(200, OK_RESPONSE);
-        await Actions.deletePreferences(user.id, [
+        await store.dispatch(Actions.deletePreferences(user.id, [
             existingPreferences[0],
             existingPreferences[2],
-        ])(store.dispatch, store.getState);
+        ]));
 
         const state = store.getState();
         const {myPreferences} = state.entities.preferences;
@@ -203,13 +203,13 @@ describe('Actions.Preferences', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMeREST()(store.dispatch, store.getState);
+        await store.dispatch(loadMe());
 
         // Test that a new preference is created if none exists
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        await Actions.makeDirectChannelVisibleIfNecessary(user2.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.makeDirectChannelVisibleIfNecessary(user2.id));
 
         let state = store.getState();
         let myPreferences = state.entities.preferences.myPreferences;
@@ -225,7 +225,7 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        await Actions.makeDirectChannelVisibleIfNecessary(user2.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.makeDirectChannelVisibleIfNecessary(user2.id));
 
         const state2 = store.getState();
 
@@ -236,15 +236,15 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        Actions.savePreferences(user.id, [{
+        store.dispatch(Actions.savePreferences(user.id, [{
             ...preference,
             value: 'false',
-        }])(store.dispatch);
+        }]));
 
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        await Actions.makeDirectChannelVisibleIfNecessary(user2.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.makeDirectChannelVisibleIfNecessary(user2.id));
 
         state = store.getState();
         myPreferences = state.entities.preferences.myPreferences;
@@ -279,7 +279,7 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             get('/me/preferences').
             reply(200, existingPreferences);
-        await Actions.getMyPreferences()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getMyPreferences());
 
         const newTheme = {
             type: 'Mattermost Dark',
@@ -287,7 +287,7 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        await Actions.saveTheme(team.id, newTheme)(store.dispatch, store.getState);
+        await store.dispatch(Actions.saveTheme(team.id, newTheme));
 
         const state = store.getState();
         const {myPreferences} = state.entities.preferences;
@@ -303,7 +303,7 @@ describe('Actions.Preferences', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMeREST()(store.dispatch, store.getState);
+        await store.dispatch(loadMe());
 
         const theme = {
             type: 'Mattermost Dark',
@@ -341,12 +341,12 @@ describe('Actions.Preferences', () => {
         nock(Client4.getUsersRoute()).
             get('/me/preferences').
             reply(200, existingPreferences);
-        await Actions.getMyPreferences()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getMyPreferences());
 
         nock(Client4.getUsersRoute()).
             post(`/${user.id}/preferences/delete`).
             reply(200, OK_RESPONSE);
-        await Actions.deleteTeamSpecificThemes()(store.dispatch, store.getState);
+        await store.dispatch(Actions.deleteTeamSpecificThemes());
 
         const state = store.getState();
         const {myPreferences} = state.entities.preferences;

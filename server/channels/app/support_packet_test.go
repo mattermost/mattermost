@@ -83,7 +83,6 @@ func TestGenerateSupportPacketYaml(t *testing.T) {
 		assert.Equal(t, "mock", packet.FileDriver)
 		assert.Equal(t, "FAIL: all broken", packet.FileStatus)
 	})
-
 }
 
 func TestGenerateSupportPacket(t *testing.T) {

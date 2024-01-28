@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {renderWithIntlAndStore, screen} from 'tests/react_testing_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {CloudProducts} from 'utils/constants';
 
 import {ToPaidNudgeBanner, ToPaidPlanBannerDismissable} from './to_paid_plan_nudge_banner';
@@ -60,7 +60,7 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
+        renderWithContext(<ToPaidPlanBannerDismissable/>, state, {useMockedStore: true});
 
         screen.getByTestId('cloud-free-deprecation-announcement-bar');
     });
@@ -84,7 +84,7 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
+        renderWithContext(<ToPaidPlanBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
     });
@@ -108,7 +108,7 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
+        renderWithContext(<ToPaidPlanBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
     });
@@ -132,7 +132,7 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
+        renderWithContext(<ToPaidPlanBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
     });
@@ -166,7 +166,7 @@ describe('ToPaidPlanBannerDismissable', () => {
             },
         };
 
-        renderWithIntlAndStore(<ToPaidPlanBannerDismissable/>, state);
+        renderWithContext(<ToPaidPlanBannerDismissable/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-free-deprecation-announcement-bar')).toThrow();
     });
@@ -189,7 +189,7 @@ describe('ToPaidNudgeBanner', () => {
             },
         };
 
-        renderWithIntlAndStore(<ToPaidNudgeBanner/>, state);
+        renderWithContext(<ToPaidNudgeBanner/>, state, {useMockedStore: true});
 
         screen.getByTestId('cloud-free-deprecation-alert-banner');
     });
@@ -210,7 +210,7 @@ describe('ToPaidNudgeBanner', () => {
             },
         };
 
-        renderWithIntlAndStore(<ToPaidNudgeBanner/>, state);
+        renderWithContext(<ToPaidNudgeBanner/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-free-deprecation-alert-banner')).toThrow();
     });
@@ -231,7 +231,7 @@ describe('ToPaidNudgeBanner', () => {
             },
         };
 
-        renderWithIntlAndStore(<ToPaidNudgeBanner/>, state);
+        renderWithContext(<ToPaidNudgeBanner/>, state, {useMockedStore: true});
 
         expect(() => screen.getByTestId('cloud-free-deprecation-alert-banner')).toThrow();
     });

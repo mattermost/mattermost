@@ -12,7 +12,6 @@ import (
 )
 
 func executeRawCommand(root *cobra.Command, args string) (c *cobra.Command, output string, err error) {
-
 	actual := new(bytes.Buffer)
 	RootCmd.SetOut(actual)
 	RootCmd.SetErr(actual)
@@ -22,7 +21,6 @@ func executeRawCommand(root *cobra.Command, args string) (c *cobra.Command, outp
 }
 
 func (s *MmctlUnitTestSuite) TestArgumentsHaveWhitespaceTrimmed() {
-
 	arguments := []string{"value_1", "value_2"}
 	lineEndings := []string{"\n", "\r", "\r\n"}
 	prettyNames := []string{"-n", "-r", "-r-n"}
@@ -35,7 +33,6 @@ func (s *MmctlUnitTestSuite) TestArgumentsHaveWhitespaceTrimmed() {
 			commandFunction := func(command *cobra.Command, args []string) {
 				commandCalled = true
 				s.Equal(arguments, args, "Expected arguments to have their whitespace trimmed")
-
 			}
 			mockCommand := &cobra.Command{Use: "test", Run: commandFunction}
 			commandString := strings.Join([]string{"test", " ", arguments[0], lineEnding, " ", arguments[1], lineEnding}, "")
@@ -44,5 +41,4 @@ func (s *MmctlUnitTestSuite) TestArgumentsHaveWhitespaceTrimmed() {
 			s.Require().True(commandCalled, "Expected mock command to be called")
 		})
 	}
-
 }

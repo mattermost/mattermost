@@ -69,7 +69,7 @@ func authorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	redirectURL, appErr := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
+	redirectURL, appErr := c.App.AllowOAuthAppAccessToUser(c.AppContext, c.AppContext.Session().UserId, authRequest)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -93,7 +93,7 @@ func deauthorizeOAuthApp(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("deauthorizeOAuthApp", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	err := c.App.DeauthorizeOAuthAppForUser(c.AppContext.Session().UserId, clientId)
+	err := c.App.DeauthorizeOAuthAppForUser(c.AppContext, c.AppContext.Session().UserId, clientId)
 	if err != nil {
 		c.Err = err
 		return
@@ -159,14 +159,14 @@ func authorizeOAuthPage(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	isAuthorized := false
 
-	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext.Session().UserId, model.PreferenceCategoryAuthorizedOAuthApp, authRequest.ClientId); err == nil {
+	if _, err := c.App.GetPreferenceByCategoryAndNameForUser(c.AppContext, c.AppContext.Session().UserId, model.PreferenceCategoryAuthorizedOAuthApp, authRequest.ClientId); err == nil {
 		// when we support scopes we should check if the scopes match
 		isAuthorized = true
 	}
 
 	// Automatically allow if the app is trusted
 	if oauthApp.IsTrusted || isAuthorized {
-		redirectURL, err := c.App.AllowOAuthAppAccessToUser(c.AppContext.Session().UserId, authRequest)
+		redirectURL, err := c.App.AllowOAuthAppAccessToUser(c.AppContext, c.AppContext.Session().UserId, authRequest)
 
 		if err != nil {
 			utils.RenderWebAppError(c.App.Config(), w, r, err, c.App.AsymmetricSigningKey())
@@ -229,7 +229,7 @@ func getAccessToken(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec.AddMeta("client_id", clientId)
 	c.LogAudit("attempt")
 
-	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(clientId, grantType, redirectURI, code, secret, refreshToken)
+	accessRsp, err := c.App.GetOAuthAccessTokenForCodeFlow(c.AppContext, clientId, grantType, redirectURI, code, secret, refreshToken)
 	if err != nil {
 		c.Err = err
 		return
@@ -321,13 +321,14 @@ func completeOAuth(c *Context, w http.ResponseWriter, r *http.Request) {
 	} else if action == model.OAuthActionSSOToEmail {
 		redirectURL = app.GetProtocol(r) + "://" + r.Host + "/claim?email=" + url.QueryEscape(props["email"])
 	} else {
-		err = c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
+		session, err := c.App.DoLogin(c.AppContext, w, r, user, "", isMobile, false, false)
 		if err != nil {
 			err.Translate(c.AppContext.T)
 			mlog.Error(err.Error())
 			renderError(err)
 			return
 		}
+		c.AppContext = c.AppContext.WithSession(session)
 
 		// Old mobile version
 		if isMobile && !hasRedirectURL {

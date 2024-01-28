@@ -7,6 +7,7 @@ import (
 	"bytes"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -157,7 +158,6 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 }
 
 func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
-
 	if allowFromCache {
 		var cacheItem *model.Channel
 		if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &cacheItem); err == nil {
@@ -254,8 +254,8 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 	return counts, nil
 }
 
-func (s LocalCacheChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error) {
-	member, err := s.ChannelStore.UpdateMember(member)
+func (s LocalCacheChannelStore) UpdateMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
+	member, err := s.ChannelStore.UpdateMember(rctx, member)
 	if err != nil {
 		return nil, err
 	}
@@ -274,8 +274,8 @@ func (s LocalCacheChannelStore) UpdateMultipleMembers(members []*model.ChannelMe
 	return members, nil
 }
 
-func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) error {
-	err := s.ChannelStore.RemoveMember(channelId, userId)
+func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId string) error {
+	err := s.ChannelStore.RemoveMember(rctx, channelId, userId)
 	if err != nil {
 		return err
 	}
@@ -283,8 +283,8 @@ func (s LocalCacheChannelStore) RemoveMember(channelId, userId string) error {
 	return nil
 }
 
-func (s LocalCacheChannelStore) RemoveMembers(channelId string, userIds []string) error {
-	err := s.ChannelStore.RemoveMembers(channelId, userIds)
+func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string, userIds []string) error {
+	err := s.ChannelStore.RemoveMembers(rctx, channelId, userIds)
 	if err != nil {
 		return err
 	}

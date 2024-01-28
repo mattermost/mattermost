@@ -18,7 +18,7 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread as getThreadSelector, getThreadItemsInChannel} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {forceLogoutIfNecessary} from './helpers';
@@ -26,8 +26,8 @@ import {getPostThread} from './posts';
 
 type ExtendedPost = Post & { system_post_ids?: string[] };
 
-export function fetchThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, totalsOnly = false, threadsOnly = false, extended = false, since = 0} = {}) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function fetchThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, totalsOnly = false, threadsOnly = false, extended = false, since = 0} = {}): NewActionFuncAsync<UserThreadList> {
+    return async (dispatch, getState) => {
         let data: undefined | UserThreadList;
 
         try {
@@ -42,8 +42,8 @@ export function fetchThreads(userId: string, teamId: string, {before = '', after
     };
 }
 
-export function getThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, extended = true} = {}) {
-    return async (dispatch: DispatchFunc) => {
+export function getThreads(userId: string, teamId: string, {before = '', after = '', perPage = ThreadConstants.THREADS_CHUNK_SIZE, unread = false, extended = true} = {}): NewActionFuncAsync<UserThreadList> {
+    return async (dispatch) => {
         const response = await dispatch(fetchThreads(userId, teamId, {before, after, perPage, unread, totalsOnly: false, threadsOnly: true, extended}));
 
         if (response.error) {
@@ -79,8 +79,8 @@ export function getThreads(userId: string, teamId: string, {before = '', after =
     };
 }
 
-export function getThreadCounts(userId: string, teamId: string) {
-    return async (dispatch: DispatchFunc) => {
+export function getThreadCounts(userId: string, teamId: string): NewActionFuncAsync {
+    return async (dispatch) => {
         const response = await dispatch(fetchThreads(userId, teamId, {totalsOnly: true, threadsOnly: false}));
 
         if (response.error) {
@@ -111,8 +111,8 @@ export function getThreadCounts(userId: string, teamId: string) {
     };
 }
 
-export function getCountsAndThreadsSince(userId: string, teamId: string, since?: number) {
-    return async (dispatch: DispatchFunc) => {
+export function getCountsAndThreadsSince(userId: string, teamId: string, since?: number): NewActionFuncAsync {
+    return async (dispatch) => {
         const response = await dispatch(fetchThreads(userId, teamId, {since, totalsOnly: false, threadsOnly: false, extended: true}));
 
         if (response.error) {
@@ -218,8 +218,8 @@ export function handleThreadArrived(dispatch: DispatchFunc, getState: GetStateFu
     return thread;
 }
 
-export function getThread(userId: string, teamId: string, threadId: string, extended = true) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getThread(userId: string, teamId: string, threadId: string, extended = true): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let thread;
         try {
             thread = await Client4.getUserThread(userId, teamId, threadId, extended);
@@ -246,8 +246,8 @@ export function handleAllMarkedRead(dispatch: DispatchFunc, teamId: string) {
     });
 }
 
-export function markAllThreadsInTeamRead(userId: string, teamId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function markAllThreadsInTeamRead(userId: string, teamId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.updateThreadsReadForUser(userId, teamId);
         } catch (error) {
@@ -262,8 +262,8 @@ export function markAllThreadsInTeamRead(userId: string, teamId: string) {
     };
 }
 
-export function markThreadAsUnread(userId: string, teamId: string, threadId: string, postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function markThreadAsUnread(userId: string, teamId: string, threadId: string, postId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.markThreadAsUnreadForUser(userId, teamId, threadId, postId);
         } catch (error) {
@@ -276,8 +276,8 @@ export function markThreadAsUnread(userId: string, teamId: string, threadId: str
     };
 }
 
-export function markLastPostInThreadAsUnread(userId: string, teamId: string, threadId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function markLastPostInThreadAsUnread(userId: string, teamId: string, threadId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const getPostsForThread = makeGetPostsForThread();
         let posts = getPostsForThread(getState(), threadId);
 
@@ -303,8 +303,8 @@ export function markLastPostInThreadAsUnread(userId: string, teamId: string, thr
     };
 }
 
-export function updateThreadRead(userId: string, teamId: string, threadId: string, timestamp: number) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateThreadRead(userId: string, teamId: string, threadId: string, timestamp: number): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         try {
             await Client4.updateThreadReadForUser(userId, teamId, threadId, timestamp);
         } catch (error) {
@@ -334,8 +334,8 @@ export function handleReadChanged(
         prevUnreadReplies: number;
         newUnreadReplies: number;
     },
-) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+): NewActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const channel = getChannel(state, channelId);
         const thread = getThreadSelector(state, threadId);
@@ -369,8 +369,8 @@ export function handleFollowChanged(dispatch: DispatchFunc, threadId: string, te
     });
 }
 
-export function setThreadFollow(userId: string, teamId: string, threadId: string, newState: boolean) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setThreadFollow(userId: string, teamId: string, threadId: string, newState: boolean): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         handleFollowChanged(dispatch, threadId, teamId, newState);
 
         try {
@@ -412,8 +412,8 @@ export function handleAllThreadsInChannelMarkedRead(dispatch: DispatchFunc, getS
     dispatch(batchActions(actions));
 }
 
-export function decrementThreadCounts(post: ExtendedPost) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function decrementThreadCounts(post: ExtendedPost): NewActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const thread = getThreadSelector(state, post.id);
 
@@ -424,12 +424,13 @@ export function decrementThreadCounts(post: ExtendedPost) {
         const channel = getChannel(state, post.channel_id);
         const teamId = channel?.team_id || getCurrentTeamId(state);
 
-        return dispatch({
+        dispatch({
             type: ThreadTypes.DECREMENT_THREAD_COUNTS,
             teamId,
             replies: thread.unread_replies,
             mentions: thread.unread_mentions,
             channelType: channel.type,
         });
+        return {data: true};
     };
 }
