@@ -94,13 +94,13 @@
 
             .post-menu__item {
                 display: inline-flex;
-                color: rgba(v(center-channel-color-rgb), 0.64);
-                fill: rgba(v(center-channel-color-rgb), 0.64);
+                color: rgba(v(center-channel-color-rgb), 0.75);
+                fill: rgba(v(center-channel-color-rgb), 0.75);
 
                 &:hover {
                     background: rgba(v(center-channel-color-rgb), 0.08);
-                    color: rgba(v(center-channel-color-rgb), 0.75);
-                    fill: rgba(v(center-channel-color-rgb), 0.75);
+                    color: rgba(v(center-channel-color-rgb), 0.88);
+                    fill: rgba(v(center-channel-color-rgb), 0.88);
                 }
 
                 &:active,
