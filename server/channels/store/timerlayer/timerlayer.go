@@ -9159,10 +9159,10 @@ func (s *TimerLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 	return result, err
 }
 
-func (s *TimerLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+func (s *TimerLayerTeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	start := time.Now()
 
-	result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+	result, err := s.TeamStore.SaveMember(rctx, member, maxUsersPerTeam)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

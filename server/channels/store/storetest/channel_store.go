@@ -220,7 +220,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := &model.User{}
@@ -228,7 +228,7 @@ func testChannelStoreSaveDirectChannel(t *testing.T, rctx request.CTX, ss store.
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{}
@@ -302,7 +302,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, rctx request.CTX, ss stor
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := &model.User{}
@@ -310,7 +310,7 @@ func testChannelStoreCreateDirectChannel(t *testing.T, rctx request.CTX, ss stor
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	c1, nErr := ss.Channel().CreateDirectChannel(rctx, u1, u2)
@@ -377,9 +377,9 @@ func testGetChannelUnread(t *testing.T, rctx request.CTX, ss store.Store) {
 	uid := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamId1, UserId: uid}
 	m2 := &model.TeamMember{TeamId: teamId2, UserId: uid}
-	_, nErr := ss.Team().SaveMember(m1, -1)
+	_, nErr := ss.Team().SaveMember(rctx, m1, -1)
 	require.NoError(t, nErr)
-	_, nErr = ss.Team().SaveMember(m2, -1)
+	_, nErr = ss.Team().SaveMember(rctx, m2, -1)
 	require.NoError(t, nErr)
 	notifyPropsModel := model.GetDefaultChannelNotifyProps()
 
@@ -443,7 +443,7 @@ func testChannelStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	u1.Nickname = model.NewId()
 	_, err = ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := model.User{}
@@ -451,7 +451,7 @@ func testChannelStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlSt
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(&u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	o2 := model.Channel{}
@@ -545,7 +545,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, rctx request.CTX, ss store.S
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := model.User{}
@@ -553,7 +553,7 @@ func testChannelStoreGetChannelsByIds(t *testing.T, rctx request.CTX, ss store.S
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(&u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	o2 := model.Channel{}
@@ -634,7 +634,7 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, rctx request.CTX, ss store.S
 	u1.Nickname = model.NewId()
 	_, err = ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := model.User{}
@@ -642,7 +642,7 @@ func testGetChannelsWithTeamDataByIds(t *testing.T, rctx request.CTX, ss store.S
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(&u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: t1.Id, UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	c2 := model.Channel{}
@@ -1066,7 +1066,7 @@ func testChannelMemberStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(&u1)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := model.User{}
@@ -1074,7 +1074,7 @@ func testChannelMemberStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(&u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	o1 := model.ChannelMember{}
@@ -3535,7 +3535,7 @@ func testChannelDeleteMemberStore(t *testing.T, rctx request.CTX, ss store.Store
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(&u1)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := model.User{}
@@ -3543,7 +3543,7 @@ func testChannelDeleteMemberStore(t *testing.T, rctx request.CTX, ss store.Store
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(&u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	o1 := model.ChannelMember{}
@@ -5150,7 +5150,7 @@ func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{
@@ -5171,7 +5171,7 @@ func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	_, err = ss.User().Save(&u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	m2 := model.ChannelMember{
@@ -5193,7 +5193,7 @@ func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	_, err = ss.User().Save(&u3)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
 	require.NoError(t, nErr)
 
 	m3 := model.ChannelMember{
@@ -5215,7 +5215,7 @@ func testGetMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	}
 	_, err = ss.User().Save(u4)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
 	require.NoError(t, nErr)
 
 	m4 := model.ChannelMember{
@@ -5259,7 +5259,7 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	}
 	_, nErr = ss.User().Save(u1)
 	require.NoError(t, nErr)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{
@@ -5330,7 +5330,7 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 		}
 		_, nErr = ss.User().Save(u)
 		require.NoError(t, nErr)
-		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
 		require.NoError(t, nErr)
 
 		m := model.ChannelMember{
@@ -5384,7 +5384,7 @@ func testGetMemberCountsByGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 		}
 		_, nErr = ss.User().Save(u)
 		require.NoError(t, nErr)
-		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u.Id}, -1)
 		require.NoError(t, nErr)
 
 		m := model.ChannelMember{
@@ -5475,7 +5475,7 @@ func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.User().Save(u1)
 		require.NoError(t, err)
-		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u1.Id}, -1)
 		require.NoError(t, nErr)
 
 		m1 := model.ChannelMember{
@@ -5500,7 +5500,7 @@ func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.User().Save(&u2)
 		require.NoError(t, err)
-		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u2.Id}, -1)
 		require.NoError(t, nErr)
 
 		m2 := model.ChannelMember{
@@ -5525,7 +5525,7 @@ func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.User().Save(&u3)
 		require.NoError(t, err)
-		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
 		require.NoError(t, nErr)
 
 		m3 := model.ChannelMember{
@@ -5550,7 +5550,7 @@ func testGetGuestCount(t *testing.T, rctx request.CTX, ss store.Store) {
 		}
 		_, err := ss.User().Save(u4)
 		require.NoError(t, err)
-		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u4.Id}, -1)
 		require.NoError(t, nErr)
 
 		m4 := model.ChannelMember{
@@ -6062,11 +6062,11 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	require.NoError(t, err)
 
 	tm1 := &model.TeamMember{TeamId: teamID, UserId: m1.UserId}
-	_, err = ss.Team().SaveMember(tm1, -1)
+	_, err = ss.Team().SaveMember(rctx, tm1, -1)
 	require.NoError(t, err)
 
 	tm2 := &model.TeamMember{TeamId: otherTeamID, UserId: m1.UserId}
-	_, err = ss.Team().SaveMember(tm2, -1)
+	_, err = ss.Team().SaveMember(rctx, tm2, -1)
 	require.NoError(t, err)
 
 	m3 := model.ChannelMember{
@@ -6078,11 +6078,11 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	require.NoError(t, err)
 
 	tm3 := &model.TeamMember{TeamId: otherTeamID, UserId: m3.UserId}
-	_, err = ss.Team().SaveMember(tm3, -1)
+	_, err = ss.Team().SaveMember(rctx, tm3, -1)
 	require.NoError(t, err)
 
 	tm4 := &model.TeamMember{TeamId: teamID, UserId: m3.UserId}
-	_, err = ss.Team().SaveMember(tm4, -1)
+	_, err = ss.Team().SaveMember(rctx, tm4, -1)
 	require.NoError(t, err)
 
 	o3 := model.Channel{
@@ -6147,7 +6147,7 @@ func testAutocomplete(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore
 	require.NoError(t, err)
 
 	tm5 := &model.TeamMember{TeamId: leftTeamId, UserId: m1.UserId}
-	_, err = ss.Team().SaveMember(tm5, -1)
+	_, err = ss.Team().SaveMember(rctx, tm5, -1)
 	require.NoError(t, err)
 
 	err = ss.Channel().RemoveMember(rctx, o5.Id, m1.UserId)
@@ -7728,7 +7728,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss 
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := &model.User{}
@@ -7736,7 +7736,7 @@ func testChannelStoreExportAllDirectChannels(t *testing.T, rctx request.CTX, ss 
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{}
@@ -7791,7 +7791,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := &model.User{}
@@ -7799,7 +7799,7 @@ func testChannelStoreExportAllDirectChannelsExcludePrivateAndPublic(t *testing.T
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{}
@@ -7837,7 +7837,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx re
 	u1.Nickname = model.NewId()
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := &model.User{}
@@ -7846,7 +7846,7 @@ func testChannelStoreExportAllDirectChannelsDeletedChannel(t *testing.T, rctx re
 	u2.Nickname = model.NewId()
 	_, err = ss.User().Save(u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{}

@@ -10171,7 +10171,7 @@ func (s *OpenTracingLayerTeamStore) Save(team *model.Team) (*model.Team, error) 
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+func (s *OpenTracingLayerTeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SaveMember")
 	s.Root.Store.SetContext(newCtx)
@@ -10180,7 +10180,7 @@ func (s *OpenTracingLayerTeamStore) SaveMember(member *model.TeamMember, maxUser
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+	result, err := s.TeamStore.SaveMember(rctx, member, maxUsersPerTeam)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
