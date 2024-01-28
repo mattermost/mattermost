@@ -30,63 +30,63 @@ export function SystemUsersColumnTogglerMenu(props: Props) {
         case ColumnNames.username:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.displayName'
-                    defaultMessage='Display Name'
+                    id='admin.system_users.list.userDetails'
+                    defaultMessage='User details'
                 />
             );
         case ColumnNames.email:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.email'
+                    id='admin.system_users.list.email'
                     defaultMessage='Email'
                 />
             );
         case ColumnNames.createAt:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.createAt'
-                    defaultMessage='Create At'
+                    id='admin.system_users.list.memberSince'
+                    defaultMessage='Member since'
                 />
             );
         case ColumnNames.lastLoginAt:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.lastLoginAt'
-                    defaultMessage='Last Login At'
+                    id='admin.system_users.list.lastLoginAt'
+                    defaultMessage='Last login'
                 />
             );
         case ColumnNames.lastStatusAt:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.lastStatusAt'
-                    defaultMessage='Last Status At'
+                    id='admin.system_users.list.lastActivity'
+                    defaultMessage='Last activity'
                 />
             );
         case ColumnNames.lastPostDate:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.lastPostDate'
-                    defaultMessage='Last Post Date'
+                    id='admin.system_users.list.lastPost'
+                    defaultMessage='Last post'
                 />
             );
         case ColumnNames.daysActive:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.daysActive'
-                    defaultMessage='Days Active'
+                    id='admin.system_users.list.daysActive'
+                    defaultMessage='Days active'
                 />
             );
         case ColumnNames.totalPosts:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.totalPosts'
-                    defaultMessage='Total Posts'
+                    id='admin.system_users.list.totalPosts'
+                    defaultMessage='Messages posted'
                 />
             );
         case ColumnNames.actions:
             return (
                 <FormattedMessage
-                    id='admin.system_users.column_toggler.column.actions'
+                    id='admin.system_users.list.actions'
                     defaultMessage='Actions'
                 />
             );
