@@ -174,6 +174,9 @@ export default class ResetStatusModal extends React.PureComponent<Props, State> 
     public componentDidMount(): void {
         this.props.actions.autoResetStatus().then(
             (result) => {
+                if (result.data! === null) {
+                    return;
+                }
                 const status = result.data!;
                 const statusIsManual = status?.manual;
                 const autoResetPrefNotSet = this.props.autoResetPref === '';
