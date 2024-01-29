@@ -50,7 +50,14 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
     const isLicensed = useSelector(getLicense)?.IsLicensed === 'true';
 
     function getTranslatedUserRole(userRoles: UserProfile['roles']) {
-        if (user.roles.length > 0 && isSystemAdmin(userRoles)) {
+        if (user.delete_at > 0) {
+            return (
+                <FormattedMessage
+                    id='admin.system_users.list.actions.deactivated'
+                    defaultMessage='Deactivated'
+                />
+            );
+        } else if (user.roles.length > 0 && isSystemAdmin(userRoles)) {
             return (
                 <FormattedMessage
                     id='admin.system_users.list.actions.userAdmin'
@@ -169,7 +176,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                 labels={
                     <FormattedMessage
                         id='admin.system_users.list.actions.menu.manageRoles'
-                        defaultMessage='Mange roles'
+                        defaultMessage='Manage roles'
                     />
                 }
                 onClick={() => {

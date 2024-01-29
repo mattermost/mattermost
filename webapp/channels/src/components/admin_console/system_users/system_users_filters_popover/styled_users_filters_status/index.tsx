@@ -37,14 +37,14 @@ export function SystemUsersFiltersStatus(props: Props) {
                 value: StatusFilter.Active,
                 label: formatMessage({
                     id: 'admin.system_users.filters.status.active',
-                    defaultMessage: 'Active users',
+                    defaultMessage: 'Activated users',
                 }),
             },
             {
                 value: StatusFilter.Deactivated,
                 label: formatMessage({
                     id: 'admin.system_users.filters.status.deactive',
-                    defaultMessage: 'Deactived users',
+                    defaultMessage: 'Deactivated users',
                 }),
             },
         ];
