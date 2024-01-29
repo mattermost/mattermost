@@ -44,7 +44,8 @@ func TestCreateBookmark(t *testing.T) {
 
 		bookmark1 := createBookmark("Link bookmark test", model.ChannelBookmarkLink, th.BasicChannel.Id, "")
 		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, bookmarkResp)
 
 		assert.Equal(t, bookmarkResp.ChannelId, th.BasicChannel.Id)
 		assert.NotEmpty(t, bookmarkResp.Id)
@@ -62,7 +63,8 @@ func TestCreateBookmark(t *testing.T) {
 		for i := 1; i < model.MaxBookmarksPerChannel; i++ {
 			bookmark := createBookmark(fmt.Sprintf("Link bookmark test %d", i), model.ChannelBookmarkLink, th.BasicChannel.Id, "")
 			bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark, "")
-			assert.Nil(t, err)
+			require.Nil(t, err)
+			require.NotNil(t, bookmarkResp)
 			assert.Equal(t, bookmarkResp.ChannelId, th.BasicChannel.Id)
 			assert.NotEmpty(t, bookmarkResp.Id)
 		}
@@ -91,12 +93,14 @@ func TestUpdateBookmark(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, bookmarkResp)
 
 		updateBookmark = bookmarkResp.Clone()
 		updateBookmark.DisplayName = "New name"
 		time.Sleep(1 * time.Millisecond) // to avoid collisions
 		response, _ := th.App.UpdateChannelBookmark(th.Context, updateBookmark, "")
+		require.NotNil(t, response)
 		assert.Greater(t, response.Updated.UpdateAt, response.Updated.CreateAt)
 	})
 
@@ -105,6 +109,7 @@ func TestUpdateBookmark(t *testing.T) {
 		updateBookmark2.DisplayName = "Another new name"
 		th.Context.Session().UserId = th.BasicUser2.Id
 		response, _ := th.App.UpdateChannelBookmark(th.Context, updateBookmark2, "")
+		require.NotNil(t, response)
 		assert.Equal(t, response.Updated.OriginalId, response.Deleted.Id)
 		assert.Equal(t, response.Updated.DeleteAt, int64(0))
 		assert.Greater(t, response.Deleted.DeleteAt, int64(0))
@@ -123,7 +128,8 @@ func TestUpdateBookmark(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, bookmarkResp)
 
 		updateBookmark = bookmarkResp.Clone()
 		_, err = th.App.DeleteChannelBookmark(updateBookmark.Id, "")
@@ -164,10 +170,12 @@ func TestDeleteBookmark(t *testing.T) {
 
 		th.Context.Session().UserId = th.BasicUser.Id // set the user for the session
 		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, bookmarkResp)
 
 		bookmarkResp, err = th.App.DeleteChannelBookmark(bookmarkResp.Id, "")
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, bookmarkResp)
 		assert.Greater(t, bookmarkResp.DeleteAt, int64(0))
 	})
 }
@@ -218,7 +226,8 @@ func TestGetChannelBookmarks(t *testing.T) {
 
 	t.Run("get bookmarks of a channel", func(t *testing.T) {
 		bookmarks, err := th.App.GetChannelBookmarks(th.BasicChannel.Id, 0)
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, bookmarks)
 		assert.Len(t, bookmarks, 2)
 	})
 
@@ -227,11 +236,13 @@ func TestGetChannelBookmarks(t *testing.T) {
 		th.App.DeleteChannelBookmark(bookmark1.Id, "")
 
 		bookmarks, err := th.App.GetChannelBookmarks(th.BasicChannel.Id, 0)
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, bookmarks)
 		assert.Len(t, bookmarks, 1)
 
 		bookmarks, err = th.App.GetChannelBookmarks(th.BasicChannel.Id, now)
-		assert.Nil(t, err)
+		require.Nil(t, err)
+		require.NotNil(t, bookmarks)
 		assert.Len(t, bookmarks, 1)
 
 		deleted := false
@@ -309,28 +320,34 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 	}
 
 	bookmarkResp, appErr := th.App.CreateChannelBookmark(th.Context, bookmark0, "")
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
+	require.NotNil(t, bookmarkResp)
 	bookmark0 = bookmarkResp.ChannelBookmark.Clone()
 
 	bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark1, "")
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
+	require.NotNil(t, bookmarkResp)
 	bookmark1 = bookmarkResp.ChannelBookmark.Clone()
 
 	bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
+	require.NotNil(t, bookmarkResp)
 	bookmark2 = bookmarkResp.ChannelBookmark.Clone()
 
 	bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark3, "")
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
+	require.NotNil(t, bookmarkResp)
 	bookmark3 = bookmarkResp.ChannelBookmark.Clone()
 
 	bookmarkResp, appErr = th.App.CreateChannelBookmark(th.Context, bookmark4, "")
-	assert.Nil(t, appErr)
+	require.Nil(t, appErr)
+	require.NotNil(t, bookmarkResp)
 	bookmark4 = bookmarkResp.ChannelBookmark.Clone()
 
 	t.Run("change order of bookmarks first to last", func(t *testing.T) {
 		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(4), "")
-		assert.Nil(t, sortErr)
+		require.Nil(t, sortErr)
+		require.NotNil(t, bookmarks)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -341,7 +358,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("change order of bookmarks last to first", func(t *testing.T) {
 		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(0), "")
-		assert.Nil(t, sortErr)
+		require.Nil(t, sortErr)
+		require.NotNil(t, bookmarks)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -352,7 +370,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("change order of bookmarks first to third", func(t *testing.T) {
 		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark0.Id, channelId, int64(2), "")
-		assert.Nil(t, sortErr)
+		require.Nil(t, sortErr)
+		require.NotNil(t, bookmarks)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -366,7 +385,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("change order of bookmarks second to third", func(t *testing.T) {
 		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark1.Id, channelId, int64(2), "")
-		assert.Nil(t, sortErr)
+		require.Nil(t, sortErr)
+		require.NotNil(t, bookmarks)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark2.Id).SortOrder, int64(1))
@@ -377,7 +397,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("change order of bookmarks third to second", func(t *testing.T) {
 		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark1.Id, channelId, int64(1), "")
-		assert.Nil(t, sortErr)
+		require.Nil(t, sortErr)
+		require.NotNil(t, bookmarks)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -388,7 +409,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("change order of bookmarks last to previous last", func(t *testing.T) {
 		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark4.Id, channelId, int64(3), "")
-		assert.Nil(t, sortErr)
+		require.Nil(t, sortErr)
+		require.NotNil(t, bookmarks)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark1.Id).SortOrder, int64(1))
@@ -399,7 +421,8 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 
 	t.Run("change order of bookmarks last to second", func(t *testing.T) {
 		bookmarks, sortErr := th.App.UpdateChannelBookmarkSortOrder(bookmark3.Id, channelId, int64(1), "")
-		assert.Nil(t, sortErr)
+		require.Nil(t, sortErr)
+		require.NotNil(t, bookmarks)
 
 		assert.Equal(t, find_bookmark(bookmarks, bookmark0.Id).SortOrder, int64(0))
 		assert.Equal(t, find_bookmark(bookmarks, bookmark3.Id).SortOrder, int64(1))
