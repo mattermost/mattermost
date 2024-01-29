@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {NewActionFunc} from 'mattermost-redux/types/actions';
-
 import {StorageTypes} from 'utils/constants';
 
 export function setGlobalItem(name: string, value: any) {
