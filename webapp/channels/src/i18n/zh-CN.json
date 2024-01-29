@@ -2663,6 +2663,7 @@
   "admin.webserverModeTitle": "网页服务器模式：",
   "admin.webserverModeUncompressed": "未压缩",
   "admin.webserverModeUncompressedDescription": "Mattermost 服务器将传输未压缩过的静态文件。",
+  "adminConsole.list.table.exactTime.at": " ",
   "adminConsole.list.table.pagination.next": "前往下一页",
   "adminConsole.list.table.pagination.previous": "前往上一页",
   "adminConsole.list.table.pinnedColumn": "此列已固定",
