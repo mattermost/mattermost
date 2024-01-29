@@ -37,13 +37,10 @@ export function setGlobalItem(name: string, value: any) {
     };
 }
 
-export function removeGlobalItem(name: string): NewActionFunc {
-    return (dispatch) => {
-        dispatch({
-            type: StorageTypes.REMOVE_GLOBAL_ITEM,
-            data: {name},
-        });
-        return {data: true};
+export function removeGlobalItem(name: string) {
+    return {
+        type: StorageTypes.REMOVE_GLOBAL_ITEM,
+        data: {name},
     };
 }
 
