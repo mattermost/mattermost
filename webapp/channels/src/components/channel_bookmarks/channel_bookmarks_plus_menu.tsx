@@ -30,10 +30,12 @@ import ChannelBookmarkCreateModal from './channel_bookmarks_create_modal';
 type PlusMenuProps = {
     channelId: string;
     hasBookmarks: boolean;
+    limitReached: boolean;
 };
 const PlusMenu = ({
     channelId,
     hasBookmarks,
+    limitReached,
 }: PlusMenuProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -79,6 +81,15 @@ const PlusMenu = ({
     }, [fileInputRef.current]);
 
     const addBookmarkLabel = formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'});
+
+    const addBookmarkLimitReached = formatMessage({id: 'channel_bookmarks.addBookmarkLimitReached', defaultMessage: 'Cannot add bookmark. Limit reached.'});
+    let addBookmarkTooltipText;
+
+    if (limitReached) {
+        addBookmarkTooltipText = addBookmarkLimitReached;
+    } else if (hasBookmarks) {
+        addBookmarkTooltipText = addBookmarkLabel;
+    }
     const addLinkLabel = formatMessage({id: 'channel_bookmarks.addLink', defaultMessage: 'Add a link'});
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
 
@@ -97,13 +108,14 @@ const PlusMenu = ({
                         </>
                     ),
                     'aria-label': addBookmarkLabel,
+                    disabled: limitReached,
                 }}
                 menu={{
                     id: 'channelBookmarksPlusMenuDropdown',
                 }}
-                menuButtonTooltip={hasBookmarks ? {
+                menuButtonTooltip={addBookmarkTooltipText ? {
                     id: 'channelBookmarksPlusMenuButtonTooltip',
-                    text: addBookmarkLabel,
+                    text: addBookmarkTooltipText,
                 } : undefined}
             >
                 <Menu.Item

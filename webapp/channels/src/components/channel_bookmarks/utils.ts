@@ -15,13 +15,15 @@ import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles'
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
 
-import Constants, {LicenseSkus} from 'utils/constants';
+import Constants from 'utils/constants';
+
+export const MAX_BOOKMARKS_PER_CHANNEL = 50;
 
 export const useIsChannelBookmarksEnabled = () => {
     return useSelector(getIsChannelBookmarksEnabled);
 };
 
-const {OPEN_CHANNEL, PRIVATE_CHANNEL} = Constants as {OPEN_CHANNEL: 'O'; PRIVATE_CHANNEL: 'P'};
+const {OPEN_CHANNEL, PRIVATE_CHANNEL, GM_CHANNEL, DM_CHANNEL} = Constants as {OPEN_CHANNEL: 'O'; PRIVATE_CHANNEL: 'P'; GM_CHANNEL: 'G'; DM_CHANNEL: 'D'};
 
 type TAction = 'add' | 'edit' | 'delete' | 'order';
 type TActionKey = `${TAction}${typeof OPEN_CHANNEL | typeof PRIVATE_CHANNEL}`;
@@ -30,7 +32,7 @@ const key = (a: TAction, c: typeof OPEN_CHANNEL | typeof PRIVATE_CHANNEL): TActi
     return `${a}${c}`;
 };
 
-export const BOOKMARK_PERMISSION = {
+const BOOKMARK_PERMISSION = {
 
     // open channel
     [key('add', OPEN_CHANNEL)]: Permissions.ADD_BOOKMARK_PUBLIC_CHANNEL,
@@ -61,7 +63,7 @@ export const getHaveIChannelBookmarkPermission = (state: GlobalState, channelId:
         return false;
     }
 
-    if (type === 'G' || type === 'D') {
+    if (type === GM_CHANNEL || type === DM_CHANNEL) {
         const myMembership = getMyChannelMember(state, channelId);
         return myMembership?.channel_id === channelId;
     }
@@ -80,18 +82,7 @@ export const getIsChannelBookmarksEnabled = (state: GlobalState) => {
 
     const license = getLicense(state);
 
-    const isLicensed = license?.IsLicensed === 'true';
-
-    // Channel Bookmarks is available for Professional & Enterprise, and is backward compatible with E20 & E10
-    return (
-        isLicensed &&
-        (
-            license.SkuShortName === LicenseSkus.Professional ||
-            license.SkuShortName === LicenseSkus.Enterprise ||
-            license.SkuShortName === LicenseSkus.E20 ||
-            license.SkuShortName === LicenseSkus.E10
-        )
-    );
+    return license?.IsLicensed === 'true';
 };
 
 export const useChannelBookmarks = (channelId: string) => {

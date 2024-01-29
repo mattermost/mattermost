@@ -15,6 +15,7 @@ import type {FileInfo} from '@mattermost/types/files';
 import {debounce} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import {getFile} from 'mattermost-redux/selectors/entities/files';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import type {UploadFile} from 'actions/file_actions';
@@ -81,6 +82,8 @@ function ChannelBookmarkCreateModal({
     const [displayName, setDisplayName] = useState<string | undefined>(bookmark?.display_name);
     const [parsedDisplayName, setParsedDisplayName] = useState<string | undefined>();
     const displayNameValue = displayName || (parsedDisplayName ?? '');
+    const [saving, setSaving] = useState(false);
+    const [saveError, setSaveError] = useState('');
 
     // type === 'link'
     const [linkInputValue, setLinkInputValue] = useState(bookmark?.link_url ?? '');
@@ -154,12 +157,17 @@ function ChannelBookmarkCreateModal({
     }, [link, bookmark?.link_url]);
 
     // type === 'file'
-    const [file, setFile] = useState<File | null>(promptedFile ?? null);
-    const [fileId, setFileId] = useState(bookmark?.file_id);
-    const [fileError, setFileError] = useState('');
     const [pendingFile, setPendingFile] = useState<FilePreviewInfo | null>();
+    const [fileError, setFileError] = useState('');
+    const [fileId, setFileId] = useState(bookmark?.file_id);
     const uploadRequestRef = useRef<XMLHttpRequest>();
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (fileId && getFile(state, fileId)) || undefined);
+
+    const maxFileSize = useSelector((state: GlobalState) => {
+        const config = getConfig(state);
+        return parseInt(config.MaxFileSize || '', 10);
+    });
+    const maxFileSizeMB = maxFileSize / 1048576;
 
     const handleEditFileClick = (e: MouseEvent<HTMLDivElement>) => {
         const innerClick = document.querySelector(`
@@ -178,13 +186,14 @@ function ChannelBookmarkCreateModal({
 
     const handleFileChanged = useCallback((e: ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
-        if (file) {
-            setFile(file);
+        if (!file) {
+            return;
         }
+
+        doUploadFile(file);
     }, []);
 
     const handleFileRemove = () => {
-        setFile(null);
         setPendingFile(null);
         setFileId(bookmark?.file_id);
         setParsedDisplayName(undefined);
@@ -211,16 +220,36 @@ function ChannelBookmarkCreateModal({
         if (newFile) {
             setFileId(newFile.id);
         }
+        setFileError('');
     };
     const onError: UploadFile['onError'] = () => {
         setPendingFile(null);
+        setFileError(formatMessage({id: 'file_upload.generic_error_file', defaultMessage: 'There was a problem uploading your file.'}));
     };
 
-    useEffect(() => {
-        if (!file) {
+    const doUploadFile = (file: File) => {
+        setPendingFile(null);
+        setFileId('');
+
+        if (file.size > maxFileSize) {
+            setFileError(formatMessage({
+                id: 'file_upload.fileAbove',
+                defaultMessage: 'File above {max}MB could not be uploaded: {filename}',
+            }, {max: maxFileSizeMB, filename: file.name}));
+
             return;
         }
 
+        if (file.size === 0) {
+            setFileError(formatMessage({
+                id: 'file_upload.zeroBytesFile',
+                defaultMessage: 'You are uploading an empty file: {filename}',
+            }, {filename: file.name}));
+
+            return;
+        }
+
+        setFileError('');
         setParsedDisplayName(file?.name);
 
         const clientId = generateId();
@@ -237,9 +266,13 @@ function ChannelBookmarkCreateModal({
             onSuccess,
             onError,
         })) as unknown as XMLHttpRequest;
+    };
 
-        setFile(null);
-    }, [file]);
+    useEffect(() => {
+        if (promptedFile) {
+            doUploadFile(promptedFile);
+        }
+    }, [promptedFile]);
 
     const handleOnExited = () => {
         uploadRequestRef.current?.abort();
@@ -275,6 +308,7 @@ function ChannelBookmarkCreateModal({
         }
     };
     const confirm = async () => {
+        setSaving(true);
         if (type === 'link') {
             const {data: success} = await onConfirm({
                 image_url: icon,
@@ -284,11 +318,13 @@ function ChannelBookmarkCreateModal({
                 type: 'link',
             });
 
+            setSaving(false);
+
             if (success) {
-                setLinkError('');
+                setSaveError('');
                 onHide();
             } else {
-                setLinkError(formatMessage(msg.linkInvalid));
+                setSaveError(formatMessage(msg.saveError));
             }
         } else if (fileInfo) {
             const {data: success} = await onConfirm({
@@ -299,10 +335,10 @@ function ChannelBookmarkCreateModal({
             });
 
             if (success) {
-                setFileError('');
+                setSaveError('');
                 onHide();
             } else {
-                //setFileError('');
+                setSaveError(formatMessage(msg.saveError));
             }
         }
     };
@@ -316,8 +352,9 @@ function ChannelBookmarkCreateModal({
             handleConfirm={(showControls && confirm) || undefined}
             onExited={handleOnExited}
             compassDesign={true}
-            isConfirmDisabled={!isValid || !hasChanges}
+            isConfirmDisabled={saving || !isValid || !hasChanges}
             autoCloseOnConfirmButton={false}
+            errorText={saveError}
         >
             <>
                 {type === 'link' ? (
@@ -346,7 +383,7 @@ function ChannelBookmarkCreateModal({
                             role='button'
                             onClick={handleEditFileClick}
                         >
-                            {!file && !pendingFile && fileInfo && (
+                            {!pendingFile && fileInfo && (
                                 <FileItemContainer>
                                     <FileAttachment
                                         key={fileInfo.id}
@@ -372,6 +409,12 @@ function ChannelBookmarkCreateModal({
                             </VisualButton>
                             {fileInput}
                         </FileInputContainer>
+                        {fileError && (
+                            <div className='Input___customMessage Input___error'>
+                                <i className='icon error icon-alert-circle-outline'/>
+                                <span>{fileError}</span>
+                            </div>
+                        )}
                     </>
 
                 )}
@@ -488,5 +531,6 @@ const msg = defineMessages({
     saveText: {id: 'channel_bookmarks.create.confirm_save.button', defaultMessage: 'Save bookmark'},
     fileInputEdit: {id: 'channel_bookmarks.create.file_input.edit', defaultMessage: 'Edit'},
     linkInvalid: {id: 'channel_bookmarks.create.error.invalid_url', defaultMessage: 'Please enter a valid link'},
+    saveError: {id: 'channel_bookmarks.create.error.generic_save', defaultMessage: 'There was an error trying to save the bookmark.'},
     linkHttpInvalid: {id: 'channel_bookmarks.create.error.invalid_url_needs_http', defaultMessage: 'Please enter a valid link beginning with http:// or https://'},
 });

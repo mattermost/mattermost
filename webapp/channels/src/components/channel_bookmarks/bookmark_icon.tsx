@@ -46,7 +46,12 @@ const BookmarkIcon = ({
             />
         );
     } else if (fileInfo) {
-        icon = <FileThumbnail fileInfo={fileInfo}/>;
+        icon = (
+            <FileThumbnail
+                fileInfo={fileInfo}
+                disablePreview={true}
+            />
+        );
     }
 
     return (

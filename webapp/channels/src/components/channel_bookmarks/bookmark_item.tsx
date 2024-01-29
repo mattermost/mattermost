@@ -7,9 +7,9 @@ import {useDispatch, useSelector} from 'react-redux';
 import {Link} from 'react-router-dom';
 import styled, {css} from 'styled-components';
 
+import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 
-import {getChannelBookmark} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getFileUrl} from 'mattermost-redux/utils/file_utils';
 
@@ -26,14 +26,10 @@ import type {GlobalState} from 'types/store';
 import BookmarkItemDotMenu from './bookmark_dot_menu';
 import BookmarkIcon from './bookmark_icon';
 
-type Props = {id: string; channelId: string};
-const BookmarkItem = <T extends HTMLAnchorElement>({
-    id,
-    channelId,
-}: Props) => {
+type Props = {bookmark: ChannelBookmark};
+const BookmarkItem = <T extends HTMLAnchorElement>({bookmark}: Props) => {
     const linkRef = useRef<T>(null);
     const dispatch = useDispatch();
-    const bookmark = useSelector((state: GlobalState) => getChannelBookmark(state, channelId, id));
     const fileInfo: FileInfo | undefined = useSelector((state: GlobalState) => (bookmark?.file_id && getFile(state, bookmark.file_id)) || undefined);
 
     const open = () => {
@@ -113,7 +109,7 @@ const Chip = styled.div`
         position: absolute;
         visibility: hidden;
         right: 6px;
-        top: 4px;
+        top: 3px;
     }
 
     &:hover,

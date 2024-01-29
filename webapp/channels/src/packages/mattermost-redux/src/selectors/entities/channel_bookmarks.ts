@@ -17,5 +17,5 @@ export const getChannelBookmarks = (state: GlobalState, channelId: string): Chan
 };
 
 export const getChannelBookmark = (state: GlobalState, channelId: string, bookmarkId: string) => {
-    return getChannelBookmarks(state, channelId)?.[bookmarkId];
+    return getChannelBookmarks(state, channelId)[bookmarkId];
 };

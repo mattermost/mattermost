@@ -53,6 +53,7 @@ interface Props extends PropsFromRedux {
     * Display in compact format
     */
     compactDisplay?: boolean;
+    disablePreview?: boolean;
     handleFileDropdownOpened?: (open: boolean) => void;
 }
 
@@ -284,7 +285,10 @@ export default function FileAttachment(props: Props) {
                 onClick={onAttachmentClick}
             >
                 {loaded ? (
-                    <FileThumbnail fileInfo={fileInfo}/>
+                    <FileThumbnail
+                        fileInfo={fileInfo}
+                        disablePreview={props.disablePreview}
+                    />
                 ) : (
                     <div className='post-image__load'/>
                 )}

@@ -6,7 +6,7 @@ import styled from 'styled-components';
 
 import BookmarkItem from './bookmark_item';
 import PlusMenu from './channel_bookmarks_plus_menu';
-import {useChannelBookmarkPermission, useChannelBookmarks, useIsChannelBookmarksEnabled} from './utils';
+import {useChannelBookmarkPermission, useChannelBookmarks, useIsChannelBookmarksEnabled, MAX_BOOKMARKS_PER_CHANNEL} from './utils';
 
 import './channel_bookmarks.scss';
 
@@ -18,7 +18,7 @@ const ChannelBookmarks = ({
     channelId,
 }: Props) => {
     const show = useIsChannelBookmarksEnabled();
-    const {order} = useChannelBookmarks(channelId);
+    const {order, bookmarks} = useChannelBookmarks(channelId);
     const canAdd = useChannelBookmarkPermission(channelId, 'add');
     const hasBookmarks = Boolean(order?.length);
 
@@ -32,8 +32,7 @@ const ChannelBookmarks = ({
                 return (
                     <BookmarkItem
                         key={id}
-                        id={id}
-                        channelId={channelId}
+                        bookmark={bookmarks[id]}
                     />
                 );
             })}
@@ -41,6 +40,7 @@ const ChannelBookmarks = ({
                 <PlusMenu
                     channelId={channelId}
                     hasBookmarks={hasBookmarks}
+                    limitReached={order.length >= MAX_BOOKMARKS_PER_CHANNEL}
                 />
             )}
         </Container>
