@@ -3,20 +3,18 @@
     position: relative;
     display: flex;
     padding: 4px;
-    gap: 5px;
-
-    background: transparent;
     border: none;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-
-    font-family: Open Sans;
+    background: transparent;
     border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-family: Open Sans;
     font-size: 12px;
     font-weight: 600;
+    gap: 5px;
 
     &.rounded {
-        border-radius: 12px;
         padding-right: 8px;
+        border-radius: 12px;
     }
 
     &:hover {
@@ -34,29 +32,23 @@
 }
 
 #channelBookmarksDotMenuButton {
-    height: 18px;
-    width: 18px;
-    padding: 0;
-    align-items: center;
     display: flex;
-    border-radius: 4px;
-    font-family: Open Sans;
-    font-weight: 600;
-    font-size: 12px;
+    width: 18px;
+    height: 18px;
+    align-items: center;
+    padding: 0;
     border: none;
-
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-
     background: rgba(var(--center-channel-color-rgb), 8%);
     background: color-mix(in sRGB, var(--center-channel-bg), var(--center-channel-color) 8%);
+    border-radius: 4px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-family: Open Sans;
+    font-size: 12px;
+    font-weight: 600;
 
     &:hover {
         background: rgba(var(--button-bg-rgb), 16%);
-        background: color-mix(
-            in sRGB,
-            var(--center-channel-bg),
-            var(--center-channel-color) 16%
-        );
+        background: color-mix(in sRGB, var(--center-channel-bg), var(--center-channel-color) 16%);
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
@@ -65,15 +57,10 @@
     &--active:hover,
     &[aria-expanded="true"] {
         background: rgba(var(--button-bg-rgb), 16%);
-        background: color-mix(
-            in sRGB,
-            var(--center-channel-bg),
-            var(--button-bg) 16%,
-        );
+        background: color-mix(in sRGB, var(--center-channel-bg), var(--button-bg) 16%);
         color: rgb(var(--button-bg-rgb));
     }
 }
-
 
 #bookmark-create-file-input {
     display: none;
