@@ -432,6 +432,7 @@ type AppIface interface {
 	AddDirectChannels(c request.CTX, teamID string, user *model.User) *model.AppError
 	AddLdapPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddLdapPublicCertificate(fileData *multipart.FileHeader) *model.AppError
+	AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string
 	AddRemoteCluster(rc *model.RemoteCluster) (*model.RemoteCluster, *model.AppError)
 	AddSamlIdpCertificate(fileData *multipart.FileHeader) *model.AppError
 	AddSamlPrivateCertificate(fileData *multipart.FileHeader) *model.AppError
@@ -619,7 +620,6 @@ type AppIface interface {
 	GetAllPublicTeams() ([]*model.Team, *model.AppError)
 	GetAllRemoteClusters(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, *model.AppError)
 	GetAllRoles() ([]*model.Role, *model.AppError)
-	GetAllSystemAdmins() (map[string]*model.User, error)
 	GetAllTeams() ([]*model.Team, *model.AppError)
 	GetAllTeamsPage(offset int, limit int, opts *model.TeamSearch) ([]*model.Team, *model.AppError)
 	GetAllTeamsPageWithCount(offset int, limit int, opts *model.TeamSearch) (*model.TeamsWithCount, *model.AppError)

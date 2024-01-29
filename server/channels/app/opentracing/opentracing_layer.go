@@ -247,6 +247,23 @@ func (a *OpenTracingAppLayer) AddLdapPublicCertificate(fileData *multipart.FileH
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) AddLicenseListener(listener func(oldLicense, newLicense *model.License)) string {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddLicenseListener")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.AddLicenseListener(listener)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) AddPublicKey(name string, key io.Reader) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.AddPublicKey")
@@ -4909,28 +4926,6 @@ func (a *OpenTracingAppLayer) GetAllRoles() ([]*model.Role, *model.AppError) {
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.GetAllRoles()
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetAllSystemAdmins() (map[string]*model.User, error) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetAllSystemAdmins")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetAllSystemAdmins()
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))

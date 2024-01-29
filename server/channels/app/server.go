@@ -1869,39 +1869,89 @@ func (s *Server) NotificationsLog() *mlog.Logger {
 }
 
 func (a *App) initElasticsearchChannelIndexCheck() {
-	elastic := a.SearchEngine().ElasticsearchEngine
-	if elastic == nil {
-		a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because elastic engine is nil")
+	a.elasticsearchChannelIndexCheckWithRetry()
+
+	a.AddConfigListener(func(oldConfig, newConfig *model.Config) {
+		if a.SearchEngine().ElasticsearchEngine == nil {
+			return
+		}
+
+		oldESConfig := oldConfig.ElasticsearchSettings
+		newESConfig := newConfig.ElasticsearchSettings
+
+		// if indexing is turned on, check.
+		if !*oldESConfig.EnableIndexing && *newESConfig.EnableIndexing {
+			a.elasticsearchChannelIndexCheckWithRetry()
+		} else if *newESConfig.EnableIndexing && (*oldESConfig.Password != *newESConfig.Password || *oldESConfig.Username != *newESConfig.Username || *oldESConfig.ConnectionURL != *newESConfig.ConnectionURL || *oldESConfig.Sniff != *newESConfig.Sniff) {
+			// ES client reconnects if credentials or address changes
+			a.elasticsearchChannelIndexCheckWithRetry()
+		}
+	})
+
+	a.AddLicenseListener(func(oldLicense, newLicense *model.License) {
+		if a.SearchEngine() == nil {
+			return
+		}
+
+		// if a license was added, and it has ES enabled-
+		if oldLicense == nil && newLicense != nil {
+			if a.SearchEngine().ElasticsearchEngine != nil {
+				a.elasticsearchChannelIndexCheckWithRetry()
+			}
+		}
+	})
+}
+
+func (a *App) elasticsearchChannelIndexCheckWithRetry() {
+	_ = utils.LongProgressiveRetry(func() error {
+		if *a.Config().ElasticsearchSettings.EnableIndexing == false {
+			a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because elasticsearch indexing is disabled")
+			return nil
+		}
+
+		elastic := a.SearchEngine().ElasticsearchEngine
+		if elastic == nil {
+			a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because elastic engine is nil")
+			return errors.New("retry")
+		}
+
+		if !elastic.IsActive() {
+			a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because elastic.IsActive engine is false")
+			return errors.New("retry")
+		}
+
+		a.elasticsearchChannelIndexCheck()
+		return nil
+	})
+}
+
+func (a *App) elasticsearchChannelIndexCheck() {
+	if needNotify := a.elasticChannelsIndexNeedNotifyAdmins(); !needNotify {
 		return
 	}
 
-	if !elastic.IsActive() {
-		a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because elastic.IsActive engine is false")
-		return
-	}
-
-	if elastic.IsChannelsIndexVaerified() {
-		a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because channels index is verified")
-		return
-	}
-
-	allSysAdmins, err := a.GetAllSystemAdmins()
-	if err != nil {
-		a.Log().Error("initElasticsearchChannelIndexCheck: error occurred fetching all system admins", mlog.Err(err))
-	}
-
+	// notify all system admins
 	systemBot, appErr := a.GetSystemBot()
 	if appErr != nil {
 		a.Log().Error("initElasticsearchChannelIndexCheck: couldn't get system bot", mlog.Err(appErr))
 		return
 	}
 
-	post := &model.Post{
-		Message: "Hello, world!",
-		UserId:  systemBot.UserId,
+	sysAdmins, appErr := a.getAllSystemAdmins()
+	if appErr != nil {
+		a.Log().Error("initElasticsearchChannelIndexCheck: error occurred fetching all system admins", mlog.Err(appErr))
 	}
 
-	for _, sysAdmin := range allSysAdmins {
+	elasticsearchSettingsSectionLink, err := url.JoinPath(*a.Config().ServiceSettings.SiteURL, "admin_console/environment/elasticsearch")
+	if err != nil {
+		a.Log().Error("initElasticsearchChannelIndexCheck: error occurred constructing Elasticsearch system console section path")
+		return
+	}
+
+	// TODO include a link to changelog
+	postMessage := i18n.T("app.channel.elasticsearch_channel_index.notify_admin.message", map[string]interface{}{"ElasticsearchSection": elasticsearchSettingsSectionLink})
+
+	for _, sysAdmin := range sysAdmins {
 		var channel *model.Channel
 		channel, appErr = a.GetOrCreateDirectChannel(request.EmptyContext(a.Log()), sysAdmin.Id, systemBot.UserId)
 		if appErr != nil {
@@ -1909,12 +1959,30 @@ func (a *App) initElasticsearchChannelIndexCheck() {
 			continue
 		}
 
-		post.Id = ""
-		post.ChannelId = channel.Id
+		post := &model.Post{
+			Message:   postMessage,
+			UserId:    systemBot.UserId,
+			ChannelId: channel.Id,
+		}
 		_, appErr = a.CreatePost(request.EmptyContext(a.Log()), post, channel, true, false)
 		if appErr != nil {
 			a.Log().Error("initElasticsearchChannelIndexCheck: error occurred creating post", mlog.Err(appErr))
 			continue
 		}
 	}
+}
+
+func (a *App) elasticChannelsIndexNeedNotifyAdmins() bool {
+	elastic := a.SearchEngine().ElasticsearchEngine
+	if elastic == nil {
+		a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because elastic engine is nil")
+		return false
+	}
+
+	if elastic.IsChannelsIndexVaerified() {
+		a.Log().Debug("initElasticsearchChannelIndexCheck: skipping because channels index is verified")
+		return false
+	}
+
+	return true
 }

@@ -2829,10 +2829,6 @@ func (a *App) GetUsersWithInvalidEmails(page int, perPage int) ([]*model.User, *
 	return users, nil
 }
 
-func (a *App) GetAllSystemAdmins() (map[string]*model.User, error) {
-	return a.Srv().Store().User().GetSystemAdminProfiles()
-}
-
 func getProfileImagePath(userID string) string {
 	return filepath.Join("users", userID, "profile.png")
 }
@@ -2861,4 +2857,14 @@ func (a *App) UserIsFirstAdmin(user *model.User) bool {
 	}
 
 	return true
+}
+
+func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
+	userOptions := &model.UserGetOptions{
+		Page:     0,
+		PerPage:  500,
+		Role:     model.SystemAdminRoleId,
+		Inactive: false,
+	}
+	return a.GetUsersFromProfiles(userOptions)
 }

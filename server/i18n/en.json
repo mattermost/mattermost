@@ -5175,6 +5175,10 @@
     "translation": "Failed to record channel member history. Failed to update existing join record"
   },
   {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
+  },
+  {
     "id": "app.cloud.get_cloud_products.app_error",
     "translation": "Couldn't retrieve cloud products"
   },
