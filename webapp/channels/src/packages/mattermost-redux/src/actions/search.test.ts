@@ -101,13 +101,9 @@ describe('Actions.Search', () => {
         await dispatch(Actions.searchFilesWithParams(TestHelper.basicTeam!.id, {terms: search1, is_or_search: false, include_deleted_channels: false, page: 0, per_page: Actions.WEBAPP_SEARCH_PER_PAGE}));
 
         let state = getState();
-        let {recent, fileResults} = state.entities.search;
+        let {fileResults} = state.entities.search;
         const {filesFromSearch} = state.entities.files;
         let current = state.entities.search.current[TestHelper.basicTeam!.id];
-        expect(recent[TestHelper.basicTeam!.id]).toBeTruthy();
-        let searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex((r: {terms: string}) => r.terms === search1);
-        expect(searchIsPresent !== -1).toBeTruthy();
-        expect(Object.keys(recent[TestHelper.basicTeam!.id]).length).toEqual(1);
         expect(fileResults.length).toEqual(1);
         expect(filesFromSearch[fileResults[0]]).toBeTruthy();
         expect(!current.isFilesEnd).toBeTruthy();
@@ -120,12 +116,7 @@ describe('Actions.Search', () => {
         await dispatch(Actions.searchFilesWithParams(TestHelper.basicTeam!.id, {terms: search1, page: 1} as SearchParameter));
         state = getState();
         current = state.entities.search.current[TestHelper.basicTeam!.id];
-        recent = state.entities.search.recent;
         fileResults = state.entities.search.fileResults;
-        expect(recent[TestHelper.basicTeam!.id]).toBeTruthy();
-        searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex((r: {terms: string}) => r.terms === search1);
-        expect(searchIsPresent !== -1).toBeTruthy();
-        expect(Object.keys(recent[TestHelper.basicTeam!.id]).length).toEqual(1);
         expect(fileResults.length).toEqual(1);
         expect(current.isFilesEnd).toBeTruthy();
     });
