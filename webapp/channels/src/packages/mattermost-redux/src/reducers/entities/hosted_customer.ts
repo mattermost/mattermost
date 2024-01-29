@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {Invoice, Product} from '@mattermost/types/cloud';
@@ -9,7 +10,6 @@ import type {TrueUpReviewProfileReducer, TrueUpReviewStatusReducer} from '@matte
 import type {ValueOf} from '@mattermost/types/utilities';
 
 import {HostedCustomerTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 interface SelfHostedProducts {
     products: Record<string, Product>;
@@ -29,7 +29,7 @@ const initialInvoices = {
     invoicesLoaded: false,
 };
 
-function products(state: SelfHostedProducts = initialProducts, action: GenericAction) {
+function products(state: SelfHostedProducts = initialProducts, action: AnyAction) {
     switch (action.type) {
     case HostedCustomerTypes.RECEIVED_SELF_HOSTED_PRODUCTS: {
         const productList: Product[] = action.data;
@@ -51,7 +51,7 @@ function products(state: SelfHostedProducts = initialProducts, action: GenericAc
     }
 }
 
-function invoices(state: SelfHostedInvoices = initialInvoices, action: GenericAction) {
+function invoices(state: SelfHostedInvoices = initialInvoices, action: AnyAction) {
     switch (action.type) {
     case HostedCustomerTypes.RECEIVED_SELF_HOSTED_INVOICES: {
         const invoiceList: Invoice[] = action.data;
@@ -74,7 +74,7 @@ function invoices(state: SelfHostedInvoices = initialInvoices, action: GenericAc
 }
 
 type SignupProgress = ValueOf<typeof SelfHostedSignupProgress>;
-function signupProgress(state = SelfHostedSignupProgress.START, action: GenericAction): SignupProgress {
+function signupProgress(state = SelfHostedSignupProgress.START, action: AnyAction): SignupProgress {
     switch (action.type) {
     case HostedCustomerTypes.RECEIVED_SELF_HOSTED_SIGNUP_PROGRESS: {
         if (!action.data) {
@@ -93,7 +93,7 @@ export interface ErrorsReducer {
 }
 
 const emptyErrors = {};
-export function errors(state: ErrorsReducer = emptyErrors, action: GenericAction) {
+export function errors(state: ErrorsReducer = emptyErrors, action: AnyAction) {
     switch (action.type) {
     case HostedCustomerTypes.SELF_HOSTED_PRODUCTS_FAILED: {
         return {...state, products: true};
@@ -122,7 +122,7 @@ export function errors(state: ErrorsReducer = emptyErrors, action: GenericAction
     }
 }
 
-function trueUpReviewProfile(state: TrueUpReviewProfileReducer | null = null, action: GenericAction) {
+function trueUpReviewProfile(state: TrueUpReviewProfileReducer | null = null, action: AnyAction) {
     switch (action.type) {
     case HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_BUNDLE: {
         return {
@@ -142,7 +142,7 @@ function trueUpReviewProfile(state: TrueUpReviewProfileReducer | null = null, ac
     }
 }
 
-function trueUpReviewStatus(state: TrueUpReviewStatusReducer | null = null, action: GenericAction) {
+function trueUpReviewStatus(state: TrueUpReviewStatusReducer | null = null, action: AnyAction) {
     switch (action.type) {
     case HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_STATUS: {
         return {

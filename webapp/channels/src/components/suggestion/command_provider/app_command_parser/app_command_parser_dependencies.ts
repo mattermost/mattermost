@@ -5,16 +5,12 @@ import type {Channel} from '@mattermost/types/channels';
 import type {AutocompleteSuggestion} from '@mattermost/types/integrations';
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {sendEphemeralPost} from 'actions/global_actions';
-import ReduxStore from 'stores/redux_store';
+import reduxStore from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
 import {isMac} from 'utils/user_agent';
 import {localizeAndFormatMessage} from 'utils/utils';
-
-import type {GlobalState} from 'types/store';
 
 import type {ParsedCommand} from './app_command_parser';
 
@@ -72,12 +68,7 @@ export {
     filterEmptyOptions,
 } from 'utils/apps';
 
-export type Store = {
-    dispatch: DispatchFunc;
-    getState: () => GlobalState;
-}
-
-export const getStore = () => ReduxStore;
+export const getStore = () => reduxStore;
 
 export {getChannelSuggestions, getUserSuggestions, inTextMentionSuggestions} from '../mentions';
 
@@ -119,7 +110,7 @@ export type ExtendedAutocompleteSuggestion = AutocompleteSuggestion & {
 }
 
 export const displayError = (err: string, channelID: string, rootID?: string) => {
-    ReduxStore.dispatch(sendEphemeralPost(err, channelID, rootID));
+    reduxStore.dispatch(sendEphemeralPost(err, channelID, rootID));
 };
 
 // Shim of mobile-version intl

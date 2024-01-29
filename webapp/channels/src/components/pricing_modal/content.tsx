@@ -15,7 +15,6 @@ import {
 } from 'mattermost-redux/selectors/entities/cloud';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {subscribeCloudSubscription} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
@@ -58,7 +57,7 @@ type ContentProps = {
 
 function Content(props: ContentProps) {
     const {formatMessage, formatNumber} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const [limits] = useGetLimits();
     const openPricingModalBackAction = useOpenPricingModal();
 

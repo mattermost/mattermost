@@ -11,7 +11,6 @@ import {makeGetChannelUnreadCount} from 'mattermost-redux/selectors/entities/cha
 import {getCurrentUserId, getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getInt} from 'mattermost-redux/selectors/entities/preferences';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import {markMostRecentPostInChannelAsUnread, unsetEditingPost} from 'actions/post_actions';
@@ -67,7 +66,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             markMostRecentPostInChannelAsUnread,

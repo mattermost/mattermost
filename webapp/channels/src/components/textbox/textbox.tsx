@@ -7,6 +7,7 @@ import type {ChangeEvent, ElementType, FocusEvent, KeyboardEvent, MouseEvent} fr
 import {FormattedMessage} from 'react-intl';
 
 import type {Channel} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -59,7 +60,7 @@ export type Props = {
     currentUserId: string;
     currentTeamId: string;
     preview?: boolean;
-    autocompleteGroups: Array<{ id: string }> | null;
+    autocompleteGroups: Group[] | null;
     delayChannelAutocomplete: boolean;
     actions: {
         autocompleteUsersInChannel: (prefix: string, channelId: string) => Promise<ActionResult>;

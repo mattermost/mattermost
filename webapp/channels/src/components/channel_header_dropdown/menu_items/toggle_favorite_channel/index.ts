@@ -6,11 +6,10 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import ToggleFavoriteChannel from './toggle_favorite_channel';
 
-const mapDispatchToProps = (dispatch: Dispatch<GenericAction>) => ({
+const mapDispatchToProps = (dispatch: Dispatch) => ({
     actions: bindActionCreators({
         favoriteChannel,
         unfavoriteChannel,

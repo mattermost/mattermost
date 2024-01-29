@@ -27,7 +27,7 @@ import type {
 import {AdminTypes} from 'mattermost-redux/action_types';
 import {getUsersLimits} from 'mattermost-redux/actions/limits';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -388,8 +388,8 @@ export function removeLicense(): NewActionFuncAsync<boolean> {
     };
 }
 
-export function getPrevTrialLicense(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getPrevTrialLicense(): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getPrevTrialLicense();
@@ -403,8 +403,8 @@ export function getPrevTrialLicense(): ActionFunc {
     };
 }
 
-export function getAnalytics(name: string, teamId = ''): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getAnalytics(name: string, teamId = ''): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.getAnalytics(name, teamId);
@@ -424,28 +424,28 @@ export function getAnalytics(name: string, teamId = ''): ActionFunc {
     };
 }
 
-export function getStandardAnalytics(teamId = ''): ActionFunc {
+export function getStandardAnalytics(teamId = '') {
     return getAnalytics('standard', teamId);
 }
 
-export function getAdvancedAnalytics(teamId = ''): ActionFunc {
+export function getAdvancedAnalytics(teamId = '') {
     return getAnalytics('extra_counts', teamId);
 }
 
-export function getPostsPerDayAnalytics(teamId = ''): ActionFunc {
+export function getPostsPerDayAnalytics(teamId = '') {
     return getAnalytics('post_counts_day', teamId);
 }
 
-export function getBotPostsPerDayAnalytics(teamId = ''): ActionFunc {
+export function getBotPostsPerDayAnalytics(teamId = '') {
     return getAnalytics('bot_post_counts_day', teamId);
 }
 
-export function getUsersPerDayAnalytics(teamId = ''): ActionFunc {
+export function getUsersPerDayAnalytics(teamId = '') {
     return getAnalytics('user_counts_with_posts_day', teamId);
 }
 
-export function uploadPlugin(fileData: File, force = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function uploadPlugin(fileData: File, force = false): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.uploadPlugin(fileData, force);
@@ -459,7 +459,7 @@ export function uploadPlugin(fileData: File, force = false): ActionFunc {
     };
 }
 
-export function installPluginFromUrl(url: string, force = false): ActionFunc {
+export function installPluginFromUrl(url: string, force = false): NewActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -695,7 +695,7 @@ export function getDataRetentionCustomPolicyChannels(id: string, page = 0, perPa
 }
 
 export function searchDataRetentionCustomPolicyTeams(id: string, term: string, opts: TeamSearchOpts): NewActionFuncAsync<DataRetentionCustomPolicies> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         let data;
         try {
             data = await Client4.searchDataRetentionCustomPolicyTeams(id, term, opts);

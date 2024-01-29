@@ -118,7 +118,7 @@ export default class Bots extends React.PureComponent<Props, State> {
     public componentDidMount(): void {
         this.props.actions.loadBots(
             Constants.Integrations.START_PAGE_NUM,
-            parseInt(Constants.Integrations.PAGE_SIZE, 10),
+            Constants.Integrations.PAGE_SIZE,
         ).then(
             (result) => {
                 if (result.data) {

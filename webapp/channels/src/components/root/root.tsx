@@ -139,7 +139,7 @@ export type Actions = {
     migrateRecentEmojis: () => void;
     loadConfigAndMe: () => Promise<ActionResult>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
-    initializeProducts: () => Promise<ActionResult[]>;
+    initializeProducts: () => Promise<unknown>;
 }
 
 type Props = {

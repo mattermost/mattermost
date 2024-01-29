@@ -6,7 +6,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 import reducer from 'mattermost-redux/reducers/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 import {TestHelper} from 'utils/test_helper';
@@ -17,12 +16,12 @@ describe('Reducers.users', () => {
     describe('profilesInChannel', () => {
         it('initial state', () => {
             const state = undefined;
-            const action = {};
+            const action = {type: undefined};
             const expectedState = {
                 profilesInChannel: {},
             };
 
-            const newState = reducer(state, action as GenericAction);
+            const newState = reducer(state, action);
             expect(newState.profilesInChannel).toEqual(expectedState.profilesInChannel);
         });
 
@@ -296,12 +295,12 @@ describe('Reducers.users', () => {
     describe('profilesNotInChannel', () => {
         it('initial state', () => {
             const state = undefined;
-            const action = {};
+            const action = {type: undefined};
             const expectedState = {
                 profilesNotInChannel: {},
             };
 
-            const newState = reducer(state, action as GenericAction);
+            const newState = reducer(state, action);
             expect(newState.profilesNotInChannel).toEqual(expectedState.profilesNotInChannel);
         });
 
@@ -588,12 +587,12 @@ describe('Reducers.users', () => {
     describe('profilesNotInGroup', () => {
         it('initial state', () => {
             const state = undefined;
-            const action = {};
+            const action = {type: undefined};
             const expectedState = {
                 profilesNotInGroup: {},
             };
 
-            const newState = reducer(state, action as GenericAction);
+            const newState = reducer(state, action);
             expect(newState.profilesNotInGroup).toEqual(expectedState.profilesNotInGroup);
         });
 

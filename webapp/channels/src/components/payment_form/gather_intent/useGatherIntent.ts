@@ -34,7 +34,7 @@ interface FormDateStateWithoutOtherPayment {
 }
 
 export const useGatherIntent = ({typeGatherIntent}: UseGatherIntentArgs) => {
-    const dispatch = useDispatch<any>();
+    const dispatch = useDispatch();
     const [feedbackSaved, setFeedbackSave] = useState(false);
     const [showError, setShowError] = useState(false);
     const [submittingFeedback, setSubmittingFeedback] = useState(false);

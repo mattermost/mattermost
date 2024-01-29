@@ -20,7 +20,7 @@ interface ChannelGroupsProps {
     channel: Partial<Channel>;
     onAddCallback: (groupIDs: string[]) => void;
     totalGroups: number;
-    groups: Array<Partial<Group>>;
+    groups: Group[];
     removedGroups: Array<{[key: string]: any}>;
     onGroupRemoved: (gid: string) => void;
     setNewGroupRole: (gid: string) => void;

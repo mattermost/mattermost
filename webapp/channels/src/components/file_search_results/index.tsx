@@ -9,7 +9,6 @@ import type {Dispatch} from 'redux';
 import type {FileInfo} from '@mattermost/types/files';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -34,7 +33,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,

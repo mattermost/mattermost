@@ -18,6 +18,7 @@ type OwnProps = {
 
 function makeMapStateToProps() {
     const getPostAcknowledgementsWithProfiles = makeGetPostAcknowledgementsWithProfiles();
+
     return (state: GlobalState, ownProps: OwnProps) => {
         const currentUserId = getCurrentUserId(state);
         const hasReactions = getHasReactions(state, ownProps.postId);

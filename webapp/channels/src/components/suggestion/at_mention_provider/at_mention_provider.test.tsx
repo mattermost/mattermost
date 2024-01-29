@@ -1,35 +1,37 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import AtMentionProvider from 'components/suggestion/at_mention_provider/at_mention_provider.jsx';
+import AtMentionProvider, {type Props} from 'components/suggestion/at_mention_provider/at_mention_provider';
 import AtMentionSuggestion from 'components/suggestion/at_mention_provider/at_mention_suggestion';
 
 import {Constants} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 jest.useFakeTimers();
 
 describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
-    const userid10 = {id: 'userid10', username: 'nicknamer', first_name: '', last_name: '', nickname: 'Z'};
-    const userid3 = {id: 'userid3', username: 'other', first_name: 'X', last_name: 'Y', nickname: 'Z'};
-    const userid1 = {id: 'userid1', username: 'user', first_name: 'a', last_name: 'b', nickname: 'c', isCurrentUser: true};
-    const userid2 = {id: 'userid2', username: 'user2', first_name: 'd', last_name: 'e', nickname: 'f'};
-    const userid4 = {id: 'userid4', username: 'user4', first_name: 'X', last_name: 'Y', nickname: 'Z'};
-    const userid5 = {id: 'userid5', username: 'user5', first_name: 'out', last_name: 'out', nickname: 'out'};
-    const userid6 = {id: 'userid6', username: 'user6.six-split', first_name: 'out Junior', last_name: 'out', nickname: 'out'};
-    const userid7 = {id: 'userid7', username: 'xuser7', first_name: '', last_name: '', nickname: 'x'};
-    const userid8 = {id: 'userid8', username: 'xuser8', first_name: 'Robert', last_name: 'Ward', nickname: 'nickname'};
+    const userid10 = TestHelper.getUserMock({id: 'userid10', username: 'nicknamer', first_name: '', last_name: '', nickname: 'Z'});
+    const userid3 = TestHelper.getUserMock({id: 'userid3', username: 'other', first_name: 'X', last_name: 'Y', nickname: 'Z'});
+    const userid1 = {...TestHelper.getUserMock({id: 'userid1', username: 'user', first_name: 'a', last_name: 'b', nickname: 'c'}), isCurrentUser: true};
+    const userid2 = TestHelper.getUserMock({id: 'userid2', username: 'user2', first_name: 'd', last_name: 'e', nickname: 'f'});
+    const userid4 = TestHelper.getUserMock({id: 'userid4', username: 'user4', first_name: 'X', last_name: 'Y', nickname: 'Z'});
+    const userid5 = TestHelper.getUserMock({id: 'userid5', username: 'user5', first_name: 'out', last_name: 'out', nickname: 'out'});
+    const userid6 = TestHelper.getUserMock({id: 'userid6', username: 'user6.six-split', first_name: 'out Junior', last_name: 'out', nickname: 'out'});
+    const userid7 = TestHelper.getUserMock({id: 'userid7', username: 'xuser7', first_name: '', last_name: '', nickname: 'x'});
+    const userid8 = TestHelper.getUserMock({id: 'userid8', username: 'xuser8', first_name: 'Robert', last_name: 'Ward', nickname: 'nickname'});
 
-    const groupid1 = {id: 'groupid1', name: 'board', display_name: 'board'};
-    const groupid2 = {id: 'groupid2', name: 'developers', display_name: 'developers'};
-    const groupid3 = {id: 'groupid3', name: 'software-engineers', display_name: 'software engineers'};
+    const groupid1 = TestHelper.getGroupMock({id: 'groupid1', name: 'board', display_name: 'board'});
+    const groupid2 = TestHelper.getGroupMock({id: 'groupid2', name: 'developers', display_name: 'developers'});
+    const groupid3 = TestHelper.getGroupMock({id: 'groupid3', name: 'software-engineers', display_name: 'software engineers'});
 
-    const baseParams = {
+    const baseParams: Props = {
         currentUserId: 'userid1',
         channelId: 'channelid1',
         autocompleteUsersInChannel: jest.fn().mockResolvedValue(false),
         autocompleteGroups: [groupid1, groupid2, groupid3],
         useChannelMentions: true,
         searchAssociatedGroupsForReference: jest.fn().mockResolvedValue(false),
+        priorityProfiles: [],
     };
 
     it('should ignore pretexts that are not at-mentions', () => {
@@ -169,8 +171,8 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
     });
 
     it('should have priorityProfiles at the top', async () => {
-        const userid11 = {id: 'userid11', username: 'user11', first_name: 'firstname11', last_name: 'lastname11', nickname: 'nickname11'};
-        const userid12 = {id: 'userid12', username: 'user12', first_name: 'firstname12', last_name: 'lastname12', nickname: 'nickname12'};
+        const userid11 = TestHelper.getUserMock({id: 'userid11', username: 'user11', first_name: 'firstname11', last_name: 'lastname11', nickname: 'nickname11'});
+        const userid12 = TestHelper.getUserMock({id: 'userid12', username: 'user12', first_name: 'firstname12', last_name: 'lastname12', nickname: 'nickname12'});
 
         const pretext = '@';
         const matchedPretext = '@';
@@ -315,8 +317,8 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
     });
 
     it('should remove duplicates from results', async () => {
-        const userid11 = {id: 'userid11', username: 'user11', first_name: 'firstname11', last_name: 'lastname11', nickname: 'nickname11'};
-        const userid12 = {id: 'userid12', username: 'user12', first_name: 'firstname12', last_name: 'lastname12', nickname: 'nickname12'};
+        const userid11 = TestHelper.getUserMock({id: 'userid11', username: 'user11', first_name: 'firstname11', last_name: 'lastname11', nickname: 'nickname11'});
+        const userid12 = TestHelper.getUserMock({id: 'userid12', username: 'user12', first_name: 'firstname12', last_name: 'lastname12', nickname: 'nickname12'});
 
         const pretext = '@';
         const matchedPretext = '@';
@@ -461,8 +463,8 @@ describe('components/suggestion/at_mention_provider/AtMentionProvider', () => {
     });
 
     it('should sort results based on last_viewed_at', async () => {
-        const userid11 = {id: 'userid11', username: 'user11', first_name: 'firstname11', last_name: 'lastname11', nickname: 'nickname11'};
-        const userid12 = {id: 'userid12', username: 'user12', first_name: 'firstname12', last_name: 'lastname12', nickname: 'nickname12'};
+        const userid11 = TestHelper.getUserMock({id: 'userid11', username: 'user11', first_name: 'firstname11', last_name: 'lastname11', nickname: 'nickname11'});
+        const userid12 = TestHelper.getUserMock({id: 'userid12', username: 'user12', first_name: 'firstname12', last_name: 'lastname12', nickname: 'nickname12'});
 
         const pretext = '@';
         const matchedPretext = '@';

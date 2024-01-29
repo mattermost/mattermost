@@ -7,9 +7,11 @@ type NotificationSettingsSection = 'keysWithHighlight' | 'keysWithNotification';
 
 export default class NotificationsSettings {
     readonly container: Locator;
+    readonly keysWithHighlightDesc: Locator;
 
     constructor(container: Locator) {
         this.container = container;
+        this.keysWithHighlightDesc = container.locator('#keysWithHighlightDesc');
     }
 
     async toBeVisible() {

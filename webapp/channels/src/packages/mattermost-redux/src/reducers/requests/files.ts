@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {FilesRequestsStatuses, RequestStatusType} from '@mattermost/types/requests';
+import type {RequestStatusType} from '@mattermost/types/requests';
 
 import {FileTypes} from 'mattermost-redux/action_types';
 import {RequestStatus} from 'mattermost-redux/constants';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {initialRequestState} from './helpers';
 
@@ -17,7 +17,7 @@ export function handleUploadFilesRequest(
     FAILURE: string,
     CANCEL: string,
     state: RequestStatusType,
-    action: GenericAction,
+    action: AnyAction,
 ): RequestStatusType {
     switch (action.type) {
     case REQUEST:
@@ -55,7 +55,7 @@ export function handleUploadFilesRequest(
     }
 }
 
-function uploadFiles(state: RequestStatusType = initialRequestState(), action: GenericAction): RequestStatusType {
+function uploadFiles(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     return handleUploadFilesRequest(
         FileTypes.UPLOAD_FILES_REQUEST,
         FileTypes.UPLOAD_FILES_SUCCESS,
@@ -66,6 +66,6 @@ function uploadFiles(state: RequestStatusType = initialRequestState(), action: G
     );
 }
 
-export default (combineReducers({
+export default combineReducers({
     uploadFiles,
-}) as (b: FilesRequestsStatuses, a: GenericAction) => FilesRequestsStatuses);
+});

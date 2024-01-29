@@ -10,7 +10,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {makeGetFilesForPost} from 'mattermost-redux/selectors/entities/files';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -53,7 +52,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,

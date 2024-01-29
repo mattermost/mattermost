@@ -6,7 +6,6 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {toggleEmbedVisibility} from 'actions/post_actions';
 import {isEmbedVisible} from 'selectors/posts';
@@ -27,7 +26,7 @@ function mapStateToProps(state: GlobalState, ownProps: Omit<Props, 'appsEnabled'
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({toggleEmbedVisibility}, dispatch),
     };

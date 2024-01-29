@@ -7,7 +7,6 @@ import {useDispatch} from 'react-redux';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 
 import {createDirectChannel} from 'mattermost-redux/actions/channels';
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {Constants} from 'utils/constants';
 
@@ -44,7 +43,7 @@ export default function ProfilePopoverCallButton({pluginCallComponents, channelM
 
     const getDmChannel = async () => {
         if (!dmChannel) {
-            const {data} = await dispatch(createDirectChannel(currentUserId, userId)) as ActionResult;
+            const {data} = await dispatch(createDirectChannel(currentUserId, userId));
             if (data) {
                 return data;
             }

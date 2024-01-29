@@ -12,7 +12,6 @@ import {removePost} from 'mattermost-redux/actions/posts';
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import PostAddChannelMember from './post_add_channel_member';
 
@@ -37,7 +36,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             addChannelMember,

@@ -19,7 +19,6 @@ import {
     getCurrentRelativeTeamUrl,
 } from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import {showMentions, showFlaggedPosts, closeRightHandSide, closeMenu as closeRhsMenu} from 'actions/views/rhs';
@@ -94,7 +93,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             openModal,

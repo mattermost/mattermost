@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import type {CloudUsage} from '@mattermost/types/cloud';
 
 import {CloudTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 const emptyUsage = {
     files: {
@@ -27,7 +28,7 @@ const emptyUsage = {
 };
 
 // represents the usage associated with this workspace
-export default function usage(state: CloudUsage = emptyUsage, action: GenericAction) {
+export default function usage(state: CloudUsage = emptyUsage, action: AnyAction) {
     switch (action.type) {
     case CloudTypes.RECEIVED_MESSAGES_USAGE: {
         return {

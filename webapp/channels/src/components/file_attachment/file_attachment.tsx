@@ -23,7 +23,6 @@ import {
     fileSizeToString,
     getFileType,
     loadImage,
-    localizeMessage,
 } from 'utils/utils';
 
 import ArchivedTooltip from './archived_tooltip';
@@ -58,14 +57,16 @@ interface Props extends PropsFromRedux {
 
 export default function FileAttachment(props: Props) {
     const mounted = useRef(true);
-    const intl = useIntl();
+
+    const {formatMessage} = useIntl();
+
     const [loaded, setLoaded] = useState(getFileType(props.fileInfo.extension) !== FileTypes.IMAGE);
     const [loadFilesCalled, setLoadFilesCalled] = useState(false);
     const [keepOpen, setKeepOpen] = useState(false);
     const [openUp, setOpenUp] = useState(false);
 
     const {
-        reference,
+        setReference,
         getReferenceProps,
         tooltip: archivedTooltip,
     } = useTooltip({
@@ -190,8 +191,8 @@ export default function FileAttachment(props: Props) {
                 <Menu.ItemAction
                     data-title='Public Image'
                     onClick={handleGetPublicLink}
-                    ariaLabel={localizeMessage('view_image_popover.publicLink', 'Get a public link')}
-                    text={localizeMessage('view_image_popover.publicLink', 'Get a public link')}
+                    ariaLabel={formatMessage({id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link'})}
+                    text={formatMessage({id: 'view_image_popover.publicLink', defaultMessage: 'Get a public link'})}
                 />,
             );
         }
@@ -225,7 +226,7 @@ export default function FileAttachment(props: Props) {
 
         const tooltip = (
             <Tooltip id='file-name__tooltip'>
-                {localizeMessage('file_search_result_item.more_actions', 'More Actions')}
+                {formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'})}
             </Tooltip>
         );
 
@@ -243,7 +244,7 @@ export default function FileAttachment(props: Props) {
                     <button
                         ref={buttonRef}
                         id={`file_action_button_${props.fileInfo.id}`}
-                        aria-label={localizeMessage('file_search_result_item.more_actions', 'More Actions').toLowerCase()}
+                        aria-label={formatMessage({id: 'file_search_result_item.more_actions', defaultMessage: 'More Actions'}).toLowerCase()}
                         className={classNames(
                             'file-dropdown-icon', 'dots-icon',
                             {'a11y--active': keepOpen},
@@ -272,7 +273,7 @@ export default function FileAttachment(props: Props) {
     let fileThumbnail;
     let fileDetail;
     let fileActions;
-    const ariaLabelImage = `${localizeMessage('file_attachment.thumbnail', 'file thumbnail')} ${fileInfo.name}`.toLowerCase();
+    const ariaLabelImage = `${formatMessage({id: 'file_attachment.thumbnail', defaultMessage: 'file thumbnail'})} ${fileInfo.name}`.toLowerCase();
 
     if (!compactDisplay) {
         fileThumbnail = (
@@ -362,7 +363,7 @@ export default function FileAttachment(props: Props) {
                     {trimmedFilename}
                 </span>
                 <span className='post-image__archived-label'>
-                    {intl.formatMessage({
+                    {formatMessage({
                         id: 'workspace_limits.archived_file.archived_compact',
                         defaultMessage: '(archived)',
                     })}
@@ -373,7 +374,7 @@ export default function FileAttachment(props: Props) {
     const content =
         (
             <div
-                ref={fileInfo.archived ? reference : undefined}
+                ref={fileInfo.archived ? setReference : undefined}
                 {...(fileInfo.archived ? getReferenceProps() : {})}
                 className={
                     classNames([

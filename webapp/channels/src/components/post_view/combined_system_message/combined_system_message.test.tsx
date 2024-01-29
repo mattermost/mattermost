@@ -6,7 +6,6 @@ import React from 'react';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {General, Posts} from 'mattermost-redux/constants';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
@@ -14,7 +13,6 @@ import CombinedSystemMessage from './combined_system_message';
 import type {CombinedSystemMessage as CombinedSystemMessageType} from './combined_system_message';
 
 describe('components/post_view/CombinedSystemMessage', () => {
-    function emptyFunc() {} // eslint-disable-line no-empty-function
     const userProfiles = [
         {id: 'added_user_id_1', username: 'AddedUser1'},
         {id: 'added_user_id_2', username: 'AddedUser2'},
@@ -48,8 +46,8 @@ describe('components/post_view/CombinedSystemMessage', () => {
         teammateNameDisplay: General.TEAMMATE_NAME_DISPLAY.SHOW_USERNAME,
         userProfiles,
         actions: {
-            getMissingProfilesByIds: emptyFunc as unknown as (userIds: string[]) => ActionFunc,
-            getMissingProfilesByUsernames: emptyFunc as unknown as (usernames: string[]) => ActionFunc,
+            getMissingProfilesByIds: jest.fn(),
+            getMissingProfilesByUsernames: jest.fn(),
         },
     };
 

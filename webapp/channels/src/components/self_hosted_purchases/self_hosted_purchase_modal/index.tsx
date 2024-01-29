@@ -22,7 +22,6 @@ import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getSelfHostedProducts, getSelfHostedSignupProgress} from 'mattermost-redux/selectors/entities/hosted_customer';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {confirmSelfHostedSignup} from 'actions/hosted_customer';
 import {trackEvent, pageVisited} from 'actions/telemetry_actions';
@@ -328,7 +327,7 @@ export default function SelfHostedPurchaseModal(props: Props) {
     });
 
     const [state, dispatch] = useReducer(reducer, initialState);
-    const reduxDispatch = useDispatch<DispatchFunc>();
+    const reduxDispatch = useDispatch();
 
     const cardRef = useRef<CardInputType | null>(null);
     const modalRef = useRef();

@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {PreferenceTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function getKey(preference: PreferenceType) {
     return `${preference.category}--${preference.name}`;
@@ -24,7 +24,7 @@ function setAllPreferences(preferences: PreferenceType[]): any {
     return nextState;
 }
 
-function myPreferences(state: Record<string, PreferenceType> = {}, action: GenericAction) {
+function myPreferences(state: Record<string, PreferenceType> = {}, action: AnyAction) {
     switch (action.type) {
     case PreferenceTypes.RECEIVED_ALL_PREFERENCES:
         return setAllPreferences(action.data);

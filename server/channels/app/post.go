@@ -2296,19 +2296,26 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 	}
 
 	hasPermissionToAccessChannel := false
-	if channel.Type == model.ChannelTypeOpen {
+
+	_, channelMemberErr := a.GetChannelMember(c, channel.Id, userID)
+
+	if channelMemberErr == nil {
 		hasPermissionToAccessChannel = true
-	} else if channel.Type == model.ChannelTypePrivate {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
-	} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
+	}
+
+	if !hasPermissionToAccessChannel {
+		if channel.Type == model.ChannelTypeOpen {
+			hasPermissionToAccessChannel = true
+		} else if channel.Type == model.ChannelTypePrivate {
+			hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
+		} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+			hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
+		}
 	}
 
 	if !hasPermissionToAccessChannel {
 		return nil, notFoundError
 	}
-
-	_, channelMemberErr := a.GetChannelMember(c, channel.Id, userID)
 
 	info := model.PostInfo{
 		ChannelId:          channel.Id,

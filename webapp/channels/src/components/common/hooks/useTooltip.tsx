@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useHover, useInteractions, useFloating, arrow, offset, autoPlacement} from '@floating-ui/react-dom-interactions';
-import type {Strategy, Placement} from '@floating-ui/react-dom-interactions';
+import {useHover, useInteractions, useFloating, arrow, offset, autoPlacement} from '@floating-ui/react';
+import type {Strategy, Placement, ReferenceType} from '@floating-ui/react';
 import classNames from 'classnames';
+import type {ReactNode, HTMLProps} from 'react';
 import React, {useState, useRef} from 'react';
 import ReactDOM from 'react-dom';
 
 import {Constants} from 'utils/constants';
 
 interface TooltipOptions {
-    message: React.ReactNode | React.ReactNodeArray;
+    message: ReactNode;
     strategy?: Strategy;
     placement: Placement;
     allowedPlacements?: Placement[];
@@ -31,7 +32,13 @@ const defaultOptions: Required<Pick<TooltipOptions, 'strategy' | 'hoverDelay' | 
 
 const transitionTime = 150;
 
-export default function useTooltip(options: TooltipOptions) {
+interface TooltipReturn {
+    setReference: (node: ReferenceType | null) => void;
+    getReferenceProps: (userProps?: HTMLProps<Element>) => Record<string, unknown>;
+    tooltip: ReactNode;
+}
+
+export default function useTooltip(options: TooltipOptions): TooltipReturn {
     const [open, setOpen] = useState(false);
     const [visible, setVisible] = useState(false);
     const transition = useRef<NodeJS.Timeout>(null);
@@ -42,10 +49,12 @@ export default function useTooltip(options: TooltipOptions) {
     const {
         x,
         y,
-        reference,
-        floating,
         strategy,
         placement,
+        refs: {
+            setReference,
+            setFloating,
+        },
         middlewareData: {
             arrow: {
                 x: arrowX,
@@ -96,7 +105,7 @@ export default function useTooltip(options: TooltipOptions) {
     const content = (
         <div
             {...getFloatingProps({
-                ref: floating,
+                ref: setFloating,
                 className: classNames(
                     'floating-ui-tooltip',
                     {
@@ -120,7 +129,7 @@ export default function useTooltip(options: TooltipOptions) {
         </div>
     );
 
-    let tooltip: React.ReactNode | React.ReactNodeArray = false;
+    let tooltip: ReactNode = false;
 
     if (open) {
         if (effectiveStrategy === 'fixed') {
@@ -132,7 +141,7 @@ export default function useTooltip(options: TooltipOptions) {
     }
 
     return {
-        reference,
+        setReference,
         getReferenceProps,
         tooltip,
     };

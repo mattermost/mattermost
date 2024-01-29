@@ -8,7 +8,6 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {retryFailedCloudFetches} from 'actions/cloud';
 import {retryFailedHostedCustomerFetches} from 'actions/hosted_customer';
@@ -16,7 +15,7 @@ import {retryFailedHostedCustomerFetches} from 'actions/hosted_customer';
 import './cloud_fetch_error.scss';
 
 export default function CloudFetchError() {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const isCloud = useSelector(isCurrentLicenseCloud);
     return (<div className='CloudFetchError '>
         <div className='CloudFetchError__header '>

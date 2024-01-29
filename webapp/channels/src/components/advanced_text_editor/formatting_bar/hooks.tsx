@@ -3,17 +3,12 @@
 
 import type {Instance} from '@popperjs/core';
 import {debounce} from 'lodash';
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import type React from 'react';
+import {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 
 import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
 type WideMode = 'wide' | 'normal' | 'narrow' | 'min';
-
-export function useGetLatest<T>(val: T) {
-    const ref = React.useRef<T>(val);
-    ref.current = val;
-    return React.useCallback(() => ref.current, []);
-}
 
 const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>): WideMode => {
     const [wideMode, setWideMode] = useState<WideMode>('wide');

@@ -11,7 +11,6 @@ import type {Team} from '@mattermost/types/teams';
 import {getGroupsNotAssociatedToTeam, linkGroupSyncable, getAllGroupsAssociatedToTeam} from 'mattermost-redux/actions/groups';
 import {getGroupsNotAssociatedToTeam as selectGroupsNotAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {setModalSearchTerm} from 'actions/views/search';
 
@@ -48,7 +47,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             getGroupsNotAssociatedToTeam,

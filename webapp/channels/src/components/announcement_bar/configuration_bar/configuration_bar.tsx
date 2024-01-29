@@ -10,6 +10,8 @@ import {Link} from 'react-router-dom';
 import type {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {trackEvent} from 'actions/telemetry_actions';
 
 import PurchaseLink from 'components/announcement_bar/purchase_link/purchase_link';
@@ -45,9 +47,7 @@ type Props = {
     warnMetricsStatus?: Record<string, WarnMetricStatus>;
     actions: {
         dismissNotice: (notice: string) => void;
-        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{
-            data: boolean;
-        }>;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     };
 };
 

@@ -11,7 +11,6 @@ import {addUserToTeam} from 'mattermost-redux/actions/teams';
 import {updateUserActive} from 'mattermost-redux/actions/users';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
@@ -31,7 +30,7 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     const apiActions = bindActionCreators({
         updateUserActive,
         addUserToTeam,

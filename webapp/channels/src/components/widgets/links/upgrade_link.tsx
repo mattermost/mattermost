@@ -5,8 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch} from 'react-redux';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
 
@@ -24,7 +22,7 @@ export interface UpgradeLinkProps {
 }
 
 const UpgradeLink = (props: UpgradeLinkProps) => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const styleButton = props.styleButton ? ' style-button' : '';
     const styleLink = props.styleLink ? ' style-link' : '';
 

@@ -1,13 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Group} from '@mattermost/types/groups';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {Filters} from 'mattermost-redux/selectors/entities/users';
 import {makeGetProfilesInChannel} from 'mattermost-redux/selectors/entities/users';
 import {makeAddLastViewAtToProfiles} from 'mattermost-redux/selectors/entities/utils';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {getSuggestionsSplitBy, getSuggestionsSplitByMultiple} from 'mattermost-redux/utils/user_utils';
 
 import store from 'stores/redux_store';
 
 import {Constants} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import AtMentionSuggestion from './at_mention_suggestion';
 
@@ -16,14 +23,65 @@ import Provider from '../provider';
 const profilesInChannelOptions = {active: true};
 const regexForAtMention = /(?:^|\W)@([\p{L}\d\-_. ]*)$/iu;
 
+type UserProfileWithLastViewAt = UserProfile & {last_viewed_at?: number};
+
+type CreatedProfile = UserProfile & {
+    type: string;
+    isCurrentUser?: boolean;
+    last_viewed_at?: number;
+};
+
+type CreatedGroup = Group & {type: string};
+
+type Results = {
+    matchedPretext: string;
+    terms: string[];
+    items: any;
+    component: React.ElementType;
+};
+
+type ResultsCallback = (results: Results) => void;
+
+export type Props = {
+    currentUserId: string;
+    channelId: string;
+    autocompleteUsersInChannel: (prefix: string) => Promise<ActionResult>;
+    useChannelMentions: boolean;
+    autocompleteGroups: Group[] | null;
+    searchAssociatedGroupsForReference: (prefix: string) => Promise<{data: any}>;
+    priorityProfiles: UserProfile[] | undefined;
+}
+
 // The AtMentionProvider provides matches for at mentions, including @here, @channel, @all,
 // users in the channel and users not in the channel. It mixes together results from the local
 // store with results fetched from the server.
 export default class AtMentionProvider extends Provider {
-    constructor(props) {
+    public currentUserId: string;
+    public channelId: string;
+    public autocompleteUsersInChannel: (prefix: string) => Promise<ActionResult>;
+    public useChannelMentions: boolean;
+    public autocompleteGroups: Group[] | null;
+    public searchAssociatedGroupsForReference: (prefix: string) => Promise<{data: any}>;
+    public priorityProfiles: UserProfile[] | undefined;
+
+    public data: any;
+    public lastCompletedWord: string;
+    public lastPrefixWithNoResults: string;
+    public getProfilesInChannel: (state: GlobalState, channelId: string, filters?: Filters | undefined) => UserProfile[];
+    public addLastViewAtToProfiles: (state: GlobalState, profiles: UserProfile[]) => UserProfileWithLastViewAt[];
+
+    constructor(props: Props) {
         super();
 
-        this.setProps(props);
+        const {currentUserId, channelId, autocompleteUsersInChannel, useChannelMentions, autocompleteGroups, searchAssociatedGroupsForReference, priorityProfiles} = props;
+
+        this.currentUserId = currentUserId;
+        this.channelId = channelId;
+        this.autocompleteUsersInChannel = autocompleteUsersInChannel;
+        this.useChannelMentions = useChannelMentions;
+        this.autocompleteGroups = autocompleteGroups;
+        this.searchAssociatedGroupsForReference = searchAssociatedGroupsForReference;
+        this.priorityProfiles = priorityProfiles;
 
         this.data = null;
         this.lastCompletedWord = '';
@@ -33,9 +91,7 @@ export default class AtMentionProvider extends Provider {
         this.addLastViewAtToProfiles = makeAddLastViewAtToProfiles();
     }
 
-    // setProps gives the provider additional context for matching pretexts. Ideally this would
-    // just be something akin to a connected component with access to the store itself.
-    setProps({currentUserId, channelId, autocompleteUsersInChannel, useChannelMentions, autocompleteGroups, searchAssociatedGroupsForReference, priorityProfiles}) {
+    setProps({currentUserId, channelId, autocompleteUsersInChannel, useChannelMentions, autocompleteGroups, searchAssociatedGroupsForReference, priorityProfiles}: Props) {
         this.currentUserId = currentUserId;
         this.channelId = channelId;
         this.autocompleteUsersInChannel = autocompleteUsersInChannel;
@@ -61,8 +117,8 @@ export default class AtMentionProvider extends Provider {
 
     // retrieves the parts of the profile that should be checked
     // against the term
-    getProfileSuggestions(profile) {
-        const profileSuggestions = [];
+    getProfileSuggestions(profile: UserProfile) {
+        const profileSuggestions: string[] = [];
         if (!profile) {
             return profileSuggestions;
         }
@@ -82,8 +138,8 @@ export default class AtMentionProvider extends Provider {
 
     // retrieves the parts of the group mention that should be checked
     // against the term
-    getGroupSuggestions(group) {
-        const groupSuggestions = [];
+    getGroupSuggestions(group: Group) {
+        const groupSuggestions: string[] = [];
         if (!group) {
             return groupSuggestions;
         }
@@ -101,12 +157,12 @@ export default class AtMentionProvider extends Provider {
     }
 
     // normalizeString performs a unicode normalization to a string
-    normalizeString(name) {
+    normalizeString(name: string) {
         return name.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
     // filterProfile constrains profiles to those matching the latest prefix.
-    filterProfile(profile) {
+    filterProfile(profile: UserProfile | UserProfileWithLastViewAt) {
         if (!profile) {
             return false;
         }
@@ -119,7 +175,7 @@ export default class AtMentionProvider extends Provider {
     }
 
     // filterGroup constrains group mentions to those matching the latest prefix.
-    filterGroup(group) {
+    filterGroup(group: Group) {
         if (!group) {
             return false;
         }
@@ -182,8 +238,8 @@ export default class AtMentionProvider extends Provider {
         }
 
         const remoteMembers = (this.data.users || []).
-            filter((profile) => this.filterProfile(profile)).
-            map((profile) => this.createFromProfile(profile, Constants.MENTION_MEMBERS));
+            filter((profile: UserProfileWithLastViewAt) => this.filterProfile(profile)).
+            map((profile: UserProfileWithLastViewAt) => this.createFromProfile(profile, Constants.MENTION_MEMBERS));
 
         return remoteMembers;
     }
@@ -193,30 +249,30 @@ export default class AtMentionProvider extends Provider {
         if (!this.data) {
             return [];
         }
-        const remoteGroups = (this.data.groups || []).
-            filter((group) => this.filterGroup(group)).
-            map((group) => this.createFromGroup(group, Constants.MENTION_GROUPS));
+        const remoteGroups = ((this.data.groups || []) as Group[]).
+            filter((group: Group) => this.filterGroup(group)).
+            map((group: Group) => this.createFromGroup(group, Constants.MENTION_GROUPS));
 
         return remoteGroups;
     }
 
     // remoteNonMembers matches users listed as not in the channel by the server.
     // listed in the channel from local results.
-    remoteNonMembers() {
+    remoteNonMembers(): CreatedProfile[] {
         if (!this.data) {
             return [];
         }
 
         return (this.data.out_of_channel || []).
-            filter((profile) => this.filterProfile(profile)).
-            map((profile) => ({
+            filter((profile: UserProfileWithLastViewAt) => this.filterProfile(profile)).
+            map((profile: UserProfileWithLastViewAt) => ({
                 type: Constants.MENTION_NONMEMBERS,
                 ...profile,
             }));
     }
 
     items() {
-        const priorityProfilesIds = {};
+        const priorityProfilesIds: Record<string, boolean> = {};
         const priorityProfiles = this.filterPriorityProfiles();
 
         priorityProfiles.forEach((member) => {
@@ -226,16 +282,16 @@ export default class AtMentionProvider extends Provider {
         const specialMentions = this.specialMentions();
         const localMembers = this.localMembers().filter((member) => !priorityProfilesIds[member.id]);
 
-        const localUserIds = {};
+        const localUserIds: Record<string, boolean> = {};
 
         localMembers.forEach((member) => {
             localUserIds[member.id] = true;
         });
 
-        const remoteMembers = this.remoteMembers().filter((member) => !localUserIds[member.id] && !priorityProfilesIds[member.id]);
+        const remoteMembers = this.remoteMembers().filter((member: CreatedProfile) => !localUserIds[member.id] && !priorityProfilesIds[member.id]);
 
         // comparator which prioritises users with usernames starting with search term
-        const orderUsers = (a, b) => {
+        const orderUsers = (a: CreatedProfile, b: CreatedProfile) => {
             const aStartsWith = a.username.startsWith(this.latestPrefix);
             const bStartsWith = b.username.startsWith(this.latestPrefix);
 
@@ -263,7 +319,7 @@ export default class AtMentionProvider extends Provider {
         // handle groups
         const localGroups = this.localGroups();
 
-        const localGroupIds = {};
+        const localGroupIds: Record<string, boolean> = {};
         localGroups.forEach((group) => {
             localGroupIds[group.id] = true;
         });
@@ -271,7 +327,7 @@ export default class AtMentionProvider extends Provider {
         const remoteGroups = this.remoteGroups().filter((group) => !localGroupIds[group.id]);
 
         // comparator which prioritises users with usernames starting with search term
-        const orderGroups = (a, b) => {
+        const orderGroups = (a: CreatedGroup, b: CreatedGroup) => {
             const aStartsWith = a.name.startsWith(this.latestPrefix);
             const bStartsWith = b.name.startsWith(this.latestPrefix);
 
@@ -294,11 +350,11 @@ export default class AtMentionProvider extends Provider {
             filter((member) => !localUserIds[member.id]).
             sort(orderUsers);
 
-        return priorityProfiles.concat(localAndRemoteMembers).concat(localAndRemoteGroups).concat(specialMentions).concat(remoteNonMembers);
+        return [...priorityProfiles, ...localAndRemoteMembers, ...localAndRemoteGroups, ...specialMentions, ...remoteNonMembers];
     }
 
     // updateMatches invokes the resultCallback with the metadata for rendering at mentions
-    updateMatches(resultCallback, items) {
+    updateMatches(resultCallback: ResultsCallback, items: any[]) {
         if (items.length === 0) {
             this.lastPrefixWithNoResults = this.latestPrefix;
         } else if (this.lastPrefixWithNoResults === this.latestPrefix) {
@@ -321,7 +377,7 @@ export default class AtMentionProvider extends Provider {
         });
     }
 
-    handlePretextChanged(pretext, resultCallback) {
+    handlePretextChanged(pretext: string, resultCallback: ResultsCallback) {
         const captured = regexForAtMention.exec(pretext.toLowerCase());
         if (!captured) {
             return false;
@@ -342,15 +398,15 @@ export default class AtMentionProvider extends Provider {
         this.updateMatches(resultCallback, this.items());
 
         // If we haven't gotten server-side results in 500 ms, add the loading indicator.
-        let showLoadingIndicator = setTimeout(() => {
+        let showLoadingIndicator: NodeJS.Timeout | null = setTimeout(() => {
             if (this.shouldCancelDispatch(prefix)) {
                 return;
             }
 
-            this.updateMatches(resultCallback, this.items().concat([{
+            this.updateMatches(resultCallback, [...this.items(), ...[{
                 type: Constants.MENTION_MORE_MEMBERS,
                 loading: true,
-            }]));
+            }]]);
 
             showLoadingIndicator = null;
         }, 500);
@@ -375,12 +431,12 @@ export default class AtMentionProvider extends Provider {
         return true;
     }
 
-    handleCompleteWord(term) {
+    handleCompleteWord(term: string) {
         this.lastCompletedWord = term;
         this.lastPrefixWithNoResults = '';
     }
 
-    createFromProfile(profile, type) {
+    createFromProfile(profile: UserProfile | UserProfileWithLastViewAt, type: string): CreatedProfile {
         if (profile.id === this.currentUserId) {
             return {
                 type,
@@ -395,7 +451,7 @@ export default class AtMentionProvider extends Provider {
         };
     }
 
-    createFromGroup(group, type) {
+    createFromGroup(group: Group, type: string): CreatedGroup {
         return {
             type,
             ...group,

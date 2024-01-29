@@ -6,6 +6,8 @@ import React, {memo, useCallback} from 'react';
 import type {Channel} from '@mattermost/types/channels';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import {trackEvent} from 'actions/telemetry_actions';
 
 import SidebarChannelLink from 'components/sidebar/sidebar_channel/sidebar_channel_link';
@@ -21,7 +23,7 @@ type Props = {
     active: boolean;
     membersCount: number;
     actions: {
-        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     };
 };
 

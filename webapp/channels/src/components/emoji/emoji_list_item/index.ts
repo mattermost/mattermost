@@ -8,7 +8,6 @@ import type {Dispatch} from 'redux';
 import {deleteCustomEmoji} from 'mattermost-redux/actions/emojis';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {getDisplayNameByUser} from 'utils/utils';
 
@@ -30,7 +29,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             deleteCustomEmoji,

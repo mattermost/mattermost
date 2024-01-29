@@ -7,8 +7,6 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {trackEvent} from 'actions/telemetry_actions';
 import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
@@ -27,7 +25,7 @@ type Props = {
 }
 
 const SwitchToYearlyPlanConfirmModal: React.FC<Props> = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.CONFIRM_SWITCH_TO_YEARLY));

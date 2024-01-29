@@ -6,13 +6,12 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import {removePost} from 'mattermost-redux/actions/posts';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {createPost} from 'actions/post_actions';
 
 import FailedPostOptions from './failed_post_options';
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             createPost,

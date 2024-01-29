@@ -11,7 +11,6 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {setAddChannelCtaDropdown} from 'actions/views/add_channel_dropdown';
@@ -28,7 +27,7 @@ import {ModalIdentifiers, Preferences, Touched} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 const AddChannelsCtaButton = (): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const currentTeamId = useSelector(getCurrentTeamId);
     const intl = useIntl();
     const touchedAddChannelsCtaButton = useSelector((state: GlobalState) => getBool(state, Preferences.TOUCHED, Touched.ADD_CHANNELS_CTA));

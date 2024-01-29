@@ -3434,7 +3434,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'LdapSettings.PictureAttribute',
                                     label: defineMessage({id: 'admin.ldap.pictureAttrTitle', defaultMessage: 'Profile Picture Attribute:'}),
                                     placeholder: defineMessage({id: 'admin.ldap.pictureAttrEx', defaultMessage: 'E.g.: "thumbnailPhoto" or "jpegPhoto"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.pictureAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the profile picture in Mattermost.'}),
+                                    help_text: defineMessage({id: 'admin.ldap.pictureAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the profile picture in Mattermost.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                                         it.all(

@@ -15,26 +15,26 @@
         "postinstall": "npx playwright install"
     },
     "dependencies": {
-        "@axe-core/playwright": "4.7.3",
-        "@percy/cli": "1.27.1",
+        "@axe-core/playwright": "4.8.3",
+        "@percy/cli": "1.27.7",
         "@percy/playwright": "1.0.4",
-        "@playwright/test": "1.38.1",
+        "@playwright/test": "1.41.1",
         "async-wait-until": "2.0.12",
-        "axe-core": "4.8.1",
+        "axe-core": "4.8.3",
         "chalk": "4.1.2",
         "deepmerge": "4.3.1",
-        "dotenv": "16.3.1",
+        "dotenv": "16.3.2",
         "form-data": "4.0.0",
         "isomorphic-unfetch": "4.0.2",
         "uuid": "9.0.1"
     },
     "devDependencies": {
-        "@types/uuid": "9.0.4",
-        "@typescript-eslint/eslint-plugin": "6.7.0",
-        "@typescript-eslint/parser": "6.7.0",
+        "@types/uuid": "9.0.7",
+        "@typescript-eslint/eslint-plugin": "6.19.1",
+        "@typescript-eslint/parser": "6.19.1",
         "cross-env": "7.0.3",
-        "eslint": "8.49.0",
-        "prettier": "3.0.3",
-        "typescript": "5.2.2"
+        "eslint": "8.56.0",
+        "prettier": "3.2.4",
+        "typescript": "5.3.3"
     }
 }

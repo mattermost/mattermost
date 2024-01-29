@@ -5,8 +5,6 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {GenericAction} from 'mattermost-redux/types/actions';
-
 import {loadTranslations} from 'actions/views/root';
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
@@ -23,7 +21,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             loadTranslations,
