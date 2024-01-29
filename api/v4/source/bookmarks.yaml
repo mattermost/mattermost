@@ -289,3 +289,39 @@
           $ref: "#/components/responses/Unauthorized"
         "403":
           $ref: "#/components/responses/Forbidden"
+
+  /api/v4/channels/{channel_id}/bookmarks/open_graph:
+    get:
+      tags:
+        - bookmarks
+      summary: Get get site metadata for create channel bookmark
+      description: |
+        __Minimum server version__: 9.5
+      operationId: FetchOpenGraphForChannelBookmark
+      parameters:
+        - name: channel_id
+          in: path
+          description: Channel GUID
+          required: true
+          schema:
+            type: string
+        - name: url
+          in: query
+          description: |
+            Url to fetch Open Graph metadata from
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Open Graph metadata retrieval successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OpenGraph"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "401":
+          $ref: "#/components/responses/Unauthorized"
+        "403":
+          $ref: "#/components/responses/Forbidden"
