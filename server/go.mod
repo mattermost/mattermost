@@ -5,6 +5,7 @@ go 1.20
 require (
 	code.sajari.com/docconv v1.3.8
 	github.com/Masterminds/semver/v3 v3.2.1
+	github.com/adampresley/gofavigrab v0.0.0-20150913222647-3e339572468d
 	github.com/avct/uasurfer v0.0.0-20191028135549-26b5daa857f1
 	github.com/aws/aws-sdk-go v1.49.4
 	github.com/blang/semver/v4 v4.0.0
@@ -86,7 +87,6 @@ require (
 	github.com/JalfResi/justext v0.0.0-20221106200834-be571e3e3052 // indirect
 	github.com/PuerkitoBio/goquery v1.8.1 // indirect
 	github.com/RoaringBitmap/roaring v1.6.0 // indirect
-	github.com/adampresley/gofavigrab v0.0.0-20150913222647-3e339572468d // indirect
 	github.com/advancedlogic/GoOse v0.0.0-20231203033844-ae6b36caf275 // indirect
 	github.com/andybalholm/brotli v1.0.6 // indirect
 	github.com/andybalholm/cascadia v1.3.2 // indirect
@@ -195,6 +195,7 @@ require (
 	github.com/sagikazarmark/slog-shim v0.1.0 // indirect
 	github.com/sean-/seed v0.0.0-20170313163322-e2103e2c3529 // indirect
 	github.com/segmentio/backo-go v1.0.1 // indirect
+	github.com/smartystreets/goconvey v1.8.1 // indirect
 	github.com/sourcegraph/conc v0.3.0 // indirect
 	github.com/spf13/afero v1.11.0 // indirect
 	github.com/spf13/cast v1.6.0 // indirect
