@@ -237,24 +237,16 @@ func TestCreateChannelBookmark(t *testing.T) {
 		_, appErr := th.App.CreateChannelBookmark(th.Context, bookmark1, "")
 		require.Nil(t, appErr)
 
-		var received bool
 		var b model.ChannelBookmarkWithFileInfo
-	loop:
-		for {
-			select {
-			case event := <-webSocketClient.EventChannel:
-				if event.EventType() == model.WebsocketEventChannelBookmarkCreated {
-					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
-					require.NoError(t, err)
-					received = true
-					break loop
-				}
-			case <-time.After(2 * time.Second):
-				break loop
+		require.Eventuallyf(t, func() bool {
+			event := <-webSocketClient.EventChannel
+			if event.EventType() == model.WebsocketEventChannelBookmarkCreated {
+				err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
+				require.NoError(t, err)
+				return true
 			}
-		}
-
-		require.True(t, received)
+			return false
+		}, 2*time.Second, 250*time.Millisecond, "Websocket event for bookmark created not received", nil)
 		require.NotNil(t, b)
 		require.NotEmpty(t, b.Id)
 	})
@@ -614,24 +606,17 @@ func TestEditChannelBookmark(t *testing.T) {
 		require.NoError(t, err)
 		CheckOKStatus(t, resp)
 
-		var received bool
 		var ucb model.UpdateChannelBookmarkResponse
-	loop:
-		for {
-			select {
-			case event := <-webSocketClient.EventChannel:
-				if event.EventType() == model.WebsocketEventChannelBookmarkUpdated {
-					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &ucb)
-					require.NoError(t, err)
-					received = true
-					break loop
-				}
-			case <-time.After(2 * time.Second):
-				break loop
+		require.Eventuallyf(t, func() bool {
+			event := <-webSocketClient.EventChannel
+			if event.EventType() == model.WebsocketEventChannelBookmarkUpdated {
+				err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &ucb)
+				require.NoError(t, err)
+				return true
 			}
-		}
+			return false
+		}, 2*time.Second, 250*time.Millisecond, "Websocket event for bookmark edited not received", nil)
 
-		require.True(t, received)
 		require.NotNil(t, ucb)
 		require.NotEmpty(t, ucb.Updated)
 		require.Equal(t, "Edited bookmark test", ucb.Updated.DisplayName)
@@ -981,24 +966,17 @@ func TestUpdateChannelBookmarkSortOrder(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, bookmarks)
 
-		var received bool
 		var bl []*model.ChannelBookmarkWithFileInfo
-	loop:
-		for {
-			select {
-			case event := <-webSocketClient.EventChannel:
-				if event.EventType() == model.WebsocketEventChannelBookmarkSorted {
-					err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &bl)
-					require.NoError(t, err)
-					received = true
-					break loop
-				}
-			case <-time.After(2 * time.Second):
-				break loop
+		require.Eventuallyf(t, func() bool {
+			event := <-webSocketClient.EventChannel
+			if event.EventType() == model.WebsocketEventChannelBookmarkSorted {
+				err := json.Unmarshal([]byte(event.GetData()["bookmarks"].(string)), &bl)
+				require.NoError(t, err)
+				return true
 			}
-		}
+			return false
+		}, 2*time.Second, 250*time.Millisecond, "Websocket event for bookmark sorted not received", nil)
 
-		require.True(t, received)
 		require.NotEmpty(t, bl)
 		require.Equal(t, cb.Id, bl[0].Id)
 		require.Equal(t, int64(0), bl[0].SortOrder)
@@ -1314,24 +1292,17 @@ func TestDeleteChannelBookmark(t *testing.T) {
 		CheckOKStatus(t, resp)
 		require.NotEmpty(t, dbm)
 
-		var received bool
 		var b *model.ChannelBookmarkWithFileInfo
-	loop:
-		for {
-			select {
-			case event := <-webSocketClient.EventChannel:
-				if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
-					err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
-					require.NoError(t, err)
-					received = true
-					break loop
-				}
-			case <-time.After(2 * time.Second):
-				break loop
+		require.Eventuallyf(t, func() bool {
+			event := <-webSocketClient.EventChannel
+			if event.EventType() == model.WebsocketEventChannelBookmarkDeleted {
+				err := json.Unmarshal([]byte(event.GetData()["bookmark"].(string)), &b)
+				require.NoError(t, err)
+				return true
 			}
-		}
+			return false
+		}, 2*time.Second, 250*time.Millisecond, "Websocket event for bookmark deleted not received", nil)
 
-		require.True(t, received)
 		require.NotEmpty(t, b)
 		require.Equal(t, cb.Id, b.Id)
 		require.NotEmpty(t, b.DeleteAt)

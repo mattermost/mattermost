@@ -23,7 +23,7 @@ func (api *API) InitChannelBookmarks() {
 
 func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -39,6 +39,18 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = appErr
 		return
 	}
+
+	var channelBookmark *model.ChannelBookmark
+	err := json.NewDecoder(r.Body).Decode(&channelBookmark)
+	if err != nil || channelBookmark == nil {
+		c.SetInvalidParamWithErr("channelBookmark", err)
+		return
+	}
+	channelBookmark.ChannelId = c.Params.ChannelId
+
+	auditRec := c.MakeAuditRecord("createChannelBookmark", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameterAuditable(auditRec, "channelBookmark", channelBookmark)
 
 	switch channel.Type {
 	case model.ChannelTypeOpen:
@@ -56,7 +68,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Any member of DM/GMs but guests can manage channel bookmarks
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
 			return
 		}
 
@@ -75,18 +87,6 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
-
-	var channelBookmark *model.ChannelBookmark
-	err := json.NewDecoder(r.Body).Decode(&channelBookmark)
-	if err != nil || channelBookmark == nil {
-		c.SetInvalidParamWithErr("channelBookmark", err)
-		return
-	}
-	channelBookmark.ChannelId = c.Params.ChannelId
-
-	auditRec := c.MakeAuditRecord("createChannelBookmark", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "channelBookmark", channelBookmark)
 
 	newChannelBookmark, appErr := c.App.CreateChannelBookmark(c.AppContext, channelBookmark, connectionID)
 	if appErr != nil {
@@ -107,7 +107,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -164,7 +164,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Any member of DM/GMs but guests can manage channel bookmarks
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.update_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
 			return
 		}
 
@@ -203,7 +203,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -251,7 +251,7 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Any member of DM/GMs but guests can manage channel bookmarks
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.update_channel_bookmark_sort_order.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
 			return
 		}
 
@@ -294,7 +294,7 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 
 func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -331,7 +331,7 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	case model.ChannelTypeGroup, model.ChannelTypeDirect:
 		// Any member of DM/GMs but guests can manage channel bookmarks
 		if _, errGet := c.App.GetChannelMember(c.AppContext, channel.Id, c.AppContext.Session().UserId); errGet != nil {
-			c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, "", http.StatusForbidden)
+			c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.delete_channel_bookmark.direct_or_group_channels.forbidden.app_error", nil, errGet.Message, http.StatusForbidden)
 			return
 		}
 
@@ -381,7 +381,7 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("listChannelBookmarksForChannel", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("listChannelBookmarksForChannel", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
