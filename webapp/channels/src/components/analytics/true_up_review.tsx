@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getSelfHostedErrors,
     getTrueUpReviewProfile as trueUpReviewProfileSelector,
@@ -50,7 +50,6 @@ const TrueUpReview: React.FC = () => {
     // * are not on starter/free
     // * are not a government sku
     const licenseIsTrueUpEligible = isLicensed && !isCloud && !isStarter && !isGovSku;
-    const telemetryEnabled = useSelector(getConfig).EnableDiagnostics === 'true';
     const trueUpReviewError = useSelector((state: GlobalState) => {
         const errors = getSelfHostedErrors(state);
         return Boolean(errors.trueUpReview);
@@ -218,10 +217,6 @@ const TrueUpReview: React.FC = () => {
 
     // If the review has already been submitted, don't show anything.
     if (reviewStatus.complete) {
-        return null;
-    }
-
-    if (telemetryEnabled) {
         return null;
     }
 
