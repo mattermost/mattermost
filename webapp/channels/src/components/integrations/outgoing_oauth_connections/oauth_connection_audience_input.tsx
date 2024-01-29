@@ -8,6 +8,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import {OauthIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {getOutgoingOAuthConnections as fetchOutgoingOAuthConnections} from 'mattermost-redux/actions/integrations';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
 
 type Props = {
@@ -18,11 +19,14 @@ type Props = {
 
 const OAuthConnectionAudienceInput = (props: Props) => {
     const oauthConnections = useSelector(getOutgoingOAuthConnections);
+    const oauthConnectionsEnabled = useSelector(getConfig).EnableOutgoingOAuthConnections === 'true';
 
     const dispatch = useDispatch();
     useEffect(() => {
-        dispatch(fetchOutgoingOAuthConnections());
-    }, [dispatch]);
+        if (oauthConnectionsEnabled) {
+            dispatch(fetchOutgoingOAuthConnections());
+        }
+    }, [dispatch, oauthConnectionsEnabled]);
 
     const connections = Object.values(oauthConnections);
 

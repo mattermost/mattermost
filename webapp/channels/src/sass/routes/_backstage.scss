@@ -556,3 +556,14 @@
 .outgoing-oauth-audience-match-message {
     height: 27px;
 }
+
+#confirmModal.integrations-backstage-modal {
+    #confirmModalLabel,
+    #confirmModalBody {
+        color: rgb(51, 51, 51);
+    }
+
+    #confirmModalBody p {
+        height: 30px;
+    }
+}

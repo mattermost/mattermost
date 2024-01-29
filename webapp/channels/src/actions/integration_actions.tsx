@@ -138,7 +138,7 @@ export function loadProfilesForOAuthApps(apps: OAuthApp[]): NewActionFuncAsync {
     };
 }
 
-export function loadOutgoingOAuthConnectionsAndProfiles(page = 0, perPage = DEFAULT_PAGE_SIZE): ActionFunc {
+export function loadOutgoingOAuthConnectionsAndProfiles(page = 0, perPage = DEFAULT_PAGE_SIZE): NewActionFuncAsync<null> {
     return async (dispatch) => {
         const {data} = await dispatch(IntegrationActions.getOutgoingOAuthConnections(page, perPage));
         if (data) {
@@ -148,7 +148,7 @@ export function loadOutgoingOAuthConnectionsAndProfiles(page = 0, perPage = DEFA
     };
 }
 
-export function loadProfilesForOutgoingOAuthConnections(connections: OutgoingOAuthConnection[]): ActionFunc {
+export function loadProfilesForOutgoingOAuthConnections(connections: OutgoingOAuthConnection[]): NewActionFuncAsync<null> {
     return async (dispatch, getState) => {
         const state = getState();
         const profilesToLoad: {[key: string]: boolean} = {};

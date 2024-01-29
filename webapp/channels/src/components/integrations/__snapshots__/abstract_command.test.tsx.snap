@@ -169,13 +169,9 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder="Must start with http:// or https://"
-            type="text"
             value="https://google.com/command"
           />
           <div
@@ -609,13 +605,9 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder="Must start with http:// or https://"
-            type="text"
             value="https://google.com/command"
           />
           <div
@@ -1049,13 +1041,9 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder="Must start with http:// or https://"
-            type="text"
             value="https://google.com/command"
           />
           <div

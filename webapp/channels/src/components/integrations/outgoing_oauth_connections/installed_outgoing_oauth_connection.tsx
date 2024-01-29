@@ -94,10 +94,23 @@ const InstalledOutgoingOAuthConnection = (props: InstalledOutgoingOAuthConnectio
             </Link>
             {' - '}
             <DeleteIntegrationLink
-                modalMessage={
+                subtitleText={
                     <FormattedMessage
                         id='installed_outgoing_oauth_connections.delete.confirm'
-                        defaultMessage='This action deletes the OAuth 2.0 connection and breaks any integrations using it. Are you sure you want to delete it?'
+                        defaultMessage='Are you sure you want to delete {connectionName}?'
+                        values={{
+                            connectionName: (
+                                <strong>
+                                    {props.outgoingOAuthConnection.name}
+                                </strong>
+                            ),
+                        }}
+                    />
+                }
+                modalMessage={
+                    <FormattedMessage
+                        id='installed_outgoing_oauth_connections.delete.wanring'
+                        defaultMessage='Deleting this connection will break any integrations using it'
                     />
                 }
                 onDelete={handleDelete}

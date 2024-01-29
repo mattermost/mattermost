@@ -121,6 +121,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
+                modalClass='integrations-backstage-modal'
                 show={showConfirmModal}
                 onConfirm={() => createOutgoingOAuthConnection(newConnection)}
                 onCancel={confirmModalDismissed}

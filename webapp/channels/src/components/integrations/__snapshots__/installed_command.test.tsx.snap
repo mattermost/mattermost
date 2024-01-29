@@ -10,10 +10,10 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
     <div
       className="item-details__row d-flex flex-column flex-md-row justify-content-between"
     >
-      <div>
-        <strong
-          className="item-details__name"
-        >
+      <div
+        className="item-details__name"
+      >
+        <strong>
           display_name
         </strong>
         <span
@@ -116,10 +116,10 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
     <div
       className="item-details__row d-flex flex-column flex-md-row justify-content-between"
     >
-      <div>
-        <strong
-          className="item-details__name"
-        >
+      <div
+        className="item-details__name"
+      >
+        <strong>
           display_name
         </strong>
         <span
@@ -224,10 +224,10 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
     <div
       className="item-details__row d-flex flex-column flex-md-row justify-content-between"
     >
-      <div>
-        <strong
-          className="item-details__name"
-        >
+      <div
+        className="item-details__name"
+      >
+        <strong>
           display_name
         </strong>
         <span
@@ -298,10 +298,10 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
     <div
       className="item-details__row d-flex flex-column flex-md-row justify-content-between"
     >
-      <div>
-        <strong
-          className="item-details__name"
-        >
+      <div
+        className="item-details__name"
+      >
+        <strong>
           command_display_name
         </strong>
         <span

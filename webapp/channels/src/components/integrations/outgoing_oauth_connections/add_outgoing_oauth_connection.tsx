@@ -13,7 +13,7 @@ import {addOutgoingOAuthConnection} from 'mattermost-redux/actions/integrations'
 
 import AbstractOutgoingOAuthConnection from './abstract_outgoing_oauth_connection';
 
-const HEADER = defineMessage({id: 'add_outgoing_oauth_connection.header', defaultMessage: 'Add'});
+const HEADER = defineMessage({id: 'add_outgoing_oauth_connection.add', defaultMessage: 'Add'});
 const FOOTER = defineMessage({id: 'add_outgoing_oauth_connection.save', defaultMessage: 'Save'});
 const LOADING = defineMessage({id: 'add_outgoing_oauth_connection.saving', defaultMessage: 'Saving...'});
 

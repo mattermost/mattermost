@@ -430,8 +430,8 @@ export function regenOAuthAppSecret(appId: string) {
     });
 }
 
-export function deleteOutgoingOAuthConnection(id: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteOutgoingOAuthConnection(id: string): NewActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
         try {
             await Client4.deleteOutgoingOAuthConnection(id);
         } catch (error) {

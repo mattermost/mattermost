@@ -30,11 +30,24 @@ exports[`components/integrations/InstalledOutgoingOAuthConnection should match s
         <Connect(DeleteIntegrationLink)
           modalMessage={
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="This action deletes the OAuth 2.0 connection and breaks any integrations using it. Are you sure you want to delete it?"
-              id="installed_outgoing_oauth_connections.delete.confirm"
+              defaultMessage="Deleting this connection will break any integrations using it"
+              id="installed_outgoing_oauth_connections.delete.wanring"
             />
           }
           onDelete={[Function]}
+          subtitleText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Are you sure you want to delete {connectionName}?"
+              id="installed_outgoing_oauth_connections.delete.confirm"
+              values={
+                Object {
+                  "connectionName": <strong>
+                    My OAuth Connection
+                  </strong>,
+                }
+              }
+            />
+          }
         />
       </div>
     </div>
