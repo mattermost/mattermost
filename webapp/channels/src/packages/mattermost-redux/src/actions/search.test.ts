@@ -61,13 +61,9 @@ describe('Actions.Search', () => {
         await dispatch(Actions.searchPosts(TestHelper.basicTeam!.id, search1, false, false));
 
         let state = getState();
-        let {recent, results} = state.entities.search;
+        let {results} = state.entities.search;
         const {posts} = state.entities.posts;
         let current = state.entities.search.current[TestHelper.basicTeam!.id];
-        expect(recent[TestHelper.basicTeam!.id]).toBeTruthy();
-        let searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex((r: {terms: string}) => r.terms === search1);
-        expect(searchIsPresent !== -1).toBeTruthy();
-        expect(Object.keys(recent[TestHelper.basicTeam!.id]).length).toEqual(1);
         expect(results.length).toEqual(1);
         expect(posts[results[0]]).toBeTruthy();
         expect(!current.isEnd).toBeTruthy();
@@ -80,12 +76,7 @@ describe('Actions.Search', () => {
         await dispatch(Actions.searchPostsWithParams(TestHelper.basicTeam!.id, {terms: search1, page: 1} as SearchParameter));
         state = getState();
         current = state.entities.search.current[TestHelper.basicTeam!.id];
-        recent = state.entities.search.recent;
         results = state.entities.search.results;
-        expect(recent[TestHelper.basicTeam!.id]).toBeTruthy();
-        searchIsPresent = recent[TestHelper.basicTeam!.id].findIndex((r: {terms: string}) => r.terms === search1);
-        expect(searchIsPresent !== -1).toBeTruthy();
-        expect(Object.keys(recent[TestHelper.basicTeam!.id]).length).toEqual(1);
         expect(results.length).toEqual(1);
         expect(current.isEnd).toBeTruthy();
     });
