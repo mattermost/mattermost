@@ -687,7 +687,7 @@
         }
 
         .post__body {
-            color: rgba(var(--center-channel-color-rgb), 0.6);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 
@@ -1615,7 +1615,7 @@
     .post__visibility {
         padding: 4px;
         font-size: 0.9em;
-        opacity: 0.73;
+        opacity: 0.75;
     }
 
     // styles for utility buttons i.e download, and copy source link in image preview
