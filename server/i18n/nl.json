@@ -10314,14 +10314,6 @@
     "translation": "Kan niet zoveel kanaalleden updaten. Slechts {{.Max}} kanaalleden kunnen in één keer worden bijgewerkt."
   },
   {
-    "id": "api.retrieveBatchReportFile.invalid_format",
-    "translation": "Rapportindeling is ongeldig."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_report_id",
-    "translation": "Rapport-ID is ongeldig."
-  },
-  {
     "id": "app.compile_csv_chunks.header_error",
     "translation": "Fout bij het schrijven van CSV-headers."
   },
@@ -10336,10 +10328,6 @@
   {
     "id": "app.compile_report_chunks.unsupported_format",
     "translation": "Niet-ondersteunde rapportindeling."
-  },
-  {
-    "id": "app.report.retrieve_batch_report.license_error",
-    "translation": "Batch export van rapporten is alleen beschikbaar voor Pro en Enterprise."
   },
   {
     "id": "app.report.start_users_batch_export.job_exists",

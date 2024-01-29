@@ -10304,20 +10304,8 @@
     "translation": "Liczba dni i godzin przechowywania plików nie może być większa niż 0."
   },
   {
-    "id": "app.report.retrieve_batch_report.license_error",
-    "translation": "Eksport raportów wsadowych jest dostępny tylko dla wersji Pro i Enterprise."
-  },
-  {
     "id": "app.report.start_users_batch_export.started_export",
     "translation": "Zażądano eksportu danych użytkownika. Po zakończeniu eksportu otrzymasz plik CSV."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_format",
-    "translation": "Format raportu jest nieprawidłowy."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_report_id",
-    "translation": "Identyfikator raportu jest nieprawidłowy."
   },
   {
     "id": "app.compile_csv_chunks.header_error",

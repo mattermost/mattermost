@@ -10118,10 +10118,6 @@
     "translation": "Du har inte behörighet att flytta tråden."
   },
   {
-    "id": "api.retrieveBatchReportFile.invalid_report_id",
-    "translation": "Rapport-ID är ogiltigt."
-  },
-  {
     "id": "api.templates.cloud_renewal_60.subject",
     "translation": "Förnyelse av årsabonnemang inom 60 dagar"
   },
@@ -10200,10 +10196,6 @@
   {
     "id": "api.emoji.upload.seek.app_error",
     "translation": "Kan inte söka till början på filen."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_format",
-    "translation": "Rapportformatet är ogiltigt."
   },
   {
     "id": "api.user.get_profile_image_path.app_error",
