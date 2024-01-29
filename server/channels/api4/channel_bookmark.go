@@ -39,6 +39,18 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	var channelBookmark *model.ChannelBookmark
+	err := json.NewDecoder(r.Body).Decode(&channelBookmark)
+	if err != nil || channelBookmark == nil {
+		c.SetInvalidParamWithErr("channelBookmark", err)
+		return
+	}
+	channelBookmark.ChannelId = c.Params.ChannelId
+
+	auditRec := c.MakeAuditRecord("createChannelBookmark", audit.Fail)
+	defer c.LogAuditRec(auditRec)
+	audit.AddEventParameterAuditable(auditRec, "channelBookmark", channelBookmark)
+
 	switch channel.Type {
 	case model.ChannelTypeOpen:
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, model.PermissionAddBookmarkPublicChannel) {
@@ -74,18 +86,6 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.create_channel_bookmark.forbidden.app_error", nil, "", http.StatusForbidden)
 		return
 	}
-
-	var channelBookmark *model.ChannelBookmark
-	err := json.NewDecoder(r.Body).Decode(&channelBookmark)
-	if err != nil || channelBookmark == nil {
-		c.SetInvalidParamWithErr("channelBookmark", err)
-		return
-	}
-	channelBookmark.ChannelId = c.Params.ChannelId
-
-	auditRec := c.MakeAuditRecord("createChannelBookmark", audit.Fail)
-	defer c.LogAuditRec(auditRec)
-	audit.AddEventParameterAuditable(auditRec, "channelBookmark", channelBookmark)
 
 	newChannelBookmark, appErr := c.App.CreateChannelBookmark(c.AppContext, channelBookmark, connectionID)
 	if appErr != nil {
