@@ -9010,10 +9010,6 @@
     "translation": "确认升级Mattermost"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "解析主体数据时出错。"
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "请求主体无效。"
   },

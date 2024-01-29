@@ -9092,10 +9092,6 @@
     "translation": "{{ .SenderName }} zaprosił Cię do dołączenia do Kanału {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Błąd podczas przetwarzania danych."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Nieprawidłowa treść żądania."
   },

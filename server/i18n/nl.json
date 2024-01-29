@@ -9082,10 +9082,6 @@
     "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fout bij het parsen van de body data."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Ongeldig body request."
   },

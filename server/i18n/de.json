@@ -9090,10 +9090,6 @@
     "translation": "{{ .SenderName }} hat dich eingeladen, dem Kanal {{ .ChannelName }} im Team {{ .TeamDisplayName }} beizutreten"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fehler beim Parsen der Body Daten."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Ungültiger Request Body."
   },

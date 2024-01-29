@@ -8978,10 +8978,6 @@
     "translation": "fel när antal grupper beräknades"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fel vid tolkning av förfrågan."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Ogiltig förfrågan."
   },
