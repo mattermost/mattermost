@@ -22,7 +22,7 @@ func (api *API) InitChannelBookmarks() {
 
 func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("createChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -106,7 +106,7 @@ func createChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("updateChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -202,7 +202,7 @@ func updateChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("updateChannelBookmarkSortOrder", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -293,7 +293,7 @@ func updateChannelBookmarkSortOrder(c *Context, w http.ResponseWriter, r *http.R
 
 func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("deleteChannelBookmark", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
@@ -380,7 +380,7 @@ func deleteChannelBookmark(c *Context, w http.ResponseWriter, r *http.Request) {
 
 func listChannelBookmarksForChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 	if c.App.Channels().License() == nil {
-		c.Err = model.NewAppError("listChannelBookmarksForChannel", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusForbidden)
+		c.Err = model.NewAppError("listChannelBookmarksForChannel", "api.channel.bookmark.channel_bookmark.license.error", nil, "", http.StatusNotImplemented)
 		return
 	}
 
