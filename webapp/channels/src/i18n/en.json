@@ -2466,6 +2466,7 @@
   "admin.system_users.filtersPopover.apply": "Apply",
   "admin.system_users.filtersPopover.title": "Filter by",
   "admin.system_users.list.actions": "Actions",
+  "admin.system_users.list.actions.deactivated": "Deactivated",
   "admin.system_users.list.actions.menu.activate": "Activate",
   "admin.system_users.list.actions.menu.deactivate": "Deactivate",
   "admin.system_users.list.actions.menu.demoteToGuest": "Demote to guest",
