@@ -461,7 +461,10 @@ function SystemUsers(props: Props) {
     });
 
     return (
-        <div className='wrapper--fixed'>
+        <div
+            className='wrapper--fixed'
+            data-testid='systemUsersSection'
+        >
             <AdminHeader>
                 <FormattedMessage
                     {...messages.title}

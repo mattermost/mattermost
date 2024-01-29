@@ -44,7 +44,7 @@ export function SystemUsersFiltersStatus(props: Props) {
                 value: StatusFilter.Deactivated,
                 label: formatMessage({
                     id: 'admin.system_users.filters.status.deactive',
-                    defaultMessage: 'Deactived users',
+                    defaultMessage: 'Deactivated users',
                 }),
             },
         ];

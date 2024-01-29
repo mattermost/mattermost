@@ -2455,7 +2455,7 @@
   "admin.system_users.filters.role.title": "Role",
   "admin.system_users.filters.status.active": "Active users",
   "admin.system_users.filters.status.any": "Any",
-  "admin.system_users.filters.status.deactive": "Deactived users",
+  "admin.system_users.filters.status.deactive": "Deactivated users",
   "admin.system_users.filters.status.title": "Status",
   "admin.system_users.filters.team.allTeams": "All Teams",
   "admin.system_users.filters.team.errorLoading": "Error while loading teams",
