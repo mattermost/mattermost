@@ -104,7 +104,7 @@ export interface Props {
 
     isMobileView: boolean;
 
-    lastViewedAt?: number;
+    lastViewedAt: number;
 
     toggleShouldStartFromBottomWhenUnread: () => void;
     shouldStartFromBottomWhenUnread: boolean;

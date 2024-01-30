@@ -438,7 +438,7 @@ export function autoResetStatus(): NewActionFuncAsync<UserStatus> {
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         if (!enabledUserStatuses) {
-            return {data: null};
+            return {data: undefined};
         }
 
         const {currentUserId} = state.entities.users;

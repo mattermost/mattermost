@@ -9076,10 +9076,6 @@
     "translation": "Имя должно состоять из 1 или более строчных буквенно-цифровых символов."
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Ошибка при анализе данных тела."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Неверный текст запроса."
   },

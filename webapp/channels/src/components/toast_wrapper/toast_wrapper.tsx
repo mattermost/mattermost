@@ -51,7 +51,7 @@ export type Props = WrappedComponentProps & RouteComponentProps<{team: string}> 
     shouldStartFromBottomWhenUnread: boolean;
     isNewMessageLineReached: boolean;
     rootPosts: Record<string, boolean>;
-    lastViewedAt?: number;
+    lastViewedAt: number;
     newRecentMessagesCount: number;
     unreadScrollPosition: string;
     isCollapsedThreadsEnabled: boolean;
