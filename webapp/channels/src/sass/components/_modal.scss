@@ -268,7 +268,7 @@
             width: 40px;
             height: 40px;
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.75);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 30px;
             font-weight: 400;
             opacity: 1;
@@ -280,7 +280,7 @@
 
             &:hover {
                 background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.88);
+                color: rgba(var(--center-channel-color-rgb), 0.8);
             }
 
             &:active {

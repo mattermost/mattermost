@@ -167,7 +167,7 @@
                 position: absolute;
                 top: 15px;
                 left: 16px;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
                 font-size: 16px;
                 pointer-events: none;
             }
@@ -311,7 +311,7 @@
                                     height: auto;
                                     align-self: center;
                                     padding-right: 12px;
-                                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                                    color: rgba(var(--center-channel-color-rgb), 0.64);
                                     font-size: 18px;
                                     line-height: 18px;
                                 }
@@ -336,8 +336,8 @@
                         &:hover {
                             background: rgba(var(--center-channel-color-rgb), 0.08);
                             border-radius: 4px;
-                            color: rgba(var(--center-channel-color-rgb), 0.75);
-                            fill: rgba(var(--center-channel-color-rgb), 0.75);
+                            color: rgba(var(--center-channel-color-rgb), 0.8);
+                            fill: rgba(var(--center-channel-color-rgb), 0.8);
                         }
 
                         &:active {

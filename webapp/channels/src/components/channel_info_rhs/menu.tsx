@@ -18,7 +18,7 @@ const MenuItemContainer = styled.div`
 `;
 
 const Icon = styled.div`
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
 `;
 
 const MenuItemText = styled.div`

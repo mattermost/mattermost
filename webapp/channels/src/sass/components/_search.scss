@@ -31,7 +31,7 @@
     display: flex;
     height: 100%;
     align-items: center;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     pointer-events: none;
 }
 
@@ -39,7 +39,7 @@
     position: absolute;
     top: 6px;
     left: 9px;
-    fill: rgba(var(--center-channel-color-rgb), 0.75);
+    fill: rgba(var(--center-channel-color-rgb), 0.64);
     pointer-events: none;
 
     svg {
@@ -62,13 +62,13 @@
     align-items: center;
     justify-content: center;
     margin: 0;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     cursor: pointer;
     font-size: 16px;
     visibility: hidden;
 
     &:hover {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
     &:active {
@@ -202,7 +202,7 @@
 
         .search__font-icon,
         .input-clear-x {
-            color: rgba(var(--center-channel-color-rgb), 0.75);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
         }
 
         .searchTypeBadge {

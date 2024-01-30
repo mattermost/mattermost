@@ -72,7 +72,7 @@ const SendMessage = styled.button`
     }
 
     .icon {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 14.4px;
     };
 `;

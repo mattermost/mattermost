@@ -199,12 +199,12 @@
         align-items: center;
         justify-content: center;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.48);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         text-decoration: none;
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.04);
-            color: rgba(var(--center-channel-color-rgb), 0.75);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
         }
 
         &:active {

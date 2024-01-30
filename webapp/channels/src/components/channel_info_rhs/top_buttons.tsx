@@ -26,7 +26,7 @@ const Button = styled.button`
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.88);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
 
         & i {
             color: rgba(var(--center-channel-color-rgb), 0.8);
@@ -44,7 +44,7 @@ const Button = styled.button`
     }
 
     & i {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 24px;
     }
 

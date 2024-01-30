@@ -2315,7 +2315,7 @@
                 height: 12px;
                 margin-right: 4px;
                 background: inherit;
-                fill: rgba(var(--center-channel-color-rgb), 0.75);
+                fill: rgba(var(--center-channel-color-rgb), 0.64);
                 vertical-align: middle;
             }
 
@@ -2327,11 +2327,11 @@
 
             &:hover {
                 &-icon > svg {
-                    fill: rgba(var(--center-channel-color-rgb), 0.75);
+                    fill: rgba(var(--center-channel-color-rgb), 0.8);
                 }
 
                 &-text {
-                    color: rgba(var(--center-channel-color-rgb), 0.75);
+                    color: rgba(var(--center-channel-color-rgb), 0.8);
                 }
             }
 

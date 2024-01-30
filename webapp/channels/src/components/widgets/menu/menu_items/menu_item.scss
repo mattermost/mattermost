@@ -25,8 +25,8 @@
 
         .MenuItem__compass-icon {
             margin: 4px -6px;
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-            fill: rgba(var(--center-channel-color-rgb), 0.75);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            fill: rgba(var(--center-channel-color-rgb), 0.64);
         }
 
         .MenuItem__compass-icon-dangerous {
@@ -351,7 +351,7 @@
 .SubMenu__icon-left {
     position: relative;
     top: 0;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     font-size: 19px;
 }
 
@@ -366,7 +366,7 @@
 
 .SubMenu__icon-right {
     padding-top: 3px;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     float: right;
     font-size: 19px;
 }

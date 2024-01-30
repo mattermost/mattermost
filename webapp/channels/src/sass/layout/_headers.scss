@@ -57,14 +57,14 @@
             position: relative;
             top: -1px;
             font-size: 18px;
-            opacity: 0.75;
+            opacity: 0.64;
         }
 
         &:hover {
             background: rgba(v(center-channel-color-rgb), 0.08);
 
             i {
-                opacity: 0.72;
+                opacity: 0.8;
             }
         }
 
@@ -161,8 +161,8 @@
             width: 20px;
             height: 20px;
             margin-right: 8px;
-            color: rgba(var(--center-channel-color-rgb), 0.75);
-            fill: rgba(var(--center-channel-color-rgb), 0.75);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
+            fill: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 1.6rem;
             text-align: center;
 

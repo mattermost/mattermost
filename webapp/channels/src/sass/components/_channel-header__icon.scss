@@ -11,15 +11,15 @@
     margin: 16px 0 0 4px;
     background: transparent;
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     cursor: pointer;
-    fill: rgba(var(--center-channel-color-rgb), 0.75);
+    fill: rgba(var(--center-channel-color-rgb), 0.64);
     text-align: center;
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        fill: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
+        fill: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
     .icon {

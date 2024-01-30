@@ -470,9 +470,9 @@
     margin-left: 8px;
     background-color: var(--center-channel-bg);
     border-radius: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     cursor: pointer;
-    fill: rgba(var(--center-channel-color-rgb), 0.75);
+    fill: rgba(var(--center-channel-color-rgb), 0.64);
     text-decoration: none;
     transition: opacity 0.15s ease;
 
@@ -483,7 +483,7 @@
     &:hover {
         display: flex;
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.8);
     }
 
     &:focus {

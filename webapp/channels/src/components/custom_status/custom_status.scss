@@ -2,7 +2,7 @@
     position: absolute;
     top: 16px;
     right: 20px;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     opacity: 1;
 }
 
@@ -53,7 +53,7 @@
 
             button.dateTime__calendar-icon {
                 margin: 0 8px 0 0;
-                color: rgba(var(--center-channel-color-rgb), 0.75);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
             }
 
             input#customStatus__calendar-input {
@@ -107,8 +107,8 @@
         border: none;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        fill: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        fill: rgba(var(--center-channel-color-rgb), 0.64);
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
@@ -150,7 +150,7 @@
 .status-dropdown-menu,
 .StatusModal__input {
     .input-clear-x {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
 
         .icon {
             font-size: 20px;

@@ -227,10 +227,10 @@ const MenuItemStyled = styled(MuiMenuItem, {
                     width: '18px',
                     height: '18px',
                     marginInlineEnd: '10px',
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--error-text)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.64)' : 'var(--error-text)',
                 },
                 '&:hover .leading-element': {
-                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.75)' : 'var(--button-color)',
+                    color: isRegular ? 'rgba(var(--center-channel-color-rgb), 0.8)' : 'var(--button-color)',
                 },
 
                 '&>.label-elements': {

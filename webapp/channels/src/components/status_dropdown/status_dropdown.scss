@@ -161,7 +161,7 @@ button.custom_status__row {
     border-radius: 4px;
 
     .icon > i:not(.status-icon) {
-        color: rgba(var(--center-channel-color-rgb), 0.75);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-family: "compass-icons";
     }
 
@@ -347,7 +347,7 @@ button.custom_status__row {
 
 .status-dropdpwn-menu .status-dropdown-menu__clear-container .input-clear {
     position: absolute;
-    color: rgba(var(--center-channel-color-rgb), 0.75);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     opacity: 1;
 }
 
