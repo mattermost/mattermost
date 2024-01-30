@@ -207,7 +207,8 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return;
         }
 
-        props.submitAction(connection).then(() => setSubmissionStatus({saving: false, error: ''}));
+        const res = props.submitAction(connection);
+        res.then(() => setSubmissionStatus({saving: false, error: ''}));
     };
 
     const handleValidate = async (e: FormEvent) => {
@@ -295,17 +296,11 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                     disabled={true}
                     type='text'
                     className='form-control disabled'
-                    value={'•'.repeat(16)}
+                    value={'•'.repeat(40)}
                 />
                 <span
                     onClick={startEditingClientSecret}
                     className='outgoing-oauth-connections-edit-secret'
-                    style={{
-                        position: 'absolute',
-                        right: '16px',
-                        top: '8px',
-                        cursor: 'pointer',
-                    }}
                 >
                     <i className='icon icon-pencil-outline'/>
                 </span>
@@ -448,7 +443,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             <div className='form__help'>
                                 <FormattedMessage
                                     id='add_outgoing_oauth_connection.audienceUrls.help'
-                                    defaultMessage='The audience URIs which will receive requests with the OAuth token. Must be a valid URL and start with http:// or https://.'
+                                    defaultMessage='The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://.'
                                 />
                             </div>
                         </div>
@@ -481,7 +476,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             />
                         </SpinnerButton>
                         <SpinnerButton
-                            className='btn btn-primary'
+                            className='btn btn-tertiary'
                             type='button'
                             spinning={Boolean(submissionStatus.validating)}
                             spinningText={intl.formatMessage({id: 'add_outgoing_oauth_connection.validating', defaultMessage: 'Validating...'})}

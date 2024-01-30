@@ -226,8 +226,8 @@
         text-overflow: ellipsis;
     }
 
-    .item-details__name {
-        margin-right: 6px;
+    .item-actions {
+        margin-left: 6px;
     }
 
     .item-details__trigger {
@@ -549,8 +549,15 @@
     color: #a94442;
 }
 
-.outgoing-oauth-connections-edit-secret .icon-pencil-outline {
-    opacity: 56%;
+.outgoing-oauth-connections-edit-secret {
+    position: absolute;
+    right: 16px;
+    top: 8px;
+    cursor: pointer;
+
+    .icon-pencil-outline {
+        opacity: 56%;
+    }
 }
 
 .outgoing-oauth-audience-match-message {

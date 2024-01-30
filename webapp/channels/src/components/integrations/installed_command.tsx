@@ -153,10 +153,10 @@ export default class InstalledCommand extends React.PureComponent<Props> {
                             <strong>
                                 {name}
                             </strong>
-                            <span className='item-details__trigger'>
-                                {trigger}
-                            </span>
                         </div>
+                        <span className='item-details__trigger'>
+                            {trigger}
+                        </span>
                         {actions}
                     </div>
                     {description}

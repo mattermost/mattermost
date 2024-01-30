@@ -1,0 +1,311 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot when typed in value matches a configured audience 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <OAuthConnectionAudienceInput
+        onChange={[MockFunction]}
+        placeholder=""
+        value="https://aud.com"
+      >
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="url"
+          maxLength={1024}
+          onChange={[MockFunction]}
+          placeholder=""
+          value="https://aud.com"
+        />
+        <div
+          className="outgoing-oauth-audience-match-message"
+        >
+          <_StyledOauthIcon
+            size={20}
+          >
+            <OauthIcon
+              className="_StyledOauthIcon-eWpFZy hGBbfE"
+              size={20}
+            >
+              <svg
+                className="_StyledOauthIcon-eWpFZy hGBbfE"
+                fill="currentColor"
+                height={20}
+                version="1.1"
+                viewBox="0 0 24 24"
+                width={20}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M12,20c-4.4,0-8-3.6-8-8s3.6-8,8-8s8,3.6,8,8S16.4,20,12,20 M12,2C6.5,2,2,6.5,2,12s4.5,10,10,10s10-4.5,10-10S17.5,2,12,2z M12,5c-3.9,0-7,3.1-7,7s3.1,7,7,7s7-3.1,7-7S15.9,5,12,5z M14.8,16c-0.1,0-0.2,0-0.3,0c-0.4,0-0.8-0.3-0.9-0.6L13.1,14h-2.3
+	l-0.4,1.4C10.3,15.7,9.9,16,9.5,16c-0.1,0-0.2,0-0.3,0c-0.5-0.1-0.8-0.7-0.6-1.2l1.9-6.1C10.7,8.3,11,8,11.4,8h1c0.1,0,0.2,0,0.3,0
+	c0.2,0.1,0.4,0.2,0.5,0.3c0.1,0.1,0.1,0.2,0.1,0.3l2,6.1C15.5,15.3,15.3,15.8,14.8,16z M7,12c0-1.7,0.9-3.3,2.3-4.2
+	C9.2,7.9,9.2,8.1,9.1,8.2l-1.8,5.6C7.1,13.2,7,12.6,7,12z M12,17c-0.3,0-0.6,0-0.9-0.1c0.3-0.3,0.6-0.7,0.7-1.1l0.1-0.3H12l0.1,0.4
+	c0.1,0.4,0.4,0.8,0.7,1.1C12.6,17,12.3,17,12,17z M16.6,13.8l-1.9-5.6c0-0.2-0.1-0.3-0.2-0.4C16,8.6,17,10.2,17,12
+	C17,12.6,16.9,13.2,16.6,13.8z"
+                />
+              </svg>
+            </OauthIcon>
+          </_StyledOauthIcon>
+          <strong
+            style={
+              Object {
+                "left": "42px",
+                "position": "absolute",
+                "top": "45px",
+              }
+            }
+          >
+            <FormattedMessage
+              defaultMessage="Connected to \\"{connectionName}\\""
+              id="add_outgoing_oauth_connection.connected"
+              values={
+                Object {
+                  "connectionName": "testConnection",
+                }
+              }
+            >
+              <span>
+                Connected to "testConnection"
+              </span>
+            </FormattedMessage>
+          </strong>
+        </div>
+      </OAuthConnectionAudienceInput>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
+
+exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot with existing connections 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <OAuthConnectionAudienceInput
+        onChange={[MockFunction]}
+        placeholder=""
+        value=""
+      >
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="url"
+          maxLength={1024}
+          onChange={[MockFunction]}
+          placeholder=""
+          value=""
+        />
+        <div
+          className="outgoing-oauth-audience-match-message"
+        >
+          <_StyledInformationOutlineIcon
+            size={20}
+          >
+            <InformationOutlineIcon
+              className="_StyledInformationOutlineIcon-fJlbfB cjrhWO"
+              size={20}
+            >
+              <svg
+                className="_StyledInformationOutlineIcon-fJlbfB cjrhWO"
+                fill="currentColor"
+                height={20}
+                version="1.1"
+                viewBox="0 0 24 24"
+                width={20}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </InformationOutlineIcon>
+          </_StyledInformationOutlineIcon>
+          <strong
+            style={
+              Object {
+                "left": "42px",
+                "position": "absolute",
+                "top": "45px",
+              }
+            }
+          >
+            <FormattedMessage
+              defaultMessage="Not linked to an OAuth connection"
+              id="add_outgoing_oauth_connection.not_connected"
+            >
+              <span>
+                Not linked to an OAuth connection
+              </span>
+            </FormattedMessage>
+          </strong>
+        </div>
+      </OAuthConnectionAudienceInput>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
+
+exports[`components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput should match snapshot with no existing connections 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <OAuthConnectionAudienceInput
+        onChange={[MockFunction]}
+        placeholder=""
+        value=""
+      >
+        <input
+          autoComplete="off"
+          className="form-control"
+          id="url"
+          maxLength={1024}
+          onChange={[MockFunction]}
+          placeholder=""
+          value=""
+        />
+        <div
+          className="outgoing-oauth-audience-match-message"
+        >
+          <_StyledInformationOutlineIcon
+            size={20}
+          >
+            <InformationOutlineIcon
+              className="_StyledInformationOutlineIcon-fJlbfB cjrhWO"
+              size={20}
+            >
+              <svg
+                className="_StyledInformationOutlineIcon-fJlbfB cjrhWO"
+                fill="currentColor"
+                height={20}
+                version="1.1"
+                viewBox="0 0 24 24"
+                width={20}
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M11,9H13V7H11M12,20C7.59,20 4,16.41 4,12C4,7.59 7.59,4 12,4C16.41,4 20,7.59 20,12C20,16.41 16.41,20 12,20M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M11,17H13V11H11V17Z"
+                />
+              </svg>
+            </InformationOutlineIcon>
+          </_StyledInformationOutlineIcon>
+          <strong
+            style={
+              Object {
+                "left": "42px",
+                "position": "absolute",
+                "top": "45px",
+              }
+            }
+          >
+            <FormattedMessage
+              defaultMessage="Not linked to an OAuth connection"
+              id="add_outgoing_oauth_connection.not_connected"
+            >
+              <span>
+                Not linked to an OAuth connection
+              </span>
+            </FormattedMessage>
+          </strong>
+        </div>
+      </OAuthConnectionAudienceInput>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;

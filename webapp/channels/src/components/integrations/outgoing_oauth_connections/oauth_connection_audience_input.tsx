@@ -77,7 +77,7 @@ const OAuthConnectionAudienceInput = (props: Props) => {
                 <strong style={{position: 'absolute', top: '45px', left: '42px'}}>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.not_connected'
-                        defaultMessage='Not connected to an OAuth connection'
+                        defaultMessage='Not linked to an OAuth connection'
                     />
                 </strong>
             </>

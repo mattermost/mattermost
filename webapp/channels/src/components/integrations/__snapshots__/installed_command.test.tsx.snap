@@ -16,12 +16,12 @@ exports[`components/integrations/InstalledCommand should call onDelete function 
         <strong>
           display_name
         </strong>
-        <span
-          className="item-details__trigger"
-        >
-          - /trigger auto_complete_hint
-        </span>
       </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger auto_complete_hint
+      </span>
       <div
         className="item-actions"
       >
@@ -122,12 +122,12 @@ exports[`components/integrations/InstalledCommand should call onRegenToken funct
         <strong>
           display_name
         </strong>
-        <span
-          className="item-details__trigger"
-        >
-          - /trigger auto_complete_hint
-        </span>
       </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger auto_complete_hint
+      </span>
       <div
         className="item-actions"
       >
@@ -230,12 +230,12 @@ exports[`components/integrations/InstalledCommand should match snapshot 1`] = `
         <strong>
           display_name
         </strong>
-        <span
-          className="item-details__trigger"
-        >
-          - /trigger auto_complete_hint
-        </span>
       </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger auto_complete_hint
+      </span>
     </div>
     <div
       className="item-details__row"
@@ -304,12 +304,12 @@ exports[`components/integrations/InstalledCommand should match snapshot, not aut
         <strong>
           command_display_name
         </strong>
-        <span
-          className="item-details__trigger"
-        >
-          - /trigger
-        </span>
       </div>
+      <span
+        className="item-details__trigger"
+      >
+        - /trigger
+      </span>
     </div>
     <div
       className="item-details__row"

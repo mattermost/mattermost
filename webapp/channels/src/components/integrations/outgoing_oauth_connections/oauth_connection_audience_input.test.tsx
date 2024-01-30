@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
 
@@ -10,17 +9,13 @@ import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import AbstractOutgoingOAuthConnection from 'components/integrations/outgoing_oauth_connections/abstract_outgoing_oauth_connection';
+import OAuthConnectionAudienceInput from 'components/integrations/outgoing_oauth_connections/oauth_connection_audience_input';
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
-import {TestHelper} from 'utils/test_helper';
 
-describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
-    const header = {id: 'Header', defaultMessage: 'Header'};
-    const footer = {id: 'Footer', defaultMessage: 'Footer'};
-    const loading = {id: 'Loading', defaultMessage: 'Loading'};
-    const initialConnection: OutgoingOAuthConnection = {
+describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput', () => {
+    const connection: OutgoingOAuthConnection = {
         id: 'facxd9wpzpbpfp8pad78xj75pr',
         name: 'testConnection',
         client_secret: '',
@@ -34,7 +29,13 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
     };
 
     const outgoingOAuthConnections: Record<string, OutgoingOAuthConnection> = {
-        facxd9wpzpbpfp8pad78xj75pr: initialConnection,
+        facxd9wpzpbpfp8pad78xj75pr: connection,
+    };
+
+    const baseProps: React.ComponentProps<typeof OAuthConnectionAudienceInput> = {
+        value: '',
+        onChange: jest.fn(),
+        placeholder: '',
     };
 
     const state = {
@@ -65,76 +66,46 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
         },
     };
 
-    const team = TestHelper.getTeamMock({name: 'test', id: initialConnection.id});
+    test('should match snapshot with no existing connections', () => {
+        const props = {...baseProps};
+        const newState = {...state, integrations: {outgoingOAuthConnections: {}}};
+        const store = mockStore(newState);
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <OAuthConnectionAudienceInput {...props}/>
+                </Provider>
+            </Router>,
+        );
 
-    const baseProps: React.ComponentProps<typeof AbstractOutgoingOAuthConnection> = {
-        team,
-        header,
-        footer,
-        loading,
-        renderExtra: <div>{'renderExtra'}</div>,
-        serverError: '',
-        initialConnection,
-        submitAction: jest.fn(),
-    };
+        expect(wrapper).toMatchSnapshot();
+    });
 
-    test('should match snapshot', () => {
+    test('should match snapshot with existing connections', () => {
         const props = {...baseProps};
         const store = mockStore(state);
         const wrapper = mountWithIntl(
             <Router>
                 <Provider store={store}>
-                    <AbstractOutgoingOAuthConnection {...props}/>
+                    <OAuthConnectionAudienceInput {...props}/>
                 </Provider>
             </Router>,
         );
+
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should match snapshot, displays client error', () => {
-        const submitAction = jest.fn().mockResolvedValue({data: true});
-
-        const newServerError = 'serverError';
-        const props = {...baseProps, serverError: newServerError, submitAction};
+    test('should match snapshot when typed in value matches a configured audience', () => {
+        const props = {...baseProps, value: 'https://aud.com'};
         const store = mockStore(state);
         const wrapper = mountWithIntl(
             <Router>
                 <Provider store={store}>
-                    <AbstractOutgoingOAuthConnection {...props}/>
+                    <OAuthConnectionAudienceInput {...props}/>
                 </Provider>
             </Router>,
         );
 
-        wrapper.find('#audienceUrls').simulate('change', {target: {value: ''}});
-        wrapper.find('button.btn-primary').simulate('click', {preventDefault() {
-            return jest.fn();
-        }});
-
-        expect(submitAction).not.toBeCalled();
         expect(wrapper).toMatchSnapshot();
-        expect(wrapper.find('FormError').exists()).toBe(true);
-    });
-
-    test('should call action function', async () => {
-        const submitAction = jest.fn().mockResolvedValue({data: true});
-
-        const props = {...baseProps, submitAction};
-        const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Router>
-                <Provider store={store}>
-                    <AbstractOutgoingOAuthConnection {...props}/>
-                </Provider>
-            </Router>,
-        );
-
-        await act(async () => {
-            wrapper.find('#name').simulate('change', {target: {value: 'name'}});
-            wrapper.find('button.btn-primary').simulate('click', {preventDefault() {
-                return jest.fn();
-            }});
-
-            expect(submitAction).toBeCalled();
-        });
     });
 });

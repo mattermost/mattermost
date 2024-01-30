@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {act} from 'react-dom/test-utils';
 import {Provider} from 'react-redux';
 import {BrowserRouter as Router} from 'react-router-dom';
 
@@ -48,7 +49,7 @@ describe('components/integrations/InstalledOutgoingOAuthConnections', () => {
         },
     };
 
-    test('should match snapshot', () => {
+    test('should match snapshot', async () => {
         const state = {
             entities: {
                 general: {
@@ -79,14 +80,17 @@ describe('components/integrations/InstalledOutgoingOAuthConnections', () => {
 
         const props = {...baseProps};
         const store = mockStore(state);
-        const wrapper = mountWithIntl(
-            <Router>
-                <Provider store={store}>
-                    <InstalledOutgoingOAuthConnections {...props}/>
-                </Provider>
-            </Router>,
-        );
 
-        expect(wrapper).toMatchSnapshot();
+        await act(async () => {
+            const wrapper = mountWithIntl(
+                <Router>
+                    <Provider store={store}>
+                        <InstalledOutgoingOAuthConnections {...props}/>
+                    </Provider>
+                </Router>,
+            );
+
+            expect(wrapper).toMatchSnapshot();
+        });
     });
 });
