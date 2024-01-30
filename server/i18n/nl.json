@@ -1848,7 +1848,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Jouw wachtwoord is bijgewerkt"
+    "translation": "{{ .SiteName }} Jouw wachtwoord werd bijgewerkt"
   },
   {
     "id": "api.templates.post_body.button",
@@ -1904,7 +1904,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "[{{.SiteName }}] Je gebruikersnaam werd gewijzigd"
+    "translation": "{{ .SiteName }} Je gebruikersnaam werd gewijzigd"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -4552,7 +4552,7 @@
   },
   {
     "id": "model.utils.decode_json.app_error",
-    "translation": "kan niet decoderen"
+    "translation": "kan niet decoderen."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -4568,7 +4568,7 @@
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
-    "translation": "Publieke links zijn uitgeschakeld"
+    "translation": "Openbare links zijn uitgeschakeld."
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
@@ -4588,27 +4588,27 @@
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Bot bestaat niet"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Het kanaal kon niet gevonden worden."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "Je kan een gearchiveerd kanaal niet wijzigen."
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
-    "translation": "Gebruik 'SaveDirectChannel' om een direct kanaal aan te maken"
+    "translation": "Gebruik 'SaveDirectChannel' om een direct kanaal aan te maken."
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
-    "translation": "Moet bijwerken aanroepen voor het bestaande kanaal"
+    "translation": "Moet bijwerken aanroepen voor het bestaande kanaal."
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that name already exists on the same team"
+    "translation": "Er bestaat al een kanaal met die naam in hetzelfde team."
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4616,11 +4616,11 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
-    "translation": "Geen poging om een direkt kanaal te maken met 'SaveDirectChannel'"
+    "translation": "Poging om geen direct kanaal te maken met 'SaveDirectChannel'."
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet ophalen."
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -4628,7 +4628,7 @@
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "Een team lid met de opgegeven id bestaat al"
+    "translation": "Een teamlid met het opgegeven id bestaat reeds."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
@@ -4640,23 +4640,23 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Het kanaal kan niet gevonden worden"
+    "translation": "Kon de opdracht niet vinden."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken"
+    "translation": "Kan binnenkomende data niet verwerken."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "Het wachtwoord van de gebruiker kan niet bijgewerkt worden"
+    "translation": "Het wachtwoord van de gebruiker kan niet bijgewerkt worden."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
-    "translation": "Het kanaal kan niet gevonden worden"
+    "translation": "Het kanaal kan niet gevonden worden."
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
+    "translation": "Deze webhook is niet toegestaan om te posten naar het aangevraagde kanaal."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4664,11 +4664,11 @@
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
-    "translation": "Ongeldige webhook"
+    "translation": "Ongeldige webhook."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken"
+    "translation": "Kan binnenkomende data niet verwerken."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
@@ -6676,7 +6676,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Uitnodigingse-mail limiet is overschreden. De timer zal worden gereset na {{.RetryAfter}} seconden. Probeer opnieuw over {{.RetryAfter}} seconden."
+    "translation": "Uitnodigingse-mail limiet is overschreden. De timer zal worden gereset na {{.ResetAfter}} seconden. Probeer opnieuw over {{.RetryAfter}} seconden."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -9067,15 +9067,15 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SiteName }} {{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelsLen }}kanalen in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelsLen }} kanalen in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SiteName }} {{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelName }} in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
@@ -10015,7 +10015,7 @@
   },
   {
     "id": "api.templates.ip_filters_changed.subTitle",
-    "translation": "@{ .InitiatingUsername }} heeft de IP-filterinstellingen voor jouw werkruimte gewijzigd op de URL: {{ .SiteURL }}"
+    "translation": "@{{ .InitiatingUsername }} heeft de IP-filterinstellingen voor jouw werkruimte gewijzigd op de URL: {{ .SiteURL }}"
   },
   {
     "id": "api.templates.ip_filters_changed.subject",
