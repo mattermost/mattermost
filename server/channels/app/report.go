@@ -230,7 +230,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt 
 		}
 	}
 
-	_, err = a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeExportUsersToCSV, options)
+	_, err = a.Srv().Jobs.CreateJob(rctx, model.JobTypeExportUsersToCSV, options)
 	if err != nil {
 		return err
 	}
