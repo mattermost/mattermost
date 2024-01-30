@@ -156,7 +156,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                     id={`${headerIdPrefix}${header.id}`}
                                     colSpan={header.colSpan}
                                     scope='col'
-                                    role='columnheader'
                                     aria-sort={getAriaSortForTableHeader(header.column.getCanSort(), header.column.getIsSorted())}
                                     className={classNames(`${header.id}`, {
                                         [SORTABLE_CLASS]: header.column.getCanSort(),
@@ -221,14 +220,12 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                         <tr
                             id={`${rowIdPrefix}${row.original.id}`}
                             key={row.id}
-                            role='row'
                             onClick={handleRowClick}
                         >
                             {row.getVisibleCells().map((cell) => (
                                 <td
                                     key={cell.id}
                                     id={`${cellIdPrefix}${cell.id}`}
-                                    role='cell'
                                     headers={`${headerIdPrefix}${cell.column.id}`}
                                     className={classNames(`${cell.column.id}`, {
                                         [PINNED_CLASS]: cell.column.getCanPin(),
@@ -364,7 +361,7 @@ function getAriaSortForTableHeader(
     sortDirection: boolean | SortDirection,
 ): AriaAttributes['aria-sort'] {
     if (!canSort) {
-        return 'none';
+        return undefined;
     }
 
     if (sortDirection === 'asc') {
