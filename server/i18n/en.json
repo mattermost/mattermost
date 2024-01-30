@@ -4887,6 +4887,10 @@
     "translation": "Unable to delete the channel."
   },
   {
+    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
+    "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
+  },
+  {
     "id": "app.channel.get.existing.app_error",
     "translation": "Unable to find the existing channel."
   },
@@ -5165,10 +5169,6 @@
   {
     "id": "app.channel_member_history.log_leave_event.internal_error",
     "translation": "Failed to record channel member history. Failed to update existing join record"
-  },
-  {
-    "id": "app.channel.elasticsearch_channel_index.notify_admin.message",
-    "translation": "Your Elasticsearch channel index schema is out of date. It is recommended to regenerate your channel index.\nClick the `Rebuild Channels Index` button in [Elasticsearch section in System Console]({{.ElasticsearchSection}}) to fix the issue.\nSee Mattermost changelog for more information."
   },
   {
     "id": "app.cloud.get_cloud_products.app_error",
@@ -6767,12 +6767,12 @@
     "translation": "An error occurred saving the configuration."
   },
   {
-    "id": "app.save_config.plugin_hook_error",
-    "translation": "An error occurred running the plugin hook on configuration save."
-  },
-  {
     "id": "app.save_config.elasticsearch.autocomplete_cannot_be_enabled_error",
     "translation": "Channel autocomplete cannot be enabled as channel index schema is out of date. It is recommended to regenerate your channel index. See the Mattermost changelog for more information"
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "An error occurred running the plugin hook on configuration save."
   },
   {
     "id": "app.save_csv_chunk.write_error",
@@ -7915,10 +7915,6 @@
     "translation": "Elasticsearch search is not enabled on this server"
   },
   {
-    "id": "ent.elasticsearch.purgeIndex.indexSetAsIgnored",
-    "translation": "The index you have asked to purge is configured as an index to be ignored while purging"
-  },
-  {
     "id": "ent.elasticsearch.getAllChannelMembers.error",
     "translation": "Failed to get all channel members"
   },
@@ -7979,12 +7975,12 @@
     "translation": "Unable to get the posts batch for indexing."
   },
   {
-    "id": "ent.elasticsearch.purge_indexes.delete_failed",
-    "translation": "Failed to delete Elasticsearch index"
-  },
-  {
     "id": "ent.elasticsearch.purge_index.delete_failed",
     "translation": "Failed to delete an Elasticsearch index"
+  },
+  {
+    "id": "ent.elasticsearch.purge_indexes.delete_failed",
+    "translation": "Failed to delete Elasticsearch index"
   },
   {
     "id": "ent.elasticsearch.purge_indexes.unknown_index",
