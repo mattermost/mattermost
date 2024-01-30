@@ -3720,11 +3720,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Datenaufbewahrung muss ein Tag oder länger sein."
+    "translation": "Datenaufbewahrung in Tagen darf nicht kleiner 0 sein."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Nachrichtenaufbewahrung muss ein Tag oder länger sein."
+    "translation": "Nachrichtenaufbewahrung in Tagen darf nicht kleiner 0 sein."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -7020,7 +7020,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Fehler während der Prüfung, ob der geteilte Kanal existiert: {{.Error}}"
+    "translation": "Fehler während der Prüfung, ob der geteilte Kanal {{.ChannelID}} existiert: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -9090,10 +9090,6 @@
     "translation": "{{ .SenderName }} hat dich eingeladen, dem Kanal {{ .ChannelName }} im Team {{ .TeamDisplayName }} beizutreten"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fehler beim Parsen der Body Daten."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Ungültiger Request Body."
   },
@@ -10216,5 +10212,137 @@
   {
     "id": "api.command_share.channel_not_shared.error",
     "translation": "Die Gegenstelle kann nicht eingeladen werden, da der Kanal {{.ChannelID}} nicht geteilt wird."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Ungültige maximale Nutzlastgröße für Diensteinstellungen. Muss eine ganze Zahl größer als Null sein."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Konnte Einladung nicht bestätigen: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Beim Parsen der Nutzdaten ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Jetzt erneuern"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Bitte verlängere, um Unterbrechungen zu vermeiden"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Jahresrechnung fällig in 30 Tagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Deine Jahresrechnung ist in 30 Tagen fällig"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Erneuerung des Jahresabonnements in 60 Tagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Erneuerung des Jahresabonnements in 60 Tagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Aktion erforderlich: Erneuerung des Jahresabonnements in 7 Tagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Du wirst in 7 Tagen den Zugang zu deinem Arbeitsbereich verlieren"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Es können nicht so viele Kanal-Mitglieder aktualisiert werden. Es können nur {{.Max}} Kanal-Mitglieder gleichzeitig aktualisiert werden."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fehler bei der Überprüfung, ob ein Benutzer ein eigenes Profilbild hat."
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Benutzeranzahl konnte nicht ermittelt werden."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Dateiaufbewahrungstage und -stunden können nicht beide 0 sein."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Datenaufbewahrung in Stunden darf nicht kleiner 0 sein"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Die Dateiaufbewahrungstage und -stunden können nicht beide größer als 0 sein."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Nachrichtenaufbewahrungstage und -stunden können nicht beide 0 sein."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Nachrichtenaufbewahrung in Stunden darf nicht kleiner 0 sein"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Die Nachrichtenaufbewahrungstage und -stunden können nicht beide größer als 0 sein."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Die Benachrichtigungseigenschaften der Kanalmitglieder können nicht aktualisiert werden."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Benutzer konnte nicht gefunden werden."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_format",
+    "translation": "Das Berichtsformat ist ungültig."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_report_id",
+    "translation": "Die Berichts-ID ist ungültig."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "CSV-Kopfzeilen konnten nicht geschrieben werden."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Nicht unterstütztes Berichtsformat."
+  },
+  {
+    "id": "app.report.retrieve_batch_report.license_error",
+    "translation": "Der Export von Batch-Berichten ist nur für Pro und Enterprise verfügbar."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Berichtserstellung ist abgeschlossen.Du kannst den Bericht [hier]({{.Link}}) herunterladen"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Für diesen Benutzer und Datumsbereich existiert bereits ein Auftrag."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Der Batch-Export von Berichten ist nur für Pro und Enterprise verfügbar."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Du hast den Export von Benutzerdaten angefordert. Nach Abschluss des Exports wird dir eine CSV-Datei zugestellt."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "CSV-Chunk konnte nicht geschrieben werden."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Nicht unterstütztes Berichtsformat."
   }
 ]

@@ -1,10 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
@@ -14,7 +14,7 @@ const initialState = {
     showNavigationPrompt: false,
 };
 
-function navigationBlock(state = initialState, action: GenericAction) {
+function navigationBlock(state = initialState, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SET_NAVIGATION_BLOCKED:
         return {...state, blocked: action.blocked};
@@ -45,7 +45,7 @@ function navigationBlock(state = initialState, action: GenericAction) {
     }
 }
 
-export function needsLoggedInLimitReachedCheck(state = false, action: GenericAction) {
+export function needsLoggedInLimitReachedCheck(state = false, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK:
         return action.data;

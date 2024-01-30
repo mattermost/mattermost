@@ -10,7 +10,6 @@ import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUser, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 import {isModalOpen} from 'selectors/views/modals';
@@ -31,7 +30,7 @@ const ShowStartTrialModal = () => {
     const isUserAdmin = useSelector((state: GlobalState) => isCurrentUserSystemAdmin(state));
     const openStartTrialFormModal = useOpenStartTrialFormModal();
 
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const getCategory = makeGetCategory();
 
     const userThreshold = 10;
