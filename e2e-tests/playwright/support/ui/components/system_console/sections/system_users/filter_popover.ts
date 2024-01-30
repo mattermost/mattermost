@@ -39,7 +39,7 @@ class SystemUsersFilterPopover {
      */
     async searchInTeamMenu(teamDisplayName: string) {
         expect(this.teamMenuInput).toBeVisible();
-        await this.teamMenuInput.fill(`${teamDisplayName}`);
+        await this.teamMenuInput.fill(teamDisplayName);
     }
 
     /**

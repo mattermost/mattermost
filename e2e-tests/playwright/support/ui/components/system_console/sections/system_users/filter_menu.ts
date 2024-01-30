@@ -4,7 +4,7 @@
 import {expect, Locator} from '@playwright/test';
 
 /**
- * The dropdown menu which appears for bothm Role and Status filter.
+ * The dropdown menu which appears for both Role and Status filter.
  */
 class SystemUsersFilterMenu {
     readonly container: Locator;
