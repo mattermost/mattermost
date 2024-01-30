@@ -4608,37 +4608,42 @@ func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response,
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
 func (c *Client4) GetPing(ctx context.Context) (string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping", "")
-	if r != nil && r.StatusCode == 500 {
-		defer r.Body.Close()
-		return StatusUnhealthy, BuildResponse(r), err
+	ping, resp, err := c.GetPingWithOptions(ctx, SystemPingOptions{})
+	status := ""
+	if ping != nil {
+		status = ping["status"]
 	}
-	if err != nil {
-		return "", BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body)["status"], BuildResponse(r), nil
+	return status, resp, err
 }
 
 // GetPingWithServerStatus will return ok if several basic server health checks
 // all pass successfully.
 func (c *Client4) GetPingWithServerStatus(ctx context.Context) (string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping?get_server_status="+c.boolString(true), "")
-	if r != nil && r.StatusCode == 500 {
-		defer r.Body.Close()
-		return StatusUnhealthy, BuildResponse(r), err
+	ping, resp, err := c.GetPingWithOptions(ctx, SystemPingOptions{FullStatus: true})
+	status := ""
+	if ping != nil {
+		status = ping["status"]
 	}
-	if err != nil {
-		return "", BuildResponse(r), err
-	}
-	defer closeBody(r)
-	return MapFromJSON(r.Body)["status"], BuildResponse(r), nil
+	return status, resp, err
 }
 
 // GetPingWithFullServerStatus will return the full status if several basic server
 // health checks all pass successfully.
 func (c *Client4) GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.systemRoute()+"/ping?get_server_status="+c.boolString(true), "")
+	return c.GetPingWithOptions(ctx, SystemPingOptions{FullStatus: true})
+}
+
+// GetPingWithOptions will return the status according to the options
+func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOptions) (map[string]string, *Response, error) {
+	pingURL, err := url.Parse(c.systemRoute() + "/ping")
+	if err != nil {
+		return nil, nil, fmt.Errorf("could not parse query: %w", err)
+	}
+	values := pingURL.Query()
+	values.Set("get_server_status", c.boolString(options.FullStatus))
+	values.Set("keep_rest_semantics", c.boolString(options.RESTSemantics))
+	pingURL.RawQuery = values.Encode()
+	r, err := c.DoAPIGet(ctx, pingURL.String(), "")
 	if r != nil && r.StatusCode == 500 {
 		defer r.Body.Close()
 		return map[string]string{"status": StatusUnhealthy}, BuildResponse(r), err

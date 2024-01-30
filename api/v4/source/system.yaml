@@ -47,6 +47,11 @@
 
         __Minimum server version__: 6.5
 
+        If "keep_rest_semantics" is set to true in the query, the endpoint will not return
+        an error status code in the header if the request is somehow completed successfully.
+
+        __Minimum server version__: 9.6
+
         ##### Permissions
 
         None.
@@ -64,6 +69,12 @@
           required: false
           schema:
             type: string
+        - name: keep_rest_semantics
+          in: query
+          description: Returns 200 status code even if the server status is unhealthy.
+          required: false
+          schema:
+            type: boolean
       responses:
         "200":
           description: Status of the system
