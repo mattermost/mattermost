@@ -781,6 +781,7 @@
   "admin.elasticsearch.passwordDescription": "(Optional) The password to authenticate to the Elasticsearch server.",
   "admin.elasticsearch.passwordTitle": "Server Password:",
   "admin.elasticsearch.percentComplete": "{percent}% Complete",
+  "admin.elasticsearch.channelIndexRebuildJobTitle": "Channels index rebuild job.",
   "admin.elasticsearch.purgeIndexesButton": "Purge Indexes",
   "admin.elasticsearch.purgeIndexesButton.error": "Failed to purge indexes: {error}",
   "admin.elasticsearch.purgeIndexesButton.label": "Purge Indexes:",

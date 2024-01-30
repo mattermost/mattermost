@@ -198,8 +198,19 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     };
 
     getExtraInfo(job: Job) {
+        var jobSubType = null;
+        if (job.data?.sub_type === "channels_index_rebuild") {
+            jobSubType = (
+                <FormattedMessage
+                    id='admin.elasticsearch.channelIndexRebuildJobTitle'
+                    defaultMessage='Channels index rebuild job. '
+                />
+            )
+        }
+
+        var jobProgress = null;
         if (job.status === JobStatuses.IN_PROGRESS) {
-            return (
+            jobProgress = (
                 <FormattedMessage
                     id='admin.elasticsearch.percentComplete'
                     defaultMessage='{percent}% Complete'
@@ -208,7 +219,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             );
         }
 
-        return null;
+        return (<span>{jobSubType}{jobProgress}</span>);
     }
 
     renderTitle() {
@@ -424,6 +435,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                                     "index_users": "false",
                                     "index_files": "false",
                                     "index_channels": "true",
+                                    "sub_type": "channels_index_rebuild",
                                 }}
                             />
                         </div>
