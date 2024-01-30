@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import moment from 'moment';
-import React, {useEffect, useState} from 'react';
+import React, {useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -30,7 +30,6 @@ import {DocLinks, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {getIsStarterLicense, getIsGovSku} from 'utils/license_utils';
 
 import './true_up_review.scss';
-import { HostedCustomerTypes } from 'mattermost-redux/action_types';
 
 const TrueUpReview: React.FC = () => {
     const dispatch = useDispatch();
