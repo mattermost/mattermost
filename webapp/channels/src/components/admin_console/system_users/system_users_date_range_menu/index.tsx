@@ -107,7 +107,7 @@ export function SystemUsersDateRangeMenu(props: Props) {
                     ),
                 }}
                 menu={{
-                    id: 'dateRangeSelectorMenu',
+                    id: 'systemUsersDateRangeSelectorMenu',
                     'aria-label': formatMessage({
                         id: 'admin.system_users.date_range_selector.dropdownAriaLabel',
                         defaultMessage: 'Date range menu',
