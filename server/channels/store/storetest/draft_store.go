@@ -935,14 +935,14 @@ func testDeleteDraftsAssociatedWithPost(t *testing.T, rctx request.CTX, ss store
 		Id: model.NewId(),
 	}
 
-	_, err := ss.Channel().SaveMember(&model.ChannelMember{
+	_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   channel1.Id,
 		UserId:      user1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, err)
 
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   channel2.Id,
 		UserId:      user2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
