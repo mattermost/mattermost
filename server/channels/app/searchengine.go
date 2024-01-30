@@ -44,7 +44,7 @@ func (a *App) PurgeElasticsearchIndexes(c request.CTX, indexes []string) *model.
 	}
 
 	var appErr *model.AppError
-	if indexes != nil && len(indexes) > 0 {
+	if len(indexes) > 0 {
 		appErr = engine.PurgeIndexList(c, indexes)
 	} else {
 		appErr = engine.PurgeIndexes(c)

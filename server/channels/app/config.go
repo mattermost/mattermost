@@ -231,8 +231,8 @@ func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bo
 	// if Elasticsearch autocomplete was enabled, we need to verify if channels index is in right state.
 	// "Test Connection" button in system console checks this and set a flag in ES service,
 	// so we just need to check that flag's value.
-	oldESChannelAutocompleteWasDisabled := *a.Config().ElasticsearchSettings.EnableAutocomplete == false
-	newESChannelAutocompleteIsEnabled := *newCfg.ElasticsearchSettings.EnableAutocomplete == true
+	oldESChannelAutocompleteWasDisabled := !*a.Config().ElasticsearchSettings.EnableAutocomplete
+	newESChannelAutocompleteIsEnabled := *newCfg.ElasticsearchSettings.EnableAutocomplete
 
 	if oldESChannelAutocompleteWasDisabled && newESChannelAutocompleteIsEnabled {
 		if !a.SearchEngine().ElasticsearchEngine.IsAutocompletionEnabled() {
