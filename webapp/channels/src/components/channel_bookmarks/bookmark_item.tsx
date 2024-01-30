@@ -9,6 +9,7 @@ import styled, {css} from 'styled-components';
 
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
 
 import {getFile} from 'mattermost-redux/selectors/entities/files';
 import {getFileUrl} from 'mattermost-redux/utils/file_utils';
@@ -43,7 +44,7 @@ const BookmarkItem = <T extends HTMLAnchorElement>({bookmark}: Props) => {
             modalId: ModalIdentifiers.FILE_PREVIEW_MODAL,
             dialogType: FilePreviewModal,
             dialogProps: {
-                postId: '',
+                post: {} as Post,
                 fileInfos: [fileInfo],
                 startIndex: 0,
             },
