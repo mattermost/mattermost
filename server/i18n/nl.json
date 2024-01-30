@@ -2856,7 +2856,7 @@
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "{{ .SiteName }}[{{.SiteName}}] Nieuw groepsbericht op  {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nieuw groepsbericht op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -9079,7 +9079,7 @@
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SenderName }} nodigt je om deel te nemen aan het {{ .ChannelName }} kanaal op het {{ .TeamDisplayName }} team."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -10319,11 +10319,11 @@
   },
   {
     "id": "app.report.send_report_to_user.export_finished",
-    "translation": "De verwerking van het rapport is voltooid. Je kunt het rapport [hier] {{.Link}}) downloaden"
+    "translation": "Jouw export is klaar. Het CSV-bestand bevat gebruikersgegevens voor {{.DateRange}}. Klik op de onderstaande link om het rapport te downloaden."
   },
   {
     "id": "app.report.start_users_batch_export.started_export",
-    "translation": "Je hebt de export van gebruikersgegevens aangevraagd. Je ontvangt een CSV wanneer de export is voltooid."
+    "translation": "Je bent begonnen met het exporteren van gebruikersgegevens voor {{.DateRange}}. Wanneer het exporteren is voltooid, ontvang je een CSV-bestand in dit rechtstreekse bericht."
   },
   {
     "id": "app.compile_report_chunks.unsupported_format",
@@ -10344,5 +10344,33 @@
   {
     "id": "app.save_report_chunk.unsupported_format",
     "translation": "Niet-ondersteunde rapportindeling."
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "de afgelopen 30 dagen"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "de laatste 6 maanden"
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "alles"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "de vorige maand"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Fout bij het bewaren van de bestandsinformatie."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Ontbrekend datumbereik"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Geen gebruikersid om het rapport naar toe te sturen"
   }
 ]
