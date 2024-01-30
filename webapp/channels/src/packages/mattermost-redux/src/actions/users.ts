@@ -154,7 +154,8 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
 
 export function getMissingProfilesByIds(userIds: string[]): NewActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
-        const {profiles} = getState().entities.users;
+        const state = getState();
+        const {profiles} = state.entities.users;
         const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         const missingIds: string[] = [];
         userIds.forEach((id) => {
