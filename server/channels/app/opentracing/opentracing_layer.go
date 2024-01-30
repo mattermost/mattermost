@@ -14679,28 +14679,6 @@ func (a *OpenTracingAppLayer) RestrictUsersSearchByPermissions(c request.CTX, us
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RetrieveBatchReport(reportID string, format string) (filestore.ReadCloseSeeker, string, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RetrieveBatchReport")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.RetrieveBatchReport(reportID, format)
-
-	if resultVar2 != nil {
-		span.LogFields(spanlog.Error(resultVar2))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1, resultVar2
-}
-
 func (a *OpenTracingAppLayer) ReturnSessionToPool(session *model.Session) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReturnSessionToPool")
@@ -15977,7 +15955,7 @@ func (a *OpenTracingAppLayer) SendPersistentNotifications() error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError {
+func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendReportToUser")
 
@@ -15989,7 +15967,7 @@ func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, userID string, 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendReportToUser(rctx, userID, jobId, format)
+	resultVar0 := a.app.SendReportToUser(rctx, job, format)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16940,7 +16918,7 @@ func (a *OpenTracingAppLayer) SoftDeleteTeam(teamID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64) *model.AppError {
+func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StartUsersBatchExport")
 
@@ -16952,7 +16930,7 @@ func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, startAt in
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.StartUsersBatchExport(rctx, startAt, endAt)
+	resultVar0 := a.app.StartUsersBatchExport(rctx, dateRange, startAt, endAt)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
