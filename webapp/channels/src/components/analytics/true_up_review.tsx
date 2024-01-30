@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import moment from 'moment';
-import React, {useEffect} from 'react';
+import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -30,6 +30,7 @@ import {DocLinks, TELEMETRY_CATEGORIES} from 'utils/constants';
 import {getIsStarterLicense, getIsGovSku} from 'utils/license_utils';
 
 import './true_up_review.scss';
+import { HostedCustomerTypes } from 'mattermost-redux/action_types';
 
 const TrueUpReview: React.FC = () => {
     const dispatch = useDispatch();
@@ -69,7 +70,7 @@ const TrueUpReview: React.FC = () => {
             return;
         }
 
-        if (reviewProfile.getRequestState === 'OK' && isAirGapped && !trueUpReviewError && reviewProfile.content.length > 0) {
+        if (reviewProfile.getRequestState === 'OK' && !reviewStatus.complete && isAirGapped && !trueUpReviewError && reviewProfile.content.length > 0) {
             // Create the bundle as a blob containing base64 encoded json data and assign it to a link element.
             const blob = new Blob([reviewProfile.content], {type: 'application/text'});
             const href = URL.createObjectURL(blob);
@@ -84,6 +85,7 @@ const TrueUpReview: React.FC = () => {
             // Remove link and revoke object url to avoid memory leaks.
             document.body.removeChild(link);
             URL.revokeObjectURL(href);
+            dispatch(getTrueUpReviewStatus());
         }
     }, [isAirGapped, reviewProfile, reviewProfile.getRequestState, trueUpReviewError]);
 
