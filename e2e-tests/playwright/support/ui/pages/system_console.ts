@@ -17,6 +17,7 @@ class SystemConsolePage {
     readonly systemUsersFilterPopover;
     readonly systemUsersRoleMenu;
     readonly systemUsersStatusMenu;
+    readonly systemUsersDateRangeMenu;
     readonly systemUsersColumnToggleMenu;
 
     constructor(page: Page) {
@@ -38,6 +39,7 @@ class SystemConsolePage {
         this.systemUsersColumnToggleMenu = new components.SystemUsersColumnToggleMenu(
             page.locator('#systemUsersColumnTogglerMenu'),
         );
+        this.systemUsersDateRangeMenu = new components.SystemUsersFilterMenu(page.locator('#systemUsersDateRangeSelectorMenu'));
     }
 
     async toBeVisible() {

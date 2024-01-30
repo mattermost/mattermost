@@ -11,6 +11,8 @@ export default class SystemUsers {
 
     readonly searchInput: Locator;
     readonly columnToggleMenuButton: Locator;
+    readonly dateRangeSelectorMenuButton: Locator;
+    readonly exportButton: Locator;
     readonly filterPopoverButton: Locator;
 
     readonly loadingSpinner: Locator;
@@ -20,6 +22,8 @@ export default class SystemUsers {
 
         this.searchInput = this.container.getByLabel('Search users');
         this.columnToggleMenuButton = this.container.locator('#systemUsersColumnTogglerMenuButton');
+        this.dateRangeSelectorMenuButton = this.container.locator('#systemUsersDateRangeSelectorMenuButton');
+        this.exportButton = this.container.getByText('Export')
         this.filterPopoverButton = this.container.getByText(/Filters \(\d+\)/);
 
         this.loadingSpinner = this.container.getByText('Loading');
@@ -82,6 +86,14 @@ export default class SystemUsers {
     async openColumnToggleMenu() {
         expect(this.columnToggleMenuButton).toBeVisible();
         await this.columnToggleMenuButton.click();
+    }
+
+    /**
+     * Open the date range selector menu
+     */
+    async openDateRangeSelectorMenu() {
+        expect(this.dateRangeSelectorMenuButton).toBeVisible();
+        await this.dateRangeSelectorMenuButton.click();
     }
 
     /**
