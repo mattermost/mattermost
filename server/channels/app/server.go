@@ -1870,10 +1870,7 @@ func (s *Server) NotificationsLog() *mlog.Logger {
 }
 
 func (a *App) initElasticsearchChannelIndexCheck() {
-	go func() {
-		mlog.Info("##################### elasticsearchChannelIndexCheckWithRetry AAA")
-		a.elasticsearchChannelIndexCheckWithRetry()
-	}()
+	a.elasticsearchChannelIndexCheckWithRetry()
 
 	a.AddConfigListener(func(oldConfig, newConfig *model.Config) {
 		if a.SearchEngine().ElasticsearchEngine == nil {
@@ -1885,11 +1882,9 @@ func (a *App) initElasticsearchChannelIndexCheck() {
 
 		// if indexing is turned on, check.
 		if !*oldESConfig.EnableIndexing && *newESConfig.EnableIndexing {
-			mlog.Info("##################### elasticsearchChannelIndexCheckWithRetry BBBB")
 			a.elasticsearchChannelIndexCheckWithRetry()
 		} else if *newESConfig.EnableIndexing && (*oldESConfig.Password != *newESConfig.Password || *oldESConfig.Username != *newESConfig.Username || *oldESConfig.ConnectionURL != *newESConfig.ConnectionURL || *oldESConfig.Sniff != *newESConfig.Sniff) {
 			// ES client reconnects if credentials or address changes
-			mlog.Info("##################### elasticsearchChannelIndexCheckWithRetry CCCC")
 			a.elasticsearchChannelIndexCheckWithRetry()
 		}
 	})
@@ -1910,27 +1905,29 @@ func (a *App) initElasticsearchChannelIndexCheck() {
 }
 
 func (a *App) elasticsearchChannelIndexCheckWithRetry() {
-	// using progressive retry because ES client may take some time to connect and be ready.
-	_ = utils.ProgressiveRetry(func() error {
-		if !*a.Config().ElasticsearchSettings.EnableIndexing {
-			a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elasticsearch indexing is disabled")
+	go func() {
+		// using progressive retry because ES client may take some time to connect and be ready.
+		_ = utils.ProgressiveRetry(func() error {
+			if !*a.Config().ElasticsearchSettings.EnableIndexing {
+				a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elasticsearch indexing is disabled")
+				return nil
+			}
+
+			elastic := a.SearchEngine().ElasticsearchEngine
+			if elastic == nil {
+				a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elastic engine is nil")
+				return errors.New("retry")
+			}
+
+			if !elastic.IsActive() {
+				a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elastic.IsActive is false")
+				return errors.New("retry")
+			}
+
+			a.elasticsearchChannelIndexCheck()
 			return nil
-		}
-
-		elastic := a.SearchEngine().ElasticsearchEngine
-		if elastic == nil {
-			a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elastic engine is nil")
-			return errors.New("retry")
-		}
-
-		if !elastic.IsActive() {
-			a.Log().Debug("elasticsearchChannelIndexCheckWithRetry: skipping because elastic.IsActive is false")
-			return errors.New("retry")
-		}
-
-		a.elasticsearchChannelIndexCheck()
-		return nil
-	})
+		})
+	}()
 }
 
 func (a *App) elasticsearchChannelIndexCheck() {

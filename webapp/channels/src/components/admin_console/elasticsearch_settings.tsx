@@ -201,10 +201,13 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
         var jobSubType = null;
         if (job.data?.sub_type === "channels_index_rebuild") {
             jobSubType = (
-                <FormattedMessage
-                    id='admin.elasticsearch.channelIndexRebuildJobTitle'
-                    defaultMessage='Channels index rebuild job. '
-                />
+                <span>
+                    {'. '}
+                    <FormattedMessage
+                        id='admin.elasticsearch.channelIndexRebuildJobTitle'
+                        defaultMessage='Channels index rebuild job.'
+                    />
+                </span>
             )
         }
 
@@ -219,7 +222,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             );
         }
 
-        return (<span>{jobSubType}{jobProgress}</span>);
+        return (<span>{jobProgress}{jobSubType}</span>);
     }
 
     renderTitle() {
