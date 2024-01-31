@@ -179,6 +179,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		s[filestoreStatusKey] = model.StatusOk
 		appErr := c.App.TestFileStoreConnection()
 		if appErr != nil {
+			c.Logger.Warn("Unable to test filestore connection.", mlog.Err(appErr))
 			s[filestoreStatusKey] = model.StatusUnhealthy
 			s[model.STATUS] = model.StatusUnhealthy
 		}
