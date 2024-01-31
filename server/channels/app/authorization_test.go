@@ -27,7 +27,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 
 	cases := []struct {
 		roles        []string
-		permissionId string
+		permissionID string
 		shouldGrant  bool
 	}{
 		{[]string{model.SystemAdminRoleId}, model.PermissionManageSystem.Id, true},
@@ -43,7 +43,7 @@ func TestCheckIfRolesGrantPermission(t *testing.T) {
 	}
 
 	for _, testcase := range cases {
-		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionId), testcase.shouldGrant)
+		require.Equal(t, th.App.RolesGrantPermission(testcase.roles, testcase.permissionID), testcase.shouldGrant)
 	}
 }
 
@@ -552,4 +552,222 @@ func TestSessionHasPermissionToGroup(t *testing.T) {
 			require.False(t, result, fmt.Sprintf("row: %v", row))
 		}
 	}
+}
+
+func TestHasPermissionToReadChannel(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	ttcc := []struct {
+		name                    string
+		configViewArchived      bool
+		configComplianceEnabled bool
+		channelDeleted          bool
+		canReadChannel          bool
+		channelIsOpen           bool
+		canReadPublicChannel    bool
+		expected                bool
+	}{
+		{
+			name:                    "Cannot read archived channels if the config doesn't allow it",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          true,
+			canReadChannel:          true,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Can read if it has permissions to read",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          false,
+			canReadChannel:          true,
+			channelIsOpen:           false,
+			canReadPublicChannel:    true,
+			expected:                true,
+		},
+		{
+			name:                    "Cannot read private channels if it has no permission",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           false,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Cannot read open channels if compliance is enabled",
+			configViewArchived:      false,
+			configComplianceEnabled: true,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                false,
+		},
+		{
+			name:                    "Cannot read open channels if it has no team permissions",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    false,
+			expected:                false,
+		},
+		{
+			name:                    "Can read open channels if it has team permissions and compliance is not enabled",
+			configViewArchived:      false,
+			configComplianceEnabled: false,
+			channelDeleted:          false,
+			canReadChannel:          false,
+			channelIsOpen:           true,
+			canReadPublicChannel:    true,
+			expected:                true,
+		},
+	}
+
+	for _, tc := range ttcc {
+		t.Run(tc.name, func(t *testing.T) {
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				configViewArchived := tc.configViewArchived
+				configComplianceEnabled := tc.configComplianceEnabled
+				cfg.TeamSettings.ExperimentalViewArchivedChannels = &configViewArchived
+				cfg.ComplianceSettings.Enable = &configComplianceEnabled
+			})
+
+			team := th.CreateTeam()
+			if tc.canReadPublicChannel {
+				th.LinkUserToTeam(th.BasicUser2, team)
+			}
+
+			var channel *model.Channel
+			if tc.channelIsOpen {
+				channel = th.CreateChannel(th.Context, team)
+			} else {
+				channel = th.CreatePrivateChannel(th.Context, team)
+			}
+			if tc.canReadChannel {
+				_, err := th.App.AddUserToChannel(th.Context, th.BasicUser2, channel, false)
+				require.Nil(t, err)
+			}
+
+			if tc.channelDeleted {
+				err := th.App.DeleteChannel(th.Context, channel, th.SystemAdminUser.Id)
+				require.Nil(t, err)
+				channel, err = th.App.GetChannel(th.Context, channel.Id)
+				require.Nil(t, err)
+			}
+
+			result := th.App.HasPermissionToReadChannel(th.Context, th.BasicUser2.Id, channel)
+			require.Equal(t, tc.expected, result)
+		})
+	}
+}
+
+func TestSessionHasPermissionToChannelByPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	session, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	session2, err := th.App.CreateSession(th.Context, &model.Session{
+		UserId: th.BasicUser2.Id,
+		Roles:  model.SystemUserRoleId,
+	})
+	require.Nil(t, err)
+
+	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	post := th.CreatePost(channel)
+
+	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	archivedPost := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+
+	t.Run("read channel", func(t *testing.T) {
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, post.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, post.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read archived channel - setting off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(false)
+		})
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, archivedPost.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read archived channel - setting on", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(true)
+		})
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.SessionHasPermissionToChannelByPost(*session2, archivedPost.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read public channel", func(t *testing.T) {
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session, post.Id, model.PermissionReadPublicChannel))
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*session2, post.Id, model.PermissionReadPublicChannel))
+	})
+
+	t.Run("read channel - user is admin", func(t *testing.T) {
+		adminSession, err := th.App.CreateSession(th.Context, &model.Session{
+			UserId: th.SystemAdminUser.Id,
+			Roles:  model.SystemAdminRoleId,
+		})
+		require.Nil(t, err)
+
+		require.Equal(t, true, th.App.SessionHasPermissionToChannelByPost(*adminSession, post.Id, model.PermissionReadChannel))
+	})
+}
+
+func TestHasPermissionToChannelByPost(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	channel := th.CreateChannel(th.Context, th.BasicTeam)
+	th.App.AddUserToChannel(th.Context, th.BasicUser, channel, false)
+	post := th.CreatePost(channel)
+
+	archivedChannel := th.CreateChannel(th.Context, th.BasicTeam)
+	archivedPost := th.CreatePost(archivedChannel)
+	th.App.DeleteChannel(th.Context, archivedChannel, th.SystemAdminUser.Id)
+
+	t.Run("read channel", func(t *testing.T) {
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, post.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, post.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read archived channel - setting off", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(false)
+		})
+		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, archivedPost.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read archived channel - setting on", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.TeamSettings.ExperimentalViewArchivedChannels = model.NewBool(true)
+		})
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, archivedPost.Id, model.PermissionReadChannel))
+		require.Equal(t, false, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, archivedPost.Id, model.PermissionReadChannel))
+	})
+
+	t.Run("read public channel", func(t *testing.T) {
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser.Id, post.Id, model.PermissionReadPublicChannel))
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.BasicUser2.Id, post.Id, model.PermissionReadPublicChannel))
+	})
+
+	t.Run("read channel - user is admin", func(t *testing.T) {
+		require.Equal(t, true, th.App.HasPermissionToChannelByPost(th.Context, th.SystemAdminUser.Id, post.Id, model.PermissionReadChannel))
+	})
 }

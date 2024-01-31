@@ -619,18 +619,34 @@ func (a *App) importUser(rctx request.CTX, data *imports.UserImportData, dryRun 
 	}
 
 	if data.ProfileImage != nil {
-		var file io.ReadCloser
+		var file io.ReadSeeker
 		var err error
 		if data.ProfileImageData != nil {
-			file, err = data.ProfileImageData.Open()
+			// *zip.File does not support Seek, and we need a seeker to reset the cursor position after checking the picture dimension
+			var f io.ReadCloser
+			f, err = data.ProfileImageData.Open()
+			if err != nil {
+				rctx.Logger().Warn("Unable to open the profile image data.", mlog.Err(err))
+			} else {
+				limitedReader := io.LimitReader(f, *a.Config().FileSettings.MaxFileSize)
+				var b []byte
+				b, err = io.ReadAll(limitedReader)
+				if err != nil {
+					rctx.Logger().Warn("Unable to read all bytes from profile picture.", mlog.Err(err))
+				} else {
+					file = bytes.NewReader(b)
+				}
+			}
 		} else {
 			file, err = os.Open(*data.ProfileImage)
+			if err != nil {
+				rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
+			} else {
+				defer file.(*os.File).Close()
+			}
 		}
 
-		if err != nil {
-			rctx.Logger().Warn("Unable to open the profile image.", mlog.Err(err))
-		} else {
-			defer file.Close()
+		if file != nil {
 			if limitErr := checkImageLimits(file, *a.Config().FileSettings.MaxImageResolution); limitErr != nil {
 				return model.NewAppError("SetProfileImage", "api.user.upload_profile_user.check_image_limits.app_error", nil, "", http.StatusBadRequest)
 			}
@@ -796,10 +812,10 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 		teamMemberByTeamID       = map[string]*model.TeamMember{}
 		newTeamMembers           = []*model.TeamMember{}
 		oldTeamMembers           = []*model.TeamMember{}
-		rolesByTeamId            = map[string]string{}
-		isGuestByTeamId          = map[string]bool{}
+		rolesByTeamID            = map[string]string{}
+		isGuestByTeamID          = map[string]bool{}
 		isUserByTeamId           = map[string]bool{}
-		isAdminByTeamId          = map[string]bool{}
+		isAdminByTeamID          = map[string]bool{}
 	)
 
 	existingMemberships, nErr := a.Srv().Store().Team().GetTeamsForUser(rctx, user.Id, "", true)
@@ -823,9 +839,9 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			})
 		}
 
-		isGuestByTeamId[team.Id] = false
+		isGuestByTeamID[team.Id] = false
 		isUserByTeamId[team.Id] = true
-		isAdminByTeamId[team.Id] = false
+		isAdminByTeamID[team.Id] = false
 
 		if tdata.Roles == nil {
 			isUserByTeamId[team.Id] = true
@@ -834,17 +850,17 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 			explicitRoles := []string{}
 			for _, role := range strings.Fields(rawRoles) {
 				if role == model.TeamGuestRoleId {
-					isGuestByTeamId[team.Id] = true
+					isGuestByTeamID[team.Id] = true
 					isUserByTeamId[team.Id] = false
 				} else if role == model.TeamUserRoleId {
 					isUserByTeamId[team.Id] = true
 				} else if role == model.TeamAdminRoleId {
-					isAdminByTeamId[team.Id] = true
+					isAdminByTeamID[team.Id] = true
 				} else {
 					explicitRoles = append(explicitRoles, role)
 				}
 			}
-			rolesByTeamId[team.Id] = strings.Join(explicitRoles, " ")
+			rolesByTeamID[team.Id] = strings.Join(explicitRoles, " ")
 		}
 
 		member := &model.TeamMember{
@@ -913,13 +929,13 @@ func (a *App) importUserTeams(rctx request.CTX, user *model.User, data *[]import
 	}
 
 	for _, member := range append(newMembers, oldMembers...) {
-		if member.ExplicitRoles != rolesByTeamId[member.TeamId] {
-			if _, err = a.UpdateTeamMemberRoles(rctx, member.TeamId, user.Id, rolesByTeamId[member.TeamId]); err != nil {
+		if member.ExplicitRoles != rolesByTeamID[member.TeamId] {
+			if _, err = a.UpdateTeamMemberRoles(rctx, member.TeamId, user.Id, rolesByTeamID[member.TeamId]); err != nil {
 				return err
 			}
 		}
 
-		a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamId[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamId[member.TeamId])
+		a.UpdateTeamMemberSchemeRoles(rctx, member.TeamId, user.Id, isGuestByTeamID[member.TeamId], isUserByTeamId[member.TeamId], isAdminByTeamID[member.TeamId])
 	}
 
 	for _, team := range allTeams {
@@ -1216,7 +1232,7 @@ func (a *App) importReplies(rctx request.CTX, data []imports.ReplyImportData, po
 		fileIDs := a.uploadAttachments(rctx, replyData.Attachments, reply, teamID)
 		for _, fileID := range reply.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
 			}
 		}
 		reply.FileIds = make([]string, 0)
@@ -1519,7 +1535,7 @@ func (a *App) importMultiplePostLines(rctx request.CTX, lines []imports.LineImpo
 		fileIDs := a.uploadAttachments(rctx, line.Post.Attachments, post, team.Id)
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
 			}
 		}
 		post.FileIds = make([]string, 0)
@@ -1642,7 +1658,7 @@ func (a *App) uploadAttachments(rctx request.CTX, attachments *[]imports.Attachm
 
 func (a *App) updateFileInfoWithPostId(rctx request.CTX, post *model.Post) {
 	for _, fileID := range post.FileIds {
-		if err := a.Srv().Store().FileInfo().AttachToPost(fileID, post.Id, post.ChannelId, post.UserId); err != nil {
+		if err := a.Srv().Store().FileInfo().AttachToPost(rctx, fileID, post.Id, post.ChannelId, post.UserId); err != nil {
 			rctx.Logger().Error("Error attaching files to post.", mlog.String("post_id", post.Id), mlog.Array("post_file_ids", post.FileIds), mlog.Err(err))
 		}
 	}
@@ -1718,7 +1734,7 @@ func (a *App) importDirectChannel(rctx request.CTX, data *imports.DirectChannelI
 
 	if data.Header != nil {
 		channel.Header = *data.Header
-		if _, appErr := a.Srv().Store().Channel().Update(channel); appErr != nil {
+		if _, appErr := a.Srv().Store().Channel().Update(rctx, channel); appErr != nil {
 			return model.NewAppError("BulkImport", "app.import.import_direct_channel.update_header_failed.error", nil, "", http.StatusBadRequest).Wrap(appErr)
 		}
 	}
@@ -1832,7 +1848,7 @@ func (a *App) importMultipleDirectPostLines(rctx request.CTX, lines []imports.Li
 		fileIDs := a.uploadAttachments(rctx, line.DirectPost.Attachments, post, "noteam")
 		for _, fileID := range post.FileIds {
 			if _, ok := fileIDs[fileID]; !ok {
-				a.Srv().Store().FileInfo().PermanentDelete(fileID)
+				a.Srv().Store().FileInfo().PermanentDelete(rctx, fileID)
 			}
 		}
 		post.FileIds = make([]string, 0)

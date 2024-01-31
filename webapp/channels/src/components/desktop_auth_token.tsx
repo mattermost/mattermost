@@ -10,22 +10,14 @@ import {useHistory, useLocation} from 'react-router-dom';
 
 import type {UserProfile} from '@mattermost/types/users';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {loginWithDesktopToken} from 'actions/views/login';
+
+import DesktopApp from 'utils/desktop_api';
 
 import './desktop_auth_token.scss';
 
 const BOTTOM_MESSAGE_TIMEOUT = 10000;
 const DESKTOP_AUTH_PREFIX = 'desktop_auth_client_token';
-
-declare global {
-    interface Window {
-        desktopAPI?: {
-            isDev?: () => Promise<boolean>;
-        };
-    }
-}
 
 enum DesktopAuthStatus {
     None,
@@ -41,7 +33,7 @@ type Props = {
 }
 
 const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {search} = useLocation();
     const query = new URLSearchParams(search);
@@ -71,8 +63,7 @@ const DesktopAuthToken: React.FC<Props> = ({href, onLogin}: Props) => {
     };
 
     const openExternalLoginURL = async () => {
-        const isDev = await window.desktopAPI?.isDev?.();
-        const desktopToken = `${isDev ? 'dev-' : ''}${crypto.randomBytes(32).toString('hex')}`.slice(0, 64);
+        const desktopToken = `${DesktopApp.isDev() ? 'dev-' : ''}${crypto.randomBytes(32).toString('hex')}`.slice(0, 64);
         sessionStorage.setItem(DESKTOP_AUTH_PREFIX, desktopToken);
         const parsedURL = new URL(href);
 

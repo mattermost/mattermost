@@ -15,7 +15,6 @@ import {
 } from 'mattermost-redux/selectors/entities/cloud';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {subscribeCloudSubscription} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';
@@ -58,7 +57,7 @@ type ContentProps = {
 
 function Content(props: ContentProps) {
     const {formatMessage, formatNumber} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const [limits] = useGetLimits();
     const openPricingModalBackAction = useOpenPricingModal();
 
@@ -317,11 +316,13 @@ function Content(props: ContentProps) {
                 </div>
                 <button
                     id='closeIcon'
-                    className='icon icon-close'
+                    className='close'
                     aria-label='Close'
                     title='Close'
                     onClick={props.onHide}
-                />
+                >
+                    <span aria-hidden='true'>{'×'}</span>
+                </button>
             </Modal.Header>
             <Modal.Body>
                 {!cloudFreeDeprecated && (
@@ -355,7 +356,6 @@ function Content(props: ContentProps) {
                             plan='Free'
                             planSummary={formatMessage({id: 'pricing_modal.planSummary.free', defaultMessage: 'Increased productivity for small teams'})}
                             price='$0'
-                            rate={formatMessage({id: 'pricing_modal.price.freeForever', defaultMessage: 'Free forever'})}
                             isCloud={true}
                             cloudFreeDeprecated={cloudFreeDeprecated}
                             planLabel={

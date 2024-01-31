@@ -493,7 +493,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "GlobalRelaySettings.CustomerType för meddelandeexport måste anges till antingen 'A9' eller 'A10'."
+    "translation": "GlobalRelaySettings.CustomerType för meddelandeexport måste anges till antingen 'A9', 'A10' eller 'CUSTOM'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
@@ -2625,15 +2625,15 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Notis i {{ .TeamName}} den {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Notis i {{ .TeamName}} den {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nytt gruppmeddelande den {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nytt gruppmeddelande den {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nytt gruppmeddelande i {{ .ChannelName}} den {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nytt gruppmeddelande i {{ .ChannelName}} den {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -3737,7 +3737,7 @@
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "Fel vid import av post. Kunde inte hitta en användare med användarnamnet \"{{.UserName}}\"."
+    "translation": "Fel vid import av post. Kunde inte hitta en användare med användarnamnet \"{{.Username}}\"."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
@@ -3825,7 +3825,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Fel vid inläsning av emoij-bildfilen. Emoij med namnet: \"{{.EmoijName}}\""
+    "translation": "Fel vid inläsning av emoij-bildfilen. Emoij med namnet: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
@@ -4925,7 +4925,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Ditt lösenord är uppdaterat"
+    "translation": "[{{ .SiteName }}] Ditt lösenord är uppdaterat"
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -4941,11 +4941,11 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Flerfaktorauthentisering har tagits bort från ditt konto på {{.SiteURL}}."
+    "translation": "Flerfaktorsautentisering har tagits bort från ditt konto på {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{.SiteName}}] Ditt MFA är uppdaterat"
+    "translation": "[{{ .SiteName }}] Ditt MFA är uppdaterat"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -4953,7 +4953,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Flerfaktorauthentisering har lagts till på ditt konto på {{.SiteURL}}."
+    "translation": "Flerfaktorsautentisering har lagts till på ditt konto på {{ .SiteURL }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -5029,7 +5029,7 @@
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{.SiteName}}] Ditt konto på {{.ServerURL}} har stängts av"
+    "translation": "[{{ .SiteName }}] Ditt konto på {{ .ServerURL }} har stängts av"
   },
   {
     "id": "api.templates.deactivate_body.warning",
@@ -5037,11 +5037,11 @@
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Ditt konto på {{.ServerURL}} har stängts av"
+    "translation": "Ditt konto på {{ .ServerURL }} har stängts av"
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "Du har stängt av ditt konto på {{.SiteURL}}."
+    "translation": "Du har stängt av ditt konto på {{ .SiteURL }}."
   },
   {
     "id": "api.templates.copyright",
@@ -5137,7 +5137,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Begränsning av grupp till {{.Domain}} är inte tillåtet av systemkonfigurationen. Kontakta din systemadministratör."
+    "translation": "Begränsning av grupp till {{ .Domain }} är inte tillåtet av systemkonfigurationen. Kontakta din systemadministratör."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -5841,7 +5841,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Denna licens stödjer endast {{.Användare}} användare, när ditt system har {{.Count}} unika användare. En unik användare är samma som en unik e-postadress. Du kan se det totala antalet användare som räknas Sajt Rapporter -> Visa Statistik."
+    "translation": "Denna licens stödjer endast {{.Users}} användare, när ditt system har {{.Count}} unika användare. En unik användare är samma som en unik e-postadress. Du kan se det totala antalet användare som räknas Sajt Rapporter -> Visa Statistik."
   },
   {
     "id": "api.license.add_license.save_active.app_error",
@@ -6069,7 +6069,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{.SiteName}}] Du anslöt till {{.ServerURL}}"
+    "translation": "[{{ .SiteName }}] Du anslöt till {{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -6117,7 +6117,7 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{.SiteName}}] Verifiera e-postadress"
+    "translation": "[{{ .SiteName }}] Verifiera e-postadress"
   },
   {
     "id": "api.templates.verify_body.title",
@@ -6145,7 +6145,7 @@
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{.SiteName}}] Personligt access_token lades till i ditt konto"
+    "translation": "[{{ .SiteName }}] Personligt access_token lades till i ditt konto"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -6153,11 +6153,11 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Ett access_token lades till i ditt konto på {{.SiteURL}}. Det kan användas för att nå {{.SiteName}} med ditt konto."
+    "translation": "Ett access_token lades till i ditt konto på {{ .SiteURL }}. Det kan användas för att nå {{.SiteName}} med ditt konto."
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{.SiteName}}] Din inloggningsmetod är uppdaterad"
+    "translation": "[{{ .SiteName }}] Din inloggningsmetod är uppdaterad"
   },
   {
     "id": "api.templates.signin_change_email.body.title",
@@ -6169,7 +6169,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Du har bytt inloggningsmetod till {{.Method}} på {{.SiteName}}."
+    "translation": "Du har bytt inloggningsmetod till {{.Method}} på {{ .SiteName }}."
   },
   {
     "id": "api.templates.reset_subject",
@@ -7420,7 +7420,7 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Följande användare kunde inte tas bort från kanalen på grund av grupprestriktioner: {{.UserIDs}}"
+    "translation": "Följande användare kunde inte tas bort från kanalen på grund av grupprestriktioner: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -7592,7 +7592,7 @@
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Följande användare kunde inte läggas till i kanalen på grund av grupprestriktioner: {{.UserIDs}}"
+    "translation": "Följande användare kunde inte läggas till i kanalen på grund av grupprestriktioner: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_members.error",
@@ -8416,7 +8416,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Fel vid kontroll om den delade kanalen finns: {{.Error}}"
+    "translation": "Fel vid kontroll om den delade kanalen {{.ChannelID}} finns: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8976,10 +8976,6 @@
   {
     "id": "api.custom_groups.count_err",
     "translation": "fel när antal grupper beräknades"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fel vid tolkning av förfrågan."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -9771,7 +9767,7 @@
   },
   {
     "id": "api.command_exportlink.link.text",
-    "translation": "Du kan ladda ner din fil här: {{.Länk}}.\nDenna länk kommer att upphöra att gälla om {{.Expiration}}."
+    "translation": "Du kan ladda ner din fil här: {{.Link}}.\nDenna länk kommer att upphöra att gälla om {{.Expiration}}."
   },
   {
     "id": "api.command_exportlink.name",
@@ -10088,5 +10084,133 @@
   {
     "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
     "translation": "Felaktigt lösenord."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Gränsen för antal reaktioner på meddelandet har nåtts."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ogiltigt team-ID har angetts."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Det gick inte att uppdatera den anpassade statusen. En emoji med det angivna namnet finns inte."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Kan inte dölja både aktiva och inaktiva användare."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Om GlobalRelaySettings.CustomerType är 'CUSTOM' måste GlobalRelaySettings.CustomSMTPServerName och GlobalRelaySettings.CustomSMTPPort anges."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Sidstorleken är ogiltig eller för stor."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Möjligheten att flytta trådar är inaktiverad"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Du har inte behörighet att flytta tråden."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_report_id",
+    "translation": "Rapport-ID är ogiltigt."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Förnyelse av årsabonnemang inom 60 dagar"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Det gick inte att skriva CSV-rubriker."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Kan inte bjuda in externa användare eftersom kanalen {{.ChannelID}} inte är delad."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Denna funktion begränsas av en funktionsflagga."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Kunde inte bekräfta inbjudan: {{.Error}}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Det uppstod ett fel när utgående OAuth-anslutningar listades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ogiltiga parametrar angavs."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Ett fel uppstod när innehållet analyserades."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Det går inte att få så många roller via namn. Endast {{.MaxNames}} roller kan efterfrågas per gång."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Förnya nu"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Åtgärd krävs: Årlig prenumerationsförnyelse om 7 dagar"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Du kommer att förlora åtkomsten till din arbetsyta om 7 dagar"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Kunde inte uppdatera notifieringsattribut för medlemmarna i kanalen."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Kunde inte uppdatera så många kanalmedlemmar. Endast {{.Max}} kanalmedlemmar kan uppdateras samtidigt."
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Förnya för att undvika avbrott"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Årlig faktura förfaller inom 30 dagar"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Kunde inte hitta användaren."
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Din årliga faktura förfaller om 30 dagar"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Förnyelse av årsabonnemang inom 60 dagar"
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Kan inte söka till början på filen."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_format",
+    "translation": "Rapportformatet är ogiltigt."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fel vid kontroll av om en användare har en anpassad profilbild."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Rapportformatet stöds inte."
   }
 ]

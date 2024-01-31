@@ -14,10 +14,11 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
+	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
-type sendSyncMsgResultFunc func(syncResp SyncResponse, err error)
+type sendSyncMsgResultFunc func(syncResp model.SyncResponse, err error)
 
 type attachment struct {
 	fi   *model.FileInfo
@@ -41,12 +42,15 @@ type syncData struct {
 
 func newSyncData(task syncTask, rc *model.RemoteCluster, scr *model.SharedChannelRemote) *syncData {
 	return &syncData{
-		task:             task,
-		rc:               rc,
-		scr:              scr,
-		users:            make(map[string]*model.User),
-		profileImages:    make(map[string]*model.User),
-		resultNextCursor: model.GetPostsSinceForSyncCursor{LastPostUpdateAt: scr.LastPostUpdateAt, LastPostId: scr.LastPostId},
+		task:          task,
+		rc:            rc,
+		scr:           scr,
+		users:         make(map[string]*model.User),
+		profileImages: make(map[string]*model.User),
+		resultNextCursor: model.GetPostsSinceForSyncCursor{
+			LastPostUpdateAt: scr.LastPostUpdateAt, LastPostUpdateID: scr.LastPostUpdateID,
+			LastPostCreateAt: scr.LastPostCreateAt, LastPostCreateID: scr.LastPostCreateID,
+		},
 	}
 }
 
@@ -55,7 +59,12 @@ func (sd *syncData) isEmpty() bool {
 }
 
 func (sd *syncData) isCursorChanged() bool {
-	return sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostId != sd.resultNextCursor.LastPostId
+	if sd.resultNextCursor.IsEmpty() {
+		return false
+	}
+
+	return sd.scr.LastPostCreateAt != sd.resultNextCursor.LastPostCreateAt || sd.scr.LastPostCreateID != sd.resultNextCursor.LastPostCreateID ||
+		sd.scr.LastPostUpdateAt != sd.resultNextCursor.LastPostUpdateAt || sd.scr.LastPostUpdateID != sd.resultNextCursor.LastPostUpdateID
 }
 
 // syncForRemote updates a remote cluster with any new posts/reactions for a specific
@@ -70,7 +79,22 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	}
 
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
-	if err != nil {
+	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
+		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
+		scr = &model.SharedChannelRemote{
+			Id:                model.NewId(),
+			ChannelId:         task.channelID,
+			CreatorId:         rc.CreatorId,
+			IsInviteAccepted:  true,
+			IsInviteConfirmed: true,
+			RemoteId:          rc.RemoteId,
+			LastPostCreateAt:  model.GetMillis(),
+			LastPostUpdateAt:  model.GetMillis(),
+		}
+		if scr, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
+			return fmt.Errorf("cannot auto-create shared channel remote (channel_id=%s, remote_id=%s): %w", task.channelID, rc.RemoteId, err)
+		}
+	} else if err != nil {
 		return err
 	}
 
@@ -186,43 +210,71 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 	return nil
 }
 
-// fetchPostsForSync populates the sync data with any new posts since the last sync.
+// fetchPostsForSync populates the sync data with any new or edited posts since the last sync.
 func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	options := model.GetPostsSinceForSyncOptions{
 		ChannelId:      sd.task.channelID,
 		IncludeDeleted: true,
+		SinceCreateAt:  true,
 	}
 	cursor := model.GetPostsSinceForSyncCursor{
 		LastPostUpdateAt: sd.scr.LastPostUpdateAt,
-		LastPostId:       sd.scr.LastPostId,
+		LastPostUpdateID: sd.scr.LastPostUpdateID,
+		LastPostCreateAt: sd.scr.LastPostCreateAt,
+		LastPostCreateID: sd.scr.LastPostCreateID,
 	}
 
+	// Fetch all newly created posts first. This is to ensure that post order is preserved for sync targets
+	// that cannot set the CreateAt timestamp for incoming posts (e.g. MS Teams).  If we simply used UpdateAt
+	// then posts could get out of order. For example: p1 created, p2 created, p1 updated... sync'ing on UpdateAt
+	// would order the posts p2, p1.
 	posts, nextCursor, err := scs.server.GetStore().Post().GetPostsSinceForSync(options, cursor, MaxPostsPerSync)
 	if err != nil {
 		return fmt.Errorf("could not fetch new posts for sync: %w", err)
 	}
+	count := len(posts)
+	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt)
 
+	cache := postsSliceToMap(posts)
+
+	// Fill remaining batch capacity with updated posts.
+	if len(posts) < MaxPostsPerSync {
+		options.SinceCreateAt = false
+		// use 'nextcursor' as it has the correct xxxUpdateAt values, and the updsted xxxCreateAt values.
+		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, MaxPostsPerSync-len(posts))
+		if err != nil {
+			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
+		}
+		posts = reducePostsSliceInCache(posts, cache)
+		count += len(posts)
+		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt)
+	}
+
+	sd.resultNextCursor = nextCursor
+	sd.resultRepeat = count >= MaxPostsPerSync
+
+	return nil
+}
+
+func appendPosts(dest []*model.Post, posts []*model.Post, postStore store.PostStore, timestamp int64) []*model.Post {
 	// Append the posts individually, checking for root posts that might appear later in the list.
 	// This is due to the UpdateAt collision handling algorithm where the order of posts is not based
 	// on UpdateAt or CreateAt when the posts have the same UpdateAt value. Here we are guarding
 	// against a root post with the same UpdateAt (and probably the same CreateAt) appearing later
-	// in the list and must be sync'd before the child post. This is and edge case that likely only
+	// in the list and must be sync'd before the child post. This is an edge case that likely only
 	// happens during load testing or bulk imports.
 	for _, p := range posts {
 		if p.RootId != "" {
-			root, err := scs.server.GetStore().Post().GetSingle(p.RootId, true)
+			root, err := postStore.GetSingle(p.RootId, true)
 			if err == nil {
-				if (root.CreateAt >= cursor.LastPostUpdateAt || root.UpdateAt >= cursor.LastPostUpdateAt) && !containsPost(sd.posts, root) {
-					sd.posts = append(sd.posts, root)
+				if (root.CreateAt >= timestamp || root.UpdateAt >= timestamp) && !containsPost(dest, root) {
+					dest = append(dest, root)
 				}
 			}
 		}
-		sd.posts = append(sd.posts, p)
+		dest = append(dest, p)
 	}
-
-	sd.resultNextCursor = nextCursor
-	sd.resultRepeat = len(posts) == MaxPostsPerSync
-	return nil
+	return dest
 }
 
 func containsPost(posts []*model.Post, post *model.Post) bool {
@@ -410,10 +462,10 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 
 // sendUserSyncData sends the collected user updates to the remote cluster.
 func (scs *Service) sendUserSyncData(sd *syncData) error {
-	msg := newSyncMsg(sd.task.channelID)
+	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Users = sd.users
 
-	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {
+	err := scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
 		for _, userID := range syncResp.UsersSyncd {
 			if err := scs.server.GetStore().SharedChannel().UpdateUserLastSyncAt(userID, sd.task.channelID, sd.rc.RemoteId); err != nil {
 				scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Cannot update shared channel user LastSyncAt",
@@ -452,10 +504,10 @@ func (scs *Service) sendAttachmentSyncData(sd *syncData) {
 
 // sendPostSyncData sends the collected post updates to the remote cluster.
 func (scs *Service) sendPostSyncData(sd *syncData) error {
-	msg := newSyncMsg(sd.task.channelID)
+	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Posts = sd.posts
 
-	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {
+	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
 		if len(syncResp.PostErrors) != 0 {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for post(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
@@ -473,10 +525,10 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 
 // sendReactionSyncData sends the collected reaction updates to the remote cluster.
 func (scs *Service) sendReactionSyncData(sd *syncData) error {
-	msg := newSyncMsg(sd.task.channelID)
+	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Reactions = sd.reactions
 
-	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp SyncResponse, errResp error) {
+	return scs.sendSyncMsgToRemote(msg, sd.rc, func(syncResp model.SyncResponse, errResp error) {
 		if len(syncResp.ReactionErrors) != 0 {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Response indicates error for reactions(s) sync",
 				mlog.String("channel_id", sd.task.channelID),
@@ -494,11 +546,15 @@ func (scs *Service) sendProfileImageSyncData(sd *syncData) {
 	}
 }
 
-// sendSyncMsgToRemote synchronously sends the sync message to the remote cluster.
-func (scs *Service) sendSyncMsgToRemote(msg *syncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
+// sendSyncMsgToRemote synchronously sends the sync message to the remote cluster (or plugin).
+func (scs *Service) sendSyncMsgToRemote(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
 	rcs := scs.server.GetRemoteClusterService()
 	if rcs == nil {
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, msg.ChannelId)
+	}
+
+	if rc.IsPlugin() {
+		return scs.sendSyncMsgToPlugin(msg, rc, f)
 	}
 
 	b, err := json.Marshal(msg)
@@ -516,7 +572,7 @@ func (scs *Service) sendSyncMsgToRemote(msg *syncMsg, rc *model.RemoteCluster, f
 	err = rcs.SendMsg(ctx, rcMsg, rc, func(rcMsg model.RemoteClusterMsg, rc *model.RemoteCluster, rcResp *remotecluster.Response, errResp error) {
 		defer wg.Done()
 
-		var syncResp SyncResponse
+		var syncResp model.SyncResponse
 		if err2 := json.Unmarshal(rcResp.Payload, &syncResp); err2 != nil {
 			scs.server.Log().Log(mlog.LvlSharedChannelServiceError, "Invalid sync msg response from remote cluster",
 				mlog.String("remote", rc.Name),
@@ -533,6 +589,17 @@ func (scs *Service) sendSyncMsgToRemote(msg *syncMsg, rc *model.RemoteCluster, f
 
 	wg.Wait()
 	return err
+}
+
+// sendSyncMsgToRemote synchronously sends the sync message to a plugin.
+func (scs *Service) sendSyncMsgToPlugin(msg *model.SyncMsg, rc *model.RemoteCluster, f sendSyncMsgResultFunc) error {
+	syncResp, errResp := scs.app.OnSharedChannelsSyncMsg(msg, rc)
+
+	if f != nil {
+		f(syncResp, errResp)
+	}
+
+	return errResp
 }
 
 func sanitizeSyncData(sd *syncData) {

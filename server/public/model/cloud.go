@@ -6,6 +6,7 @@ package model
 import (
 	"encoding/json"
 	"strings"
+	"time"
 )
 
 const (
@@ -180,6 +181,22 @@ type Subscription struct {
 	OriginallyLicensedSeats int      `json:"originally_licensed_seats"`
 	ComplianceBlocked       string   `json:"compliance_blocked"`
 	BillingType             string   `json:"billing_type"`
+	CancelAt                *int64   `json:"cancel_at"`
+	WillRenew               string   `json:"will_renew"`
+	SimulatedCurrentTimeMs  *int64   `json:"simulated_current_time_ms"`
+}
+
+func (s *Subscription) DaysToExpiration() int64 {
+	now := time.Now().UnixMilli()
+	if GetServiceEnvironment() == ServiceEnvironmentTest {
+		// In the test environment we have test clocks. A test clock is a ms timestamp
+		// If it's not nil, we use it as the current time in all calculations
+		if s.SimulatedCurrentTimeMs != nil {
+			now = *s.SimulatedCurrentTimeMs
+		}
+	}
+	daysToExpiry := (s.EndAt - now) / (1000 * 60 * 60 * 24)
+	return daysToExpiry
 }
 
 // Subscription History model represents true up event in a yearly subscription
@@ -226,6 +243,8 @@ type InvoiceLineItem struct {
 	Description  string         `json:"description"`
 	Type         string         `json:"type"`
 	Metadata     map[string]any `json:"metadata"`
+	PeriodStart  int64          `json:"period_start"`
+	PeriodEnd    int64          `json:"period_end"`
 }
 
 type DelinquencyEmailTrigger struct {
