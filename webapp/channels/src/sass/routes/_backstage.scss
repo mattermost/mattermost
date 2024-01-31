@@ -560,6 +560,28 @@
     }
 }
 
+.outgoing-oauth-connection-validate-button-container {
+    height: 40px;
+    margin-top: 10px;
+}
+
+.outgoing-oauth-connection-validation-message {
+    &.validation-success {
+        color: #06d6a0;
+    }
+
+    &.validation-error {
+        color: #d24b4e;
+    }
+
+    svg {
+        margin-right: 5px;
+    }
+
+    font-size: 13px;
+    font-weight: 700;
+}
+
 .outgoing-oauth-audience-match-message {
     height: 27px;
 }

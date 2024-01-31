@@ -8,15 +8,17 @@ import type {MessageDescriptor} from 'react-intl';
 import {useDispatch} from 'react-redux';
 import {Link} from 'react-router-dom';
 
-import {CheckIcon} from '@mattermost/compass-icons/components';
+import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 
 import {validateOutgoingOAuthConnection} from 'mattermost-redux/actions/integrations';
 
 import BackstageHeader from 'components/backstage/components/backstage_header';
+import ConfirmModal from 'components/confirm_modal';
 import FormError from 'components/form_error';
 import SpinnerButton from 'components/spinner_button';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 type Props = {
     team: Team;
@@ -40,11 +42,12 @@ type State = {
     audienceUrls: string;
 };
 
-type SubmissionState = {
-    saving?: boolean;
-    validating?: boolean;
-    validated?: boolean;
-    error?: React.ReactNode;
+enum ValidationStatus {
+    INITIAL = 'initial',
+    DIRTY = 'dirty',
+    VALIDATING = 'validating',
+    VALIDATED = 'validated',
+    ERROR = 'error',
 }
 
 const useOutgoingOAuthForm = (connection: OutgoingOAuthConnection): [State, (state: Partial<State>) => void] => {
@@ -79,8 +82,15 @@ const initialState: OutgoingOAuthConnection = {
 
 export default function AbstractOutgoingOAuthConnection(props: Props) {
     const [formState, setFormState] = useOutgoingOAuthForm(props.initialConnection || initialState);
-    const [submissionStatus, setSubmissionStatus] = useState<SubmissionState>({saving: false, validating: false, error: ''});
+
+    const [storedError, setError] = useState<React.ReactNode>('');
+    const [validationError, setValidationError] = useState<string>('');
+
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [validationStatus, setValidationStatus] = useState<ValidationStatus>(ValidationStatus.INITIAL);
     const [isEditingSecret, setIsEditingSecret] = useState(false);
+
+    const [isValidationModalOpen, setIsValidationModalOpen] = useState(false);
 
     const intl = useIntl();
     const dispatch = useDispatch();
@@ -89,68 +99,61 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
 
     const parseForm = (): OutgoingOAuthConnection | undefined => {
         if (!formState.name) {
-            setSubmissionStatus({
-                error: (
-                    <FormattedMessage
-                        id='add_outgoing_oauth_connection.name.required'
-                        defaultMessage='Name for the OAuth connection is required.'
-                    />
-                ),
-            });
+            setIsSubmitting(false);
+            setError(
+                <FormattedMessage
+                    id='add_outgoing_oauth_connection.name.required'
+                    defaultMessage='Name for the OAuth connection is required.'
+                />,
+            );
 
             return undefined;
         }
 
         if (!formState.clientId) {
-            setSubmissionStatus({
-                error: (
-                    <FormattedMessage
-                        id='add_outgoing_oauth_connection.client_id.required'
-                        defaultMessage='Client Id for the OAuth connection is required.'
-                    />
-                ),
-            });
+            setIsSubmitting(false);
+            setError(
+                <FormattedMessage
+                    id='add_outgoing_oauth_connection.client_id.required'
+                    defaultMessage='Client Id for the OAuth connection is required.'
+                />,
+            );
 
             return undefined;
         }
 
         if ((isNewConnection || isEditingSecret) && !formState.clientSecret) {
-            setSubmissionStatus({
-                error: (
-                    <FormattedMessage
-                        id='add_outgoing_oauth_connection.client_secret.required'
-                        defaultMessage='Client Secret for the OAuth connection is required.'
-                    />
-                ),
-            });
+            setIsSubmitting(false);
+            setError(
+                <FormattedMessage
+                    id='add_outgoing_oauth_connection.client_secret.required'
+                    defaultMessage='Client Secret for the OAuth connection is required.'
+                />,
+            );
 
             return undefined;
         }
 
         if (!formState.grantType) {
-            setSubmissionStatus({
-                saving: false,
-                error: (
-                    <FormattedMessage
-                        id='add_outgoing_oauth_connection.grant_type.required'
-                        defaultMessage='Grant Type for the OAuth connection is required.'
-                    />
-                ),
-            });
+            setIsSubmitting(false);
+            setError(
+                <FormattedMessage
+                    id='add_outgoing_oauth_connection.grant_type.required'
+                    defaultMessage='Grant Type for the OAuth connection is required.'
+                />,
+            );
 
             return undefined;
         }
 
         if (!formState.oauthTokenUrl) {
-            setSubmissionStatus({
-                saving: false,
-                error: (
-                    <FormattedMessage
-                        id='add_outgoing_oauth_connection.oauth_token_url.required'
-                        defaultMessage='OAuth Token URL for the OAuth connection is required.'
-                    />
-                ),
-            });
+            setIsSubmitting(false);
+            setError(
+                <FormattedMessage
+                    id='add_outgoing_oauth_connection.oauth_token_url.required'
+                    defaultMessage='OAuth Token URL for the OAuth connection is required.'
+                />,
+            );
 
             return undefined;
         }
@@ -165,15 +168,13 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         }
 
         if (audienceUrls.length === 0) {
-            setSubmissionStatus({
-                saving: false,
-                error: (
-                    <FormattedMessage
-                        id='add_outgoing_oauth_connection.audienceUrls.required'
-                        defaultMessage='One or more audience URLs are required.'
-                    />
-                ),
-            });
+            setIsSubmitting(false);
+            setError(
+                <FormattedMessage
+                    id='add_outgoing_oauth_connection.audienceUrls.required'
+                    defaultMessage='One or more audience URLs are required.'
+                />,
+            );
 
             return undefined;
         }
@@ -190,38 +191,52 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         return connection;
     };
 
-    const handleSubmit = (e: FormEvent) => {
-        e.preventDefault();
+    const showSkipValidateModal = () => {
+        setIsValidationModalOpen(true);
+    };
 
-        if (submissionStatus.saving) {
+    const hideSkipValidateModal = () => {
+        setIsValidationModalOpen(false);
+    };
+
+    const handleSubmitFromButton = (e: FormEvent) => {
+        e.preventDefault();
+        handleSubmit();
+    };
+
+    const handleSubmit = () => {
+        if (isSubmitting) {
             return;
         }
-
-        setSubmissionStatus({
-            saving: true,
-            error: '',
-        });
 
         const connection = parseForm();
         if (!connection) {
             return;
         }
 
+        setError('');
+
+        if (validationStatus !== ValidationStatus.VALIDATED && !(!isNewConnection && validationStatus === ValidationStatus.INITIAL)) {
+            if (!isValidationModalOpen) {
+                showSkipValidateModal();
+                return;
+            }
+        }
+
+        setIsSubmitting(true);
+
         const res = props.submitAction(connection);
-        res.then(() => setSubmissionStatus({saving: false, error: ''}));
+        res.then(() => setIsSubmitting(false));
     };
 
     const handleValidate = async (e: FormEvent) => {
         e.preventDefault();
 
-        if (submissionStatus.validating) {
+        if (validationStatus === ValidationStatus.VALIDATING) {
             return;
         }
 
-        setSubmissionStatus({
-            validating: true,
-            error: '',
-        });
+        setValidationStatus(ValidationStatus.VALIDATING);
 
         const connection = parseForm();
         if (!connection) {
@@ -232,12 +247,23 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             connection.id = props.initialConnection.id;
         }
 
-        const {error} = (await dispatch(validateOutgoingOAuthConnection(connection))) as unknown as {data: OutgoingOAuthConnection; error: Error};
+        const {error} = await dispatch(validateOutgoingOAuthConnection(connection));
 
         if (error) {
-            setSubmissionStatus({error: error.message});
+            setValidationStatus(ValidationStatus.ERROR);
+            setValidationError(error.message);
         } else {
-            setSubmissionStatus({validated: true});
+            setValidationStatus(ValidationStatus.VALIDATED);
+        }
+    };
+
+    const setUnvalidated = () => {
+        if (validationStatus !== ValidationStatus.DIRTY) {
+            setValidationStatus(ValidationStatus.DIRTY);
+        }
+
+        if (validationError) {
+            setValidationError('');
         }
     };
 
@@ -248,18 +274,24 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
     };
 
     const updateClientId = (e: ChangeEvent<HTMLInputElement>) => {
+        setUnvalidated();
+
         setFormState({
             clientId: e.target.value,
         });
     };
 
     const updateClientSecret = (e: ChangeEvent<HTMLInputElement>) => {
+        setUnvalidated();
+
         setFormState({
             clientSecret: e.target.value,
         });
     };
 
     const updateOAuthTokenURL = (e: ChangeEvent<HTMLInputElement>) => {
+        setUnvalidated();
+
         setFormState({
             oauthTokenUrl: e.target.value,
         });
@@ -420,6 +452,12 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                                     defaultMessage='Specify the OAuth Token URL for your OAuth connection.'
                                 />
                             </div>
+                            <div className='outgoing-oauth-connection-validate-button-container'>
+                                <ValidateButton
+                                    onClick={handleValidate}
+                                    status={validationStatus}
+                                />
+                            </div>
                         </div>
                     </div>
                     <div className='form-group'>
@@ -451,7 +489,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                     <div className='backstage-form__footer'>
                         <FormError
                             type='backstage'
-                            errors={[props.serverError, submissionStatus.error]}
+                            errors={[props.serverError, storedError]}
                         />
                         <Link
                             className='btn btn-tertiary'
@@ -465,9 +503,9 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                         <SpinnerButton
                             className='btn btn-primary'
                             type='submit'
-                            spinning={Boolean(submissionStatus.saving)}
+                            spinning={isSubmitting}
                             spinningText={intl.formatMessage(props.loading)}
-                            onClick={handleSubmit}
+                            onClick={handleSubmitFromButton}
                             id='saveConnection'
                         >
                             <FormattedMessage
@@ -475,33 +513,87 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                                 defaultMessage={footerToRender.defaultMessage}
                             />
                         </SpinnerButton>
-                        <SpinnerButton
-                            className='btn btn-tertiary'
-                            type='button'
-                            spinning={Boolean(submissionStatus.validating)}
-                            spinningText={intl.formatMessage({id: 'add_outgoing_oauth_connection.validating', defaultMessage: 'Validating...'})}
-                            onClick={handleValidate}
-                            id='validateConnection'
-                        >
-                            {submissionStatus.validated ? (
-                                <>
-                                    <FormattedMessage
-                                        id={'add_outgoing_oauth_connection.validated'}
-                                        defaultMessage={'Validated'}
-                                    />
-                                    <CheckIcon/>
-                                </>
-                            ) : (
-                                <FormattedMessage
-                                    id={'add_outgoing_oauth_connection.validate'}
-                                    defaultMessage={'Validate'}
-                                />
-                            )}
-                        </SpinnerButton>
                         {props.renderExtra}
                     </div>
                 </form>
             </div>
+            <ConfirmModal
+                show={isValidationModalOpen}
+                message={'This connection has not been validated, Do you want to save anyway?'}
+                title='Save Outgoing OAuth Connection'
+                confirmButtonText='Save anyway'
+                onExited={hideSkipValidateModal}
+                onCancel={hideSkipValidateModal}
+                onConfirm={handleSubmit}
+            />
         </div>
     );
 }
+
+type ValidateButtonProps = {
+    status: ValidationStatus;
+    onClick: (e: FormEvent) => void;
+}
+
+const ValidateButton = ({status, onClick}: ValidateButtonProps) => {
+    if (status === ValidationStatus.ERROR) {
+        return (
+            <span
+                className='outgoing-oauth-connection-validation-message validation-error'
+            >
+                <AlertOutlineIcon/>
+                <FormattedMessage
+                    id={'add_outgoing_oauth_connection.validation-error'}
+                    defaultMessage={'Connection not validated. Please check the server logs for details.'}
+                />
+            </span>
+        );
+    }
+
+    if (status === ValidationStatus.VALIDATED) {
+        return (
+            <span
+                className='outgoing-oauth-connection-validation-message validation-success'
+            >
+                <CheckCircleOutlineIcon/>
+                <FormattedMessage
+                    id={'add_outgoing_oauth_connection.validated'}
+                    defaultMessage={'Validated'}
+                />
+            </span>
+        );
+    }
+
+    if (status === ValidationStatus.VALIDATING) {
+        return (
+            <span
+                className='outgoing-oauth-connection-validation-message'
+            >
+                <LoadingSpinner
+                    text={(
+                        <FormattedMessage
+                            id={'add_outgoing_oauth_connection.validating'}
+                            defaultMessage={'Validating...'}
+                        />
+                    )}
+                />
+            </span>
+        );
+    }
+
+    const validateButton = (
+        <button
+            className='btn btn-tertiary'
+            type='button'
+            onClick={onClick}
+            id='validateConnection'
+        >
+            <FormattedMessage
+                id={'add_outgoing_oauth_connection.validate'}
+                defaultMessage={'Validate Connection'}
+            />
+        </button>
+    );
+
+    return validateButton;
+};
