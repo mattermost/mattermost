@@ -132,8 +132,8 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                         defaultMessage='Activate'
                     />
                 }
+                disabled={user.auth_service === Constants.LDAP_SERVICE}
                 onClick={async () => {
-                    // TODO: disable if this is true
                     if (user.auth_service === Constants.LDAP_SERVICE) {
                         return;
                     }
@@ -323,7 +323,7 @@ export function SystemUsersListAction({user, currentUser, tableId, rowIndex, onE
                     }));
                 }}
             />}
-            {!isGuest(user.roles) && user.id !== currentUser.id && isLicensed && config.EnableGuestAccounts &&
+            {!isGuest(user.roles) && user.id !== currentUser.id && isLicensed && config.EnableGuestAccounts === 'true' &&
             <Menu.Item
                 id={`${menuItemIdPrefix}-demoteToGuest`}
                 labels={
