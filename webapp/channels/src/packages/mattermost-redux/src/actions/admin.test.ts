@@ -619,12 +619,12 @@ describe('Actions.Admin', () => {
 
         const analytics = state.entities.admin.analytics;
         expect(analytics).toBeTruthy();
-        expect(analytics[Stats.TOTAL_PUBLIC_CHANNELS] > 0).toBeTruthy();
+        expect(analytics[Stats.TOTAL_PUBLIC_CHANNELS]).toBeGreaterThan(0);
 
         const teamAnalytics = state.entities.admin.teamAnalytics;
         expect(teamAnalytics).toBeTruthy();
         expect(teamAnalytics[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_PUBLIC_CHANNELS] > 0).toBeTruthy();
+        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_PUBLIC_CHANNELS]).toBeGreaterThan(0);
     });
 
     it('getAdvancedAnalytics', async () => {
@@ -641,12 +641,12 @@ describe('Actions.Admin', () => {
 
         const analytics = state.entities.admin.analytics;
         expect(analytics).toBeTruthy();
-        expect(analytics[Stats.TOTAL_SESSIONS] > 0).toBeTruthy();
+        expect(analytics[Stats.TOTAL_SESSIONS]).toBeGreaterThan(0);
 
         const teamAnalytics = state.entities.admin.teamAnalytics;
         expect(teamAnalytics).toBeTruthy();
         expect(teamAnalytics[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_SESSIONS] > 0).toBeTruthy();
+        expect(teamAnalytics[TestHelper.basicTeam!.id][Stats.TOTAL_SESSIONS]).toBeGreaterThan(0);
     });
 
     it('getPostsPerDayAnalytics', async () => {

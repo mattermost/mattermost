@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {ClusterInfo, AnalyticsRow} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -161,8 +161,8 @@ function samlCertStatus(state: Partial<SamlCertificateStatus> = {}, action: AnyA
     }
 }
 
-export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string): Record<string, number | AnalyticsRow[]> {
-    const stats: any = {};
+export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string): AnalyticsState {
+    const stats: AnalyticsState = {};
     const clonedData = [...data];
 
     if (name === 'post_counts_day') {
@@ -250,7 +250,7 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
     return stats;
 }
 
-function analytics(state: Record<string, number | AnalyticsRow[]> = {}, action: AnyAction) {
+function analytics(state: AnalyticsState = {}, action: AnyAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_SYSTEM_ANALYTICS: {
         const stats = convertAnalyticsRowsToStats(action.data, action.name);
@@ -264,7 +264,7 @@ function analytics(state: Record<string, number | AnalyticsRow[]> = {}, action: 
     }
 }
 
-function teamAnalytics(state: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>> = {}, action: AnyAction) {
+function teamAnalytics(state: RelationOneToOne<Team, AnalyticsState> = {}, action: AnyAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_TEAM_ANALYTICS: {
         const nextState = {...state};
