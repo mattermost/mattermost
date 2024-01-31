@@ -293,7 +293,7 @@ func (b *BleveEngine) PurgeIndexes(rctx request.CTX) *model.AppError {
 }
 
 func (b *BleveEngine) PurgeIndexList(rctx request.CTX, indexes []string) *model.AppError {
-	return model.NewAppError("Bleve.PurgeIndex", "", nil, "not implemented", http.StatusNotFound)
+	return model.NewAppError("Bleve.PurgeIndex", "bleveengine.purge_list.not_implemented", nil, "not implemented", http.StatusNotFound)
 }
 
 func (b *BleveEngine) DataRetentionDeleteIndexes(rctx request.CTX, cutoff time.Time) *model.AppError {

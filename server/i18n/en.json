@@ -7611,6 +7611,10 @@
     "translation": "Failed to purge file indexes."
   },
   {
+    "id": "bleveengine.purge_list.not_implemented",
+    "translation": "Purge list feature is not available for Bleve."
+  },
+  {
     "id": "bleveengine.purge_post_index.error",
     "translation": "Failed to purge post indexes."
   },
