@@ -6,6 +6,7 @@ package api4
 import (
 	"encoding/json"
 	"net/http"
+	"path"
 	"reflect"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -169,7 +170,7 @@ func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := config.Migrate(from, to)
+	err := config.Migrate(path.Clean(from), to)
 	if err != nil {
 		c.Err = model.NewAppError("migrateConfig", "api.config.migrate_config.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
