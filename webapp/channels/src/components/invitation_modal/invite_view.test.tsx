@@ -16,6 +16,8 @@ import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper as TH} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 import InviteAs, {InviteType} from './invite_as';
 import InviteView from './invite_view';
 import type {Props} from './invite_view';
@@ -118,7 +120,7 @@ describe('InviteView', () => {
                 },
             },
         },
-    };
+    } as unknown as GlobalState;
 
     store.getState = () => (state);
 

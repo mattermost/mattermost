@@ -61,7 +61,7 @@ import {Constants, ActionTypes, EventTypes, PostRequestTypes} from 'utils/consta
 
 import type {GlobalState} from 'types/store';
 
-export function goToLastViewedChannel(): NewActionFuncAsync {
+export function goToLastViewedChannel(): NewActionFuncAsync<unknown, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentChannel = getCurrentChannel(state) || {};
@@ -140,7 +140,7 @@ export function joinChannelById(channelId: string): NewActionFuncAsync {
     };
 }
 
-export function leaveChannel(channelId: string): NewActionFuncAsync {
+export function leaveChannel(channelId: string): NewActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         let state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -191,7 +191,7 @@ export function leaveChannel(channelId: string): NewActionFuncAsync {
     };
 }
 
-export function leaveDirectChannel(channelName: string): NewActionFuncAsync {
+export function leaveDirectChannel(channelName: string): NewActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);

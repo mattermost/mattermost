@@ -2922,14 +2922,14 @@ export default class Client4 {
     };
 
     searchDataRetentionCustomPolicyChannels = (policyId: string, term: string, opts: ChannelSearchOpts) => {
-        return this.doFetch<DataRetentionCustomPolicies>(
+        return this.doFetch<ChannelWithTeamData[]>(
             `${this.getDataRetentionRoute()}/policies/${policyId}/channels/search`,
             {method: 'post', body: JSON.stringify({term, ...opts})},
         );
     }
 
     searchDataRetentionCustomPolicyTeams = (policyId: string, term: string, opts: TeamSearchOpts) => {
-        return this.doFetch<DataRetentionCustomPolicies>(
+        return this.doFetch<Team[]>(
             `${this.getDataRetentionRoute()}/policies/${policyId}/teams/search`,
             {method: 'post', body: JSON.stringify({term, ...opts})},
         );

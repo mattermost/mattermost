@@ -46,7 +46,7 @@ export default {
     MESSAGE_TYPES: {
         POST: 'post',
         COMMENT: 'comment',
-    },
+    } as const,
     MAX_PREV_MSGS: 100,
     POST_COLLAPSE_TIMEOUT: 1000 * 60 * 5, // five minutes
     IGNORE_POST_TYPES: [

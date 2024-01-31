@@ -7,6 +7,7 @@ import type {LogFilter} from '@mattermost/types/admin';
 import type {
     Channel,
     ChannelSearchOpts,
+    ChannelWithTeamData,
 } from '@mattermost/types/channels';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, AllowedIPRange} from '@mattermost/types/config';
@@ -694,7 +695,7 @@ export function getDataRetentionCustomPolicyChannels(id: string, page = 0, perPa
     };
 }
 
-export function searchDataRetentionCustomPolicyTeams(id: string, term: string, opts: TeamSearchOpts): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function searchDataRetentionCustomPolicyTeams(id: string, term: string, opts: TeamSearchOpts): NewActionFuncAsync<Team[]> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -718,7 +719,7 @@ export function searchDataRetentionCustomPolicyTeams(id: string, term: string, o
     };
 }
 
-export function searchDataRetentionCustomPolicyChannels(id: string, term: string, opts: ChannelSearchOpts): NewActionFuncAsync<DataRetentionCustomPolicies> {
+export function searchDataRetentionCustomPolicyChannels(id: string, term: string, opts: ChannelSearchOpts): NewActionFuncAsync<ChannelWithTeamData[]> {
     return async (dispatch, getState) => {
         let data;
         try {

@@ -8,6 +8,8 @@ import store from 'stores/redux_store';
 
 import {PreviousViewedTypes} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
 const getPreviousTeamIdKey = (userId: string) => ['user_prev_team', userId].join(':');
 const getPreviousChannelNameKey = (userId: string | null, teamId: string) => ['user_team_prev_channel', userId, teamId].join(':');
 const getPreviousViewedTypeKey = (userId: string | null, teamId: string) => ['user_team_prev_viewed_type', userId, teamId].join(':');
@@ -91,12 +93,12 @@ class LocalStorageStoreClass {
         this.removeItem(getPenultimateChannelNameKey(userId, teamId));
     }
 
-    removePreviousChannelType(userId: string, teamId: string, state = store.getStore()) {
+    removePreviousChannelType(userId: string, teamId: string, state: GlobalState) {
         this.setItem(getPreviousViewedTypeKey(userId, teamId), this.getPenultimateViewedType(userId, teamId, state));
         this.removeItem(getPenultimateViewedTypeKey(userId, teamId));
     }
 
-    removePreviousChannel(userId: string, teamId: string, state = store.getStore()) {
+    removePreviousChannel(userId: string, teamId: string, state: GlobalState) {
         this.removePreviousChannelName(userId, teamId, state);
         this.removePreviousChannelType(userId, teamId, state);
     }

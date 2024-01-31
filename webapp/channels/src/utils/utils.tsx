@@ -1376,7 +1376,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                             let post = getPost(state, postId!);
                             if (!post) {
                                 const {data: postData} = await store.dispatch(getPostAction(match.postId!));
-                                post = postData;
+                                post = postData!;
                             }
                             if (post) {
                                 isReply = Boolean(post.root_id);
@@ -1393,12 +1393,12 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                             if (!member) {
                                 const membership = await store.dispatch(getChannelMember(channel.id, getCurrentUserId(state)));
                                 if ('data' in membership) {
-                                    member = membership.data;
+                                    member = membership.data!;
                                 }
                             }
                             if (!member) {
                                 const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel, false));
-                                if (data.join) {
+                                if (data!.join) {
                                     let error = false;
                                     if (!getTeamMemberships(state)[team.id]) {
                                         const joinTeamResult = await store.dispatch(addUserToTeam(team.id, user.id));

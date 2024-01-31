@@ -119,6 +119,6 @@ describe('Actions.Jobs', () => {
 
         const jobsByType = state.entities.jobs.jobsByTypeList;
         expect(jobsByType.data_retention).toBeTruthy();
-        expect(jobsByType.data_retention.length === 1).toBeTruthy();
+        expect(jobsByType.data_retention!.length === 1).toBeTruthy();
     });
 });

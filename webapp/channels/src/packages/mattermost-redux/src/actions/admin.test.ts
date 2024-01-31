@@ -109,7 +109,7 @@ describe('Actions.Admin', () => {
         const config = state.entities.admin.config;
         expect(config).toBeTruthy();
         expect(config.TeamSettings).toBeTruthy();
-        expect(config.TeamSettings.SiteName === 'Mattermost').toBeTruthy();
+        expect(config.TeamSettings!.SiteName === 'Mattermost').toBeTruthy();
     });
 
     it('updateConfig', async () => {
@@ -138,7 +138,7 @@ describe('Actions.Admin', () => {
         let config = state.entities.admin.config;
         expect(config).toBeTruthy();
         expect(config.TeamSettings).toBeTruthy();
-        expect(config.TeamSettings.SiteName === testSiteName).toBeTruthy();
+        expect(config.TeamSettings!.SiteName === testSiteName).toBeTruthy();
 
         updated.TeamSettings.SiteName = oldSiteName;
 
@@ -153,7 +153,7 @@ describe('Actions.Admin', () => {
         config = state.entities.admin.config;
         expect(config).toBeTruthy();
         expect(config.TeamSettings).toBeTruthy();
-        expect(config.TeamSettings.SiteName === oldSiteName).toBeTruthy();
+        expect(config.TeamSettings!.SiteName === oldSiteName).toBeTruthy();
     });
 
     it('reloadConfig', async () => {
@@ -184,10 +184,10 @@ describe('Actions.Admin', () => {
 
         const config = state.entities.admin.environmentConfig;
         expect(config).toBeTruthy();
-        expect(config.ServiceSettings).toBeTruthy();
-        expect(config.ServiceSettings.SiteURL).toBeTruthy();
-        expect(config.TeamSettings).toBeTruthy();
-        expect(config.TeamSettings.SiteName).toBeTruthy();
+        expect(config!.ServiceSettings).toBeTruthy();
+        expect(config!.ServiceSettings.SiteURL).toBeTruthy();
+        expect(config!.TeamSettings).toBeTruthy();
+        expect(config!.TeamSettings.SiteName).toBeTruthy();
     });
 
     it('testEmail', async () => {
@@ -287,7 +287,7 @@ describe('Actions.Admin', () => {
 
         const reports = state.entities.admin.complianceReports;
         expect(reports).toBeTruthy();
-        expect(reports[created.id]).toBeTruthy();
+        expect(reports[created!.id]).toBeTruthy();
     });
 
     it('getComplianceReport', async () => {
@@ -318,16 +318,16 @@ describe('Actions.Admin', () => {
         const {data: report} = await store.dispatch(Actions.createComplianceReport(job));
 
         nock(Client4.getBaseRoute()).
-            get(`/compliance/reports/${report.id}`).
+            get(`/compliance/reports/${report!.id}`).
             reply(200, report);
 
-        await store.dispatch(Actions.getComplianceReport(report.id));
+        await store.dispatch(Actions.getComplianceReport(report!.id));
 
         const state = store.getState();
 
         const reports = state.entities.admin.complianceReports;
         expect(reports).toBeTruthy();
-        expect(reports[report.id]).toBeTruthy();
+        expect(reports[report!.id]).toBeTruthy();
     });
 
     it('getComplianceReports', async () => {
@@ -368,7 +368,7 @@ describe('Actions.Admin', () => {
 
         const reports = state.entities.admin.complianceReports;
         expect(reports).toBeTruthy();
-        expect(reports[report.id]).toBeTruthy();
+        expect(reports[report!.id]).toBeTruthy();
     });
 
     it('uploadBrandImage', async () => {
@@ -448,9 +448,9 @@ describe('Actions.Admin', () => {
 
         const certStatus = state.entities.admin.samlCertStatus;
         expect(certStatus).toBeTruthy();
-        expect(certStatus.idp_certificate_file).toBeTruthy();
-        expect(certStatus.private_key_file).toBeTruthy();
-        expect(certStatus.public_certificate_file).toBeTruthy();
+        expect(certStatus!.idp_certificate_file).toBeTruthy();
+        expect(certStatus!.private_key_file).toBeTruthy();
+        expect(certStatus!.public_certificate_file).toBeTruthy();
     });
 
     it('uploadPublicSamlCertificate', async () => {
@@ -1169,7 +1169,7 @@ describe('Actions.Admin', () => {
 
         const response = await store.dispatch(Actions.searchDataRetentionCustomPolicyTeams('id1', 'test', {}));
 
-        expect(response.data.length === 1).toBeTruthy();
+        expect(response.data!.length === 1).toBeTruthy();
     });
 
     it('searchDataRetentionCustomPolicyChannels', async () => {
@@ -1179,7 +1179,7 @@ describe('Actions.Admin', () => {
 
         const response = await store.dispatch(Actions.searchDataRetentionCustomPolicyChannels('id1', 'test', {}));
 
-        expect(response.data.length === 1).toBeTruthy();
+        expect(response.data!.length === 1).toBeTruthy();
     });
 
     it('createDataRetentionCustomPolicy', async () => {

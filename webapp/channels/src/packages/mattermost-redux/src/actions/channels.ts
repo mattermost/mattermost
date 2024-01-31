@@ -462,7 +462,7 @@ export function fetchChannelsAndMembers(teamId: string): NewActionFuncAsync<{cha
     };
 }
 
-export function fetchAllMyTeamsChannelsAndChannelMembersREST(): NewActionFuncAsync {
+export function fetchAllMyTeamsChannelsAndChannelMembersREST(): NewActionFuncAsync<{channels: Channel[]; channelsMembers: ChannelMembership[]}> {
     return async (dispatch, getState) => {
         const state = getState();
         const {currentUserId} = state.entities.users;

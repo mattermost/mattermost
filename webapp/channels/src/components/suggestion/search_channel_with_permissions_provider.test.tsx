@@ -145,7 +145,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        getState.mockImplementation(store.getState);
+        (getState as any).mockImplementation(store.getState);
 
         const searchText = 'some';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
@@ -176,7 +176,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        getState.mockImplementation(store.getState);
+        (getState as any).mockImplementation(store.getState);
 
         const searchText = 'some';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
@@ -208,7 +208,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        getState.mockImplementation(store.getState);
+        (getState as any).mockImplementation(store.getState);
 
         const searchText = 'some';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
@@ -241,7 +241,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        getState.mockImplementation(store.getState);
+        (getState as any).mockImplementation(store.getState);
 
         const searchText = 'some';
         searchProvider.handlePretextChanged(searchText, resultsCallback);
@@ -272,7 +272,7 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
 
         const store = mockStore(state);
 
-        getState.mockImplementation(store.getState);
+        (getState as any).mockImplementation(store.getState);
 
         const searchText = 'not matching text';
         searchProvider.handlePretextChanged(searchText, resultsCallback);

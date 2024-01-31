@@ -53,7 +53,7 @@ export type AdminState = {
     plainLogs: string[];
     audits: Record<string, Audit>;
     config: Partial<AdminConfig>;
-    environmentConfig: Partial<EnvironmentConfig>;
+    environmentConfig?: EnvironmentConfig;
     complianceReports: Record<string, Compliance>;
     ldapGroups: Record<string, MixedUnlinkedGroupRedux>;
     ldapGroupsCount: number;
@@ -63,8 +63,8 @@ export type AdminState = {
     analytics?: Record<string, number | AnalyticsRow[]>;
     teamAnalytics?: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>>;
     userAccessTokensByUser?: RelationOneToOne<UserProfile, Record<string, UserAccessToken>>;
-    plugins?: Record<string, PluginRedux>;
-    pluginStatuses?: Record<string, PluginStatusRedux>;
+    plugins: Record<string, PluginRedux>;
+    pluginStatuses: Record<string, PluginStatusRedux>;
     samlMetadataResponse?: SamlMetadataResponse;
     dataRetentionCustomPolicies: DataRetentionCustomPolicies;
     dataRetentionCustomPoliciesCount: number;

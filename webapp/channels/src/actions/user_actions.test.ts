@@ -602,7 +602,7 @@ describe('Actions.User', () => {
         } as unknown as GlobalState;
 
         const testStore = mockStore(state);
-        store.getState.mockImplementation(testStore.getState);
+        (store.getState as jest.MockedFunction<typeof store.getState>).mockImplementation(testStore.getState);
 
         await UserActions.loadProfilesForGM();
         expect(UserActions.queue.onEmpty).toHaveBeenCalled();

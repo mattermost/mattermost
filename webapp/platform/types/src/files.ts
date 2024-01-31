@@ -24,7 +24,7 @@ export type FilesState = {
     files: Record<string, FileInfo>;
     filesFromSearch: Record<string, FileSearchResultItem>;
     fileIdsByPostId: Record<string, string[]>;
-    filePublicLink?: {link: string};
+    filePublicLink: {link: string};
 };
 
 export type FileUploadResponse = {

@@ -64,7 +64,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            (reduxStore.getState as any).mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/select_team');
@@ -138,7 +138,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            (reduxStore.getState as any).mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team2/channels/channel-in-team-2');
@@ -211,7 +211,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            (reduxStore.getState as any).mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team2/channels/channel-in-team-2');
@@ -283,7 +283,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            (reduxStore.getState as any).mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/select_team');
@@ -315,7 +315,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            (reduxStore.getState as any).mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).not.toHaveBeenCalled();
@@ -408,7 +408,7 @@ describe('actions/global_actions', () => {
                     },
                 },
             });
-            reduxStore.getState.mockImplementation(store.getState);
+            (reduxStore.getState as any).mockImplementation(store.getState);
             LocalStorageStore.setPreviousTeamId(userId, teamId);
             LocalStorageStore.setPreviousChannelName(userId, teamId, directChannelId);
 
@@ -505,7 +505,7 @@ describe('actions/global_actions', () => {
                     },
                 },
             });
-            reduxStore.getState.mockImplementation(store.getState);
+            (reduxStore.getState as any).mockImplementation(store.getState);
             LocalStorageStore.setPreviousTeamId(userId, teamId);
             LocalStorageStore.setPreviousChannelName(userId, teamId, groupChannelId);
 
@@ -567,7 +567,7 @@ describe('actions/global_actions', () => {
                 },
             });
 
-            reduxStore.getState.mockImplementation(store.getState);
+            (reduxStore.getState as any).mockImplementation(store.getState);
 
             await redirectUserToDefaultTeam();
             expect(getHistory().push).toHaveBeenCalledWith('/team1/channels/channel-in-team-1');

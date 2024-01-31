@@ -16,6 +16,8 @@ import {SelfHostedProducts} from 'utils/constants';
 import {TestHelper} from 'utils/test_helper';
 import {generateId} from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 import InvitationModal, {View, InvitationModal as BaseInvitationModal} from './invitation_modal';
 import type {Props} from './invitation_modal';
 import InviteView from './invite_view';
@@ -105,7 +107,7 @@ describe('InvitationModal', () => {
                 },
             },
         },
-    };
+    } as unknown as GlobalState;
 
     store.getState = () => (state);
 

@@ -34,13 +34,13 @@ describe('Actions.Emojis', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
+        const created = (await store.dispatch(Actions.createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         const state = store.getState();
 
@@ -56,13 +56,13 @@ describe('Actions.Emojis', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
+        const created = (await store.dispatch(Actions.createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get('/emoji').
@@ -84,13 +84,13 @@ describe('Actions.Emojis', () => {
         nock(Client4.getBaseRoute()).
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
+        const created = (await store.dispatch(Actions.createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             delete(`/emoji/${created.id}`).
@@ -146,13 +146,13 @@ describe('Actions.Emojis', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
+        const created = (await store.dispatch(Actions.createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             post('/emoji/search').
@@ -174,13 +174,13 @@ describe('Actions.Emojis', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
+        const created = (await store.dispatch(Actions.createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get('/emoji/autocomplete').
@@ -203,13 +203,13 @@ describe('Actions.Emojis', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
+        const created = (await store.dispatch(Actions.createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get(`/emoji/${created.id}`).
@@ -231,13 +231,13 @@ describe('Actions.Emojis', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
+        const created = (await store.dispatch(Actions.createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         nock(Client4.getBaseRoute()).
             get(`/emoji/name/${created.name}`).
@@ -341,13 +341,13 @@ describe('Actions.Emojis', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await store.dispatch(Actions.createCustomEmoji(
+        const created = (await store.dispatch(Actions.createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        ));
+        ))).data!;
 
         const missingName = TestHelper.generateId();
 

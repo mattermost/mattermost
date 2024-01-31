@@ -137,8 +137,8 @@ describe('Actions.Posts', () => {
         }
 
         expect(createRequest.status).toEqual(RequestStatus.FAILURE);
-        expect(createRequest.error.message).toEqual(createPostError.message);
-        expect(createRequest.error.status_code).toEqual(createPostError.status_code);
+        expect(createRequest.error!.message).toEqual(createPostError.message);
+        expect(createRequest.error!.status_code).toEqual(createPostError.status_code);
 
         store.dispatch(Actions.resetCreatePostRequest());
         await TestHelper.wait(50);
@@ -1294,7 +1294,7 @@ describe('Actions.Posts', () => {
         ));
 
         nock(Client4.getEmojisRoute()).
-            get(`/name/${created.name}`).
+            get(`/name/${created!.name}`).
             reply(200, created);
 
         const missingEmojiName = ':notrealemoji:';
@@ -1308,7 +1308,7 @@ describe('Actions.Posts', () => {
         const state = getState();
         const emojis = state.entities.emojis.customEmoji;
         expect(emojis).toBeTruthy();
-        expect(emojis[created.id]).toBeTruthy();
+        expect(emojis[created!.id]).toBeTruthy();
         expect(state.entities.emojis.nonExistentEmoji.has(missingEmojiName)).toBeTruthy();
     });
 
