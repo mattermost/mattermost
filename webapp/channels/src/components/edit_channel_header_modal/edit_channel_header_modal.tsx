@@ -10,10 +10,9 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import Textbox from 'components/textbox';
+import Textbox, {TextboxLinks} from 'components/textbox';
 import type {TextboxElement} from 'components/textbox';
 import type TextboxClass from 'components/textbox/textbox';
-import TextboxLinks from 'components/textbox/textbox_links';
 
 import Constants from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
@@ -158,7 +157,7 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
 
         // listen for line break key combo and insert new line character
         if (isUnhandledLineBreakKeyCombo(e)) {
-            this.setState({header: insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>)});
+            this.setState({header: insertLineBreakFromKeyEvent(e.nativeEvent)});
         } else if (ctrlSend && isKeyPressed(e, KeyCodes.ENTER) && e.ctrlKey === true) {
             this.handleKeyPress(e);
         }
@@ -287,7 +286,6 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                                 previewMessageLink={localizeMessage('edit_channel_header.previewHeader', 'Edit Header')}
                             />
                         </div>
-                        <br/>
                         {this.renderError()}
                     </div>
                 </Modal.Body>

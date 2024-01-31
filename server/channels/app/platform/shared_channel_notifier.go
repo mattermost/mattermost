@@ -11,10 +11,11 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/sharedchannel"
 )
 
-var sharedChannelEventsForSync model.StringArray = []string{
+var sharedChannelEventsForSync = []model.WebsocketEventType{
 	model.WebsocketEventPosted,
 	model.WebsocketEventPostEdited,
 	model.WebsocketEventPostDeleted,
@@ -22,7 +23,7 @@ var sharedChannelEventsForSync model.StringArray = []string{
 	model.WebsocketEventReactionRemoved,
 }
 
-var sharedChannelEventsForInvitation model.StringArray = []string{
+var sharedChannelEventsForInvitation = []model.WebsocketEventType{
 	model.WebsocketEventDirectAdded,
 }
 
@@ -55,10 +56,10 @@ func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent)
 	}
 }
 
-func isEligibleForEvents(syncService SharedChannelServiceIFace, event *model.WebSocketEvent, events model.StringArray) bool {
+func isEligibleForEvents(syncService SharedChannelServiceIFace, event *model.WebSocketEvent, events []model.WebsocketEventType) bool {
 	return syncServiceEnabled(syncService) &&
 		eventHasChannel(event) &&
-		events.Contains(event.EventType())
+		utils.Contains(events, event.EventType())
 }
 
 func eventHasChannel(event *model.WebSocketEvent) bool {

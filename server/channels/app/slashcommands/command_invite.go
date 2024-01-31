@@ -312,7 +312,7 @@ func (i *InviteProvider) addUserToChannel(a *app.App, c request.CTX, args *model
 			err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
 			return UserNotInTeam
 		}
-		mlog.Warn("addUserToChannel had unexpected error.", mlog.String("UserId", userProfile.Id), mlog.Err(err))
+		c.Logger().Warn("addUserToChannel had unexpected error.", mlog.String("UserId", userProfile.Id), mlog.Err(err))
 		return Unknown
 	}
 

@@ -916,7 +916,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains three key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n**[Boards](/boards)** - Manage projects and tasks in a Kanban board structure to help your team hit key milestones.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
+    "translation": "Mattermost is an open source platform for secure communication, collaboration, and orchestration of work across tools and teams.\r\nMattermost contains two key tools:\r\n\r\n**Channels** - Stay connected with your team via 1:1 and group messaging.\r\n**[Playbooks](/playbooks)** - Build and configure repeatable processes to achieve specific and predictable outcomes.\r\n\r\n[View documentation and guides]({{.HelpLink}})"
   },
   {
     "id": "api.command_invite.channel.app_error",
@@ -1186,6 +1186,10 @@
     "translation": "Secure connection {{.RemoteId}} {{.Result}}."
   },
   {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Could not confirm invitation: {{.Error}}"
+  },
+  {
     "id": "api.command_remote.decode_invitation.error",
     "translation": "Could not decode invitation: {{.Error}}"
   },
@@ -1390,6 +1394,10 @@
     "translation": "Cannot invite secure connection to a shared channel originating somewhere else."
   },
   {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Cannot invite remote because channel {{.ChannelID}} is not shared."
+  },
+  {
     "id": "api.command_share.channel_remote_id_not_exists",
     "translation": "Shared channel secure connection `{{.RemoteId}}` does not exist for this channel."
   },
@@ -1407,7 +1415,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Error while checking if shared channel exists: {{.Error}}"
+    "translation": "Error while checking if shared channel {{.ChannelID}} exists: {{.Error}}"
   },
   {
     "id": "api.command_share.could_not_uninvite.error",
@@ -1626,6 +1634,22 @@
     "translation": "Invitation is expired."
   },
   {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "An error has occurred while applying IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "An error has occurred while fetching IP Filters"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "An error has occurred while fetching the client's IP address"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP Filtering is not available on this server"
+  },
+  {
     "id": "api.context.json_encoding.app_error",
     "translation": "Error encoding JSON."
   },
@@ -1636,6 +1660,18 @@
   {
     "id": "api.context.mfa_required.app_error",
     "translation": "Multi-factor authentication is required on this server."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "There was an error while listing outgoing OAuth connections."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "This feature is restricted by a feature flag."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -1700,6 +1736,10 @@
   {
     "id": "api.custom_status.recent_custom_statuses.delete.app_error",
     "translation": "Failed to delete the recent status. Please try adding the status first or contact your system administrator for details."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Failed to update the custom status. An emoji with the given name does not exist."
   },
   {
     "id": "api.custom_status.set_custom_statuses.update.app_error",
@@ -1797,6 +1837,10 @@
     "translation": "Unable to read image file for emoji."
   },
   {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many emojis by name. Only {{.MaxNames}} emojis can be requested at once."
+  },
+  {
     "id": "api.emoji.storage.app_error",
     "translation": "File storage not configured properly. Please configure for either S3 or local server file storage."
   },
@@ -1827,6 +1871,10 @@
   {
     "id": "api.emoji.upload.open.app_error",
     "translation": "Unable to create the emoji. An error occurred when trying to open the attached image."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
   },
   {
     "id": "api.error_get_first_admin_complete_setup",
@@ -1995,6 +2043,18 @@
   {
     "id": "api.getThreadsForUser.bad_params",
     "translation": "Before and After parameters to getThreadsForUser are mutually exclusive"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Cannot hide both active and inactive users."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Page size is invalid or too large."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Invalid team id provided."
   },
   {
     "id": "api.image.get.app_error",
@@ -2317,6 +2377,10 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.payload.parse.error",
+    "translation": "An error occurred while parsing the payload."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -2421,6 +2485,14 @@
       "one": "{{.Count}} image sent: {{.Filenames}}",
       "other": "{{.Count}} images sent: {{.Filenames}}"
     }
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Thread moving is disabled"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "You do not have permission to move this thread."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -2633,6 +2705,10 @@
   {
     "id": "api.restricted_system_admin",
     "translation": "This action is forbidden to a restricted system admin."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
   {
     "id": "api.roles.patch_roles.license.error",
@@ -3179,10 +3255,6 @@
     "translation": "Invalid request body."
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error while parsing the body data."
-  },
-  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3301,6 +3373,42 @@
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Unable to find the user."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Renew now"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Please renew to avoid any disruption"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Annual bill due in 30 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Your annual bill is due in 30 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Annual subscription renewal in 60 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Annual subscription renewal in 60 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Action Required: Annual subscription renewal in 7 days"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "You are about to lose access to your workspace in 7 days"
   },
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
@@ -3701,6 +3809,38 @@
   {
     "id": "api.templates.invite_team_and_channels_subject",
     "translation": "[{{ .SiteName }}] {{ .SenderName }} invited you to join {{ .ChannelsLen }} channels on the {{ .TeamDisplayName }} Team"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Review changes"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} changed the IP filtering settings for your workspace at the URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Changes to Your Workspace's IP Filters"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "IP filtering changes for your workspace"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Contact support"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Log in to the customer portal to reset IP filtering"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Send an email to {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Having trouble accessing your workspace?"
   },
   {
     "id": "api.templates.license_up_for_renewal_contact_sales",
@@ -4225,6 +4365,10 @@
   {
     "id": "api.user.get_authorization_code.endpoint.app_error",
     "translation": "Error retrieving endpoint from Discovery Document."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Error while checking if a user has a custom profile image."
   },
   {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
@@ -4915,6 +5059,14 @@
     "translation": "Unable to move a channel unless all its members are already members of the destination team."
   },
   {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Unable to update channel members' notify props."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Unable to update that many channel members. Only {{.Max}} channel members can be updated at once."
+  },
+  {
     "id": "app.channel.permanent_delete.app_error",
     "translation": "Unable to delete the channel."
   },
@@ -5113,6 +5265,14 @@
   {
     "id": "app.command_webhook.try_use.invalid",
     "translation": "Invalid webhook."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Failed to write CSV headers."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Unsupported report format."
   },
   {
     "id": "app.compliance.get.finding.app_error",
@@ -5967,6 +6127,14 @@
     "translation": "No license present"
   },
   {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Failed to get user count"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Could not update last login timestamp"
+  },
+  {
     "id": "app.member_count",
     "translation": "error retrieving member count"
   },
@@ -6251,6 +6419,10 @@
     "translation": "Unable to store the plugin signature to the configured file store."
   },
   {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Failed to parse SiteURL subpath"
+  },
+  {
     "id": "app.plugin.sync.list_filestore.app_error",
     "translation": "Error reading files from the plugins folder in the file store."
   },
@@ -6371,6 +6543,30 @@
     "translation": "Failed to marshal post."
   },
   {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "This thread was moved from another channel"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "A message has been moved: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "A thread with {{.NumMessages}} messages has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "A message has been moved to a Direct/Group Message\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Unable to remove thread"
+  },
+  {
     "id": "app.post.overwrite.app_error",
     "translation": "Unable to overwrite the Post."
   },
@@ -6467,12 +6663,68 @@
     "translation": "Unable to save reaction."
   },
   {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Reaction limit has been reached for this post."
+  },
+  {
     "id": "app.recover.delete.app_error",
     "translation": "Unable to delete token."
   },
   {
     "id": "app.recover.save.app_error",
     "translation": "Unable to save the token."
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "all time"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "the last 30 days"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "the last 6 months"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "the previous month"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Failed to fetch user count."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Failed to fetch user report."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Your export is ready. The CSV file contains user data for {{.DateRange}}. Click on the link below to download the report."
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Failed to save file info."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Missing date range"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "No user id to send the report to"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Job already exists for this user and date range."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Batch reporting export only available to Pro and Enterprise."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -6513,6 +6765,14 @@
   {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Failed to write CSV chunk."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Unsupported report format."
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -8027,6 +8287,30 @@
     "translation": "Username already used by another Mattermost user."
   },
   {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "There was an error while deleting the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "The outgoing oauth connection was not found."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connections."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "There was an error saving the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "There was an error updating the outgoing oauth connection."
+  },
+  {
     "id": "ent.saml.attribute.app_error",
     "translation": "SAML login was unsuccessful because one of the attributes is incorrect. Please contact your System Administrator."
   },
@@ -8148,7 +8432,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Seconds}} seconds."
+    "translation": "Trigger ID for interactive dialog is expired. Trigger IDs live for a maximum of {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -8567,12 +8851,36 @@
     "translation": "Data retention job start time must be a 24-hour time stamp in the form HH:MM."
   },
   {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "File retention days and file retention hours cannot both be 0."
+  },
+  {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "File retention must be one day or longer."
+    "translation": "File retention days cannot be less than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "File retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "File retention days and file retention hours cannot both be greater than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Message retention days and message retention hours cannot both be 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Message retention must be one day or longer."
+    "translation": "Message retention days cannot be less than 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Message retention hours cannot be less than 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Message retention days and message retention hours cannot both be greater than 0."
   },
   {
     "id": "model.config.is_valid.directory.app_error",
@@ -8727,6 +9035,14 @@
     "translation": "Available Languages must contain Default Client Language."
   },
   {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Failed to parse JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Invalid format: {{.Error}}"
+  },
+  {
     "id": "model.config.is_valid.login_attempts.app_error",
     "translation": "Invalid maximum login attempts for service settings. Must be a positive number."
   },
@@ -8745,6 +9061,10 @@
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
     "translation": "Invalid maximum notifications per channel for team settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",
@@ -8776,7 +9096,11 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9' or 'A10'."
+    "translation": "Message export GlobalRelaySettings.CustomerType must be set to one of either 'A9', 'A10' or 'CUSTOM'."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "If GlobalRelaySettings.CustomerType is 'CUSTOM', then GlobalRelaySettings.CustomSMTPServerName and GlobalRelaySettings.CustomSMTPPort must be set."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -8789,6 +9113,14 @@
   {
     "id": "model.config.is_valid.message_export.global_relay.smtp_username.app_error",
     "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Invalid domain for move thread settings"
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Invalid Outgoing Integrations Request Timeout for service settings. Must be a positive number."
   },
   {
     "id": "model.config.is_valid.password_length.app_error",
@@ -8848,7 +9180,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Identity Provider Issuer URL must be a valid URL and start with http:// or https://."
+    "translation": "Identity Provider Issuer URL cannot be an empty string."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -9315,6 +9647,54 @@
     "translation": "Invalid username."
   },
   {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "Audience must not be empty."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Some audience URL is incorrect."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Invalid client id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Invalid client secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Create at must be a valid time."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Invalid creator id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Invalid grant type."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Invalid id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Invalid name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Invalid oauth token url."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Invalid password credentials."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Update at must be a valid time."
+  },
+  {
     "id": "model.plugin_command.error.app_error",
     "translation": "An error occurred while trying to execute this command."
   },
@@ -9433,6 +9813,10 @@
   {
     "id": "model.reaction.is_valid.user_id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Date range provided is invalid."
   },
   {
     "id": "model.search_params_list.is_valid.include_deleted_channels.app_error",
@@ -9707,6 +10091,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Provided sort column is not valid."
+  },
+  {
     "id": "model.utils.decode_json.app_error",
     "translation": "could not decode."
   },
@@ -9888,15 +10276,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 116+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.safari",

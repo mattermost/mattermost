@@ -1868,10 +1868,6 @@
     "translation": "Virheellinen create_at arvo."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Ei voitu dekoodata giffiä."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "Virheellinen creator-ID"
   },
@@ -2820,10 +2816,6 @@
     "translation": "Virhe luotaessa Elasticsearch bulkkiprosessoria"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch on jo käynnistetty"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Hakutulosten dekoodaus epäonnistui"
   },
@@ -3402,10 +3394,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Viestiä ei voida päivittää poistetulla kanavalla."
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Järjestelmänvalvoja on poistanut linkkien esikatselun."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -5202,17 +5190,5 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Virhe multiform pyynnön tulkinnassa"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Pelikirjat"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanavat"
-  },
-  {
-    "id": "Boards",
-    "translation": "Taulut"
   }
 ]

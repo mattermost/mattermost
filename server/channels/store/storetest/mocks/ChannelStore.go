@@ -10,6 +10,8 @@ import (
 	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
+	request "github.com/mattermost/mattermost/server/public/shared/request"
+
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -66,25 +68,25 @@ func (_m *ChannelStore) AnalyticsTypeCount(teamID string, channelType model.Chan
 	return r0, r1
 }
 
-// Autocomplete provides a mock function with given fields: userID, term, includeDeleted, isGuest
-func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
-	ret := _m.Called(userID, term, includeDeleted, isGuest)
+// Autocomplete provides a mock function with given fields: rctx, userID, term, includeDeleted, isGuest
+func (_m *ChannelStore) Autocomplete(rctx request.CTX, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelListWithTeamData, error) {
+	ret := _m.Called(rctx, userID, term, includeDeleted, isGuest)
 
 	var r0 model.ChannelListWithTeamData
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) (model.ChannelListWithTeamData, error)); ok {
-		return rf(userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool, bool) (model.ChannelListWithTeamData, error)); ok {
+		return rf(rctx, userID, term, includeDeleted, isGuest)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, bool, bool) model.ChannelListWithTeamData); ok {
-		r0 = rf(userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, bool, bool) model.ChannelListWithTeamData); ok {
+		r0 = rf(rctx, userID, term, includeDeleted, isGuest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelListWithTeamData)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, bool, bool) error); ok {
-		r1 = rf(userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, bool, bool) error); ok {
+		r1 = rf(rctx, userID, term, includeDeleted, isGuest)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -92,25 +94,25 @@ func (_m *ChannelStore) Autocomplete(userID string, term string, includeDeleted 
 	return r0, r1
 }
 
-// AutocompleteInTeam provides a mock function with given fields: teamID, userID, term, includeDeleted, isGuest
-func (_m *ChannelStore) AutocompleteInTeam(teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
-	ret := _m.Called(teamID, userID, term, includeDeleted, isGuest)
+// AutocompleteInTeam provides a mock function with given fields: rctx, teamID, userID, term, includeDeleted, isGuest
+func (_m *ChannelStore) AutocompleteInTeam(rctx request.CTX, teamID string, userID string, term string, includeDeleted bool, isGuest bool) (model.ChannelList, error) {
+	ret := _m.Called(rctx, teamID, userID, term, includeDeleted, isGuest)
 
 	var r0 model.ChannelList
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string, bool, bool) (model.ChannelList, error)); ok {
-		return rf(teamID, userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, bool, bool) (model.ChannelList, error)); ok {
+		return rf(rctx, teamID, userID, term, includeDeleted, isGuest)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, bool, bool) model.ChannelList); ok {
-		r0 = rf(teamID, userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, bool, bool) model.ChannelList); ok {
+		r0 = rf(rctx, teamID, userID, term, includeDeleted, isGuest)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(model.ChannelList)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string, bool, bool) error); ok {
-		r1 = rf(teamID, userID, term, includeDeleted, isGuest)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string, bool, bool) error); ok {
+		r1 = rf(rctx, teamID, userID, term, includeDeleted, isGuest)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -182,30 +184,30 @@ func (_m *ChannelStore) ClearSidebarOnTeamLeave(userID string, teamID string) er
 	return r0
 }
 
-// CountPostsAfter provides a mock function with given fields: channelID, timestamp, userID
-func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userID string) (int, int, error) {
-	ret := _m.Called(channelID, timestamp, userID)
+// CountPostsAfter provides a mock function with given fields: channelID, timestamp, excludedUserID
+func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, int, error) {
+	ret := _m.Called(channelID, timestamp, excludedUserID)
 
 	var r0 int
 	var r1 int
 	var r2 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) (int, int, error)); ok {
-		return rf(channelID, timestamp, userID)
+		return rf(channelID, timestamp, excludedUserID)
 	}
 	if rf, ok := ret.Get(0).(func(string, int64, string) int); ok {
-		r0 = rf(channelID, timestamp, userID)
+		r0 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int64, string) int); ok {
-		r1 = rf(channelID, timestamp, userID)
+		r1 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r1 = ret.Get(1).(int)
 	}
 
 	if rf, ok := ret.Get(2).(func(string, int64, string) error); ok {
-		r2 = rf(channelID, timestamp, userID)
+		r2 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r2 = ret.Error(2)
 	}
@@ -213,23 +215,23 @@ func (_m *ChannelStore) CountPostsAfter(channelID string, timestamp int64, userI
 	return r0, r1, r2
 }
 
-// CountUrgentPostsAfter provides a mock function with given fields: channelID, timestamp, userID
-func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, userID string) (int, error) {
-	ret := _m.Called(channelID, timestamp, userID)
+// CountUrgentPostsAfter provides a mock function with given fields: channelID, timestamp, excludedUserID
+func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64, excludedUserID string) (int, error) {
+	ret := _m.Called(channelID, timestamp, excludedUserID)
 
 	var r0 int
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, int64, string) (int, error)); ok {
-		return rf(channelID, timestamp, userID)
+		return rf(channelID, timestamp, excludedUserID)
 	}
 	if rf, ok := ret.Get(0).(func(string, int64, string) int); ok {
-		r0 = rf(channelID, timestamp, userID)
+		r0 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r0 = ret.Get(0).(int)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, int64, string) error); ok {
-		r1 = rf(channelID, timestamp, userID)
+		r1 = rf(channelID, timestamp, excludedUserID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -237,32 +239,32 @@ func (_m *ChannelStore) CountUrgentPostsAfter(channelID string, timestamp int64,
 	return r0, r1
 }
 
-// CreateDirectChannel provides a mock function with given fields: userID, otherUserID, channelOptions
-func (_m *ChannelStore) CreateDirectChannel(userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
+// CreateDirectChannel provides a mock function with given fields: ctx, userID, otherUserID, channelOptions
+func (_m *ChannelStore) CreateDirectChannel(ctx request.CTX, userID *model.User, otherUserID *model.User, channelOptions ...model.ChannelOption) (*model.Channel, error) {
 	_va := make([]interface{}, len(channelOptions))
 	for _i := range channelOptions {
 		_va[_i] = channelOptions[_i]
 	}
 	var _ca []interface{}
-	_ca = append(_ca, userID, otherUserID)
+	_ca = append(_ca, ctx, userID, otherUserID)
 	_ca = append(_ca, _va...)
 	ret := _m.Called(_ca...)
 
 	var r0 *model.Channel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.User, *model.User, ...model.ChannelOption) (*model.Channel, error)); ok {
-		return rf(userID, otherUserID, channelOptions...)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) (*model.Channel, error)); ok {
+		return rf(ctx, userID, otherUserID, channelOptions...)
 	}
-	if rf, ok := ret.Get(0).(func(*model.User, *model.User, ...model.ChannelOption) *model.Channel); ok {
-		r0 = rf(userID, otherUserID, channelOptions...)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) *model.Channel); ok {
+		r0 = rf(ctx, userID, otherUserID, channelOptions...)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.User, *model.User, ...model.ChannelOption) error); ok {
-		r1 = rf(userID, otherUserID, channelOptions...)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, *model.User, ...model.ChannelOption) error); ok {
+		r1 = rf(ctx, userID, otherUserID, channelOptions...)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -270,25 +272,25 @@ func (_m *ChannelStore) CreateDirectChannel(userID *model.User, otherUserID *mod
 	return r0, r1
 }
 
-// CreateInitialSidebarCategories provides a mock function with given fields: userID, opts
-func (_m *ChannelStore) CreateInitialSidebarCategories(userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
-	ret := _m.Called(userID, opts)
+// CreateInitialSidebarCategories provides a mock function with given fields: c, userID, opts
+func (_m *ChannelStore) CreateInitialSidebarCategories(c request.CTX, userID string, opts *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error) {
+	ret := _m.Called(c, userID, opts)
 
 	var r0 *model.OrderedSidebarCategories
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)); ok {
-		return rf(userID, opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *store.SidebarCategorySearchOpts) (*model.OrderedSidebarCategories, error)); ok {
+		return rf(c, userID, opts)
 	}
-	if rf, ok := ret.Get(0).(func(string, *store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
-		r0 = rf(userID, opts)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, *store.SidebarCategorySearchOpts) *model.OrderedSidebarCategories); ok {
+		r0 = rf(c, userID, opts)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.OrderedSidebarCategories)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, *store.SidebarCategorySearchOpts) error); ok {
-		r1 = rf(userID, opts)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, *store.SidebarCategorySearchOpts) error); ok {
+		r1 = rf(c, userID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -430,8 +432,8 @@ func (_m *ChannelStore) GetAll(teamID string) ([]*model.Channel, error) {
 	return r0, r1
 }
 
-// GetAllChannelMembersById provides a mock function with given fields: id
-func (_m *ChannelStore) GetAllChannelMembersById(id string) ([]string, error) {
+// GetAllChannelMemberIdsByChannelId provides a mock function with given fields: id
+func (_m *ChannelStore) GetAllChannelMemberIdsByChannelId(id string) ([]string, error) {
 	ret := _m.Called(id)
 
 	var r0 []string
@@ -584,25 +586,25 @@ func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterID string) 
 	return r0, r1
 }
 
-// GetAllDirectChannelsForExportAfter provides a mock function with given fields: limit, afterID
-func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
-	ret := _m.Called(limit, afterID)
+// GetAllDirectChannelsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
+func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
+	ret := _m.Called(limit, afterID, includeArchivedChannels)
 
 	var r0 []*model.DirectChannelForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string) ([]*model.DirectChannelForExport, error)); ok {
-		return rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) ([]*model.DirectChannelForExport, error)); ok {
+		return rf(limit, afterID, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(int, string) []*model.DirectChannelForExport); ok {
-		r0 = rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) []*model.DirectChannelForExport); ok {
+		r0 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.DirectChannelForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string) error); ok {
-		r1 = rf(limit, afterID)
+	if rf, ok := ret.Get(1).(func(int, string, bool) error); ok {
+		r1 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -974,32 +976,6 @@ func (_m *ChannelStore) GetChannelsMemberCount(channelIDs []string) (map[string]
 	return r0, r1
 }
 
-// GetChannelsWithCursor provides a mock function with given fields: teamId, userId, opts, afterChannelID
-func (_m *ChannelStore) GetChannelsWithCursor(teamId string, userId string, opts *model.ChannelSearchOpts, afterChannelID string) (model.ChannelList, error) {
-	ret := _m.Called(teamId, userId, opts, afterChannelID)
-
-	var r0 model.ChannelList
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *model.ChannelSearchOpts, string) (model.ChannelList, error)); ok {
-		return rf(teamId, userId, opts, afterChannelID)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, *model.ChannelSearchOpts, string) model.ChannelList); ok {
-		r0 = rf(teamId, userId, opts, afterChannelID)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelList)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, *model.ChannelSearchOpts, string) error); ok {
-		r1 = rf(teamId, userId, opts, afterChannelID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // GetChannelsWithTeamDataByIds provides a mock function with given fields: channelIds, includeDeleted
 func (_m *ChannelStore) GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error) {
 	ret := _m.Called(channelIds, includeDeleted)
@@ -1312,25 +1288,49 @@ func (_m *ChannelStore) GetMemberCountsByGroup(ctx context.Context, channelID st
 	return r0, r1
 }
 
-// GetMemberForPost provides a mock function with given fields: postID, userID
-func (_m *ChannelStore) GetMemberForPost(postID string, userID string) (*model.ChannelMember, error) {
-	ret := _m.Called(postID, userID)
+// GetMemberForPost provides a mock function with given fields: postID, userID, includeArchivedChannels
+func (_m *ChannelStore) GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error) {
+	ret := _m.Called(postID, userID, includeArchivedChannels)
 
 	var r0 *model.ChannelMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string) (*model.ChannelMember, error)); ok {
-		return rf(postID, userID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) (*model.ChannelMember, error)); ok {
+		return rf(postID, userID, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(string, string) *model.ChannelMember); ok {
-		r0 = rf(postID, userID)
+	if rf, ok := ret.Get(0).(func(string, string, bool) *model.ChannelMember); ok {
+		r0 = rf(postID, userID, includeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string) error); ok {
-		r1 = rf(postID, userID)
+	if rf, ok := ret.Get(1).(func(string, string, bool) error); ok {
+		r1 = rf(postID, userID, includeArchivedChannels)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetMemberLastViewedAt provides a mock function with given fields: ctx, channelID, userID
+func (_m *ChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
+	ret := _m.Called(ctx, channelID, userID)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) (int64, error)); ok {
+		return rf(ctx, channelID, userID)
+	}
+	if rf, ok := ret.Get(0).(func(context.Context, string, string) int64); ok {
+		r0 = rf(ctx, channelID, userID)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(context.Context, string, string) error); ok {
+		r1 = rf(ctx, channelID, userID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1435,32 +1435,6 @@ func (_m *ChannelStore) GetMembersForUser(teamID string, userID string) (model.C
 
 	if rf, ok := ret.Get(1).(func(string, string) error); ok {
 		r1 = rf(teamID, userID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
-// GetMembersForUserWithCursor provides a mock function with given fields: userID, teamID, opts
-func (_m *ChannelStore) GetMembersForUserWithCursor(userID string, teamID string, opts *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error) {
-	ret := _m.Called(userID, teamID, opts)
-
-	var r0 model.ChannelMembers
-	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) (model.ChannelMembers, error)); ok {
-		return rf(userID, teamID, opts)
-	}
-	if rf, ok := ret.Get(0).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) model.ChannelMembers); ok {
-		r0 = rf(userID, teamID, opts)
-	} else {
-		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(model.ChannelMembers)
-		}
-	}
-
-	if rf, ok := ret.Get(1).(func(string, string, *store.ChannelMemberGraphQLSearchOpts) error); ok {
-		r1 = rf(userID, teamID, opts)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1969,13 +1943,39 @@ func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID s
 	return r0, r1
 }
 
-// PermanentDelete provides a mock function with given fields: channelID
-func (_m *ChannelStore) PermanentDelete(channelID string) error {
-	ret := _m.Called(channelID)
+// PatchMultipleMembersNotifyProps provides a mock function with given fields: members, notifyProps
+func (_m *ChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+	ret := _m.Called(members, notifyProps)
+
+	var r0 []*model.ChannelMember
+	var r1 error
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) ([]*model.ChannelMember, error)); ok {
+		return rf(members, notifyProps)
+	}
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) []*model.ChannelMember); ok {
+		r0 = rf(members, notifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.ChannelMember)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func([]*model.ChannelMemberIdentifier, map[string]string) error); ok {
+		r1 = rf(members, notifyProps)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// PermanentDelete provides a mock function with given fields: ctx, channelID
+func (_m *ChannelStore) PermanentDelete(ctx request.CTX, channelID string) error {
+	ret := _m.Called(ctx, channelID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(ctx, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -1997,13 +1997,13 @@ func (_m *ChannelStore) PermanentDeleteByTeam(teamID string) error {
 	return r0
 }
 
-// PermanentDeleteMembersByChannel provides a mock function with given fields: channelID
-func (_m *ChannelStore) PermanentDeleteMembersByChannel(channelID string) error {
-	ret := _m.Called(channelID)
+// PermanentDeleteMembersByChannel provides a mock function with given fields: ctx, channelID
+func (_m *ChannelStore) PermanentDeleteMembersByChannel(ctx request.CTX, channelID string) error {
+	ret := _m.Called(ctx, channelID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(ctx, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2011,13 +2011,13 @@ func (_m *ChannelStore) PermanentDeleteMembersByChannel(channelID string) error 
 	return r0
 }
 
-// PermanentDeleteMembersByUser provides a mock function with given fields: userID
-func (_m *ChannelStore) PermanentDeleteMembersByUser(userID string) error {
-	ret := _m.Called(userID)
+// PermanentDeleteMembersByUser provides a mock function with given fields: ctx, userID
+func (_m *ChannelStore) PermanentDeleteMembersByUser(ctx request.CTX, userID string) error {
+	ret := _m.Called(ctx, userID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(ctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2025,13 +2025,13 @@ func (_m *ChannelStore) PermanentDeleteMembersByUser(userID string) error {
 	return r0
 }
 
-// RemoveAllDeactivatedMembers provides a mock function with given fields: channelID
-func (_m *ChannelStore) RemoveAllDeactivatedMembers(channelID string) error {
-	ret := _m.Called(channelID)
+// RemoveAllDeactivatedMembers provides a mock function with given fields: ctx, channelID
+func (_m *ChannelStore) RemoveAllDeactivatedMembers(ctx request.CTX, channelID string) error {
+	ret := _m.Called(ctx, channelID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(ctx, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2039,13 +2039,13 @@ func (_m *ChannelStore) RemoveAllDeactivatedMembers(channelID string) error {
 	return r0
 }
 
-// RemoveMember provides a mock function with given fields: channelID, userID
-func (_m *ChannelStore) RemoveMember(channelID string, userID string) error {
-	ret := _m.Called(channelID, userID)
+// RemoveMember provides a mock function with given fields: ctx, channelID, userID
+func (_m *ChannelStore) RemoveMember(ctx request.CTX, channelID string, userID string) error {
+	ret := _m.Called(ctx, channelID, userID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string) error); ok {
-		r0 = rf(channelID, userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string) error); ok {
+		r0 = rf(ctx, channelID, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2053,13 +2053,13 @@ func (_m *ChannelStore) RemoveMember(channelID string, userID string) error {
 	return r0
 }
 
-// RemoveMembers provides a mock function with given fields: channelID, userIds
-func (_m *ChannelStore) RemoveMembers(channelID string, userIds []string) error {
-	ret := _m.Called(channelID, userIds)
+// RemoveMembers provides a mock function with given fields: ctx, channelID, userIds
+func (_m *ChannelStore) RemoveMembers(ctx request.CTX, channelID string, userIds []string) error {
+	ret := _m.Called(ctx, channelID, userIds)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, []string) error); ok {
-		r0 = rf(channelID, userIds)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, []string) error); ok {
+		r0 = rf(ctx, channelID, userIds)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -2121,25 +2121,25 @@ func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (
 	return r0, r1
 }
 
-// SaveDirectChannel provides a mock function with given fields: channel, member1, member2
-func (_m *ChannelStore) SaveDirectChannel(channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
-	ret := _m.Called(channel, member1, member2)
+// SaveDirectChannel provides a mock function with given fields: ctx, channel, member1, member2
+func (_m *ChannelStore) SaveDirectChannel(ctx request.CTX, channel *model.Channel, member1 *model.ChannelMember, member2 *model.ChannelMember) (*model.Channel, error) {
+	ret := _m.Called(ctx, channel, member1, member2)
 
 	var r0 *model.Channel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Channel, *model.ChannelMember, *model.ChannelMember) (*model.Channel, error)); ok {
-		return rf(channel, member1, member2)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, *model.ChannelMember, *model.ChannelMember) (*model.Channel, error)); ok {
+		return rf(ctx, channel, member1, member2)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Channel, *model.ChannelMember, *model.ChannelMember) *model.Channel); ok {
-		r0 = rf(channel, member1, member2)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, *model.ChannelMember, *model.ChannelMember) *model.Channel); ok {
+		r0 = rf(ctx, channel, member1, member2)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Channel, *model.ChannelMember, *model.ChannelMember) error); ok {
-		r1 = rf(channel, member1, member2)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel, *model.ChannelMember, *model.ChannelMember) error); ok {
+		r1 = rf(ctx, channel, member1, member2)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2390,25 +2390,25 @@ func (_m *ChannelStore) SetShared(channelId string, shared bool) error {
 	return r0
 }
 
-// Update provides a mock function with given fields: channel
-func (_m *ChannelStore) Update(channel *model.Channel) (*model.Channel, error) {
-	ret := _m.Called(channel)
+// Update provides a mock function with given fields: ctx, channel
+func (_m *ChannelStore) Update(ctx request.CTX, channel *model.Channel) (*model.Channel, error) {
+	ret := _m.Called(ctx, channel)
 
 	var r0 *model.Channel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Channel) (*model.Channel, error)); ok {
-		return rf(channel)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel) (*model.Channel, error)); ok {
+		return rf(ctx, channel)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Channel) *model.Channel); ok {
-		r0 = rf(channel)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel) *model.Channel); ok {
+		r0 = rf(ctx, channel)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Channel) error); ok {
-		r1 = rf(channel)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel) error); ok {
+		r1 = rf(ctx, channel)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2468,25 +2468,25 @@ func (_m *ChannelStore) UpdateLastViewedAtPost(unreadPost *model.Post, userID st
 	return r0, r1
 }
 
-// UpdateMember provides a mock function with given fields: member
-func (_m *ChannelStore) UpdateMember(member *model.ChannelMember) (*model.ChannelMember, error) {
-	ret := _m.Called(member)
+// UpdateMember provides a mock function with given fields: ctx, member
+func (_m *ChannelStore) UpdateMember(ctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
+	ret := _m.Called(ctx, member)
 
 	var r0 *model.ChannelMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.ChannelMember) (*model.ChannelMember, error)); ok {
-		return rf(member)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelMember) (*model.ChannelMember, error)); ok {
+		return rf(ctx, member)
 	}
-	if rf, ok := ret.Get(0).(func(*model.ChannelMember) *model.ChannelMember); ok {
-		r0 = rf(member)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelMember) *model.ChannelMember); ok {
+		r0 = rf(ctx, member)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.ChannelMember) error); ok {
-		r1 = rf(member)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.ChannelMember) error); ok {
+		r1 = rf(ctx, member)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -34,7 +34,7 @@ func (a *App) GetDraft(userID, channelID, rootID string) (*model.Draft, *model.A
 	return draft, nil
 }
 
-func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
+func (a *App) UpsertDraft(c request.CTX, draft *model.Draft, connectionID string) (*model.Draft, *model.AppError) {
 	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("CreateDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
@@ -56,17 +56,26 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 		return nil, model.NewAppError("CreateDraft", "app.user.get.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
+	// If the draft is empty, just delete it
+	if draft.Message == "" {
+		deleteErr := a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId)
+		if deleteErr != nil {
+			return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, deleteErr.Error(), http.StatusInternalServerError)
+		}
+		return nil, nil
+	}
+
 	dt, nErr := a.Srv().Store().Draft().Upsert(draft)
 	if nErr != nil {
 		return nil, model.NewAppError("CreateDraft", "app.draft.save.app_error", nil, nErr.Error(), http.StatusInternalServerError)
 	}
 
-	dt = a.prepareDraftWithFileInfos(draft.UserId, dt)
+	dt = a.prepareDraftWithFileInfos(c, draft.UserId, dt)
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftCreated, "", dt.ChannelId, dt.UserId, nil, connectionID)
 	draftJSON, jsonErr := json.Marshal(dt)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
+		c.Logger().Warn("Failed to encode draft to JSON", mlog.Err(jsonErr))
 	}
 	message.Add("draft", string(draftJSON))
 	a.Publish(message)
@@ -74,7 +83,7 @@ func (a *App) UpsertDraft(c *request.Context, draft *model.Draft, connectionID s
 	return dt, nil
 }
 
-func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.AppError) {
+func (a *App) GetDraftsForUser(rctx request.CTX, userID, teamID string) ([]*model.Draft, *model.AppError) {
 	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
 		return nil, model.NewAppError("GetDraftsForUser", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
@@ -86,14 +95,14 @@ func (a *App) GetDraftsForUser(userID, teamID string) ([]*model.Draft, *model.Ap
 	}
 
 	for _, draft := range drafts {
-		a.prepareDraftWithFileInfos(userID, draft)
+		a.prepareDraftWithFileInfos(rctx, userID, draft)
 	}
 	return drafts, nil
 }
 
-func (a *App) prepareDraftWithFileInfos(userID string, draft *model.Draft) *model.Draft {
-	if fileInfos, err := a.getFileInfosForDraft(draft); err != nil {
-		mlog.Error("Failed to get files for a user's drafts", mlog.String("user_id", userID), mlog.Err(err))
+func (a *App) prepareDraftWithFileInfos(rctx request.CTX, userID string, draft *model.Draft) *model.Draft {
+	if fileInfos, err := a.getFileInfosForDraft(rctx, draft); err != nil {
+		rctx.Logger().Error("Failed to get files for a user's drafts", mlog.String("user_id", userID), mlog.Err(err))
 	} else {
 		draft.Metadata = &model.PostMetadata{}
 		draft.Metadata.Files = fileInfos
@@ -102,7 +111,7 @@ func (a *App) prepareDraftWithFileInfos(userID string, draft *model.Draft) *mode
 	return draft
 }
 
-func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *model.AppError) {
+func (a *App) getFileInfosForDraft(rctx request.CTX, draft *model.Draft) ([]*model.FileInfo, *model.AppError) {
 	if len(draft.FileIds) == 0 {
 		return nil, nil
 	}
@@ -117,7 +126,7 @@ func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *mode
 		if fileInfo.PostId == "" && fileInfo.CreatorId == draft.UserId {
 			fileInfos = append(fileInfos, fileInfo)
 		} else {
-			mlog.Debug("Invalid file id in draft", mlog.String("file_id", fileInfo.Id), mlog.String("user_id", draft.UserId))
+			rctx.Logger().Debug("Invalid file id in draft", mlog.String("file_id", fileInfo.Id), mlog.String("user_id", draft.UserId))
 		}
 	}
 
@@ -125,33 +134,28 @@ func (a *App) getFileInfosForDraft(draft *model.Draft) ([]*model.FileInfo, *mode
 		return nil, nil
 	}
 
-	a.generateMiniPreviewForInfos(fileInfos)
+	a.generateMiniPreviewForInfos(rctx, fileInfos)
 
 	return fileInfos, nil
 }
 
-func (a *App) DeleteDraft(userID, channelID, rootID, connectionID string) (*model.Draft, *model.AppError) {
+func (a *App) DeleteDraft(rctx request.CTX, draft *model.Draft, connectionID string) *model.AppError {
 	if !*a.Config().ServiceSettings.AllowSyncedDrafts {
-		return nil, model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
+		return model.NewAppError("DeleteDraft", "app.draft.feature_disabled", nil, "", http.StatusNotImplemented)
 	}
 
-	draft, nErr := a.Srv().Store().Draft().Get(userID, channelID, rootID, false)
-	if nErr != nil {
-		return nil, model.NewAppError("DeleteDraft", "app.draft.get.app_error", nil, nErr.Error(), http.StatusBadRequest)
-	}
-
-	if err := a.Srv().Store().Draft().Delete(userID, channelID, rootID); err != nil {
-		return nil, model.NewAppError("DeleteDraft", "app.draft.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
+	if err := a.Srv().Store().Draft().Delete(draft.UserId, draft.ChannelId, draft.RootId); err != nil {
+		return model.NewAppError("DeleteDraft", "app.draft.delete.app_error", nil, err.Error(), http.StatusInternalServerError)
 	}
 
 	draftJSON, jsonErr := json.Marshal(draft)
 	if jsonErr != nil {
-		mlog.Warn("Failed to encode draft to JSON")
+		rctx.Logger().Warn("Failed to encode draft to JSON")
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventDraftDeleted, "", draft.ChannelId, draft.UserId, nil, connectionID)
 	message.Add("draft", string(draftJSON))
 	a.Publish(message)
 
-	return draft, nil
+	return nil
 }

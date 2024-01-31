@@ -284,10 +284,6 @@
     "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Den här kanalen hanteras av grupper. Den här användaren tillhör inte en grupp synkad till den här kanalen."
-  },
-  {
     "id": "api.command_invite.fail.app_error",
     "translation": "ሰርቲፊኬት ፋይሉን በመሰረዝ ላይ ሳለ ስህተት ተከስቷል."
   },

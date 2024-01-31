@@ -3835,10 +3835,6 @@
     "translation": " एक मैसेज पोस्ट किया।"
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "लिंक प्रिवीउस को सिस्टम व्यवस्थापक द्वारा अक्षम कर दिया गया है।"
-  },
-  {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
       "one": "{{.Count}} फ़ाइल भेजी गई: {{.Filenames}}",
@@ -4130,10 +4126,6 @@
     "translation": "@[username] ~[channel]"
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "इस चैनल का प्रबंधन समूहों द्वारा किया जाता है। यह उपयोगकर्ता उस समूह का हिस्सा नहीं है जो इस चैनल से समन्वयित है।"
-  },
-  {
     "id": "api.command_invite.fail.app_error",
     "translation": "चैनल में शामिल होते समय एक त्रुटि हुई।"
   },
@@ -4351,10 +4343,6 @@
   {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "create_at के लिए अमान्य मान।"
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "जीआईएफ डीकोड नहीं कर सका।"
   },
   {
     "id": "model.emoji.user_id.app_error",
@@ -6969,10 +6957,6 @@
     "translation": "Elasticsearch बल्क प्रोसेसर बनाने में विफल।"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "इलास्टिक्स खोज पहले ही शुरू हो चुकी है।"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "खोज परिणामों को डीकोड करने में विफल"
   },
@@ -8252,10 +8236,6 @@
     "translation": "लिंक मेटाडेटा टाइमस्टैम्प गैर-शून्य होना चाहिए और निकटतम घंटे तक गोल होना चाहिए।"
   },
   {
-    "id": "Boards",
-    "translation": "बोर्डों"
-  },
-  {
     "id": "web.error.unsupported_browser.browser_title.edge",
     "translation": "माइक्रोसॉफ्ट एज"
   },
@@ -8396,10 +8376,6 @@
     "translation": "स्थिति साफ़ करने में त्रुटि।"
   },
   {
-    "id": "Playbooks",
-    "translation": "प्लेबुक"
-  },
-  {
     "id": "plugin_api.send_mail.missing_to",
     "translation": "के लिये पता लापता।"
   },
@@ -8430,38 +8406,6 @@
   {
     "id": "app.custom_group.unique_name",
     "translation": "समूह का नाम अद्वितीय नहीं है"
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "इन शानदार सुविधाओं के साथ बढ़ी हुई उत्पादकता को अनलॉक करें"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "हे {{.Name}}, हमने देखा है कि आपका मैटरमॉस्ट सर्वर थोड़ी धूल जमा कर रहा है। कुछ विशेषताओं पर एक नज़र डालें जो आपकी टीम के कार्यभार को कम करने में सहायता कर सकती हैं।"
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "हे! अपनी टीम की उत्पादकता बढ़ाने के लिए मैटरमोस्ट खोलें!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "का उपयोग करते हुए कार्यों का प्रबंधन करें "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "वर्कफ़्लो प्रबंधन के साथ "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "निर्दिष्ट करने के लिए अतिथि पहुँच "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "आइए और इसे देखिए!"
-  },
-  {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "ओपन मैटरमोस्ट"
   },
   {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
@@ -8574,10 +8518,6 @@
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
     "translation": "अमान्य_अनुरोध: आपूर्ति की गई रीडायरेक्ट_यूरी प्राधिकरण कोड रीडायरेक्ट_यूरी से मेल नहीं खाती।"
-  },
-  {
-    "id": "Channels",
-    "translation": "चैनल"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",

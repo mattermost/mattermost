@@ -61,19 +61,19 @@ test('/login accessibility tab support', async ({pw, pages, page}) => {
     await loginPage.footer.termsLink.press('Tab');
     expect(await loginPage.footer.helpLink).toBeFocused();
 
-    // * Should move focus to header logo after tab
-    await loginPage.footer.helpLink.press('Tab');
-    expect(await loginPage.header.logo).toBeFocused();
+    // # Move focus to login input
+    await loginPage.loginInput.focus();
+    expect(await loginPage.loginInput).toBeFocused();
 
-    // * Should move focus to create account link after tab
-    await loginPage.header.logo.press('Tab');
-    expect(await loginPage.createAccountLink).toBeFocused();
-
-    // * Should move focus to create account link after tab
-    await loginPage.createAccountLink.press('Tab');
+    // * Should move focus to login body after shift+tab
+    await loginPage.loginInput.press('Shift+Tab');
     expect(await loginPage.bodyCard).toBeFocused();
 
-    // * Then, should move focus to login body after tab
-    await loginPage.bodyCard.press('Tab');
-    expect(await loginPage.loginInput).toBeFocused();
+    // * Should move focus to create account link after shift+tab
+    await loginPage.bodyCard.press('Shift+Tab');
+    expect(await loginPage.createAccountLink).toBeFocused();
+
+    // * Should move focus to login body after tab
+    await loginPage.createAccountLink.press('Shift+Tab');
+    expect(await loginPage.header.logo).toBeFocused();
 });

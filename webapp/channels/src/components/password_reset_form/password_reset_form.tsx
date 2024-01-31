@@ -3,25 +3,24 @@
 
 import classNames from 'classnames';
 import React, {useState, useRef, memo} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 
-import type {ServerError} from '@mattermost/types/errors';
-
-import LocalizedInput from 'components/localized_input/localized_input';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants from 'utils/constants';
-import {t} from 'utils/i18n';
 
-interface Props {
+export interface Props {
     location: {search: string};
     actions: {
-        resetUserPassword: (token: string, newPassword: string) => Promise<{data: any; error: ServerError}>;
+        resetUserPassword: (token: string, newPassword: string) => Promise<ActionResult>;
     };
     siteName?: string;
 }
 
 const PasswordResetForm = ({location, siteName, actions}: Props) => {
+    const intl = useIntl();
+
     const history = useHistory();
 
     const [error, setError] = useState<React.ReactNode>(null);
@@ -67,19 +66,20 @@ const PasswordResetForm = ({location, siteName, actions}: Props) => {
                         <FormattedMessage
                             id='password_form.enter'
                             defaultMessage='Enter a new password for your {siteName} account.'
-                            values={{
-                                siteName,
-                            }}
+                            values={{siteName}}
                         />
                     </p>
                     <div className={classNames('form-group', {'has-error': error})}>
-                        <LocalizedInput
+                        <input
                             id='resetPasswordInput'
                             type='password'
                             className='form-control'
                             name='password'
                             ref={passwordInput}
-                            placeholder={{id: t('password_form.pwd'), defaultMessage: 'Password'}}
+                            placeholder={intl.formatMessage({
+                                id: 'password_form.pwd',
+                                defaultMessage: 'Password',
+                            })}
                             spellCheck='false'
                             autoFocus={true}
                         />

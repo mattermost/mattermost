@@ -1356,10 +1356,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "시스템 관리자 권한으로 Link previews를 활성화시키세요."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Can not update a post in a deleted channel."
   },
@@ -5688,10 +5684,6 @@
     "translation": "{{.Username}}은(는) 이 팀의 구성원이 아닙니다."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "이 채널은 그룹별로 관리합니다. 해당 사용자는 이 채널에 동기화 되는 그룹의 일부가 아닙니다."
-  },
-  {
     "id": "api.command.execute_command.format.app_error",
     "translation": "명령어 트리거 앞에 슬래시가 누락되었습니다"
   },
@@ -8338,10 +8330,6 @@
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "유효하지 않은 요청 본문입니다."
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "본문 데이터를 구문 분석하는 동안 오류가 발생했습니다."
   },
   {
     "id": "api.team.set_team_icon.check_image_limits.app_error",

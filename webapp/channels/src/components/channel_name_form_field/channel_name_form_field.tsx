@@ -26,6 +26,7 @@ export type Props = {
     autoFocus?: boolean;
     onErrorStateChange?: (isError: boolean) => void;
     team?: Team;
+    urlError?: string;
 }
 
 import './channel_name_form_field.scss';
@@ -139,7 +140,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
                 pathInfo={url}
                 limit={Constants.MAX_CHANNELNAME_LENGTH}
                 shortenLength={Constants.DEFAULT_CHANNELURL_SHORTEN_LENGTH}
-                error={urlError}
+                error={urlError || props.urlError}
                 onChange={handleOnURLChange}
             />
         </React.Fragment>

@@ -600,12 +600,12 @@
     "translation": {
       "many": "Não foi possível achar os usuários: {{.Users}}",
       "one": "Não foi possível achar o usuário: {{.Users}}",
-      "other": ""
+      "other": "Não foi possível achar os usuários: {{.Users}}"
     }
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
-    "translation": "Mensagem em grupo está limitada a um máximo de {{.MinUsers}} usuários."
+    "translation": "Mensagem em grupo está limitada a um máximo de {{.MaxUsers}} usuários."
   },
   {
     "id": "api.command_groupmsg.min_users.app_error",
@@ -657,7 +657,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Não conseguimos encontrar o usuário. Ele pode ter sido desativado pelo Administrador do Sistema."
+    "translation": "Não conseguimos encontrar o usuário {{.User}}. O usuário pode ter sido desativado pelo Administrador do Sistema."
   },
   {
     "id": "api.command_invite.name",
@@ -677,7 +677,11 @@
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} já está no canal."
+    "translation": {
+      "many": "{{.User}} já estão no canal.",
+      "one": "{{.User}} já está no canal.",
+      "other": "{{.User}} já estão no canal."
+    }
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -789,7 +793,7 @@
   },
   {
     "id": "api.command_mute.no_channel.error",
-    "translation": "Não foi possível encontrar o canal {{.Channel}}. Por favor use o [identificador de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar os canais."
+    "translation": "Não foi possível encontrar o canal especificado Por favor use o [identificador de canal](https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) para identificar os canais."
   },
   {
     "id": "api.command_mute.not_member.error",
@@ -984,7 +988,7 @@
     "translation": {
       "many": "[{{.SiteName}}] Novas Notificações de {{.Day}} {{.Month}}, {{.Year}}",
       "one": "[{{.SiteName}}] Nova Notificação de {{.Day}} {{.Month}}, {{.Year}}",
-      "other": ""
+      "other": "[{{.SiteName}}] Novas Notificações de {{.Day}} {{.Month}}, {{.Year}}"
     }
   },
   {
@@ -1352,7 +1356,7 @@
     "translation": {
       "many": "{{.Count}} arquivos enviados: {{.Filenames}}",
       "one": "{{.Count}} arquivo enviado: {{.Filenames}}",
-      "other": ""
+      "other": "{{.Count}} arquivos enviados: {{.Filenames}}"
     }
   },
   {
@@ -1360,12 +1364,8 @@
     "translation": {
       "many": "{{.Count}} imagens enviadas: {{.Filenames}}",
       "one": "{{.Count}} imagem enviada: {{.Filenames}}",
-      "other": ""
+      "other": "{{.Count}} imagens enviadas: {{.Filenames}}"
     }
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Pré-visualizações de links foram desabilitados pelo administrador do sistema."
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -2861,7 +2861,7 @@
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nova Mensagem de Grupo em {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nova Mensagem de Grupo em {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3889,7 +3889,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "Exportação de mensagem GlobalRelaySettings.CustomerType deve ser definido como 'A9' ou 'A10'."
+    "translation": "Exportação de mensagem GlobalRelaySettings.CustomerType deve ser definido como 'A9', 'A10' ou 'CUSTOM."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -3937,7 +3937,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "URL Emissora do Provedor de Identidade deve ser uma URL válida e começar com http:// ou https://."
+    "translation": "URL Emissora do Provedor de Identidade não pode ser vazio."
   },
   {
     "id": "model.config.is_valid.saml_idp_url.app_error",
@@ -4321,7 +4321,7 @@
   },
   {
     "id": "model.post.is_valid.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Data de criação deve ser uma data válida."
   },
   {
     "id": "model.post.is_valid.file_ids.app_error",
@@ -4361,7 +4361,7 @@
   },
   {
     "id": "model.post.is_valid.update_at.app_error",
-    "translation": "Update deve ser um tempo válido"
+    "translation": "Data de atualização deve ser uma data válida."
   },
   {
     "id": "model.post.is_valid.user_id.app_error",
@@ -4385,11 +4385,11 @@
   },
   {
     "id": "model.preference.is_valid.value.app_error",
-    "translation": "Nome é muito longo"
+    "translation": "Valor é muito grande."
   },
   {
     "id": "model.reaction.is_valid.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Data de criação deve ser uma data válida."
   },
   {
     "id": "model.reaction.is_valid.emoji_name.app_error",
@@ -4413,7 +4413,7 @@
   },
   {
     "id": "model.team.is_valid.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Data de criação deve ser uma data válida."
   },
   {
     "id": "model.team.is_valid.description.app_error",
@@ -4445,7 +4445,7 @@
   },
   {
     "id": "model.team.is_valid.update_at.app_error",
-    "translation": "Update deve ser um tempo válido"
+    "translation": "Data de atualização deve ser uma data válida."
   },
   {
     "id": "model.team.is_valid.url.app_error",
@@ -4593,27 +4593,27 @@
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Bot não existe."
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Não foi possível encontrar o canal existente"
+    "translation": "Não foi possível encontrar o canal existente."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "Você não pode modificar um canal arquivado"
+    "translation": "Você não pode modificar um canal arquivado."
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
-    "translation": "Usar SaveDirectChannel para criar um canal direto"
+    "translation": "Use SaveDirectChannel para criar um canal direto."
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
-    "translation": "Deve chamar atualização para o canal existente"
+    "translation": "Deve chamar atualização para o canal existente."
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "Um canal com o este nome já existe nesta equipe"
+    "translation": "Um canal com este nome já existe nesta equipe."
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4621,11 +4621,11 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
-    "translation": "Não foi um canal direto que foi tentado ser criado com SaveDirectChannel"
+    "translation": "Não foi um canal direto que foi tentado ser criado com SaveDirectChannel."
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Não foi possível obter o comando"
+    "translation": "Não foi possível obter o comando."
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -4633,7 +4633,7 @@
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "Um membro da equipe com este ID já existe"
+    "translation": "Um membro da equipe com este ID já existe."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
@@ -4645,11 +4645,11 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Não foi possível encontrar o comando"
+    "translation": "Não foi possível encontrar o comando."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Não é possível processar os dados de entrada"
+    "translation": "Não é possível processar os dados de entrada."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
@@ -4657,11 +4657,11 @@
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
-    "translation": "Não foi possível encontrar o canal"
+    "translation": "Não foi possível encontrar o canal."
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "Este webhook não tem permissão para postar no canal solicitado"
+    "translation": "Este webhook não tem permissão para publicar no canal solicitado."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4669,15 +4669,15 @@
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
-    "translation": "Webhook inválido"
+    "translation": "Webhook inválido."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": "Não é possível processar os dados de entrada"
+    "translation": "Não foi possível processar os dados de entrada."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
-    "translation": "Permissões do canal inapropriadas"
+    "translation": "Permissões do canal inapropriadas."
   },
   {
     "id": "web.incoming_webhook.split_props_length.app_error",
@@ -4685,11 +4685,11 @@
   },
   {
     "id": "web.incoming_webhook.text.app_error",
-    "translation": "Nenhum texto específicado"
+    "translation": "Nenhum texto especificado."
   },
   {
     "id": "web.incoming_webhook.user.app_error",
-    "translation": "Não foi possível encontrar o usuário"
+    "translation": "Não foi possível encontrar o usuário."
   },
   {
     "id": "model.group.name.invalid_length.app_error",
@@ -4749,15 +4749,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Versão 91+"
+    "translation": "Versão 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Versão 44+"
+    "translation": "Versão 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Versão 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -4857,7 +4857,7 @@
   },
   {
     "id": "model.user.is_valid.create_at.app_error",
-    "translation": "Create deve ser um tempo válido"
+    "translation": "Data de criação deve ser uma data válida."
   },
   {
     "id": "model.user.is_valid.auth_data_type.app_error",
@@ -5697,11 +5697,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} não é um membro desta equipe."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Este canal é gerenciado por grupos.  Este usuário não faz parte de um grupo sincronizado com este canal."
+    "translation": "Você pode adicionar {{.Users}} à este canal assim que eles forem membros da equipe **{{.Team}}**."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -6753,11 +6749,11 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost Solicitação de contato. Agora, minha equipe tem {{.Limit}} usuários e estou considerando o Mattermost Enterprise Edition.\n"
+    "translation": "Solicitação de contato Mattermost. Agora, minha equipe tem 500 usuários e estou considerando o Mattermost Enterprise Edition.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost Solicitação de contato. Agora, minha equipe tem {{.Limit}} usuários e estou considerando o Mattermost Enterprise Edition.\n"
+    "translation": "Solicitação de contato Mattermost. Agora, minha equipe tem 200 usuários e estou considerando o Mattermost Enterprise Edition.\n"
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
@@ -6769,7 +6765,7 @@
   },
   {
     "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost Solicitação de contato. Agora, minha equipe tem {{.Limit}} usuários e estou considerando o Mattermost Enterprise Edition.\n"
+    "translation": "Solicitação de contato Mattermost. Agora, minha equipe tem 100 usuários e estou considerando o Mattermost Enterprise Edition.\n"
   },
   {
     "id": "app.post.overwrite.app_error",
@@ -7085,7 +7081,7 @@
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user.app_error",
-    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition. O usuário do sistema Mattermost {{.MattermostUsername}} não tem acesso de gravação ao arquivo binário necessário. Um administrador de sistema pode atualizar as permissões do arquivo executando o seguinte comando no servidor onde o Mattermost está instalado:\n\n```\nchmod +w \"{{.Path}}\"\n```\n\nDepois de alterar as permissões do arquivo, tente atualizar o Mattermost novamente. Quando você tiver atualizado e reiniciado, lembre-se de restaurar as permissões do arquivo binário original: \n\n```\nchmod -w \"{{.Path}}\"\n```"
+    "translation": "Mattermost não conseguiu atualizar para a Enterprise Edition. O usuário do sistema Mattermost {{.MattermostUsername}} não tem acesso de gravação ao arquivo binário necessário. Um administrador de sistema pode atualizar as permissões do arquivo executando o seguinte comando no servidor onde o Mattermost está instalado:\n\n```\nchown {{.MattermostUsername}} \"{{.Path}}\"\n```\n\nDepois de alterar as permissões do arquivo, tente atualizar o Mattermost novamente. Quando você tiver atualizado e reiniciado, lembre-se de restaurar as permissões do arquivo binário original: \n\n```\nchown {{.FileUsername}} \"{{.Path}}\"\n```"
   },
   {
     "id": "api.upgrade_to_enterprise.invalid-user-and-permission.app_error",

@@ -2540,10 +2540,6 @@
     "translation": "No s'ha pogut crear el processador massiu de l'Elasticsearch"
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "L'Elasticsearch ja s'ha iniciat"
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "No s'ha pogut descodificar els resultats de la cerca"
   },
@@ -2766,10 +2762,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "No es pot actualitzar una publicació en un canal suprimit."
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "L'administrador del sistema ha desactivat les vistes prèvies dels enllaços."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -3875,10 +3867,6 @@
   {
     "id": "api.command_invite.hint",
     "translation": "@[usuari] ~[canal]"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Aquest canal està gestionat per grups, però aquest usuari no pertany a cap d'ells."
   },
   {
     "id": "api.command_invite.fail.app_error",

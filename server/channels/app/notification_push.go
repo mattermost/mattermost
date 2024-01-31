@@ -187,7 +187,6 @@ func (a *App) sendPushNotification(notification *PostNotification, user *model.U
 
 func (a *App) getPushNotificationMessage(contentsConfig, postMessage string, explicitMention, channelWideMention,
 	hasFiles bool, senderName string, channelType model.ChannelType, replyToThreadType string, userLocale i18n.TranslateFunc) string {
-
 	// If the post only has images then push an appropriate message
 	if postMessage == "" && hasFiles {
 		if channelType == model.ChannelTypeDirect {
@@ -378,11 +377,11 @@ func (hub *PushNotificationsHub) start(c request.CTX) {
 				case notificationTypeUpdateBadge:
 					err = hub.app.updateMobileAppBadgeSync(c, notification.userID)
 				default:
-					mlog.Debug("Invalid notification type", mlog.String("notification_type", string(notification.notificationType)))
+					c.Logger().Debug("Invalid notification type", mlog.String("notification_type", notification.notificationType))
 				}
 
 				if err != nil {
-					mlog.Error("Unable to send push notification", mlog.String("notification_type", string(notification.notificationType)), mlog.Err(err))
+					c.Logger().Error("Unable to send push notification", mlog.String("notification_type", notification.notificationType), mlog.Err(err))
 				}
 			}(notification)
 		case <-hub.stopChan:
@@ -474,7 +473,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		mlog.String("ackId", ack.Id),
 		mlog.String("type", ack.NotificationType),
 		mlog.String("deviceType", ack.ClientPlatform),
-		mlog.Int64("receivedAt", ack.ClientReceivedAt),
+		mlog.Int("receivedAt", ack.ClientReceivedAt),
 		mlog.String("status", model.PushReceived),
 	)
 
@@ -582,7 +581,6 @@ func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *mo
 
 func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) (*model.PushNotification, *model.AppError) {
-
 	var msg *model.PushNotification
 
 	notificationInterface := a.ch.Notification
@@ -669,7 +667,6 @@ func (a *App) buildIdLoadedPushNotificationMessage(c request.CTX, channel *model
 
 func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
 	explicitMention bool, channelWideMention bool, replyToThreadType string) *model.PushNotification {
-
 	msg := &model.PushNotification{
 		Category:     model.CategoryCanReply,
 		Version:      model.PushMessageV2,
@@ -720,7 +717,7 @@ func (a *App) buildFullPushNotificationMessage(c request.CTX, contentsConfig str
 	postMessage := post.Message
 	stripped, err := utils.StripMarkdown(postMessage)
 	if err != nil {
-		mlog.Warn("Failed parse to markdown", mlog.String("post_id", post.Id), mlog.Err(err))
+		c.Logger().Warn("Failed parse to markdown", mlog.String("post_id", post.Id), mlog.Err(err))
 	} else {
 		postMessage = stripped
 	}

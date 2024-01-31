@@ -1923,10 +1923,6 @@
     "translation": "Αυτή η ομάδα διαχειρίζεται από γκρουπ. Αυτός ο χρήστης δεν είναι μέρος ενός γκρουπ το οποίο να αντιστοιχεί με αυτήν την ομάδα."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Αυτή η ομάδα διαχειρίζεται από γκρουπ. Αυτός ο χρήστης δεν είναι μέρος ενός γκρουπ το οποίο να αντιστοιχεί με αυτό το κανάλι."
-  },
-  {
     "id": "api.command_expand.success",
     "translation": "Οι σύνδεσμοι εικόνων αναπτύσσονται τώρα από προεπιλογή"
   },
@@ -3079,10 +3075,6 @@
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Δεν είναι δυνατή η ενημέρωση μιας ανάρτησης σε ένα διαγραμμένο κανάλι."
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Οι προεπισκοπήσεις συνδέσμων έχουν απενεργοποιηθεί από τον διαχειριστή συστήματος."
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",

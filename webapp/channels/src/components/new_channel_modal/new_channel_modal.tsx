@@ -19,7 +19,6 @@ import Preferences from 'mattermost-redux/constants/preferences';
 import {get as getPreference} from 'mattermost-redux/selectors/entities/preferences';
 import {haveICurrentChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {switchToChannel} from 'actions/views/channel';
 import {closeModal} from 'actions/views/modals';
@@ -64,7 +63,7 @@ const NewChannelModal = () => {
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL) : false));
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const [type, setType] = useState(getChannelTypeFromPermissions(canCreatePublicChannel, canCreatePrivateChannel));
     const [displayName, setDisplayName] = useState('');
@@ -82,6 +81,11 @@ const NewChannelModal = () => {
 
     const [canCreateFromPluggable, setCanCreateFromPluggable] = useState(true);
     const [actionFromPluggable, setActionFromPluggable] = useState<((currentTeamId: string, channelId: string) => Promise<Board>) | undefined>(undefined);
+
+    const handleURLChange = useCallback((newURL: string) => {
+        setURL(newURL);
+        setURLError('');
+    }, []);
 
     const handleOnModalConfirm = async () => {
         if (!canCreate) {
@@ -118,13 +122,13 @@ const NewChannelModal = () => {
             // If template selected, create a new board from this template
             if (canCreateFromPluggable && createBoardFromChannelPlugin) {
                 try {
-                    addBoardToChannel(newChannel.id);
+                    addBoardToChannel(newChannel!.id);
                 } catch (e: any) {
                     // eslint-disable-next-line no-console
                     console.log(e.message);
                 }
             }
-            dispatch(switchToChannel(newChannel));
+            dispatch(switchToChannel(newChannel!));
         } catch (e) {
             onCreateChannelError({message: formatMessage({id: 'channel_modal.error.generic', defaultMessage: 'Something went wrong. Please try again.'})});
         }
@@ -265,8 +269,9 @@ const NewChannelModal = () => {
                     name='new-channel-modal-name'
                     placeholder={formatMessage({id: 'channel_modal.name.placeholder', defaultMessage: 'Enter a name for your new channel'})}
                     onDisplayNameChange={setDisplayName}
-                    onURLChange={setURL}
+                    onURLChange={handleURLChange}
                     onErrorStateChange={setChannelInputError}
+                    urlError={urlError}
                 />
                 <PublicPrivateSelector
                     className='new-channel-modal-type-selector'

@@ -1364,10 +1364,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Le anteprime dei collegamenti sono state disabilitate dall'amministratore di sistema."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "Impossibile aggiornare una pubblicazione in un canale eliminato."
   },
@@ -5136,10 +5132,6 @@
     "translation": "Aggiornamento membro del canale non valido. Non si può aggiungere o rimuovere il ruolo ospite manualmente."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Questo canale è gestito dai gruppi.  Questo utente non appartiene a un gruppo sincronizzato con questo canale."
-  },
-  {
     "id": "api.command_remove.group_constrained_user_denied",
     "translation": "Non puoi rimuovere gli utenti dal canale poiché sono membri di uno o più gruppi collegati a questo canale. Per eliminare gli utenti dal canale devono essere prima rimossi dai gruppi collegati."
   },
@@ -8109,10 +8101,6 @@
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
-    "translation": " "
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
     "translation": " "
   },
   {

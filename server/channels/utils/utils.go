@@ -102,7 +102,6 @@ func GetIPAddress(r *http.Request, trustedProxyIPHeader []string) string {
 		if address != "" && net.ParseIP(address) != nil {
 			return address
 		}
-
 	}
 
 	host, _, _ := net.SplitHostPort(r.RemoteAddr)

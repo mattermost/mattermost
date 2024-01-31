@@ -173,8 +173,7 @@ const PostMessagePreview = (props: Props) => {
                     </div>
                     <div className={classNames('col col__name', 'permalink--username')}>
                         <UserProfileComponent
-                            userId={user?.id}
-                            hasMention={true}
+                            userId={user?.id ?? ''}
                             disablePopover={true}
                             overwriteName={previewPost.props?.override_username || ''}
                         />

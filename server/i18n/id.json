@@ -304,10 +304,6 @@
     "translation": "ID Kanal tidak valid"
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Tidak dapat membaca kode gif."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "ID pembuat tidak valid"
   },
@@ -1582,10 +1578,6 @@
   {
     "id": "api.post.send_notifications_and_forget.push_explicit_mention",
     "translation": " memanggil Anda di "
-  },
-  {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Tautan publik dinonaktfikan oleh administrator sistem."
   },
   {
     "id": "api.post.do_action.action_id.app_error",
@@ -2883,7 +2875,7 @@
   },
   {
     "id": "api.admin.add_certificate.array.app_error",
-    "translation": "Berkas yang diminta tidak ada didalam 'certificate'."
+    "translation": "Tidak ada berkas 'sertifikat' di dalam permintaan."
   },
   {
     "id": "September",
@@ -2948,5 +2940,733 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Terjadi kesalahan saat mengurai permintaan beraneka ragam"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "Anda tidak dapat menghapus tanda terima di saluran yang diarsipkan."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "Anda tidak dapat melakukan tanda terima di saluran yang diarsipkan."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "Anda tidak dapat menghapus tanda terima setelah 5 menit berlalu."
+  },
+  {
+    "id": "api.admin.saml.failure_parse_idp_certificate.app_error",
+    "translation": "Terjadi kegagalan saat menguraikan informasi metadata yang diterima dari Penyedia Identitas ke sebuah sertifikat."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_idpssodescriptors.app_error",
+    "translation": "Node Deskriptor SSO Penyedia Identitas yang hilang dalam XML."
+  },
+  {
+    "id": "api.channel.channel_member_counts_by_group.license.error",
+    "translation": "Lisensi Anda tidak mendukung grup"
+  },
+  {
+    "id": "api.channel.create_channel.direct_channel.team_restricted_error",
+    "translation": "Saluran langsung tidak dapat dibuat di antara pengguna ini karena mereka tidak berbagi tim yang sama."
+  },
+  {
+    "id": "api.channel.patch_channel_moderations.cache_invalidation.error",
+    "translation": "Kesalahan dalam memvalidasi cache"
+  },
+  {
+    "id": "api.command_custom_status.app_error",
+    "translation": "Kesalahan pengaturan status."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Anda tidak diizinkan untuk memperbarui nama, nama_tampilan, dan tujuan pesan langsung atau grup."
+  },
+  {
+    "id": "api.cloud.app_error",
+    "translation": "Kesalahan internal selama permintaan cloud api."
+  },
+  {
+    "id": "api.cloud.cws_webhook_event_missing_error",
+    "translation": "Peristiwa webhook tidak ditangani. Entah karena tidak ada atau tidak valid."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.create",
+    "translation": "Tidak dapat membuat tim karena batas tim telah tercapai"
+  },
+  {
+    "id": "api.command_channel_header.update_channel.max_length",
+    "translation": "Teks yang dimasukkan melebihi batas karakter. Header saluran dibatasi hingga karakter {{.MaxLength}}."
+  },
+  {
+    "id": "api.command_channel_purpose.update_channel.max_length",
+    "translation": "Teks yang dimasukkan melebihi batas karakter. Tujuan saluran dibatasi hingga karakter {{.MaxLength}}."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Status Anda telah dihapus."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Anda tidak diizinkan untuk memperbarui nama, nama_tampilan, dan tujuan pesan langsung atau grup."
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Status Anda diatur ke \"{{.EmojiName}} {{.StatusMessage}}\". Anda dapat mengubah status Anda dari popover status di header bilah sisi saluran."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Tidak dapat menemukan file yang Anda minta."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Anda tidak memiliki izin yang cukup untuk menjalankan perintah ini."
+  },
+  {
+    "id": "api.command_groupmsg.invalid_user.app_error",
+    "translation": {
+      "other": "Tidak dapat menemukan pengguna: {{.Users}}"
+    }
+  },
+  {
+    "id": "api.command_groupmsg.max_users.app_error",
+    "translation": "Pesan grup dibatasi hingga maksimum pengguna {{.MaxUsers}}."
+  },
+  {
+    "id": "api.command_invite.private_channel.app_error",
+    "translation": "Tidak dapat menemukan saluran {{.Channel}}. Silakan gunakan [pegangan saluran] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) untuk mengidentifikasi saluran."
+  },
+  {
+    "id": "api.command_mute.desc",
+    "translation": "Menonaktifkan desktop, email, dan pemberitahuan push untuk saluran saat ini atau [saluran] yang ditentukan."
+  },
+  {
+    "id": "api.command_help.success",
+    "translation": "Mattermost adalah platform sumber terbuka untuk komunikasi, kolaborasi, dan orkestrasi pekerjaan yang aman di seluruh alat dan tim.\nMattermost berisi tiga alat utama:\n\n**Channels** - Tetap terhubung dengan tim Anda melalui pesan 1:1 dan grup.\n**[Playbooks](/playbooks)** - Membangun dan mengonfigurasi proses yang dapat diulang untuk mencapai hasil yang spesifik dan dapat diprediksi.\n**[Boards](/boards)** - Kelola proyek dan tugas dalam struktur papan Kanban untuk membantu tim Anda mencapai pencapaian penting.\n\n[Lihat dokumentasi dan panduan]({{.HelpLink}})"
+  },
+  {
+    "id": "api.command_marketplace.desc",
+    "translation": "Buka Pasar"
+  },
+  {
+    "id": "api.command_mute.error",
+    "translation": "Tidak dapat menemukan saluran {{.Channel}}. Silakan gunakan [pegangan saluran] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) untuk mengidentifikasi saluran."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Anda dapat menambahkan {{.FirstUser}} dan {{.Others}} lainnya ke saluran ini setelah mereka menjadi anggota tim **{{.Team}}**."
+  },
+  {
+    "id": "api.admin.test_s3.missing_s3_bucket",
+    "translation": "S3 Bucket diperlukan"
+  },
+  {
+    "id": "api.admin.saml.failure_reset_authdata_to_email.app_error",
+    "translation": "Gagal mengatur ulang bidang AuthData ke Email."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_keydescriptor.app_error",
+    "translation": "Node Deskriptor SSO Penyedia Identitas yang hilang dalam XML."
+  },
+  {
+    "id": "api.admin.saml.invalid_xml_missing_ssoservices.app_error",
+    "translation": "Node Layanan SSO Penyedia Identitas yang hilang dalam XML."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.invalid_content_type.app_error",
+    "translation": "Jenis konten tidak valid."
+  },
+  {
+    "id": "api.admin.saml.set_certificate_from_metadata.missing_content_type.app_error",
+    "translation": "Jenis konten yang hilang."
+  },
+  {
+    "id": "api.admin.syncables_error",
+    "translation": "gagal menambahkan pengguna ke grup-tim dan grup-saluran"
+  },
+  {
+    "id": "api.back_to_app",
+    "translation": "Kembali ke {{.SiteName}}"
+  },
+  {
+    "id": "api.bot.create_disabled",
+    "translation": "Pembuatan bot telah dinonaktifkan."
+  },
+  {
+    "id": "api.channel.delete_channel.type.invalid",
+    "translation": "Tidak dapat menghapus saluran pesan langsung atau grup"
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Pengguna tidak diizinkan untuk mengubah pesan grup menjadi saluran pribadi"
+  },
+  {
+    "id": "api.channel.move_channel.type.invalid",
+    "translation": "Tidak dapat memindahkan saluran pesan langsung atau grup"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} membuat saluran ini dari sebuah pesan grup dengan {{.GMMembers}}."
+  },
+  {
+    "id": "api.cloud.delinquency_email.missing_email_to_trigger",
+    "translation": "Kolom yang harus diisi tidak lengkap untuk mengirim email tunggakan."
+  },
+  {
+    "id": "api.cloud.license_error",
+    "translation": "Lisensi Anda tidak mendukung permintaan cloud."
+  },
+  {
+    "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
+    "translation": "Sudah diberitahukan admin"
+  },
+  {
+    "id": "api.cloud.request_error",
+    "translation": "Terjadi kesalahan saat memproses permintaan ke CWS."
+  },
+  {
+    "id": "api.cloud.teams_limit_reached.restore",
+    "translation": "Tidak dapat memulihkan tim karena batas tim telah tercapai"
+  },
+  {
+    "id": "api.command.execute_command.format.app_error",
+    "translation": "Kata pemicu perintah tidak memiliki karakter garis miring di depan"
+  },
+  {
+    "id": "api.command.invite_people.email_invitations_off",
+    "translation": "Undangan email dinonaktifkan, tidak ada undangan yang dikirim"
+  },
+  {
+    "id": "api.command_channel_purpose.direct_group.app_error",
+    "translation": "Tidak dapat menetapkan tujuan untuk saluran pesan langsung. Gunakan /header untuk mengatur header sebagai gantinya."
+  },
+  {
+    "id": "api.command_custom_status.clear.app_error",
+    "translation": "Terjadi kesalahan saat menghapus status."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Atur atau hapus status Anda"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] atau hapus"
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_dnd.desc",
+    "translation": "Jangan ganggu menonaktifkan pemberitahuan push desktop dan seluler."
+  },
+  {
+    "id": "api.command_dnd.name",
+    "translation": "dnd"
+  },
+  {
+    "id": "api.command_dnd.success",
+    "translation": "Jangan Ganggu diaktifkan. Anda tidak akan menerima pemberitahuan push desktop atau seluler sampai Jangan Ganggu dimatikan."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Buat sebuah tautan untuk mengunduh ekspor."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Driver penyimpanan file tidak mendukung pembuatan tautan."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Tidak ada file ekspor yang ditemukan."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip namafile|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Anda dapat mengunduh file Anda di sini: {{.Link}}.\nTautan ini akan kedaluwarsa dalam {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Tidak dapat mengambil daftar ekspor."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "tautanekspor"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Tidak dapat membuat url presign."
+  },
+  {
+    "id": "api.command_groupmsg.desc",
+    "translation": "Mengirimkan Pesan Grup ke pengguna tertentu"
+  },
+  {
+    "id": "api.command_groupmsg.hint",
+    "translation": "@[namapengguna1], @[namapengguna2] 'pesan'"
+  },
+  {
+    "id": "api.command_groupmsg.min_users.app_error",
+    "translation": "Pesan grup dibatasi untuk minimal {{.MinUsers}} pengguna."
+  },
+  {
+    "id": "api.command_groupmsg.permission.app_error",
+    "translation": "Anda tidak memiliki izin yang sesuai untuk membuat pesan grup baru."
+  },
+  {
+    "id": "api.command_invite.channel.error",
+    "translation": "Tidak dapat menemukan saluran {{.Channel}}. Silakan gunakan [pegangan saluran] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) untuk mengidentifikasi saluran."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Saluran ini dikelola oleh grup.  Pengguna ini bukan bagian dari grup yang disinkronkan ke saluran ini."
+  },
+  {
+    "id": "api.command_invite.desc",
+    "translation": "Undang pengguna ke saluran"
+  },
+  {
+    "id": "api.command_invite.directchannel.app_error",
+    "translation": "Anda tidak dapat menambahkan seseorang ke saluran pesan langsung."
+  },
+  {
+    "id": "api.command_invite.hint",
+    "translation": "@[namapengguna]... ~[saluran]..."
+  },
+  {
+    "id": "api.command_invite.missing_message.app_error",
+    "translation": "Nama Pengguna dan/atau Saluran Tidak Ada."
+  },
+  {
+    "id": "api.command_invite.missing_user.app_error",
+    "translation": "Kami tidak dapat menemukan pengguna {{.User}}. Pengguna tersebut mungkin telah dinonaktifkan oleh Administrator Sistem."
+  },
+  {
+    "id": "api.command_invite.name",
+    "translation": "undang"
+  },
+  {
+    "id": "api.command_invite.permission.app_error",
+    "translation": "Anda tidak memiliki izin yang cukup untuk menambahkan {{.User}} di {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.success",
+    "translation": "{{.User}} ditambahkan ke saluran {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} dan {{.Others}} ditambahkan ke saluran {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.app_error",
+    "translation": {
+      "other": "{{.User}} sudah ada di dalam saluran."
+    }
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} dan {{.Others}} yang lain sudah ada di dalam saluran."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.app_error",
+    "translation": "Anda dapat menambahkan {{.Users}} ke saluran ini setelah mereka menjadi anggota tim **{{.Team}}**."
+  },
+  {
+    "id": "api.command_invite_people.permission.app_error",
+    "translation": "Anda tidak memiliki izin untuk mengundang pengguna baru ke server ini."
+  },
+  {
+    "id": "api.command_join.hint",
+    "translation": "~[saluran]"
+  },
+  {
+    "id": "api.command_kick.name",
+    "translation": "keluarkan"
+  },
+  {
+    "id": "api.command_marketplace.name",
+    "translation": "pasar"
+  },
+  {
+    "id": "api.command_marketplace.unsupported.app_error",
+    "translation": "Perintah marketplace tidak didukung pada perangkat Anda."
+  },
+  {
+    "id": "api.command_mute.hint",
+    "translation": "~[saluran]"
+  },
+  {
+    "id": "api.command_mute.name",
+    "translation": "bisu"
+  },
+  {
+    "id": "api.command_mute.no_channel.error",
+    "translation": "Tidak dapat menemukan saluran yang ditentukan. Silakan gunakan [pegangan saluran] (https://docs.mattermost.com/messaging/managing-channels.html#naming-a-channel) untuk mengidentifikasi saluran."
+  },
+  {
+    "id": "api.command_mute.not_member.error",
+    "translation": "Tidak dapat membisukan saluran {{.Channel}} karena Anda bukan anggota."
+  },
+  {
+    "id": "api.command_mute.success_unmute",
+    "translation": "{{.Channel}} tidak lagi dibisukan."
+  },
+  {
+    "id": "api.command_remote.decode_invitation.error",
+    "translation": "Tidak dapat memecahkan kode undangan: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.displayname.hint",
+    "translation": "Nama tampilan untuk koneksi aman"
+  },
+  {
+    "id": "api.command_remote.incorrect_password.error",
+    "translation": "Tidak dapat mendekripsi undangan. Kata sandi salah atau undangan rusak: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.invite_summary",
+    "translation": "Kirimkan undangan terenkripsi AES 256-bit berikut ini ke Admin Sistem Mattermost eksternal bersama dengan kata sandi. Mereka akan menggunakan perintah garis miring `{{.Command}}` untuk menerima undangan.\n\n```\n{{.Undangan}}\n```\n\n**Pastikan koneksi aman dapat mengakses instance Mattermost Anda melalui** {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Tidak dapat menghapus koneksi yang aman: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Tindakan yang tidak diketahui `{{.Action}}`"
+  },
+  {
+    "id": "api.command_remove.group_constrained_user_denied",
+    "translation": "Pengguna tidak dapat dihapus dari saluran oleh Anda karena mereka adalah anggota grup yang ditautkan ke saluran ini. Untuk menghapus mereka dari saluran ini, mereka harus dihapus dari grup yang ditautkan."
+  },
+  {
+    "id": "api.command_remove.name",
+    "translation": "hapus"
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Kesalahan mengundang `{{.Name}}` ke saluran ini: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Terjadi kesalahan saat mengambil koneksi aman: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Mengundang instance eksternal Mattermost ke saluran bersama saat ini"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Tidak dapat membatalkan pembagian saluran yang tidak dibagikan."
+  },
+  {
+    "id": "api.command_remove.user_not_in_channel",
+    "translation": "{{.Username}} bukan anggota saluran ini."
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Koneksi aman saluran bersama `{{.RemoteId}}` tidak ada untuk saluran ini."
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Harus menentukan ID koneksi aman yang valid untuk membatalkan undangan"
+  },
+  {
+    "id": "api.command_share.share_channel.error",
+    "translation": "Tidak dapat membagikan saluran ini: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.shared_channel_unavailable",
+    "translation": "Saluran ini tidak lagi dibagikan."
+  },
+  {
+    "id": "api.command_share.unknown_action",
+    "translation": "Tindakan yang tidak diketahui `{{.Action}}`. Tindakan yang tersedia: {{.Actions}}"
+  },
+  {
+    "id": "api.command_mute.success_unmute_direct_msg",
+    "translation": "Saluran ini tidak lagi dibisukan."
+  },
+  {
+    "id": "api.command_remote.accept.help",
+    "translation": "Terima undangan dari instance Mattermost eksternal"
+  },
+  {
+    "id": "api.command_remote.accept_invitation",
+    "translation": "Undangan diterima dan dikonfirmasi.\nSiteURL: {{.SiteURL}}"
+  },
+  {
+    "id": "api.command_remote.accept_invitation.error",
+    "translation": "Tidak dapat menerima undangan: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.add_remote.error",
+    "translation": "Tidak dapat menambahkan koneksi yang aman: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.cluster_removed",
+    "translation": "Koneksi aman {{.RemoteId}} {{.Result}}."
+  },
+  {
+    "id": "api.command_remote.desc",
+    "translation": "Undang koneksi yang aman untuk komunikasi di seluruh instance Mattermost."
+  },
+  {
+    "id": "api.command_remote.displayname.help",
+    "translation": "Nama tampilan koneksi yang aman"
+  },
+  {
+    "id": "api.command_remote.encrypt_invitation.error",
+    "translation": "Tidak dapat mengenkripsi undangan: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.fetch_status.error",
+    "translation": "Tidak dapat mengambil koneksi yang aman: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.hint",
+    "translation": "[tindakan]"
+  },
+  {
+    "id": "api.command_remote.invitation.help",
+    "translation": "Undangan dari koneksi yang aman"
+  },
+  {
+    "id": "api.command_remote.invitation.hint",
+    "translation": "Undangan terenkripsi dari koneksi yang aman"
+  },
+  {
+    "id": "api.command_remote.invitation_created",
+    "translation": "Undangan telah dibuat."
+  },
+  {
+    "id": "api.command_remote.invite.help",
+    "translation": "Undang koneksi yang aman"
+  },
+  {
+    "id": "api.command_remote.invite_password.help",
+    "translation": "Kata sandi undangan"
+  },
+  {
+    "id": "api.command_remote.invite_password.hint",
+    "translation": "Kata sandi yang akan digunakan untuk mengenkripsi undangan"
+  },
+  {
+    "id": "api.command_remote.missing_command",
+    "translation": "Perintah hilang. Tindakan yang tersedia: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.missing_empty",
+    "translation": "`{{.Arg}}` tidak ada atau kosong"
+  },
+  {
+    "id": "api.command_remote.name",
+    "translation": "koneksi-aman"
+  },
+  {
+    "id": "api.command_remote.name.help",
+    "translation": "Nama koneksi yang aman"
+  },
+  {
+    "id": "api.command_remote.name.hint",
+    "translation": "Nama unik untuk koneksi yang aman"
+  },
+  {
+    "id": "api.command_remote.permission_required",
+    "translation": "Anda memerlukan izin `{{.Permission}}` untuk mengelola koneksi aman."
+  },
+  {
+    "id": "api.command_remote.remote_add_remove.help",
+    "translation": "Menambah/menghapus koneksi aman. Tindakan yang tersedia: {{.Actions}}"
+  },
+  {
+    "id": "api.command_remote.remote_table_header",
+    "translation": "| Sambungan aman | Nama tampilan | ID sambungan | URL situs | Undangan diterima | Online | Ping terakhir  |"
+  },
+  {
+    "id": "api.command_remote.remotes_not_found",
+    "translation": "Tidak ditemukan koneksi yang aman."
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Menghapus koneksi yang aman"
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "ID koneksi aman yang akan dihapus."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Layanan Koneksi Aman dinonaktifkan."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Layanan Koneksi Aman tidak diaktifkan."
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "URL situs tidak disetel. Silakan atur ini di Konsol Sistem > Lingkungan > Server Web."
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Menampilkan status untuk semua koneksi aman"
+  },
+  {
+    "id": "api.command_remove.desc",
+    "translation": "Menghapus anggota dari saluran"
+  },
+  {
+    "id": "api.command_remove.direct_group.app_error",
+    "translation": "Anda tidak dapat menghapus seseorang dari saluran pesan langsung."
+  },
+  {
+    "id": "api.command_remove.hint",
+    "translation": "@[nama pengguna]"
+  },
+  {
+    "id": "api.command_remove.missing.app_error",
+    "translation": "Kami tidak dapat menemukan pengguna tersebut. Pengguna tersebut mungkin telah dinonaktifkan oleh Administrator Sistem."
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Tindakan yang tersedia: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Tidak dapat mengundang koneksi aman ke saluran bersama yang berasal dari tempat lain."
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Saluran ini sekarang dibagikan."
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Menampilkan status untuk saluran bersama ini"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Status untuk ID saluran `{{.ChannelId}}}`"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Kesalahan saat memeriksa apakah saluran bersama ada: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Tidak dapat membatalkan undangan `{{.RemoteId}}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Berbagi saluran saat ini dengan instance eksternal Mattermost."
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Tidak dapat mengambil status untuk koneksi aman: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[tindakan]"
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Nilai tidak valid untuk '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Undangan saluran bersama telah dikirim ke `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Tindakan yang hilang. Tindakan yang tersedia: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.must_specify_valid_remote",
+    "translation": "Harus menentukan ID koneksi aman yang valid untuk diundang."
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "saluran berbagi"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "Tidak ada koneksi aman yang diundang ke saluran ini."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Anda memerlukan izin `{{.Permission}}` untuk mengelola saluran bersama."
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Koneksi aman telah diundang."
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "ID dari koneksi aman yang sudah ada. Lihat perintah `secure-connection` untuk menambahkan koneksi aman."
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID koneksi aman tidak valid: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Koneksi aman | URL situs | Hanya baca | Undangan diterima | Online | Sinkronisasi terakhir |"
+  },
+  {
+    "id": "api.command_share.remote_uninvited",
+    "translation": "Koneksi aman `{{.RemoteId}}` tidak diundang."
+  },
+  {
+    "id": "api.command_share.service_disabled",
+    "translation": "Layanan Saluran Bersama dinonaktifkan."
+  },
+  {
+    "id": "api.command_share.share_read_only.help",
+    "translation": "Saluran akan dibagikan dalam mode hanya-baca"
+  },
+  {
+    "id": "api.command_share.share_read_only.hint",
+    "translation": "[hanya-baca] - 'Y' atau 'N'.  Setelan bawaannya adalah 'N'"
+  },
+  {
+    "id": "api.command_share.shared_channel_unshare.error",
+    "translation": "Tidak dapat membatalkan pembagian saluran ini: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.uninvite_remote.help",
+    "translation": "Membatalkan koneksi aman dari saluran bersama ini"
+  },
+  {
+    "id": "api.command_share.uninvite_remote_id.help",
+    "translation": "ID koneksi aman untuk membatalkan undangan."
+  },
+  {
+    "id": "api.command_share.unshare_channel.help",
+    "translation": "Membatalkan pembagian saluran saat ini"
+  },
+  {
+    "id": "api.config.get_config.restricted_merge.app_error",
+    "translation": "Gagal menggabungkan konfigurasi yang diberikan."
+  },
+  {
+    "id": "api.config.migrate_config.app_error",
+    "translation": "Gagal memigrasikan penyimpanan konfigurasi."
+  },
+  {
+    "id": "api.config.patch_config.diff.app_error",
+    "translation": "Gagal membedakan konfigurasi"
+  },
+  {
+    "id": "api.config.patch_config.restricted_merge.app_error",
+    "translation": "Gagal menggabungkan konfigurasi yang diberikan."
+  },
+  {
+    "id": "api.config.reload_config.app_error",
+    "translation": "Gagal memuat config."
+  },
+  {
+    "id": "api.config.update_config.clear_siteurl.app_error",
+    "translation": "URL situs tidak dapat dibersihkan."
   }
 ]

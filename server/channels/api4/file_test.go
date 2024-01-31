@@ -97,7 +97,6 @@ func testUploadFilesPost(
 	clientIds []string,
 	useChunked bool,
 ) (*model.FileUploadResponse, *model.Response, error) {
-
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
 	// of files, but it's not critical here.
@@ -731,7 +730,6 @@ func TestUploadFiles(t *testing.T) {
 					th.cleanupTestFile(dbInfo)
 				}
 			})
-
 		}
 	}
 }
@@ -919,7 +917,7 @@ func TestGetFileLink(t *testing.T) {
 	CheckBadRequestStatus(t, resp)
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.FileSettings.EnablePublicLink = false })
@@ -1077,7 +1075,7 @@ func TestGetPublicFile(t *testing.T) {
 	fileId := fileResp.FileInfos[0].Id
 
 	// Hacky way to assign file to a post (usually would be done by CreatePost call)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileId, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	info, err := th.App.Srv().Store().FileInfo().Get(fileId)
@@ -1142,25 +1140,25 @@ func TestSearchFiles(t *testing.T) {
 	filename := "search for fileInfo1"
 	fileInfo1, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo1.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo1.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "search for fileInfo2"
 	fileInfo2, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo2.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo2.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged search for fileInfo3"
 	fileInfo3, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo3.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo3.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	filename = "tagged for fileInfo4"
 	fileInfo4, appErr := th.App.UploadFile(th.Context, data, th.BasicChannel.Id, filename)
 	require.Nil(t, appErr)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo4.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo4.Id, th.BasicPost.Id, th.BasicPost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 
 	archivedChannel := th.CreatePublicChannel()
@@ -1169,7 +1167,7 @@ func TestSearchFiles(t *testing.T) {
 	post := &model.Post{ChannelId: archivedChannel.Id, Message: model.NewId() + "a"}
 	rpost, _, err := client.CreatePost(context.Background(), post)
 	require.NoError(t, err)
-	err = th.App.Srv().Store().FileInfo().AttachToPost(fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
+	err = th.App.Srv().Store().FileInfo().AttachToPost(th.Context, fileInfo5.Id, rpost.Id, rpost.ChannelId, th.BasicUser.Id)
 	require.NoError(t, err)
 	th.Client.DeleteChannel(context.Background(), archivedChannel.Id)
 

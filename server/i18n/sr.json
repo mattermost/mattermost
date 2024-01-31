@@ -340,10 +340,6 @@
     "translation": "Реакција није исправна."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Претпрегледи веза су онемогућени од стране администратора система."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "few": "{{.Count}} слике послате: {{.Filenames}}",
@@ -1114,13 +1110,5 @@
   {
     "id": "api.admin.add_certificate.parseform.app_error",
     "translation": "Грешка у парсирању вишеформног захтева"
-  },
-  {
-    "id": "Channels",
-    "translation": "Kanali"
-  },
-  {
-    "id": "Boards",
-    "translation": "Table"
   }
 ]

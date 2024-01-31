@@ -19,7 +19,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_checkbo
   className="permission-check checked"
   data-testid="uniqId-checked"
 >
-  <CheckboxCheckedIcon />
+  <Memo(CheckboxCheckedIcon) />
 </div>
 `;
 
@@ -28,7 +28,7 @@ exports[`components/admin_console/permission_schemes_settings/permission_checkbo
   className="permission-check checked"
   data-testid=""
 >
-  <CheckboxCheckedIcon />
+  <Memo(CheckboxCheckedIcon) />
 </div>
 `;
 
@@ -37,6 +37,6 @@ exports[`components/admin_console/permission_schemes_settings/permission_checkbo
   className="permission-check intermediate"
   data-testid="uniqId-checked"
 >
-  <CheckboxPartialIcon />
+  <Memo(CheckboxPartialIcon) />
 </div>
 `;

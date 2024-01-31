@@ -1325,7 +1325,6 @@ func TestAssignBot(t *testing.T) {
 
 		_, _, err = th.Client.AssignBot(context.Background(), bot.UserId, bot2.UserId)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
-
 	})
 }
 

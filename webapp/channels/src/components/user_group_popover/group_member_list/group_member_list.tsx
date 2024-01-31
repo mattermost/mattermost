@@ -10,10 +10,10 @@ import type {ListChildComponentProps} from 'react-window';
 import InfiniteLoader from 'react-window-infinite-loader';
 import styled, {css} from 'styled-components';
 
-import {SendIcon} from '@mattermost/compass-icons/components';
-import type {ServerError} from '@mattermost/types/errors';
 import type {Group} from '@mattermost/types/groups';
 import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import NoResultsIndicator from 'components/no_results_indicator';
 import {NoResultsVariant} from 'components/no_results_indicator/types';
@@ -73,8 +73,8 @@ export type Props = {
     searchTerm: string;
 
     actions: {
-        getUsersInGroup: (groupId: string, page: number, perPage: number, sort: string) => Promise<{ data: UserProfile[] }>;
-        openDirectChannelToUserId: (userId?: string) => Promise<{ error: ServerError }>;
+        getUsersInGroup: (groupId: string, page: number, perPage: number, sort: string) => Promise<ActionResult<UserProfile[]>>;
+        openDirectChannelToUserId: (userId: string) => Promise<ActionResult>;
         closeRightHandSide: () => void;
     };
 }
@@ -131,7 +131,7 @@ const GroupMemberList = (props: Props) => {
             return;
         }
         setCurrentDMLoading(user.id);
-        actions.openDirectChannelToUserId(user.id).then((result: { error: ServerError }) => {
+        actions.openDirectChannelToUserId(user.id).then((result: ActionResult) => {
             if (!result.error) {
                 actions.closeRightHandSide();
                 setCurrentDMLoading(undefined);
@@ -190,13 +190,15 @@ const GroupMemberList = (props: Props) => {
                             content={formatMessage({id: 'group_member_list.sendMessageTooltip', defaultMessage: 'Send message'})}
                         >
                             <DMButton
-                                className='btn-icon'
+                                className='btn btn-icon btn-xs'
                                 aria-label={formatMessage(
                                     {id: 'group_member_list.sendMessageButton', defaultMessage: 'Send message to {user}'},
                                     {user: name})}
                                 onClick={() => showDirectChannel(user)}
                             >
-                                <SendIcon/>
+                                <i
+                                    className='icon icon-send'
+                                />
                             </DMButton>
                         </SimpleTooltip>
                     </DMContainer>

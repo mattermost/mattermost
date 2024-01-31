@@ -109,7 +109,7 @@ func getGroup(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -634,7 +634,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 	switch syncableType {
 	case model.GroupSyncableTypeTeam:
 		if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), syncableID, model.PermissionManageTeam) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionManageTeam})
 		}
 	case model.GroupSyncableTypeChannel:
 		channel, err := c.App.GetChannel(c.AppContext, syncableID)
@@ -650,7 +650,7 @@ func verifyLinkUnlinkPermission(c *Context, syncableType model.GroupSyncableType
 		}
 
 		if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), syncableID, permission) {
-			return c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+			return model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 		}
 	}
 
@@ -686,7 +686,7 @@ func getGroupMembers(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -831,6 +831,10 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 		return nil, model.NewAppError("Api4.getGroupsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
+		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
+	}
+
 	opts := model.GroupSearchOpts{
 		Q:                    c.Params.Q,
 		IncludeMemberCount:   c.Params.IncludeMemberCount,
@@ -859,6 +863,7 @@ func getGroupsByTeamCommon(c *Context, r *http.Request) ([]byte, *model.AppError
 
 	return b, nil
 }
+
 func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppError) {
 	if c.App.Channels().License() == nil || !*c.App.Channels().License().Features.LDAPGroups {
 		return nil, model.NewAppError("Api4.getGroupsByChannel", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
@@ -876,7 +881,7 @@ func getGroupsByChannelCommon(c *Context, r *http.Request) ([]byte, *model.AppEr
 		permission = model.PermissionReadPublicChannelGroups
 	}
 	if !c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), c.Params.ChannelId, permission) {
-		return nil, c.App.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
+		return nil, model.MakePermissionError(c.AppContext.Session(), []*model.Permission{permission})
 	}
 
 	opts := model.GroupSearchOpts{
@@ -919,6 +924,11 @@ func getGroupsAssociatedToChannelsByTeam(c *Context, w http.ResponseWriter, r *h
 
 	if !*c.App.Channels().License().Features.LDAPGroups {
 		c.Err = model.NewAppError("Api4.getGroupsAssociatedToChannelsByTeam", "api.ldap_groups.license_error", nil, "", http.StatusForbidden)
+		return
+	}
+
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), c.Params.TeamId, model.PermissionListTeamChannels) {
+		c.Err = model.MakePermissionError(c.AppContext.Session(), []*model.Permission{model.PermissionListTeamChannels})
 		return
 	}
 
@@ -1061,7 +1071,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 		opts.Since = since
 	}
 
-	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext.Session().UserId)
+	restrictions, appErr := c.App.GetViewUsersRestrictions(c.AppContext, c.AppContext.Session().UserId)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -1073,7 +1083,7 @@ func getGroups(c *Context, w http.ResponseWriter, r *http.Request) {
 	)
 
 	if opts.FilterHasMember != "" {
-		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext.Session().UserId, opts.FilterHasMember)
+		canSee, appErr = c.App.UserCanSeeOtherUser(c.AppContext, c.AppContext.Session().UserId, opts.FilterHasMember)
 		if appErr != nil {
 			c.Err = appErr
 			return

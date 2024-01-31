@@ -18,7 +18,6 @@ import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/pre
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {selectPostCard} from 'actions/views/rhs';
 import {updateThreadLastOpened} from 'actions/views/threads';
@@ -71,7 +70,7 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             fetchRHSAppsBindings,

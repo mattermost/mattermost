@@ -744,10 +744,6 @@
     "translation": "ഉപയോക്തൃനാമവും ചാനലും വിട്ടുപോയിരിക്കുന്നു."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "ഈ ചാനൽ നിയന്ത്രിക്കുന്നത് ഗ്രൂപ്പുകളാണ്. ഈ ചാനലുമായി സമന്വയിപ്പിച്ച ഒരു ഗ്രൂപ്പിന്റെ ഭാഗമല്ല ഈ ഉപയോക്താവ്."
-  },
-  {
     "id": "api.command_invite.fail.app_error",
     "translation": "ചാനലിൽ ചേരുമ്പോൾ ഒരു തെറ്റ് സംഭവിച്ചു."
   },

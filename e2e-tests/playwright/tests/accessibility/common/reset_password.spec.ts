@@ -45,11 +45,11 @@ test('/reset_password accessibility tab support', async ({pages, page}) => {
     await resetPasswordPage.footer.termsLink.press('Tab');
     expect(await resetPasswordPage.footer.helpLink).toBeFocused();
 
-    // * Should move focus to header logo after tab
-    await resetPasswordPage.footer.helpLink.press('Tab');
-    expect(await resetPasswordPage.header.backButton).toBeFocused();
-
-    // * Then, should move focus to email input after tab
-    await resetPasswordPage.header.backButton.press('Tab');
+    // # Move focus to email input
+    await resetPasswordPage.emailInput.focus();
     expect(await resetPasswordPage.emailInput).toBeFocused();
+
+    // * Should move focus to back button after shift+tab
+    await resetPasswordPage.emailInput.press('Shift+Tab');
+    expect(await resetPasswordPage.header.backButton).toBeFocused();
 });

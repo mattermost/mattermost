@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	graphql "github.com/graph-gophers/graphql-go"
 	_ "github.com/mattermost/go-i18n/i18n"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -138,11 +137,19 @@ type Routes struct {
 	HostedCustomer *mux.Router // 'api/v4/hosted_customer'
 
 	Drafts *mux.Router // 'api/v4/drafts'
+
+	IPFiltering *mux.Router // 'api/v4/ip_filtering'
+
+	Reports *mux.Router // 'api/v4/reports'
+
+	Limits *mux.Router // 'api/v4/limits'
+
+	OutgoingOAuthConnections *mux.Router // 'api/v4/oauth/outgoing_connections'
+	OutgoingOAuthConnection  *mux.Router // 'api/v4/oauth/outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}'
 }
 
 type API struct {
 	srv        *app.Server
-	schema     *graphql.Schema
 	BaseRoutes *Routes
 }
 
@@ -263,6 +270,15 @@ func Init(srv *app.Server) (*API, error) {
 
 	api.BaseRoutes.Drafts = api.BaseRoutes.APIRoot.PathPrefix("/drafts").Subrouter()
 
+	api.BaseRoutes.IPFiltering = api.BaseRoutes.APIRoot.PathPrefix("/ip_filtering").Subrouter()
+
+	api.BaseRoutes.Reports = api.BaseRoutes.APIRoot.PathPrefix("/reports").Subrouter()
+
+	api.BaseRoutes.Limits = api.BaseRoutes.APIRoot.PathPrefix("/limits").Subrouter()
+
+	api.BaseRoutes.OutgoingOAuthConnections = api.BaseRoutes.APIRoot.PathPrefix("/oauth/outgoing_connections").Subrouter()
+	api.BaseRoutes.OutgoingOAuthConnection = api.BaseRoutes.APIRoot.PathPrefix("/oauth/outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}").Subrouter()
+
 	api.InitUser()
 	api.InitBot()
 	api.InitTeam()
@@ -306,9 +322,10 @@ func Init(srv *app.Server) (*API, error) {
 	api.InitUsage()
 	api.InitHostedCustomer()
 	api.InitDrafts()
-	if err := api.InitGraphQL(); err != nil {
-		return nil, err
-	}
+	api.InitIPFiltering()
+	api.InitReports()
+	api.InitLimits()
+	api.InitOutgoingOAuthConnection()
 
 	srv.Router.Handle("/api/v4/{anything:.*}", http.HandlerFunc(api.Handle404))
 

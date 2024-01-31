@@ -1364,10 +1364,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Vistas previas de los enlaces han sido deshabilitadas por el administrador del sistema."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "No se puede actualizar un mensaje en un canal que ha sido eliminado."
   },
@@ -5656,10 +5652,6 @@
     "translation": "@{{.Username}} no es un miembro de este canal."
   },
   {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Este canal es administrado por grupos. Este usuario no es parte de un grupo que se haya sincronizado para este canal."
-  },
-  {
     "id": "api.command.execute_command.format.app_error",
     "translation": "Falta el carácter slash anteponiendo a la palabra que dispara el commando de barra"
   },
@@ -9118,10 +9110,6 @@
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "La inducción sólo puede ser completada por un Administrador del Sistema."
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error al analizar los datos del cuerpo."
   },
   {
     "id": "api.license_error",

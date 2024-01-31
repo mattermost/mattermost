@@ -8,7 +8,7 @@ import {IntlContext} from 'react-intl';
 import type {IntlShape} from 'react-intl';
 import {Provider} from 'react-redux';
 
-import store from 'stores/redux_store.jsx';
+import store from 'stores/redux_store';
 
 export type BaseOverlayTrigger = OriginalOverlayTrigger & {
     hide: () => void;
@@ -19,6 +19,9 @@ type Props = OverlayTriggerProps & {
     className?: string;
 };
 
+/**
+ * @deprecated Use (and expand when extrictly needed) WithTooltip instead
+ */
 const OverlayTrigger = React.forwardRef((props: Props, ref?: React.Ref<OriginalOverlayTrigger>) => {
     const {overlay, disabled, ...otherProps} = props;
 

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import type {CSSProperties} from 'react';
 import {useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
@@ -22,7 +22,7 @@ export type ValueType = {
     value: string;
 }
 
-type Props<T> = Omit<SelectProps<T>, 'onChange'> & {
+type Props<T extends ValueType> = Omit<SelectProps<T>, 'onChange'> & {
     value?: T;
     legend?: string;
     error?: string;
@@ -81,7 +81,7 @@ const Option = (props: any) => {
 };
 
 const DropdownInput = <T extends ValueType>(props: Props<T>) => {
-    const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, ...otherProps} = props;
+    const {value, placeholder, className, addon, name, textPrefix, legend, onChange, styles, options, error, testId, required, ...otherProps} = props;
 
     const [focused, setFocused] = useState(false);
 
@@ -99,30 +99,29 @@ const DropdownInput = <T extends ValueType>(props: Props<T>) => {
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
     const ownValue = useRef<T>();
 
-    const ownOnChange = (value: T, action: ActionMeta<T>) => {
+    const ownOnChange = useCallback((value: T, action: ActionMeta<T>) => {
         ownValue.current = value;
         onChange(value, action);
-    };
-    const validateInput = () => {
-        if (!props.required || (ownValue.current !== null && ownValue.current)) {
+    }, [onChange]);
+
+    const validateInput = useCallback(() => {
+        if (!required || (ownValue.current !== null && ownValue.current)) {
             setCustomInputLabel(null);
             return;
         }
 
         const validationErrorMsg = formatMessage({id: 'widget.input.required', defaultMessage: 'This field is required'});
         setCustomInputLabel({type: ItemStatus.ERROR, value: validationErrorMsg});
-    };
+    }, [required, formatMessage]);
 
-    const onInputBlur = (event: React.FocusEvent<HTMLElement>) => {
-        const {onBlur} = props;
-
+    const onInputBlur = useCallback((event: React.FocusEvent<HTMLElement>) => {
         setFocused(false);
         validateInput();
 
-        if (onBlur) {
-            onBlur(event);
+        if (otherProps.onBlur) {
+            otherProps.onBlur(event);
         }
-    };
+    }, [otherProps.onBlur, validateInput]);
 
     const showLegend = Boolean(focused || value);
     const isError = error || customInputLabel?.type === 'error';

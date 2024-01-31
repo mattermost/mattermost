@@ -272,8 +272,8 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	// figure out the initial number of users in town square
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "town-square", true)
 	require.NoError(t, err)
-	townSquareChannelId := channel.Id
-	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	townSquareChannelID := channel.Id
+	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelID)
 	require.NoError(t, nErr)
 	initialNumTownSquareUsers := len(users)
 
@@ -282,13 +282,13 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelID)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, initialNumTownSquareUsers+1)
 
 	found := false
 	for _, history := range histories {
-		if user.Id == history.UserId && townSquareChannelId == history.ChannelId {
+		if user.Id == history.UserId && townSquareChannelID == history.ChannelId {
 			found = true
 			break
 		}
@@ -709,7 +709,7 @@ func TestLeaveLastChannel(t *testing.T) {
 	t.Run("Guest leaves not last channel", func(t *testing.T) {
 		err = th.App.LeaveChannel(th.Context, townSquare.Id, guest.Id)
 		require.Nil(t, err)
-		_, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		_, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err, "It should maintain the team membership")
 	})
 
@@ -718,7 +718,7 @@ func TestLeaveLastChannel(t *testing.T) {
 		assert.Nil(t, err, "It should allow to remove a guest user from the default channel")
 		_, err = th.App.GetChannelMember(th.Context, th.BasicChannel.Id, guest.Id)
 		assert.NotNil(t, err)
-		_, err = th.App.GetTeamMember(th.BasicTeam.Id, guest.Id)
+		_, err = th.App.GetTeamMember(th.Context, th.BasicTeam.Id, guest.Id)
 		assert.Nil(t, err, "It should remove the team membership")
 	})
 }
@@ -2152,7 +2152,7 @@ func TestGetMemberCountsByGroup(t *testing.T) {
 	mockChannelStore.On("GetMemberCountsByGroup", context.Background(), "channelID", true).Return(cmc, nil)
 	mockStore.On("Channel").Return(&mockChannelStore)
 	mockStore.On("GetDBSchemaVersion").Return(1, nil)
-	resp, err := th.App.GetMemberCountsByGroup(context.Background(), "channelID", true)
+	resp, err := th.App.GetMemberCountsByGroup(th.Context, "channelID", true)
 	require.Nil(t, err)
 	require.ElementsMatch(t, cmc, resp)
 }
@@ -2341,7 +2341,6 @@ func TestMarkChannelAsUnreadFromPostCollapsedThreadsTurnedOff(t *testing.T) {
 }
 
 func TestMarkUnreadCRTOffUpdatesThreads(t *testing.T) {
-
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	th.App.UpdateConfig(func(cfg *model.Config) {
@@ -2538,12 +2537,14 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 		UpdateAt: time.Now().Unix(),
 		Type:     model.ChannelTypeGroup,
 	}, nil)
-	mockChannelStore.On("Update", mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
+	mockChannelStore.On("Update", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Channel")).Return(&model.Channel{}, nil)
 	mockChannelStore.On("InvalidateChannel", "channelidchannelidchanneli")
 	mockChannelStore.On("InvalidateChannelByName", "team_id_1", "new_name").Times(1)
 	mockChannelStore.On("InvalidateChannelByName", "dm", "")
 	mockChannelStore.On("GetMember", sqlstore.WithMaster(context.Background()), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(1)
-	mockChannelStore.On("GetMember", context.Background(), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(1)
+	mockChannelStore.On("GetMember", context.Background(), "channelidchannelidchanneli", "user_id_1").Return(&model.ChannelMember{}, nil).Times(2)
+	mockChannelStore.On("UpdateMember", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.ChannelMember")).Return(&model.ChannelMember{UserId: "user_id_1"}, nil)
+	mockChannelStore.On("InvalidateAllChannelMembersForUser", "user_id_1").Return()
 	mockChannelStore.On("InvalidatePinnedPostCount", "channelidchannelidchanneli")
 	mockChannelStore.On("GetAllChannelMembersNotifyPropsForChannel", "channelidchannelidchanneli", true).Return(map[string]model.StringMap{}, nil)
 	mockChannelStore.On("IncrementMentionCount", "", []string{}, true, false).Return(nil)
@@ -2624,11 +2625,17 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 		{Id: "user_id_2", Username: "user_id_2"},
 	}, nil)
 	mockUserStore.On("GetAllProfilesInChannel", mock.Anything, mock.Anything, mock.Anything).Return(map[string]*model.User{}, nil)
+	mockUserStore.On("InvalidateProfilesInChannelCacheByUser", "user_id_1").Return()
+	mockUserStore.On("InvalidateProfileCacheForUser", "user_id_1").Return()
 
 	mockPostStore := mocks.PostStore{}
 	mockStore.On("Post").Return(&mockPostStore)
 	mockPostStore.On("Save", mock.AnythingOfType("*model.Post")).Return(&model.Post{}, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelidchannelidchanneli")
+
+	mockSystemStore := mocks.SystemStore{}
+	mockStore.On("System").Return(&mockSystemStore)
+	mockSystemStore.On("GetByName", model.MigrationKeyAdvancedPermissionsPhase2).Return(nil, nil)
 
 	var err error
 
@@ -2662,5 +2669,133 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 	convertedChannel, appErr := th.App.ConvertGroupMessageToChannel(th.Context, "user_id_1", conversionRequest)
 	require.Nil(t, appErr)
 	require.Equal(t, model.ChannelTypePrivate, convertedChannel.Type)
+}
 
+func TestPatchChannelMembersNotifyProps(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	t.Run("should update multiple users' notify props", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+
+		th.LinkUserToTeam(user1, th.BasicTeam)
+		th.LinkUserToTeam(user2, th.BasicTeam)
+		th.AddUserToChannel(user1, channel1)
+		th.AddUserToChannel(user1, channel2)
+		th.AddUserToChannel(user2, channel1)
+		th.AddUserToChannel(user2, channel2)
+
+		result, appErr := th.App.PatchChannelMembersNotifyProps(th.Context, []*model.ChannelMemberIdentifier{
+			{UserId: user1.Id, ChannelId: channel1.Id},
+			{UserId: user1.Id, ChannelId: channel2.Id},
+			{UserId: user2.Id, ChannelId: channel1.Id},
+		}, map[string]string{
+			model.DesktopNotifyProp: model.ChannelNotifyNone,
+			"custom_key":            "custom_value",
+		})
+
+		require.Nil(t, appErr)
+
+		// Confirm specified fields were updated
+		assert.Equal(t, model.ChannelNotifyNone, result[0].NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, "custom_value", result[0].NotifyProps["custom_key"])
+		assert.Equal(t, model.ChannelNotifyNone, result[1].NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, "custom_value", result[1].NotifyProps["custom_key"])
+		assert.Equal(t, model.ChannelNotifyNone, result[2].NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, "custom_value", result[2].NotifyProps["custom_key"])
+
+		// Confirm unspecified fields were unchanged
+		assert.Equal(t, model.ChannelNotifyDefault, result[0].NotifyProps[model.PushNotifyProp])
+		assert.Equal(t, model.ChannelNotifyDefault, result[1].NotifyProps[model.PushNotifyProp])
+		assert.Equal(t, model.ChannelNotifyDefault, result[2].NotifyProps[model.PushNotifyProp])
+
+		// Confirm other members were unchanged
+		otherMember, appErr := th.App.GetChannelMember(th.Context, channel2.Id, user2.Id)
+
+		require.Nil(t, appErr)
+
+		assert.Equal(t, model.ChannelNotifyDefault, otherMember.NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, "", otherMember.NotifyProps["custom_key"])
+		assert.Equal(t, model.ChannelNotifyDefault, otherMember.NotifyProps[model.PushNotifyProp])
+	})
+
+	t.Run("should send WS events for each user", func(t *testing.T) {
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		channel1 := th.CreateChannel(th.Context, th.BasicTeam)
+		channel2 := th.CreateChannel(th.Context, th.BasicTeam)
+
+		th.LinkUserToTeam(user1, th.BasicTeam)
+		th.LinkUserToTeam(user2, th.BasicTeam)
+		th.AddUserToChannel(user1, channel1)
+		th.AddUserToChannel(user1, channel2)
+		th.AddUserToChannel(user2, channel1)
+
+		eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventChannelMemberUpdated}
+
+		messages1, closeWS1 := connectFakeWebSocket(t, th, user1.Id, "", eventTypesFilter)
+		defer closeWS1()
+		messages2, closeWS2 := connectFakeWebSocket(t, th, user2.Id, "", eventTypesFilter)
+		defer closeWS2()
+
+		_, appErr := th.App.PatchChannelMembersNotifyProps(th.Context, []*model.ChannelMemberIdentifier{
+			{UserId: user1.Id, ChannelId: channel1.Id},
+			{UserId: user1.Id, ChannelId: channel2.Id},
+			{UserId: user2.Id, ChannelId: channel1.Id},
+		}, map[string]string{
+			model.DesktopNotifyProp: model.ChannelNotifyNone,
+			"custom_key":            "custom_value",
+		})
+
+		require.Nil(t, appErr)
+
+		// User1, Channel1
+		received := <-messages1
+		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
+
+		member := decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		assert.Equal(t, user1.Id, member.UserId)
+		assert.Contains(t, []string{channel1.Id, channel2.Id}, member.ChannelId)
+		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, "custom_value", member.NotifyProps["custom_key"])
+		assert.Equal(t, model.ChannelNotifyDefault, member.NotifyProps[model.PushNotifyProp])
+
+		// User1, Channel2
+		received = <-messages1
+		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
+
+		member = decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		assert.Equal(t, user1.Id, member.UserId)
+		assert.Contains(t, []string{channel1.Id, channel2.Id}, member.ChannelId)
+		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, "custom_value", member.NotifyProps["custom_key"])
+		assert.Equal(t, model.ChannelNotifyDefault, member.NotifyProps[model.PushNotifyProp])
+
+		// User2, Channel1
+		received = <-messages2
+		assert.Equal(t, model.WebsocketEventChannelMemberUpdated, received.EventType())
+
+		member = decodeJSON(received.GetData()["channelMember"], &model.ChannelMember{})
+		assert.Equal(t, user2.Id, member.UserId)
+		assert.Equal(t, channel1.Id, member.ChannelId)
+		assert.Equal(t, model.ChannelNotifyNone, member.NotifyProps[model.DesktopNotifyProp])
+		assert.Equal(t, "custom_value", member.NotifyProps["custom_key"])
+		assert.Equal(t, model.ChannelNotifyDefault, member.NotifyProps[model.PushNotifyProp])
+	})
+
+	t.Run("should return an error when trying to update too many users at once", func(t *testing.T) {
+		identifiers := make([]*model.ChannelMemberIdentifier, 201)
+		for i := 0; i < len(identifiers); i++ {
+			identifiers[i] = &model.ChannelMemberIdentifier{UserId: "fakeuser", ChannelId: "fakechannel"}
+		}
+
+		_, appErr := th.App.PatchChannelMembersNotifyProps(th.Context, identifiers, map[string]string{})
+
+		assert.NotNil(t, appErr)
+	})
 }

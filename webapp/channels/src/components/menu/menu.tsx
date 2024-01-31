@@ -40,6 +40,7 @@ type MenuButtonProps = {
     id: string;
     dateTestId?: string;
     'aria-label'?: string;
+    disabled?: boolean;
     class?: string;
     children: ReactNode;
 }
@@ -119,7 +120,7 @@ export function Menu(props: Props) {
         if (isKeyPressed(event, Constants.KeyCodes.ENTER) || isKeyPressed(event, Constants.KeyCodes.SPACE)) {
             const target = event.target as HTMLElement;
             const ariaHasPopupAttribute = target?.getAttribute('aria-haspopup') === 'true';
-            const ariaHasExpandedAttribute = target?.getAttribute('aria-expanded') !== null ?? false;
+            const ariaHasExpandedAttribute = target?.getAttribute('aria-expanded') === 'true';
 
             if (ariaHasPopupAttribute && ariaHasExpandedAttribute) {
                 // Avoid closing the sub menu item on enter
@@ -174,6 +175,7 @@ export function Menu(props: Props) {
                 aria-controls={props.menu.id}
                 aria-haspopup={true}
                 aria-expanded={isMenuOpen}
+                disabled={props.menuButton?.disabled ?? false}
                 aria-label={props.menuButton?.['aria-label'] ?? ''}
                 className={props.menuButton?.class ?? ''}
                 onClick={handleMenuButtonClick}

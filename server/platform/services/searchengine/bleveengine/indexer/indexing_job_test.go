@@ -23,14 +23,12 @@ func TestBleveIndexer(t *testing.T) {
 	defer mockStore.AssertExpectations(t)
 
 	t.Run("Call GetOldestEntityCreationTime for the first indexing call", func(t *testing.T) {
-		logger := mlog.CreateConsoleTestLogger(t)
 		job := &model.Job{
 			Id:       model.NewId(),
 			CreateAt: model.GetMillis(),
 			Status:   model.JobStatusPending,
 			Type:     model.JobTypeBlevePostIndexing,
 		}
-		job.InitLogger(logger)
 
 		mockStore.JobStore.On("UpdateStatusOptimistically", job.Id, model.JobStatusPending, model.JobStatusInProgress).Return(true, nil)
 		mockStore.JobStore.On("UpdateOptimistically", job, model.JobStatusInProgress).Return(true, nil)
@@ -64,6 +62,7 @@ func TestBleveIndexer(t *testing.T) {
 		worker := &BleveIndexerWorker{
 			jobServer: jobServer,
 			engine:    bleveEngine,
+			logger:    mlog.CreateConsoleTestLogger(t),
 		}
 
 		worker.DoJob(job)

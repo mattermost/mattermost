@@ -215,7 +215,6 @@ func TestImportImportScheme(t *testing.T) {
 	assert.Equal(t, *data.DisplayName, scheme.DisplayName)
 	assert.Equal(t, *data.Description, scheme.Description)
 	assert.Equal(t, "team", scheme.Scope)
-
 }
 
 func TestImportImportSchemeWithoutGuestRoles(t *testing.T) {
@@ -1078,7 +1077,7 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, appErr := th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr := th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user", teamMember.Roles)
 
@@ -1137,7 +1136,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.Nil(t, appErr)
 
 	// Check both member properties.
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get team member from database.")
 	require.Equal(t, "team_user team_admin", teamMember.Roles)
 
@@ -1453,7 +1452,7 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(*userData.Username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.True(t, teamMember.SchemeAdmin)
@@ -1495,7 +1494,7 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(*deletedUserData.Username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.False(t, teamMember.SchemeAdmin)
@@ -1537,7 +1536,7 @@ func TestImportImportUser(t *testing.T) {
 	user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
 	require.Nil(t, appErr, "Failed to get user from database.")
 
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	teamMember, appErr = th.App.GetTeamMember(th.Context, team.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the team member")
 
 	assert.False(t, teamMember.SchemeAdmin)
@@ -1738,7 +1737,7 @@ func TestImportUserTeams(t *testing.T) {
 				} else {
 					require.Nil(t, err)
 				}
-				teamMembers, nErr := th.App.Srv().Store().Team().GetTeamsForUser(context.Background(), user.Id, "", true)
+				teamMembers, nErr := th.App.Srv().Store().Team().GetTeamsForUser(th.Context, user.Id, "", true)
 				require.NoError(t, nErr)
 				require.Len(t, teamMembers, tc.expectedUserTeams)
 				if tc.expectedUserTeams == 1 {
@@ -1881,7 +1880,7 @@ func TestImportUserChannels(t *testing.T) {
 	for _, tc := range tt {
 		t.Run(tc.name, func(t *testing.T) {
 			user := th.CreateUser()
-			_, _, err := th.App.ch.srv.teamService.JoinUserToTeam(th.BasicTeam, user)
+			_, _, err := th.App.ch.srv.teamService.JoinUserToTeam(th.Context, th.BasicTeam, user)
 			require.NoError(t, err)
 
 			// Two times import must end with the same results

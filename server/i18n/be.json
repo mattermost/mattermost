@@ -944,22 +944,6 @@
     "translation": "Памылка стварэння публікацыі."
   },
   {
-    "id": "api.templates.server_inactivity_button",
-    "translation": "Адкрыць Mattermost"
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Сцэнары"
-  },
-  {
-    "id": "Channels",
-    "translation": "Каналы"
-  },
-  {
-    "id": "Boards",
-    "translation": "Дошкі"
-  },
-  {
     "id": "model.config.is_valid.saml_signature_algorithm.app_error",
     "translation": "Няправільны алгарытм подпісу."
   },
@@ -1314,34 +1298,6 @@
   {
     "id": "app.job.get_all_jobs_by_type_and_status.app_error",
     "translation": "Не атрымалася атрымаць усе заданні па тыпе і статуце."
-  },
-  {
-    "id": "api.templates.server_inactivity_title",
-    "translation": "Адкрыйце для сябе падвышаную прадукцыйнасць з дапамогай гэтых выдатных функцый"
-  },
-  {
-    "id": "api.templates.server_inactivity_subtitle",
-    "translation": "Прывітанне, {{.Name}}, мы заўважылі, што Ваш сервер Mattermost збірае крыху пылу. Зірніце на некаторыя функцыі, якія могуць аблегчыць працоўную нагрузку ў Вашай камандзе."
-  },
-  {
-    "id": "api.templates.server_inactivity_subject",
-    "translation": "ПРЫВІТАННЕ! Адкрыйце Mattermost, каб павысіць прадуктыўнасць вашай каманды!"
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet2",
-    "translation": "Кіруйце задачамі з дапамогай "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet1",
-    "translation": "Кіраванне працоўным працэсам з "
-  },
-  {
-    "id": "api.templates.server_inactivity_info_bullet",
-    "translation": "Гасцявы доступ да названага "
-  },
-  {
-    "id": "api.templates.server_inactivity_info",
-    "translation": "Прыходзьце і праверце гэта!"
   },
   {
     "id": "app.member_count",
@@ -2174,10 +2130,6 @@
   {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Недапушчальнае значэнне для create_at."
-  },
-  {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Не ўдалося дэкадаваць gif."
   },
   {
     "id": "model.emoji.user_id.app_error",
@@ -4576,10 +4528,6 @@
     "translation": "Не ўдалося стварыць масавы апрацоўшчык Elasticsearch."
   },
   {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch ужо запушчаны."
-  },
-  {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
     "translation": "Не ўдалося дэкадаваць вынікі пошуку"
   },
@@ -6696,10 +6644,6 @@
     "translation": "Нельга абнавіць паведамленне ў выдаленым канале."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Прадпрагляд спасылак быў забаронены сістэмным адміністратарам."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "few": "{{.Count}} выявы адпраўлена: {{.Filenames}}",
@@ -7474,10 +7418,6 @@
   {
     "id": "api.command_invite.missing_message.app_error",
     "translation": "Адсутнічае імя карыстальніка і канал."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Гэты канал кіруецца групамі. Гэты карыстач не з'яўляецца часткай групы, якая сінхранізуецца з гэтым каналам."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -9144,16 +9084,8 @@
     "translation": "{{ .SenderName }} запрасіў вас далучыцца да {{ .ChannelName }} у камандзе {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Памылка пры аналізе даных цела."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Несапраўднае цела запыту."
-  },
-  {
-    "id": "api.templates.server_inactivity_footer_disclaimer",
-    "translation": "Вы атрымалі гэты аднаразовы ліст, таму што ваш сервер Mattermost быў неактыўны больш за {{.Hours}} гадзін. Гэты электронны ліст быў аўтаматычна створаны вашым серверам Mattermost."
   },
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",

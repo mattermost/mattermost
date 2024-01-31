@@ -4,11 +4,13 @@
 package sqlstore
 
 import (
+	"database/sql"
 	"fmt"
 	"strings"
 
-	sq "github.com/mattermost/squirrel"
 	"github.com/pkg/errors"
+
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -38,6 +40,8 @@ func remoteClusterFields(prefix string) []string {
 		prefix + "RemoteToken",
 		prefix + "Topics",
 		prefix + "CreatorId",
+		prefix + "PluginID",
+		prefix + "Options",
 	}
 }
 
@@ -47,12 +51,25 @@ func (s sqlRemoteClusterStore) Save(remoteCluster *model.RemoteCluster) (*model.
 		return nil, err
 	}
 
+	// check for pluginID collisions - on collision treat as idempotent
+	if remoteCluster.PluginID != "" {
+		rc, err := s.GetByPluginID(remoteCluster.PluginID)
+		if err == nil {
+			// if this plugin id already exists, just return it
+			return rc, nil
+		}
+		if !errors.Is(err, sql.ErrNoRows) {
+			// anything other than NotFound is unexpected
+			return nil, errors.Wrapf(err, "failed to lookup RemoteCluster by pluginID %s", remoteCluster.PluginID)
+		}
+	}
+
 	query := `INSERT INTO RemoteClusters
 				(RemoteId, RemoteTeamId, Name, DisplayName, SiteURL, CreateAt,
-				LastPingAt, Token, RemoteToken, Topics, CreatorId)
+				LastPingAt, Token, RemoteToken, Topics, CreatorId, PluginID, Options)
 				VALUES
 				(:RemoteId, :RemoteTeamId, :Name, :DisplayName, :SiteURL, :CreateAt,
-				:LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId)`
+				:LastPingAt, :Token, :RemoteToken, :Topics, :CreatorId, :PluginID, :Options)`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
 		return nil, errors.Wrap(err, "failed to save RemoteCluster")
@@ -66,6 +83,7 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 		return nil, err
 	}
 
+	// not all fields can be updated.
 	query := `UPDATE RemoteClusters
 			SET Token = :Token,
 			RemoteTeamId = :RemoteTeamId,
@@ -75,7 +93,9 @@ func (s sqlRemoteClusterStore) Update(remoteCluster *model.RemoteCluster) (*mode
 			CreatorId = :CreatorId,
 			DisplayName = :DisplayName,
 			SiteURL = :SiteURL,
-			Topics = :Topics
+			Topics = :Topics,
+			PluginID = :PluginID,
+			Options = :Options
 			WHERE RemoteId = :RemoteId AND Name = :Name`
 
 	if _, err := s.GetMasterX().NamedExec(query, remoteCluster); err != nil {
@@ -124,6 +144,24 @@ func (s sqlRemoteClusterStore) Get(remoteId string) (*model.RemoteCluster, error
 	return &rc, nil
 }
 
+func (s sqlRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteCluster, error) {
+	query := s.getQueryBuilder().
+		Select(remoteClusterFields("")...).
+		From("RemoteClusters").
+		Where(sq.Eq{"PluginID": pluginID})
+
+	queryString, args, err := query.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "remote_cluster_get_by_pluginid_tosql")
+	}
+
+	var rc model.RemoteCluster
+	if err := s.GetReplicaX().Get(&rc, queryString, args...); err != nil {
+		return nil, errors.Wrap(err, "failed to find RemoteCluster by plugin_id")
+	}
+	return &rc, nil
+}
+
 func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]*model.RemoteCluster, error) {
 	query := s.getQueryBuilder().
 		Select(remoteClusterFields("rc")...).
@@ -147,6 +185,14 @@ func (s sqlRemoteClusterStore) GetAll(filter model.RemoteClusterQueryFilter) ([]
 
 	if filter.OnlyConfirmed {
 		query = query.Where(sq.NotEq{"rc.SiteURL": ""})
+	}
+
+	if filter.PluginID != "" {
+		query = query.Where(sq.Eq{"rc.PluginID": filter.PluginID})
+	}
+
+	if filter.RequireOptions != 0 {
+		query = query.Where(sq.NotEq{fmt.Sprintf("(rc.Options & %d)", filter.RequireOptions): 0})
 	}
 
 	if filter.Topic != "" {

@@ -18,7 +18,7 @@ env:
   DUMP_SERVER_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.dump.server.sql
   DUMP_SCRIPT_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.dump.script.sql
   MIGRATION_SCRIPT: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.up.sql
-  CLEANUP_SCRIPT:   esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.cleanup.sql
+  CLEANUP_SCRIPT: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.mysql.cleanup.sql
   PREPROCESS_SCRIPT: esr.common.mysql.preprocess.sql
   DIFF_NAME: esr.${{ inputs.initial-version }}-${{ inputs.final-version }}.diff
 jobs:
@@ -31,10 +31,10 @@ jobs:
       - name: Run docker compose
         run: |
           cd server/build
-          docker-compose --no-ansi run --rm start_dependencies
-          cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-          docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
-          docker-compose --no-ansi ps
+          docker compose --no-ansi run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker compose --no-ansi ps
       - name: Wait for docker compose
         run: |
           until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
@@ -60,7 +60,7 @@ jobs:
             --ulimit nofile=8096:8096 \
             --env-file=dotenv/test.env \
             --env MM_SQLSETTINGS_DRIVERNAME="mysql" \
-            --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4,utf8&multiStatements=true&maxAllowedPacket=4194304" \
+            --env MM_SQLSETTINGS_DATASOURCE="mmuser:mostest@tcp(mysql:3306)/mattermost_test?charset=utf8mb4&multiStatements=true&maxAllowedPacket=4194304" \
             -v ~/work/mattermost:/mm \
             -w /mm \
             $BUILD_IMAGE &
@@ -74,7 +74,7 @@ jobs:
           # otherwise, the name of the container gets written to the console, which is weird
           docker stop mmserver > /dev/null
       - name: Cleanup DB
-        run : |
+        run: |
           cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
       - name: Dump upgraded database
@@ -102,10 +102,10 @@ jobs:
       - name: Run docker compose
         run: |
           cd server/build
-          docker-compose --no-ansi run --rm start_dependencies
-          cat ../tests/test-data.ldif | docker-compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
-          docker-compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
-          docker-compose --no-ansi ps
+          docker compose --no-ansi run --rm start_dependencies
+          cat ../tests/test-data.ldif | docker compose --no-ansi exec -T openldap bash -c 'ldapadd -x -D "cn=admin,dc=mm,dc=test,dc=com" -w mostest';
+          docker compose --no-ansi exec -T minio sh -c 'mkdir -p /data/mattermost-test';
+          docker compose --no-ansi ps
       - name: Wait for docker compose
         run: |
           until docker network inspect ghactions_mm-test; do echo "Waiting for Docker Compose Network..."; sleep 1; done;
@@ -119,11 +119,11 @@ jobs:
           cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $PREPROCESS_SCRIPT
       - name: Run migration through script
-        run : |
+        run: |
           cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $MIGRATION_SCRIPT
       - name: Cleanup DB
-        run : |
+        run: |
           cd server/scripts/esrupgrades
           docker exec -i ghactions_mysql_1 mysql -AN $MYSQL_CONN_ARGS < $CLEANUP_SCRIPT
       - name: Dump upgraded database

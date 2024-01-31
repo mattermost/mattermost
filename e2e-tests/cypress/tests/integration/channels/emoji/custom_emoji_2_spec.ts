@@ -78,7 +78,7 @@ describe('Custom emojis', () => {
         cy.findByPlaceholderText('Search emojis').should('be.visible').type(emojiNameForSearch1, {delay: TIMEOUTS.QUARTER_SEC});
 
         // * Get list of emojis based on search text
-        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for "' + emojiNameForSearch1 + '"');
+        cy.get('.no-results__title').should('be.visible').and('have.text', 'No results for “' + emojiNameForSearch1 + '”');
 
         // # Search for an existing emoji
         cy.findByPlaceholderText('Search emojis').should('be.visible').clear().type(emojiNameForSearch2, {delay: TIMEOUTS.QUARTER_SEC});

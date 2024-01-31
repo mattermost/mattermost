@@ -5,7 +5,6 @@ package commands
 
 import (
 	"context"
-	"io/ioutil"
 	"net/http"
 	"os"
 
@@ -57,7 +56,7 @@ func (s *MmctlUnitTestSuite) TestRemoveLicenseCmd() {
 
 func (s *MmctlUnitTestSuite) TestUploadLicenseCmdF() {
 	// create temporary file
-	tmpFile, err := ioutil.TempFile(os.TempDir(), "testLicense-")
+	tmpFile, err := os.CreateTemp(os.TempDir(), "testLicense-")
 	if err != nil {
 		panic(err)
 	}

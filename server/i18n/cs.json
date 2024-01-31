@@ -588,10 +588,6 @@
     "translation": "Neplatná hodnota pro create_at."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Nelze dekódovat soubor GIF."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "Neplatné ID autora."
   },
@@ -738,10 +734,6 @@
   {
     "id": "ent.elasticsearch.start.create_bulk_processor_failed.app_error",
     "translation": "Nepodařilo se vytvořit Elasticsearch dávkový procesor."
-  },
-  {
-    "id": "ent.elasticsearch.start.already_started.app_error",
-    "translation": "Elasticsearch už běží."
   },
   {
     "id": "ent.elasticsearch.search_users.unmarshall_user_failed",
@@ -3428,10 +3420,6 @@
     "translation": "Nepodařilo se upravit zprávu ve smazaném kanálu."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Náhledy odkazů byly deaktivovány správcem systému."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "few": "{{.Count}} obrázek odeslán: {{.Filenames}}",
@@ -3833,7 +3821,7 @@
   },
   {
     "id": "api.marshal_error",
-    "translation": "Chyba serializace"
+    "translation": "Chyba serializace."
   },
   {
     "id": "api.license.remove_expired_license.failed.error",
@@ -4349,11 +4337,15 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "{{.Username}} není členem tohoto kanálu."
+    "translation": "Můžete přidat {{.Users}} do toho kanálu jakmile bude členem týmu **{{.Team}}**."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} je již v kanálu."
+    "translation": {
+      "few": "{{.User}} již jsou v kanálu.",
+      "one": "{{.User}} již je v kanálu.",
+      "other": ""
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -4373,7 +4365,7 @@
   },
   {
     "id": "api.command_invite.missing_user.app_error",
-    "translation": "Nelze najít uživatele. Mohl být pravděpodobně deaktivován správcem."
+    "translation": "Nelze najít uživatele {{.User}}. Mohl být deaktivován správcem."
   },
   {
     "id": "api.command_invite.missing_message.app_error",
@@ -4381,11 +4373,7 @@
   },
   {
     "id": "api.command_invite.hint",
-    "translation": "@[username] ~[channel]"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Tento kanál je spravován skupinami.  Tento uživatel není členem skupiny, která je synchronizována do tohoto kanálu."
+    "translation": "@[username]... ~[channel]..."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -7320,14 +7308,6 @@
     "translation": "Administrátor byl již upozorněn"
   },
   {
-    "id": "Channels",
-    "translation": "Kanály"
-  },
-  {
-    "id": "worktemplate.product_teams.feature_release.description.playbook",
-    "translation": "Vytvořte transparentní pracovní postupy napříč vývojovými týmy, abyste zajistili bezproblémový proces vývoje funkcí."
-  },
-  {
     "id": "api.admin.syncables_error",
     "translation": "Nepodařilo se přidat uživatele do skupinových týmů a skupinových kanálů"
   },
@@ -7394,14 +7374,6 @@
   {
     "id": "api.acknowledgement.delete.archived_channel.app_error",
     "translation": "V archivovaném kanálu nelze odebrat potvrzení."
-  },
-  {
-    "id": "Playbooks",
-    "translation": "Scénáře"
-  },
-  {
-    "id": "Boards",
-    "translation": "Nástěnky"
   },
   {
     "id": "api.command_remote.remotes_not_found",
@@ -7477,14 +7449,286 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost je open source platforma pro bezpečnou komunikaci, spolupráci a orchestraci práce napříč nástroji a týmy.\nMattermost obsahuje tři klíčové nástroje:\n\n**Kanály** - Zůstaňte ve spojení se svým týmem prostřednictvím zpráv 1:1 a skupinových zpráv.\n**[Playbooks](/playbooks)** - Vytvářejte a konfigurujte opakovatelné procesy k dosažení konkrétních a předvídatelných výsledků.\n**[Nástěnky](/boards)** - Spravujte projekty a úkoly ve struktuře nástěnky Kanban, která vašemu týmu pomůže dosáhnout klíčových milníků.\n\n[Zobrazit dokumentaci a průvodce]({{.HelpLink}})"
+    "translation": "Mattermost je open source platforma pro bezpečnou komunikaci, spolupráci a orchestraci práce napříč nástroji a týmy.\nMattermost obsahuje dva klíčové nástroje:\n\n**Kanály** - Zůstaňte ve spojení se svým týmem prostřednictvím zpráv 1:1 a skupinových zpráv.\n**[Playbooks](/playbooks)** - Vytvářejte a konfigurujte opakovatelné procesy k dosažení konkrétních a předvídatelných výsledků.\n\n[Zobrazit dokumentaci a průvodce]({{.HelpLink}})"
   },
   {
     "id": "api.command_custom_status.clear.app_error",
-    "translation": "Chyba při mazání stavu"
+    "translation": "Chyba při mazání stavu."
   },
   {
     "id": "api.command_custom_status.app_error",
-    "translation": "Chyba při nastavování stavu"
+    "translation": "Chyba při nastavování stavu."
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} vytvořil tento kanál ze skupinové zprávy s {{.GMMembers}}."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Nejste oprávněn aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
+  },
+  {
+    "id": "api.command_custom_status.clear.success",
+    "translation": "Váš stav byl vymazán."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Uživateli není povoleno převádět skupinovou zprávu na soukromý kanál"
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Nejste oprávněn aktualizovat název, display_name a účel přímých nebo skupinových zpráv."
+  },
+  {
+    "id": "api.command_custom_status.desc",
+    "translation": "Nastavte nebo vymažte svůj stav"
+  },
+  {
+    "id": "api.command_custom_status.hint",
+    "translation": "[:emoji_name:] [status_message] nebo smazat"
+  },
+  {
+    "id": "api.command_custom_status.success",
+    "translation": "Váš stav je nastaven na “{{.EmojiName}} {{.StatusMessage}}”. Svůj stav můžete změnit ve vyskakovacím okně stavu v záhlaví postranního panelu kanálu."
+  },
+  {
+    "id": "api.command_custom_status.name",
+    "translation": "status"
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "Ovladač úložiště souborů nepodporuje generování odkazů."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|zip jmenosouboru|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_remote.site_url_not_set",
+    "translation": "Adresa URL webu není nastavena. Nastavte to v System Console > Environment > Web Server."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Do tohoto kanálu můžete přidat uživatele {{.FirstUser}} a {{.Others}} další, jakmile budou členy týmu **{{.Team}}**."
+  },
+  {
+    "id": "api.command_remote.remove.help",
+    "translation": "Odebere zabezpečené připojení"
+  },
+  {
+    "id": "api.command_remote.remove_remote.error",
+    "translation": "Nelze odebrat zabezpečené připojení: {{.Error}}"
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Vygenerujte odkaz pro stažení exportu."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Nebyl nalezen žádný exportní soubor."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Nelze najít požadovaný soubor."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Svůj soubor si můžete stáhnout zde: {{.Link}}.\nPlatnost tohoto odkazu vyprší za {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Nelze načíst seznam exportů."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Nemáte dostatečná oprávnění ke spuštění tohoto příkazu."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Nelze vygenerovat předběžnou adresu URL."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Tento kanál je spravován skupinami.  Tento uživatel není součástí skupiny, která je synchronizována s tímto kanálem."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} a {{.Others}} přidáni do kanálu {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} a {{.Others}} další jsou již v kanálu."
+  },
+  {
+    "id": "api.command_remote.remove_remote_id.help",
+    "translation": "ID zabezpečeného připojení k odstranění."
+  },
+  {
+    "id": "api.command_remote.service_disabled",
+    "translation": "Služba zabezpečeného připojení je zakázána."
+  },
+  {
+    "id": "api.command_remote.service_not_enabled",
+    "translation": "Služba zabezpečeného připojení není povolena."
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Zpráva byla přesunuta do soukromé/skupinové konverzace\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Vlákno nelze odebrat"
+  },
+  {
+    "id": "app.post.permanent_delete_by_user.app_error",
+    "translation": "Nelze vybrat zprávy pro smazání u tohoto uživatele."
+  },
+  {
+    "id": "app.post.save.app_error",
+    "translation": "Nelze uložit příspěvek."
+  },
+  {
+    "id": "app.post.save.existing.app_error",
+    "translation": "Nemůžete aktualizovat existující příspěvek."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Toto vlákno bylo přesunuto z jiného kanálu"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Vlákno s {{.NumMessages}} zprávami bylo přesunuto: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Zpráva byla přesunuta: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Vlákno s {{.NumMessages}} zprávami bylo přesunuto do soukromé/skupinové konverzace\n"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Není možné pozvat vzdáleného hosta, protože kanál {{.ChannelID}} není nastaven jako sdílený."
+  },
+  {
+    "id": "api.command_share.channel_shared",
+    "translation": "Tento kanál je nyní sdílen."
+  },
+  {
+    "id": "api.command_share.channel_status.help",
+    "translation": "Zobrazí stav pro tento sdílený kanál"
+  },
+  {
+    "id": "api.command_share.channel_status_id",
+    "translation": "Stav kanálu `{{.ChannelId}}`"
+  },
+  {
+    "id": "api.command_share.check_channel_exist.error",
+    "translation": "Nastala chyba při kontrole, zda kanál {{.ChannelID}} existuje: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.could_not_uninvite.error",
+    "translation": "Není možné zrušit pozvánku pro `{{.RemoteId}}`: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.desc",
+    "translation": "Nastaví sdílení aktuálního kanálu s externí Mattermost instancí."
+  },
+  {
+    "id": "api.command_remote.status.help",
+    "translation": "Zobrazí stav všech zabezpečených připojení"
+  },
+  {
+    "id": "api.command_remote.unknown_action",
+    "translation": "Neznámý úkon `{{.Action}}`"
+  },
+  {
+    "id": "api.command_share.available_actions",
+    "translation": "Dosupné úkony: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.channel_invite.error",
+    "translation": "Chyba při zvaní uživatele `{{.Name}}` do kanálu: {{.Error}}"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Nepodařilo se potvrdit pozvánku: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.not_shared_channel_unshare",
+    "translation": "Nelze zastavit sdílení kanálu, který není sdílený."
+  },
+  {
+    "id": "api.command_share.permission_required",
+    "translation": "Je vyžadováno oprávnění `{{.Permission}}` pro editaci sdílené kanálu."
+  },
+  {
+    "id": "api.command_share.invalid_value.error",
+    "translation": "Neplatná hodnota pro '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "sdilet-kanal"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "K tomuto kanálu nebyla pozvána žádná zabezpečená připojení."
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID zabezpečeného připojení je neplatné: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Chcete-li zrušit pozvánku, musíte zadat platné ID zabezpečeného připojení"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Bezpečné připojení | URL webu | Pouze pro čtení | Pozvánka přijata | Online | Poslední synchronizace |"
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Zabezpečené připojení sdíleného kanálu `{{.RemoteId}}` pro tento kanál neexistuje."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Chyba při načítání zabezpečených připojení: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Nelze načíst stav zabezpečených připojení: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Pozvánka ke sdílenému kanálu byla odeslána na adresu `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Invites an external Mattermost instance to the current shared channel"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Chybějící akce. Dostupné akce: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Zabezpečené připojení již bylo pozváno."
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "ID existujícího zabezpečeného připojení. Chcete-li přidat zabezpečené připojení, viz příkaz `secure-connection`."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Nelze pozvat zabezpečené připojení ke sdílenému kanálu pocházejícímu někde jinde."
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[akce]"
   }
 ]
