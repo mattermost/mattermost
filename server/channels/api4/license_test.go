@@ -487,6 +487,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 		cloud.Mock.On("SubmitTrueUpReview", mock.Anything, mock.Anything).Return(nil)
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {
