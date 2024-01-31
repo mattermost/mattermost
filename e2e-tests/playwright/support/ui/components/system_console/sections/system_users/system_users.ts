@@ -14,6 +14,7 @@ export default class SystemUsers {
     readonly dateRangeSelectorMenuButton: Locator;
     readonly exportButton: Locator;
     readonly filterPopoverButton: Locator;
+    readonly actionMenuButtons: Locator[];
 
     readonly loadingSpinner: Locator;
 
@@ -25,6 +26,8 @@ export default class SystemUsers {
         this.dateRangeSelectorMenuButton = this.container.locator('#systemUsersDateRangeSelectorMenuButton');
         this.exportButton = this.container.getByText('Export')
         this.filterPopoverButton = this.container.getByText(/Filters \(\d+\)/);
+        this.actionMenuButtons = Array.from(Array(10).keys()).map((index) => 
+            this.container.locator(`#actionMenuButton-systemUsersTable-${index}`));
 
         this.loadingSpinner = this.container.getByText('Loading');
     }

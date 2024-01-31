@@ -19,6 +19,7 @@ class SystemConsolePage {
     readonly systemUsersStatusMenu;
     readonly systemUsersDateRangeMenu;
     readonly systemUsersColumnToggleMenu;
+    readonly systemUsersActionMenus;
 
     constructor(page: Page) {
         this.page = page;
@@ -40,6 +41,8 @@ class SystemConsolePage {
             page.locator('#systemUsersColumnTogglerMenu'),
         );
         this.systemUsersDateRangeMenu = new components.SystemUsersFilterMenu(page.locator('#systemUsersDateRangeSelectorMenu'));
+        this.systemUsersActionMenus = Array.from(Array(10).keys()).map((index) => 
+            new components.SystemUsersFilterMenu(page.locator(`#actionMenu-systemUsersTable-${index}`)));
     }
 
     async toBeVisible() {
