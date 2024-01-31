@@ -96,11 +96,6 @@ describe('Settings', () => {
         cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should("contain.text", "MFA");
         cy.get('a.back').click();
 
-        // cy.findByTestId('userListRow').within(() => {
-        //     cy.get('.more-modal__details').
-        //         should('be.visible').
-        //         and('contain.text', 'MFA: Yes');
-        // });
     });
 });
 
