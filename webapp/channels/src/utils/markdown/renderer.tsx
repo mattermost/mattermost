@@ -235,7 +235,7 @@ export default class Renderer extends marked.Renderer {
             // style it properly. We need to use a CSS counter to tell the ::before elements which numbers to show.
             output += ` style="counter-reset: list ${start - 1}"`;
         }
-        output += `>\n${content}</${type}>`;
+        output += `>${content}</${type}>`;
 
         return output;
     }

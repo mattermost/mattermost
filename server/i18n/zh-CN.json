@@ -1795,7 +1795,7 @@
   },
   {
     "id": "api.templates.email_organization",
-    "translation": "发送人 "
+    "translation": "发送者： "
   },
   {
     "id": "api.templates.email_warning",
@@ -1907,7 +1907,7 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "该电子邮件地址已用于创建 Mattermost 帐户。"
+    "translation": "该电子邮件地址被用于创建 Mattermost 帐户。"
   },
   {
     "id": "api.templates.verify_body.title",
@@ -1927,7 +1927,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "该电子邮件地址已用于创建 Mattermost 帐户。"
+    "translation": "该电子邮件地址被用于创建 Mattermost 帐户。"
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -8035,11 +8035,11 @@
   },
   {
     "id": "api.templates.welcome_body.subTitle2",
-    "translation": "单击下面以验证您的电子邮件地址。"
+    "translation": "单击下方按钮以验证您的邮箱地址。"
   },
   {
     "id": "api.templates.welcome_body.subTitle1",
-    "translation": "感谢您的加入 "
+    "translation": "感谢您加入 "
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -8047,7 +8047,7 @@
   },
   {
     "id": "api.templates.welcome_body.info1",
-    "translation": "如果不是您，则可以放心地忽略此电子邮件。"
+    "translation": "如果不是您想创建账号，则可以放心地忽略此邮件。"
   },
   {
     "id": "api.templates.welcome_body.app_download_title",
@@ -8059,11 +8059,11 @@
   },
   {
     "id": "api.templates.verify_body.subTitle2",
-    "translation": "单击下面以验证您的电子邮件地址。"
+    "translation": "单击下方按钮以验证您的邮箱地址。"
   },
   {
     "id": "api.templates.verify_body.subTitle1",
-    "translation": "感谢您的加入 "
+    "translation": "感谢您加入 "
   },
   {
     "id": "api.templates.verify_body.serverURL",
@@ -8071,7 +8071,7 @@
   },
   {
     "id": "api.templates.verify_body.info1",
-    "translation": "如果不是您，则可以放心地忽略此电子邮件。"
+    "translation": "如果不是您想创建账号，则可以放心地忽略此邮件。"
   },
   {
     "id": "api.templates.reset_body.subTitle",
@@ -8083,7 +8083,7 @@
   },
   {
     "id": "api.templates.questions_footer.title",
-    "translation": "有什么疑问吗？"
+    "translation": "有疑问吗？"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -9008,10 +9008,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "确认升级Mattermost"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "解析主体数据时出错。"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -10296,5 +10292,49 @@
   {
     "id": "model.config.is_valid.max_payload_size.app_error",
     "translation": "服务设置中包含无效的最大载荷大小。必须是大于 0 的整数。"
+  },
+  {
+    "id": "app.report.retrieve_batch_report.license_error",
+    "translation": "批量报告导出仅对专业版和企业版可用。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "批量报告导出仅对专业版和企业版可用。"
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_format",
+    "translation": "报告格式无效。"
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_report_id",
+    "translation": "报告 ID 无效。"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "写入 CSV 标头失败。"
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "不支持的报告格式。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "已存在针对此用户和时间区间的任务。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "你请求了用户数据导出。您将在导出完成后收到一份 CSV。"
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "CSV 区块写入失败。"
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "不支持的报告格式。"
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "报告处理已完成。您可以从[此处]({{.Link}})下载报告"
   }
 ]
