@@ -144,7 +144,11 @@ func localPatchConfig(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localMigrateConfig(c *Context, w http.ResponseWriter, r *http.Request) {
-	props := model.StringInterfaceFromJSON(r.Body)
+	props, e := model.StringInterfaceFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if e != nil {
+		c.SetInvalidParam("props")
+		return
+	}
 	from, ok := props["from"].(string)
 	if !ok {
 		c.SetInvalidParam("from")
