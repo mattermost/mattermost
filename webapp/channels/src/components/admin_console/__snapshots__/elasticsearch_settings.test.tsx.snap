@@ -338,6 +338,53 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           </div>
         </div>
       </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Rebuild Channels Index"
+            id="admin.elasticsearch.rebuildChannelsIndexTitle"
+          />
+        </label>
+        <div
+          className="col-sm-8"
+        >
+          <div
+            className="rebuild-channels-index-action"
+          >
+            <Connect(JobTable)
+              createJobButtonText={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Rebuild Channels Index"
+                  id="admin.elasticsearch.rebuildChannelsIndex.title"
+                />
+              }
+              createJobHelpText={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete."
+                  id="admin.elasticsearch.rebuildChannelsIndex.helpText"
+                />
+              }
+              disabled={true}
+              getExtraInfoText={[Function]}
+              hideTable={true}
+              jobData={
+                Object {
+                  "index_channels": "true",
+                  "index_files": "false",
+                  "index_posts": "false",
+                  "index_users": "false",
+                  "sub_type": "channels_index_rebuild",
+                }
+              }
+              jobType="elasticsearch_post_indexing"
+            />
+          </div>
+        </div>
+      </div>
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
@@ -838,6 +885,52 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
                 />
               }
               getExtraInfoText={[Function]}
+              jobType="elasticsearch_post_indexing"
+            />
+          </div>
+        </div>
+      </div>
+      <div
+        className="form-group"
+      >
+        <label
+          className="control-label col-sm-4"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Rebuild Channels Index"
+            id="admin.elasticsearch.rebuildChannelsIndexTitle"
+          />
+        </label>
+        <div
+          className="col-sm-8"
+        >
+          <div
+            className="rebuild-channels-index-action"
+          >
+            <Connect(JobTable)
+              createJobButtonText={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Rebuild Channels Index"
+                  id="admin.elasticsearch.rebuildChannelsIndex.title"
+                />
+              }
+              createJobHelpText={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete."
+                  id="admin.elasticsearch.rebuildChannelsIndex.helpText"
+                />
+              }
+              getExtraInfoText={[Function]}
+              hideTable={true}
+              jobData={
+                Object {
+                  "index_channels": "true",
+                  "index_files": "false",
+                  "index_posts": "false",
+                  "index_users": "false",
+                  "sub_type": "channels_index_rebuild",
+                }
+              }
               jobType="elasticsearch_post_indexing"
             />
           </div>

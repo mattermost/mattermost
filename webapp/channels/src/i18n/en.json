@@ -766,6 +766,7 @@
   "admin.elasticsearch.connectionUrlExample": "E.g.: \"https://elasticsearch.example.org:9200\"",
   "admin.elasticsearch.connectionUrlTitle": "Server Connection Address:",
   "admin.elasticsearch.createJob.help": "All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.",
+  "admin.elasticsearch.rebuildChannelsIndex.helpText": "This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.",
   "admin.elasticsearch.createJob.title": "Index Now",
   "admin.elasticsearch.elasticsearch_test_button": "Test Connection",
   "admin.elasticsearch.enableAutocompleteDescription": "Requires a successful connection to the Elasticsearch server. When true, Elasticsearch will be used for all autocompletion queries on users and channels using the latest index. Autocompletion results may be incomplete until a bulk index of the existing users and channels database is finished. When false, database autocomplete is used.",

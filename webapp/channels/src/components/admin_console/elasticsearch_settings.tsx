@@ -63,6 +63,7 @@ export const messages = defineMessages({
     bulkIndexingTitle: {id: 'admin.elasticsearch.bulkIndexingTitle', defaultMessage: 'Bulk Indexing:'},
     help: {id: 'admin.elasticsearch.createJob.help', defaultMessage: 'All users, channels and posts in the database will be indexed from oldest to newest. Elasticsearch is available during indexing but search results may be incomplete until the indexing job is complete.'},
     rebuildChannelsIndexTitle: {id: 'admin.elasticsearch.rebuildChannelsIndexTitle', defaultMessage: 'Rebuild Channels Index'},
+    rebuildChannelIndexHelpText: {id: 'admin.elasticsearch.rebuildChannelsIndex.helpText', defaultMessage: 'This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.'},
     purgeIndexesHelpText: {id: 'admin.elasticsearch.purgeIndexesHelpText', defaultMessage: 'Purging will entirely remove the indexes on the Elasticsearch server. Search results may be incomplete until a bulk index of the existing database is rebuilt.'},
     purgeIndexesButton: {id: 'admin.elasticsearch.purgeIndexesButton', defaultMessage: 'Purge Index'},
     label: {id: 'admin.elasticsearch.purgeIndexesButton.label', defaultMessage: 'Purge Indexes:'},
@@ -430,7 +431,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                                         defaultMessage='Rebuild Channels Index'
                                     />
                                 }
-                                createJobHelpText={<span>{'TODO'}</span>}
+                                createJobHelpText={<FormattedMessage {...messages.rebuildChannelIndexHelpText}/>}
                                 getExtraInfoText={this.getExtraInfo}
                                 hideTable={true}
                                 jobData={{
