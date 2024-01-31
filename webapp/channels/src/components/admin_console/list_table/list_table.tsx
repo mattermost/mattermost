@@ -114,7 +114,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
         }
     }
 
-    const colcount = props.table.getAllColumns().length;
+    const colCount = props.table.getAllColumns().length;
     const rowCount = props.table.getRowModel().rows.length;
 
     return (
@@ -135,7 +135,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
             </div>
             <table
                 id={tableMeta.tableId}
-                aria-colcount={colcount}
+                aria-colcount={colCount}
                 aria-describedby={`${tableMeta.tableId}-headerId`} // Set this id to the table header so that the title describes the table
                 className={classNames(
                     'adminConsoleListTable',
@@ -211,10 +211,10 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     ))}
 
                     {/* State where it is initially loading the data */}
-                    {(rowCount === 0 && tableMeta.loadingState === LoadingStates.Loading) && (
+                    {(tableMeta.loadingState === LoadingStates.Loading && rowCount === 0) && (
                         <tr>
                             <td
-                                colSpan={colcount}
+                                colSpan={colCount}
                                 className='noRows'
                                 disabled={true}
                             >
@@ -226,10 +226,10 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     )}
 
                     {/* State where there is no data */}
-                    {(rowCount === 0 && tableMeta.loadingState === LoadingStates.Loaded) && (
+                    {(tableMeta.loadingState === LoadingStates.Loaded && rowCount === 0) && (
                         <tr>
                             <td
-                                colSpan={colcount}
+                                colSpan={colCount}
                                 className='noRows'
                                 disabled={true}
                             >
@@ -242,7 +242,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                     {tableMeta.loadingState === LoadingStates.Failed && (
                         <tr>
                             <td
-                                colSpan={colcount}
+                                colSpan={colCount}
                                 className='noRows'
                                 disabled={true}
                             >
@@ -274,13 +274,7 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                 {handlePageSizeChange && (
                     <div
                         className='adminConsoleListTablePageSize'
-                        aria-label={formatMessage(
-                            {
-                                id: 'adminConsole.list.table.rowCount.label',
-                                defaultMessage: 'Show {count} rows per page',
-                            },
-                            {count: selectedPageSize.label},
-                        )}
+                        aria-label={formatMessage({id: 'adminConsole.list.table.rowCount.label', defaultMessage: 'Show {count} rows per page'}, {count: selectedPageSize.label})}
                     >
                         <FormattedMessage
                             id='adminConsole.list.table.rowsCount.(show)rowsPerPage'

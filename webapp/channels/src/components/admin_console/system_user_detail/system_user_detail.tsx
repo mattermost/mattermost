@@ -3,7 +3,7 @@
 
 import React, {PureComponent} from 'react';
 import type {ChangeEvent, MouseEvent} from 'react';
-import type {WrappedComponentProps} from 'react-intl';
+import type {IntlShape, WrappedComponentProps} from 'react-intl';
 import {FormattedMessage, defineMessage, injectIntl} from 'react-intl';
 import type {RouteComponentProps} from 'react-router-dom';
 
@@ -99,41 +99,9 @@ export class SystemUserDetail extends PureComponent<Props, State> {
         }
     };
 
-    getUserAuthenticationTextField(mfaEnabled: Props['mfaEnabled'], user?: UserProfile): string {
-        if (!user) {
-            return '';
-        }
-
-        let authenticationTextField;
-
-        if (user.auth_service) {
-            let service;
-            if (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) {
-                service = user.auth_service.toUpperCase();
-            } else {
-                service = toTitleCase(user.auth_service);
-            }
-            authenticationTextField = service;
-        } else {
-            authenticationTextField = this.props.intl.formatMessage({
-                id: 'admin.userManagement.userDetail.email',
-                defaultMessage: 'Email',
-            });
-        }
-
-        if (mfaEnabled) {
-            if (user.mfa_active) {
-                authenticationTextField += ', ';
-                authenticationTextField += this.props.intl.formatMessage({id: 'admin.userManagement.userDetail.mfa', defaultMessage: 'MFA'});
-            }
-        }
-
-        return authenticationTextField;
-    }
-
     componentDidMount() {
         const userId = this.props.match.params.user_id ?? '';
-        if (userId.length !== 0) {
+        if (userId) {
             // We dont have to handle the case of userId being empty here because the redirect will take care of it from the parent components
             this.getUser(userId);
         }
@@ -340,7 +308,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                             isLoading={this.state.isLoading}
                             body={
                                 <>
-                                    <span>{this.state?.user?.position}</span>
+                                    <span>{this.state?.user?.position ?? ''}</span>
                                     <label>
                                         <FormattedMessage
                                             id='admin.userManagement.userDetail.email'
@@ -369,7 +337,7 @@ export class SystemUserDetail extends PureComponent<Props, State> {
                                             defaultMessage='Authentication Method'
                                         />
                                         <SheidOutlineIcon/>
-                                        <span>{this.getUserAuthenticationTextField(this.props.mfaEnabled, this.state.user)}</span>
+                                        <span>{getUserAuthenticationTextField(this.props.intl, this.props.mfaEnabled, this.state.user)}</span>
                                     </label>
                                 </>
                             }
@@ -525,3 +493,35 @@ export class SystemUserDetail extends PureComponent<Props, State> {
 }
 
 export default injectIntl(SystemUserDetail);
+
+export function getUserAuthenticationTextField(intl: IntlShape, mfaEnabled: Props['mfaEnabled'], user?: UserProfile): string {
+    if (!user) {
+        return '';
+    }
+
+    let authenticationTextField;
+
+    if (user.auth_service) {
+        let service;
+        if (user.auth_service === Constants.LDAP_SERVICE || user.auth_service === Constants.SAML_SERVICE) {
+            service = user.auth_service.toUpperCase();
+        } else {
+            service = toTitleCase(user.auth_service);
+        }
+        authenticationTextField = service;
+    } else {
+        authenticationTextField = intl.formatMessage({
+            id: 'admin.userManagement.userDetail.email',
+            defaultMessage: 'Email',
+        });
+    }
+
+    if (mfaEnabled) {
+        if (user.mfa_active) {
+            authenticationTextField += ', ';
+            authenticationTextField += intl.formatMessage({id: 'admin.userManagement.userDetail.mfa', defaultMessage: 'MFA'});
+        }
+    }
+
+    return authenticationTextField;
+}
