@@ -142,44 +142,44 @@ class JobTable extends React.PureComponent<Props> {
                             data-testid='jobTable'
                         >
                             <thead>
-                            <tr>
-                                <th className='cancel-button-field'/>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerStatus'
-                                        defaultMessage='Status'
-                                    />
-                                </th>
-                                {showFilesColumn &&
+                                <tr>
+                                    <th className='cancel-button-field'/>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerStatus'
+                                            defaultMessage='Status'
+                                        />
+                                    </th>
+                                    {showFilesColumn &&
                                     <th>
                                         <FormattedMessage
                                             id='admin.jobTable.headerFiles'
                                             defaultMessage='Files'
                                         />
                                     </th>
-                                }
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerFinishAt'
-                                        defaultMessage='Finish Time'
-                                    />
-                                </th>
-                                <th>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerRunTime'
-                                        defaultMessage='Run Time'
-                                    />
-                                </th>
-                                <th colSpan={3}>
-                                    <FormattedMessage
-                                        id='admin.jobTable.headerExtraInfo'
-                                        defaultMessage='Details'
-                                    />
-                                </th>
-                            </tr>
+                                    }
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerFinishAt'
+                                            defaultMessage='Finish Time'
+                                        />
+                                    </th>
+                                    <th>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerRunTime'
+                                            defaultMessage='Run Time'
+                                        />
+                                    </th>
+                                    <th colSpan={3}>
+                                        <FormattedMessage
+                                            id='admin.jobTable.headerExtraInfo'
+                                            defaultMessage='Details'
+                                        />
+                                    </th>
+                                </tr>
                             </thead>
                             <tbody>
-                            {items}
+                                {items}
                             </tbody>
                         </table>
                     </div>

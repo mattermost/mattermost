@@ -198,8 +198,8 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     };
 
     getExtraInfo(job: Job) {
-        var jobSubType = null;
-        if (job.data?.sub_type === "channels_index_rebuild") {
+        let jobSubType = null;
+        if (job.data?.sub_type === 'channels_index_rebuild') {
             jobSubType = (
                 <span>
                     {'. '}
@@ -208,10 +208,10 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         defaultMessage='Channels index rebuild job.'
                     />
                 </span>
-            )
+            );
         }
 
-        var jobProgress = null;
+        let jobProgress = null;
         if (job.status === JobStatuses.IN_PROGRESS) {
             jobProgress = (
                 <FormattedMessage
@@ -434,11 +434,11 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                                 getExtraInfoText={this.getExtraInfo}
                                 hideTable={true}
                                 jobData={{
-                                    "index_posts": "false",
-                                    "index_users": "false",
-                                    "index_files": "false",
-                                    "index_channels": "true",
-                                    "sub_type": "channels_index_rebuild",
+                                    index_posts: 'false',
+                                    index_users: 'false',
+                                    index_files: 'false',
+                                    index_channels: 'true',
+                                    sub_type: 'channels_index_rebuild',
                                 }}
                             />
                         </div>
