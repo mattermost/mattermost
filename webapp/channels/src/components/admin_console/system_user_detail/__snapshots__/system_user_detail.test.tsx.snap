@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`components/admin_console/system_user_detail should match default snapshot 1`] = `
+exports[`SystemUserDetail should match default snapshot 1`] = `
 <div
   className="SystemUserDetail wrapper--fixed"
 >
@@ -27,7 +27,9 @@ exports[`components/admin_console/system_user_detail should match default snapsh
       <AdminUserCard
         body={
           <React.Fragment>
-            <span />
+            <span>
+              
+            </span>
             <label>
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Email"
@@ -204,7 +206,7 @@ exports[`components/admin_console/system_user_detail should match default snapsh
 </div>
 `;
 
-exports[`components/admin_console/system_user_detail should match snapshot if MFA is enabled 1`] = `
+exports[`SystemUserDetail should match snapshot if MFA is enabled 1`] = `
 <div
   className="SystemUserDetail wrapper--fixed"
 >
@@ -231,7 +233,9 @@ exports[`components/admin_console/system_user_detail should match snapshot if MF
       <AdminUserCard
         body={
           <React.Fragment>
-            <span />
+            <span>
+              
+            </span>
             <label>
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Email"

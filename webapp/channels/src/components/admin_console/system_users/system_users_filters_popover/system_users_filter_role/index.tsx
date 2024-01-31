@@ -57,7 +57,7 @@ export function SystemUsersFilterRole(props: Props) {
         ];
     }, []);
 
-    const [value, setValue] = useState(getDefaultSelectedValueFromList(props.initialValue, options));
+    const [value, setValue] = useState(() => getDefaultSelectedValueFromList(props.initialValue, options));
 
     function handleChange(value: OptionType) {
         setValue(value);

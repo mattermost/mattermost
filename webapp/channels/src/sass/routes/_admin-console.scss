@@ -41,12 +41,13 @@
 
         .admin-console__filters-rows {
             display: flex;
-            flex-wrap: nowrap;
+            flex-wrap: wrap;
             align-items: center;
             padding-block-end: 12px;
             padding-block-start: 24px;
             padding-inline-end: 24px;
             padding-inline-start: 24px;
+            row-gap: 12px;
         }
 
         .admin-console__container {
