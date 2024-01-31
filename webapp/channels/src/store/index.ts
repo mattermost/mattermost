@@ -3,8 +3,12 @@
 
 import baseLocalForage from 'localforage';
 import {extendPrototype} from 'localforage-observable';
+import type {Store} from 'redux';
+import type {Persistor} from 'redux-persist';
 import {persistStore, REHYDRATE} from 'redux-persist';
 import Observable from 'zen-observable';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {General, RequestStatus} from 'mattermost-redux/constants';
 import configureServiceStore from 'mattermost-redux/store';
@@ -14,15 +18,17 @@ import {clearUserCookie} from 'actions/views/cookie';
 import appReducers from 'reducers';
 import {getBasePath} from 'selectors/general';
 
+import type {GlobalState} from 'types/store';
+
 function getAppReducers() {
     return require('../reducers'); // eslint-disable-line global-require
 }
 
-window.Observable = Observable;
+(window as any).Observable = Observable;
 
 const localForage = extendPrototype(baseLocalForage);
 
-export default function configureStore(preloadedState, additionalReducers) {
+export default function configureStore<AdditionalReducers>(preloadedState?: DeepPartial<GlobalState>, additionalReducers?: AdditionalReducers) {
     const reducers = additionalReducers ? {...appReducers, ...additionalReducers} : appReducers;
     const store = configureServiceStore({
         appReducers: reducers,
@@ -67,7 +73,7 @@ export default function configureStore(preloadedState, additionalReducers) {
                 const key = args.key.substring(keyPrefix.length);
                 const newValue = JSON.parse(args.newValue);
 
-                const payload = {};
+                const payload: Record<string, unknown> = {};
 
                 for (const reducerKey of Object.keys(newValue)) {
                     if (reducerKey === '_persist') {
@@ -121,11 +127,11 @@ export default function configureStore(preloadedState, additionalReducers) {
 /**
  * Migrates state.storage from redux-persist@4 to redux-persist@6
  */
-function migratePersistedState(store, persistor) {
+function migratePersistedState(store: Store<GlobalState>, persistor: Persistor) {
     const oldKeyPrefix = 'reduxPersist:storage:';
 
-    const restoredState = {};
-    localForage.iterate((value, key) => {
+    const restoredState: Record<string, string> = {};
+    localForage.iterate<string, void>((value, key) => {
         if (key && key.startsWith(oldKeyPrefix)) {
             restoredState[key.substring(oldKeyPrefix.length)] = value;
         }
@@ -140,7 +146,7 @@ function migratePersistedState(store, persistor) {
 
         persistor.pause();
 
-        const persistedState = {};
+        const persistedState: Record<string, unknown> = {};
 
         for (const [key, value] of Object.entries(restoredState)) {
             // eslint-disable-next-line no-console
