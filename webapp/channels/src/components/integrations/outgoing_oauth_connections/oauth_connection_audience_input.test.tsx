@@ -25,11 +25,7 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
         update_at: 1501365458934,
         grant_type: 'client_credentials',
         oauth_token_url: 'https://token.com',
-        audiences: ['https://aud.com'],
-    };
-
-    const outgoingOAuthConnections: Record<string, OutgoingOAuthConnection> = {
-        facxd9wpzpbpfp8pad78xj75pr: connection,
+        audiences: ['https://aud.com/api'],
     };
 
     const baseProps: React.ComponentProps<typeof OAuthConnectionAudienceInput> = {
@@ -38,38 +34,40 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
         placeholder: '',
     };
 
-    const state = {
-        entities: {
-            general: {
-                config: {
-                    EnableOutgoingOAuthConnections: 'true',
+    const stateFromOAuthConnections = (connections: Record<string, OutgoingOAuthConnection>) => {
+        return {
+            entities: {
+                general: {
+                    config: {
+                        EnableOutgoingOAuthConnections: 'true',
+                    },
+                    license: {
+                        IsLicensed: 'true',
+                        Cloud: 'true',
+                    },
                 },
-                license: {
-                    IsLicensed: 'true',
-                    Cloud: 'true',
+                users: {
+                    currentUserId: 'current_user_id',
+                    profiles: {
+                        current_user_id: {roles: 'system_role'},
+                    },
                 },
-            },
-            users: {
-                currentUserId: 'current_user_id',
-                profiles: {
-                    current_user_id: {roles: 'system_role'},
-                },
-            },
-            roles: {
                 roles: {
-                    system_role: {id: 'system_role', permissions: [Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]},
+                    roles: {
+                        system_role: {id: 'system_role', permissions: [Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]},
+                    },
+                },
+                integrations: {
+                    outgoingOAuthConnections: connections,
                 },
             },
-            integrations: {
-                outgoingOAuthConnections,
-            },
-        },
+        };
     };
 
     test('should match snapshot with no existing connections', () => {
         const props = {...baseProps};
-        const newState = {...state, integrations: {outgoingOAuthConnections: {}}};
-        const store = mockStore(newState);
+        const state = stateFromOAuthConnections({});
+        const store = mockStore(state);
         const wrapper = mountWithIntl(
             <Router>
                 <Provider store={store}>
@@ -83,6 +81,7 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
 
     test('should match snapshot with existing connections', () => {
         const props = {...baseProps};
+        const state = stateFromOAuthConnections({[connection.id]: connection});
         const store = mockStore(state);
         const wrapper = mountWithIntl(
             <Router>
@@ -96,7 +95,38 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
     });
 
     test('should match snapshot when typed in value matches a configured audience', () => {
-        const props = {...baseProps, value: 'https://aud.com'};
+        const props = {...baseProps, value: 'https://aud.com/api'};
+        const state = stateFromOAuthConnections({[connection.id]: connection});
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <OAuthConnectionAudienceInput {...props}/>
+                </Provider>
+            </Router>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when typed in value does not have an exact match', () => {
+        const props = {...baseProps, value: 'https://aud.com/api/no_match'};
+        const state = stateFromOAuthConnections({[connection.id]: connection});
+        const store = mockStore(state);
+        const wrapper = mountWithIntl(
+            <Router>
+                <Provider store={store}>
+                    <OAuthConnectionAudienceInput {...props}/>
+                </Provider>
+            </Router>,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot when an audience url with a wildcard is configured, and typed in value starts with configured audience url', () => {
+        const props = {...baseProps, value: 'https://aud.com/api/it_matches'};
+        const state = stateFromOAuthConnections({[connection.id]: {...connection, audiences: ['https://aud.com/api/*']}});
         const store = mockStore(state);
         const wrapper = mountWithIntl(
             <Router>

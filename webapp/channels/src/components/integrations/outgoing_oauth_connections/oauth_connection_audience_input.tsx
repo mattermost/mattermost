@@ -6,6 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import {OauthIcon, InformationOutlineIcon} from '@mattermost/compass-icons/components';
+import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
 import {getOutgoingOAuthConnections as fetchOutgoingOAuthConnections} from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -16,6 +17,23 @@ type Props = {
     onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
     placeholder: string;
 }
+
+const matchConnectionToSubmitUrl = (submitUrl: string, connections: OutgoingOAuthConnection[]): OutgoingOAuthConnection | null => {
+    for (const conn of connections) {
+        for (const audienceUrl of conn.audiences) {
+            if (audienceUrl.endsWith('/*')) {
+                const withoutSuffix = audienceUrl.substring(0, audienceUrl.length - 2);
+                if (submitUrl === withoutSuffix || submitUrl.startsWith(withoutSuffix + '/')) {
+                    return conn;
+                }
+            } else if (audienceUrl === submitUrl) {
+                return conn;
+            }
+        }
+    }
+
+    return null;
+};
 
 const OAuthConnectionAudienceInput = (props: Props) => {
     const oauthConnections = useSelector(getOutgoingOAuthConnections);
@@ -46,7 +64,7 @@ const OAuthConnectionAudienceInput = (props: Props) => {
         return input;
     }
 
-    const matchedConnection = Object.values(oauthConnections).find((conn) => conn.audiences.find((aud) => props.value.startsWith(aud)));
+    const matchedConnection = matchConnectionToSubmitUrl(props.value, connections);
     let oauthMessage: React.ReactNode;
 
     if (matchedConnection) {
@@ -54,9 +72,8 @@ const OAuthConnectionAudienceInput = (props: Props) => {
             <>
                 <OauthIcon
                     size={20}
-                    css={{position: 'absolute', top: '45px'}}
                 />
-                <strong style={{position: 'absolute', top: '45px', left: '42px'}}>
+                <strong>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.connected'
                         defaultMessage='Connected to "{connectionName}"'
@@ -72,9 +89,8 @@ const OAuthConnectionAudienceInput = (props: Props) => {
             <>
                 <InformationOutlineIcon
                     size={20}
-                    css={{position: 'absolute', top: '45px'}}
                 />
-                <strong style={{position: 'absolute', top: '45px', left: '42px'}}>
+                <strong>
                     <FormattedMessage
                         id='add_outgoing_oauth_connection.not_connected'
                         defaultMessage='Not linked to an OAuth connection'

@@ -195,6 +195,7 @@
   "add_outgoing_oauth_connection.validate": "Validate Connection",
   "add_outgoing_oauth_connection.validated": "Validated",
   "add_outgoing_oauth_connection.validating": "Validating...",
+  "add_outgoing_oauth_connection.validation-error": "Connection not validated. Please check the server logs for details.",
   "add_outgoing_webhook.callbackUrls": "Callback URLs (One Per Line)",
   "add_outgoing_webhook.callbackUrls.help": "Specify the URL that messages will be sent to. If the URL is private, add it as a {link}.",
   "add_outgoing_webhook.callbackUrls.helpLinkText": "trusted internal connection",

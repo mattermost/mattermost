@@ -584,6 +584,17 @@
 
 .outgoing-oauth-audience-match-message {
     height: 27px;
+
+    svg {
+        position: absolute;
+        top: 45px;
+    }
+
+    span {
+        position: absolute;
+        top: 45px;
+        left: 42px;
+    }
 }
 
 #confirmModal.integrations-backstage-modal {
