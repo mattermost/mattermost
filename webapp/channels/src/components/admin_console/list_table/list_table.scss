@@ -27,10 +27,10 @@ table.adminConsoleListTable {
             white-space: nowrap;
 
             th {
-                max-width: 50rem;
                 background-color: var(--sys-center-channel-bg);
                 padding-block-end: 12px;
                 padding-block-start: 12px;
+                vertical-align: middle;
 
                 &:first-child {
                     padding-inline-end: 12px;
@@ -52,7 +52,6 @@ table.adminConsoleListTable {
                     z-index: 1;
                     right: 0;
                     left: 0;
-                    min-width: 20rem;
                     background-color: var(--sys-center-channel-bg);
 
                     &:first-child {
@@ -91,8 +90,6 @@ table.adminConsoleListTable {
                 }
 
                 &.sortable {
-                    vertical-align: middle;
-
                     &:hover {
                         background-color: $sysCenterChannelColorWith8Alpha;
                         cursor: pointer;
@@ -112,25 +109,6 @@ table.adminConsoleListTable {
                             visibility: hidden;
                         }
                     }
-                }
-
-                &.sortable.pinned {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-
-                    & > span {
-                        &:first-child {
-                            flex-grow: 1;
-                            justify-content: flex-start;
-                        }
-                    }
-                }
-
-                &.pinned:not(.sortable) {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
                 }
             }
         }

@@ -1,12 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Column, CoreColumn} from '@tanstack/react-table';
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {UserReport} from '@mattermost/types/reports';
 
-import type {Column, CoreColumn} from 'components/admin_console/list_table';
 import * as Menu from 'components/menu';
 import Input from 'components/widgets/inputs/input/input';
 import Tag from 'components/widgets/tag/tag';

@@ -10,11 +10,7 @@ import {FormattedMessage, defineMessages, useIntl} from 'react-intl';
 import ReactSelect, {components} from 'react-select';
 import type {IndicatorContainerProps, ValueType} from 'react-select';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-
-import Constants from 'utils/constants';
 
 import {Pagination} from './pagination';
 
@@ -186,29 +182,6 @@ export function ListTable<TableType extends TableMandatoryTypes>(
                                             aria-hidden='true'
                                             className='icon icon-arrow-up hoverSortingIcon'
                                         />
-                                    )}
-
-                                    {/* Pinned Icon */}
-                                    {header.column.getCanPin() && (
-                                        <OverlayTrigger
-                                            delayShow={Constants.OVERLAY_TIME_DELAY}
-                                            placement={
-                                                header.index === 0 ? 'bottom' : 'left'
-                                            }
-                                            overlay={
-                                                <Tooltip id='system-users-column-pinned-tooltip'>
-                                                    <FormattedMessage
-                                                        id='adminConsole.list.table.pinnedColumn'
-                                                        defaultMessage='This column is pinned'
-                                                    />
-                                                </Tooltip>
-                                            }
-                                        >
-                                            <span
-                                                aria-hidden='true'
-                                                className='icon icon-pin-outline'
-                                            />
-                                        </OverlayTrigger>
                                     )}
                                 </th>
                             ))}

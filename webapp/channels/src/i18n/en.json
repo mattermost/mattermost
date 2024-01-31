@@ -2718,7 +2718,6 @@
   "adminConsole.list.table.genericNoData": "No data",
   "adminConsole.list.table.pagination.next": "Go to next page",
   "adminConsole.list.table.pagination.previous": "Go to previous page",
-  "adminConsole.list.table.pinnedColumn": "This column is pinned",
   "adminConsole.list.table.rowCount.label": "Show {count} rows per page",
   "adminConsole.list.table.rowsCount.(show)rowsPerPage": "Show",
   "adminConsole.list.table.rowsCount.10": "10",

@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {PaginationState, SortingState, VisibilityState, ColumnDef, CellContext, OnChangeFn} from '@tanstack/react-table';
+import {useReactTable, getCoreRowModel, getSortedRowModel} from '@tanstack/react-table';
 import React, {useEffect, useMemo, useState} from 'react';
 import {useIntl, FormattedMessage, defineMessages} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
@@ -12,8 +14,8 @@ import type {ReportDuration, UserReport} from '@mattermost/types/reports';
 
 import Preferences from 'mattermost-redux/constants/preferences';
 
-import {AdminConsoleListTable, useReactTable, getCoreRowModel, getSortedRowModel, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
-import type {CellContext, PaginationState, SortingState, TableMeta, OnChangeFn, ColumnDef, VisibilityState} from 'components/admin_console/list_table';
+import {AdminConsoleListTable, ElapsedDurationCell, PAGE_SIZES, LoadingStates} from 'components/admin_console/list_table';
+import type {TableMeta} from 'components/admin_console/list_table';
 import AlertBanner from 'components/alert_banner';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
