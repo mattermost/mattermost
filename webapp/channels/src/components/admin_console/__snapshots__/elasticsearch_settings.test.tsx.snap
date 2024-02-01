@@ -921,6 +921,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
             id="admin.elasticsearch.rebuildChannelsIndex.title"
           />
         }
+        requestAction={[MockFunction]}
         saveNeeded={false}
         showSuccessMessage={true}
         successMessage={
