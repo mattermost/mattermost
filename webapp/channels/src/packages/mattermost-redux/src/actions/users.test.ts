@@ -1007,7 +1007,7 @@ describe('Actions.Users', () => {
         const currentUser = profiles[currentUserId];
 
         expect(currentUser).toBeTruthy();
-        expect(currentUser.last_password_update_at > beforeTime).toBeTruthy();
+        expect(currentUser.last_password_update > beforeTime).toBeTruthy();
     });
 
     it('generateMfaSecret', async () => {
