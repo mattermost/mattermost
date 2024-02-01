@@ -1,22 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import classNames from 'classnames';
+import React from 'react';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {UserProfile} from '@mattermost/types/users';
+import type {RelationOneToOne} from '@mattermost/types/utilities';
 
 import {Client4} from 'mattermost-redux/client';
-import {UserProfile} from '@mattermost/types/users';
-import {RelationOneToOne} from '@mattermost/types/utilities';
-
 import {isGuest} from 'mattermost-redux/utils/user_utils';
-import {displayEntireNameForUser} from 'utils/utils';
-import ProfilePicture from 'components/profile_picture';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 
-import {Value} from 'components/multiselect/multiselect';
+import type {Value} from 'components/multiselect/multiselect';
+import ProfilePicture from 'components/profile_picture';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
+
+import {displayEntireNameForUser} from 'utils/utils';
 
 type UserProfileValue = Value & UserProfile;
 
@@ -58,7 +57,9 @@ const MultiSelectOption = React.forwardRef(({
             </div>
             <div className='more-modal__actions'>
                 <div className='more-modal__actions--round'>
-                    <AddIcon/>
+                    <i
+                        className='icon icon-plus'
+                    />
                 </div>
             </div>
         </div>

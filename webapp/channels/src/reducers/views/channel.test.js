@@ -4,6 +4,7 @@
 import {GeneralTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
 
 import channelReducer from 'reducers/views/channel';
+
 import {ActionTypes} from 'utils/constants';
 
 describe('Reducers.channel', () => {

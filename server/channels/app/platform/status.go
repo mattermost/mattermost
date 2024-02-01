@@ -85,7 +85,6 @@ func (ps *PlatformService) GetStatusesByIds(userIDs []string) (map[string]any, *
 			ps.AddStatusCacheSkipClusterSend(s)
 			statusMap[s.UserId] = s.Status
 		}
-
 	}
 
 	// For the case where the user does not have a row in the Status table and cache
@@ -134,7 +133,6 @@ func (ps *PlatformService) GetUserStatusesByIds(userIDs []string) ([]*model.Stat
 		}
 
 		statusMap = append(statusMap, statuses...)
-
 	}
 
 	// For the case where the user does not have a row in the Status table and cache

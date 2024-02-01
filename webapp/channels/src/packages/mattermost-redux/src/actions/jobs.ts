@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {JobType, JobTypeBase} from '@mattermost/types/jobs';
+
 import {JobTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import {General} from '../constants';
-
-import {ActionFunc} from 'mattermost-redux/types/actions';
-import {JobType, Job} from '@mattermost/types/jobs';
 
 import {bindClientFunc} from './helpers';
-export function createJob(job: Job): ActionFunc {
+
+import {General} from '../constants';
+
+export function createJob(job: JobTypeBase) {
     return bindClientFunc({
         clientFunc: Client4.createJob,
         onSuccess: JobTypes.RECEIVED_JOB,
@@ -19,7 +20,7 @@ export function createJob(job: Job): ActionFunc {
     });
 }
 
-export function getJob(id: string): ActionFunc {
+export function getJob(id: string) {
     return bindClientFunc({
         clientFunc: Client4.getJob,
         onSuccess: JobTypes.RECEIVED_JOB,
@@ -29,7 +30,7 @@ export function getJob(id: string): ActionFunc {
     });
 }
 
-export function getJobs(page = 0, perPage: number = General.JOBS_CHUNK_SIZE): ActionFunc {
+export function getJobs(page = 0, perPage: number = General.JOBS_CHUNK_SIZE) {
     return bindClientFunc({
         clientFunc: Client4.getJobs,
         onSuccess: JobTypes.RECEIVED_JOBS,
@@ -40,7 +41,7 @@ export function getJobs(page = 0, perPage: number = General.JOBS_CHUNK_SIZE): Ac
     });
 }
 
-export function getJobsByType(type: JobType, page = 0, perPage: number = General.JOBS_CHUNK_SIZE): ActionFunc {
+export function getJobsByType(type: JobType, page = 0, perPage: number = General.JOBS_CHUNK_SIZE) {
     return bindClientFunc({
         clientFunc: Client4.getJobsByType,
         onSuccess: [JobTypes.RECEIVED_JOBS, JobTypes.RECEIVED_JOBS_BY_TYPE],
@@ -52,7 +53,7 @@ export function getJobsByType(type: JobType, page = 0, perPage: number = General
     });
 }
 
-export function cancelJob(job: string): ActionFunc {
+export function cancelJob(job: string) {
     return bindClientFunc({
         clientFunc: Client4.cancelJob,
         params: [

@@ -4,6 +4,14 @@
     display: flex !important;
 }
 
+.flex-col {
+    flex-direction: column;
+}
+
+.flex-1 {
+    flex: 1;
+}
+
 .align-items-center {
     align-items: center !important;
     -webkit-box-align: center !important;

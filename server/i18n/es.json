@@ -1364,10 +1364,6 @@
     }
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Vistas previas de los enlaces han sido deshabilitadas por el administrador del sistema."
-  },
-  {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
     "translation": "No se puede actualizar un mensaje en un canal que ha sido eliminado."
   },
@@ -4044,10 +4040,6 @@
     "translation": "Id del creador inválido."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "No se pudo decodificar el gif."
-  },
-  {
     "id": "model.file_info.is_valid.create_at.app_error",
     "translation": "Valor no válido para create_at."
   },
@@ -5658,10 +5650,6 @@
   {
     "id": "api.command_invite.user_not_in_team.app_error",
     "translation": "@{{.Username}} no es un miembro de este canal."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Este canal es administrado por grupos. Este usuario no es parte de un grupo que se haya sincronizado para este canal."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -8988,20 +8976,12 @@
     "translation": " "
   },
   {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "No se pudo obtener los hilos principales para el usuario."
-  },
-  {
     "id": "app.post.cloud.get.app_error",
     "translation": "No se puede recuperar la publicación porque ha superado el límite del plan de la nube."
   },
   {
     "id": "app.last_accessible_post.app_error",
     "translation": " "
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "No fue posible obtener los hilos pricipales para el equipo."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -9124,28 +9104,12 @@
     "translation": "Decodificador de concurrencia inválido {{.Value}}. Debe ser un número positivo o -1."
   },
   {
-    "id": "app.insights.feature_disabled",
-    "translation": "La característica Perspectivas está deshabilitada."
-  },
-  {
-    "id": "api.insights.feature_disabled",
-    "translation": "Las Perspectivas están detrás de una bandera de ajuste que no está habilitada."
-  },
-  {
     "id": "model.member.is_valid.emails.app_error",
-    "translation": " "
-  },
-  {
-    "id": "app.recent_searches.app_error",
     "translation": " "
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "La inducción sólo puede ser completada por un Administrador del Sistema."
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error al analizar los datos del cuerpo."
   },
   {
     "id": "api.license_error",
@@ -9432,10 +9396,6 @@
     "translation": "Hola, este es un recordatorio acerca de este mensaje de @{{.Username}}: {{.SiteURL}}/{{.TeamName}}/pl/{{.PostId}}"
   },
   {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "No es posible obtener los DMs principales para el usuario."
-  },
-  {
     "id": "app.notify_admin.send_notification_post.app_error",
     "translation": "No es posible enviar la publicación de notificación."
   },
@@ -9468,14 +9428,6 @@
     "translation": "el miembro {{.UsersNum}} del workspace {{.WorkspaceName}} ha solicitado comenzar la prueba Enterprise para acceder a: "
   },
   {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "El tipo de tema ya existe."
-  },
-  {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "El tipo de colección ya existe."
-  },
-  {
     "id": "api.user.add_user_to_group_syncables.not_ldap_user.app_error",
     "translation": "no es un usuario ldap"
   },
@@ -9486,9 +9438,5 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "Error al agregar usuario a grupo-equipos y grupo-canales"
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "plantillas"
   }
 ]

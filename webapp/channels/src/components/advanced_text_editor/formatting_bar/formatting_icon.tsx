@@ -2,8 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-import {MessageDescriptor, useIntl} from 'react-intl';
+import {useIntl} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
 import styled from 'styled-components';
+
 import {
     FormatBoldIcon,
     FormatItalicIcon,
@@ -15,18 +17,19 @@ import {
     FormatListBulletedIcon,
     FormatListNumberedIcon,
 } from '@mattermost/compass-icons/components';
-import IconProps from '@mattermost/compass-icons/components/props';
+import type IconProps from '@mattermost/compass-icons/components/props';
 
 import KeyboardShortcutSequence, {
-    KeyboardShortcutDescriptor,
     KEYBOARD_SHORTCUTS,
 } from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
+import type {
+    KeyboardShortcutDescriptor} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
 
-import {MarkdownMode} from 'utils/markdown/apply_markdown';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
+import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
 export const IconContainer = styled.button`
     display: flex;
@@ -71,6 +74,7 @@ export const IconContainer = styled.button`
 `;
 
 interface FormattingIconProps {
+    id?: string;
     mode: MarkdownMode;
     onClick?: () => void;
     className?: string;
@@ -129,7 +133,7 @@ const FormattingIcon = (props: FormattingIconProps): JSX.Element => {
     const bodyAction = (
         <IconContainer
             type='button'
-            id={`FormattingControl_${mode}`}
+            id={props.id || `FormattingControl_${mode}`}
             onClick={onClick}
             aria-label={buttonAriaLabel}
             {...otherProps}

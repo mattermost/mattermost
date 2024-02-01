@@ -15,8 +15,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
 )
@@ -56,6 +56,7 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.PluginSettings.ClientDirectory = filepath.Join(tempWorkspace, "webapp")
 	*memoryConfig.PluginSettings.AutomaticPrepackagedPlugins = false
 	*memoryConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	memoryStore.Set(memoryConfig)
 
 	buffer := &bytes.Buffer{}
@@ -273,7 +274,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType model.ChannelT
 
 	if channel.IsShared() {
 		id := model.NewId()
-		_, err := th.App.SaveSharedChannel(th.Context, &model.SharedChannel{
+		_, err := th.App.ShareChannel(th.Context, &model.SharedChannel{
 			ChannelId:        channel.Id,
 			TeamId:           channel.TeamId,
 			Home:             false,

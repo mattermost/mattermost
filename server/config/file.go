@@ -130,7 +130,6 @@ func (fs *FileStore) Load() ([]byte, error) {
 	f, err := os.Open(fs.path)
 	if os.IsNotExist(err) {
 		return nil, nil
-
 	} else if err != nil {
 		return nil, errors.Wrapf(err, "failed to open %s for reading", fs.path)
 	}

@@ -2,12 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {Action} from 'mattermost-redux/types/actions';
 import {getMorePostsForSearch, getMoreFilesForSearch} from 'mattermost-redux/actions/search';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
+import {autocompleteChannelsForSearch} from 'actions/channel_actions';
+import {autocompleteUsersInTeam} from 'actions/user_actions';
 import {
     updateSearchTerms,
     updateSearchTermsForShortcut,
@@ -22,18 +24,14 @@ import {
     filterFilesSearchByExt,
     updateSearchType,
 } from 'actions/views/rhs';
-import {autocompleteChannelsForSearch} from 'actions/channel_actions';
-import {autocompleteUsersInTeam} from 'actions/user_actions';
-
 import {getRhsState, getSearchTerms, getSearchType, getIsSearchingTerm, getIsRhsOpen, getIsRhsExpanded} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
 
-import {GlobalState} from 'types/store';
-
 import {RHSStates} from 'utils/constants';
 
+import type {GlobalState} from 'types/store';
+
 import Search from './search';
-import type {StateProps, DispatchProps, OwnProps} from './types';
 
 function mapStateToProps(state: GlobalState) {
     const rhsState = getRhsState(state);
@@ -65,7 +63,7 @@ function mapStateToProps(state: GlobalState) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, DispatchProps['actions']>({
+        actions: bindActionCreators({
             updateSearchTerms,
             updateSearchTermsForShortcut,
             updateSearchType,
@@ -85,4 +83,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
         }, dispatch),
     };
 }
-export default connect<StateProps, DispatchProps, OwnProps, GlobalState>(mapStateToProps, mapDispatchToProps)(Search);
+export default connect(mapStateToProps, mapDispatchToProps)(Search);

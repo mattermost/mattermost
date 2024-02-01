@@ -21,8 +21,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store/localcachelayer"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -33,7 +33,7 @@ var URL string
 
 type TestHelper struct {
 	App     app.AppIface
-	Context *request.Context
+	Context request.CTX
 	Server  *app.Server
 	Web     *Web
 
@@ -78,6 +78,9 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 	*newConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*newConfig.AnnouncementSettings.UserNoticesEnabled = false
 	*newConfig.PluginSettings.AutomaticPrepackagedPlugins = false
+	*newConfig.LogSettings.EnableSentry = false // disable error reporting during tests
+	*newConfig.LogSettings.ConsoleJson = false
+	*newConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	memoryStore.Set(newConfig)
 	options = append(options, app.ConfigStore(memoryStore))
 	options = append(options, app.StoreOverride(mainHelper.Store))
@@ -141,7 +144,6 @@ func setupTestHelper(tb testing.TB, includeCacheLayer bool, options []app.Option
 		IncludeCacheLayer: includeCacheLayer,
 		TestLogger:        testLogger,
 	}
-	th.Context.SetLogger(testLogger)
 
 	return th
 }

@@ -536,10 +536,6 @@
     "translation": "Невалидна стойност за create_at."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Gif-а не може да се декодира."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "Невалиден id на създател."
   },
@@ -4376,10 +4372,6 @@
     "translation": "Не може да се обнови публикация в изтрит канал."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Визуализациите на връзки са забранени от системния администратор."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "{{.Count}} изпратено изображение: {{.Filenames}}",
@@ -5999,10 +5991,6 @@
   {
     "id": "api.command_invite.hint",
     "translation": "@[потр.име] ~[канал]"
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Този канал се управлява от групи. Този потребител не е част от група, която е свързана с този канал."
   },
   {
     "id": "api.command_invite.fail.app_error",

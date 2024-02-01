@@ -1,16 +1,17 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
+
+import type {Post} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Search} from '@mattermost/types/search';
 
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Preferences} from 'mattermost-redux/constants';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
-import {Search} from '@mattermost/types/search';
 
-function results(state: string[] = [], action: GenericAction) {
+function results(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_POSTS: {
         if (action.isGettingMore) {
@@ -37,7 +38,7 @@ function results(state: string[] = [], action: GenericAction) {
     }
 }
 
-function fileResults(state: string[] = [], action: GenericAction) {
+function fileResults(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_FILES: {
         if (action.isGettingMore) {
@@ -54,7 +55,7 @@ function fileResults(state: string[] = [], action: GenericAction) {
     }
 }
 
-function matches(state: Record<string, string[]> = {}, action: GenericAction) {
+function matches(state: Record<string, string[]> = {}, action: AnyAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_POSTS:
         if (action.isGettingMore) {
@@ -79,7 +80,7 @@ function matches(state: Record<string, string[]> = {}, action: GenericAction) {
     }
 }
 
-function flagged(state: string[] = [], action: GenericAction) {
+function flagged(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_FLAGGED_POSTS: {
         return action.data.order;
@@ -160,7 +161,7 @@ function removePinnedPost(state: Record<string, string[]>, post: Post) {
     return state;
 }
 
-function pinned(state: Record<string, string[]> = {}, action: GenericAction) {
+function pinned(state: Record<string, string[]> = {}, action: AnyAction) {
     switch (action.type) {
     case SearchTypes.RECEIVED_SEARCH_PINNED_POSTS: {
         const {channelId, pinned: posts} = action.data;
@@ -213,7 +214,7 @@ function pinned(state: Record<string, string[]> = {}, action: GenericAction) {
     }
 }
 
-function recent(state: Record<string, Search[]> = {}, action: GenericAction) {
+function recent(state: Record<string, Search[]> = {}, action: AnyAction) {
     const {data, type} = action;
 
     switch (type) {
@@ -258,7 +259,7 @@ function recent(state: Record<string, Search[]> = {}, action: GenericAction) {
     }
 }
 
-function current(state: any = {}, action: GenericAction) {
+function current(state: any = {}, action: AnyAction) {
     const {data, type} = action;
     switch (type) {
     case SearchTypes.RECEIVED_SEARCH_TERM: {
@@ -281,7 +282,7 @@ function current(state: any = {}, action: GenericAction) {
     }
 }
 
-function isSearchingTerm(state = false, action: GenericAction) {
+function isSearchingTerm(state = false, action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST:
         return !action.isGettingMore;
@@ -292,7 +293,7 @@ function isSearchingTerm(state = false, action: GenericAction) {
     }
 }
 
-function isSearchGettingMore(state = false, action: GenericAction) {
+function isSearchGettingMore(state = false, action: AnyAction) {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST:
         return action.isGettingMore;
@@ -303,7 +304,7 @@ function isSearchGettingMore(state = false, action: GenericAction) {
     }
 }
 
-function isLimitedResults(state = -1, action: GenericAction): number {
+function isLimitedResults(state = -1, action: AnyAction): number {
     switch (action.type) {
     case SearchTypes.SEARCH_POSTS_REQUEST: {
         if (!action.isGettingMore) {

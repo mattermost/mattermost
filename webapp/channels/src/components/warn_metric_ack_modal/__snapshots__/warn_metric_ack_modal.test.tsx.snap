@@ -109,7 +109,7 @@ exports[`components/WarnMetricAckModal error display 1`] = `
       disabled={false}
       onClick={[Function]}
     >
-      <LoadingWrapper
+      <Memo(LoadingWrapper)
         loading={false}
         text="Sending email"
       >
@@ -117,7 +117,7 @@ exports[`components/WarnMetricAckModal error display 1`] = `
           defaultMessage="Acknowledge"
           id="warn_metric_ack_modal.contact_support"
         />
-      </LoadingWrapper>
+      </Memo(LoadingWrapper)>
     </button>
   </ModalFooter>
 </Modal>
@@ -208,7 +208,7 @@ exports[`components/WarnMetricAckModal should match snapshot, init 1`] = `
       disabled={false}
       onClick={[Function]}
     >
-      <LoadingWrapper
+      <Memo(LoadingWrapper)
         loading={false}
         text="Sending email"
       >
@@ -216,7 +216,7 @@ exports[`components/WarnMetricAckModal should match snapshot, init 1`] = `
           defaultMessage="Acknowledge"
           id="warn_metric_ack_modal.contact_support"
         />
-      </LoadingWrapper>
+      </Memo(LoadingWrapper)>
     </button>
   </ModalFooter>
 </Modal>

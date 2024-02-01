@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 import {Provider} from 'react-redux';
-
-import mockStore from 'tests/test_store';
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
+import mockStore from 'tests/test_store';
 import {CloudBanners, Preferences} from 'utils/constants';
 
 import CloudTrialBanner from './cloud_trial_banner';

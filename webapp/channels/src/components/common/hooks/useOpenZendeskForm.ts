@@ -5,6 +5,7 @@ import {useSelector} from 'react-redux';
 
 import {getCloudCustomer} from 'mattermost-redux/selectors/entities/cloud';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+
 import {getCloudSupportLink, getSelfHostedSupportLink, goToCloudSupportForm, goToSelfHostedSupportForm} from 'utils/contact_support_sales';
 
 export function useOpenCloudZendeskSupportForm(subject: string, description: string): [() => void, string] {

@@ -122,7 +122,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 
 func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Request) {
 	// make sure remote cluster service is running.
-	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+	rcs, appErr := c.App.GetRemoteClusterService()
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -155,6 +156,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 	audit.AddEventParameterAuditable(auditRec, "remote_cluster", rc)
 
+	// check if the invitation has expired
 	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
 		return
@@ -166,12 +168,9 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rc.RemoteTeamId = confirm.RemoteTeamId
-	rc.SiteURL = confirm.SiteURL
-	rc.RemoteToken = confirm.Token
-
-	if _, err := c.App.UpdateRemoteCluster(rc); err != nil {
-		c.Err = err
+	if _, rcsErr := rcs.ReceiveInviteConfirmation(confirm); rcsErr != nil {
+		c.Err = model.NewAppError("remoteClusterConfirmInvite", "api.command_remote.confirm_invitation.error",
+			map[string]any{"Error": rcsErr.Error()}, "", http.StatusInternalServerError)
 		return
 	}
 
@@ -195,7 +194,7 @@ func uploadRemoteData(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "upload_id", c.Params.UploadId)
 
-	c.AppContext.SetContext(app.WithMaster(c.AppContext.Context()))
+	c.AppContext = c.AppContext.With(app.RequestContextWithMaster)
 	us, err := c.App.GetUploadSession(c.AppContext, c.Params.UploadId)
 	if err != nil {
 		c.Err = err

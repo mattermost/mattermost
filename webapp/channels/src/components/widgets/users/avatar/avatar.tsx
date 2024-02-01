@@ -1,13 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {memo, HTMLAttributes} from 'react';
 import classNames from 'classnames';
-
-import './avatar.scss';
+import React, {memo} from 'react';
+import type {HTMLAttributes} from 'react';
 
 import {Client4} from 'mattermost-redux/client';
+
 import BotDefaultIcon from 'images/bot_default_icon.png';
+
+import './avatar.scss';
 
 export type TAvatarSizeToken = 'xxs' | 'xs' | 'sm' | 'md' | 'lg' | 'xl' | 'xxl';
 

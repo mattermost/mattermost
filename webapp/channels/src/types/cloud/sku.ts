@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {StripeCardElement} from '@stripe/stripe-js';
+import type {StripeCardElement} from '@stripe/stripe-js';
 
 export type StripeSetupIntent = {
     id: string;
@@ -18,6 +18,7 @@ export type BillingDetails = {
     name: string;
     card: StripeCardElement;
     agreedTerms?: boolean;
+    company_name?: string;
 };
 
 export const areBillingDetailsValid = (

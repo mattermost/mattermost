@@ -29,18 +29,20 @@ func TestReactionsOfPost(t *testing.T) {
 	reactionObject := model.Reaction{
 		UserId:    th.BasicUser.Id,
 		PostId:    post.Id,
-		EmojiName: "emoji",
+		EmojiName: "smile",
 		CreateAt:  model.GetMillis(),
 	}
 	reactionObjectDeleted := model.Reaction{
 		UserId:    th.BasicUser2.Id,
 		PostId:    post.Id,
-		EmojiName: "emoji",
+		EmojiName: "smile",
 		CreateAt:  model.GetMillis(),
 	}
 
-	th.App.SaveReactionForPost(th.Context, &reactionObject)
-	th.App.SaveReactionForPost(th.Context, &reactionObjectDeleted)
+	_, err := th.App.SaveReactionForPost(th.Context, &reactionObject)
+	require.Nil(t, err)
+	_, err = th.App.SaveReactionForPost(th.Context, &reactionObjectDeleted)
+	require.Nil(t, err)
 	reactionsOfPost, err := th.App.BuildPostReactions(th.Context, post.Id)
 	require.Nil(t, err)
 
@@ -102,7 +104,7 @@ func TestExportUserChannels(t *testing.T) {
 	require.NoError(t, err)
 
 	th.App.UpdateChannelMemberNotifyProps(th.Context, notifyProps, channel.Id, user.Id)
-	exportData, appErr := th.App.buildUserChannelMemberships(user.Id, team.Id)
+	exportData, appErr := th.App.buildUserChannelMemberships(th.Context, user.Id, team.Id, false)
 	require.Nil(t, appErr)
 	assert.Equal(t, len(*exportData), 3)
 	for _, data := range *exportData {
@@ -247,14 +249,14 @@ func TestExportDMChannel(t *testing.T) {
 		err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 		require.Nil(t, err)
 
-		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(channels))
 
 		th2 := Setup(t).InitBasic()
 		defer th2.TearDown()
 
-		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
 		assert.Equal(t, 0, len(channels))
 
@@ -264,7 +266,7 @@ func TestExportDMChannel(t *testing.T) {
 		assert.Equal(t, 0, i)
 
 		// Ensure the Members of the imported DM channel is the same was from the exported
-		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
 		require.Equal(t, 1, len(channels))
 		assert.ElementsMatch(t, []string{th1.BasicUser.Username, th1.BasicUser2.Username}, *channels[0].Members)
@@ -283,7 +285,7 @@ func TestExportDMChannel(t *testing.T) {
 		// DM Channel
 		th1.CreateDmChannel(th1.BasicUser2)
 
-		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
 		assert.Equal(t, 1, len(channels))
 
@@ -301,7 +303,7 @@ func TestExportDMChannel(t *testing.T) {
 		err, _ = th2.App.BulkImport(th2.Context, &b, nil, true, 5)
 		require.Nil(t, err)
 
-		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+		channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 		require.NoError(t, nErr)
 		assert.Empty(t, channels)
 	})
@@ -318,14 +320,14 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, err)
 
-	channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 1, len(channels))
 
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 0, len(channels))
 
@@ -334,7 +336,7 @@ func TestExportDMChannelToSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.EqualValues(t, 0, i)
 
-	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 1, len(channels))
 	assert.Equal(t, 1, len((*channels[0].Members)))
@@ -356,7 +358,7 @@ func TestExportGMChannel(t *testing.T) {
 	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, err)
 
-	channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 1, len(channels))
 
@@ -365,7 +367,7 @@ func TestExportGMChannel(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 0, len(channels))
 }
@@ -388,7 +390,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, err)
 
-	channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, nErr := th1.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 2, len(channels))
 
@@ -397,7 +399,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 0, len(channels))
 
@@ -407,7 +409,7 @@ func TestExportGMandDMChannels(t *testing.T) {
 	assert.Equal(t, 0, i)
 
 	// Ensure the Members of the imported GM channel is the same was from the exported
-	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000")
+	channels, nErr = th2.App.Srv().Store().Channel().GetAllDirectChannelsForExportAfter(1000, "00000000", false)
 	require.NoError(t, nErr)
 
 	// Adding some determinism so its possible to assert on slice index
@@ -670,7 +672,7 @@ func TestBuildPostReplies(t *testing.T) {
 	createPostWithAttachments := func(th *TestHelper, n int, rootID string) *model.Post {
 		var fileIDs []string
 		for i := 0; i < n; i++ {
-			info, err := th.App.Srv().Store().FileInfo().Save(&model.FileInfo{
+			info, err := th.App.Srv().Store().FileInfo().Save(th.Context, &model.FileInfo{
 				CreatorId: th.BasicUser.Id,
 				Name:      fmt.Sprintf("file%d", i),
 				Path:      fmt.Sprintf("/data/file%d", i),
@@ -766,4 +768,39 @@ func TestExportDeletedTeams(t *testing.T) {
 		assert.NotContains(t, team.Name, team1.Name)
 		assert.NotContains(t, team.Id, team1.Id)
 	}
+}
+
+func TestExportArchivedChannels(t *testing.T) {
+	th1 := Setup(t).InitBasic()
+	defer th1.TearDown()
+
+	archivedChannel := th1.CreateChannel(th1.Context, th1.BasicTeam)
+	th1.CreatePost(archivedChannel)
+	appErr := th1.App.DeleteChannel(th1.Context, archivedChannel, th1.SystemAdminUser.Id)
+	require.Nil(t, appErr)
+
+	var b bytes.Buffer
+	appErr = th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{
+		IncludeArchivedChannels: true,
+	})
+	require.Nil(t, appErr)
+
+	th2 := Setup(t)
+	defer th2.TearDown()
+	err, i := th2.App.BulkImport(th2.Context, &b, nil, false, 5)
+	assert.Nil(t, err)
+	assert.Equal(t, 0, i)
+
+	channels2, err := th2.App.GetAllChannels(th1.Context, 0, 10, model.ChannelSearchOpts{
+		IncludeDeleted: true,
+	})
+	assert.Nil(t, err)
+	found := false
+	for i := range channels2 {
+		if channels2[i].Name == archivedChannel.Name {
+			found = true
+			break
+		}
+	}
+	require.True(t, found, "archived channel not found after import")
 }

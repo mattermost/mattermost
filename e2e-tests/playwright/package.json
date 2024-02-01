@@ -1,37 +1,40 @@
 {
     "scripts": {
-        "test": "cross-env PW_SNAPSHOT_ENABLE=true playwright test",
-        "percy": "cross-env PERCY_TOKEN=$PERCY_TOKEN PW_PERCY_ENABLE=true percy exec -- playwright test --project=chrome --project=iphone --project=ipad",
+        "test": "cross-env NODE_OPTIONS='--no-experimental-fetch' PW_SNAPSHOT_ENABLE=true playwright test",
+        "test:update-snapshots": "cross-env NODE_OPTIONS='--no-experimental-fetch' PW_SNAPSHOT_ENABLE=true playwright test --update-snapshots",
+        "percy": "cross-env NODE_OPTIONS='--no-experimental-fetch' PERCY_TOKEN=$PERCY_TOKEN PW_PERCY_ENABLE=true percy exec -- playwright test --project=chrome --project=ipad",
         "tsc": "tsc -b",
         "lint": "eslint . --ext .js,.ts",
-        "prettier": "prettier --write .",
+        "prettier": "prettier . --check",
+        "prettier:fix": "prettier --write .",
         "check": "npm run tsc && npm run lint && npm run prettier",
         "codegen": "cross-env playwright codegen $PW_BASE_URL",
-        "playwright-ui": "playwright test --ui",
-        "test-slomo": "cross-env PW_SNAPSHOT_ENABLE=true PW_SLOWMO=1000 playwright test",
-        "show-report": "npx playwright show-report"
+        "playwright-ui": "cross-env NODE_OPTIONS='--no-experimental-fetch' playwright test --ui",
+        "test-slomo": "cross-env NODE_OPTIONS='--no-experimental-fetch' PW_SNAPSHOT_ENABLE=true PW_SLOWMO=1000 playwright test",
+        "show-report": "npx playwright show-report",
+        "postinstall": "npx playwright install"
     },
     "dependencies": {
-        "@axe-core/playwright": "4.7.3",
-        "@percy/cli": "1.26.2",
+        "@axe-core/playwright": "4.8.3",
+        "@percy/cli": "1.27.7",
         "@percy/playwright": "1.0.4",
-        "@playwright/test": "1.36.1",
+        "@playwright/test": "1.41.1",
         "async-wait-until": "2.0.12",
-        "axe-core": "4.7.2",
+        "axe-core": "4.8.3",
         "chalk": "4.1.2",
         "deepmerge": "4.3.1",
-        "dotenv": "16.3.1",
+        "dotenv": "16.3.2",
         "form-data": "4.0.0",
         "isomorphic-unfetch": "4.0.2",
-        "uuid": "9.0.0"
+        "uuid": "9.0.1"
     },
     "devDependencies": {
-        "@types/uuid": "9.0.2",
-        "@typescript-eslint/eslint-plugin": "6.1.0",
-        "@typescript-eslint/parser": "6.1.0",
+        "@types/uuid": "9.0.7",
+        "@typescript-eslint/eslint-plugin": "6.19.1",
+        "@typescript-eslint/parser": "6.19.1",
         "cross-env": "7.0.3",
-        "eslint": "8.45.0",
-        "prettier": "2.8.7",
-        "typescript": "5.0.4"
+        "eslint": "8.56.0",
+        "prettier": "3.2.4",
+        "typescript": "5.3.3"
     }
 }

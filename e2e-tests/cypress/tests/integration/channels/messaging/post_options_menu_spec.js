@@ -52,7 +52,7 @@ describe('Messaging', () => {
                 cy.findByText('Add Reaction').should('be.visible');
                 cy.findByText('Mark as Unread').should('be.visible');
                 cy.findByText('Copy Link').should('be.visible');
-                cy.findByText('Save').should('be.visible');
+                cy.findByText('Save Message').should('be.visible');
                 cy.findByText('Pin to Channel').should('be.visible');
                 cy.findByText('Edit').should('be.visible');
                 cy.findByText('Delete').should('be.visible');

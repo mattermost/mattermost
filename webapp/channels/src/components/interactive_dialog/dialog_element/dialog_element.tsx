@@ -2,23 +2,26 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import MenuActionProvider from 'components/suggestion/menu_action_provider';
-import GenericUserProvider from 'components/suggestion/generic_user_provider';
-import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
+import type {UserAutocomplete} from '@mattermost/types/autocomplete';
+import type {Channel} from '@mattermost/types/channels';
+import type {ServerError} from '@mattermost/types/errors';
+import type {UserProfile} from '@mattermost/types/users';
 
-import TextSetting, {InputTypes} from 'components/widgets/settings/text_setting';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import AutocompleteSelector from 'components/autocomplete_selector';
+import type {Option, Selected} from 'components/autocomplete_selector';
+import GenericChannelProvider from 'components/suggestion/generic_channel_provider';
+import GenericUserProvider from 'components/suggestion/generic_user_provider';
+import MenuActionProvider from 'components/suggestion/menu_action_provider';
 import ModalSuggestionList from 'components/suggestion/modal_suggestion_list';
+import type Provider from 'components/suggestion/provider';
 import BoolSetting from 'components/widgets/settings/bool_setting';
 import RadioSetting from 'components/widgets/settings/radio_setting';
-import {Channel} from '@mattermost/types/channels';
-import Provider from 'components/suggestion/provider';
-import {UserAutocomplete} from '@mattermost/types/autocomplete';
-import {ServerError} from '@mattermost/types/errors';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import TextSetting from 'components/widgets/settings/text_setting';
+import type {InputTypes} from 'components/widgets/settings/text_setting';
 
 const TEXT_DEFAULT_MAX_LENGTH = 150;
 const TEXTAREA_DEFAULT_MAX_LENGTH = 3000;
@@ -38,7 +41,7 @@ export type Props = {
         text: string;
         value: string;
     }>;
-    value?: string | boolean;
+    value?: string | number | boolean;
     onChange: (name: string, selected: string) => void;
     autoFocus?: boolean;
     actions: {
@@ -49,14 +52,6 @@ export type Props = {
 
 type State = {
     value: string;
-}
-
-type Selected = {
-    id: string;
-    username: string;
-    display_name: string;
-    value: string;
-    text: string;
 }
 
 export default class DialogElement extends React.PureComponent<Props, State> {
@@ -93,14 +88,17 @@ export default class DialogElement extends React.PureComponent<Props, State> {
         const {name, dataSource} = this.props;
 
         if (dataSource === 'users') {
-            this.props.onChange(name, selected.id);
-            this.setState({value: selected.username});
+            const user = selected as UserProfile;
+            this.props.onChange(name, user.id);
+            this.setState({value: user.username});
         } else if (dataSource === 'channels') {
-            this.props.onChange(name, selected.id);
-            this.setState({value: selected.display_name});
+            const channel = selected as Channel;
+            this.props.onChange(name, channel.id);
+            this.setState({value: channel.display_name});
         } else {
-            this.props.onChange(name, selected.value);
-            this.setState({value: selected.text});
+            const option = selected as Option;
+            this.props.onChange(name, option.value);
+            this.setState({value: option.text});
         }
     };
 
@@ -162,15 +160,21 @@ export default class DialogElement extends React.PureComponent<Props, State> {
                 textSettingMaxLength = maxLength || TEXTAREA_DEFAULT_MAX_LENGTH;
             }
 
-            const textValue = value as string;
+            let assertedValue;
+            if (subtype === 'number' && typeof value === 'number') {
+                assertedValue = value as number;
+            } else {
+                assertedValue = value as string || '';
+            }
+
             return (
                 <TextSetting
                     autoFocus={this.props.autoFocus}
                     id={name}
-                    type={subtype as InputTypes || 'text'}
+                    type={(type === 'textarea' ? 'textarea' : subtype) as InputTypes || 'text'}
                     label={displayNameContent}
                     maxLength={textSettingMaxLength}
-                    value={textValue || ''}
+                    value={assertedValue}
                     placeholder={placeholder}
                     helpText={helpTextContent}
                     onChange={onChange}

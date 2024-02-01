@@ -2,16 +2,22 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getUserAccessTokensForUser} from 'mattermost-redux/actions/users';
-import {ActionFunc} from 'mattermost-redux/types/actions';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
-import ManageTokensModal, {Props} from './manage_tokens_modal';
+import ManageTokensModal from './manage_tokens_modal';
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
+type OwnProps = {
+    user?: UserProfile;
+}
+
+function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const userId = ownProps.user ? ownProps.user.id : '';
 
     const userAccessTokens = state.entities.admin.userAccessTokensByUser;
@@ -23,7 +29,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Props['actions']>({
+        actions: bindActionCreators({
             getUserAccessTokensForUser,
         }, dispatch),
     };

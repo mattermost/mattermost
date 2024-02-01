@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {Provider} from 'react-redux';
-import {AnyAction} from 'redux';
-import thunk, {ThunkDispatch} from 'redux-thunk';
-import configureStore from 'redux-mock-store';
-
 import {IntlProvider} from 'react-intl';
+import {Provider} from 'react-redux';
+import type {AnyAction} from 'redux';
+import configureStore from 'redux-mock-store';
+import thunk from 'redux-thunk';
+import type {ThunkDispatch} from 'redux-thunk';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import {defaultIntl} from './helpers/intl-test-helper';
 

@@ -27,7 +27,7 @@ func (api *API) InitBot() {
 func createBot(c *Context, w http.ResponseWriter, r *http.Request) {
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
-	if err != nil {
+	if err != nil || botPatch == nil {
 		c.SetInvalidParamWithErr("bot", err)
 		return
 	}
@@ -83,7 +83,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	var botPatch *model.BotPatch
 	err := json.NewDecoder(r.Body).Decode(&botPatch)
-	if err != nil {
+	if err != nil || botPatch == nil {
 		c.SetInvalidParamWithErr("bot", err)
 		return
 	}
@@ -98,7 +98,7 @@ func patchBot(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	updatedBot, appErr := c.App.PatchBot(botUserId, botPatch)
+	updatedBot, appErr := c.App.PatchBot(c.AppContext, botUserId, botPatch)
 	if appErr != nil {
 		c.Err = appErr
 		return
@@ -135,13 +135,13 @@ func getBot(c *Context, w http.ResponseWriter, r *http.Request) {
 			// Pretend like the bot doesn't exist at all to avoid revealing that the
 			// user is a bot. It's kind of silly in this case, sine we created the bot,
 			// but we don't have read bot permissions.
-			c.Err = model.MakeBotNotFoundError(botUserId)
+			c.Err = model.MakeBotNotFoundError("permissions", botUserId)
 			return
 		}
 	} else {
 		// Pretend like the bot doesn't exist at all, to avoid revealing that the
 		// user is a bot.
-		c.Err = model.MakeBotNotFoundError(botUserId)
+		c.Err = model.MakeBotNotFoundError("permissions", botUserId)
 		return
 	}
 

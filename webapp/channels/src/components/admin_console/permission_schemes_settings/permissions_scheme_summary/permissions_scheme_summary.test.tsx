@@ -1,11 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
-import ConfirmModal from 'components/confirm_modal';
 import PermissionsSchemeSummary from 'components/admin_console/permission_schemes_settings/permissions_scheme_summary/permissions_scheme_summary';
+import ConfirmModal from 'components/confirm_modal';
 
 describe('components/admin_console/permission_schemes_settings/permissions_scheme_summary', () => {
     const defaultProps = {

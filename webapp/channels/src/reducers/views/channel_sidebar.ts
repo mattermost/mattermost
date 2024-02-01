@@ -1,20 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+
 import {ChannelCategoryTypes, UserTypes} from 'mattermost-redux/action_types';
-
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {ChannelCategory} from '@mattermost/types/channel_categories';
-
 import {removeItem} from 'mattermost-redux/utils/array_utils';
-
-import {DraggingState} from 'types/store';
 
 import {ActionTypes} from 'utils/constants';
 
-export function unreadFilterEnabled(state = false, action: GenericAction) {
+import type {DraggingState} from 'types/store';
+
+export function unreadFilterEnabled(state = false, action: AnyAction) {
     switch (action.type) {
     case ActionTypes.SET_UNREAD_FILTER_ENABLED:
         return action.enabled;
@@ -26,7 +25,7 @@ export function unreadFilterEnabled(state = false, action: GenericAction) {
     }
 }
 
-export function draggingState(state: DraggingState = {}, action: GenericAction): DraggingState {
+export function draggingState(state: DraggingState = {}, action: AnyAction): DraggingState {
     switch (action.type) {
     case ActionTypes.SIDEBAR_DRAGGING_SET_STATE:
         return {
@@ -43,7 +42,7 @@ export function draggingState(state: DraggingState = {}, action: GenericAction):
     }
 }
 
-export function newCategoryIds(state: string[] = [], action: GenericAction): string[] {
+export function newCategoryIds(state: string[] = [], action: AnyAction): string[] {
     switch (action.type) {
     case ActionTypes.ADD_NEW_CATEGORY_ID:
         return [...state, action.data];
@@ -75,7 +74,7 @@ export function newCategoryIds(state: string[] = [], action: GenericAction): str
     }
 }
 
-export function multiSelectedChannelIds(state: string[] = [], action: GenericAction): string[] {
+export function multiSelectedChannelIds(state: string[] = [], action: AnyAction): string[] {
     switch (action.type) {
     case ActionTypes.MULTISELECT_CHANNEL:
         // Channel was not previously selected
@@ -117,7 +116,7 @@ export function multiSelectedChannelIds(state: string[] = [], action: GenericAct
     }
 }
 
-export function lastSelectedChannel(state = '', action: GenericAction): string {
+export function lastSelectedChannel(state = '', action: AnyAction): string {
     switch (action.type) {
     case ActionTypes.MULTISELECT_CHANNEL:
     case ActionTypes.MULTISELECT_CHANNEL_ADD:
@@ -130,7 +129,7 @@ export function lastSelectedChannel(state = '', action: GenericAction): string {
     }
 }
 
-function firstChannelName(state = '', action: GenericAction) {
+function firstChannelName(state = '', action: AnyAction) {
     switch (action.type) {
     case ActionTypes.FIRST_CHANNEL_NAME:
         return action.data;

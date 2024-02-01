@@ -2,21 +2,15 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getCustomEmojiIdsSortedByName} from 'mattermost-redux/selectors/entities/emojis';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {getCustomEmojis, searchCustomEmojis} from 'mattermost-redux/actions/emojis';
-import {GlobalState} from '@mattermost/types/store';
-import {CustomEmoji} from '@mattermost/types/emojis';
-import {ServerError} from '@mattermost/types/errors';
+import {getCustomEmojiIdsSortedByName} from 'mattermost-redux/selectors/entities/emojis';
 
 import EmojiList from './emoji_list';
-
-type Actions = {
-    getCustomEmojis: (page?: number, perPage?: number, sort?: string, loadUsers?: boolean) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
-    searchCustomEmojis: (term: string, options: any, loadUsers: boolean) => Promise<{ data: CustomEmoji[]; error: ServerError }>;
-}
 
 function mapStateToProps(state: GlobalState) {
     return {
@@ -24,9 +18,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getCustomEmojis,
             searchCustomEmojis,
         }, dispatch),

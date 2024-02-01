@@ -80,7 +80,6 @@ func TestLRU(t *testing.T) {
 	err = l.Get("201", &v)
 	require.NoError(t, err)
 	require.Equal(t, 301, v)
-
 }
 
 func TestLRUExpire(t *testing.T) {
@@ -291,7 +290,6 @@ func TestLRUMarshalUnMarshal(t *testing.T) {
 }
 
 func BenchmarkLRU(b *testing.B) {
-
 	value1 := "simplestring"
 
 	b.Run("simple=new", func(b *testing.B) {

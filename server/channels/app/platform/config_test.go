@@ -79,7 +79,7 @@ func TestConfigSave(t *testing.T) {
 		defer th.TearDown()
 
 		metricsMock := &mocks.MetricsInterface{}
-		metricsMock.On("IncrementWebsocketEvent", mock.AnythingOfType("string")).Return()
+		metricsMock.On("IncrementWebsocketEvent", model.WebsocketEventConfigChanged).Return()
 		metricsMock.On("IncrementWebSocketBroadcastBufferSize", mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
 		metricsMock.On("DecrementWebSocketBroadcastBufferSize", mock.AnythingOfType("string"), mock.AnythingOfType("float64")).Return()
 		metricsMock.On("Register").Return()
@@ -189,5 +189,4 @@ func TestIsFirstUserAccountThunderingHerd(t *testing.T) {
 			wg.Wait()
 		})
 	}
-
 }

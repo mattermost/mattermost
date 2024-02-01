@@ -50,6 +50,7 @@ type ChannelImportData struct {
 	Header      *string            `json:"header,omitempty"`
 	Purpose     *string            `json:"purpose,omitempty"`
 	Scheme      *string            `json:"scheme,omitempty"`
+	DeletedAt   *int64             `json:"deleted_at,omitempty"`
 }
 
 type UserImportData struct {

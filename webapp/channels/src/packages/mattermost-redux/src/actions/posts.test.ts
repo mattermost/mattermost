@@ -5,19 +5,21 @@ import fs from 'fs';
 
 import nock from 'nock';
 
-import * as Actions from 'mattermost-redux/actions/posts';
-import {getChannelStats} from 'mattermost-redux/actions/channels';
-import {loadMeREST} from 'mattermost-redux/actions/users';
-import {createCustomEmoji} from 'mattermost-redux/actions/emojis';
-import {Client4} from 'mattermost-redux/client';
-import {Preferences, Posts, RequestStatus} from '../constants';
+import type {Post, PostList} from '@mattermost/types/posts';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {PostTypes, UserTypes} from 'mattermost-redux/action_types';
+import {getChannelStats} from 'mattermost-redux/actions/channels';
+import {createCustomEmoji} from 'mattermost-redux/actions/emojis';
+import * as Actions from 'mattermost-redux/actions/posts';
+import {loadMe} from 'mattermost-redux/actions/users';
+import {Client4} from 'mattermost-redux/client';
+import type {GetStateFunc} from 'mattermost-redux/types/actions';
+import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
+
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-import {GlobalState} from '@mattermost/types/store';
-import {Post, PostList} from '@mattermost/types/posts';
-import {ActionResult, GetStateFunc} from 'mattermost-redux/types/actions';
+import {Preferences, Posts, RequestStatus} from '../constants';
 
 const OK_RESPONSE = {status: 'OK'};
 
@@ -33,12 +35,12 @@ describe('Actions.Posts', () => {
                 general: {
                     config: {
                         CollapsedThreads: 'always_on',
+                        EnableJoinLeaveMessageByDefault: 'true',
                     },
                 },
             },
         });
     });
-
     afterAll(() => {
         TestHelper.tearDown();
     });
@@ -51,7 +53,7 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(201, {...post, id: TestHelper.generateId()});
 
-        await Actions.createPost(post)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createPost(post));
 
         const state: GlobalState = store.getState();
         const createRequest = state.requests.posts.createPost;
@@ -88,7 +90,7 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(201, {...post, id: postId});
 
-        await Actions.createPostImmediately(post)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createPostImmediately(post));
 
         const post2 = TestHelper.fakePostWithId(channelId);
         post2.root_id = postId;
@@ -97,7 +99,7 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(201, post2);
 
-        await Actions.createPostImmediately(post2)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createPostImmediately(post2));
 
         expect(store.getState().entities.posts.postsReplies[postId]).toBe(1);
 
@@ -105,8 +107,8 @@ describe('Actions.Posts', () => {
             delete(`/posts/${post2.id}`).
             reply(200, OK_RESPONSE);
 
-        await Actions.deletePost(post2)(store.dispatch, store.getState);
-        await Actions.removePost(post2)(store.dispatch, store.getState);
+        await store.dispatch(Actions.deletePost(post2));
+        await store.dispatch(Actions.removePost(post2));
 
         expect(store.getState().entities.posts.postsReplies[postId]).toBe(0);
     });
@@ -125,7 +127,7 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(400, createPostError);
 
-        await Actions.createPost(post)(store.dispatch, store.getState);
+        await store.dispatch(Actions.createPost(post));
         await TestHelper.wait(50);
 
         let state = store.getState();
@@ -160,10 +162,10 @@ describe('Actions.Posts', () => {
             post('/posts').
             reply(201, {...post, id: TestHelper.generateId(), file_ids: [files[0].id, files[1].id, files[2].id]});
 
-        await Actions.createPost(
+        await store.dispatch(Actions.createPost(
             post,
             files,
-        )(store.dispatch, store.getState);
+        ));
 
         const state: GlobalState = store.getState();
         const createRequest = state.requests.posts.createPost;
@@ -219,9 +221,9 @@ describe('Actions.Posts', () => {
             put(`/posts/${post.id}/patch`).
             reply(200, post);
 
-        await Actions.editPost(
+        await store.dispatch(Actions.editPost(
             post,
-        )(store.dispatch, store.getState);
+        ));
 
         const state: GlobalState = store.getState();
         const editRequest = state.requests.posts.editPost;
@@ -246,7 +248,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/posts').
             reply(201, TestHelper.fakePostWithId(channelId));
-        await Actions.createPost(TestHelper.fakePost(channelId))(store.dispatch, store.getState);
+        await store.dispatch(Actions.createPost(TestHelper.fakePost(channelId)));
         const initialPosts = store.getState().entities.posts;
         const postId = Object.keys(initialPosts.posts)[0];
 
@@ -254,7 +256,7 @@ describe('Actions.Posts', () => {
             delete(`/posts/${postId}`).
             reply(200, OK_RESPONSE);
 
-        await Actions.deletePost(initialPosts.posts[postId])(store.dispatch, store.getState);
+        await store.dispatch(Actions.deletePost(initialPosts.posts[postId]));
 
         const state: GlobalState = store.getState();
         const {posts} = state.entities.posts;
@@ -272,7 +274,7 @@ describe('Actions.Posts', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/posts').
@@ -287,7 +289,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(store.dispatch, store.getState);
+        await store.dispatch(Actions.addReaction(post1.id, emojiName));
 
         let reactions = store.getState().entities.posts.reactions;
         expect(reactions).toBeTruthy();
@@ -298,7 +300,7 @@ describe('Actions.Posts', () => {
             delete(`/posts/${post1.id}`).
             reply(200, OK_RESPONSE);
 
-        await Actions.deletePost(post1)(store.dispatch, store.getState);
+        await store.dispatch(Actions.deletePost(post1));
 
         reactions = store.getState().entities.posts.reactions;
         expect(reactions).toBeTruthy();
@@ -366,7 +368,7 @@ describe('Actions.Posts', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/posts').
@@ -380,7 +382,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(store.dispatch, store.getState);
+        await store.dispatch(Actions.addReaction(post1.id, emojiName));
 
         let reactions = store.getState().entities.posts.reactions;
         expect(reactions).toBeTruthy();
@@ -413,7 +415,7 @@ describe('Actions.Posts', () => {
             query(true).
             reply(200, response);
 
-        await Actions.getPostsUnread(channelId)(dispatch, getState);
+        await dispatch(Actions.getPostsUnread(channelId));
         const {posts} = getState().entities.posts;
 
         expect(posts[post.id]).toBeTruthy();
@@ -474,7 +476,7 @@ describe('Actions.Posts', () => {
             query(true).
             reply(200, responseWithRecentPosts);
 
-        await Actions.getPostsUnread(channelId)(dispatch, getState);
+        await dispatch(Actions.getPostsUnread(channelId));
         const {posts} = getState().entities.posts;
 
         expect(posts[recentPost.id]).toBeTruthy();
@@ -498,7 +500,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             get(`/posts/${post.id}/thread?skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false&direction=down&perPage=60`).
             reply(200, postList);
-        await Actions.getPostThread(post.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPostThread(post.id));
 
         const state: GlobalState = store.getState();
         const getRequest = state.requests.posts.getPostThread;
@@ -536,7 +538,7 @@ describe('Actions.Posts', () => {
             get(`/posts/${postId}/edit_history`).
             reply(200, data);
 
-        await Actions.getPostEditHistory(postId)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getPostEditHistory(postId));
 
         const state: GlobalState = store.getState();
         const editHistory = state.entities.posts.postEditHistory;
@@ -603,65 +605,80 @@ describe('Actions.Posts', () => {
                         },
                     },
                 },
+                groups: {
+                    groups: [
+                        {
+                            id: '1',
+                            name: 'zzz',
+                        },
+                    ],
+                },
             },
         } as unknown as GlobalState;
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: 'aaa'}),
             ])).toEqual(
             new Set(),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@aaa'}),
             ])).toEqual(
             new Set(),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
-                TestHelper.getPostMock({message: '@aaa @bbb @ccc'}),
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
+                TestHelper.getPostMock({message: '@zzz'}),
+            ])).toEqual(
+            new Set(),
+        );
+
+        expect(
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
+                TestHelper.getPostMock({message: '@aaa @bbb @ccc @zzz'}),
             ])).toEqual(
             new Set(['bbb', 'ccc']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb. @ccc.ddd'}),
             ])).toEqual(
             new Set(['bbb.', 'bbb', 'ccc.ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb- @ccc-ddd'}),
             ])).toEqual(
             new Set(['bbb-', 'bbb', 'ccc-ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@bbb_ @ccc_ddd'}),
             ])).toEqual(
             new Set(['bbb_', 'ccc_ddd']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '(@bbb/@ccc) ddd@eee'}),
             ])).toEqual(
             new Set(['bbb', 'ccc']),
         );
 
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({
                     message: '@aaa @bbb',
                     props: {
                         attachments: [
-                            {text: '@ccc @ddd'},
+                            {text: '@ccc @ddd @zzz'},
                             {pretext: '@eee @fff', text: '@ggg'},
                         ],
                     },
@@ -673,7 +690,7 @@ describe('Actions.Posts', () => {
 
         // should never try to request usernames matching special mentions
         expect(
-            Actions.getNeededAtMentionedUsernames(state, [
+            Actions.getNeededAtMentionedUsernamesAndGroups(state, [
                 TestHelper.getPostMock({message: '@all'}),
                 TestHelper.getPostMock({message: '@here'}),
                 TestHelper.getPostMock({message: '@channel'}),
@@ -998,7 +1015,7 @@ describe('Actions.Posts', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/posts').
@@ -1012,7 +1029,7 @@ describe('Actions.Posts', () => {
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
 
-        Actions.flagPost(post1.id)(dispatch, getState);
+        dispatch(Actions.flagPost(post1.id));
         const state = getState();
         const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
         const preference = state.entities.preferences.myPreferences[prefKey];
@@ -1031,7 +1048,7 @@ describe('Actions.Posts', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/posts').
@@ -1043,7 +1060,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getUsersRoute()).
             put(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        Actions.flagPost(post1.id)(dispatch, getState);
+        dispatch(Actions.flagPost(post1.id));
         let state = getState();
         const prefKey = getPreferenceKey(Preferences.CATEGORY_FLAGGED_POST, post1.id);
         const preference = state.entities.preferences.myPreferences[prefKey];
@@ -1052,7 +1069,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getUsersRoute()).
             delete(`/${TestHelper.basicUser!.id}/preferences`).
             reply(200, OK_RESPONSE);
-        Actions.unflagPost(post1.id)(dispatch, getState);
+        dispatch(Actions.unflagPost(post1.id));
         state = getState();
         const unflagged = state.entities.preferences.myPreferences[prefKey];
         if (unflagged) {
@@ -1136,12 +1153,12 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false&direction=down&perPage=60`).
             reply(200, postList);
-        await Actions.getPostThread(post1.id)(dispatch, getState);
+        await dispatch(Actions.getPostThread(post1.id));
 
         nock(Client4.getBaseRoute()).
             post(`/posts/${post1.id}/pin`).
             reply(200, OK_RESPONSE);
-        await Actions.pinPost(post1.id)(dispatch, getState);
+        await dispatch(Actions.pinPost(post1.id));
 
         const state = getState();
         const {stats} = state.entities.channels;
@@ -1175,17 +1192,17 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             get(`/posts/${post1.id}/thread?skipFetchThreads=false&collapsedThreads=true&collapsedThreadsExtended=false&direction=down&perPage=60`).
             reply(200, postList);
-        await Actions.getPostThread(post1.id)(dispatch, getState);
+        await dispatch(Actions.getPostThread(post1.id));
 
         nock(Client4.getBaseRoute()).
             post(`/posts/${post1.id}/pin`).
             reply(200, OK_RESPONSE);
-        await Actions.pinPost(post1.id)(dispatch, getState);
+        await dispatch(Actions.pinPost(post1.id));
 
         nock(Client4.getBaseRoute()).
             post(`/posts/${post1.id}/unpin`).
             reply(200, OK_RESPONSE);
-        await Actions.unpinPost(post1.id)(dispatch, getState);
+        await dispatch(Actions.unpinPost(post1.id));
 
         const state = getState();
         const {stats} = state.entities.channels;
@@ -1204,7 +1221,7 @@ describe('Actions.Posts', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/posts').
@@ -1218,7 +1235,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(dispatch, getState);
+        await dispatch(Actions.addReaction(post1.id, emojiName));
 
         const state = getState();
         const reactions = state.entities.posts.reactions[post1.id];
@@ -1233,7 +1250,7 @@ describe('Actions.Posts', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/posts').
@@ -1247,12 +1264,12 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(dispatch, getState);
+        await dispatch(Actions.addReaction(post1.id, emojiName));
 
         nock(Client4.getUsersRoute()).
             delete(`/${TestHelper.basicUser!.id}/posts/${post1.id}/reactions/${emojiName}`).
             reply(200, OK_RESPONSE);
-        await Actions.removeReaction(post1.id, emojiName)(dispatch, getState);
+        await dispatch(Actions.removeReaction(post1.id, emojiName));
 
         const state = getState();
         const reactions = state.entities.posts.reactions[post1.id];
@@ -1267,7 +1284,7 @@ describe('Actions.Posts', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await store.dispatch(loadMeREST());
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             post('/posts').
@@ -1281,7 +1298,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             post('/reactions').
             reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await Actions.addReaction(post1.id, emojiName)(dispatch, getState);
+        await dispatch(Actions.addReaction(post1.id, emojiName));
 
         dispatch({
             type: PostTypes.REACTION_DELETED,
@@ -1291,7 +1308,7 @@ describe('Actions.Posts', () => {
         nock(Client4.getBaseRoute()).
             get(`/posts/${post1.id}/reactions`).
             reply(200, [{user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721}]);
-        await Actions.getReactionsForPost(post1.id)(dispatch, getState);
+        await dispatch(Actions.getReactionsForPost(post1.id));
 
         const state = getState();
         const reactions = state.entities.posts.reactions[post1.id];
@@ -1308,13 +1325,13 @@ describe('Actions.Posts', () => {
             post('/emoji').
             reply(201, {id: TestHelper.generateId(), create_at: 1507918415696, update_at: 1507918415696, delete_at: 0, creator_id: TestHelper.basicUser!.id, name: TestHelper.generateId()});
 
-        const {data: created} = await createCustomEmoji(
+        const {data: created} = await dispatch(createCustomEmoji(
             {
                 name: TestHelper.generateId(),
                 creator_id: TestHelper.basicUser!.id,
             },
             testImageData,
-        )(store.dispatch, store.getState) as ActionResult;
+        ));
 
         nock(Client4.getEmojisRoute()).
             get(`/name/${created.name}`).
@@ -1326,7 +1343,7 @@ describe('Actions.Posts', () => {
             get(`/name/${missingEmojiName}`).
             reply(404, {message: 'Not found', status_code: 404});
 
-        await Actions.getCustomEmojiForReaction(missingEmojiName)(dispatch, getState);
+        await dispatch(Actions.getCustomEmojiForReaction(missingEmojiName));
 
         const state = getState();
         const emojis = state.entities.emojis.customEmoji;
@@ -1335,42 +1352,12 @@ describe('Actions.Posts', () => {
         expect(state.entities.emojis.nonExistentEmoji.has(missingEmojiName)).toBeTruthy();
     });
 
-    it('getOpenGraphMetadata', async () => {
-        const {dispatch, getState} = store;
-
-        const url = 'https://mattermost.com';
-        const docs = 'https://docs.mattermost.com/';
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, {type: 'article', url: 'https://mattermost.com/', title: 'Mattermost private cloud messaging', description: 'Open source,  private cloud\nSlack-alternative, \nWorkplace messaging for web, PCs and phones.'});
-        await dispatch(Actions.getOpenGraphMetadata(url));
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, {type: '', url: '', title: '', description: ''});
-        await dispatch(Actions.getOpenGraphMetadata(docs));
-
-        nock(Client4.getBaseRoute()).
-            post('/opengraph').
-            reply(200, undefined);
-        await dispatch(Actions.getOpenGraphMetadata(docs));
-
-        const state = getState();
-        const metadata = state.entities.posts.openGraph;
-        expect(metadata).toBeTruthy();
-        expect(metadata[url]).toBeTruthy();
-        if (metadata[docs]) {
-            throw new Error('unexpected metadata[docs]');
-        }
-    });
-
     it('doPostAction', async () => {
         nock(Client4.getBaseRoute()).
             post('/posts/posth67ja7ntdkek6g13dp3wka/actions/action7ja7ntdkek6g13dp3wka').
             reply(200, {});
 
-        const {data} = await Actions.doPostAction('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', 'option')(store.dispatch, store.getState);
+        const {data} = await store.dispatch(Actions.doPostAction('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', 'option'));
         expect(data).toEqual({});
     });
 
@@ -1379,26 +1366,26 @@ describe('Actions.Posts', () => {
             post('/posts/posth67ja7ntdkek6g13dp3wka/actions/action7ja7ntdkek6g13dp3wka').
             reply(200, {});
 
-        const {data} = await Actions.doPostActionWithCookie('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', '', 'option')(store.dispatch, store.getState);
+        const {data} = await store.dispatch(Actions.doPostActionWithCookie('posth67ja7ntdkek6g13dp3wka', 'action7ja7ntdkek6g13dp3wka', '', 'option'));
         expect(data).toEqual({});
     });
 
     it('addMessageIntoHistory', async () => {
         const {dispatch, getState} = store;
 
-        await Actions.addMessageIntoHistory('test1')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test1'));
 
         let history = getState().entities.posts.messagesHistory.messages;
         expect(history.length === 1).toBeTruthy();
         expect(history[0] === 'test1').toBeTruthy();
 
-        await Actions.addMessageIntoHistory('test2')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test2'));
 
         history = getState().entities.posts.messagesHistory.messages;
         expect(history.length === 2).toBeTruthy();
         expect(history[1] === 'test2').toBeTruthy();
 
-        await Actions.addMessageIntoHistory('test3')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test3'));
 
         history = getState().entities.posts.messagesHistory.messages;
         expect(history.length === 3).toBeTruthy();
@@ -1408,32 +1395,32 @@ describe('Actions.Posts', () => {
     it('resetHistoryIndex', async () => {
         const {dispatch, getState} = store;
 
-        await Actions.addMessageIntoHistory('test1')(dispatch);
-        await Actions.addMessageIntoHistory('test2')(dispatch);
-        await Actions.addMessageIntoHistory('test3')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test1'));
+        await dispatch(Actions.addMessageIntoHistory('test2'));
+        await dispatch(Actions.addMessageIntoHistory('test3'));
 
         let index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 1).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 2).toBeTruthy();
 
-        await Actions.resetHistoryIndex(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.resetHistoryIndex(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 2).toBeTruthy();
 
-        await Actions.resetHistoryIndex(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.resetHistoryIndex(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
@@ -1444,42 +1431,42 @@ describe('Actions.Posts', () => {
     it('moveHistoryIndexBack', async () => {
         const {dispatch, getState} = store;
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
 
         let index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === -1).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === -1).toBeTruthy();
 
-        await Actions.addMessageIntoHistory('test1')(dispatch);
-        await Actions.addMessageIntoHistory('test2')(dispatch);
-        await Actions.addMessageIntoHistory('test3')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test1'));
+        await dispatch(Actions.addMessageIntoHistory('test2'));
+        await dispatch(Actions.addMessageIntoHistory('test3'));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 1).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 0).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 0).toBeTruthy();
@@ -1490,51 +1477,51 @@ describe('Actions.Posts', () => {
     it('moveHistoryIndexForward', async () => {
         const {dispatch, getState} = store;
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
 
         let index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 0).toBeTruthy();
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 0).toBeTruthy();
 
-        await Actions.addMessageIntoHistory('test1')(dispatch);
-        await Actions.addMessageIntoHistory('test2')(dispatch);
-        await Actions.addMessageIntoHistory('test3')(dispatch);
+        await dispatch(Actions.addMessageIntoHistory('test1'));
+        await dispatch(Actions.addMessageIntoHistory('test2'));
+        await dispatch(Actions.addMessageIntoHistory('test3'));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 3).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 3).toBeTruthy();
 
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
-        await Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.POST));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
+        await dispatch(Actions.moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 1).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 1).toBeTruthy();
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.POST));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 2).toBeTruthy();
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.COMMENT];
         expect(index === 1).toBeTruthy();
 
-        await Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT)(dispatch);
+        await dispatch(Actions.moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT));
 
         index = getState().entities.posts.messagesHistory.index[Posts.MESSAGE_TYPES.POST];
         expect(index === 2).toBeTruthy();
@@ -1542,7 +1529,7 @@ describe('Actions.Posts', () => {
         expect(index === 2).toBeTruthy();
     });
 
-    describe('getProfilesAndStatusesForPosts', () => {
+    describe('getMentionsAndStatusesForPosts', () => {
         describe('different values for posts argument', () => {
             // Mock the state to prevent any followup requests since we aren't testing those
             const currentUserId = 'user';
@@ -1566,13 +1553,13 @@ describe('Actions.Posts', () => {
             })) as unknown as GetStateFunc;
 
             it('null', async () => {
-                await Actions.getProfilesAndStatusesForPosts(null as any, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(null as any, dispatch as any, getState);
             });
 
             it('array of posts', async () => {
                 const posts = [post];
 
-                await Actions.getProfilesAndStatusesForPosts(posts, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(posts, dispatch as any, getState);
             });
 
             it('object map of posts', async () => {
@@ -1580,7 +1567,7 @@ describe('Actions.Posts', () => {
                     [post.id]: post,
                 };
 
-                await Actions.getProfilesAndStatusesForPosts(posts, dispatch as any, getState);
+                await Actions.getMentionsAndStatusesForPosts(posts, dispatch as any, getState);
             });
         });
     });

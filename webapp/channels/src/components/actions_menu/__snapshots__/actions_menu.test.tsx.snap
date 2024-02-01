@@ -137,8 +137,8 @@ exports[`components/actions_menu/ActionsMenu has actions - marketplace enabled a
     />
     <MenuItemAction
       icon={
-        <span
-          className="icon-view-grid-plus-outline MenuItem__compass-icon"
+        <ActionsMenuIcon
+          name="icon-view-grid-plus-outline"
         />
       }
       id="marketplace_icon_post_id_1"
@@ -230,8 +230,8 @@ exports[`components/actions_menu/ActionsMenu no actions - sysadmin - menu should
           id="marketPlaceButton"
           onClick={[Function]}
         >
-          <span
-            className="icon-view-grid-plus-outline visit-marketplace-button-icon MenuItem__compass-icon"
+          <ActionsMenuIcon
+            name="icon-view-grid-plus-outline visit-marketplace-button-icon"
           />
           <span
             className="visit-marketplace-button-text"

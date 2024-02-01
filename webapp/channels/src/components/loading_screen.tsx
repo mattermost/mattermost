@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ReactNode, CSSProperties} from 'react';
-import {useIntl} from 'react-intl';
 import classNames from 'classnames';
+import React from 'react';
+import type {ReactNode, CSSProperties} from 'react';
+import {useIntl} from 'react-intl';
 
 type Props = {
     position?: 'absolute' | 'fixed' | 'relative' | 'static' | 'inherit';

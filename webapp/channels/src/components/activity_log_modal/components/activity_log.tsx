@@ -4,11 +4,12 @@
 import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedTime} from 'react-intl';
 
-import {General} from 'mattermost-redux/constants';
-import {Session} from '@mattermost/types/sessions';
+import type {Session} from '@mattermost/types/sessions';
 
-import {localizeMessage} from 'utils/utils';
+import {General} from 'mattermost-redux/constants';
+
 import {getMonthLong, t} from 'utils/i18n';
+import {localizeMessage} from 'utils/utils';
 
 import MoreInfo from './more_info';
 

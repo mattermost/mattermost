@@ -35,24 +35,15 @@ exports[`components/AutosizeTextarea should match snapshot, init 1`] = `
       }
     }
   >
-    <textarea
+    <div
       aria-hidden={true}
       dir="auto"
       disabled={true}
       id="autosize_textarea-reference"
-      rows={1}
-      style={
-        Object {
-          "height": "auto",
-          "width": "100%",
-        }
-      }
-    />
-    <div
-      id="autosize_textarea-measuring"
       style={
         Object {
           "display": "inline-block",
+          "height": "auto",
           "width": "auto",
         }
       }

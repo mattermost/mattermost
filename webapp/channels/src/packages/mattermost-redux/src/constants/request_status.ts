@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {RequestStatusOption} from '@mattermost/types/requests';
+import type {RequestStatusOption} from '@mattermost/types/requests';
 
 const status: Record<string, RequestStatusOption> = {
     NOT_STARTED: 'not_started',

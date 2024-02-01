@@ -4,12 +4,12 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {Audit} from '@mattermost/types/audits';
-
-import holders from '../holders';
-import AuditRow from '../audit_row/audit_row';
+import type {Audit} from '@mattermost/types/audits';
 
 import UserUpdateActiveSessionRow from './user_update_active_session_row';
+
+import AuditRow from '../audit_row/audit_row';
+import holders from '../holders';
 
 type Props = {
     audit: Audit;

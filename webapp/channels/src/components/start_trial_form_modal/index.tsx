@@ -1,37 +1,39 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React, {useEffect, useState} from 'react';
-import {useSelector, useDispatch} from 'react-redux';
 import {Modal, Button} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
-import classNames from 'classnames';
-import {t} from 'utils/i18n';
-import {isModalOpen} from 'selectors/views/modals';
-import {GlobalState} from 'types/store';
-import {closeModal, openModal} from 'actions/views/modals';
-import {requestTrialLicense} from 'actions/admin_actions';
-import {validateBusinessEmail} from 'actions/cloud';
+import {useSelector, useDispatch} from 'react-redux';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
-import {DispatchFunc} from 'mattermost-redux/types/actions';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
 
+import {requestTrialLicense} from 'actions/admin_actions';
+import {validateBusinessEmail} from 'actions/cloud';
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal, openModal} from 'actions/views/modals';
+import {isModalOpen} from 'selectors/views/modals';
+
 import {makeAsyncComponent} from 'components/async_load';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
-import {COUNTRIES} from 'utils/countries';
+import DropdownInput from 'components/dropdown_input';
+import ExternalLink from 'components/external_link';
+import CountrySelector from 'components/payment_form/country_selector';
+import Input, {SIZE} from 'components/widgets/inputs/input/input';
+import type {CustomMessageInputType} from 'components/widgets/inputs/input/input';
 
 import {AboutLinks, LicenseLinks, ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
+import {t} from 'utils/i18n';
 
-import Input, {SIZE, CustomMessageInputType} from 'components/widgets/inputs/input/input';
-import DropdownInput from 'components/dropdown_input';
+import type {GlobalState} from 'types/store';
+
+import AirGappedModal from './air_gapped_modal';
 import StartTrialFormModalResult from './failure_modal';
-import ExternalLink from 'components/external_link';
-import {trackEvent} from 'actions/telemetry_actions';
 
 import './start_trial_form_modal.scss';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
-import AirGappedModal from './air_gapped_modal';
 
 const TrialBenefitsModal = makeAsyncComponent('TrialBenefitsModal', React.lazy(() => import('components/trial_benefits_modal/trial_benefits_modal')));
 
@@ -66,7 +68,7 @@ type Props = {
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const currentUser = useSelector(getCurrentUser);
     const [name, setName] = useState('');
     const [email, setEmail] = useState(currentUser.email);
@@ -75,7 +77,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
     const {formatMessage} = useIntl();
-    const canReachCWS = useCWSAvailabilityCheck();
+    const cwsAvailability = useCWSAvailabilityCheck();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
     const [didOnce, setDidOnce] = useState(false);
@@ -146,7 +148,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
-            if (data.status === 422) {
+            if ((data as any).status === 422) {
                 title = (<></>);
                 subtitle = (
                     <FormattedMessage
@@ -233,7 +235,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         status === TrialLoadStatus.Success
     );
 
-    if (typeof canReachCWS !== 'undefined' && !canReachCWS) {
+    if (cwsAvailability === CSWAvailabilityCheckTypes.Unavailable) {
         return (
             <AirGappedModal
                 onClose={handleOnClose}
@@ -309,24 +311,9 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
                     name='company_size_dropdown'
                 />
                 <div className='countries-section'>
-                    <DropdownInput
+                    <CountrySelector
                         onChange={(e) => setCountry(e.value)}
-                        value={
-                            country ? {value: country, label: country} : undefined
-                        }
-                        options={COUNTRIES.map((country) => ({
-                            value: country.name,
-                            label: country.name,
-                        }))}
-                        legend={formatMessage({
-                            id: 'payment_form.country',
-                            defaultMessage: 'Country',
-                        })}
-                        placeholder={formatMessage({
-                            id: 'payment_form.country',
-                            defaultMessage: 'Country',
-                        })}
-                        name={'country_dropdown'}
+                        value={country}
                     />
                 </div>
                 <div className='disclaimer'>

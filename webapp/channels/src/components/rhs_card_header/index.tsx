@@ -2,9 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {AnyAction, bindActionCreators, Dispatch} from 'redux';
-
-import {GlobalState} from 'types/store';
+import {bindActionCreators} from 'redux';
+import type {AnyAction, Dispatch} from 'redux';
 
 import {
     showMentions,
@@ -15,6 +14,8 @@ import {
     toggleRhsExpanded,
 } from 'actions/views/rhs';
 import {getIsRhsExpanded} from 'selectors/rhs';
+
+import type {GlobalState} from 'types/store';
 
 import RhsCardHeader from './rhs_card_header';
 

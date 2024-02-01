@@ -1,30 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
-
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
-import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
-
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {AppCall, AppExpand, AppFormValues} from '@mattermost/types/apps';
 import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketplace';
 
-import {GlobalState} from 'types/store';
+import {Client4} from 'mattermost-redux/client';
+import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
+import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
+
+import {intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
+import type {DoAppCallResult} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
+
+import {createCallContext, createCallRequest} from 'utils/apps';
 import {ActionTypes} from 'utils/constants';
 
-import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import {AppCall, AppExpand, AppFormValues} from '@mattermost/types/apps';
-import {createCallContext, createCallRequest} from 'utils/apps';
-import {DoAppCallResult, intlShim} from 'components/suggestion/command_provider/app_command_parser/app_command_parser_dependencies';
+import type {GlobalState} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
 
-export function fetchRemoteListing(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function fetchRemoteListing(): NewActionFuncAsync<MarketplacePlugin[], GlobalState> { // HARRISONTODO unused
+    return async (dispatch, getState) => {
+        const state = getState();
         const filter = getFilter(state);
 
         try {
@@ -41,9 +42,9 @@ export function fetchRemoteListing(): ActionFunc {
 }
 
 // fetchPlugins fetches the latest marketplace plugins and apps, subject to any existing search filter.
-export function fetchListing(localOnly = false): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function fetchListing(localOnly = false): NewActionFuncAsync<Array<MarketplacePlugin | MarketplaceApp>, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
         const filter = getFilter(state);
 
         let plugins: MarketplacePlugin[];
@@ -86,8 +87,8 @@ export function fetchListing(localOnly = false): ActionFunc {
 }
 
 // filterListing sets a search filter for marketplace listing, fetching the latest data.
-export function filterListing(filter: string): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function filterListing(filter: string): ReturnType<typeof fetchListing> {
+    return async (dispatch) => {
         dispatch({
             type: ActionTypes.FILTER_MARKETPLACE_LISTING,
             filter,
@@ -100,14 +101,14 @@ export function filterListing(filter: string): ActionFunc {
 // installPlugin installs the latest version of the given plugin from the marketplace.
 //
 // On success, it also requests the current state of the plugins to reflect the newly installed plugin.
-export function installPlugin(id: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<void> => {
+export function installPlugin(id: string): ThunkActionFunc<void, GlobalState> {
+    return async (dispatch, getState) => {
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,
         });
 
-        const state = getState() as GlobalState;
+        const state = getState();
 
         const marketplacePlugin = getPlugin(state, id);
         if (!marketplacePlugin) {
@@ -141,8 +142,8 @@ export function installPlugin(id: string) {
 // installApp installed an App using a given URL a call to the `/install-listed` call path.
 //
 // On success, it also requests the current state of the apps to reflect the newly installed app.
-export function installApp(id: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<boolean> => {
+export function installApp(id: string): ThunkActionFunc<Promise<boolean>, GlobalState> {
+    return async (dispatch, getState) => {
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,

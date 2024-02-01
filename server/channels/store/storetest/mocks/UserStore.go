@@ -10,6 +10,8 @@ import (
 	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
+	request "github.com/mattermost/mattermost/server/public/shared/request"
+
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -162,25 +164,25 @@ func (_m *UserStore) AnalyticsGetSystemAdminCount() (int64, error) {
 	return r0, r1
 }
 
-// AutocompleteUsersInChannel provides a mock function with given fields: teamID, channelID, term, options
-func (_m *UserStore) AutocompleteUsersInChannel(teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
-	ret := _m.Called(teamID, channelID, term, options)
+// AutocompleteUsersInChannel provides a mock function with given fields: rctx, teamID, channelID, term, options
+func (_m *UserStore) AutocompleteUsersInChannel(rctx request.CTX, teamID string, channelID string, term string, options *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error) {
+	ret := _m.Called(rctx, teamID, channelID, term, options)
 
 	var r0 *model.UserAutocompleteInChannel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, string, *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)); ok {
-		return rf(teamID, channelID, term, options)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, *model.UserSearchOptions) (*model.UserAutocompleteInChannel, error)); ok {
+		return rf(rctx, teamID, channelID, term, options)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, string, *model.UserSearchOptions) *model.UserAutocompleteInChannel); ok {
-		r0 = rf(teamID, channelID, term, options)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, string, *model.UserSearchOptions) *model.UserAutocompleteInChannel); ok {
+		r0 = rf(rctx, teamID, channelID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UserAutocompleteInChannel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(teamID, channelID, term, options)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, string, *model.UserSearchOptions) error); ok {
+		r1 = rf(rctx, teamID, channelID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -534,6 +536,32 @@ func (_m *UserStore) GetByEmail(email string) (*model.User, error) {
 
 	if rf, ok := ret.Get(1).(func(string) error); ok {
 		r1 = rf(email)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetByRemoteID provides a mock function with given fields: remoteID
+func (_m *UserStore) GetByRemoteID(remoteID string) (*model.User, error) {
+	ret := _m.Called(remoteID)
+
+	var r0 *model.User
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string) (*model.User, error)); ok {
+		return rf(remoteID)
+	}
+	if rf, ok := ret.Get(0).(func(string) *model.User); ok {
+		r0 = rf(remoteID)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.User)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string) error); ok {
+		r1 = rf(remoteID)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1125,6 +1153,56 @@ func (_m *UserStore) GetUnreadCountForChannel(userID string, channelID string) (
 	return r0, r1
 }
 
+// GetUserCountForReport provides a mock function with given fields: filter
+func (_m *UserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	ret := _m.Called(filter)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.UserReportOptions) (int64, error)); ok {
+		return rf(filter)
+	}
+	if rf, ok := ret.Get(0).(func(*model.UserReportOptions) int64); ok {
+		r0 = rf(filter)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.UserReportOptions) error); ok {
+		r1 = rf(filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// GetUserReport provides a mock function with given fields: filter
+func (_m *UserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
+	ret := _m.Called(filter)
+
+	var r0 []*model.UserReportQuery
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.UserReportOptions) ([]*model.UserReportQuery, error)); ok {
+		return rf(filter)
+	}
+	if rf, ok := ret.Get(0).(func(*model.UserReportOptions) []*model.UserReportQuery); ok {
+		r0 = rf(filter)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).([]*model.UserReportQuery)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.UserReportOptions) error); ok {
+		r1 = rf(filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUsersBatchForIndexing provides a mock function with given fields: startTime, startFileID, limit
 func (_m *UserStore) GetUsersBatchForIndexing(startTime int64, startFileID string, limit int) ([]*model.UserForIndexing, error) {
 	ret := _m.Called(startTime, startFileID, limit)
@@ -1282,6 +1360,20 @@ func (_m *UserStore) PromoteGuestToUser(userID string) error {
 	return r0
 }
 
+// RefreshPostStatsForUsers provides a mock function with given fields:
+func (_m *UserStore) RefreshPostStatsForUsers() error {
+	ret := _m.Called()
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func() error); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // ResetAuthDataToEmailForUsers provides a mock function with given fields: service, userIDs, includeDeleted, dryRun
 func (_m *UserStore) ResetAuthDataToEmailForUsers(service string, userIDs []string, includeDeleted bool, dryRun bool) (int, error) {
 	ret := _m.Called(service, userIDs, includeDeleted, dryRun)
@@ -1346,25 +1438,25 @@ func (_m *UserStore) Save(user *model.User) (*model.User, error) {
 	return r0, r1
 }
 
-// Search provides a mock function with given fields: teamID, term, options
-func (_m *UserStore) Search(teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
-	ret := _m.Called(teamID, term, options)
+// Search provides a mock function with given fields: rctx, teamID, term, options
+func (_m *UserStore) Search(rctx request.CTX, teamID string, term string, options *model.UserSearchOptions) ([]*model.User, error) {
+	ret := _m.Called(rctx, teamID, term, options)
 
 	var r0 []*model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) ([]*model.User, error)); ok {
-		return rf(teamID, term, options)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, *model.UserSearchOptions) ([]*model.User, error)); ok {
+		return rf(rctx, teamID, term, options)
 	}
-	if rf, ok := ret.Get(0).(func(string, string, *model.UserSearchOptions) []*model.User); ok {
-		r0 = rf(teamID, term, options)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, string, *model.UserSearchOptions) []*model.User); ok {
+		r0 = rf(rctx, teamID, term, options)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(string, string, *model.UserSearchOptions) error); ok {
-		r1 = rf(teamID, term, options)
+	if rf, ok := ret.Get(1).(func(request.CTX, string, string, *model.UserSearchOptions) error); ok {
+		r1 = rf(rctx, teamID, term, options)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1528,25 +1620,25 @@ func (_m *UserStore) SearchWithoutTeam(term string, options *model.UserSearchOpt
 	return r0, r1
 }
 
-// Update provides a mock function with given fields: user, allowRoleUpdate
-func (_m *UserStore) Update(user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
-	ret := _m.Called(user, allowRoleUpdate)
+// Update provides a mock function with given fields: rctx, user, allowRoleUpdate
+func (_m *UserStore) Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error) {
+	ret := _m.Called(rctx, user, allowRoleUpdate)
 
 	var r0 *model.UserUpdate
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.User, bool) (*model.UserUpdate, error)); ok {
-		return rf(user, allowRoleUpdate)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, bool) (*model.UserUpdate, error)); ok {
+		return rf(rctx, user, allowRoleUpdate)
 	}
-	if rf, ok := ret.Get(0).(func(*model.User, bool) *model.UserUpdate); ok {
-		r0 = rf(user, allowRoleUpdate)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User, bool) *model.UserUpdate); ok {
+		r0 = rf(rctx, user, allowRoleUpdate)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.UserUpdate)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.User, bool) error); ok {
-		r1 = rf(user, allowRoleUpdate)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User, bool) error); ok {
+		r1 = rf(rctx, user, allowRoleUpdate)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1585,6 +1677,20 @@ func (_m *UserStore) UpdateFailedPasswordAttempts(userID string, attempts int) e
 	var r0 error
 	if rf, ok := ret.Get(0).(func(string, int) error); ok {
 		r0 = rf(userID, attempts)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// UpdateLastLogin provides a mock function with given fields: userID, lastLogin
+func (_m *UserStore) UpdateLastLogin(userID string, lastLogin int64) error {
+	ret := _m.Called(userID, lastLogin)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, int64) error); ok {
+		r0 = rf(userID, lastLogin)
 	} else {
 		r0 = ret.Error(0)
 	}

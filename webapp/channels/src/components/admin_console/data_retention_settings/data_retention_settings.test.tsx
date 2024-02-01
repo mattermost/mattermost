@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import DataRetentionSettings from './data_retention_settings';
 
@@ -12,15 +13,17 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             DataRetentionSettings: {
                 EnableMessageDeletion: true,
                 EnableFileDeletion: true,
-                EnableBoardsDeletion: true,
                 MessageRetentionDays: 100,
+                MessageRetentionHours: 2400,
                 FileRetentionDays: 100,
-                BoardsRetentionDays: 100,
+                FileRetentionHours: 2400,
                 DeletionJobStartTime: '00:15',
             },
         },
         customPolicies: {},
         customPoliciesCount: 0,
+        globalMessageRetentionHours: '2400',
+        globalFileRetentionHours: '2400',
         actions: {
             getDataRetentionCustomPolicies: jest.fn().mockResolvedValue([]),
             createJob: jest.fn(),
@@ -31,7 +34,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
     };
 
     test('should match snapshot with no custom policies', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <DataRetentionSettings
                 {...baseProps}
             />,
@@ -51,7 +54,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             },
         };
         props.customPoliciesCount = 1;
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <DataRetentionSettings
                 {...props}
             />,
@@ -71,7 +74,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             },
         };
         props.customPoliciesCount = 1;
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <DataRetentionSettings
                 {...props}
             />,
@@ -83,8 +86,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
         const props = baseProps;
         props.config.DataRetentionSettings.EnableMessageDeletion = false;
         props.config.DataRetentionSettings.EnableFileDeletion = false;
-        props.config.DataRetentionSettings.EnableBoardsDeletion = false;
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <DataRetentionSettings
                 {...props}
             />,

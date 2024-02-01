@@ -5,11 +5,11 @@ import {connect} from 'react-redux';
 
 import type {Channel} from '@mattermost/types/channels';
 
+import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
-import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
+
 import {Constants} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';

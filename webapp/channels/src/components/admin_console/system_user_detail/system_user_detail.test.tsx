@@ -2,10 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
 
 import SystemUserDetail from 'components/admin_console/system_user_detail/system_user_detail';
 
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {Constants} from 'utils/constants';
 
 jest.mock('actions/admin_actions.jsx');
@@ -29,7 +29,7 @@ describe('components/admin_console/system_user_detail', () => {
 
     test('should match default snapshot', () => {
         const props = defaultProps;
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -40,7 +40,7 @@ describe('components/admin_console/system_user_detail', () => {
                 id: null,
             },
         };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -52,7 +52,7 @@ describe('components/admin_console/system_user_detail', () => {
                 delete_at: 1561683854166,
             },
         };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -65,7 +65,7 @@ describe('components/admin_console/system_user_detail', () => {
             },
             mfaEnabled: true,
         };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -77,7 +77,7 @@ describe('components/admin_console/system_user_detail', () => {
                 nickname: null,
             },
         };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -89,7 +89,7 @@ describe('components/admin_console/system_user_detail', () => {
                 auth_service: Constants.LDAP_SERVICE,
             },
         };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
@@ -102,7 +102,7 @@ describe('components/admin_console/system_user_detail', () => {
             },
             mfaEnabled: true,
         };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 });

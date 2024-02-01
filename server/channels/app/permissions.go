@@ -14,7 +14,7 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
@@ -33,12 +33,12 @@ func (s *permissionsServiceWrapper) HasPermissionTo(userID string, permission *m
 	return s.app.HasPermissionTo(userID, permission)
 }
 
-func (s *permissionsServiceWrapper) HasPermissionToTeam(userID string, teamID string, permission *model.Permission) bool {
-	return s.app.HasPermissionToTeam(userID, teamID, permission)
+func (s *permissionsServiceWrapper) HasPermissionToTeam(c request.CTX, userID string, teamID string, permission *model.Permission) bool {
+	return s.app.HasPermissionToTeam(c, userID, teamID, permission)
 }
 
-func (s *permissionsServiceWrapper) HasPermissionToChannel(askingUserID string, channelID string, permission *model.Permission) bool {
-	return s.app.HasPermissionToChannel(request.EmptyContext(s.app.Log()), askingUserID, channelID, permission)
+func (s *permissionsServiceWrapper) HasPermissionToChannel(c request.CTX, askingUserID string, channelID string, permission *model.Permission) bool {
+	return s.app.HasPermissionToChannel(c, askingUserID, channelID, permission)
 }
 
 func (s *permissionsServiceWrapper) RolesGrantPermission(roleNames []string, permissionId string) bool {
@@ -103,14 +103,11 @@ func (a *App) ResetPermissionsSystem() *model.AppError {
 }
 
 func (a *App) ExportPermissions(w io.Writer) error {
-
 	next := a.SchemesIterator("", permissionsExportBatchSize)
 	var schemeBatch []*model.Scheme
 
 	for schemeBatch = next(); len(schemeBatch) > 0; schemeBatch = next() {
-
 		for _, scheme := range schemeBatch {
-
 			roleNames := []string{
 				scheme.DefaultTeamAdminRole,
 				scheme.DefaultTeamUserRole,
@@ -156,7 +153,6 @@ func (a *App) ExportPermissions(w io.Writer) error {
 				return err
 			}
 		}
-
 	}
 
 	defaultRoleNames := []string{}

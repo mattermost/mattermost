@@ -1,18 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AppBinding} from '@mattermost/types/apps';
+
 import {AppsTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
 import {getChannel, getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
-export function fetchAppBindings(channelID: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function fetchAppBindings(channelID: string): NewActionFuncAsync<true | AppBinding[]> {
+    return async (dispatch, getState) => {
         if (!channelID) {
             return {data: true};
         }
@@ -29,8 +29,8 @@ export function fetchAppBindings(channelID: string): ActionFunc {
     };
 }
 
-export function fetchRHSAppsBindings(channelID: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function fetchRHSAppsBindings(channelID: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
 
         const currentChannelID = getCurrentChannelId(state);

@@ -3,13 +3,13 @@
 
 import React from 'react';
 
-import {localizeMessage} from 'utils/utils';
 import EllipsisHorizontalIcon from 'components/widgets/icons/ellipsis_h_icon';
-
 import Menu from 'components/widgets/menu/menu';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 
-import {TeamWithMembership} from './types';
+import {localizeMessage} from 'utils/utils';
+
+import type {TeamWithMembership} from './types';
 
 type Props = {
     team: TeamWithMembership;

@@ -1,15 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
+import type {Scheme} from '@mattermost/types/schemes';
+
 import {SchemeTypes, UserTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
-import {SchemesState, Scheme} from '@mattermost/types/schemes';
 
 function schemes(state: {
     [x: string]: Scheme;
-} = {}, action: GenericAction): {
+} = {}, action: AnyAction): {
         [x: string]: Scheme;
     } {
     switch (action.type) {
@@ -44,6 +45,6 @@ function schemes(state: {
     }
 }
 
-export default (combineReducers({
+export default combineReducers({
     schemes,
-}) as (b: SchemesState, a: GenericAction) => SchemesState);
+});

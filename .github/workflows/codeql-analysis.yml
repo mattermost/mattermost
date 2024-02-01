@@ -15,6 +15,7 @@ jobs:
     permissions:
       security-events: write  # for github/codeql-action/autobuild to send a status report
     name: Analyze
+    if: github.repository_owner == 'mattermost'
     runs-on: ubuntu-latest
 
     strategy:

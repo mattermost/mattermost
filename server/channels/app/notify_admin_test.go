@@ -4,7 +4,6 @@
 package app
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -13,10 +12,9 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
-const PluginIdGithub = "github"
+const PluginIDGithub = "github"
 
 func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("no error sending non trial upgrade post when no notifications are available", func(t *testing.T) {
@@ -25,8 +23,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		err := th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		err := th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, err)
 	})
 
@@ -36,8 +33,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		err := th.App.SendNotifyAdminPosts(ctx, "", "", true)
+		err := th.App.SendNotifyAdminPosts(th.Context, "", "", true)
 		require.Nil(t, err)
 	})
 
@@ -62,8 +58,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", false)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -110,8 +105,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", true)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", true)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -150,14 +144,13 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
-			RequiredPlan:    PluginIdGithub,
+			RequiredPlan:    PluginIDGithub,
 			RequiredFeature: model.PluginFeature,
 			Trial:           false,
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -195,14 +188,13 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
-			RequiredPlan:    PluginIdGithub,
+			RequiredPlan:    PluginIDGithub,
 			RequiredFeature: model.PluginFeature,
 			Trial:           false,
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -242,7 +234,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		defer th.TearDown()
 
 		err := th.App.SaveAdminNotification(th.BasicUser.Id, &model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:      PluginIdGithub,
+			RequiredPlan:      PluginIDGithub,
 			RequiredFeature:   model.PluginFeature,
 			TrialNotification: false,
 		})
@@ -250,7 +242,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, err)
 
 		err = th.App.SaveAdminNotification(th.BasicUser.Id, &model.NotifyAdminToUpgradeRequest{
-			RequiredPlan:      PluginIdGithub,
+			RequiredPlan:      PluginIDGithub,
 			RequiredFeature:   model.PluginFeature,
 			TrialNotification: false,
 		})
@@ -272,8 +264,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 
 		// add some more notifications while in cool off
@@ -285,7 +276,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		require.Nil(t, appErr)
 
 		// second time trying to notify is forbidden
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.NotNil(t, appErr)
 		require.Equal(t, appErr.Error(), "SendNotifyAdminPosts: Unable to send notification post., Cannot notify yet")
 	})
@@ -307,8 +298,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 
 		// add some more notifications while in cool off
@@ -322,7 +312,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		time.Sleep(5 * time.Second)
 
 		// no error sending second time
-		appErr = th.App.SendNotifyAdminPosts(ctx, "", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "", "", false)
 		require.Nil(t, appErr)
 	})
 
@@ -349,8 +339,7 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "test", model.LicenseShortSkuProfessional, false) // try and send notification but workspace currentSKU has since changed to cloud-professional
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", model.LicenseShortSkuProfessional, false) // try and send notification but workspace currentSKU has since changed to cloud-professional
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()
@@ -385,12 +374,11 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 	t.Run("correctly send upgrade and install plugin post with the correct user request", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
+
 		os.Setenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS", "0")
 		defer os.Unsetenv("MM_NOTIFY_ADMIN_COOL_OFF_DAYS")
 
 		th.App.Srv().SetLicense(model.NewTestLicense("cloud"))
-
-		ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
 
 		// some notifications
 		_, appErr := th.App.SaveAdminNotifyData(&model.NotifyAdminData{
@@ -400,18 +388,18 @@ func Test_SendNotifyAdminPosts(t *testing.T) {
 			Trial:           false,
 		})
 		require.Nil(t, appErr)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", false)
 		require.Nil(t, appErr)
 
 		// some notifications
 		_, appErr = th.App.SaveAdminNotifyData(&model.NotifyAdminData{
 			UserId:          th.BasicUser.Id,
-			RequiredPlan:    PluginIdGithub,
+			RequiredPlan:    PluginIDGithub,
 			RequiredFeature: model.PluginFeature,
 			Trial:           false,
 		})
 		require.Nil(t, appErr)
-		appErr = th.App.SendNotifyAdminPosts(ctx, "test", "", false)
+		appErr = th.App.SendNotifyAdminPosts(th.Context, "test", "", false)
 		require.Nil(t, appErr)
 
 		bot, appErr := th.App.GetSystemBot()

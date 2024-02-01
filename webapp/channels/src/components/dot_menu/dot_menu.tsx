@@ -1,12 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
 import classNames from 'classnames';
-
-import {UserThread} from '@mattermost/types/threads';
-import {Post} from '@mattermost/types/posts';
+import React from 'react';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {
     ArrowRightBoldOutlineIcon,
@@ -17,6 +15,7 @@ import {
     EmoticonPlusOutlineIcon,
     LinkVariantIcon,
     MarkAsUnreadIcon,
+    MessageArrowRightOutlineIcon,
     MessageCheckOutlineIcon,
     MessageMinusOutlineIcon,
     PencilOutlineIcon,
@@ -25,23 +24,29 @@ import {
     ReplyOutlineIcon,
     TrashCanOutlineIcon,
 } from '@mattermost/compass-icons/components';
+import type {Post} from '@mattermost/types/posts';
+import type {UserThread} from '@mattermost/types/threads';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {ModalData} from 'types/actions';
+import DeletePostModal from 'components/delete_post_modal';
+import ForwardPostModal from 'components/forward_post_modal';
+import * as Menu from 'components/menu';
+import MoveThreadModal from 'components/move_thread_modal';
+import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+
 import {Locations, ModalIdentifiers, Constants, TELEMETRY_LABELS} from 'utils/constants';
 import DelayedAction from 'utils/delayed_action';
 import * as Keyboard from 'utils/keyboard';
 import * as PostUtils from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import DeletePostModal from 'components/delete_post_modal';
-import ForwardPostModal from 'components/forward_post_modal';
-import * as Menu from 'components/menu';
+import type {ModalData} from 'types/actions';
 
-import {ChangeEvent, trackDotMenuEvent} from './utils';
 import PostReminderSubMenu from './post_reminder_submenu';
+import {trackDotMenuEvent} from './utils';
+import type {ChangeEvent} from './utils';
+
 import './dot_menu.scss';
 
 type ShortcutKeyProps = {
@@ -58,7 +63,7 @@ type Props = {
     intl: IntlShape;
     post: Post;
     teamId: string;
-    location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | 'SEARCH' | string;
+    location?: keyof typeof Constants.Locations;
     isFlagged?: boolean;
     handleCommentClick?: React.EventHandler<any>;
     handleDropdownOpened: (open: boolean) => void;
@@ -73,6 +78,7 @@ type Props = {
     isMobileView: boolean;
     timezone?: string;
     isMilitaryTime: boolean;
+    canMove: boolean;
 
     actions: {
 
@@ -109,12 +115,13 @@ type Props = {
         /**
          * Function to set the unread mark at given post
          */
-        markPostAsUnread: (post: Post, location?: 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT' | string) => void;
+        markPostAsUnread: (post: Post, location?: string) => void;
 
         /**
          * Function to set the thread as followed/unfollowed
          */
         setThreadFollow: (userId: string, teamId: string, threadId: string, newState: boolean) => void;
+
     }; // TechDebt: Made non-mandatory while converting to typescript
 
     canEdit: boolean;
@@ -248,6 +255,24 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         trackDotMenuEvent(e, TELEMETRY_LABELS.DELETE);
     };
 
+    handleMoveThreadMenuItemActivated = (e: ChangeEvent): void => {
+        e.preventDefault();
+        if (!this.props.canMove) {
+            return;
+        }
+
+        trackDotMenuEvent(e, TELEMETRY_LABELS.MOVE_THREAD);
+        const moveThreadModalData = {
+            modalId: ModalIdentifiers.MOVE_THREAD_MODAL,
+            dialogType: MoveThreadModal,
+            dialogProps: {
+                post: this.props.post,
+            },
+        };
+
+        this.props.actions.openModal(moveThreadModalData);
+    };
+
     handleForwardMenuItemActivated = (e: ChangeEvent): void => {
         if (!this.canPostBeForwarded) {
             // adding this early return since only hiding the Item from the menu is not enough,
@@ -356,6 +381,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
         case Keyboard.isKeyPressed(event, Constants.KeyCodes.DELETE):
             forceCloseMenu();
             this.handleDeleteMenuItemActivated(event);
+            break;
+
+        // move thread
+        case Keyboard.isKeyPressed(event, Constants.KeyCodes.W):
+            forceCloseMenu();
+            this.handleMoveThreadMenuItemActivated(event);
             break;
 
             // pin / unpin
@@ -508,12 +539,12 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         onClick={this.handleForwardMenuItemActivated}
                     />
                 }
-                <ChannelPermissionGate
-                    channelId={this.props.post.channel_id}
-                    teamId={this.props.teamId}
-                    permissions={[Permissions.ADD_REACTION]}
-                >
-                    {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker) &&
+                {Boolean(isMobile && !isSystemMessage && !this.props.isReadOnly && this.props.enableEmojiPicker) &&
+                    <ChannelPermissionGate
+                        channelId={this.props.post.channel_id}
+                        teamId={this.props.teamId}
+                        permissions={[Permissions.ADD_REACTION]}
+                    >
                         <Menu.Item
                             id={`post_reaction_${this.props.post.id}`}
                             data-testid={`post_reaction_${this.props.post.id}`}
@@ -526,8 +557,8 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                             leadingElement={<EmoticonPlusOutlineIcon size={18}/>}
                             onClick={this.handleAddReactionMenuItemActivated}
                         />
-                    }
-                </ChannelPermissionGate>
+                    </ChannelPermissionGate>
+                }
                 {Boolean(
                     !isSystemMessage &&
                         this.props.isCollapsedThreadsEnabled &&
@@ -590,6 +621,19 @@ export class DotMenuClass extends React.PureComponent<Props, State> {
                         leadingElement={this.props.post.is_pinned ? <PinIcon size={18}/> : <PinOutlineIcon size={18}/>}
                         trailingElements={<ShortcutKey shortcutKey='P'/>}
                         onClick={this.handlePinMenuItemActivated}
+                    />
+                }
+                {Boolean(!isSystemMessage && this.props.canMove) &&
+                    <Menu.Item
+                        id={`move_thread_${this.props.post.id}`}
+                        labels={
+                            <FormattedMessage
+                                id={'post_info.move_thread'}
+                                defaultMessage={'Move Thread'}
+                            />}
+                        leadingElement={<MessageArrowRightOutlineIcon size={18}/>}
+                        trailingElements={<ShortcutKey shortcutKey='W'/>}
+                        onClick={this.handleMoveThreadMenuItemActivated}
                     />
                 }
                 {!isSystemMessage && (this.state.canEdit || this.state.canDelete) && <Menu.Separator/>}

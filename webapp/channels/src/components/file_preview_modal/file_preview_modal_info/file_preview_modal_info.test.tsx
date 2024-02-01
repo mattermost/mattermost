@@ -1,12 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ComponentProps} from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
-import {TestHelper} from '../../../utils/test_helper';
+import {TestHelper} from 'utils/test_helper';
 
-import {GlobalState} from '../../../types/store';
+import type {GlobalState} from 'types/store';
 
 import FilePreviewModalInfo from './file_preview_modal_info';
 

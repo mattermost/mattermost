@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Permissions} from 'mattermost-redux/constants';
-import {Channel} from '@mattermost/types/channels';
+import type {Channel} from '@mattermost/types/channels';
 
-import {GlobalState} from 'types/store';
+import {Permissions} from 'mattermost-redux/constants';
+
+import type {GlobalState} from 'types/store';
 
 import {mapStateToProps} from './index';
 

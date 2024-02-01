@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as TextFormatting from 'utils/text_formatting';
 import EmojiMap from 'utils/emoji_map';
+import * as TextFormatting from 'utils/text_formatting';
 
 const emojiMap = new EmojiMap(new Map());
 

@@ -3,7 +3,7 @@
 
 import React from 'react';
 
-import {Post} from '@mattermost/types/posts';
+import type {Post} from '@mattermost/types/posts';
 
 import PostComponent from 'components/post';
 

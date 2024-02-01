@@ -2,23 +2,16 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
-
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
-import {OAuthApp} from '@mattermost/types/integrations';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {allowOAuth2, getOAuthAppInfo} from 'actions/admin_actions.jsx';
 
-import Authorize, {Params} from './authorize';
+import Authorize from './authorize';
 
-type Actions = {
-    getOAuthAppInfo: (clientId: string | null) => Promise<{data: OAuthApp; error?: Error}>;
-    allowOAuth2: (params: Params) => Promise<{data?: any; error?: Error}>;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getOAuthAppInfo,
             allowOAuth2,
         }, dispatch),

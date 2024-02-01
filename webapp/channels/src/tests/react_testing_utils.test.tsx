@@ -3,25 +3,37 @@
 
 import React from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {connect, useSelector} from 'react-redux';
+import {connect, useDispatch, useSelector} from 'react-redux';
 import {Link, Route} from 'react-router-dom';
 
+import {GenericModal} from '@mattermost/components';
+
+import {UserTypes} from 'mattermost-redux/action_types';
 import {getUser} from 'mattermost-redux/selectors/entities/users';
+
+import {openModal} from 'actions/views/modals';
+
+import ModalController from 'components/modal_controller';
+
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
-
-import {GlobalState} from 'types/store';
-
 import {TestHelper} from 'utils/test_helper';
 
-import {renderWithFullContext, screen} from './react_testing_utils';
+import type {GlobalState} from 'types/store';
 
-describe('renderWithFullContext', () => {
+import {
+    renderWithContext,
+    screen,
+    userEvent,
+    waitFor,
+} from './react_testing_utils';
+
+describe('renderWithContext', () => {
     test('should be able to render anything', () => {
         const TestComponent = () => {
             return <div>{'Anything'}</div>;
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
             {},
         );
@@ -39,7 +51,7 @@ describe('renderWithFullContext', () => {
             );
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -53,7 +65,7 @@ describe('renderWithFullContext', () => {
             return <div>{intl.formatMessage({id: 'about.hash', defaultMessage: 'Build Hash:'})}</div>;
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -76,7 +88,7 @@ describe('renderWithFullContext', () => {
             );
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -92,7 +104,7 @@ describe('renderWithFullContext', () => {
             numProfiles: Object.keys(state.entities.users.profiles).length,
         }))(UnconnectedTestComponent);
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -105,7 +117,7 @@ describe('renderWithFullContext', () => {
             return <div>{`There are ${numProfiles} users loaded`}</div>;
         };
 
-        renderWithFullContext(
+        renderWithContext(
             <TestComponent/>,
         );
 
@@ -125,7 +137,7 @@ describe('renderWithFullContext', () => {
             );
         };
 
-        const {rerender} = renderWithFullContext(
+        const {rerender} = renderWithContext(
             <TestComponent appTitle='Mattermost'/>,
         );
 
@@ -157,7 +169,7 @@ describe('renderWithFullContext', () => {
             return <div>{`User1 is ${user1.username} and User2 is ${user2.username}!`}</div>;
         };
 
-        const {replaceStoreState} = renderWithFullContext(
+        const {replaceStoreState} = renderWithContext(
             <TestComponent/>,
             initialState,
         );
@@ -209,7 +221,7 @@ describe('renderWithFullContext', () => {
             return <div>{`User1 is ${user1.username} and User2 is ${user2.username}!`}</div>;
         };
 
-        const {updateStoreState} = renderWithFullContext(
+        const {updateStoreState} = renderWithContext(
             <TestComponent/>,
             initialState,
         );
@@ -239,5 +251,142 @@ describe('renderWithFullContext', () => {
         });
 
         expect(screen.getByText('User1 is Golf and User2 is Hotel!')).toBeInTheDocument();
+    });
+
+    test('should be able to mix rerendering and updating store state', () => {
+        const initialState = {
+            entities: {
+                users: {
+                    profiles: {
+                        user1: TestHelper.getUserMock({id: 'user1', username: 'India'}),
+                    },
+                },
+            },
+        };
+
+        const TestComponent = (props: {greeting: string}) => {
+            const user1 = useSelector((state: GlobalState) => getUser(state, 'user1'));
+
+            return <div>{`${props.greeting}, ${user1.username}!`}</div>;
+        };
+
+        const {rerender, updateStoreState} = renderWithContext(
+            <TestComponent greeting='Hello'/>,
+            initialState,
+        );
+
+        expect(screen.getByText('Hello, India!')).toBeInTheDocument();
+
+        updateStoreState({
+            entities: {
+                users: {
+                    profiles: {
+                        user1: {username: 'Juliet'},
+                    },
+                },
+            },
+        });
+
+        expect(screen.getByText('Hello, Juliet!')).toBeInTheDocument();
+
+        rerender(<TestComponent greeting='Salutations'/>);
+
+        expect(screen.getByText('Salutations, Juliet!')).toBeInTheDocument();
+
+        updateStoreState({
+            entities: {
+                users: {
+                    profiles: {
+                        user1: {username: 'Kilo'},
+                    },
+                },
+            },
+        });
+
+        expect(screen.getByText('Salutations, Kilo!')).toBeInTheDocument();
+
+        rerender(<TestComponent greeting='Bonjour'/>);
+
+        expect(screen.getByText('Bonjour, Kilo!')).toBeInTheDocument();
+    });
+
+    test('should be able to dispatch and handle redux actions', () => {
+        const TestComponent = () => {
+            const user1 = useSelector((state: GlobalState) => getUser(state, 'user1'));
+            const dispatch = useDispatch();
+
+            const username = user1 ? user1.username : 'NOT_LOADED';
+
+            const loadUser = () => {
+                dispatch({
+                    type: UserTypes.RECEIVED_PROFILE,
+                    data: {id: 'user1', username: 'Lima'},
+                });
+            };
+
+            return (
+                <div>
+                    <span>{`User1 is ${username}!`}</span>
+                    <button onClick={loadUser}>{'Load User'}</button>
+                </div>
+            );
+        };
+
+        renderWithContext(<TestComponent/>);
+
+        expect(screen.getByText('User1 is NOT_LOADED!')).toBeInTheDocument();
+
+        userEvent.click(screen.getByText('Load User'));
+
+        expect(screen.getByText('User1 is Lima!')).toBeInTheDocument();
+    });
+
+    test('should be able to render modals using a ModalController', async () => {
+        const TestComponent = () => {
+            const dispatch = useDispatch();
+
+            const openTestModal = () => {
+                dispatch(openModal({
+                    modalId: 'test_modal',
+                    dialogType: TestModal,
+                }));
+            };
+
+            return (
+                <div>
+                    <button onClick={openTestModal}>{'Open Modal'}</button>
+                </div>
+            );
+        };
+
+        const TestModal = (props: {onExited: () => void}) => {
+            return (
+                <GenericModal onExited={props.onExited}>
+                    <p>{'This is a modal!'}</p>
+                </GenericModal>
+            );
+        };
+
+        renderWithContext(
+            <>
+                <TestComponent/>
+                <ModalController/>
+            </>,
+        );
+
+        expect(screen.getByText('Open Modal')).toBeVisible();
+
+        userEvent.click(screen.getByText('Open Modal'));
+
+        // Use waitFor because the modal animates in and out
+        await waitFor(() => {
+            expect(screen.queryByText('This is a modal!')).toBeInTheDocument();
+        });
+
+        userEvent.click(screen.getByLabelText('Close'));
+
+        await waitFor(() => {
+            expect(screen.queryByText('This is a modal!')).not.toBeInTheDocument();
+        });
     });
 });

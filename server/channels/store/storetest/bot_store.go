@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -24,15 +25,15 @@ func makeBotWithUser(t *testing.T, ss store.Store, bot *model.Bot) (*model.Bot, 
 	return bot, user
 }
 
-func TestBotStore(t *testing.T, ss store.Store, s SqlStore) {
-	t.Run("Get", func(t *testing.T) { testBotStoreGet(t, ss, s) })
-	t.Run("GetAll", func(t *testing.T) { testBotStoreGetAll(t, ss, s) })
-	t.Run("Save", func(t *testing.T) { testBotStoreSave(t, ss) })
-	t.Run("Update", func(t *testing.T) { testBotStoreUpdate(t, ss) })
-	t.Run("PermanentDelete", func(t *testing.T) { testBotStorePermanentDelete(t, ss) })
+func TestBotStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	t.Run("Get", func(t *testing.T) { testBotStoreGet(t, rctx, ss, s) })
+	t.Run("GetAll", func(t *testing.T) { testBotStoreGetAll(t, rctx, ss, s) })
+	t.Run("Save", func(t *testing.T) { testBotStoreSave(t, rctx, ss) })
+	t.Run("Update", func(t *testing.T) { testBotStoreUpdate(t, rctx, ss) })
+	t.Run("PermanentDelete", func(t *testing.T) { testBotStorePermanentDelete(t, rctx, ss) })
 }
 
-func testBotStoreGet(t *testing.T, ss store.Store, s SqlStore) {
+func testBotStoreGet(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	deletedBot, _ := makeBotWithUser(t, ss, &model.Bot{
 		Username:       "deleted_bot",
 		Description:    "A deleted bot",
@@ -117,7 +118,7 @@ func testBotStoreGet(t *testing.T, ss store.Store, s SqlStore) {
 	})
 }
 
-func testBotStoreGetAll(t *testing.T, ss store.Store, s SqlStore) {
+func testBotStoreGetAll(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	OwnerId1 := model.NewId()
 	OwnerId2 := model.NewId()
 
@@ -198,7 +199,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store, s SqlStore) {
 	require.NoError(t, err1, "couldn't save user")
 
 	deletedUser.DeleteAt = model.GetMillis()
-	_, err2 := ss.User().Update(&deletedUser, true)
+	_, err2 := ss.User().Update(rctx, &deletedUser, true)
 	require.NoError(t, err2, "couldn't delete user")
 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(deletedUser.Id)) }()
@@ -310,7 +311,7 @@ func testBotStoreGetAll(t *testing.T, ss store.Store, s SqlStore) {
 	})
 }
 
-func testBotStoreSave(t *testing.T, ss store.Store) {
+func testBotStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("invalid bot", func(t *testing.T) {
 		bot := &model.Bot{
 			UserId:      model.NewId(),
@@ -358,7 +359,7 @@ func testBotStoreSave(t *testing.T, ss store.Store) {
 	})
 }
 
-func testBotStoreUpdate(t *testing.T, ss store.Store) {
+func testBotStoreUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("invalid bot should fail to update", func(t *testing.T) {
 		existingBot, _ := makeBotWithUser(t, ss, &model.Bot{
 			Username: "existing_bot",
@@ -440,7 +441,7 @@ func testBotStoreUpdate(t *testing.T, ss store.Store) {
 	})
 }
 
-func testBotStorePermanentDelete(t *testing.T, ss store.Store) {
+func testBotStorePermanentDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 	b1, _ := makeBotWithUser(t, ss, &model.Bot{
 		Username: "b1",
 		OwnerId:  model.NewId(),

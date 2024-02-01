@@ -375,7 +375,7 @@ func (g *hooksRPCClient) ServeHTTP(c *Context, w http.ResponseWriter, r *http.Re
 	go func() {
 		connection, err := g.muxBroker.Accept(serveHTTPStreamId)
 		if err != nil {
-			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint32("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
+			g.log.Error("Plugin failed to ServeHTTP, muxBroker couldn't accept connection", mlog.Uint("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
 			return
 		}
 		defer connection.Close()
@@ -652,7 +652,6 @@ func (s *hooksRPCServer) MessageWillBePosted(args *Z_MessageWillBePostedArgs, re
 		MessageWillBePosted(c *Context, post *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBePosted(args.A, args.B)
-
 	} else {
 		return encodableError(fmt.Errorf("hook MessageWillBePosted called but not implemented"))
 	}
@@ -679,13 +678,16 @@ type Z_MessageWillBeUpdatedReturns struct {
 
 func (g *hooksRPCClient) MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string) {
 	_args := &Z_MessageWillBeUpdatedArgs{c, newPost, oldPost}
-	_returns := &Z_MessageWillBeUpdatedReturns{A: _args.B}
+	_default_returns := &Z_MessageWillBeUpdatedReturns{A: _args.B}
 	if g.implemented[MessageWillBeUpdatedID] {
+		_returns := &Z_MessageWillBeUpdatedReturns{}
 		if err := g.client.Call("Plugin.MessageWillBeUpdated", _args, _returns); err != nil {
 			g.log.Error("RPC call MessageWillBeUpdated to plugin failed.", mlog.Err(err))
+			return _default_returns.A, _default_returns.B
 		}
+		return _returns.A, _returns.B
 	}
-	return _returns.A, _returns.B
+	return _default_returns.A, _default_returns.B
 }
 
 func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, returns *Z_MessageWillBeUpdatedReturns) error {
@@ -693,9 +695,45 @@ func (s *hooksRPCServer) MessageWillBeUpdated(args *Z_MessageWillBeUpdatedArgs, 
 		MessageWillBeUpdated(c *Context, newPost, oldPost *model.Post) (*model.Post, string)
 	}); ok {
 		returns.A, returns.B = hook.MessageWillBeUpdated(args.A, args.B, args.C)
-
 	} else {
 		return encodableError(fmt.Errorf("hook MessageWillBeUpdated called but not implemented"))
+	}
+	return nil
+}
+
+// MessagesWillBeConsumed is in this file because of the difficulty of identifying which fields need special behaviour.
+// The special behaviour needed is decoding the returned post into the original one to avoid the unintentional removal
+// of fields by older plugins.
+func init() {
+	hookNameToId["MessagesWillBeConsumed"] = MessagesWillBeConsumedID
+}
+
+type Z_MessagesWillBeConsumedArgs struct {
+	A []*model.Post
+}
+
+type Z_MessagesWillBeConsumedReturns struct {
+	A []*model.Post
+}
+
+func (g *hooksRPCClient) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+	_args := &Z_MessagesWillBeConsumedArgs{posts}
+	_returns := &Z_MessagesWillBeConsumedReturns{}
+	if g.implemented[MessagesWillBeConsumedID] {
+		if err := g.client.Call("Plugin.MessagesWillBeConsumed", _args, _returns); err != nil {
+			g.log.Error("RPC call MessagesWillBeConsumed to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) MessagesWillBeConsumed(args *Z_MessagesWillBeConsumedArgs, returns *Z_MessagesWillBeConsumedReturns) error {
+	if hook, ok := s.impl.(interface {
+		MessagesWillBeConsumed(posts []*model.Post) []*model.Post
+	}); ok {
+		returns.A = hook.MessagesWillBeConsumed(args.A)
+	} else {
+		return encodableError(fmt.Errorf("hook MessagesWillBeConsumed called but not implemented"))
 	}
 	return nil
 }
@@ -715,7 +753,6 @@ func (g *apiRPCClient) LogDebug(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogDebug", _args, _returns); err != nil {
 		log.Printf("RPC call to LogDebug API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogDebug(args *Z_LogDebugArgs, returns *Z_LogDebugReturns) error {
@@ -744,7 +781,6 @@ func (g *apiRPCClient) LogInfo(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogInfo", _args, _returns); err != nil {
 		log.Printf("RPC call to LogInfo API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogInfo(args *Z_LogInfoArgs, returns *Z_LogInfoReturns) error {
@@ -773,7 +809,6 @@ func (g *apiRPCClient) LogWarn(msg string, keyValuePairs ...any) {
 	if err := g.client.Call("Plugin.LogWarn", _args, _returns); err != nil {
 		log.Printf("RPC call to LogWarn API failed: %s", err.Error())
 	}
-
 }
 
 func (s *apiRPCServer) LogWarn(args *Z_LogWarnArgs, returns *Z_LogWarnReturns) error {
@@ -916,5 +951,109 @@ func (s *apiRPCServer) UploadData(args *Z_UploadDataArgs, returns *Z_UploadDataR
 	defer pluginReader.Close()
 
 	returns.A, returns.B = hook.UploadData(args.A, pluginReader)
+	return nil
+}
+
+func init() {
+	hookNameToId["ServeMetrics"] = ServeMetricsID
+}
+
+type Z_ServeMetricsArgs struct {
+	ResponseWriterStream uint32
+	Request              *http.Request
+	Context              *Context
+	RequestBodyStream    uint32
+}
+
+func (g *hooksRPCClient) ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request) {
+	if !g.implemented[ServeMetricsID] {
+		http.NotFound(w, r)
+		return
+	}
+
+	serveMetricsStreamId := g.muxBroker.NextId()
+	go func() {
+		connection, err := g.muxBroker.Accept(serveMetricsStreamId)
+		if err != nil {
+			g.log.Error("Plugin failed to ServeMetrics, muxBroker couldn't accept connection", mlog.Uint("serve_http_stream_id", serveMetricsStreamId), mlog.Err(err))
+			return
+		}
+		defer connection.Close()
+
+		rpcServer := rpc.NewServer()
+		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w, log: g.log}); err != nil {
+			g.log.Error("Plugin failed to ServeMetrics, couldn't register RPC name", mlog.Err(err))
+			return
+		}
+		rpcServer.ServeConn(connection)
+	}()
+
+	requestBodyStreamId := uint32(0)
+	if r.Body != nil {
+		requestBodyStreamId = g.muxBroker.NextId()
+		go func() {
+			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
+			if err != nil {
+				g.log.Error("Plugin failed to ServeMetrics, muxBroker couldn't Accept request body connection", mlog.Err(err))
+				return
+			}
+			defer bodyConnection.Close()
+			serveIOReader(r.Body, bodyConnection)
+		}()
+	}
+
+	forwardedRequest := &http.Request{
+		Method:     r.Method,
+		URL:        r.URL,
+		Proto:      r.Proto,
+		ProtoMajor: r.ProtoMajor,
+		ProtoMinor: r.ProtoMinor,
+		Header:     r.Header,
+		Host:       r.Host,
+		RemoteAddr: r.RemoteAddr,
+		RequestURI: r.RequestURI,
+	}
+
+	if err := g.client.Call("Plugin.ServeMetrics", Z_ServeMetricsArgs{
+		Context:              c,
+		ResponseWriterStream: serveMetricsStreamId,
+		Request:              forwardedRequest,
+		RequestBodyStream:    requestBodyStreamId,
+	}, nil); err != nil {
+		g.log.Error("Plugin failed to ServeMetrics, RPC call failed", mlog.Err(err))
+		http.Error(w, "500 internal server error", http.StatusInternalServerError)
+	}
+}
+
+func (s *hooksRPCServer) ServeMetrics(args *Z_ServeMetricsArgs, returns *struct{}) error {
+	connection, err := s.muxBroker.Dial(args.ResponseWriterStream)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response writer stream, error: %v", err.Error())
+		return err
+	}
+	w := connectHTTPResponseWriter(connection)
+	defer w.Close()
+
+	r := args.Request
+	if args.RequestBodyStream != 0 {
+		connection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
+			return err
+		}
+		r.Body = connectIOReader(connection)
+	} else {
+		r.Body = io.NopCloser(&bytes.Buffer{})
+	}
+	defer r.Body.Close()
+
+	if hook, ok := s.impl.(interface {
+		ServeMetrics(c *Context, w http.ResponseWriter, r *http.Request)
+	}); ok {
+		hook.ServeMetrics(args.Context, w, r)
+	} else {
+		http.NotFound(w, r)
+	}
+
 	return nil
 }

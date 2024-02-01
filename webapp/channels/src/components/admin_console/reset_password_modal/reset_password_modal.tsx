@@ -5,8 +5,9 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import * as Utils from 'utils/utils';
 
@@ -23,7 +24,7 @@ type State = {
     serverErrorCurrentPass: React.ReactNode;
 }
 
-type Props = {
+export type Props = {
     user?: UserProfile;
     currentUserId: string;
     show: boolean;
@@ -31,7 +32,7 @@ type Props = {
     onModalDismissed: () => void;
     passwordConfig: PasswordConfig;
     actions: {
-        updateUserPassword: (userId: string, currentPassword: string, password: string) => ActionResult;
+        updateUserPassword: (userId: string, currentPassword: string, password: string) => Promise<ActionResult>;
     };
 }
 
@@ -223,7 +224,7 @@ export default class ResetPasswordModal extends React.PureComponent<Props, State
                     <Modal.Footer>
                         <button
                             type='button'
-                            className='btn btn-link'
+                            className='btn btn-tertiary'
                             onClick={this.doCancel}
                         >
                             <FormattedMessage

@@ -2,22 +2,20 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage, useIntl} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {FormattedMessage, useIntl} from 'react-intl';
+import {GenericModal} from '@mattermost/components';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
-
+import {trackEvent} from 'actions/telemetry_actions';
+import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {GenericModal} from '@mattermost/components';
 import Svg from 'components/common/svg_images_components/woman_credit_card_and_laptop_svg';
 
 import {ModalIdentifiers, TELEMETRY_CATEGORIES} from 'utils/constants';
 
-import {closeModal} from 'actions/views/modals';
-import {trackEvent} from 'actions/telemetry_actions';
+import type {GlobalState} from 'types/store';
 
 import './switch_to_yearly_plan_confirm_modal.scss';
 
@@ -27,7 +25,7 @@ type Props = {
 }
 
 const SwitchToYearlyPlanConfirmModal: React.FC<Props> = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const {formatMessage} = useIntl();
 
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.CONFIRM_SWITCH_TO_YEARLY));

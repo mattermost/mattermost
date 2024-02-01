@@ -19,7 +19,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
@@ -43,7 +43,7 @@ func (a *App) CheckForClientSideCert(r *http.Request) (string, string, string) {
 	return pem, subject, email
 }
 
-func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
+func (a *App) AuthenticateUserForLogin(c request.CTX, id, loginId, password, mfaToken, cwsToken string, ldapOnly bool) (user *model.User, err *model.AppError) {
 	// Do statistics
 	defer func() {
 		if a.Metrics() != nil {
@@ -60,7 +60,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 	}
 
 	// Get the MM user we are trying to login
-	if user, err = a.GetUserForLogin(id, loginId); err != nil {
+	if user, err = a.GetUserForLogin(c, id, loginId); err != nil {
 		return nil, err
 	}
 
@@ -72,7 +72,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 		}
 		token, err := a.Srv().Store().Token().GetByToken(cwsToken)
 		if nfErr := new(store.ErrNotFound); err != nil && !errors.As(err, &nfErr) {
-			mlog.Debug("Error retrieving the cws token from the store", mlog.Err(err))
+			c.Logger().Debug("Error retrieving the cws token from the store", mlog.Err(err))
 			return nil, model.NewAppError("AuthenticateUserForLogin",
 				"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -90,7 +90,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 			}
 			err := a.Srv().Store().Token().Save(token)
 			if err != nil {
-				mlog.Debug("Error storing the cws token in the store", mlog.Err(err))
+				c.Logger().Debug("Error storing the cws token in the store", mlog.Err(err))
 				return nil, model.NewAppError("AuthenticateUserForLogin",
 					"api.user.login_by_cws.invalid_token.app_error", nil, "", http.StatusInternalServerError)
 			}
@@ -120,7 +120,7 @@ func (a *App) AuthenticateUserForLogin(c *request.Context, id, loginId, password
 	return user, nil
 }
 
-func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError) {
+func (a *App) GetUserForLogin(c request.CTX, id, loginId string) (*model.User, *model.AppError) {
 	enableUsername := *a.Config().EmailSettings.EnableSignInWithUsername
 	enableEmail := *a.Config().EmailSettings.EnableSignInWithEmail
 
@@ -145,7 +145,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 
 	// Try to get the user with LDAP if enabled
 	if *a.Config().LdapSettings.Enable && a.Ldap() != nil {
-		if ldapUser, err := a.Ldap().GetUser(loginId); err == nil {
+		if ldapUser, err := a.Ldap().GetUser(c, loginId); err == nil {
 			if user, err := a.GetUserByAuth(ldapUser.AuthData, model.UserAuthServiceLdap); err == nil {
 				return user, nil
 			}
@@ -156,7 +156,7 @@ func (a *App) GetUserForLogin(id, loginId string) (*model.User, *model.AppError)
 	return nil, model.NewAppError("GetUserForLogin", "store.sql_user.get_for_login.app_error", nil, "", http.StatusBadRequest)
 }
 
-func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) *model.AppError {
+func (a *App) DoLogin(c request.CTX, w http.ResponseWriter, r *http.Request, user *model.User, deviceID string, isMobile, isOAuthUser, isSaml bool) (*model.Session, *model.AppError) {
 	var rejectionReason string
 	pluginContext := pluginContext(c)
 	a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
@@ -165,7 +165,7 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	}, plugin.UserWillLogInID)
 
 	if rejectionReason != "" {
-		return model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
+		return nil, model.NewAppError("DoLogin", "Login rejected by plugin: "+rejectionReason, nil, "", http.StatusBadRequest)
 	}
 
 	session := &model.Session{UserId: user.Id, Roles: user.GetRawRoles(), DeviceId: deviceID, IsOAuth: false, Props: map[string]string{
@@ -179,9 +179,9 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
 
 		// A special case where we logout of all other sessions with the same Id
-		if err := a.RevokeSessionsForDeviceId(user.Id, deviceID, ""); err != nil {
+		if err := a.RevokeSessionsForDeviceId(c, user.Id, deviceID, ""); err != nil {
 			err.StatusCode = http.StatusInternalServerError
-			return err
+			return nil, err
 		}
 	} else if isMobile {
 		a.ch.srv.platform.SetSessionExpireInHours(session, *a.Config().ServiceSettings.SessionLengthMobileInHours)
@@ -208,14 +208,19 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 	}
 
 	var err *model.AppError
-	if session, err = a.CreateSession(session); err != nil {
+	if session, err = a.CreateSession(c, session); err != nil {
 		err.StatusCode = http.StatusInternalServerError
-		return err
+		return nil, err
+	}
+
+	if updateErr := a.Srv().Store().User().UpdateLastLogin(user.Id, session.CreateAt); updateErr != nil {
+		return nil, model.NewAppError("DoLogin", "app.login.doLogin.updateLastLogin.error", nil, updateErr.Error(), http.StatusInternalServerError)
 	}
 
 	w.Header().Set(model.HeaderToken, session.Token)
 
-	c.SetSession(session)
+	c = c.WithSession(session)
+
 	if a.Srv().License() != nil && *a.Srv().License().Features.LDAP && a.Ldap() != nil {
 		userVal := *user
 		sessionVal := *session
@@ -231,10 +236,10 @@ func (a *App) DoLogin(c *request.Context, w http.ResponseWriter, r *http.Request
 		}, plugin.UserHasLoggedInID)
 	})
 
-	return nil
+	return session, nil
 }
 
-func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter, r *http.Request) {
+func (a *App) AttachCloudSessionCookie(c request.CTX, w http.ResponseWriter, r *http.Request) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true
@@ -257,7 +262,6 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	if strings.Contains(domain, "localhost") {
 		workspaceName = "localhost"
 	} else {
-
 		// ensure we have a format for a cloud workspace url i.e. example.cloud.mattermost.com
 		if len(strings.Split(domain, ".")) != 4 {
 			return
@@ -278,10 +282,9 @@ func (a *App) AttachCloudSessionCookie(c *request.Context, w http.ResponseWriter
 	}
 
 	http.SetCookie(w, cookie)
-
 }
 
-func (a *App) AttachSessionCookies(c *request.Context, w http.ResponseWriter, r *http.Request) {
+func (a *App) AttachSessionCookies(c request.CTX, w http.ResponseWriter, r *http.Request) {
 	secure := false
 	if GetProtocol(r) == "https" {
 		secure = true

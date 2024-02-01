@@ -1,14 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ServerError} from '@mattermost/types/errors';
+import type {ServerError} from '@mattermost/types/errors';
 
-import {Client4} from 'mattermost-redux/client';
 import {UserTypes} from 'mattermost-redux/action_types';
-
-import {ActionFunc, GenericAction, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import {Client4} from 'mattermost-redux/client';
+import type {DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
+
 type ActionType = string;
 const HTTP_UNAUTHORIZED = 401;
 export function forceLogoutIfNecessary(err: ServerError, dispatch: DispatchFunc, getState: GetStateFunc) {
@@ -28,7 +28,7 @@ function dispatcher(type: ActionType, data: any, dispatch: DispatchFunc) {
     }
 }
 
-export function requestData(type: ActionType): GenericAction {
+export function requestData(type: ActionType) {
     return {
         type,
         data: null,
@@ -63,27 +63,31 @@ export function requestFailure(type: ActionType, error: ServerError): any {
  * @returns {ActionFunc} ActionFunc
  */
 
-export function bindClientFunc({
+export function bindClientFunc<Func extends(...args: any[]) => Promise<any>>({
     clientFunc,
     onRequest,
     onSuccess,
     onFailure,
-    params = [],
+    params,
 }: {
-    clientFunc: (...args: any[]) => Promise<any>;
+    clientFunc: Func;
     onRequest?: ActionType;
     onSuccess?: ActionType | ActionType[];
     onFailure?: ActionType;
-    params?: any[];
-}): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    params?: Parameters<Func>;
+}): NewActionFuncAsync<Awaited<ReturnType<Func>>> {
+    return async (dispatch, getState) => {
         if (onRequest) {
             dispatch(requestData(onRequest));
         }
 
-        let data: any = null;
+        let data: Awaited<ReturnType<Func>>;
         try {
-            data = await clientFunc(...params);
+            if (params) {
+                data = await clientFunc(...params);
+            } else {
+                data = await clientFunc();
+            }
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             if (onFailure) {

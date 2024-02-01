@@ -22,10 +22,10 @@ func TestAvailablePlugins(t *testing.T) {
 		os.RemoveAll(dir)
 	})
 
-	testLogger, _ := mlog.NewLogger()
+	logger := mlog.CreateConsoleTestLogger(t)
 	env := Environment{
 		pluginDir: dir,
-		logger:    testLogger,
+		logger:    logger,
 	}
 
 	t.Run("Should be able to load available plugins", func(t *testing.T) {
@@ -68,28 +68,6 @@ func TestAvailablePlugins(t *testing.T) {
 		err := os.Mkdir(filepath.Join(dir, "plugin3"), 0700)
 		require.NoError(t, err)
 		defer os.RemoveAll(filepath.Join(dir, "plugin3"))
-
-		bundles, err := env.Available()
-		require.NoError(t, err)
-		require.Len(t, bundles, 0)
-	})
-
-	t.Run("Should not load bundles on blocklist", func(t *testing.T) {
-		bundle := model.BundleInfo{
-			Manifest: &model.Manifest{
-				Id:      "playbooks",
-				Version: "1",
-			},
-		}
-		err := os.Mkdir(filepath.Join(dir, "plugin4"), 0700)
-		require.NoError(t, err)
-		defer os.RemoveAll(filepath.Join(dir, "plugin4"))
-
-		path := filepath.Join(dir, "plugin4", "plugin.json")
-		manifestJSON, jsonErr := json.Marshal(bundle.Manifest)
-		require.NoError(t, jsonErr)
-		err = os.WriteFile(path, manifestJSON, 0644)
-		require.NoError(t, err)
 
 		bundles, err := env.Available()
 		require.NoError(t, err)

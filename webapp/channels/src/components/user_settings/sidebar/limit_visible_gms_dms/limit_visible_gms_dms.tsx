@@ -1,17 +1,22 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {RefObject} from 'react';
-import ReactSelect, {ValueType} from 'react-select';
+import React from 'react';
+import type {RefObject} from 'react';
 import {FormattedMessage} from 'react-intl';
+import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
+
+import type {PreferenceType} from '@mattermost/types/preferences';
 
 import {Preferences} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import SettingItemMax from 'components/setting_item_max';
 import SettingItemMin from 'components/setting_item_min';
-import SettingItemMinComponent from 'components/setting_item_min/setting_item_min';
-import {localizeMessage} from 'utils/utils';
+import type SettingItemMinComponent from 'components/setting_item_min';
 
-import {PreferenceType} from '@mattermost/types/preferences';
+import {localizeMessage} from 'utils/utils';
 
 type Limit = {
     value: number;
@@ -22,7 +27,7 @@ type Props = {
     active: boolean;
     areAllSectionsInactive: boolean;
     currentUserId: string;
-    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<{data: boolean}>;
+    savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     dmGmLimit: number;
     updateSection: (section: string) => void;
 }

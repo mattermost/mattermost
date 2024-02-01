@@ -3,7 +3,8 @@
 
 import {useMemo} from 'react';
 
-import {CloudUsage, Limits} from '@mattermost/types/cloud';
+import type {CloudUsage, Limits} from '@mattermost/types/cloud';
+
 import {limitThresholds, LimitTypes} from 'utils/limits';
 
 interface MaybeLimitSummary {

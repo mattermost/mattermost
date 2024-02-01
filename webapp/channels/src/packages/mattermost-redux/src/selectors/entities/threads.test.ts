@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import TestHelper from '../../../test/test_helper';
 import deepFreezeAndThrowOnMutation from 'mattermost-redux/utils/deep_freeze';
 
 import * as Selectors from './threads';
+
+import TestHelper from '../../../test/test_helper';
 
 describe('Selectors.Threads.getThreadOrderInCurrentTeam', () => {
     const team1 = TestHelper.fakeTeamWithId();

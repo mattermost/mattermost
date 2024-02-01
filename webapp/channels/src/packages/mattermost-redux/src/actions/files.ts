@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Client4} from 'mattermost-redux/client';
+import type {FileSearchResultItem} from '@mattermost/types/files';
+import type {Post} from '@mattermost/types/posts';
+
 import {FileTypes} from 'mattermost-redux/action_types';
-
-import {DispatchFunc, GetStateFunc, ActionFunc} from 'mattermost-redux/types/actions';
-
-import {FileSearchResultItem} from '@mattermost/types/files';
-import {Post} from '@mattermost/types/posts';
+import {Client4} from 'mattermost-redux/client';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -19,8 +18,8 @@ export function receivedFiles(files: Map<string, FileSearchResultItem>) {
     };
 }
 
-export function getMissingFilesByPosts(posts: Post[]) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getMissingFilesByPosts(posts: Post[]): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const {files} = getState().entities.files;
         const postIds = posts.reduce((curr: Array<Post['id']>, post: Post) => {
             const {file_ids: fileIds} = post;
@@ -32,18 +31,16 @@ export function getMissingFilesByPosts(posts: Post[]) {
             return curr;
         }, []);
 
-        const promises: Array<Promise<any>> = [];
-
         for (const id of postIds) {
             dispatch(getFilesForPost(id));
         }
 
-        return {data: promises};
+        return {data: true};
     };
 }
 
-export function getFilesForPost(postId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function getFilesForPost(postId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let files;
 
         try {
@@ -64,7 +61,7 @@ export function getFilesForPost(postId: string): ActionFunc {
     };
 }
 
-export function getFilePublicLink(fileId: string): ActionFunc {
+export function getFilePublicLink(fileId: string) {
     return bindClientFunc({
         clientFunc: Client4.getFilePublicLink,
         onSuccess: FileTypes.RECEIVED_FILE_PUBLIC_LINK,

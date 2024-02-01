@@ -2,20 +2,21 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import styled from 'styled-components';
 import {useIntl} from 'react-intl';
+import styled from 'styled-components';
 
-import BotTag from 'components/widgets/tag/bot_tag';
-import GuestTag from 'components/widgets/tag/guest_tag';
-import Markdown from 'components/markdown';
-import ProfilePicture from 'components/profile_picture';
+import type {Channel} from '@mattermost/types/channels';
+
 import {Client4} from 'mattermost-redux/client';
 
-import {Channel} from '@mattermost/types/channels';
+import Markdown from 'components/markdown';
+import ProfilePicture from 'components/profile_picture';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
 
-import {DMUser} from './channel_info_rhs';
-import LineLimiter from './components/linelimiter';
+import type {DMUser} from './channel_info_rhs';
 import EditableArea from './components/editable_area';
+import LineLimiter from './components/linelimiter';
 
 const Username = styled.p`
     font-family: Metropolis, sans-serif;
@@ -94,7 +95,6 @@ const AboutAreaDM = ({channel, dmUser, actions}: Props) => {
                         src={Client4.getProfilePictureUrl(dmUser.user.id, dmUser.user.last_picture_update)}
                         isBot={dmUser.user.is_bot}
                         status={dmUser.status ? dmUser.status : undefined}
-                        isRHS={true}
                         username={dmUser.display_name}
                         userId={dmUser.user.id}
                         channelId={channel.id}

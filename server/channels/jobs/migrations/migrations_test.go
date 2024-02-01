@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func TestGetMigrationState(t *testing.T) {
@@ -17,13 +18,14 @@ func TestGetMigrationState(t *testing.T) {
 		t.SkipNow()
 	}
 	store := Setup(t)
+	ctx := request.TestContext(t)
 
 	migrationKey := model.NewId()
 
-	deleteAllJobsByTypeAndMigrationKey(store, model.JobTypeMigrations, migrationKey)
+	deleteAllJobsByTypeAndMigrationKey(t, store, model.JobTypeMigrations, migrationKey)
 
 	// Test with no job yet.
-	state, job, err := GetMigrationState(migrationKey, store)
+	state, job, err := GetMigrationState(ctx, migrationKey, store)
 	assert.Nil(t, err)
 	assert.Nil(t, job)
 	assert.Equal(t, "unscheduled", state)
@@ -36,7 +38,7 @@ func TestGetMigrationState(t *testing.T) {
 	nErr := store.System().Save(&system)
 	assert.NoError(t, nErr)
 
-	state, job, err = GetMigrationState(migrationKey, store)
+	state, job, err = GetMigrationState(ctx, migrationKey, store)
 	assert.Nil(t, err)
 	assert.Nil(t, job)
 	assert.Equal(t, "completed", state)
@@ -58,7 +60,7 @@ func TestGetMigrationState(t *testing.T) {
 	j1, nErr = store.Job().Save(j1)
 	require.NoError(t, nErr)
 
-	state, job, err = GetMigrationState(migrationKey, store)
+	state, job, err = GetMigrationState(ctx, migrationKey, store)
 	assert.Nil(t, err)
 	assert.Equal(t, j1.Id, job.Id)
 	assert.Equal(t, "in_progress", state)
@@ -77,7 +79,7 @@ func TestGetMigrationState(t *testing.T) {
 	j2, nErr = store.Job().Save(j2)
 	require.NoError(t, nErr)
 
-	state, job, err = GetMigrationState(migrationKey, store)
+	state, job, err = GetMigrationState(ctx, migrationKey, store)
 	assert.Nil(t, err)
 	assert.Equal(t, j2.Id, job.Id)
 	assert.Equal(t, "in_progress", state)
@@ -96,7 +98,7 @@ func TestGetMigrationState(t *testing.T) {
 	j3, nErr = store.Job().Save(j3)
 	require.NoError(t, nErr)
 
-	state, job, err = GetMigrationState(migrationKey, store)
+	state, job, err = GetMigrationState(ctx, migrationKey, store)
 	assert.Nil(t, err)
 	assert.Equal(t, j3.Id, job.Id)
 	assert.Equal(t, "unscheduled", state)

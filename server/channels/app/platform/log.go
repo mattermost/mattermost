@@ -31,7 +31,10 @@ func (ps *PlatformService) initLogging() error {
 	// create the app logger if needed
 	if ps.logger == nil {
 		var err error
-		ps.logger, err = mlog.NewLogger()
+		ps.logger, err = mlog.NewLogger(
+			mlog.MaxFieldLen(*ps.Config().LogSettings.MaxFieldSize),
+			mlog.StackFilter("log"),
+		)
 		if err != nil {
 			return err
 		}

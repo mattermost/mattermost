@@ -2,13 +2,28 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
 import {FormattedMessage} from 'react-intl';
 
 import SchemaText from 'components/admin_console/schema_text';
 
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+
 import SchemaAdminSettings from './schema_admin_settings';
 import ValidationResult from './validation';
+
+const getBaseProps = () => {
+    return {
+        cloud: {},
+        consoleAccess: {},
+        editRole: jest.fn(),
+        enterpriseReady: false,
+        isCurrentUserSystemAdmin: false,
+        isDisabled: false,
+        license: {},
+        roles: {},
+        setNavigationBlocked: jest.fn(),
+    };
+};
 
 describe('components/admin_console/SchemaAdminSettings', () => {
     let schema = null;
@@ -234,8 +249,9 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     });
 
     test('should match snapshot with settings and plugin', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SchemaAdminSettings
+                {...getBaseProps()}
                 config={config}
                 environmentConfig={environmentConfig}
                 schema={{...schema}}
@@ -246,8 +262,9 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     });
 
     test('should match snapshot with custom component', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <SchemaAdminSettings
+                {...getBaseProps()}
                 config={config}
                 environmentConfig={environmentConfig}
                 schema={{component: () => <p>{'Test'}</p>}}
@@ -260,6 +277,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     test('should render header using a SchemaText', () => {
         const headerText = 'This is [a link](!https://example.com) in the header';
         const props = {
+            ...getBaseProps(),
             config,
             environmentConfig,
             schema: {
@@ -269,7 +287,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             updateConfig: jest.fn(),
         };
 
-        const wrapper = shallow(<SchemaAdminSettings {...props}/>);
+        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
 
         const header = wrapper.find(SchemaText);
         expect(header.exists()).toBe(true);
@@ -282,6 +300,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     test('should render footer using a SchemaText', () => {
         const footerText = 'This is [a link](https://example.com) in the footer';
         const props = {
+            ...getBaseProps(),
             config,
             environmentConfig,
             schema: {
@@ -291,7 +310,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             updateConfig: jest.fn(),
         };
 
-        const wrapper = shallow(<SchemaAdminSettings {...props}/>);
+        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
 
         const footer = wrapper.find(SchemaText);
         expect(footer.exists()).toBe(true);
@@ -303,13 +322,14 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
     test('should render page not found', () => {
         const props = {
+            ...getBaseProps(),
             config,
             environmentConfig,
             schema: null,
             updateConfig: jest.fn(),
         };
 
-        const wrapper = shallow(<SchemaAdminSettings {...props}/>);
+        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
 
         expect(wrapper.contains(
             <FormattedMessage
@@ -335,13 +355,14 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             },
         ];
         const props = {
+            ...getBaseProps(),
             config,
             environmentConfig,
             schema: localSchema,
             updateConfig: jest.fn(),
         };
 
-        const wrapper = shallow(<SchemaAdminSettings {...props}/>);
+        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
 
         expect(wrapper.instance().canSave()).toBe(true);
         expect(mockValidate).not.toHaveBeenCalled();
@@ -364,13 +385,14 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             },
         ];
         const props = {
+            ...getBaseProps(),
             config,
             environmentConfig,
             schema: localSchema,
             updateConfig: jest.fn(),
         };
 
-        const wrapper = shallow(<SchemaAdminSettings {...props}/>);
+        const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
 
         expect(wrapper.instance().canSave()).toBe(true);
         expect(mockValidate).toHaveBeenCalled();

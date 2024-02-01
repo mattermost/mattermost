@@ -15,7 +15,6 @@ import (
 )
 
 func ValidateSchemeImportData(data *SchemeImportData) *model.AppError {
-
 	if data.Scope == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_scheme_import_data.null_scope.error", nil, "", http.StatusBadRequest)
 	}
@@ -85,7 +84,6 @@ func ValidateSchemeImportData(data *SchemeImportData) *model.AppError {
 }
 
 func ValidateRoleImportData(data *RoleImportData) *model.AppError {
-
 	if data.Name == nil || !model.IsValidRoleName(*data.Name) {
 		return model.NewAppError("BulkImport", "app.import.validate_role_import_data.name_invalid.error", nil, "", http.StatusBadRequest)
 	}
@@ -118,7 +116,6 @@ func ValidateRoleImportData(data *RoleImportData) *model.AppError {
 }
 
 func ValidateTeamImportData(data *TeamImportData) *model.AppError {
-
 	if data.Name == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_team_import_data.name_missing.error", nil, "", http.StatusBadRequest)
 	} else if len(*data.Name) > model.TeamNameMaxLength {
@@ -153,7 +150,6 @@ func ValidateTeamImportData(data *TeamImportData) *model.AppError {
 }
 
 func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
-
 	if data.Team == nil {
 		return model.NewAppError("BulkImport", "app.import.validate_channel_import_data.team_missing.error", nil, "", http.StatusBadRequest)
 	}
@@ -194,9 +190,9 @@ func ValidateChannelImportData(data *ChannelImportData) *model.AppError {
 }
 
 func ValidateUserImportData(data *UserImportData) *model.AppError {
-	if data.ProfileImage != nil {
+	if data.ProfileImage != nil && data.ProfileImageData == nil {
 		if _, err := os.Stat(*data.ProfileImage); os.IsNotExist(err) {
-			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest)
+			return model.NewAppError("BulkImport", "app.import.validate_user_import_data.profile_image.error", nil, "", http.StatusBadRequest).Wrap(err)
 		}
 	}
 
@@ -440,7 +436,7 @@ func ValidateReplyImportData(data *ReplyImportData, parentCreateAt int64, maxPos
 	} else if *data.CreateAt == 0 {
 		return model.NewAppError("BulkImport", "app.import.validate_reply_import_data.create_at_zero.error", nil, "", http.StatusBadRequest)
 	} else if *data.CreateAt < parentCreateAt {
-		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int64("reply_create_at", *data.CreateAt), mlog.Int64("parent_create_at", parentCreateAt))
+		mlog.Warn("Reply CreateAt is before parent post CreateAt", mlog.Int("reply_create_at", *data.CreateAt), mlog.Int("parent_create_at", parentCreateAt))
 	}
 
 	return nil

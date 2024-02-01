@@ -163,7 +163,6 @@ func TestSendInviteEmails(t *testing.T) {
 			false,
 		)
 		require.Error(t, err)
-
 	})
 
 	t.Run("SendGuestInviteEmails should sanitize HTML input", func(t *testing.T) {
@@ -356,7 +355,6 @@ func TestSendCloudWelcomeEmail(t *testing.T) {
 			require.NoError(t, err, "Could not get message from mailbox")
 			require.Contains(t, resultsEmail.Subject, "Congratulations!", "Wrong subject message %s", resultsEmail.Subject)
 			require.Contains(t, resultsEmail.Body.Text, "Your workspace is ready to go!", "Wrong body %s", resultsEmail.Body.Text)
-
 		}
 		mail.DeleteMailBox(emailTo)
 

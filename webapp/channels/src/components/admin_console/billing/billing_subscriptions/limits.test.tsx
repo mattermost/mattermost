@@ -2,22 +2,18 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import * as redux from 'react-redux';
-import {Provider} from 'react-redux';
 
-import {renderWithIntl, screen} from 'tests/react_testing_utils';
-import mockStore from 'tests/test_store';
+import type {Subscription, Product} from '@mattermost/types/cloud';
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import * as cloudActions from 'actions/cloud';
 
-import {FileSizes} from 'utils/file_utils';
+import {renderWithContext, screen} from 'tests/react_testing_utils';
 import {Constants, CloudProducts} from 'utils/constants';
-
-import {UserProfile, UsersState} from '@mattermost/types/users';
-import {GlobalState} from '@mattermost/types/store';
-
-import {Subscription, Product} from '@mattermost/types/cloud';
+import {FileSizes} from 'utils/file_utils';
 
 import Limits from './limits';
 
@@ -40,7 +36,7 @@ const freeLimits = {
 interface SetupOptions {
     isEnterprise?: boolean;
 }
-function setupStore(setupOptions: SetupOptions) {
+function setupState(setupOptions: SetupOptions): DeepPartial<GlobalState> {
     const state = {
         entities: {
             cloud: {
@@ -95,29 +91,28 @@ function setupStore(setupOptions: SetupOptions) {
                 config: {},
             },
         },
-    } as GlobalState;
+    };
     if (setupOptions.isEnterprise) {
         state.entities.cloud.subscription!.is_free_trial = 'true';
     }
-    const store = mockStore(state);
 
-    return store;
+    return state;
 }
 
 describe('Limits', () => {
     const defaultOptions = {};
     test('message limit rendered in K', () => {
-        const store = setupStore(defaultOptions);
+        const state = setupState(defaultOptions);
 
-        renderWithIntl(<Provider store={store}><Limits/></Provider>);
+        renderWithContext(<Limits/>, state);
         screen.getByText('Message History');
         screen.getByText(/of 10K/);
     });
 
     test('storage limit rendered in GB', () => {
-        const store = setupStore(defaultOptions);
+        const state = setupState(defaultOptions);
 
-        renderWithIntl(<Provider store={store}><Limits/></Provider>);
+        renderWithContext(<Limits/>, state);
         screen.getByText('File Storage');
         screen.getByText(/of 1GB/);
     });
@@ -126,9 +121,9 @@ describe('Limits', () => {
         const mockGetLimits = jest.fn();
         jest.spyOn(cloudActions, 'getCloudLimits').mockImplementation(mockGetLimits);
         jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
-        const store = setupStore({isEnterprise: true});
+        const state = setupState({isEnterprise: true});
 
-        renderWithIntl(<Provider store={store}><Limits/></Provider>);
+        renderWithContext(<Limits/>, state);
         expect(screen.queryByTestId('limits-panel-title')).not.toBeInTheDocument();
     });
 
@@ -136,9 +131,9 @@ describe('Limits', () => {
         const mockGetLimits = jest.fn();
         jest.spyOn(cloudActions, 'getCloudLimits').mockImplementation(mockGetLimits);
         jest.spyOn(redux, 'useDispatch').mockImplementation(jest.fn(() => jest.fn()));
-        const store = setupStore(defaultOptions);
+        const state = setupState(defaultOptions);
 
-        renderWithIntl(<Provider store={store}><Limits/></Provider>);
+        renderWithContext(<Limits/>, state);
         screen.getByTestId('limits-panel-title');
     });
 });

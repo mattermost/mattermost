@@ -6,8 +6,8 @@ package slashcommands
 import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 type LeaveProvider struct {
@@ -54,7 +54,7 @@ func (*LeaveProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandAr
 		return &model.CommandResponse{Text: args.T("api.command_leave.fail.app_error"), ResponseType: model.CommandResponseTypeEphemeral}
 	}
 
-	member, err := a.GetTeamMember(team.Id, args.UserId)
+	member, err := a.GetTeamMember(c, team.Id, args.UserId)
 	if err != nil || member.DeleteAt != 0 {
 		return &model.CommandResponse{GotoLocation: args.SiteURL + "/"}
 	}

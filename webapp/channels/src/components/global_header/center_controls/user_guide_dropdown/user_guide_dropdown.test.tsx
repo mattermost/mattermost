@@ -4,8 +4,10 @@
 import React from 'react';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
 import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import UserGuideDropdown from './user_guide_dropdown';

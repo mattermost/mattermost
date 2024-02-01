@@ -66,6 +66,11 @@ func TestGetProxiedImageURL(t *testing.T) {
 			Input:    "https://mattermost.example.com@anothersite.com/static/logo.png",
 			Expected: "https://mattermost.example.com/api/v4/image?url=https%3A%2F%2Fmattermost.example.com%40anothersite.com%2Fstatic%2Flogo.png",
 		},
+		{
+			Name:     "should not proxy embedded image",
+			Input:    "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+			Expected: "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==",
+		},
 	} {
 		t.Run(test.Name, func(t *testing.T) {
 			assert.Equal(t, test.Expected, proxy.GetProxiedImageURL(test.Input))

@@ -3,12 +3,13 @@
 
 import nock from 'nock';
 
+import type {SearchParameter} from '@mattermost/types/search';
+
 import * as Actions from 'mattermost-redux/actions/search';
 import {Client4} from 'mattermost-redux/client';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
-import {SearchParameter} from '@mattermost/types/search';
 
 describe('Actions.Search', () => {
     let store = configureStore();
@@ -57,7 +58,7 @@ describe('Actions.Search', () => {
             get(`/${TestHelper.basicChannel!.id}/members/me`).
             reply(201, {user_id: TestHelper.basicUser!.id, channel_id: TestHelper.basicChannel!.id});
 
-        await Actions.searchPosts(TestHelper.basicTeam!.id, search1, false, false)(dispatch, getState);
+        await dispatch(Actions.searchPosts(TestHelper.basicTeam!.id, search1, false, false));
 
         let state = getState();
         let {recent, results} = state.entities.search;
@@ -76,7 +77,7 @@ describe('Actions.Search', () => {
             post(`/${TestHelper.basicTeam!.id}/posts/search`).
             reply(200, {order: [], posts: {}});
 
-        await Actions.searchPostsWithParams(TestHelper.basicTeam!.id, {terms: search1, page: 1} as SearchParameter)(dispatch, getState);
+        await dispatch(Actions.searchPostsWithParams(TestHelper.basicTeam!.id, {terms: search1, page: 1} as SearchParameter));
         state = getState();
         current = state.entities.search.current[TestHelper.basicTeam!.id];
         recent = state.entities.search.recent;
@@ -99,10 +100,10 @@ describe('Actions.Search', () => {
         //get(`/${TestHelper.basicChannel.id}/members/me`).
         //reply(201, {user_id: TestHelper.basicUser.id, channel_id: TestHelper.basicChannel.id});
         //
-        //await Actions.searchPosts(
+        //await dispatch(Actions.searchPosts(
         //TestHelper.basicTeam.id,
         //search2
-        //)(dispatch, getState);
+        //));
         //
         //state = getState();
         //recent = state.entities.search.recent;
@@ -113,7 +114,7 @@ describe('Actions.Search', () => {
         //expect(results.length).toEqual(3);
 
         // Clear posts from the search store
-        //await Actions.clearSearch()(dispatch, getState);
+        //await dispatch(Actions.clearSearch());
         //state = getState();
         //recent = state.entities.search.recent;
         //results = state.entities.search.results;
@@ -123,7 +124,7 @@ describe('Actions.Search', () => {
         //expect(results.length).toEqual(0);
 
         // Clear a recent term
-        //await Actions.removeSearchTerms(TestHelper.basicTeam.id, search2)(dispatch, getState);
+        //await dispatch(Actions.removeSearchTerms(TestHelper.basicTeam.id, search2));
         //state = getState();
         //recent = state.entities.search.recent;
         //results = state.entities.search.results;
@@ -152,7 +153,7 @@ describe('Actions.Search', () => {
             get(`/${TestHelper.basicChannel!.id}/members/me`).
             reply(201, {user_id: TestHelper.basicUser!.id, channel_id: TestHelper.basicChannel!.id});
 
-        await Actions.searchFiles(TestHelper.basicTeam!.id, search1, false, false)(dispatch, getState);
+        await dispatch(Actions.searchFiles(TestHelper.basicTeam!.id, search1, false, false));
 
         let state = getState();
         let {recent, fileResults} = state.entities.search;
@@ -171,7 +172,7 @@ describe('Actions.Search', () => {
             post(`/${TestHelper.basicTeam!.id}/files/search`).
             reply(200, {order: [], file_infos: {}});
 
-        await Actions.searchFilesWithParams(TestHelper.basicTeam!.id, {terms: search1, page: 1} as SearchParameter)(dispatch, getState);
+        await dispatch(Actions.searchFilesWithParams(TestHelper.basicTeam!.id, {terms: search1, page: 1} as SearchParameter));
         state = getState();
         current = state.entities.search.current[TestHelper.basicTeam!.id];
         recent = state.entities.search.recent;

@@ -1,55 +1,51 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import * as Redux from 'redux';
+import type * as Redux from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import type {Post} from '@mattermost/types/posts';
 
 import {
     actionsToMarkChannelAsRead,
     actionsToMarkChannelAsUnread,
-    actionsToMarkChannelAsViewed,
     markChannelAsViewedOnServer,
 } from 'mattermost-redux/actions/channels';
 import * as PostActions from 'mattermost-redux/actions/posts';
-
 import {getCurrentChannelId, isManuallyUnread} from 'mattermost-redux/selectors/entities/channels';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
-import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
-
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-import {Post} from '@mattermost/types/posts';
-
+import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
+import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 import {
     isFromWebhook,
     isSystemMessage,
     shouldIgnorePost,
 } from 'mattermost-redux/utils/post_utils';
 
-import {GlobalState} from 'types/store';
-
-import {updateThreadLastOpened} from 'actions/views/threads';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
+import {updateThreadLastOpened} from 'actions/views/threads';
+import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
 
 import {ActionTypes} from 'utils/constants';
-import {isThreadOpen, makeGetThreadLastViewedAt} from 'selectors/views/threads';
+
+import type {GlobalState} from 'types/store';
 
 export type NewPostMessageProps = {
     mentions: string[];
     team_id: string;
 }
 
-export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         const state = getState();
         const rootPost = PostSelectors.getPost(state, post.root_id);
         if (post.root_id && !rootPost) {
             const result = await dispatch(PostActions.getPostThread(post.root_id));
 
             if ('error' in result) {
-                return result;
+                return {error: result.error};
             }
         }
         const actions: Redux.AnyAction[] = [];
@@ -81,7 +77,9 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             dispatch(setThreadRead(post));
         }
 
-        return dispatch(sendDesktopNotification(post, websocketMessageProps) as unknown as ActionFunc);
+        dispatch(sendDesktopNotification(post, websocketMessageProps));
+
+        return {data: true};
     };
 }
 
@@ -123,19 +121,16 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
             dispatch(markChannelAsViewedOnServer(post.channel_id));
         }
 
-        return [
-            ...actionsToMarkChannelAsRead(getState, post.channel_id),
-            ...actionsToMarkChannelAsViewed(getState, post.channel_id),
-        ];
+        return actionsToMarkChannelAsRead(getState, post.channel_id);
     }
 
     return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id, post.channel_id, websocketMessageProps.mentions, fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
 }
 
-export function setThreadRead(post: Post) {
+export function setThreadRead(post: Post): NewActionFunc<boolean, GlobalState> {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+    return (dispatch, getState) => {
+        const state = getState();
 
         const thread = getThread(state, post.root_id);
 

@@ -4,10 +4,10 @@
 import React from 'react';
 import {useIntl} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
-import {TeamMembership} from '@mattermost/types/teams';
-import {ChannelMembership} from '@mattermost/types/channels';
-import {Group} from '@mattermost/types/groups';
+import type {ChannelMembership} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
+import type {TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
 type ProfileWithGroups = Partial<UserProfile & {
     groups: Array<Partial<Group>>;

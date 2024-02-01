@@ -1,17 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
 import {useSelector} from 'react-redux';
 
+import ExternalLink from 'components/external_link';
 import MattermostLogo from 'components/widgets/icons/mattermost_logo';
-import {GlobalState} from 'types/store';
+
+import type {GlobalState} from 'types/store';
 
 import './about_build_modal_cloud.scss';
-import ExternalLink from 'components/external_link';
 
 type Props = {
     onExited: () => void;
@@ -56,11 +57,6 @@ export default function AboutBuildModalCloud(props: Props) {
         </div>
     );
 
-    let mmversion = config.BuildNumber;
-    if (!isNaN(config.BuildNumber)) {
-        mmversion = 'ci';
-    }
-
     return (
         <Modal
             dialogClassName={classNames('a11y__modal', 'about-modal', 'cloud')}
@@ -93,12 +89,12 @@ export default function AboutBuildModalCloud(props: Props) {
                         </h3>
                         <p className='subtitle'>{subTitle}</p>
                         <div className='description'>
-                            <div>
+                            <div data-testid='aboutModalVersion'>
                                 <FormattedMessage
                                     id='about.version'
                                     defaultMessage='Mattermost Version:'
                                 />
-                                <span id='versionString'>{'\u00a0' + mmversion}</span>
+                                <span id='versionString'>{'\u00a0' + config.Version}</span>
                             </div>
                         </div>
                         {licensee}

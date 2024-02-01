@@ -3,17 +3,15 @@
 
 /* eslint-disable no-console, no-process-env */
 
-const fs = require('fs');
 const path = require('path');
-
 const url = require('url');
 
 const CopyWebpackPlugin = require('copy-webpack-plugin');
 const ExternalTemplateRemotesPlugin = require('external-remotes-plugin');
-const webpack = require('webpack');
-const {ModuleFederationPlugin} = require('webpack').container;
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const webpack = require('webpack');
+const {ModuleFederationPlugin} = require('webpack').container;
 const WebpackPwaManifest = require('webpack-pwa-manifest');
 
 // const {BundleAnalyzerPlugin} = require('webpack-bundle-analyzer');
@@ -134,6 +132,9 @@ var config = {
             'mattermost-redux/test': 'packages/mattermost-redux/test',
             'mattermost-redux': 'packages/mattermost-redux/src',
             '@mui/styled-engine': '@mui/styled-engine-sc',
+
+            // This alias restricts single version of styled components acros all packages
+            'styled-components': path.resolve(__dirname, '..', 'node_modules', 'styled-components'),
         },
         extensions: ['.ts', '.tsx', '.js', '.jsx'],
         fallback: {
@@ -170,10 +171,8 @@ var config = {
                 {from: 'src/images/emoji', to: 'emoji'},
                 {from: 'src/images/img_trans.gif', to: 'images'},
                 {from: 'src/images/logo-email.png', to: 'images'},
-                {from: 'src/images/circles.png', to: 'images'},
                 {from: 'src/images/favicon', to: 'images/favicon'},
                 {from: 'src/images/appIcons.png', to: 'images'},
-                {from: 'src/images/warning.png', to: 'images'},
                 {from: 'src/images/logo-email.png', to: 'images'},
                 {from: 'src/images/browser-icons', to: 'images/browser-icons'},
                 {from: 'src/images/cloud', to: 'images'},
@@ -184,17 +183,16 @@ var config = {
                 {from: 'src/images/forgot_password_illustration.png', to: 'images'},
                 {from: 'src/images/invite_illustration.png', to: 'images'},
                 {from: 'src/images/channel_icon.png', to: 'images'},
-                {from: 'src/images/add_payment_method.png', to: 'images'},
-                {from: 'src/images/add_subscription.png', to: 'images'},
                 {from: 'src/images/c_avatar.png', to: 'images'},
                 {from: 'src/images/c_download.png', to: 'images'},
                 {from: 'src/images/c_socket.png', to: 'images'},
                 {from: 'src/images/admin-onboarding-background.jpg', to: 'images'},
-                {from: 'src/images/payment-method-illustration.png', to: 'images'},
                 {from: 'src/images/cloud-laptop.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-error.png', to: 'images'},
                 {from: 'src/images/cloud-laptop-warning.png', to: 'images'},
                 {from: 'src/images/cloud-upgrade-person-hand-to-face.png', to: 'images'},
+                {from: 'src/images/payment_processing.png', to: 'images'},
+                {from: 'src/images/purchase_alert.png', to: 'images'},
                 {from: '../node_modules/pdfjs-dist/cmaps', to: 'cmaps'},
             ],
         }),
@@ -337,7 +335,6 @@ async function initializeModuleFederation() {
                 '@mattermost/client',
                 '@mattermost/types',
                 'luxon',
-                'prop-types',
             ], false),
 
             // Other containers will be forced to use the exact versions of shared modules that the web app provides.
@@ -358,7 +355,7 @@ async function initializeModuleFederation() {
     // Desktop specific code for remote module loading
     moduleFederationPluginOptions.exposes = {
         './app': 'components/app',
-        './store': 'stores/redux_store.jsx',
+        './store': 'stores/redux_store',
         './styles': './src/sass/styles.scss',
         './registry': 'module_registry',
     };

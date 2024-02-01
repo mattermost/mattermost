@@ -4,10 +4,9 @@
 package teams
 
 import (
-	"context"
-
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 func (ts *TeamService) CreateTeam(team *model.Team) (*model.Team, error) {
@@ -130,7 +129,7 @@ func (ts *TeamService) PatchTeam(teamID string, patch *model.TeamPatch) (*model.
 // 1. a pointer to the team member, if successful
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
 // 3. a pointer to an AppError if something went wrong.
-func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
+func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
 	if !ts.IsTeamEmailAllowed(user, team) {
 		return nil, false, AcceptedDomainError
 	}
@@ -155,7 +154,7 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 		tm.SchemeAdmin = true
 	}
 
-	rtm, err := ts.store.GetMember(context.Background(), team.Id, user.Id)
+	rtm, err := ts.store.GetMember(c, team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
 		tmr, nErr := ts.store.SaveMember(tm, *ts.config().TeamSettings.MaxUsersPerTeam)
@@ -180,7 +179,7 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 		return nil, false, MaxMemberCountError
 	}
 
-	member, nErr := ts.store.UpdateMember(tm)
+	member, nErr := ts.store.UpdateMember(c, tm)
 	if nErr != nil {
 		return nil, false, nErr
 	}
@@ -190,7 +189,7 @@ func (ts *TeamService) JoinUserToTeam(team *model.Team, user *model.User) (*mode
 
 // RemoveTeamMember removes the team member from the team. This method sends
 // the websocket message before actually removing so the user being removed gets it.
-func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
+func (ts *TeamService) RemoveTeamMember(rctx request.CTX, teamMember *model.TeamMember) error {
 	/*
 		MM-43850: send leave_team event to user using `ReliableClusterSend` to improve safety
 	*/
@@ -213,7 +212,7 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 	teamMember.Roles = ""
 	teamMember.DeleteAt = model.GetMillis()
 
-	if _, nErr := ts.store.UpdateMember(teamMember); nErr != nil {
+	if _, nErr := ts.store.UpdateMember(rctx, teamMember); nErr != nil {
 		return nErr
 	}
 
@@ -221,8 +220,8 @@ func (ts *TeamService) RemoveTeamMember(teamMember *model.TeamMember) error {
 }
 
 // GetMember return the team member from the team.
-func (ts *TeamService) GetMember(teamID string, userID string) (*model.TeamMember, error) {
-	member, err := ts.store.GetMember(context.Background(), teamID, userID)
+func (ts *TeamService) GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error) {
+	member, err := ts.store.GetMember(c, teamID, userID)
 	if err != nil {
 		return nil, err
 	}

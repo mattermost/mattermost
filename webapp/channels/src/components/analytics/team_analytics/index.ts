@@ -2,20 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-
-import {Action, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
 import {getProfilesInTeam} from 'mattermost-redux/actions/users';
 import {getTeamsList} from 'mattermost-redux/selectors/entities/teams';
 
-import {GlobalState} from 'types/store';
-
-import {getCurrentLocale} from 'selectors/i18n';
-
 import {setGlobalItem} from 'actions/storage';
+import {getCurrentLocale} from 'selectors/i18n';
 import {makeGetGlobalItem} from 'selectors/storage';
+
+import type {GlobalState} from 'types/store';
 
 import TeamAnalytics from './team_analytics';
 
@@ -34,15 +32,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean, excludePolicyConstrained?: boolean) => void;
-    getProfilesInTeam: (teamId: string, page: number, perPage?: number, sort?: string, options?: undefined) => Promise<ActionResult>;
-    setGlobalItem: (name: string, value: string) => void;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             getTeams,
             getProfilesInTeam,
             setGlobalItem,
