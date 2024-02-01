@@ -33,6 +33,7 @@ Instructions, detailed:
   * Note that if you run the dashboard locally, but also specify other `AUTOMATION_DASHBOARD_*` variables in your `.ci/env` file, the latter variables will take precedence.
   * The dashboard is used for orchestrating specs with parallel test run and is typically used in CI.
   * Only Cypress is currently using the dashboard; Playwright is not.
+  * You may need to run `npm i` in the `cypress` directory, if you're running the E2E tests locally for the first time.
 3. `make`: start and prepare the server, then run the Cypress smoke tests
   * You can track the progress of the run in the `http://localhost:4000/cycles` dashboard, if you launched it locally
   * When running with `SERVER=cloud`, this will automatically create a cloud customer against the specified `CWS_URL` service, and delete that user after the run is complete.

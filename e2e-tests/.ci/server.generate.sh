@@ -282,11 +282,8 @@ generate_env_files() {
   done
 
   # Generating TEST-specific env files
-  BRANCH_DEFAULT=$(git branch --show-current)
-  BUILD_ID_DEFAULT=$(date +%s)
-  export BRANCH=${BRANCH:-$BRANCH_DEFAULT}
-  export BUILD_ID=${BUILD_ID:-$BUILD_ID_DEFAULT}
-  export CI_BASE_URL="${CI_BASE_URL:-localhost}"
+  # Some are defaulted in .e2erc due to being needed to other scripts as well
+  export CI_BASE_URL="${CI_BASE_URL:-http://localhost:8065}"
   export REPO=mattermost # Static, but declared here for making generate_test_cycle.js easier to run
   export HEADLESS=true   # Static, but declared here for making generate_test_cycle.js easier to run
   case "$TEST" in
@@ -327,8 +324,14 @@ generate_env_files() {
       echo "CYPRESS_serverEdition=E20" >>.env.cypress
       ;;
     esac
-    # If the dashboard is running, load .env.dashboard into .env.cypress
-    if DC_COMMAND="$MME2E_DC_DASHBOARD" mme2e_wait_service_healthy dashboard 1; then
+    # Add Automation Dashboard related variables to cypress container
+    if [ -n "${AUTOMATION_DASHBOARD_URL}" ]; then
+      mme2e_log "Automation dashboard URL is set: loading related variables into the Cypress container"
+      mme2e_generate_envfile_from_var_names >>.env.cypress <<-EOF
+	AUTOMATION_DASHBOARD_URL
+	AUTOMATION_DASHBOARD_TOKEN
+	EOF
+    elif DC_COMMAND="$MME2E_DC_DASHBOARD" mme2e_wait_service_healthy dashboard 1; then
       mme2e_log "Detected a running automation dashboard: loading its access variables into the Cypress container"
       cat >>.env.cypress <.env.dashboard
     fi
