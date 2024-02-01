@@ -146,7 +146,7 @@ MMCTL_PACKAGES=$(shell $(GO) list ./... | grep -E 'server/v8/cmd/mmctl')
 TEMPLATES_DIR=templates
 
 # Plugins Packages
-# Plugins Packages
+PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
 PLUGIN_PACKAGES += mattermost-plugin-calls-v0.23.1
 PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.7
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.0
