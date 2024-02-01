@@ -130,7 +130,7 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             cy.findByPlaceholderText('Search users').should('be.visible').type(guest.username).wait(TIMEOUTS.ONE_SEC);
 
             // # Click on the option to update email
-            cy.get("#systemUsersTable-cell-0_actionsColumn").click();
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click();
             cy.findByText('Update email').should('be.visible').click();
 
             // * Update email outside whitelisted domain and verify error message

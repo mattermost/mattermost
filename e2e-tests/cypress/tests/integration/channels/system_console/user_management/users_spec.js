@@ -70,10 +70,10 @@ describe('System Console > User Management > Users', () => {
         cy.findByPlaceholderText('Search users').type(testUser.email).wait(TIMEOUTS.HALF_SEC);
 
         // # Open the actions menu.
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Click the Reset Password menu option.
-        cy.findByText("Reset password").click();
+        cy.findByText('Reset password').click();
 
         // # Type new password and submit.
         cy.get('input[type=password]').type('new' + testUser.password);
@@ -100,10 +100,10 @@ describe('System Console > User Management > Users', () => {
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
 
         // # Open the actions menu.
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Click the Reset Password menu option.
-        cy.findByText("Reset password").click();
+        cy.findByText('Reset password').click();
 
         // # Type current password and a new password.
         cy.get('input[type=password]').eq(0).type(otherAdmin.password);
@@ -124,10 +124,10 @@ describe('System Console > User Management > Users', () => {
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
 
         // # Open the actions menu.
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Click the Reset Password menu option.
-        cy.findByText("Reset password").click();
+        cy.findByText('Reset password').click();
 
         // # Type wrong current password and a new password.
         cy.get('input[type=password]').eq(0).type('wrong' + otherAdmin.password);
@@ -146,10 +146,10 @@ describe('System Console > User Management > Users', () => {
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
 
         // # Open the actions menu.
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Click the Reset Password menu option.
-        cy.findByText("Reset password").click();
+        cy.findByText('Reset password').click();
 
         // # Type current password and a new too short password.
         cy.get('input[type=password]').eq(0).type(otherAdmin.password);
@@ -168,10 +168,10 @@ describe('System Console > User Management > Users', () => {
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
 
         // # Open the actions menu.
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Click the Reset Password menu option.
-        cy.findByText("Reset password").click();
+        cy.findByText('Reset password').click();
 
         // # Click the 'Reset' button.
         cy.get('button[type=submit] span').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
@@ -196,10 +196,10 @@ describe('System Console > User Management > Users', () => {
         cy.findByPlaceholderText('Search users').type(otherAdmin.username).wait(TIMEOUTS.HALF_SEC);
 
         // # Open the actions menu.
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Click the Reset Password menu option.
-        cy.findByText("Reset password").click();
+        cy.findByText('Reset password').click();
 
         // # Type current and new passwords..
         cy.get('input[type=password]').eq(0).type(otherAdmin.password);

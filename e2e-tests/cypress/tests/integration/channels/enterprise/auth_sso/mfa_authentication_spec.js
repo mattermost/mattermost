@@ -61,7 +61,7 @@ describe('Authentication', () => {
             cy.findByPlaceholderText('Search users').type(testUser.username).wait(TIMEOUTS.HALF_SEC);
 
             // * Remove MFA option not available for the user
-            cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
             cy.findByText('Remove MFA').should('not.exist');
 
             cy.apiLogout();
@@ -107,14 +107,13 @@ describe('Authentication', () => {
         cy.findByPlaceholderText('Search users').type(testUser.username).wait(TIMEOUTS.HALF_SEC);
 
         // * Remove MFA option available for the user and click it
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
         cy.findByText('Remove MFA').should('be.visible').click();
 
         // # Navigate to System Console -> Authentication -> MFA Page.
         cy.visit('/admin_console/authentication/mfa');
         cy.findByText('Multi-factor Authentication', {timeout: TIMEOUTS.ONE_MIN}).should('be.visible').and('exist');
 
-        cy.pause();
         // # Also ensure that this MFA setting is enforced.
         cy.findByTestId('ServiceSettings.EnforceMultifactorAuthenticationfalse').check();
 
@@ -142,7 +141,7 @@ describe('Authentication', () => {
 
         // * Remove MFA option available for the user and click it
         cy.wait(TIMEOUTS.HALF_SEC);
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click().wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
         cy.findByText('Remove MFA').should('not.exist');
 
         // # Done with that MFA stuff so we disable it all

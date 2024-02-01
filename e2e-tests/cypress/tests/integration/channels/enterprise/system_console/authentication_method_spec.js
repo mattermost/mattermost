@@ -69,7 +69,7 @@ describe('Settings', () => {
 
         // * Verify sign-in method from user profile
         cy.get('.displayName').click();
-        cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should("have.text", "Email");
+        cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should('have.text', 'Email');
         cy.get('a.back').click();
 
         // # Type saml user
@@ -77,7 +77,7 @@ describe('Settings', () => {
 
         // * Verify sign-in method from user profile
         cy.get('.displayName').click();
-        cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should("have.text", "SAML");
+        cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should('have.text', 'SAML');
         cy.get('a.back').click();
 
         // # Type ldap user
@@ -85,7 +85,7 @@ describe('Settings', () => {
 
         // * Verify sign-in method from user profile
         cy.get('.displayName').click();
-        cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should("have.text", "LDAP");
+        cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should('have.text', 'LDAP');
         cy.get('a.back').click();
 
         // # Type mfa user
@@ -93,9 +93,8 @@ describe('Settings', () => {
 
         // * Verify sign-in method from user profile
         cy.get('.displayName').click();
-        cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should("contain.text", "MFA");
+        cy.get('.AdminUserCard__body > :nth-child(4) > span:nth-child(3)').should('contain.text', 'MFA');
         cy.get('a.back').click();
-
     });
 });
 

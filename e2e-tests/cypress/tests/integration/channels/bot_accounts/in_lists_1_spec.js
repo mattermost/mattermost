@@ -63,10 +63,10 @@ describe('Bots in lists', () => {
             cy.get('#input_searchTerm').clear().type(`${username}`).wait(TIMEOUTS.ONE_SEC);
 
             // * Verify bot not in list
-            cy.get('.noRows').should("have.text", "No data")
+            cy.get('.noRows').should('have.text', 'No data');
 
             // * Verify pseudo checksum total of non bot users
-            cy.get('.adminConsoleListTabletOptionalHead > span').should("have.text", "0 users").should('be.visible');
+            cy.get('.adminConsoleListTabletOptionalHead > span').should('have.text', '0 users').should('be.visible');
         });
     });
 });

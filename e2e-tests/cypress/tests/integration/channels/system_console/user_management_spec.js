@@ -187,18 +187,18 @@ describe('User Management', () => {
             cy.get('#input_searchTerm').clear().type(gitlabUser.email).wait(TIMEOUTS.HALF_SEC);
 
             // # Open actions menu.
-            cy.get("#systemUsersTable-cell-0_actionsColumn").click();
-            
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click();
+
             // * Verify Switch to Email/Password is visible.
-            cy.findByText('Switch to Email/Password').should("be.visible").click().wait(TIMEOUTS.HALF_SEC);
-            
+            cy.findByText('Switch to Email/Password').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+
             // # Set new password.
             cy.get('input[type=password]').type('new' + testUser.password);
             cy.get('button[type=submit]').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify Update email option is visible.
-            cy.get("#systemUsersTable-cell-0_actionsColumn").click();
-            cy.findByText('Update email').should("be.visible");
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click();
+            cy.findByText('Update email').should('be.visible');
         });
     });
 
@@ -228,7 +228,7 @@ describe('User Management', () => {
         // # Search for the user.
         cy.get('#input_searchTerm').clear().type(oldEmail).wait(TIMEOUTS.HALF_SEC);
 
-        cy.get("#systemUsersTable-cell-0_actionsColumn").click();
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click();
         cy.findByText('Update email').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Verify the modal opened.
