@@ -8,10 +8,12 @@ import type {AdminConfig} from '@mattermost/types/config';
 
 import ElasticSearchSettings from 'components/admin_console/elasticsearch_settings';
 import SaveButton from 'components/save_button';
+import {rebuildChannelsIndex} from "actions/admin_actions";
 
 jest.mock('actions/admin_actions.jsx', () => {
     return {
         elasticsearchPurgeIndexes: jest.fn(),
+        rebuildChannelsIndex: jest.fn(),
         elasticsearchTest: (config: AdminConfig, success: () => void) => success(),
     };
 });

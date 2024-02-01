@@ -338,53 +338,50 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
           </div>
         </div>
       </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-        >
-          <MemoizedFormattedMessage
+      <RequestButton
+        buttonText={
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="Rebuild Channels Index"
-            id="admin.elasticsearch.rebuildChannelsIndexTitle"
+            id="admin.elasticsearch.rebuildChannelsIndex.title"
           />
-        </label>
-        <div
-          className="col-sm-8"
-        >
-          <div
-            className="rebuild-channels-index-action"
-          >
-            <Connect(JobTable)
-              createJobButtonText={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Rebuild Channels Index"
-                  id="admin.elasticsearch.rebuildChannelsIndex.title"
-                />
+        }
+        disabled={true}
+        errorMessage={
+          Object {
+            "defaultMessage": "Failed to trigger channels index rebuild job: {error}",
+            "id": "admin.elasticsearch.rebuildIndexSuccessfully.error",
+          }
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+<b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
+            id="admin.elasticsearch.rebuildChannelsIndex.helpText"
+            values={
+              Object {
+                "b": [Function],
               }
-              createJobHelpText={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete."
-                  id="admin.elasticsearch.rebuildChannelsIndex.helpText"
-                />
-              }
-              disabled={true}
-              getExtraInfoText={[Function]}
-              hideTable={true}
-              jobData={
-                Object {
-                  "index_channels": "true",
-                  "index_files": "false",
-                  "index_posts": "false",
-                  "index_users": "false",
-                  "sub_type": "channels_index_rebuild",
-                }
-              }
-              jobType="elasticsearch_post_indexing"
-            />
-          </div>
-        </div>
-      </div>
+            }
+          />
+        }
+        id="rebuildChannelsIndexButton"
+        includeDetailedError={false}
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Rebuild Channels Index"
+            id="admin.elasticsearch.rebuildChannelsIndex.title"
+          />
+        }
+        requestAction={[MockFunction]}
+        saveNeeded={false}
+        showSuccessMessage={true}
+        successMessage={
+          Object {
+            "defaultMessage": "Channels index rebuild job triggered successfully.",
+            "id": "admin.elasticsearch.rebuildIndexSuccessfully.success",
+          }
+        }
+      />
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
@@ -890,52 +887,49 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
           </div>
         </div>
       </div>
-      <div
-        className="form-group"
-      >
-        <label
-          className="control-label col-sm-4"
-        >
-          <MemoizedFormattedMessage
+      <RequestButton
+        buttonText={
+          <Memo(MemoizedFormattedMessage)
             defaultMessage="Rebuild Channels Index"
-            id="admin.elasticsearch.rebuildChannelsIndexTitle"
+            id="admin.elasticsearch.rebuildChannelsIndex.title"
           />
-        </label>
-        <div
-          className="col-sm-8"
-        >
-          <div
-            className="rebuild-channels-index-action"
-          >
-            <Connect(JobTable)
-              createJobButtonText={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Rebuild Channels Index"
-                  id="admin.elasticsearch.rebuildChannelsIndex.title"
-                />
+        }
+        disabled={false}
+        errorMessage={
+          Object {
+            "defaultMessage": "Failed to trigger channels index rebuild job: {error}",
+            "id": "admin.elasticsearch.rebuildIndexSuccessfully.error",
+          }
+        }
+        helpText={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.
+<b>Note- Please ensure no other indexing job is in progress in the table above.</b>"
+            id="admin.elasticsearch.rebuildChannelsIndex.helpText"
+            values={
+              Object {
+                "b": [Function],
               }
-              createJobHelpText={
-                <Memo(MemoizedFormattedMessage)
-                  defaultMessage="This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete."
-                  id="admin.elasticsearch.rebuildChannelsIndex.helpText"
-                />
-              }
-              getExtraInfoText={[Function]}
-              hideTable={true}
-              jobData={
-                Object {
-                  "index_channels": "true",
-                  "index_files": "false",
-                  "index_posts": "false",
-                  "index_users": "false",
-                  "sub_type": "channels_index_rebuild",
-                }
-              }
-              jobType="elasticsearch_post_indexing"
-            />
-          </div>
-        </div>
-      </div>
+            }
+          />
+        }
+        id="rebuildChannelsIndexButton"
+        includeDetailedError={false}
+        label={
+          <Memo(MemoizedFormattedMessage)
+            defaultMessage="Rebuild Channels Index"
+            id="admin.elasticsearch.rebuildChannelsIndex.title"
+          />
+        }
+        saveNeeded={false}
+        showSuccessMessage={true}
+        successMessage={
+          Object {
+            "defaultMessage": "Channels index rebuild job triggered successfully.",
+            "id": "admin.elasticsearch.rebuildIndexSuccessfully.success",
+          }
+        }
+      />
       <RequestButton
         buttonText={
           <Memo(MemoizedFormattedMessage)
