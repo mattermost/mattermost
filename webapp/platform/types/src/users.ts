@@ -70,13 +70,13 @@ export type UsersState = {
     mySessions: Session[];
     myAudits: Audit[];
     profiles: IDMappedObjects<UserProfile>;
-    profilesInTeam: RelationOneToMany<Team, UserProfile>;
-    profilesNotInTeam: RelationOneToMany<Team, UserProfile>;
+    profilesInTeam: RelationOneToManyUnique<Team, UserProfile>;
+    profilesNotInTeam: RelationOneToManyUnique<Team, UserProfile>;
     profilesWithoutTeam: Set<string>;
     profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesNotInChannel: RelationOneToManyUnique<Channel, UserProfile>;
-    profilesInGroup: RelationOneToMany<Group, UserProfile>;
-    profilesNotInGroup: RelationOneToMany<Group, UserProfile>;
+    profilesInGroup: RelationOneToManyUnique<Group, UserProfile>;
+    profilesNotInGroup: RelationOneToManyUnique<Group, UserProfile>;
     statuses: RelationOneToOne<UserProfile, string>;
     stats: Partial<UsersStats>;
     filteredStats: Partial<UsersStats>;
