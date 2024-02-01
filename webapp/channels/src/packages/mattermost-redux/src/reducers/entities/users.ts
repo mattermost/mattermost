@@ -611,7 +611,7 @@ function myUserAccessTokens(state: Record<string, UserAccessToken> = {}, action:
     }
 }
 
-function stats(state = {}, action: AnyAction) {
+function stats(state: UsersState['stats'] = {}, action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_USER_STATS: {
         const stat = action.data;
@@ -625,7 +625,7 @@ function stats(state = {}, action: AnyAction) {
     }
 }
 
-function filteredStats(state = {}, action: AnyAction) {
+function filteredStats(state: UsersState['filteredStats'] = {}, action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_FILTERED_USER_STATS: {
         const stat = action.data;
