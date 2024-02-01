@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {GlobalState} from '@mattermost/types/store';
+
 import reducerRegistry from 'mattermost-redux/store/reducer_registry';
 
 import configureStore from '../../test/test_store';
 
 describe('ReducerRegistry', () => {
-    let store = configureStore();
+    let store = configureStore<GlobalState & {testReducer: string}>();
 
     function testReducer() {
         return 'teststate';
