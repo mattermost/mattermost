@@ -1018,9 +1018,9 @@ describe('Actions.Admin', () => {
         const state = store.getState();
         const metadataResponse = state.entities.admin.samlMetadataResponse;
         expect(metadataResponse).toBeTruthy();
-        expect(metadataResponse.idp_url === samlIdpURL).toBeTruthy();
-        expect(metadataResponse.idp_descriptor_url === samlIdpDescriptorURL).toBeTruthy();
-        expect(metadataResponse.idp_public_certificate === samlIdpPublicCertificateText).toBeTruthy();
+        expect(metadataResponse!.idp_url === samlIdpURL).toBeTruthy();
+        expect(metadataResponse!.idp_descriptor_url === samlIdpDescriptorURL).toBeTruthy();
+        expect(metadataResponse!.idp_public_certificate === samlIdpPublicCertificateText).toBeTruthy();
     });
 
     it('setSamlIdpCertificateFromMetadata', async () => {
