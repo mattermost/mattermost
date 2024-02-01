@@ -38,6 +38,7 @@ Instructions, detailed:
   * When running with `SERVER=cloud`, this will automatically create a cloud customer against the specified `CWS_URL` service, and delete that user after the run is complete.
   * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make`
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
+  * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machiness (that are using the same `BUILD_ID` value) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
 4. `make stop`: tears down the server (and the dashboard, if running)
   * `make clean` will also remove any generated environment or docker-compose files, in addition to stopping the containers.
 

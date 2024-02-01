@@ -99,6 +99,11 @@ jobs:
       run:
         shell: bash
         working-directory: e2e-tests
+    env:
+      AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+      AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+      BUILD_ID: "${{ inputs.commit_sha || github.sha }}-${{ github.run_id }}-smoketests-${{ github.run_attempt }}"
+      CI_BASE_URL: "http://localhost:8065/?runner_index=1"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -115,6 +120,7 @@ jobs:
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
       - name: ci/e2e-smoketests
         run: |
+          make generate-test-cycle
           make
       - name: ci/e2e-smoketests-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
