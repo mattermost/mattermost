@@ -2707,14 +2707,6 @@
     "translation": "This action is forbidden to a restricted system admin."
   },
   {
-    "id": "api.retrieveBatchReportFile.invalid_format",
-    "translation": "Report format is invalid."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_report_id",
-    "translation": "Report ID is invalid."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
@@ -6683,6 +6675,22 @@
     "translation": "Unable to save the token."
   },
   {
+    "id": "app.report.date_range.all_time",
+    "translation": "all time"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "the last 30 days"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "the last 6 months"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "the previous month"
+  },
+  {
     "id": "app.report.get_user_count_for_report.store_error",
     "translation": "Failed to fetch user count."
   },
@@ -6691,12 +6699,20 @@
     "translation": "Failed to fetch user report."
   },
   {
-    "id": "app.report.retrieve_batch_report.license_error",
-    "translation": "Batch reporting export only available to Pro and Enterprise."
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Your export is ready. The CSV file contains user data for {{.DateRange}}. Click on the link below to download the report."
   },
   {
-    "id": "app.report.send_report_to_user.export_finished",
-    "translation": "Report processing is finished. You can download the report [here]({{.Link}})"
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Failed to save file info."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Missing date range"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "No user id to send the report to"
   },
   {
     "id": "app.report.start_users_batch_export.job_exists",
@@ -6708,7 +6724,7 @@
   },
   {
     "id": "app.report.start_users_batch_export.started_export",
-    "translation": "You have requested the export of user data. A CSV will be delivered to you when the export is complete."
+    "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
