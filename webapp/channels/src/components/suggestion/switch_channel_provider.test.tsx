@@ -307,25 +307,25 @@ describe('components/SwitchChannelProvider', () => {
     it('should sort results in aplhabetical order', () => {
         const channels = [
             TestHelper.getChannelMock({
-            id: 'channel_other_user',
-            type: 'O',
-            name: 'blah_other_user',
-            display_name: 'blah_other_user',
-            delete_at: 0,
+                id: 'channel_other_user',
+                type: 'O',
+                name: 'blah_other_user',
+                display_name: 'blah_other_user',
+                delete_at: 0,
             }),
             TestHelper.getChannelMock({
-            id: 'direct_other_user1',
-            type: 'D',
-            name: 'current_user_id__other_user1',
-            display_name: 'other_user1',
-            delete_at: 0,
+                id: 'direct_other_user1',
+                type: 'D',
+                name: 'current_user_id__other_user1',
+                display_name: 'other_user1',
+                delete_at: 0,
             }),
             TestHelper.getChannelMock({
-            id: 'direct_other_user2',
-            type: 'D',
-            name: 'current_user_id__other_user2',
-            display_name: 'other_user2',
-            delete_at: 0,
+                id: 'direct_other_user2',
+                type: 'D',
+                name: 'current_user_id__other_user2',
+                display_name: 'other_user2',
+                delete_at: 0,
             }),
         ];
 
@@ -416,32 +416,32 @@ describe('components/SwitchChannelProvider', () => {
 
         const channels = [
             TestHelper.getChannelMock({
-            id: 'channel_other_user',
-            type: 'O',
-            name: 'blah_other_user',
-            display_name: 'blah_other_user',
-            delete_at: 0,
+                id: 'channel_other_user',
+                type: 'O',
+                name: 'blah_other_user',
+                display_name: 'blah_other_user',
+                delete_at: 0,
             }),
             TestHelper.getChannelMock({
-            id: 'direct_other_user1',
-            type: 'D',
-            name: 'current_user_id__other_user1',
-            display_name: 'other_user1',
-            delete_at: 0,
+                id: 'direct_other_user1',
+                type: 'D',
+                name: 'current_user_id__other_user1',
+                display_name: 'other_user1',
+                delete_at: 0,
             }),
             TestHelper.getChannelMock({
-            id: 'direct_other_user2',
-            type: 'D',
-            name: 'current_user_id__other_user2',
-            display_name: 'other_user2',
-            delete_at: 0,
+                id: 'direct_other_user2',
+                type: 'D',
+                name: 'current_user_id__other_user2',
+                display_name: 'other_user2',
+                delete_at: 0,
             }),
             TestHelper.getChannelMock({
-            id: 'direct_other_user4',
-            type: 'D',
-            name: 'current_user_id__other_user4',
-            display_name: 'other_user4',
-            delete_at: 0,
+                id: 'direct_other_user4',
+                type: 'D',
+                name: 'current_user_id__other_user4',
+                display_name: 'other_user4',
+                delete_at: 0,
             }),
         ];
 
@@ -726,7 +726,7 @@ describe('components/SwitchChannelProvider', () => {
                         },
                     },
                     channelsInTeam: {
-                        '': ['other_gm_channel'],
+                        '': new Set(['other_gm_channel']),
                     },
                 },
             },
@@ -793,7 +793,7 @@ describe('components/SwitchChannelProvider', () => {
                         }),
                     },
                     channelsInTeam: {
-                        '': ['other_gm_channel'],
+                        '': new Set(['other_gm_channel']),
                     },
                 },
                 preferences: {
@@ -960,7 +960,7 @@ describe('components/SwitchChannelProvider', () => {
                         },
                     },
                     channelsInTeam: {
-                        '': ['thread_gm_channel'],
+                        '': new Set(['thread_gm_channel']),
                     },
                 },
             },

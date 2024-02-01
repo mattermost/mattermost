@@ -90,7 +90,7 @@ describe('Actions.User', () => {
                     } as Channel,
                 },
                 channelsInTeam: {
-                    team_1: ['current_channel_id'],
+                    team_1: new Set(['current_channel_id']),
                 },
                 messageCounts: {
                     current_channel_id: {total: 10} as ChannelMessageCount,
@@ -537,7 +537,7 @@ describe('Actions.User', () => {
         };
 
         const channelsInTeam = {
-            '': [gmChannel.id],
+            '': new Set([gmChannel.id]),
         };
 
         const myMembers = {

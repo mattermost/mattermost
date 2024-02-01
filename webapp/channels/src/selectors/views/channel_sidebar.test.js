@@ -84,7 +84,7 @@ describe('getUnreadChannels', () => {
                     unreadChannel2,
                 },
                 channelsInTeam: {
-                    team1: ['unreadChannel1', 'unreadChannel2', 'readChannel'],
+                    team1: new Set(['unreadChannel1', 'unreadChannel2', 'readChannel']),
                 },
                 currentChannelId: 'currentChannel',
                 messageCounts: {
@@ -375,10 +375,10 @@ describe('getUnreadChannels', () => {
                     },
                     channelsInTeam: {
                         ...baseState.entities.channels.channelsInTeam,
-                        team1: [
+                        team1: new Set([
                             ...baseState.entities.channels.channelsInTeam.team1,
                             'archivedChannel',
-                        ],
+                        ]),
                     },
                     messageCounts: {
                         ...baseState.entities.channels.messageCounts,
@@ -435,7 +435,7 @@ describe('getDisplayedChannels', () => {
                     unreadChannel2,
                 },
                 channelsInTeam: {
-                    team1: ['unreadChannel1', 'unreadChannel2', 'readChannel'],
+                    team1: new Set(['unreadChannel1', 'unreadChannel2', 'readChannel']),
                 },
                 currentChannelId: 'currentChannel',
                 messageCounts: {
@@ -608,7 +608,7 @@ describe('makeGetFilteredChannelIdsForCategory', () => {
                     unreadChannel2,
                 },
                 channelsInTeam: {
-                    team1: ['unreadChannel1', 'unreadChannel2', 'readChannel'],
+                    team1: new Set(['unreadChannel1', 'unreadChannel2', 'readChannel']),
                 },
                 currentChannelId: 'currentChannel',
                 messageCounts: {
