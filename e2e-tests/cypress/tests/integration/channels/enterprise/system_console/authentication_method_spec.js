@@ -65,7 +65,7 @@ describe('Settings', () => {
         const adminUsername = getAdminAccount().username;
 
         // # Type sysadmin
-        cy.findByPlaceholderText('Search users').clear().type(adminUsername).wait(TIMEOUTS.HALF_SEC);
+        cy.findByPlaceholderText('Search users').clear().type(adminUsername).wait(TIMEOUTS.TWO_SEC);
 
         // * Verify sign-in method from user profile
         cy.get('.displayName').click();
@@ -73,7 +73,7 @@ describe('Settings', () => {
         cy.get('a.back').click();
 
         // # Type saml user
-        cy.findByPlaceholderText('Search users').clear().type(samlUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByPlaceholderText('Search users').clear().type(samlUser.username).wait(TIMEOUTS.TWO_SEC);
 
         // * Verify sign-in method from user profile
         cy.get('.displayName').click();
@@ -81,7 +81,7 @@ describe('Settings', () => {
         cy.get('a.back').click();
 
         // # Type ldap user
-        cy.findByPlaceholderText('Search users').clear().type(ldapUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByPlaceholderText('Search users').clear().type(ldapUser.username).wait(TIMEOUTS.TWO_SEC);
 
         // * Verify sign-in method from user profile
         cy.get('.displayName').click();
@@ -89,7 +89,7 @@ describe('Settings', () => {
         cy.get('a.back').click();
 
         // # Type mfa user
-        cy.findByPlaceholderText('Search users').clear().type(mfaUser.username).wait(TIMEOUTS.HALF_SEC);
+        cy.findByPlaceholderText('Search users').clear().type(mfaUser.username).wait(TIMEOUTS.TWO_SEC);
 
         // * Verify sign-in method from user profile
         cy.get('.displayName').click();

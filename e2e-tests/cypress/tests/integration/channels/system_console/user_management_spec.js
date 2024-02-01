@@ -197,7 +197,7 @@ describe('User Management', () => {
             cy.get('button[type=submit]').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
 
             // * Verify Update email option is visible.
-            cy.get('#systemUsersTable-cell-0_actionsColumn').click();
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
             cy.findByText('Update email').should('be.visible');
         });
     });
@@ -228,7 +228,7 @@ describe('User Management', () => {
         // # Search for the user.
         cy.get('#input_searchTerm').clear().type(oldEmail).wait(TIMEOUTS.HALF_SEC);
 
-        cy.get('#systemUsersTable-cell-0_actionsColumn').click();
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
         cy.findByText('Update email').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Verify the modal opened.
