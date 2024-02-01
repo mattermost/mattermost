@@ -7,8 +7,10 @@ import {test} from '@e2e-support/test_fixture';
 import { duration } from '@e2e-support/util';
 
 test('MM-X should begin export of data when export button is pressed', async ({pw, pages}) => {
-    const {adminUser} = await pw.initSetup();
+    // # Skip test if no license
+    await pw.skipIfNoLicense();
 
+    const {adminUser} = await pw.initSetup();
     if (!adminUser) {
         throw new Error('Failed to create admin user');
     }
