@@ -12,6 +12,8 @@ import * as ua from 'tests/helpers/user_agent_mocks';
 import Constants, {ValidationErrors} from 'utils/constants';
 import * as Utils from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
+
 describe('Utils.getDisplayNameByUser', () => {
     afterEach(() => {
         store.dispatch({
@@ -324,7 +326,7 @@ describe('Utils.localizeMessage', () => {
                         },
                     },
                 },
-            });
+            } as unknown as GlobalState);
         });
 
         test('with translations', () => {
@@ -349,7 +351,7 @@ describe('Utils.localizeMessage', () => {
                         translations: {},
                     },
                 },
-            });
+            } as unknown as GlobalState);
         });
 
         test('without translations', () => {
