@@ -15,7 +15,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId, isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, NewActionFunc, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {canEditPost, comparePosts} from 'mattermost-redux/utils/post_utils';
 
 import {addRecentEmoji, addRecentEmojis} from 'actions/emoji_actions';
@@ -78,8 +78,8 @@ export function handleNewPost(post: Post, msg?: {data?: NewPostMessageProps & Gr
 
 const getPostsForIds = PostSelectors.makeGetPostsForIds();
 
-export function flagPost(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function flagPost(postId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         await dispatch(PostActions.flagPost(postId));
         const state = getState() as GlobalState;
         const rhsState = getRhsState(state);
@@ -92,8 +92,8 @@ export function flagPost(postId: string) {
     };
 }
 
-export function unflagPost(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function unflagPost(postId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         await dispatch(PostActions.unflagPost(postId));
         const state = getState() as GlobalState;
         const rhsState = getRhsState(state);
@@ -106,8 +106,8 @@ export function unflagPost(postId: string) {
     };
 }
 
-export function createPost(post: Post, files: FileInfo[]) {
-    return async (dispatch: DispatchFunc) => {
+export function createPost(post: Post, files: FileInfo[]): NewActionFuncAsync {
+    return async (dispatch) => {
         // parse message and emit emoji event
         const emojis = matchEmoticons(post.message);
         if (emojis) {
@@ -132,15 +132,15 @@ export function createPost(post: Post, files: FileInfo[]) {
     };
 }
 
-function storeDraft(channelId: string, draft: null) {
-    return (dispatch: DispatchFunc) => {
+function storeDraft(channelId: string, draft: null): NewActionFunc {
+    return (dispatch) => {
         dispatch(StorageActions.setGlobalItem('draft_' + channelId, draft));
         return {data: true};
     };
 }
 
-function storeCommentDraft(rootPostId: string, draft: null) {
-    return (dispatch: DispatchFunc) => {
+function storeCommentDraft(rootPostId: string, draft: null): NewActionFunc {
+    return (dispatch) => {
         dispatch(StorageActions.setGlobalItem('comment_draft_' + rootPostId, draft));
         return {data: true};
     };
@@ -202,16 +202,16 @@ export function addReaction(postId: string, emojiName: string): NewActionFunc {
     };
 }
 
-export function searchForTerm(term: string) {
-    return (dispatch: DispatchFunc) => {
+export function searchForTerm(term: string): NewActionFunc<boolean, GlobalState> {
+    return (dispatch) => {
         dispatch(RhsActions.updateSearchTerms(term));
         dispatch(RhsActions.showSearchResults());
         return {data: true};
     };
 }
 
-function addPostToSearchResults(postId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function addPostToSearchResults(postId: string): NewActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const results = state.entities.search.results;
         const index = results.indexOf(postId);
@@ -251,10 +251,10 @@ function removePostFromSearchResults(postId: string, state: GlobalState, dispatc
     }
 }
 
-export function pinPost(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function pinPost(postId: string): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         await dispatch(PostActions.pinPost(postId));
-        const state = getState() as GlobalState;
+        const state = getState();
         const rhsState = getRhsState(state);
 
         if (rhsState === RHSStates.PIN) {
@@ -264,10 +264,10 @@ export function pinPost(postId: string) {
     };
 }
 
-export function unpinPost(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function unpinPost(postId: string): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         await dispatch(PostActions.unpinPost(postId));
-        const state = getState() as GlobalState;
+        const state = getState();
         const rhsState = getRhsState(state);
 
         if (rhsState === RHSStates.PIN) {
@@ -337,8 +337,8 @@ export function markPostAsUnread(post: Post, location?: string): NewActionFuncAs
     };
 }
 
-export function markMostRecentPostInChannelAsUnread(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function markMostRecentPostInChannelAsUnread(channelId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         let state = getState();
         let postId = PostSelectors.getMostRecentPostIdInChannel(state, channelId);
         if (!postId) {
@@ -392,11 +392,11 @@ export function deleteAndRemovePost(post: Post): NewActionFuncAsync<boolean, Glo
     };
 }
 
-export function toggleEmbedVisibility(postId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function toggleEmbedVisibility(postId: string): ThunkActionFunc<void, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
-        const visible = isEmbedVisible(state as GlobalState, postId);
+        const visible = isEmbedVisible(state, postId);
 
         dispatch(StorageActions.setGlobalItem(StoragePrefixes.EMBED_VISIBLE + currentUserId + '_' + postId, !visible));
     };
@@ -406,11 +406,11 @@ export function resetEmbedVisibility() {
     return StorageActions.actionOnGlobalItemsWithPrefix(StoragePrefixes.EMBED_VISIBLE, () => null);
 }
 
-export function toggleInlineImageVisibility(postId: string, imageKey: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function toggleInlineImageVisibility(postId: string, imageKey: string): ThunkActionFunc<void, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
-        const visible = isInlineImageVisible(state as GlobalState, postId, imageKey);
+        const visible = isInlineImageVisible(state, postId, imageKey);
 
         dispatch(StorageActions.setGlobalItem(StoragePrefixes.INLINE_IMAGE_VISIBLE + currentUserId + '_' + postId + '_' + imageKey, !visible));
     };

@@ -1,13 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFunc} from 'mattermost-redux/types/actions';
 
 import {StorageTypes} from 'utils/constants';
 import {getPrefix} from 'utils/storage_utils';
 
-export function setItem(name: string, value: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setItem(name: string, value: string): NewActionFunc {
+    return (dispatch, getState) => {
         const state = getState();
         const prefix = getPrefix(state);
         dispatch({
@@ -18,8 +18,8 @@ export function setItem(name: string, value: string) {
     };
 }
 
-export function removeItem(name: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function removeItem(name: string): NewActionFunc { // HARRISONTODO unused
+    return (dispatch, getState) => {
         const state = getState();
         const prefix = getPrefix(state);
         dispatch({
@@ -38,12 +38,9 @@ export function setGlobalItem(name: string, value: any) {
 }
 
 export function removeGlobalItem(name: string) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: StorageTypes.REMOVE_GLOBAL_ITEM,
-            data: {name},
-        });
-        return {data: true};
+    return {
+        type: StorageTypes.REMOVE_GLOBAL_ITEM,
+        data: {name},
     };
 }
 

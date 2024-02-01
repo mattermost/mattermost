@@ -10,7 +10,6 @@ import {getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getStatusForUserId, getUser} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {displayUsername} from 'mattermost-redux/utils/user_utils';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
@@ -112,7 +111,7 @@ const ProfilePopover = ({
 }: ProfilePopoverProps) => {
     const {formatMessage} = useIntl();
 
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const user = useSelector((state: GlobalState) => getUser(state, userId));
     const currentTeamId = useSelector((state: GlobalState) => getCurrentTeamId(state));
     const channelId = useSelector((state: GlobalState) => (channelIdProp || getDefaultChannelId(state)));

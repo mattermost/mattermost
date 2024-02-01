@@ -9,6 +9,7 @@ import type {PostMetadata, PostPriorityMetadata} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {getPost} from 'mattermost-redux/actions/posts';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Client4} from 'mattermost-redux/client';
 import Preferences from 'mattermost-redux/constants/preferences';
@@ -16,7 +17,7 @@ import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entit
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
-import {setGlobalItem} from 'actions/storage';
+import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {makeGetDrafts} from 'selectors/drafts';
 import {getConnectionId} from 'selectors/general';
 import {getGlobalItem} from 'selectors/storage';
@@ -44,13 +45,40 @@ export function getDrafts(teamId: string): NewActionFuncAsync<boolean, GlobalSta
 
         let serverDrafts: Draft[] = [];
         try {
-            serverDrafts = (await Client4.getUserDrafts(teamId)).map((draft) => transformServerDraft(draft));
+            const response = await Client4.getUserDrafts(teamId);
+
+            // check if response is an array
+            if (Array.isArray(response)) {
+                serverDrafts = response.map((draft) => transformServerDraft(draft));
+            }
         } catch (error) {
             return {data: false, error};
         }
 
+        const drafts = [...serverDrafts];
         const localDrafts = getLocalDrafts(state);
-        const drafts = [...serverDrafts, ...localDrafts];
+
+        // drafts that are not on server, but on local storage
+        const localOnlyDrafts = localDrafts.filter((localDraft) => {
+            return !serverDrafts.find((serverDraft) => serverDraft.key === localDraft.key);
+        });
+
+        // check if drafts are still valid
+        await Promise.all(localOnlyDrafts.map(async (draft) => {
+            if (draft.value.rootId) {
+                // get post from server to check if it exists
+                const {error} = await dispatch(getPost(draft.value.rootId));
+
+                // remove locally stored draft if post does not exist
+                if (error.status_code === 404) {
+                    await dispatch(setGlobalItem(draft.key, {message: '', fileInfos: [], uploadsInProgress: []}));
+                    await dispatch(removeGlobalItem(draft.key));
+                    return;
+                }
+            }
+
+            drafts.push(draft);
+        }));
 
         // Reconcile drafts and only keep the latest version of a draft.
         const draftsMap = new Map(drafts.map((draft) => [draft.key, draft]));
@@ -74,7 +102,11 @@ export function removeDraft(key: string, channelId: string, rootId = ''): NewAct
     return async (dispatch, getState) => {
         const state = getState();
 
-        dispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: []}));
+        // set draft to empty to re-render the component
+        await dispatch(setGlobalItem(key, {message: '', fileInfos: [], uploadsInProgress: []}));
+
+        // remove draft from storage
+        await dispatch(removeGlobalItem(key));
 
         if (syncedDraftsAreAllowedAndEnabled(state)) {
             const connectionId = getConnectionId(getState());

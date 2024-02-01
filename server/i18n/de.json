@@ -9090,10 +9090,6 @@
     "translation": "{{ .SenderName }} hat dich eingeladen, dem Kanal {{ .ChannelName }} im Team {{ .TeamDisplayName }} beizutreten"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fehler beim Parsen der Body Daten."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Ungültiger Request Body."
   },
@@ -10304,5 +10300,49 @@
   {
     "id": "api.team.user.missing_account",
     "translation": "Benutzer konnte nicht gefunden werden."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_format",
+    "translation": "Das Berichtsformat ist ungültig."
+  },
+  {
+    "id": "api.retrieveBatchReportFile.invalid_report_id",
+    "translation": "Die Berichts-ID ist ungültig."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "CSV-Kopfzeilen konnten nicht geschrieben werden."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Nicht unterstütztes Berichtsformat."
+  },
+  {
+    "id": "app.report.retrieve_batch_report.license_error",
+    "translation": "Der Export von Batch-Berichten ist nur für Pro und Enterprise verfügbar."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Berichtserstellung ist abgeschlossen.Du kannst den Bericht [hier]({{.Link}}) herunterladen"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Für diesen Benutzer und Datumsbereich existiert bereits ein Auftrag."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Der Batch-Export von Berichten ist nur für Pro und Enterprise verfügbar."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Du hast den Export von Benutzerdaten angefordert. Nach Abschluss des Exports wird dir eine CSV-Datei zugestellt."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "CSV-Chunk konnte nicht geschrieben werden."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Nicht unterstütztes Berichtsformat."
   }
 ]
