@@ -162,8 +162,8 @@ export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, i
     };
 }
 
-export function searchTeams(term: string, opts: PagedTeamSearchOpts): NewActionFuncAsync<Team[]>;
-export function searchTeams(term: string, opts?: NotPagedTeamSearchOpts): NewActionFuncAsync<TeamsWithCount>;
+export function searchTeams(term: string, opts: PagedTeamSearchOpts): NewActionFuncAsync<TeamsWithCount>;
+export function searchTeams(term: string, opts: NotPagedTeamSearchOpts): NewActionFuncAsync<Team[]>;
 export function searchTeams(term: string, opts: TeamSearchOpts = {}): NewActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({type: TeamTypes.GET_TEAMS_REQUEST, data: null});

@@ -5,7 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import {Link} from 'react-router-dom';
 
-import type {Team, TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
+import type {PagedTeamSearchOpts, Team, TeamSearchOpts, TeamsWithCount} from '@mattermost/types/teams';
 
 import {debounce} from 'mattermost-redux/actions/helpers';
 import type {ActionResult} from 'mattermost-redux/types/actions';
@@ -27,7 +27,7 @@ type Props = {
     data: Team[];
     total: number;
     actions: {
-        searchTeams(term: string, opts: TeamSearchOpts): Promise<ActionResult<TeamsWithCount>>;
+        searchTeams(term: string, opts: PagedTeamSearchOpts): Promise<ActionResult>;
         getData(page: number, size: number): void;
     };
     isLicensedForLDAPGroups?: boolean;
@@ -93,7 +93,7 @@ export default class TeamList extends React.PureComponent<Props, State> {
         let teams: Team[] = [];
         let total = 0;
         let searchErrored = true;
-        const response = await this.props.actions.searchTeams(term, {page, per_page: PAGE_SIZE, ...filters});
+        const response = await this.props.actions.searchTeams(term, {page, per_page: PAGE_SIZE, ...filters}) as ActionResult<TeamsWithCount>;
         if (response?.data) {
             teams = page > 0 ? this.state.teams.concat(response.data.teams) : response.data.teams;
             total = response.data.total_count;

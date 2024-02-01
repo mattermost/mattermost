@@ -768,7 +768,7 @@ describe('Actions.Teams', () => {
 
         nock(Client4.getBaseRoute()).
             post('/teams/search').
-            reply(200, [TestHelper.basicTeam, userTeam]);
+            reply(200, {teams: [TestHelper.basicTeam, userTeam], total_count: 2});
 
         await store.dispatch(Actions.searchTeams('test', {page: 0, per_page: 1}));
 
@@ -788,6 +788,6 @@ describe('Actions.Teams', () => {
             throw new Error(JSON.stringify(paginatedRequest.error));
         }
 
-        expect(response.data.teams.length === 2).toBeTruthy();
+        expect(response.data!.teams.length === 2).toBeTruthy();
     });
 });
