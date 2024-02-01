@@ -6,7 +6,7 @@ import {useIntl} from 'react-intl';
 import type {ActionMeta, OptionsType, ValueType} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
-import type {PagedTeamSearchOpts, Team} from '@mattermost/types/teams';
+import type {PagedTeamSearchOpts, Team, TeamsWithCount} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -57,7 +57,7 @@ function TeamFilterDropdown(props: Props) {
 
     async function searchInList(term: string, callBack: (options: OptionsType<{label: string; value: string}>) => void) {
         try {
-            const response = await props.searchTeams(term, {page: 0, per_page: TEAMS_PER_PAGE} as PagedTeamSearchOpts);
+            const response = await props.searchTeams(term, {page: 0, per_page: TEAMS_PER_PAGE} as PagedTeamSearchOpts) as unknown as ActionResult<TeamsWithCount>;
             if (response && response.data && response.data.teams && response.data.teams.length > 0) {
                 const teams = response.data.teams.map((team: Team) => ({
                     value: team.id,
