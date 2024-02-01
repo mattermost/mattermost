@@ -1897,7 +1897,6 @@ func (a *App) initElasticsearchChannelIndexCheck() {
 		// if a license was added, and it has ES enabled-
 		if oldLicense == nil && newLicense != nil {
 			if a.SearchEngine().ElasticsearchEngine != nil {
-				mlog.Info("##################### elasticsearchChannelIndexCheckWithRetry DDD")
 				a.elasticsearchChannelIndexCheckWithRetry()
 			}
 		}
