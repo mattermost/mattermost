@@ -136,7 +136,7 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 	}
 
 	if bookmark.FileId != "" {
-		err := s.ErrorIfBookmarkFileInfoAlreadyAttached(bookmark.FileId)
+		err = s.ErrorIfBookmarkFileInfoAlreadyAttached(bookmark.FileId)
 		if err != nil {
 			return nil, errors.Wrap(err, "unable_to_save_channel_bookmark")
 		}
