@@ -336,6 +336,6 @@ func (b *BleveEngine) UpdateConfig(cfg *model.Config) {
 	b.cfg = cfg
 }
 
-func (b *BleveEngine) IsChannelsIndexVaerified() bool {
+func (b *BleveEngine) IsChannelsIndexVerified() bool {
 	return true
 }

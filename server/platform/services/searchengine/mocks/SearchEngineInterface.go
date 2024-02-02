@@ -327,8 +327,8 @@ func (_m *SearchEngineInterface) IsAutocompletionEnabled() bool {
 	return r0
 }
 
-// IsChannelsIndexVaerified provides a mock function with given fields:
-func (_m *SearchEngineInterface) IsChannelsIndexVaerified() bool {
+// IsChannelsIndexVerified provides a mock function with given fields:
+func (_m *SearchEngineInterface) IsChannelsIndexVerified() bool {
 	ret := _m.Called()
 
 	var r0 bool
