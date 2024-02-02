@@ -2142,10 +2142,10 @@ func (s *TimerLayerChannelStore) SaveDirectChannel(ctx request.CTX, channel *mod
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.SaveMember(member)
+	result, err := s.ChannelStore.SaveMember(rctx, member)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
