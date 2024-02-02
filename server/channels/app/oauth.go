@@ -958,9 +958,9 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 	stateProps["email"] = email
 
 	if service == model.UserAuthServiceSaml {
-		samlToken, err := a.CreateSamlRelayToken(email)
-		if err != nil {
-			return "", err
+		samlToken, samlErr := a.CreateSamlRelayToken(email)
+		if samlErr != nil {
+			return "", samlErr
 		}
 
 		token := b64.StdEncoding.EncodeToString([]byte(samlToken.Token))
