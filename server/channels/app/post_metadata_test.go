@@ -487,6 +487,54 @@ func TestPreparePostForClient(t *testing.T) {
 		})
 	})
 
+	t.Run("opengraph unsafe links", func(t *testing.T) {
+		th := setup(t)
+		defer th.TearDown()
+
+		noAccessServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			assert.Fail(t, "acessed server")
+		}))
+
+		for _, tc := range []struct {
+			name string
+			link string
+		}{
+			{
+				name: "normal link",
+				link: noAccessServer.URL,
+			},
+			{
+				name: "normal image",
+				link: noAccessServer.URL + "/image.png",
+			},
+			{
+				name: "markdown",
+				link: "[markdown](" + noAccessServer.URL + ") link",
+			},
+			{
+				name: "markdown image",
+				link: "![markdown](" + noAccessServer.URL + "/image.png) link",
+			},
+		} {
+			t.Run(tc.name, func(t *testing.T) {
+				prepost := &model.Post{
+					UserId:    th.BasicUser.Id,
+					ChannelId: th.BasicChannel.Id,
+					Message:   `Bla bla bla: ` + tc.link,
+				}
+				prepost.AddProp(UnsafeLinksPostProp, "true")
+
+				post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+				require.Nil(t, err)
+
+				clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
+
+				assert.Len(t, clientPost.Metadata.Embeds, 0)
+				assert.Len(t, clientPost.Metadata.Images, 0)
+			})
+		}
+	})
+
 	t.Run("message attachment embed", func(t *testing.T) {
 		th := setup(t)
 		defer th.TearDown()
