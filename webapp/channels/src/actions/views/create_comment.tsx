@@ -5,14 +5,10 @@ import type {Post} from '@mattermost/types/posts';
 
 import {
     addMessageIntoHistory,
-    moveHistoryIndexBack,
-    moveHistoryIndexForward,
 } from 'mattermost-redux/actions/posts';
-import {Posts} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {
-    makeGetMessageInHistoryItem,
     getPost,
     makeGetPostIdsForThread,
 } from 'mattermost-redux/selectors/entities/posts';
@@ -26,7 +22,6 @@ import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'act
 import * as PostActions from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
-import {getPostDraft} from 'selectors/rhs';
 
 import {Constants, StoragePrefixes} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
@@ -50,28 +45,6 @@ export function clearCommentDraftUploads() {
 export function updateCommentDraft(rootId: string, draft?: PostDraft, save = false) {
     const key = `${StoragePrefixes.COMMENT_DRAFT}${rootId}`;
     return updateDraft(key, draft ?? null, rootId, save);
-}
-
-export function makeOnMoveHistoryIndex(rootId: string, direction: number): () => NewActionFunc<boolean, GlobalState> { // HARRISONTODO unused
-    const getMessageInHistory = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.COMMENT as 'comment');
-
-    return () => (dispatch, getState) => {
-        const draft = getPostDraft(getState(), StoragePrefixes.COMMENT_DRAFT, rootId);
-        if (draft.message !== '' && draft.message !== getMessageInHistory(getState())) {
-            return {data: true};
-        }
-
-        if (direction === -1) {
-            dispatch(moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT as 'comment'));
-        } else if (direction === 1) {
-            dispatch(moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT as 'comment'));
-        }
-
-        const nextMessageInHistory = getMessageInHistory(getState());
-
-        dispatch(updateCommentDraft(rootId, {...draft, message: nextMessageInHistory}));
-        return {data: true};
-    };
 }
 
 export function submitPost(channelId: string, rootId: string, draft: PostDraft): NewActionFuncAsync {
