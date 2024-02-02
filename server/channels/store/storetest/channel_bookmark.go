@@ -69,9 +69,49 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		Emoji:       ":smile:",
 	}
 
+	bookmark3 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		OwnerId:     userId,
+		DisplayName: "file already attached",
+		FileId:      file.Id,
+		Type:        model.ChannelBookmarkFile,
+		Emoji:       ":smile:",
+	}
+
+	file2 := &model.FileInfo{
+		Id:              model.NewId(),
+		CreatorId:       userId,
+		Path:            "somepath",
+		ThumbnailPath:   "thumbpath",
+		PreviewPath:     "prevPath",
+		Name:            "test file",
+		Extension:       "png",
+		MimeType:        "images/png",
+		Size:            873182,
+		Width:           3076,
+		Height:          2200,
+		HasPreviewImage: true,
+	}
+
+	bookmark4 := &model.ChannelBookmark{
+		ChannelId:   channelId,
+		OwnerId:     userId,
+		DisplayName: "file already attached to a post",
+		FileId:      file2.Id,
+		Type:        model.ChannelBookmarkFile,
+		Emoji:       ":smile:",
+	}
+
 	_, err := ss.FileInfo().Save(rctx, file)
 	require.NoError(t, err)
 	defer ss.FileInfo().PermanentDelete(rctx, file.Id)
+
+	_, err = ss.FileInfo().Save(rctx, file2)
+	require.NoError(t, err)
+	defer ss.FileInfo().PermanentDelete(rctx, file2.Id)
+
+	err = ss.FileInfo().AttachToPost(rctx, file2.Id, model.NewId(), channelId, userId)
+	require.NoError(t, err)
 
 	t.Run("save bookmarks", func(t *testing.T) {
 		bookmarkResp, err := ss.ChannelBookmark().Save(bookmark1.Clone(), true)
@@ -91,6 +131,12 @@ func testSaveChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelId, 0)
 		assert.NoError(t, err)
 		assert.Len(t, bookmarks, 2)
+
+		_, err = ss.ChannelBookmark().Save(bookmark3.Clone(), true)
+		assert.Error(t, err) // Error as the file is attached to a bookmark
+
+		_, err = ss.ChannelBookmark().Save(bookmark4.Clone(), true)
+		assert.Error(t, err) // Error as the file is attached to a post
 	})
 }
 
