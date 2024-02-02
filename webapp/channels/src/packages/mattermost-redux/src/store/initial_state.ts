@@ -31,6 +31,7 @@ const state: GlobalState = {
             profilesNotInGroup: {},
             statuses: {},
             stats: {},
+            filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
         },

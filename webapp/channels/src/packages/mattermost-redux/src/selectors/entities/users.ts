@@ -436,11 +436,11 @@ export function getStatusForUserId(state: GlobalState, userId: UserProfile['id']
     return getUserStatuses(state)[userId];
 }
 
-export function getTotalUsersStats(state: GlobalState): any {
+export function getTotalUsersStats(state: GlobalState) {
     return state.entities.users.stats;
 }
 
-export function getFilteredUsersStats(state: GlobalState): any {
+export function getFilteredUsersStats(state: GlobalState) {
     return state.entities.users.filteredStats;
 }
 

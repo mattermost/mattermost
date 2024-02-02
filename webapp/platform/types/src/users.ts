@@ -78,8 +78,8 @@ export type UsersState = {
     profilesInGroup: RelationOneToMany<Group, UserProfile>;
     profilesNotInGroup: RelationOneToMany<Group, UserProfile>;
     statuses: RelationOneToOne<UserProfile, string>;
-    stats: RelationOneToOne<UserProfile, UsersStats>;
-    filteredStats?: UsersStats;
+    stats: Partial<UsersStats>;
+    filteredStats: Partial<UsersStats>;
     myUserAccessTokens: Record<string, UserAccessToken>;
     lastActivity: RelationOneToOne<UserProfile, number>;
 };

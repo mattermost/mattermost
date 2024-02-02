@@ -8,7 +8,7 @@ import {combineReducers} from 'redux';
 import type {Channel} from '@mattermost/types/channels';
 import type {Group} from '@mattermost/types/groups';
 import type {Team} from '@mattermost/types/teams';
-import type {UserAccessToken, UserProfile, UserStatus} from '@mattermost/types/users';
+import type {UserAccessToken, UserProfile, UserStatus, UsersState} from '@mattermost/types/users';
 import type {RelationOneToMany, IDMappedObjects, RelationOneToOne} from '@mattermost/types/utilities';
 
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
@@ -611,7 +611,7 @@ function myUserAccessTokens(state: Record<string, UserAccessToken> = {}, action:
     }
 }
 
-function stats(state = {}, action: AnyAction) {
+function stats(state: UsersState['stats'] = {}, action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_USER_STATS: {
         const stat = action.data;
@@ -625,7 +625,7 @@ function stats(state = {}, action: AnyAction) {
     }
 }
 
-function filteredStats(state = {}, action: AnyAction) {
+function filteredStats(state: UsersState['filteredStats'] = {}, action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_FILTERED_USER_STATS: {
         const stat = action.data;
