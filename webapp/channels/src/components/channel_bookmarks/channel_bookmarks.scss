@@ -12,21 +12,26 @@
     font-weight: 600;
     gap: 5px;
 
-    &.rounded {
-        padding-right: 8px;
+    &.withLabel {
+        padding: 4px 12px 4px 6px;
         border-radius: 12px;
     }
 
-    &:hover {
+    &[disabled] {
+        background: rgba(var(--center-channel-color-rgb), 0.04);
+        color: rgba(var(--center-channel-color-rgb), 0.56);
+    }
+
+    &:hover:enabled {
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
 
-    &:active,
-    &--active,
-    &--active:hover,
+    &:active:enabled,
+    &--active:enabled,
+    &--active:hover:enabled,
     &[aria-expanded="true"] {
-        background: rgba(var(--button-bg-rgb), 8%);
+        background: rgba(var(--button-bg-rgb), 0.08);
         color: rgb(var(--button-bg-rgb));
     }
 }

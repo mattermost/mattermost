@@ -11,11 +11,13 @@ import {
     LinkVariantIcon,
     TrashCanOutlineIcon,
     ArrowExpandIcon,
+    OpenInNewIcon,
+    BookOutlineIcon,
 } from '@mattermost/compass-icons/components';
 import type {ChannelBookmark, ChannelBookmarkPatch} from '@mattermost/types/channel_bookmarks';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
-import {getFileUrl} from 'mattermost-redux/utils/file_utils';
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import {editBookmark, deleteBookmark} from 'actions/channel_bookmarks';
 import {openModal} from 'actions/views/modals';
@@ -23,6 +25,7 @@ import {openModal} from 'actions/views/modals';
 import * as Menu from 'components/menu';
 
 import {ModalIdentifiers} from 'utils/constants';
+import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 import {copyToClipboard} from 'utils/utils';
 
 import BookmarkDeleteModal from './bookmark_delete_modal';
@@ -36,6 +39,16 @@ const BookmarkItemDotMenu = ({
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+
+    const siteURL = getSiteURL();
+    const openInNewTab = bookmark.type === 'link' && bookmark.link_url && shouldOpenInNewTab(bookmark.link_url, siteURL);
+
+    let openIcon;
+    if (bookmark.type === 'file') {
+        openIcon = <ArrowExpandIcon size={18}/>;
+    } else if (bookmark.link_url) {
+        openIcon = openInNewTab ? <OpenInNewIcon size={18}/> : <BookOutlineIcon size={18}/>;
+    }
 
     const canEdit = useChannelBookmarkPermission(bookmark.channel_id, 'edit');
     const canDelete = useChannelBookmarkPermission(bookmark.channel_id, 'delete');
@@ -61,7 +74,7 @@ const BookmarkItemDotMenu = ({
         if (bookmark.type === 'link' && bookmark.link_url) {
             copyToClipboard(bookmark.link_url);
         } else if (bookmark.type === 'file' && bookmark.file_id) {
-            copyToClipboard(getFileUrl(bookmark.file_id));
+            copyToClipboard(getFileDownloadUrl(bookmark.file_id));
         }
     }, [bookmark.type, bookmark.link_url]);
 
@@ -93,7 +106,7 @@ const BookmarkItemDotMenu = ({
                 key='channelBookmarksOpen'
                 id='channelBookmarksOpen'
                 onClick={open}
-                leadingElement={<ArrowExpandIcon size={18}/>}
+                leadingElement={openIcon}
                 labels={<span>{openLabel}</span>}
                 aria-label={openLabel}
             />

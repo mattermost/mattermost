@@ -49,9 +49,10 @@ type Props = {
     onConfirm: (data: ChannelBookmarkCreate) => Promise<ActionResult<boolean, any>> | ActionResult<boolean, any>;
 });
 
-function validHttpUrl(val: string) {
+function validHttpUrl(input: string) {
+    let val = input;
     if (!isValidUrl(val)) {
-        return null;
+        val = `https://${val}`;
     }
 
     let url;
@@ -81,7 +82,6 @@ function ChannelBookmarkCreateModal({
     const [emoji, setEmoji] = useState(bookmark?.emoji);
     const [displayName, setDisplayName] = useState<string | undefined>(bookmark?.display_name);
     const [parsedDisplayName, setParsedDisplayName] = useState<string | undefined>();
-    const displayNameValue = displayName || (parsedDisplayName ?? '');
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
 
@@ -133,6 +133,7 @@ function ChannelBookmarkCreateModal({
         }
 
         const url = validHttpUrl(link);
+
         (async () => {
             let meta;
 
@@ -227,6 +228,8 @@ function ChannelBookmarkCreateModal({
         setFileError(formatMessage({id: 'file_upload.generic_error_file', defaultMessage: 'There was a problem uploading your file.'}));
     };
 
+    const displayNameValue = displayName || parsedDisplayName || fileInfo?.name || '';
+
     const doUploadFile = (file: File) => {
         setPendingFile(null);
         setFileId('');
@@ -250,7 +253,10 @@ function ChannelBookmarkCreateModal({
         }
 
         setFileError('');
-        setParsedDisplayName(file?.name);
+        if (displayNameValue === fileInfo?.name) {
+            setDisplayName(file.name);
+        }
+        setParsedDisplayName(file.name);
 
         const clientId = generateId();
 
@@ -262,10 +268,9 @@ function ChannelBookmarkCreateModal({
             channelId,
             clientId,
             onProgress,
-
             onSuccess,
             onError,
-        })) as unknown as XMLHttpRequest;
+        }, true)) as unknown as XMLHttpRequest;
     };
 
     useEffect(() => {
@@ -281,7 +286,7 @@ function ChannelBookmarkCreateModal({
 
     // controls logic
     const hasChanges = (() => {
-        if (displayNameValue && displayNameValue !== bookmark?.display_name) {
+        if (displayNameValue !== bookmark?.display_name) {
             return true;
         }
 
@@ -290,7 +295,9 @@ function ChannelBookmarkCreateModal({
         }
 
         if (type === 'file') {
-            return Boolean(fileId && fileId !== bookmark?.file_id);
+            if (fileId && fileId !== bookmark?.file_id) {
+                return true;
+            }
         }
 
         if (type === 'link') {
@@ -299,7 +306,21 @@ function ChannelBookmarkCreateModal({
 
         return false;
     })();
-    const isValid = type === 'file' ? fileInfo && displayNameValue && !fileError : link && !linkError;
+    const isValid = (() => {
+        if (type === 'link') {
+            if (!link || linkError) {
+                return false;
+            }
+        }
+
+        if (type === 'file') {
+            if (!fileInfo || !displayNameValue || fileError) {
+                return false;
+            }
+        }
+
+        return true;
+    })();
     const showControls = type === 'file' || (isValid || bookmark);
 
     const cancel = () => {
@@ -310,9 +331,22 @@ function ChannelBookmarkCreateModal({
     const confirm = async () => {
         setSaving(true);
         if (type === 'link') {
+            const url = validHttpUrl(link);
+
+            if (!url) {
+                setSaveError(formatMessage(msg.linkInvalid));
+                return;
+            }
+
+            let validLink = url.toString();
+
+            if (validLink.endsWith('/')) {
+                validLink = validLink.slice(0, -1);
+            }
+
             const {data: success} = await onConfirm({
                 image_url: icon,
-                link_url: link,
+                link_url: validLink,
                 emoji,
                 display_name: displayNameValue,
                 type: 'link',
@@ -343,6 +377,8 @@ function ChannelBookmarkCreateModal({
         }
     };
 
+    const confirmDisabled = saving || !isValid || !hasChanges;
+
     return (
         <GenericModal
             className='channel-bookmarks-create-modal'
@@ -350,9 +386,10 @@ function ChannelBookmarkCreateModal({
             confirmButtonText={formatMessage(bookmark ? msg.saveText : msg.addBookmarkText)}
             handleCancel={(showControls && cancel) || undefined}
             handleConfirm={(showControls && confirm) || undefined}
+            handleEnterKeyPress={(!confirmDisabled && confirm) || undefined}
             onExited={handleOnExited}
             compassDesign={true}
-            isConfirmDisabled={saving || !isValid || !hasChanges}
+            isConfirmDisabled={confirmDisabled}
             autoCloseOnConfirmButton={false}
             errorText={saveError}
         >
@@ -434,7 +471,7 @@ function ChannelBookmarkCreateModal({
                             emoji={emoji}
                             setEmoji={setEmoji}
                             displayName={displayName}
-                            placeholder={parsedDisplayName}
+                            placeholder={displayNameValue}
                             setDisplayName={setDisplayName}
                         />
                     </TitleWrapper>

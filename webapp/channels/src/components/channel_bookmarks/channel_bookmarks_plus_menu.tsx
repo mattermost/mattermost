@@ -6,7 +6,7 @@ import type {ChangeEvent} from 'react';
 import React, {useCallback, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch} from 'react-redux';
-import styled from 'styled-components';
+import styled, {css} from 'styled-components';
 
 import {
     LinkVariantIcon,
@@ -26,6 +26,7 @@ import {ModalIdentifiers} from 'utils/constants';
 import {clearFileInput} from 'utils/utils';
 
 import ChannelBookmarkCreateModal from './channel_bookmarks_create_modal';
+import {MAX_BOOKMARKS_PER_CHANNEL} from './utils';
 
 type PlusMenuProps = {
     channelId: string;
@@ -39,6 +40,7 @@ const PlusMenu = ({
 }: PlusMenuProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
+    const showLabel = !hasBookmarks;
 
     const handleCreate = useCallback((file?: File) => {
         dispatch(openModal({
@@ -82,7 +84,7 @@ const PlusMenu = ({
 
     const addBookmarkLabel = formatMessage({id: 'channel_bookmarks.addBookmark', defaultMessage: 'Add a bookmark'});
 
-    const addBookmarkLimitReached = formatMessage({id: 'channel_bookmarks.addBookmarkLimitReached', defaultMessage: 'Cannot add bookmark. Limit reached.'});
+    const addBookmarkLimitReached = formatMessage({id: 'channel_bookmarks.addBookmarkLimitReached', defaultMessage: 'Cannot add more than {limit} bookmarks'}, {limit: MAX_BOOKMARKS_PER_CHANNEL});
     let addBookmarkTooltipText;
 
     if (limitReached) {
@@ -94,17 +96,17 @@ const PlusMenu = ({
     const attachFileLabel = formatMessage({id: 'channel_bookmarks.attachFile', defaultMessage: 'Attach a file'});
 
     return (
-        <PlusButtonContainer>
+        <PlusButtonContainer withLabel={showLabel}>
             <Menu.Container
                 anchorOrigin={{vertical: 'bottom', horizontal: 'left'}}
                 transformOrigin={{vertical: 'top', horizontal: 'left'}}
                 menuButton={{
                     id: 'channelBookmarksPlusMenuButton',
-                    class: classNames('channelBookmarksMenuButton', {rounded: !hasBookmarks}),
+                    class: classNames('channelBookmarksMenuButton', {withLabel: showLabel, disabled: limitReached}),
                     children: (
                         <>
-                            <PlusIcon size={18}/>
-                            {!hasBookmarks && <span>{addBookmarkLabel}</span>}
+                            <PlusIcon size={showLabel ? 16 : 18}/>
+                            {showLabel && <span>{addBookmarkLabel}</span>}
                         </>
                     ),
                     'aria-label': addBookmarkLabel,
@@ -142,9 +144,9 @@ const PlusMenu = ({
 
 export default PlusMenu;
 
-const PlusButtonContainer = styled.div`
+const PlusButtonContainer = styled.div<{withLabel: boolean}>`
     position: sticky;
     right: 0;
-    padding: 0 1rem;
+    ${({withLabel}) => !withLabel && css`padding: 0 1rem;`}
     background: linear-gradient(to right, rgba(var(--center-channel-bg-rgb), .16), rgba(var(--center-channel-bg-rgb), 1) 25%);
 `;

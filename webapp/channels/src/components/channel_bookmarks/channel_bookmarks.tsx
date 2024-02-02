@@ -51,7 +51,7 @@ export default ChannelBookmarks;
 
 const Container = styled.div`
     display: flex;
-    padding: 6px;
+    padding: 8px 6px;
     padding-right: 0;
     align-items: center;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);

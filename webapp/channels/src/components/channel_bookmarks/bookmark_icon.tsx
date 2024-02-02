@@ -4,7 +4,7 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import {FileGenericOutlineIcon, LinkVariantIcon} from '@mattermost/compass-icons/components';
+import {FileGenericOutlineIcon, BookOutlineIcon} from '@mattermost/compass-icons/components';
 import type {ChannelBookmark} from '@mattermost/types/channel_bookmarks';
 import type {FileInfo} from '@mattermost/types/files';
 
@@ -27,7 +27,7 @@ const BookmarkIcon = ({
     fileInfo,
     size = 16,
 }: Props) => {
-    let icon = type === 'link' ? <LinkVariantIcon size={size}/> : <FileGenericOutlineIcon size={size}/>;
+    let icon = type === 'link' ? <BookOutlineIcon size={size}/> : <FileGenericOutlineIcon size={size}/>;
 
     const emojiName = emoji && emoji.startsWith(':') && emoji.endsWith(':') ? emoji?.slice(1, -1) : emoji;
 

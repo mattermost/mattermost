@@ -2432,7 +2432,7 @@ export default class Client4 {
         return url;
     }
 
-    uploadFile = (fileFormData: any) => {
+    uploadFile = (fileFormData: any, isBookmark?: boolean) => {
         this.trackEvent('api', 'api_files_upload');
         const request: any = {
             method: 'post',
@@ -2440,7 +2440,7 @@ export default class Client4 {
         };
 
         return this.doFetch<FileUploadResponse>(
-            `${this.getFilesRoute()}`,
+            `${this.getFilesRoute()}${buildQueryString({bookmark: isBookmark})}`,
             request,
         );
     };

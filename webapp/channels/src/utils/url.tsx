@@ -11,6 +11,8 @@ import {t} from 'utils/i18n';
 import {latinise} from 'utils/latinise';
 import * as TextFormatting from 'utils/text_formatting';
 
+import {unescapeHtmlEntities} from './markdown/renderer';
+
 type WindowObject = {
     location: {
         origin: string;
@@ -264,4 +266,21 @@ export function channelNameToUrl(channelName: string): UrlValidationCheck {
     }
 
     return {url, error: false};
+}
+
+export function parseLink(href: string) {
+    let outHref;
+
+    if (!href.startsWith('/')) {
+        const scheme = getScheme(href);
+        if (!scheme) {
+            outHref = `http://${outHref}`;
+        }
+    }
+
+    if (!isUrlSafe(unescapeHtmlEntities(href))) {
+        return undefined;
+    }
+
+    return outHref;
 }

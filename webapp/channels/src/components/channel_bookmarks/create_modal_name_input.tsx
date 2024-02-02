@@ -61,7 +61,7 @@ const CreateModalNameInput = ({
     };
 
     const handleEmojiClear = () => {
-        setEmoji('');
+        setEmoji(undefined);
     };
 
     const handleEmojiClose = () => {
