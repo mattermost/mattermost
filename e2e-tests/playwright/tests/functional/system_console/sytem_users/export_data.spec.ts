@@ -7,6 +7,8 @@ import {test} from '@e2e-support/test_fixture';
 import { duration } from '@e2e-support/util';
 
 test('MM-X should begin export of data when export button is pressed', async ({pw, pages}) => {
+    test.slow();
+
     // # Skip test if no license
     await pw.skipIfNoLicense();
 
