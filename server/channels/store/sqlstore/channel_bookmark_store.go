@@ -280,7 +280,10 @@ func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, 
 		query = query.Where(sq.Eq{"cb.DeleteAt": 0})
 	}
 
-	query = query.OrderBy("cb.SortOrder ASC").OrderBy("cb.DeleteAt ASC")
+	query = query.
+		OrderBy("cb.SortOrder ASC").
+		OrderBy("cb.DeleteAt ASC").
+		Limit(model.MaxBookmarksPerChannel * 2) // limit to the double of the cap as an edge case
 	queryString, args, err := query.ToSql()
 	if err != nil {
 		return nil, errors.Wrap(err, "channel_bookmark_getforchanneltsince_tosql")
