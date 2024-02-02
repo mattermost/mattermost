@@ -1983,7 +1983,7 @@ func (a *App) elasticChannelsIndexNeedNotifyAdmins() bool {
 		return false
 	}
 
-	if elastic.IsChannelsIndexVaerified() {
+	if elastic.IsChannelsIndexVerified() {
 		a.Log().Debug("elasticChannelsIndexNeedNotifyAdmins: skipping because channels index is verified")
 		return false
 	}
