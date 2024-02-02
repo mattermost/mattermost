@@ -174,16 +174,6 @@ describe('Actions.User', () => {
         } as GlobalState['views'],
     } as GlobalState;
 
-    test('loadProfilesAndStatusesInChannel', async () => {
-        const testStore = mockStore(initialState);
-        await testStore.dispatch(UserActions.loadProfilesAndStatusesInChannel('channel_1', 0, 60, 'status', {}));
-        const actualActions = testStore.getActions();
-        expect(actualActions[0].args).toEqual(['channel_1', 0, 60, 'status', {}]);
-        expect(actualActions[0].type).toEqual('MOCK_GET_PROFILES_IN_CHANNEL');
-        expect(actualActions[1].args).toEqual([['user_1']]);
-        expect(actualActions[1].type).toEqual('MOCK_GET_STATUSES_BY_ID');
-    });
-
     test('loadProfilesAndTeamMembers', async () => {
         const expectedActions = [{type: 'MOCK_GET_PROFILES_IN_TEAM', args: ['team_1', 0, 60, '', {}]}];
 
