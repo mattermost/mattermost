@@ -78,6 +78,30 @@ func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFac
 		return err
 	}
 
+	// check if any remotes need to be auto-subscribed to this channel. Remotes are auto-subscribed to DM/GM's if they registered
+	// with the AutoShareDMs flag set.
+	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+		filter := model.RemoteClusterQueryFilter{
+			NotInChannel:   channel.Id,
+			OnlyConfirmed:  true,
+			RequireOptions: model.BitflagOptionAutoShareDMs,
+		}
+		remotes, err := ps.Store.RemoteCluster().GetAll(filter) // empty list returned if none found,  no error
+		if err != nil {
+			return fmt.Errorf("cannot fetch remote clusters: %w", err)
+		}
+		for _, remote := range remotes {
+			// invite remote to channel (will share the channel if not already shared)
+			if err := syncService.InviteRemoteToChannel(channel.Id, remote.RemoteId, remote.CreatorId, true); err != nil {
+				return fmt.Errorf("cannot invite remote to channel %s: %w", channel.Id, err)
+			}
+			if !channel.IsShared() {
+				channel.Shared = model.NewBool(true)
+			}
+		}
+	}
+
+	// notify
 	if channel != nil && channel.IsShared() {
 		syncService.NotifyChannelChanged(channel.Id)
 	}
