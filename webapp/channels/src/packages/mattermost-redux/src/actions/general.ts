@@ -1,8 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {batchActions} from 'redux-batched-actions';
-
 import {LogLevel} from '@mattermost/types/client4';
 import type {SystemSetting} from '@mattermost/types/general';
 
@@ -28,29 +26,6 @@ export function getClientConfig(): NewActionFuncAsync {
         Client4.setDiagnosticId(data.DiagnosticId);
 
         dispatch({type: GeneralTypes.CLIENT_CONFIG_RECEIVED, data});
-
-        return {data};
-    };
-}
-
-export function getDataRetentionPolicy(): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getDataRetentionPolicy();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({
-                type: GeneralTypes.RECEIVED_DATA_RETENTION_POLICY,
-                error,
-            });
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(batchActions([
-            {type: GeneralTypes.RECEIVED_DATA_RETENTION_POLICY, data},
-        ]));
 
         return {data};
     };
@@ -90,21 +65,6 @@ export function setUrl(url: string) {
     return true;
 }
 
-export function getWarnMetricsStatus(): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getWarnMetricsStatus();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
-        }
-        dispatch({type: GeneralTypes.WARN_METRICS_STATUS_RECEIVED, data});
-
-        return {data};
-    };
-}
-
 export function setFirstAdminVisitMarketplaceStatus(): NewActionFuncAsync {
     return async (dispatch) => {
         try {
@@ -115,22 +75,6 @@ export function setFirstAdminVisitMarketplaceStatus(): NewActionFuncAsync {
         }
         dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data: true});
         return {data: true};
-    };
-}
-
-export function getFirstAdminVisitMarketplaceStatus(): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let data;
-        try {
-            data = await Client4.getFirstAdminVisitMarketplaceStatus();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
-        }
-
-        data = JSON.parse(data.value);
-        dispatch({type: GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED, data});
-        return {data};
     };
 }
 
@@ -153,11 +97,8 @@ export function getFirstAdminSetupComplete(): NewActionFuncAsync<SystemSetting> 
 
 export default {
     getClientConfig,
-    getDataRetentionPolicy,
     getLicenseConfig,
     logClientError,
     setServerVersion,
     setUrl,
-    getWarnMetricsStatus,
-    getFirstAdminVisitMarketplaceStatus,
 };

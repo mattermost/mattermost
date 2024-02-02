@@ -11,7 +11,6 @@ import {PreferenceTypes} from 'mattermost-redux/action_types';
 import * as ChannelActions from 'mattermost-redux/actions/channels';
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {getChannelByName, getUnreadChannelIds, getChannel} from 'mattermost-redux/selectors/entities/channels';
-import {getMyChannelMemberships} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
@@ -96,26 +95,6 @@ export function loadChannelsForCurrentUser(): NewActionFuncAsync {
     };
 }
 
-export function searchMoreChannels(term: string, showArchivedChannels: boolean, hideJoinedChannels: boolean): NewActionFuncAsync<Channel[]> { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const state = getState();
-        const teamId = getCurrentTeamId(state);
-
-        if (!teamId) {
-            throw new Error('No team id');
-        }
-
-        const {data, error} = await dispatch(ChannelActions.searchChannels(teamId, term, showArchivedChannels));
-        if (data) {
-            const myMembers = getMyChannelMemberships(state);
-            const channels = hideJoinedChannels ? (data as Channel[]).filter((channel) => !myMembers[channel.id]) : data;
-            return {data: channels};
-        }
-
-        return {error};
-    };
-}
-
 export function autocompleteChannels(term: string, success: (channels: Channel[]) => void, error?: (err: ServerError) => void): NewActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
@@ -159,7 +138,9 @@ export function addUsersToChannel(channelId: Channel['id'], userIds: Array<UserP
         try {
             const requests = userIds.map((uId) => dispatch(ChannelActions.addChannelMember(channelId, uId)));
 
-            return await Promise.all(requests) as any; // HARRISONTODO This incorrectly returns an ActionResult[]
+            await Promise.all(requests);
+
+            return {data: true};
         } catch (error) {
             return {error};
         }

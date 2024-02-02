@@ -24,7 +24,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {NewActionFunc, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
@@ -37,11 +37,11 @@ import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 import type {GlobalState} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
-function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         const postRootId = post.root_id || post.id;
         await dispatch(PostActions.getPostThread(postRootId));
-        const state = getState() as GlobalState;
+        const state = getState();
 
         dispatch({
             type: ActionTypes.SELECT_POST,
@@ -55,9 +55,9 @@ function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previous
     };
 }
 
-function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
 
         dispatch({
             type: ActionTypes.SELECT_POST_CARD,
@@ -70,8 +70,8 @@ function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, prev
     };
 }
 
-export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState): NewActionFunc<boolean> {
+    return (dispatch, getState) => {
         const action: AnyAction = {
             type: ActionTypes.UPDATE_RHS_STATE,
             state: rhsState,
@@ -105,9 +105,9 @@ export function openShowEditHistory(post: Post) {
     };
 }
 
-export function goBack() {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const prevState = getPreviousRhsState(getState() as GlobalState);
+export function goBack(): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const prevState = getPreviousRhsState(getState());
         const defaultTab = 'channel-info';
 
         dispatch({
@@ -123,12 +123,8 @@ export function selectPostFromRightHandSideSearch(post: Post) {
     return selectPostFromRightHandSideSearchWithPreviousState(post);
 }
 
-export function selectPostCardFromRightHandSideSearch(post: Post) {
-    return selectPostCardFromRightHandSideSearchWithPreviousState(post);
-}
-
-export function selectPostFromRightHandSideSearchByPostId(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function selectPostFromRightHandSideSearchByPostId(postId: string): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
         return dispatch(selectPostFromRightHandSideSearch(post));
     };
@@ -170,8 +166,8 @@ export function setRhsSize(rhsSize?: SidebarSize) {
     };
 }
 
-export function updateSearchTermsForShortcut() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function updateSearchTermsForShortcut(): ThunkActionFunc<unknown> {
+    return (dispatch, getState) => {
         const currentChannelName = getCurrentChannelNameForSearchShortcut(getState());
         return dispatch(updateSearchTerms(`in:${currentChannelName} `));
     };
@@ -191,13 +187,13 @@ function updateSearchResultsTerms(terms: string) {
     };
 }
 
-export function performSearch(terms: string, isMentionSearch?: boolean) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function performSearch(terms: string, isMentionSearch?: boolean): ThunkActionFunc<unknown, GlobalState> {
+    return (dispatch, getState) => {
         let searchTerms = terms;
         const teamId = getCurrentTeamId(getState());
         const config = getConfig(getState());
         const viewArchivedChannels = config.ExperimentalViewArchivedChannels === 'true';
-        const extensionsFilters = getFilesSearchExtFilter(getState() as GlobalState);
+        const extensionsFilters = getFilesSearchExtFilter(getState());
 
         const extensions = extensionsFilters?.map((ext) => `ext:${ext}`).join(' ');
         let termsWithExtensionsFilters = searchTerms;
@@ -231,18 +227,15 @@ export function performSearch(terms: string, isMentionSearch?: boolean) {
 }
 
 export function filterFilesSearchByExt(extensions: string[]) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.SET_FILES_FILTER_BY_EXT,
-            data: extensions,
-        });
-        return {data: true};
+    return {
+        type: ActionTypes.SET_FILES_FILTER_BY_EXT,
+        data: extensions,
     };
 }
 
-export function showSearchResults(isMentionSearch = false) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function showSearchResults(isMentionSearch = false): ThunkActionFunc<unknown, GlobalState> {
+    return (dispatch, getState) => {
+        const state = getState();
 
         const searchTerms = getSearchTerms(state);
 
@@ -265,9 +258,9 @@ export function showRHSPlugin(pluggableId: string) {
     };
 }
 
-export function showChannelMembers(channelId: string, inEditingMode = false) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function showChannelMembers(channelId: string, inEditingMode = false): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
 
         if (inEditingMode) {
             await dispatch(setEditChannelMembers(true));
@@ -288,8 +281,8 @@ export function showChannelMembers(channelId: string, inEditingMode = false) {
     };
 }
 
-export function hideRHSPlugin(pluggableId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function hideRHSPlugin(pluggableId: string): NewActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const state = getState() as GlobalState;
 
         if (getPluggableId(state) === pluggableId) {
@@ -300,9 +293,9 @@ export function hideRHSPlugin(pluggableId: string) {
     };
 }
 
-export function toggleRHSPlugin(pluggableId: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function toggleRHSPlugin(pluggableId: string): NewActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
+        const state = getState();
 
         if (getPluggableId(state) === pluggableId) {
             dispatch(hideRHSPlugin(pluggableId));
@@ -392,9 +385,9 @@ export function showPinnedPosts(channelId?: string): NewActionFuncAsync<boolean,
     };
 }
 
-export function showChannelFiles(channelId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function showChannelFiles(channelId: string): NewActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
+        const state = getState();
         const teamId = getCurrentTeamId(state);
 
         let previousRhsState = getRhsState(state);
@@ -450,8 +443,8 @@ export function showChannelFiles(channelId: string) {
     };
 }
 
-export function showMentions() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function showMentions(): NewActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
             return key !== '@channel' && key !== '@all' && key !== '@here';
         });
@@ -477,18 +470,15 @@ export function showMentions() {
 }
 
 export function showChannelInfo(channelId: string) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.UPDATE_RHS_STATE,
-            channelId,
-            state: RHSStates.CHANNEL_INFO,
-        });
-        return {data: true};
+    return {
+        type: ActionTypes.UPDATE_RHS_STATE,
+        channelId,
+        state: RHSStates.CHANNEL_INFO,
     };
 }
 
-export function closeRightHandSide() {
-    return (dispatch: DispatchFunc) => {
+export function closeRightHandSide(): NewActionFunc {
+    return (dispatch) => {
         const actionsBatch: AnyAction[] = [
             {
                 type: ActionTypes.UPDATE_RHS_STATE,
@@ -507,15 +497,15 @@ export function closeRightHandSide() {
     };
 }
 
-export const toggleMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const toggleMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
     type: ActionTypes.TOGGLE_RHS_MENU,
 });
 
-export const openMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const openMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
     type: ActionTypes.OPEN_RHS_MENU,
 });
 
-export const closeMenu = () => (dispatch: DispatchFunc) => dispatch({
+export const closeMenu = (): ThunkActionFunc<unknown> => (dispatch) => dispatch({
     type: ActionTypes.CLOSE_RHS_MENU,
 });
 
@@ -532,16 +522,6 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPostAndParentChannel(post: Post) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const channel = getChannelSelector(getState(), post.channel_id);
-        if (!channel) {
-            await dispatch(getChannel(post.channel_id));
-        }
-        return dispatch(selectPost(post));
-    };
-}
-
 export function selectPost(post: Post) {
     return {
         type: ActionTypes.SELECT_POST,
@@ -551,8 +531,8 @@ export function selectPost(post: Post) {
     };
 }
 
-export function selectPostById(postId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function selectPostById(postId: string): NewActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const post = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
         if (post) {
@@ -582,8 +562,8 @@ export const debouncedClearHighlightReply = debounce((dispatch) => {
     return dispatch(clearHighlightReply);
 }, Constants.PERMALINK_FADEOUT);
 
-export function selectPostAndHighlight(post: Post) {
-    return (dispatch: DispatchFunc) => {
+export function selectPostAndHighlight(post: Post): NewActionFunc {
+    return (dispatch) => {
         dispatch(batchActions([
             selectPost(post),
             highlightReply(post),
@@ -599,8 +579,8 @@ export function selectPostCard(post: Post) {
     return {type: ActionTypes.SELECT_POST_CARD, postId: post.id, channelId: post.channel_id};
 }
 
-export function openRHSSearch() {
-    return (dispatch: DispatchFunc) => {
+export function openRHSSearch(): NewActionFunc {
+    return (dispatch) => {
         dispatch(clearSearch());
         dispatch(updateSearchTerms(''));
         dispatch(updateSearchResultsTerms(''));
@@ -611,8 +591,8 @@ export function openRHSSearch() {
     };
 }
 
-export function openAtPrevious(previous: any) { // TODO Could not find the proper type. Seems to be in several props around
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function openAtPrevious(previous: any): ThunkActionFunc<unknown, GlobalState> {
+    return (dispatch, getState) => {
         if (!previous) {
             return dispatch(openRHSSearch());
         }
@@ -659,11 +639,8 @@ export const unsuppressRHS = {
 };
 
 export function setEditChannelMembers(active: boolean) {
-    return (dispatch: DispatchFunc) => {
-        dispatch({
-            type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,
-            active,
-        });
-        return {data: true};
+    return {
+        type: ActionTypes.SET_EDIT_CHANNEL_MEMBERS,
+        active,
     };
 }

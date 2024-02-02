@@ -9,7 +9,7 @@ import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/consta
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc, GetStateFunc, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
@@ -22,24 +22,6 @@ import {ActionTypes} from 'utils/constants';
 import type {GlobalState} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
-
-export function fetchRemoteListing(): NewActionFuncAsync<MarketplacePlugin[], GlobalState> { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const state = getState();
-        const filter = getFilter(state);
-
-        try {
-            const plugins = await Client4.getRemoteMarketplacePlugins(filter);
-            dispatch({
-                type: ActionTypes.RECEIVED_MARKETPLACE_PLUGINS,
-                plugins,
-            });
-            return {data: plugins};
-        } catch (error: any) {
-            return {error};
-        }
-    };
-}
 
 // fetchPlugins fetches the latest marketplace plugins and apps, subject to any existing search filter.
 export function fetchListing(localOnly = false): NewActionFuncAsync<Array<MarketplacePlugin | MarketplaceApp>, GlobalState> {
@@ -142,8 +124,8 @@ export function installPlugin(id: string): ThunkActionFunc<void, GlobalState> {
 // installApp installed an App using a given URL a call to the `/install-listed` call path.
 //
 // On success, it also requests the current state of the apps to reflect the newly installed app.
-export function installApp(id: string): ThunkActionFunc<Promise<boolean>> {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc): Promise<boolean> => {
+export function installApp(id: string): ThunkActionFunc<Promise<boolean>, GlobalState> {
+    return async (dispatch, getState) => {
         dispatch({
             type: ActionTypes.INSTALLING_MARKETPLACE_ITEM,
             id,

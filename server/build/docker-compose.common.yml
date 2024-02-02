@@ -24,7 +24,10 @@ services:
     networks:
       - mm-test
     ports:
-      - 3307:3306
+      - target: 3306
+        published: 3307
+        protocol: tcp
+        mode: host
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: mostest
