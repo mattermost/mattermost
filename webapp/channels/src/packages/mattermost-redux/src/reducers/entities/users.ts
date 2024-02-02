@@ -58,13 +58,13 @@ function addProfileToSet(state: RelationOneToManyUnique<Team, UserProfile>, id: 
     };
 }
 
-function removeProfileFromTeams(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction) {
+function removeProfileFromSets(state: RelationOneToManyUnique<Team, UserProfile>, action: AnyAction) {
     const newState = {...state};
     let removed = false;
     Object.keys(state).forEach((key) => {
-        // HARRISONTODO This code has never worked because it was written with the incorrect assumption that state[key] is an object
-        if ((newState[key] as any)[action.data.user_id]) {
-            delete (newState[key] as any)[action.data.user_id];
+        if (newState[key].has(action.data.user_id)) {
+            newState[key] = new Set(newState[key]);
+            newState[key].delete(action.data.user_id);
             removed = true;
         }
     });
@@ -140,7 +140,7 @@ function mySessions(state: Array<{id: string}> = [], action: AnyAction) {
     }
 }
 
-function myAudits(state = [], action: AnyAction) {
+function myAudits(state: UsersState['myAudits'] = [], action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_AUDITS:
         return [...action.data];
@@ -274,7 +274,7 @@ function profilesInTeam(state: UsersState['profilesInTeam'] = {}, action: AnyAct
         return {};
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE:
-        return removeProfileFromTeams(state, action);
+        return removeProfileFromSets(state, action);
 
     default:
         return state;
@@ -302,7 +302,7 @@ function profilesNotInTeam(state: UsersState['profilesNotInTeam'] = {}, action: 
         return {};
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE:
-        return removeProfileFromTeams(state, action);
+        return removeProfileFromSets(state, action);
 
     default:
         return state;
@@ -321,12 +321,17 @@ function profilesWithoutTeam(state: UsersState['profilesWithoutTeam'] = new Set<
         action.data.forEach((user: UserProfile) => nextSet.add(user.id));
         return nextSet;
     }
-    case UserTypes.PROFILE_NO_LONGER_VISIBLE:
     case UserTypes.RECEIVED_PROFILE_IN_TEAM: {
         const nextSet = new Set(state);
         nextSet.delete(action.data.id);
         return nextSet;
     }
+    case UserTypes.PROFILE_NO_LONGER_VISIBLE: {
+        const nextSet = new Set(state);
+        nextSet.delete(action.data.user_id);
+        return nextSet;
+    }
+
     case UserTypes.LOGOUT_SUCCESS:
         return new Set<string>();
 
@@ -358,7 +363,7 @@ function profilesInChannel(state: UsersState['profilesInChannel'] = {}, action: 
             }});
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE:
-        return removeProfileFromTeams(state, action);
+        return removeProfileFromSets(state, action);
 
     case UserTypes.LOGOUT_SUCCESS:
         return {};
@@ -396,7 +401,7 @@ function profilesNotInChannel(state: UsersState['profilesNotInChannel'] = {}, ac
         return {};
 
     case UserTypes.PROFILE_NO_LONGER_VISIBLE:
-        return removeProfileFromTeams(state, action);
+        return removeProfileFromSets(state, action);
 
     default:
         return state;
@@ -438,6 +443,12 @@ function profilesInGroup(state: UsersState['profilesInGroup'] = {}, action: AnyA
         }
         return state;
     }
+
+    case UserTypes.PROFILE_NO_LONGER_VISIBLE:
+        return removeProfileFromSets(state, action);
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -463,6 +474,12 @@ function profilesNotInGroup(state: UsersState['profilesNotInGroup'] = {}, action
     case UserTypes.RECEIVED_PROFILES_LIST_NOT_IN_GROUP: {
         return profileListToSet(state, action);
     }
+
+    case UserTypes.PROFILE_NO_LONGER_VISIBLE:
+        return removeProfileFromSets(state, action);
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
     default:
         return state;
     }
@@ -618,7 +635,7 @@ function filteredStats(state: UsersState['filteredStats'] = {}, action: AnyActio
     }
 }
 
-function lastActivity(state: RelationOneToOne<UserProfile, string> = {}, action: AnyAction) {
+function lastActivity(state: UsersState['lastActivity'] = {}, action: AnyAction) {
     switch (action.type) {
     case UserTypes.RECEIVED_STATUS: {
         const nextState = Object.assign({}, state);

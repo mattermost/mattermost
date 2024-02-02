@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {UserProfile} from '@mattermost/types/users';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
@@ -1007,92 +1007,89 @@ describe('Reducers.users', () => {
         });
     });
 
-    // HARRISONTODO
-    // This code has never worked because it was written with the incorrect assumption that state[key] is an array
-    // instead of a Set. Since this hasn't worked correctly, I've left this test commented out for now.
-    // test('PROFILE_NO_LONGER_VISIBLE should remove references to users from state', () => {
-    //     const user = TestHelper.getUserMock({id: 'user'});
+    test('PROFILE_NO_LONGER_VISIBLE should remove references to users from state', () => {
+        const user = TestHelper.getUserMock({id: 'user'});
 
-    //     let state: UsersState = {
-    //         currentUserId: '',
-    //         mySessions: [],
-    //         myAudits: [],
-    //         myUserAccessTokens: {},
-    //         profiles: {
-    //             user,
-    //         },
-    //         profilesInTeam: {
-    //             team1: new Set([user.id]),
-    //         },
-    //         profilesNotInTeam: {
-    //             team2: new Set([user.id]),
-    //         },
-    //         profilesWithoutTeam: new Set([user.id]),
-    //         profilesInChannel: {
-    //             channel1: new Set([user.id]),
-    //         },
-    //         profilesNotInChannel: {
-    //             channel2: new Set([user.id]),
-    //         },
-    //         profilesInGroup: {
-    //             group1: new Set([user.id]),
-    //         },
-    //         profilesNotInGroup: {
-    //             group2: new Set([user.id]),
-    //         },
-    //         statuses: {
-    //             [user.id]: 'online',
-    //         },
-    //         isManualStatus: {
-    //             [user.id]: true,
-    //         },
-    //         stats: {},
-    //         filteredStats: {
-    //             total_users_count: 0,
-    //         },
-    //         lastActivity: {},
-    //     };
-    //     state = deepFreezeAndThrowOnMutation(state);
+        let state: UsersState = {
+            currentUserId: '',
+            mySessions: [],
+            myAudits: [],
+            myUserAccessTokens: {},
+            profiles: {
+                user,
+            },
+            profilesInTeam: {
+                team1: new Set([user.id]),
+            },
+            profilesNotInTeam: {
+                team2: new Set([user.id]),
+            },
+            profilesWithoutTeam: new Set([user.id]),
+            profilesInChannel: {
+                channel1: new Set([user.id]),
+            },
+            profilesNotInChannel: {
+                channel2: new Set([user.id]),
+            },
+            profilesInGroup: {
+                group1: new Set([user.id]),
+            },
+            profilesNotInGroup: {
+                group2: new Set([user.id]),
+            },
+            statuses: {
+                [user.id]: 'online',
+            },
+            isManualStatus: {
+                [user.id]: true,
+            },
+            stats: {},
+            filteredStats: {
+                total_users_count: 0,
+            },
+            lastActivity: {},
+        };
+        state = deepFreezeAndThrowOnMutation(state);
 
-    //     const nextState = reducer(state, {
-    //         type: UserTypes.PROFILE_NO_LONGER_VISIBLE,
-    //         data: {
-    //             user_id: user.id,
-    //         },
-    //     });
+        const nextState = reducer(state, {
+            type: UserTypes.PROFILE_NO_LONGER_VISIBLE,
+            data: {
+                user_id: user.id,
+            },
+        });
 
-    //     expect(nextState).toEqual({
-    //         currentUserId: '',
-    //         mySessions: [],
-    //         myAudits: [],
-    //         myUserAccessTokens: {},
-    //         profiles: {},
-    //         profilesInTeam: {
-    //             team1: new Set(),
-    //         },
-    //         profilesNotInTeam: {
-    //             team2: new Set(),
-    //         },
-    //         profilesWithoutTeam: new Set(),
-    //         profilesInChannel: {
-    //             channel1: new Set(),
-    //         },
-    //         profilesNotInChannel: {
-    //             channel2: new Set(),
-    //         },
-    //         profilesInGroup: {
-    //             group1: new Set(),
-    //         },
-    //         profilesNotInGroup: {
-    //             group2: new Set(),
-    //         },
-    //         statuses: {},
-    //         isManualStatus: {},
-    //         stats: {},
-    //         filteredStats: {
-    //             total_users_count: 0,
-    //         },
-    //         lastActivity: {},
-    //     });
-    // });
+        expect(nextState).toEqual({
+            currentUserId: '',
+            mySessions: [],
+            myAudits: [],
+            myUserAccessTokens: {},
+            profiles: {},
+            profilesInTeam: {
+                team1: new Set(),
+            },
+            profilesNotInTeam: {
+                team2: new Set(),
+            },
+            profilesWithoutTeam: new Set(),
+            profilesInChannel: {
+                channel1: new Set(),
+            },
+            profilesNotInChannel: {
+                channel2: new Set(),
+            },
+            profilesInGroup: {
+                group1: new Set(),
+            },
+            profilesNotInGroup: {
+                group2: new Set(),
+            },
+            statuses: {},
+            isManualStatus: {},
+            stats: {},
+            filteredStats: {
+                total_users_count: 0,
+            },
+            lastActivity: {},
+        });
+    });
 });
