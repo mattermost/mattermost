@@ -175,13 +175,6 @@ export function multiSelectChannelAdd(channelId: string): NewActionFunc<unknown,
     };
 }
 
-export function setFirstChannelName(channelName: string) { // HARRISONTODO unused
-    return {
-        type: ActionTypes.FIRST_CHANNEL_NAME,
-        data: channelName,
-    };
-}
-
 // Much of this logic was pulled from the react-beautiful-dnd sample multiselect implementation
 // Found here: https://github.com/atlassian/react-beautiful-dnd/tree/master/stories/src/multi-drag
 export function multiSelectChannelTo(channelId: string): NewActionFunc<unknown, GlobalState> {
