@@ -3041,7 +3041,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	m0.ChannelId = c1.Id
 	m0.UserId = o1.UserId
 	m0.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(m0)
+	_, err = ss.Channel().SaveMember(rctx, m0)
 	require.NoError(t, err)
 
 	teamId := model.NewId()
@@ -3278,7 +3278,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	m0.ChannelId = o1.ChannelId
 	m0.UserId = o1.UserId
 	m0.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(m0)
+	_, err = ss.Channel().SaveMember(rctx, m0)
 	require.NoError(t, err)
 
 	r1, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
@@ -3443,14 +3443,14 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	m1.ChannelId = o1.ChannelId
 	m1.UserId = o1.UserId
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(m1)
+	_, err = ss.Channel().SaveMember(rctx, m1)
 	require.NoError(t, err)
 
 	m2 := &model.ChannelMember{}
 	m2.ChannelId = o4.ChannelId
 	m2.UserId = o1.UserId
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(m2)
+	_, err = ss.Channel().SaveMember(rctx, m2)
 	require.NoError(t, err)
 
 	r, err := ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
