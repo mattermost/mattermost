@@ -47,7 +47,12 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
 		if action == model.OAuthActionEmailToSSO {
-			relayProps["email"] = r.URL.Query().Get("email")
+			b, err := b64.StdEncoding.DecodeString(r.URL.Query().Get("email_token"))
+			if err != nil {
+				c.Err = model.NewAppError("completeSaml", "api.user.authorize_oauth_user.invalid_state.app_error", nil, "", http.StatusFound).Wrap(err)
+				return
+			}
+			relayProps["email_token"] = string(b)
 		}
 	}
 
