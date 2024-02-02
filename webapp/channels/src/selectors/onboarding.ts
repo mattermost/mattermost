@@ -26,12 +26,8 @@ const getFirstChannelNamePref = createSelector(
     },
 );
 
-export function getFirstChannelNameViews(state: GlobalState) {
-    return state.views.channelSidebar.firstChannelName;
-}
-
 export function getFirstChannelName(state: GlobalState) {
-    return getFirstChannelNameViews(state) || getFirstChannelNamePref(state)?.value || '';
+    return getFirstChannelNamePref(state)?.value || '';
 }
 
 export function getShowLaunchingWorkspace(state: GlobalState) {
