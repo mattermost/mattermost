@@ -53,7 +53,7 @@ export type AdminState = {
     plainLogs: string[];
     audits: Record<string, Audit>;
     config: Partial<AdminConfig>;
-    environmentConfig?: EnvironmentConfig;
+    environmentConfig: Partial<EnvironmentConfig>;
     complianceReports: Record<string, Compliance>;
     ldapGroups: Record<string, MixedUnlinkedGroupRedux>;
     ldapGroupsCount: number;

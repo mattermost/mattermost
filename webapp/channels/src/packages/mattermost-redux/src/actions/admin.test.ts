@@ -185,9 +185,9 @@ describe('Actions.Admin', () => {
         const config = state.entities.admin.environmentConfig;
         expect(config).toBeTruthy();
         expect(config!.ServiceSettings).toBeTruthy();
-        expect(config!.ServiceSettings.SiteURL).toBeTruthy();
+        expect(config!.ServiceSettings!.SiteURL).toBeTruthy();
         expect(config!.TeamSettings).toBeTruthy();
-        expect(config!.TeamSettings.SiteName).toBeTruthy();
+        expect(config!.TeamSettings!.SiteName).toBeTruthy();
     });
 
     it('testEmail', async () => {

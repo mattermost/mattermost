@@ -111,9 +111,12 @@ const state: GlobalState = {
             userAccessTokens: {},
             clusterInfo: [],
             analytics: {},
+            teamAnalytics: {},
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
+            plugins: {},
+            pluginStatuses: {},
         },
         jobs: {
             jobs: {},
@@ -132,6 +135,7 @@ const state: GlobalState = {
             files: {},
             filesFromSearch: {},
             fileIdsByPostId: {},
+            filePublicLink: {link: ''},
         },
         emojis: {
             customEmoji: {},
