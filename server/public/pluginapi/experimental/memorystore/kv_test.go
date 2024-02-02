@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -125,6 +126,31 @@ func TestSet(t *testing.T) {
 		err = store.Get("key", &out)
 		assert.NoError(t, err)
 		assert.Nil(t, out)
+	})
+
+	t.Run("concurrent writes", func(t *testing.T) {
+		store := Store{}
+		var wg sync.WaitGroup
+		const n = 100
+		for i := 0; i < n; i++ {
+			i := i
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				ok, err := store.Set(fmt.Sprintf("k_%d", i), []byte("value"))
+				require.NoError(t, err)
+				require.True(t, ok)
+			}()
+		}
+
+		wg.Wait()
+
+		for i := 0; i < n; i++ {
+			var out []byte
+			err := store.Get(fmt.Sprintf("k_%d", i), &out)
+			assert.NoError(t, err, "i=%d", i)
+			assert.Equal(t, []byte("value"), out, "i=%d", i)
+		}
 	})
 }
 
@@ -267,6 +293,25 @@ func TestListKeys(t *testing.T) {
 		keys, err = store.ListKeys(2, 3)
 		assert.NoError(t, err)
 		assert.Equal(t, []string{"k_6"}, keys)
+	})
+
+	t.Run("with expired entries", func(t *testing.T) {
+		store := Store{}
+		for i := 0; i < 7; i++ {
+			var opt pluginapi.KVSetOption
+			if i%2 == 1 {
+				opt = pluginapi.SetExpiry(1 * time.Second)
+			}
+			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo", opt)
+			require.NoError(t, err)
+			require.True(t, ok)
+		}
+
+		time.Sleep(2 * time.Second)
+
+		keys, err := store.ListKeys(0, 5)
+		assert.NoError(t, err)
+		assert.Equal(t, []string{"k_0", "k_2", "k_4", "k_6"}, keys)
 	})
 }
 

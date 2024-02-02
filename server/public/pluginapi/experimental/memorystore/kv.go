@@ -55,7 +55,9 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 
 	opts := pluginapi.KVSetOptions{}
 	for _, o := range options {
-		o(&opts)
+		if o != nil {
+			o(&opts)
+		}
 	}
 
 	var valueBytes []byte
@@ -175,7 +177,9 @@ func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOptio
 
 	opt := pluginapi.ListKeysOptions{}
 	for _, o := range options {
-		o(&opt)
+		if o != nil {
+			o(&opt)
+		}
 	}
 
 	allKeys := make([]string, 0)
