@@ -1036,6 +1036,7 @@ type TrueUpReviewStore interface {
 }
 
 type ChannelBookmarkStore interface {
+	ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error
 	Get(Id string, includeDeleted bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Save(bookmark *model.ChannelBookmark, increaseSortOrder bool) (b *model.ChannelBookmarkWithFileInfo, err error)
 	Update(bookmark *model.ChannelBookmark) error

@@ -28,6 +28,20 @@ func (_m *ChannelBookmarkStore) Delete(bookmarkId string) error {
 	return r0
 }
 
+// ErrorIfBookmarkFileInfoAlreadyAttached provides a mock function with given fields: fileId
+func (_m *ChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error {
+	ret := _m.Called(fileId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string) error); ok {
+		r0 = rf(fileId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // Get provides a mock function with given fields: Id, includeDeleted
 func (_m *ChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, error) {
 	ret := _m.Called(Id, includeDeleted)

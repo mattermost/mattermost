@@ -2520,6 +2520,22 @@ func (s *TimerLayerChannelBookmarkStore) Delete(bookmarkId string) error {
 	return err
 }
 
+func (s *TimerLayerChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error {
+	start := time.Now()
+
+	err := s.ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached(fileId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("ChannelBookmarkStore.ErrorIfBookmarkFileInfoAlreadyAttached", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, error) {
 	start := time.Now()
 

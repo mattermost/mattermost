@@ -51,6 +51,39 @@ func bookmarkWithFileInfoSliceColumns() []string {
 	}
 }
 
+func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId string) error {
+	existingQuery := s.getSubQueryBuilder().
+		Select("FileInfoId").
+		From("ChannelBookmarks").
+		Where(sq.And{
+			sq.Eq{"FileInfoId": fileId},
+			sq.Eq{"DeleteAt": 0},
+		})
+
+	alreadyAttachedQuery := s.getQueryBuilder().
+		Select("COUNT(*)").
+		From("FileInfo").
+		Where(sq.Or{
+			sq.Expr("Id IN (?)", existingQuery),
+			sq.And{
+				sq.NotEq{"PostId": ""},
+				sq.Eq{"Id": fileId},
+			},
+		})
+
+	var attached int64
+	err := s.GetReplicaX().GetBuilder(&attached, alreadyAttachedQuery)
+	if err != nil {
+		return errors.Wrap(err, "unable_to_save_channel_bookmark")
+	}
+
+	if attached > 0 {
+		return store.NewErrInvalidInput("ChannelBookmarks", "FileInfoId", fileId)
+	}
+
+	return nil
+}
+
 func (s *SqlChannelBookmarkStore) Get(Id string, includeDeleted bool) (*model.ChannelBookmarkWithFileInfo, error) {
 	query := s.getQueryBuilder().
 		Select(bookmarkWithFileInfoSliceColumns()...).
@@ -100,6 +133,13 @@ func (s *SqlChannelBookmarkStore) Save(bookmark *model.ChannelBookmark, increase
 
 	if currentBookmarksCount >= model.MaxBookmarksPerChannel {
 		return nil, store.NewErrLimitExceeded("bookmarks_per_channel", int(currentBookmarksCount), "channelId="+bookmark.ChannelId)
+	}
+
+	if bookmark.FileId != "" {
+		err := s.ErrorIfBookmarkFileInfoAlreadyAttached(bookmark.FileId)
+		if err != nil {
+			return nil, errors.Wrap(err, "unable_to_save_channel_bookmark")
+		}
 	}
 
 	if increaseSortOrder {
@@ -162,6 +202,7 @@ func (s *SqlChannelBookmarkStore) Update(bookmark *model.ChannelBookmark) error 
 		Set("LinkUrl", bookmark.LinkUrl).
 		Set("ImageUrl", bookmark.ImageUrl).
 		Set("Emoji", bookmark.Emoji).
+		Set("FileInfoId", bookmark.FileId).
 		Set("UpdateAt", bookmark.UpdateAt).
 		Where(sq.Eq{
 			"Id":       bookmark.Id,

@@ -51,11 +51,19 @@ func (a *App) CreateChannelBookmark(c request.CTX, newBookmark *model.ChannelBoo
 func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.ChannelBookmarkWithFileInfo, connectionId string) (*model.UpdateChannelBookmarkResponse, *model.AppError) {
 	response := &model.UpdateChannelBookmarkResponse{}
 	if updateBookmark.OwnerId == c.Session().UserId {
+		isAnotherFile := updateBookmark.FileInfo != nil && updateBookmark.FileId != "" && updateBookmark.FileId != updateBookmark.FileInfo.Id
+
+		if isAnotherFile {
+			if fileAlreadyAttachedErr := a.Srv().Store().ChannelBookmark().ErrorIfBookmarkFileInfoAlreadyAttached(updateBookmark.FileId); fileAlreadyAttachedErr != nil {
+				return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.update.app_error", nil, "", http.StatusInternalServerError).Wrap(fileAlreadyAttachedErr)
+			}
+		}
+
 		if err := a.Srv().Store().ChannelBookmark().Update(updateBookmark.ChannelBookmark); err != nil {
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.update.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
-		if updateBookmark.FileInfo != nil && updateBookmark.FileId != "" && updateBookmark.FileId != updateBookmark.FileInfo.Id {
+		if isAnotherFile {
 			fileInfo, fileErr := a.Srv().Store().FileInfo().Get(updateBookmark.FileId)
 			if fileErr != nil {
 				return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.get_existing.app_err", nil, "", http.StatusNotFound).Wrap(fileErr)

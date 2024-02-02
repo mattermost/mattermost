@@ -82,6 +82,55 @@ func TestUpdateBookmark(t *testing.T) {
 
 	var updateBookmark *model.ChannelBookmarkWithFileInfo
 
+	var testUpdateAnotherFile = func(th *TestHelper, t *testing.T) {
+		file := &model.FileInfo{
+			Id:              model.NewId(),
+			CreatorId:       model.BookmarkFileOwner,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "test file",
+			Extension:       "png",
+			MimeType:        "images/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+		}
+
+		th.App.Srv().Store().FileInfo().Save(th.Context, file)
+		defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file.Id)
+
+		bookmark2 := createBookmark("File to be updated", model.ChannelBookmarkFile, th.BasicChannel.Id, file.Id)
+		bookmarkResp, err := th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+		require.Nil(t, err)
+		require.NotNil(t, bookmarkResp)
+
+		file2 := &model.FileInfo{
+			Id:              model.NewId(),
+			CreatorId:       model.BookmarkFileOwner,
+			Path:            "somepath",
+			ThumbnailPath:   "thumbpath",
+			PreviewPath:     "prevPath",
+			Name:            "test file",
+			Extension:       "png",
+			MimeType:        "images/png",
+			Size:            873182,
+			Width:           3076,
+			Height:          2200,
+			HasPreviewImage: true,
+		}
+
+		th.App.Srv().Store().FileInfo().Save(th.Context, file2)
+		th.App.Srv().Store().FileInfo().AttachToPost(th.Context, file2.Id, model.NewId(), th.BasicChannel.Id, model.BookmarkFileOwner)
+		defer th.App.Srv().Store().FileInfo().PermanentDelete(th.Context, file2.Id)
+
+		bookmark2.FileId = file2.Id
+		bookmarkResp, err = th.App.CreateChannelBookmark(th.Context, bookmark2, "")
+		require.NotNil(t, err)
+		require.Nil(t, bookmarkResp)
+	}
+
 	t.Run("same user update a channel bookmark", func(t *testing.T) {
 		bookmark1 := &model.ChannelBookmark{
 			ChannelId:   th.BasicChannel.Id,
@@ -102,6 +151,8 @@ func TestUpdateBookmark(t *testing.T) {
 		response, _ := th.App.UpdateChannelBookmark(th.Context, updateBookmark, "")
 		require.NotNil(t, response)
 		assert.Greater(t, response.Updated.UpdateAt, response.Updated.CreateAt)
+
+		testUpdateAnotherFile(th, t)
 	})
 
 	t.Run("another user update a channel bookmark", func(t *testing.T) {
@@ -115,6 +166,8 @@ func TestUpdateBookmark(t *testing.T) {
 		assert.Greater(t, response.Deleted.DeleteAt, int64(0))
 		assert.Equal(t, "Another new name", response.Updated.DisplayName)
 		assert.Equal(t, "New name", response.Deleted.DisplayName)
+
+		testUpdateAnotherFile(th, t)
 	})
 
 	t.Run("update an already deleted channel bookmark", func(t *testing.T) {
