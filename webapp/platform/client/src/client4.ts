@@ -2003,10 +2003,10 @@ export default class Client4 {
         );
     };
 
-    fetchChannelBookmarkOpenGraph = (channelId: string, url: string) => {
+    fetchChannelBookmarkOpenGraph = (channelId: string, url: string, signal?: Options['signal']) => {
         return this.doFetch<OpenGraphMetadata>(
             `${this.getChannelBookmarksRoute(channelId)}/open_graph${buildQueryString({url})}`,
-            {method: 'get'},
+            {method: 'get', signal},
         );
     };
 

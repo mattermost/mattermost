@@ -76,7 +76,7 @@ const BookmarkItemDotMenu = ({
         } else if (bookmark.type === 'file' && bookmark.file_id) {
             copyToClipboard(getFileDownloadUrl(bookmark.file_id));
         }
-    }, [bookmark.type, bookmark.link_url]);
+    }, [bookmark.type, bookmark.link_url, bookmark.file_id]);
 
     const handleDelete = useCallback(() => {
         dispatch(openModal({

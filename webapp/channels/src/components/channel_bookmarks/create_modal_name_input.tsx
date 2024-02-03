@@ -97,6 +97,7 @@ const CreateModalNameInput = ({
                 </button>
                 <Input
                     type='text'
+                    name='bookmark-display-name'
                     onChange={handleInputChange}
                     value={displayName ?? placeholder ?? ''}
                     placeholder={placeholder}

@@ -25,8 +25,9 @@ import FileAttachment from 'components/file_attachment';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 import FileProgressPreview from 'components/file_preview/file_progress_preview';
 import Input from 'components/widgets/inputs/input/input';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
-import {isValidUrl} from 'utils/url';
+import {isValidUrl, parseLink} from 'utils/url';
 import {generateId} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
@@ -50,9 +51,10 @@ type Props = {
 });
 
 function validHttpUrl(input: string) {
-    let val = input;
-    if (!isValidUrl(val)) {
-        val = `https://${val}`;
+    const val = parseLink(input);
+
+    if (!val || !isValidUrl(val)) {
+        return null;
     }
 
     let url;
@@ -90,6 +92,8 @@ function ChannelBookmarkCreateModal({
     const [link, setLinkImmediately] = useState(linkInputValue);
     const [linkError, setLinkError] = useState('');
     const [icon, setIcon] = useState(bookmark?.image_url);
+    const [isLoadingOpenGraphMetaLink, setIsLoadingOpenGraphMetaLink] = useState('');
+    const openGraphRequestAbortController = useRef<AbortController>();
 
     const handleLinkChange = useCallback(({target: {value}}: ChangeEvent<HTMLInputElement>) => {
         setLinkInputValue(value);
@@ -108,20 +112,6 @@ function ChannelBookmarkCreateModal({
         setLinkImmediately(clipboardData.getData('text/plain'));
     }, []);
 
-    useEffect(() => {
-        if (linkInputValue === bookmark?.link_url) {
-            return;
-        }
-
-        const url = validHttpUrl(linkInputValue);
-
-        if (url) {
-            setLinkError('');
-        } else if (linkInputValue) {
-            setLinkError(formatMessage(msg.linkHttpInvalid));
-        }
-    }, [linkInputValue, bookmark?.link_url]);
-
     const resetParsed = () => {
         setParsedDisplayName(link || '');
         setIcon('');
@@ -136,23 +126,36 @@ function ChannelBookmarkCreateModal({
 
         (async () => {
             let meta;
+            resetParsed();
 
             if (!url) {
-                resetParsed();
                 return;
             }
 
             try {
-                meta = await Client4.fetchChannelBookmarkOpenGraph(channelId, url.toString());
+                openGraphRequestAbortController?.current?.abort('stale request');
+                openGraphRequestAbortController.current = new AbortController();
+                setIsLoadingOpenGraphMetaLink(link);
+                meta = await Client4.fetchChannelBookmarkOpenGraph(channelId, url.toString(), openGraphRequestAbortController.current.signal);
 
                 const {title, images} = meta;
 
                 setParsedDisplayName(title || link);
-
-                const favicon = images?.find(({type}) => type === 'favicon')?.url;
+                const favicon = images?.find(({type}) => type === 'image/x-mm-icon')?.url;
                 setIcon(favicon || '');
-            } catch {
+                setLinkError('');
+            } catch (err) {
+                if (err.server_error_id === 'api.context.invalid_url_param.app_error') {
+                    setLinkError(formatMessage(msg.linkInvalid));
+                }
                 resetParsed();
+            } finally {
+                setIsLoadingOpenGraphMetaLink((currentLink) => {
+                    if (currentLink === link) {
+                        return '';
+                    }
+                    return currentLink;
+                });
             }
         })();
     }, [link, bookmark?.link_url]);
@@ -397,6 +400,7 @@ function ChannelBookmarkCreateModal({
                 {type === 'link' ? (
                     <Input
                         type='text'
+                        name='bookmark-link'
                         containerClassName='linkInput'
                         placeholder={formatMessage(msg.linkPlaceholder)}
                         onChange={handleLinkChange}
@@ -405,6 +409,7 @@ function ChannelBookmarkCreateModal({
                         value={linkInputValue}
                         data-testid='linkInput'
                         autoFocus={true}
+                        addon={isLoadingOpenGraphMetaLink ? <LoadingSpinner/> : undefined}
                         customMessage={linkError ? {type: 'error', value: linkError} : {value: formatMessage(msg.linkInfoMessage)}}
                     />
                 ) : (

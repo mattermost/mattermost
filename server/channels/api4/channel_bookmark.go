@@ -423,7 +423,7 @@ func fetchOpenGraph(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	og, err := c.App.GetOpenGraphMetadata(c.Params.Url)
-	if og == nil {
+	if err != nil {
 		c.Logger.Warn("Error while getting opengraph data", mlog.Err(err))
 		return
 	}

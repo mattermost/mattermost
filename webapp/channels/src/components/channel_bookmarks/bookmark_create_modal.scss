@@ -8,4 +8,13 @@
         margin-bottom: 3rem;
         color: rgba(var(--center-channel-color-rgb), 0.72);
     }
+
+    .Input___customMessage {
+        line-height: 14px;
+    }
+
+    .LoadingSpinner {
+        font-size: 16px;
+        padding: 10px 12px;
+    }
 }

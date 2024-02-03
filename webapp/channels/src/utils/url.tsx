@@ -269,7 +269,7 @@ export function channelNameToUrl(channelName: string): UrlValidationCheck {
 }
 
 export function parseLink(href: string) {
-    let outHref;
+    let outHref = href;
 
     if (!href.startsWith('/')) {
         const scheme = getScheme(href);
