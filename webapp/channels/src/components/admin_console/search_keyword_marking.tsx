@@ -12,51 +12,54 @@ type Props = {
     children: ReactNode;
 }
 
-const DEBOUNCE_WAIT_TIME = 300;
+const DEBOUNCE_WAIT_TIME = 200;
 
-function SearchKeywordMarking(props: Props) {
+export default function SearchKeywordMarking({
+    keyword = '',
+    pathname,
+    children,
+}: Props) {
     const containerRef = useRef<HTMLDivElement>(null);
     const markJsRef = useRef<Mark>();
 
-    function doMark(keyword: string) {
-        markJsRef.current = new Mark(containerRef.current as HTMLDivElement);
+    function doMark(keyword: string, container: HTMLDivElement) {
+        markJsRef.current = new Mark(container);
         markJsRef.current.mark(keyword, {
             accuracy: 'complementary',
             exclude: ['.ignore-marking *'],
         });
     }
 
-    const debouncedRedrawHighlight = useMemo(() => debounce(() => {
-        if (!props.keyword || !containerRef.current) {
+    const debouncedDoMark = useMemo(() => debounce((keywordToMark?: string, markJs?: Mark, container?: HTMLDivElement | null) => {
+        if (!keywordToMark || !container) {
             return;
         }
 
-        if (markJsRef.current) {
+        if (markJs) {
             // We need to mark again only after its 'done' callback is called
-            markJsRef.current.unmark({done: () => doMark(props.keyword as string)});
+            // if we dont then there is a possiblity of creating multiple marks in the same container
+            markJs.unmark({done: () => doMark(keywordToMark, container)});
         } else {
             // If there's no previous instance, just create a new one
-            doMark(props.keyword);
+            doMark(keywordToMark, container);
         }
-    }, DEBOUNCE_WAIT_TIME), [props.keyword]);
+    }, DEBOUNCE_WAIT_TIME), []);
 
     useEffect(() => {
-        debouncedRedrawHighlight();
+        debouncedDoMark(keyword, markJsRef.current, containerRef.current);
 
         return (() => {
-            debouncedRedrawHighlight.cancel();
+            debouncedDoMark.cancel();
 
             if (markJsRef.current) {
                 markJsRef.current.unmark();
             }
         });
-    }, [props.keyword, props.pathname]);
+    }, [keyword, pathname]);
 
     return (
         <div ref={containerRef}>
-            {props.children}
+            {children}
         </div>
     );
 }
-
-export default SearchKeywordMarking;
