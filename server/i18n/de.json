@@ -10311,7 +10311,7 @@
   },
   {
     "id": "app.report.send_report_to_user.export_finished",
-    "translation": "Berichtserstellung ist abgeschlossen.Du kannst den Bericht [hier]({{.Link}}) herunterladen"
+    "translation": "Dein Export ist fertig. Die CSV-Datei enthält Benutzerdaten aus dem Zeitraum {{.DateRange}}. Klicke auf den unten stehenden Link um den Bericht runterzuladen."
   },
   {
     "id": "app.report.start_users_batch_export.job_exists",
@@ -10323,7 +10323,7 @@
   },
   {
     "id": "app.report.start_users_batch_export.started_export",
-    "translation": "Du hast den Export von Benutzerdaten angefordert. Nach Abschluss des Exports wird dir eine CSV-Datei zugestellt."
+    "translation": "Du hast den Export von Benutzerdaten im Zeitraum {{.DateRange}} gestartet. Nach Abschluss des Exports wird dir eine CSV-Datei in dieser Direktnachricht gesendet."
   },
   {
     "id": "app.save_csv_chunk.write_error",
@@ -10332,5 +10332,33 @@
   {
     "id": "app.save_report_chunk.unsupported_format",
     "translation": "Nicht unterstütztes Berichtsformat."
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Dateiinfo konnte nicht gespeichert werden."
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "Gesamter Zeitraum"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "Die letzten 30 Tage"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "Die letzten 6 Monate"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "Im Vormonat"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Fehlender Datumsbereich"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Keine Benutzerkennung zum Senden des Berichts"
   }
 ]
