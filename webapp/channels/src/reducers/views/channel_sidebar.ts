@@ -129,23 +129,10 @@ export function lastSelectedChannel(state = '', action: AnyAction): string {
     }
 }
 
-function firstChannelName(state = '', action: AnyAction) {
-    switch (action.type) {
-    case ActionTypes.FIRST_CHANNEL_NAME:
-        return action.data;
-
-    case UserTypes.LOGOUT_SUCCESS:
-        return '';
-    default:
-        return state;
-    }
-}
-
 export default combineReducers({
     unreadFilterEnabled,
     draggingState,
     newCategoryIds,
     multiSelectedChannelIds,
     lastSelectedChannel,
-    firstChannelName,
 });
