@@ -16,12 +16,11 @@ import {
 import SpinnerButton from 'components/spinner_button';
 
 import type EmojiMap from 'utils/emoji_map';
-import {localizeMessage} from 'utils/utils';
 
 import DialogElement from './dialog_element';
 import DialogIntroductionText from './dialog_introduction_text';
 
-export type Props = {
+export type MapStateToProps = {
     url: string;
     callbackId?: string;
     elements?: TDialogElement[];
@@ -31,11 +30,17 @@ export type Props = {
     submitLabel?: string;
     notifyOnCancel?: boolean;
     state?: string;
-    onExited?: () => void;
+    emojiMap: EmojiMap;
+};
+
+export type MapDispatchToProps = {
     actions: {
         submitInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<SubmitDialogResponse>>;
     };
-    emojiMap: EmojiMap;
+}
+
+export interface Props extends MapStateToProps, MapDispatchToProps {
+    onExited?: () => void;
 }
 
 type State = {
@@ -288,10 +293,12 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                             autoFocus={!elements || elements.length === 0}
                             className='btn btn-primary save-button'
                             spinning={this.state.submitting}
-                            spinningText={localizeMessage(
-                                'interactive_dialog.submitting',
-                                'Submitting...',
-                            )}
+                            spinningText={
+                                <FormattedMessage
+                                    id='interactive_dialog.submitting'
+                                    defaultMessage='Submitting...'
+                                />
+                            }
                         >
                             {submitText}
                         </SpinnerButton>

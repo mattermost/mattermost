@@ -112,10 +112,25 @@ export type IntegrationsState = {
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
     commands: IDMappedObjects<Command>;
+    dialog?: {
+        url: string;
+        dialog: Dialog;
+    };
+};
+
+type Dialog = {
+    callback_id?: string;
+    elements?: DialogElement[];
+    title: string;
+    introduction_text?: string;
+    icon_url?: string;
+    submit_label?: string;
+    notify_on_cancel?: boolean;
+    state?: string;
 };
 
 export type DialogSubmission = {
-    url: string;
+    url?: string;
     callback_id: string;
     state: string;
     user_id: string;
