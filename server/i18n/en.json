@@ -3363,6 +3363,14 @@
     "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Invalid team member update: A guest cannot be made team member or team admin, please promote as a user first."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Invalid team member update: A user must cannot be set as a guest and admin at the same time."
+  },
+  {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
   },
