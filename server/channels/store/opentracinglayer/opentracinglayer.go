@@ -12219,7 +12219,7 @@ func (s *OpenTracingLayerUserStore) ResetLastPictureUpdate(userID string) error 
 	return err
 }
 
-func (s *OpenTracingLayerUserStore) Save(user *model.User) (*model.User, error) {
+func (s *OpenTracingLayerUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -12228,7 +12228,7 @@ func (s *OpenTracingLayerUserStore) Save(user *model.User) (*model.User, error) 
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.Save(user)
+	result, err := s.UserStore.Save(rctx, user)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

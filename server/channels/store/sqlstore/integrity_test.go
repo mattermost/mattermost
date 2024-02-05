@@ -361,11 +361,11 @@ func createTeamWithSchemeId(ss store.Store, schemeId *string) *model.Team {
 	return t
 }
 
-func createUser(ss store.Store) *model.User {
+func createUser(rctx request.CTX, ss store.Store) *model.User {
 	m := model.User{}
 	m.Username = model.NewId()
 	m.Email = m.Username + "@example.com"
-	user, _ := ss.User().Save(&m)
+	user, _ := ss.User().Save(rctx, &m)
 	return user
 }
 
@@ -453,7 +453,7 @@ func TestCheckChannelsChannelMemberHistoryIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			channel := createChannel(ss, model.NewId(), model.NewId())
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			cmh := createChannelMemberHistory(ss, channel.Id, user.Id)
 
 			dbmap.Exec(`DELETE FROM Channels Where Id=?`, channel.Id)
@@ -819,8 +819,8 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 
 		t.Run("should not include direct channel with empty teamid", func(t *testing.T) {
 			channel := createChannelWithTeamId(ss, model.NewId())
-			userA := createUser(ss)
-			userB := createUser(ss)
+			userA := createUser(rctx, ss)
+			userB := createUser(rctx, ss)
 			direct, err := ss.Channel().CreateDirectChannel(rctx, userA, userB)
 			require.NoError(t, err)
 			require.NotNil(t, direct)
@@ -840,8 +840,8 @@ func TestCheckTeamsChannelsIntegrity(t *testing.T) {
 
 		t.Run("should include direct channel with non empty teamid", func(t *testing.T) {
 			channel := createChannelWithTeamId(ss, model.NewId())
-			userA := createUser(ss)
-			userB := createUser(ss)
+			userA := createUser(rctx, ss)
+			userB := createUser(rctx, ss)
 			direct, err := ss.Channel().CreateDirectChannel(rctx, userA, userB)
 			require.NoError(t, err)
 			require.NotNil(t, direct)
@@ -993,7 +993,7 @@ func TestCheckUsersAuditsIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			audit := createAudit(ss, userId, model.NewId())
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1078,7 +1078,7 @@ func TestCheckUsersChannelMemberHistoryIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			channel := createChannel(ss, model.NewId(), model.NewId())
 			cmh := createChannelMemberHistory(ss, channel.Id, user.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1108,7 +1108,7 @@ func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			channel := createChannelWithCreatorId(ss, user.Id)
 			member := createChannelMember(rctx, ss, channel.Id, user.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1166,7 +1166,7 @@ func TestCheckUsersCompliancesIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			compliance := createCompliance(ss, userId)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1196,7 +1196,7 @@ func TestCheckUsersEmojiIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			emoji := createEmoji(ss, userId)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1226,7 +1226,7 @@ func TestCheckUsersFileInfoIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			info := createFileInfo(rctx, ss, model.NewId(), model.NewId(), userId)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1284,7 +1284,7 @@ func TestCheckUsersOAuthAccessDataIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			ad := createOAuthAccessData(ss, userId)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1314,7 +1314,7 @@ func TestCheckUsersOAuthAppsIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			app := createOAuthApp(ss, userId)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1344,7 +1344,7 @@ func TestCheckUsersOAuthAuthDataIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			ad := createOAuthAuthData(ss, userId)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1429,7 +1429,7 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with no records", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			require.NotNil(t, user)
 			userId := user.Id
 			preferences := createPreferences(ss, userId)
@@ -1443,7 +1443,7 @@ func TestCheckUsersPreferencesIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			require.NotNil(t, user)
 			userId := user.Id
 			preferences := createPreferences(ss, userId)
@@ -1475,7 +1475,7 @@ func TestCheckUsersReactionsIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			reaction := createReaction(ss, user.Id, model.NewId())
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1532,7 +1532,7 @@ func TestCheckUsersStatusIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			status := createStatus(ss, user.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1561,7 +1561,7 @@ func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			team := createTeam(ss)
 			member := createTeamMember(ss, team.Id, user.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
@@ -1591,7 +1591,7 @@ func TestCheckUsersUserAccessTokensIntegrity(t *testing.T) {
 		})
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
-			user := createUser(ss)
+			user := createUser(rctx, ss)
 			userId := user.Id
 			uat := createUserAccessToken(ss, user.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)

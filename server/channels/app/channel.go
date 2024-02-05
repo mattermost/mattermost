@@ -799,7 +799,7 @@ func (a *App) postChannelPrivacyMessage(c request.CTX, user *model.User, channel
 		authorId = user.Id
 		authorUsername = user.Username
 	} else {
-		systemBot, err := a.GetSystemBot()
+		systemBot, err := a.GetSystemBot(c)
 		if err != nil {
 			return model.NewAppError("postChannelPrivacyMessage", "api.channel.post_channel_privacy_message.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
@@ -877,7 +877,7 @@ func (a *App) RestoreChannel(c request.CTX, channel *model.Channel, userID strin
 		}
 	} else {
 		a.Srv().Go(func() {
-			systemBot, err := a.GetSystemBot()
+			systemBot, err := a.GetSystemBot(c)
 			if err != nil {
 				c.Logger().Error("Failed to post unarchive message", mlog.Err(err))
 				return
@@ -1523,7 +1523,7 @@ func (a *App) DeleteChannel(c request.CTX, channel *model.Channel, userID string
 			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		}
 	} else {
-		systemBot, err := a.GetSystemBot()
+		systemBot, err := a.GetSystemBot(c)
 		if err != nil {
 			c.Logger().Warn("Failed to post archive message", mlog.Err(err))
 		} else {
@@ -2518,7 +2518,7 @@ func (a *App) postAddToTeamMessage(c request.CTX, user *model.User, addedUser *m
 func (a *App) postRemoveFromChannelMessage(c request.CTX, removerUserId string, removedUser *model.User, channel *model.Channel) *model.AppError {
 	messageUserId := removerUserId
 	if messageUserId == "" {
-		systemBot, err := a.GetSystemBot()
+		systemBot, err := a.GetSystemBot(c)
 		if err != nil {
 			return model.NewAppError("postRemoveFromChannelMessage", "api.channel.post_user_add_remove_message_and_forget.error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

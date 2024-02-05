@@ -4283,7 +4283,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	p1 := &model.Post{}
@@ -4366,7 +4366,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.S
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	p1 := &model.Post{}
@@ -4424,7 +4424,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(u1)
+	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
@@ -4432,7 +4432,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	_, err = ss.User().Save(u2)
+	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
@@ -4479,7 +4479,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	u1.DeleteAt = 1
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(u1)
+	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
@@ -4488,7 +4488,7 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	u2.DeleteAt = 1
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	_, err = ss.User().Save(u2)
+	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
@@ -4546,7 +4546,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 		u1 := &model.User{}
 		u1.Email = MakeEmail()
 		u1.Nickname = model.NewId()
-		_, err := ss.User().Save(u1)
+		_, err := ss.User().Save(rctx, u1)
 		require.NoError(t, err)
 		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 		require.NoError(t, nErr)
@@ -4554,7 +4554,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 		u2 := &model.User{}
 		u2.Email = MakeEmail()
 		u2.Nickname = model.NewId()
-		_, err = ss.User().Save(u2)
+		_, err = ss.User().Save(rctx, u2)
 		require.NoError(t, err)
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 		require.NoError(t, nErr)
@@ -4985,7 +4985,7 @@ func testGetPostReminderMetadata(t *testing.T, rctx request.CTX, ss store.Store,
 		Locale:   "es",
 	}
 
-	u1, err = ss.User().Save(u1)
+	u1, err = ss.User().Save(rctx, u1)
 	require.NoError(t, err)
 
 	p1 := &model.Post{
