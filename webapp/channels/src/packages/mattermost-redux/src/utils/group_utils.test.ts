@@ -69,6 +69,9 @@ describe('group utils', () => {
         it('should match by split part of the name', () => {
             expect(filterGroupsMatchingTerm(groups, 'group')).toEqual([groupA, groupB]);
             expect(filterGroupsMatchingTerm(groups, 'board')).toEqual([groupA]);
+        });
+
+        it('should match by split part of the display name', () => {
             expect(filterGroupsMatchingTerm(groups, 'engineers')).toEqual([groupC]);
         });
 
