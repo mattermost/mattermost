@@ -27,6 +27,9 @@ exports[`components/channel_view Should match snapshot if channel is archived 1`
     teamUrl="/team"
     viewArchivedChannels={false}
   />
+  <ChannelBookmarks
+    channelId="channelId"
+  />
   <DeferredRenderWrapper
     channelId="channelId"
   />
@@ -83,6 +86,9 @@ exports[`components/channel_view Should match snapshot if channel is deactivated
     teamUrl="/team"
     viewArchivedChannels={false}
   />
+  <ChannelBookmarks
+    channelId="channelId"
+  />
   <DeferredRenderWrapper
     channelId="channelId"
   />
@@ -137,6 +143,9 @@ exports[`components/channel_view Should match snapshot with base props 1`] = `
     }
     teamUrl="/team"
     viewArchivedChannels={false}
+  />
+  <ChannelBookmarks
+    channelId="channelId"
   />
   <DeferredRenderWrapper
     channelId="channelId"

@@ -12,7 +12,7 @@ import type {FileInfo} from '@mattermost/types/files';
 import type {Post} from '@mattermost/types/posts';
 
 import {getFile} from 'mattermost-redux/selectors/entities/files';
-import {getFileUrl} from 'mattermost-redux/utils/file_utils';
+import {getFileDownloadUrl} from 'mattermost-redux/utils/file_utils';
 
 import {openModal} from 'actions/views/modals';
 
@@ -75,7 +75,7 @@ const BookmarkItem = <T extends HTMLAnchorElement>({bookmark}: Props) => {
     } else if (bookmark.type === 'file' && bookmark.file_id) {
         link = (
             <DynamicLink
-                href={getFileUrl(bookmark.file_id)}
+                href={getFileDownloadUrl(bookmark.file_id)}
                 onClick={handleOpenFile}
                 ref={linkRef}
                 isFile={true}

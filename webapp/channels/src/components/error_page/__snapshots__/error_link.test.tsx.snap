@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/error_page/ErrorLink should match snapshot 1`] = `
-<ExternalLink
+<ForwardRef
   href="https://docs.mattermost.com/deployment/sso-gitlab.html"
   location="error_link"
 >
@@ -9,5 +9,5 @@ exports[`components/error_page/ErrorLink should match snapshot 1`] = `
     defaultMessage="GitLab"
     id="error.oauth_missing_code.gitlab.link"
   />
-</ExternalLink>
+</ForwardRef>
 `;

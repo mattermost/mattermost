@@ -20,6 +20,7 @@ export interface Props extends PropsFromRedux {
     target: () => ReactNode;
     onEmojiClick: (emoji: Emoji) => void;
     onGifClick?: (gif: string) => void;
+    onAddCustomEmojiClick?: () => void;
     onHide: () => void;
     onExited?: () => void;
     show: boolean;
@@ -106,6 +107,7 @@ export default class EmojiPickerOverlay extends React.PureComponent<Props> {
                     rightOffset={calculatedRightOffset}
                     topOffset={this.props.topOffset}
                     leftOffset={this.props.leftOffset}
+                    onAddCustomEmojiClick={this.props.onAddCustomEmojiClick}
                 />
             </Overlay>
         );

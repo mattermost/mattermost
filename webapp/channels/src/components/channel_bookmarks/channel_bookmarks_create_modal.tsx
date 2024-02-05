@@ -27,6 +27,8 @@ import FileProgressPreview from 'components/file_preview/file_progress_preview';
 import Input from 'components/widgets/inputs/input/input';
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
+import Constants from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
 import {isValidUrl, parseLink} from 'utils/url';
 import {generateId} from 'utils/utils';
 
@@ -35,6 +37,7 @@ import type {GlobalState} from 'types/store';
 import './bookmark_create_modal.scss';
 
 import CreateModalNameInput from './create_modal_name_input';
+import {useCanGetLinkPreviews, useCanUploadFiles} from './utils';
 
 type Props = {
     channelId: string;
@@ -81,11 +84,26 @@ function ChannelBookmarkCreateModal({
 
     // common
     const type = bookmark?.type ?? bookmarkType ?? 'link';
-    const [emoji, setEmoji] = useState(bookmark?.emoji);
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const [emoji, setEmoji] = useState(bookmark?.emoji ?? '');
     const [displayName, setDisplayName] = useState<string | undefined>(bookmark?.display_name);
     const [parsedDisplayName, setParsedDisplayName] = useState<string | undefined>();
     const [saving, setSaving] = useState(false);
     const [saveError, setSaveError] = useState('');
+
+    const handleKeyDown = useCallback((event: KeyboardEvent) => {
+        if (isKeyPressed(event, Constants.KeyCodes.ESCAPE) && !showEmojiPicker) {
+            onHide();
+        }
+    }, [showEmojiPicker, onHide]);
+
+    useEffect(() => {
+        document.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            document.removeEventListener('keydown', handleKeyDown);
+        };
+    }, [handleKeyDown]);
 
     // type === 'link'
     const [linkInputValue, setLinkInputValue] = useState(bookmark?.link_url ?? '');
@@ -94,6 +112,7 @@ function ChannelBookmarkCreateModal({
     const [icon, setIcon] = useState(bookmark?.image_url);
     const [isLoadingOpenGraphMetaLink, setIsLoadingOpenGraphMetaLink] = useState('');
     const openGraphRequestAbortController = useRef<AbortController>();
+    const canUseLinkPreviews = useCanGetLinkPreviews();
 
     const handleLinkChange = useCallback(({target: {value}}: ChangeEvent<HTMLInputElement>) => {
         setLinkInputValue(value);
@@ -132,6 +151,11 @@ function ChannelBookmarkCreateModal({
                 return;
             }
 
+            if (!canUseLinkPreviews) {
+                setParsedDisplayName(link);
+                return;
+            }
+
             try {
                 openGraphRequestAbortController?.current?.abort('stale request');
                 openGraphRequestAbortController.current = new AbortController();
@@ -161,6 +185,7 @@ function ChannelBookmarkCreateModal({
     }, [link, bookmark?.link_url]);
 
     // type === 'file'
+    const canUploadFiles = useCanUploadFiles();
     const [pendingFile, setPendingFile] = useState<FilePreviewInfo | null>();
     const [fileError, setFileError] = useState('');
     const [fileId, setFileId] = useState(bookmark?.file_id);
@@ -231,7 +256,7 @@ function ChannelBookmarkCreateModal({
         setFileError(formatMessage({id: 'file_upload.generic_error_file', defaultMessage: 'There was a problem uploading your file.'}));
     };
 
-    const displayNameValue = displayName || parsedDisplayName || fileInfo?.name || '';
+    const displayNameValue = displayName || parsedDisplayName || (type === 'file' ? fileInfo?.name : bookmark?.link_url) || '';
 
     const doUploadFile = (file: File) => {
         setPendingFile(null);
@@ -384,6 +409,8 @@ function ChannelBookmarkCreateModal({
 
     return (
         <GenericModal
+            enforceFocus={!showEmojiPicker}
+            keyboardEscape={false}
             className='channel-bookmarks-create-modal'
             modalHeaderText={formatMessage(bookmark ? msg.editHeading : msg.heading)}
             confirmButtonText={formatMessage(bookmark ? msg.saveText : msg.addBookmarkText)}
@@ -423,7 +450,8 @@ function ChannelBookmarkCreateModal({
                         <FileInputContainer
                             tabIndex={0}
                             role='button'
-                            onClick={handleEditFileClick}
+                            disabled={!canUploadFiles}
+                            onClick={(canUploadFiles && handleEditFileClick) || undefined}
                         >
                             {!pendingFile && fileInfo && (
                                 <FileItemContainer>
@@ -478,6 +506,9 @@ function ChannelBookmarkCreateModal({
                             displayName={displayName}
                             placeholder={displayNameValue}
                             setDisplayName={setDisplayName}
+                            onAddCustomEmojiClick={onHide}
+                            showEmojiPicker={showEmojiPicker}
+                            setShowEmojiPicker={setShowEmojiPicker}
                         />
                     </TitleWrapper>
                 )}
@@ -503,6 +534,19 @@ const FieldLabel = styled.span`
     line-height: 20px;
 `;
 
+const VisualButton = styled.div`
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 24px;
+    color: rgba(var(--center-channel-color-rgb), 0.56);
+    font-size: 11px;
+    font-weight: 600;
+    font-family: Open Sans;
+`;
+
 const FileInputContainer = styled.div`
     display: block;
     background: rgba(var(--center-channel-color-rgb), 0.04);
@@ -510,10 +554,17 @@ const FileInputContainer = styled.div`
     border-radius: 8px;
     display: flex;
 
-    &:hover {
+    &:hover:not([disabled]) {
         background: rgba(var(--center-channel-color-rgb), 0.08);
         color: rgba(var(--center-channel-color-rgb), 0.72);
         cursor: pointer;
+    }
+
+    &:disabled {
+        cursor: default;
+        ${VisualButton} {
+            opacity: 0.4;
+        }
     }
 
     input[type="file"] {
@@ -541,19 +592,6 @@ const FileInputContainer = styled.div`
     }
 `;
 
-const VisualButton = styled.div`
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 4px;
-    padding: 10px 24px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
-    font-size: 11px;
-    font-weight: 600;
-    font-family: Open Sans;
-`;
-
 const FileItemContainer = styled.div`
     display: flex;
     flex: 1 1 auto;
@@ -574,5 +612,4 @@ const msg = defineMessages({
     fileInputEdit: {id: 'channel_bookmarks.create.file_input.edit', defaultMessage: 'Edit'},
     linkInvalid: {id: 'channel_bookmarks.create.error.invalid_url', defaultMessage: 'Please enter a valid link'},
     saveError: {id: 'channel_bookmarks.create.error.generic_save', defaultMessage: 'There was an error trying to save the bookmark.'},
-    linkHttpInvalid: {id: 'channel_bookmarks.create.error.invalid_url_needs_http', defaultMessage: 'Please enter a valid link beginning with http:// or https://'},
 });

@@ -6,7 +6,7 @@ import styled from 'styled-components';
 
 import BookmarkItem from './bookmark_item';
 import PlusMenu from './channel_bookmarks_plus_menu';
-import {useChannelBookmarkPermission, useChannelBookmarks, useIsChannelBookmarksEnabled, MAX_BOOKMARKS_PER_CHANNEL} from './utils';
+import {useChannelBookmarkPermission, useChannelBookmarks, useIsChannelBookmarksEnabled, MAX_BOOKMARKS_PER_CHANNEL, useCanUploadFiles} from './utils';
 
 import './channel_bookmarks.scss';
 
@@ -19,6 +19,7 @@ const ChannelBookmarks = ({
 }: Props) => {
     const show = useIsChannelBookmarksEnabled();
     const {order, bookmarks} = useChannelBookmarks(channelId);
+    const canUploadFiles = useCanUploadFiles();
     const canAdd = useChannelBookmarkPermission(channelId, 'add');
     const hasBookmarks = Boolean(order?.length);
 
@@ -41,6 +42,7 @@ const ChannelBookmarks = ({
                     channelId={channelId}
                     hasBookmarks={hasBookmarks}
                     limitReached={order.length >= MAX_BOOKMARKS_PER_CHANNEL}
+                    canUploadFiles={canUploadFiles}
                 />
             )}
         </Container>

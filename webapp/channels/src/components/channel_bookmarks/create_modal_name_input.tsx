@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ComponentProps} from 'react';
-import React, {useRef, useState} from 'react';
+import React, {useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -14,6 +14,9 @@ import type {FileInfo} from '@mattermost/types/files';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import Input from 'components/widgets/inputs/input/input';
 
+import Constants, {A11yCustomEventTypes, type A11yFocusEventDetail} from 'utils/constants';
+import {isKeyPressed} from 'utils/keyboard';
+
 import BookmarkIcon from './bookmark_icon';
 
 type Props = {
@@ -21,10 +24,13 @@ type Props = {
     fileInfo: FileInfo | undefined;
     imageUrl: string | undefined;
     emoji: string | undefined;
-    setEmoji: React.Dispatch<React.SetStateAction<string | undefined>>;
+    setEmoji: React.Dispatch<React.SetStateAction<string>>;
     placeholder: string | undefined;
     displayName: string | undefined;
     setDisplayName: React.Dispatch<React.SetStateAction<string | undefined>>;
+    showEmojiPicker: boolean;
+    setShowEmojiPicker: React.Dispatch<React.SetStateAction<boolean>>;
+    onAddCustomEmojiClick?: () => void;
 }
 const CreateModalNameInput = ({
     type,
@@ -35,6 +41,9 @@ const CreateModalNameInput = ({
     placeholder,
     displayName,
     setDisplayName,
+    showEmojiPicker,
+    setShowEmojiPicker,
+    onAddCustomEmojiClick,
 }: Props) => {
     const {formatMessage} = useIntl();
 
@@ -51,25 +60,54 @@ const CreateModalNameInput = ({
         />
     );
 
-    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+    const refocusEmojiButton = () => {
+        if (!targetRef.current) {
+            return;
+        }
+
+        document.dispatchEvent(new CustomEvent<A11yFocusEventDetail>(
+            A11yCustomEventTypes.FOCUS, {
+                detail: {
+                    target: targetRef.current,
+                    keyboardOnly: true,
+                },
+            },
+        ));
+    };
+
     const toggleEmojiPicker = () => setShowEmojiPicker((prev) => !prev);
 
     const handleEmojiClick = (selectedEmoji: Emoji) => {
         setShowEmojiPicker(false);
         const emojiName = ('short_name' in selectedEmoji) ? selectedEmoji.short_name : selectedEmoji.name;
         setEmoji(`:${emojiName}:`);
+        refocusEmojiButton();
     };
 
     const handleEmojiClear = () => {
-        setEmoji(undefined);
+        setEmoji('');
     };
 
     const handleEmojiClose = () => {
         setShowEmojiPicker(false);
+        refocusEmojiButton();
     };
 
     const handleInputChange: ComponentProps<typeof Input>['onChange'] = (e) => {
         setDisplayName(e.currentTarget.value);
+    };
+
+    const handleEmojiKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
+        if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {
+            e.stopPropagation();
+        }
+    };
+
+    const handleEmojiResetKeyDown = (e: React.KeyboardEvent<HTMLAnchorElement>) => {
+        if (isKeyPressed(e, Constants.KeyCodes.ENTER) || isKeyPressed(e, Constants.KeyCodes.SPACE)) {
+            e.stopPropagation();
+            handleEmojiClear();
+        }
     };
 
     return (
@@ -82,14 +120,18 @@ const CreateModalNameInput = ({
                         onHide={handleEmojiClose}
                         onEmojiClick={handleEmojiClick}
                         placement='right'
+                        onAddCustomEmojiClick={onAddCustomEmojiClick}
                     />
+
                 )}
                 <button
                     ref={targetRef}
                     type='button'
                     onClick={toggleEmojiPicker}
+                    onKeyDown={handleEmojiKeyDown}
                     aria-label={formatMessage({id: 'emoji_picker.emojiPicker.button.ariaLabel', defaultMessage: 'select an emoji'})}
                     aria-expanded={showEmojiPicker ? 'true' : 'false'}
+
                     className='channelBookmarksMenuButton emoji-picker__container BookmarkCreateModal__emoji-button'
                 >
                     {icon}
@@ -108,6 +150,7 @@ const CreateModalNameInput = ({
                     visible={Boolean(emoji)}
                     tabIndex={0}
                     onClick={handleEmojiClear}
+                    onKeyDown={handleEmojiResetKeyDown}
                 >
                     <FormattedMessage
                         id='channel_bookmarks.create.title_input.clear_emoji'

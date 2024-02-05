@@ -139,7 +139,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
               id="add_command.trigger.helpReserved"
               values={
                 Object {
-                  "link": <ExternalLink
+                  "link": <ForwardRef
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
@@ -147,7 +147,7 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -579,7 +579,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
               id="add_command.trigger.helpReserved"
               values={
                 Object {
-                  "link": <ExternalLink
+                  "link": <ForwardRef
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
@@ -587,7 +587,7 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -1019,7 +1019,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
               id="add_command.trigger.helpReserved"
               values={
                 Object {
-                  "link": <ExternalLink
+                  "link": <ForwardRef
                     href="https://mattermost.com/pl/custom-slash-commands"
                     location="abstract_command"
                   >
@@ -1027,7 +1027,7 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
                       defaultMessage="See built-in slash commands"
                       id="add_command.trigger.helpReservedLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />

@@ -32,11 +32,13 @@ type PlusMenuProps = {
     channelId: string;
     hasBookmarks: boolean;
     limitReached: boolean;
+    canUploadFiles: boolean;
 };
 const PlusMenu = ({
     channelId,
     hasBookmarks,
     limitReached,
+    canUploadFiles,
 }: PlusMenuProps) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
@@ -128,14 +130,16 @@ const PlusMenu = ({
                     labels={<span>{addLinkLabel}</span>}
                     aria-label={addLinkLabel}
                 />
-                <Menu.Item
-                    key='channelBookmarksAttachFile'
-                    id='channelBookmarksAttachFile'
-                    onClick={handleCreateFile}
-                    leadingElement={<PaperclipIcon size={18}/>}
-                    labels={<span>{attachFileLabel}</span>}
-                    aria-label={attachFileLabel}
-                />
+                {canUploadFiles && (
+                    <Menu.Item
+                        key='channelBookmarksAttachFile'
+                        id='channelBookmarksAttachFile'
+                        onClick={handleCreateFile}
+                        leadingElement={<PaperclipIcon size={18}/>}
+                        labels={<span>{attachFileLabel}</span>}
+                        aria-label={attachFileLabel}
+                    />
+                )}
             </Menu.Container>
             {fileInput}
         </PlusButtonContainer>

@@ -83,7 +83,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
       message="descr"
     />
   </span>
-  <ExternalLink
+  <ForwardRef
     className="GenericModal__button actionButton"
     href="http://download.com/path"
     id="actionButton"
@@ -91,7 +91,7 @@ exports[`ProductNoticesModal Match snapshot for user notice 1`] = `
     onClick={[Function]}
   >
     Download
-  </ExternalLink>
+  </ForwardRef>
   <div
     className="productNotices__imageDiv"
   />
@@ -154,7 +154,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
       message="your eyes only! [test](https://test.com)"
     />
   </span>
-  <ExternalLink
+  <ForwardRef
     className="GenericModal__button actionButton"
     href="http://download.com/path"
     id="actionButton"
@@ -162,7 +162,7 @@ exports[`ProductNoticesModal Should match snapshot for system admin notice 1`] =
     onClick={[Function]}
   >
     Download
-  </ExternalLink>
+  </ForwardRef>
   <div
     className="productNotices__imageDiv"
   >

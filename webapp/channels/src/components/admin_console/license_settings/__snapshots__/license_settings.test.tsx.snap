@@ -64,21 +64,21 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen a
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -169,21 +169,21 @@ exports[`components/admin_console/license_settings/LicenseSettings load screen w
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -288,21 +288,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -331,13 +331,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -424,21 +424,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -548,21 +548,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -672,21 +672,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -796,21 +796,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -920,21 +920,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1052,13 +1052,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1135,21 +1135,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1164,13 +1164,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1247,21 +1247,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1276,13 +1276,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1355,21 +1355,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1457,21 +1457,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1495,13 +1495,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1563,21 +1563,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1592,13 +1592,13 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="compare-plans-text"
           >
             Curious about upgrading? 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/pricing/"
               id="privacyLink"
               location="license_settings"
             >
               Compare Plans
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
       </div>
@@ -1668,21 +1668,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div
@@ -1793,21 +1793,21 @@ exports[`components/admin_console/license_settings/LicenseSettings should match 
             className="terms-and-policy"
           >
             See also 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/terms-of-use/"
               id="privacyLink"
               location="license_settings"
             >
               Enterprise Edition Terms of Use
-            </ExternalLink>
+            </ForwardRef>
              and 
-            <ExternalLink
+            <ForwardRef
               href="https://mattermost.com/pl/privacy-policy/"
               id="privacyLink"
               location="license_settings"
             >
               Privacy Policy
-            </ExternalLink>
+            </ForwardRef>
           </div>
         </div>
         <div

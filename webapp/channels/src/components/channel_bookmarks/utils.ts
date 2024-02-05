@@ -10,12 +10,13 @@ import type {GlobalState} from '@mattermost/types/store';
 import {Permissions} from 'mattermost-redux/constants';
 import {getChannelBookmarks} from 'mattermost-redux/selectors/entities/channel_bookmarks';
 import {getChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
-import {getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
 
 import Constants from 'utils/constants';
+import {canUploadFiles, isPublicLinksEnabled} from 'utils/file_utils';
 
 export const MAX_BOOKMARKS_PER_CHANNEL = 50;
 
@@ -71,6 +72,18 @@ export const getHaveIChannelBookmarkPermission = (state: GlobalState, channelId:
     const permission = BOOKMARK_PERMISSION[key(action, type)];
 
     return channel && permission && haveIChannelPermission(state, channel.team_id, channelId, permission);
+};
+
+export const useCanUploadFiles = () => {
+    return useSelector((state: GlobalState) => canUploadFiles(getConfig(state)));
+};
+
+export const useCanGetPublicLink = () => {
+    return useSelector((state: GlobalState) => isPublicLinksEnabled(getConfig(state)));
+};
+
+export const useCanGetLinkPreviews = () => {
+    return useSelector((state: GlobalState) => getConfig(state).EnableLinkPreviews === 'true');
 };
 
 export const getIsChannelBookmarksEnabled = (state: GlobalState) => {
