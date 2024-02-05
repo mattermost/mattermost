@@ -89,6 +89,11 @@ jobs:
       BRANCH: "${{ steps.branch.outputs.BRANCH }}"
       BUILD_ID_BASE: "${{ steps.build-id-base.outputs.BUILD_ID_BASE }}"
     steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
       - name: ci/generate-branch
         id: branch
         run: |
