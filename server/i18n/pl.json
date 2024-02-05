@@ -369,7 +369,7 @@
   },
   {
     "id": "api.command.invite_people.name",
-    "translation": "invite_people"
+    "translation": "zaproś_osoby"
   },
   {
     "id": "api.command.invite_people.no_email",
@@ -401,7 +401,7 @@
   },
   {
     "id": "api.command_channel_header.desc",
-    "translation": "Edycja nagłówka kanału"
+    "translation": "Edytuj nagłówek kanału"
   },
   {
     "id": "api.command_channel_header.hint",
@@ -3381,7 +3381,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "ID wywołania dla interaktywnego dialogu wygasło. Maksymalny czas życia dla ID wywołania wynosi {{.Seconds}} sekund."
+    "translation": "Identyfikator wyzwalacza dla interaktywnego okna dialogowego wygasł. Identyfikatory wyzwalaczy działają przez maksymalnie {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.missing_data",
@@ -3725,11 +3725,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Retencja danych musi wynosić jeden dzień lub dłużej."
+    "translation": "Liczba dni przechowywania plików nie może być mniejsza niż 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Retencja wiadomości musi wynosić jeden dzień lub dłużej."
+    "translation": "Liczba dni przechowywania wiadomości nie może być mniejsza niż 0."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -7033,7 +7033,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Błąd podczas sprawdzania, czy istnieje udostępniony kanał: {{.Error}}"
+    "translation": "Błąd podczas sprawdzania, czy współdzielony kanał {{.ChannelID}} istnieje: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -9092,10 +9092,6 @@
     "translation": "{{ .SenderName }} zaprosił Cię do dołączenia do Kanału {{ .ChannelName }} w Zespole {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Błąd podczas przetwarzania danych."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Nieprawidłowa treść żądania."
   },
@@ -10110,5 +10106,261 @@
   {
     "id": "app.reaction.save.save.too_many_reactions",
     "translation": "Osiągnięto limit reakcji dla tego postu."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Rozmiar strony jest nieprawidłowy lub zbyt duży."
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Podany zakres dat jest nieprawidłowy."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Przenoszenie wątków jest wyłączone"
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Nie można wyszukać pliku startowego."
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Nie masz uprawnień aby przenieść ten wątek."
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Ten wątek został przeniesiony z innego kanału"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "Wątek z wiadomościami {{.NumMessages}} został przeniesiony: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Wiadomość została przeniesiona: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "Wątek z {{.NumMessages}} wiadomościami został przeniesiony do wiadomości bezpośrednich/grupowych\n"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Wiadomość została przeniesiona do wiadomości bezpośredniej/grupowej\n"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Nie można usunąć wątku"
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Nie udało się pobrać raportu użytkownika."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Nieprawidłowy limit czasu żądania integracji wychodzących dla ustawień usługi. Musi być liczbą dodatnią."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Nieprawidłowa domena dla ustawień przeniesienia wątku"
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Podana kolumna sortowania jest nieprawidłowa."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Nie można zaprosić zdalnych, ponieważ kanał {{.ChannelID}} nie jest udostępniony."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Wystąpił błąd podczas wyświetlania wychodzących połączeń OAuth."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Nieprawidłowe parametry wejściowe."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
+    "translation": "Ta funkcja jest ograniczona przez flagę funkcji."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Nie można uzyskać tylu ról według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} ról."
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Nie udało się uzyskać liczby użytkowników"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Wystąpił błąd podczas usuwania wychodzącego połączenia oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Wystąpił błąd podczas pobierania wychodzącego połączenia oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Nie znaleziono wychodzącego połączenia oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Wystąpił błąd podczas pobierania wychodzących połączeń oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Wystąpił błąd podczas zapisywania wychodzącego połączenia oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Wystąpił błąd aktualizacji wychodzącego połączenia oauth."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Wystąpił błąd podczas przetwarzania ładowania."
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Prosimy o odnowienie, aby uniknąć zakłóceń"
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Odnów teraz"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Roczny rachunek płatny do 30 dni"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Termin płatności rocznego rachunku wynosi 30 dni"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Roczne odnowienie subskrypcji w ciągu 60 dni"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Nie można znaleźć użytkownika."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Roczne odnowienie subskrypcji w ciągu 60 dni"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Wymagane działanie: Roczne odnowienie subskrypcji w ciągu 7 dni"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Za 7 dni utracisz dostęp do swojej przestrzeni roboczej"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Nie można zaktualizować rekwizytów powiadomień członków kanału."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Nie udało się potwierdzić zaproszenia: {{.Error}}"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Błąd podczas sprawdzania, czy użytkownik ma niestandardowe zdjęcie profilowe."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Nie można zaktualizować tak wielu członków kanału. Jednocześnie można aktualizować tylko {{.Max}} członków kanału."
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Nie udało się pobrać liczby użytkowników."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Liczba godzin przechowywania plików nie może być mniejsza niż 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Liczba dni i godzin przechowywania wiadomości nie może wynosić 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Liczba godzin przechowywania wiadomości nie może być mniejsza niż 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Liczba dni i godzin przechowywania wiadomości nie może być większa niż 0."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Nieprawidłowy maksymalny rozmiar ładunku dla ustawień usługi. Musi być liczbą całkowitą większą od zera."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Liczba dni i godzin przechowywania plików nie może wynosić 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Liczba dni i godzin przechowywania plików nie może być większa niż 0."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Rozpocząłeś eksport danych użytkownika dla {{.DateRange}}. Po zakończeniu eksportu plik CSV zostanie dostarczony w tej bezpośredniej wiadomości."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Nie udało się zapisać nagłówków CSV."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Nieobsługiwany format raportu."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Eksport jest gotowy. Plik CSV zawiera dane użytkownika dla {{.DateRange}}. Kliknij poniższy link, aby pobrać raport."
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Zadanie już istnieje dla tego użytkownika i zakresu dat."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Eksport raportów wsadowych jest dostępny tylko dla wersji Pro i Enterprise."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Nie udało się zapisać fragmentu CSV."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Nieobsługiwany format raportu."
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "cały czas"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "ostatnie 30 dni"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "ostatnie 6 miesięcy"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "poprzedni miesiąc"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Nie udało się zapisać informacji o pliku."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Brakujący zakres dat"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Brak identyfikatora użytkownika do wysłania raportu"
   }
 ]

@@ -171,7 +171,7 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}
@@ -282,7 +282,7 @@ func (a *App) HasPermissionToChannel(c request.CTX, askingUserId string, channel
 }
 
 func (a *App) HasPermissionToChannelByPost(c request.CTX, askingUserId string, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId); err == nil {
+	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, askingUserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true
 		}

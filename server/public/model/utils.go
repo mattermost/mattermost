@@ -29,13 +29,14 @@ import (
 )
 
 const (
-	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
-	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS          = "0123456789"
-	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	BinaryParamKey   = "MM_BINARY_PARAMETERS"
-	NoTranslation    = "<untranslated>"
-	maxPropSizeBytes = 1024 * 1024
+	LowercaseLetters  = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	BinaryParamKey    = "MM_BINARY_PARAMETERS"
+	NoTranslation     = "<untranslated>"
+	maxPropSizeBytes  = 1024 * 1024
+	PayloadParseError = "api.payload.parse.error"
 )
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
@@ -396,17 +397,17 @@ func NewRandomString(length int) string {
 
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return GetMillisForTime(time.Now())
 }
 
 // GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
 func GetMillisForTime(thisTime time.Time) int64 {
-	return thisTime.UnixNano() / int64(time.Millisecond)
+	return thisTime.UnixMilli()
 }
 
 // GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
 func GetTimeForMillis(millis int64) time.Time {
-	return time.Unix(0, millis*int64(time.Millisecond))
+	return time.UnixMilli(millis)
 }
 
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
@@ -484,15 +485,39 @@ func ArrayToJSON(objmap []string) string {
 	return string(b)
 }
 
+// Deprecated: ArrayFromJSON is deprecated,
+// use SortedArrayFromJSON or NonSortedArrayFromJSON instead
 func ArrayFromJSON(data io.Reader) []string {
 	var objmap []string
-
 	json.NewDecoder(data).Decode(&objmap)
 	if objmap == nil {
 		return make([]string, 0)
 	}
-
 	return objmap
+}
+
+func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+	var obj []string
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
+	if err != nil || obj == nil {
+		return nil, err
+	}
+
+	// Remove duplicate IDs as it can bring a significant load to the database.
+	return RemoveDuplicateStrings(obj), nil
+}
+
+func NonSortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+	var obj []string
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
+	if err != nil || obj == nil {
+		return nil, err
+	}
+
+	// Remove duplicate IDs, but don't sort.
+	return RemoveDuplicateStringsNonSort(obj), nil
 }
 
 func ArrayFromInterface(data any) []string {
@@ -526,6 +551,16 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	}
 
 	return objmap
+}
+
+func StructFromJSONLimited[V any](data io.Reader, maxBytes int64, obj *V) error {
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
+	if err != nil || obj == nil {
+		return err
+	}
+
+	return nil
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
@@ -735,6 +770,20 @@ func RemoveDuplicateStrings(in []string) []string {
 		in[j] = in[i]
 	}
 	return in[:j+1]
+}
+
+// RemoveDuplicateStringsNonSort does a removal of duplicate
+// strings using a map.
+func RemoveDuplicateStringsNonSort(in []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range in {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }
 
 func GetPreferredTimezone(timezone StringMap) string {

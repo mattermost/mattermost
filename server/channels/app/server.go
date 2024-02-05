@@ -41,9 +41,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
@@ -143,8 +145,9 @@ type Server struct {
 	// startSearchEngine bool
 	skipPostInit bool
 
-	Cloud       einterfaces.CloudInterface
-	IPFiltering einterfaces.IPFilteringInterface
+	Cloud                   einterfaces.CloudInterface
+	IPFiltering             einterfaces.IPFilteringInterface
+	OutgoingOAuthConnection einterfaces.OutgoingOAuthConnectionInterface
 
 	tracer *tracing.Tracer
 
@@ -223,11 +226,6 @@ func NewServer(options ...Option) (*Server, error) {
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create users service")
-	}
-
-	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
-		s.LoadLicense()
 	}
 
 	s.licenseWrapper = &licenseWrapper{
@@ -511,12 +509,6 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 
 	if s.runEssentialJobs {
-		s.Go(func() {
-			appInstance := New(ServerConnector(s.Channels()))
-			s.runLicenseExpirationCheckJob()
-			runDNDStatusExpireJob(appInstance)
-			runPostReminderJob(appInstance)
-		})
 		s.runJobs()
 	}
 
@@ -538,6 +530,12 @@ func NewServer(options ...Option) (*Server, error) {
 }
 
 func (s *Server) runJobs() {
+	s.runLicenseExpirationCheckJob()
+	s.Go(func() {
+		appInstance := New(ServerConnector(s.Channels()))
+		runDNDStatusExpireJob(appInstance)
+		runPostReminderJob(appInstance)
+	})
 	s.Go(func() {
 		runSecurityJob(s)
 	})
@@ -625,8 +623,8 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 	}
 
 	var err error
-
-	rcs, err := remotecluster.NewRemoteClusterService(s)
+	appInstance := New(ServerConnector(s.Channels()))
+	rcs, err := remotecluster.NewRemoteClusterService(s, appInstance)
 	if err != nil {
 		return err
 	}
@@ -653,7 +651,6 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	appInstance := New(ServerConnector(s.Channels()))
 	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
 	if err != nil {
 		return err
@@ -1415,7 +1412,8 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsCloud() {
-		mlog.Debug("Skipping license expiration check for Cloud")
+		appInstance := New(ServerConnector(s.Channels()))
+		appInstance.DoSubscriptionRenewalCheck()
 		return
 	}
 
@@ -1593,6 +1591,11 @@ func (s *Server) initJobs() {
 		nil)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteOrphanDraftsMigration,
+		delete_orphan_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
 		export_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		export_delete.MakeScheduler(s.Jobs),
@@ -1676,6 +1679,12 @@ func (s *Server) initJobs() {
 		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
 	)
 
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportUsersToCSV,
+		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
 	s.platform.Jobs = s.Jobs
 }
 
@@ -1747,7 +1756,7 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 		return img, false, nil
 	}
 
-	path := "users/" + user.Id + "/profile.png"
+	path := getProfileImagePath(user.Id)
 
 	data, err := s.ReadFile(path)
 	if err != nil {

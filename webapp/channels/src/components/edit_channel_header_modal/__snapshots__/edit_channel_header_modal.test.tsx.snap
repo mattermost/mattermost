@@ -90,7 +90,6 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
           updatePreview={[Function]}
         />
       </div>
-      <br />
     </div>
   </ModalBody>
   <ModalFooter
@@ -217,7 +216,6 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
           updatePreview={[Function]}
         />
       </div>
-      <br />
       <div
         className="form-group has-error"
       >
@@ -362,7 +360,6 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
           updatePreview={[Function]}
         />
       </div>
-      <br />
       <div
         className="form-group has-error"
       >
@@ -499,7 +496,6 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
           updatePreview={[Function]}
         />
       </div>
-      <br />
     </div>
   </ModalBody>
   <ModalFooter
@@ -626,7 +622,6 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
           updatePreview={[Function]}
         />
       </div>
-      <br />
     </div>
   </ModalBody>
   <ModalFooter

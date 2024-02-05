@@ -2,7 +2,6 @@
 // See LICENSE.txt for license information.
 
 import {
-    searchMoreChannels,
     addUsersToChannel,
     openDirectChannelToUserId,
     openGroupChannelToUserIds,
@@ -140,24 +139,6 @@ describe('Actions.Channel', () => {
         await testStore.dispatch(loadChannelsForCurrentUser());
         expect(testStore.getActions()).toEqual(expectedActions);
         expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);
-    });
-
-    test('searchMoreChannels', async () => {
-        const testStore = await mockStore(initialState);
-
-        const expectedActions = [{
-            type: 'MOCK_SEARCH_CHANNELS',
-            data: [{
-                id: 'channel-id',
-                name: 'channel-name',
-                display_name: 'Channel',
-                delete_at: 0,
-                type: 'O',
-            }],
-        }];
-
-        await testStore.dispatch(searchMoreChannels('', false, true));
-        expect(testStore.getActions()).toEqual(expectedActions);
     });
 
     test('addUsersToChannel', async () => {

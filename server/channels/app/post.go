@@ -214,12 +214,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	post.SanitizeProps()
 
-	var pchan chan store.GenericStoreResult[*model.PostList]
+	var pchan chan store.StoreResult[*model.PostList]
 	if post.RootId != "" {
-		pchan = make(chan store.GenericStoreResult[*model.PostList], 1)
+		pchan = make(chan store.StoreResult[*model.PostList], 1)
 		go func() {
 			r, pErr := a.Srv().Store().Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
-			pchan <- store.GenericStoreResult[*model.PostList]{Data: r, NErr: pErr}
+			pchan <- store.StoreResult[*model.PostList]{Data: r, NErr: pErr}
 			close(pchan)
 		}()
 	}
@@ -757,17 +757,18 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
-	postJSON, jsonErr := rpost.ToJSON()
-	if jsonErr != nil {
-		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-	message.Add("post", postJSON)
 
 	published, err := a.publishWebsocketEventForPermalinkPost(c, rpost, message)
 	if err != nil {
 		return nil, err
 	}
 	if !published {
+		removePermalinkMetadataFromPost(rpost)
+		postJSON, jsonErr := rpost.ToJSON()
+		if jsonErr != nil {
+			return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		}
+		message.Add("post", postJSON)
 		a.Publish(message)
 	}
 
@@ -1292,15 +1293,15 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.PrevPostId = prevPostId
 }
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
-	var member *model.ChannelMember
+	var lastViewedAt int64
 	var err *model.AppError
-	if member, err = a.Srv().getChannelMemberOnly(c, channelID, userID); err != nil {
+	if lastViewedAt, err = a.Srv().getChannelMemberLastViewedAt(c, channelID, userID); err != nil {
 		return nil, err
-	} else if member.LastViewedAt == 0 {
+	} else if lastViewedAt == 0 {
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, member.LastViewedAt, collapsedThreads)
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, lastViewedAt, collapsedThreads)
 	if err != nil {
 		return nil, err
 	} else if lastUnreadPostId == "" {
@@ -1416,9 +1417,21 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	})
 
+	// delete drafts associated with the post when deleting the post
+	a.Srv().Go(func() {
+		a.deleteDraftsAssociatedWithPost(c, channel, post)
+	})
+
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return post, nil
+}
+
+func (a *App) deleteDraftsAssociatedWithPost(c request.CTX, channel *model.Channel, post *model.Post) {
+	if err := a.Srv().Store().Draft().DeleteDraftsAssociatedWithPost(channel.Id, post.Id); err != nil {
+		c.Logger().Error("Failed to delete drafts associated with post when deleting post", mlog.Err(err))
+		return
+	}
 }
 
 func (a *App) deleteFlaggedPosts(c request.CTX, postID string) {
@@ -1474,7 +1487,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
+	pchan := make(chan store.StoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -1487,7 +1500,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := a.Srv().Store().Post().Search(teamID, userID, params)
-			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
+			pchan <- store.StoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -1696,10 +1709,10 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	pchan := make(chan store.GenericStoreResult[*model.Post], 1)
+	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
-		pchan <- store.GenericStoreResult[*model.Post]{Data: post, NErr: err}
+		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
@@ -2295,19 +2308,26 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 	}
 
 	hasPermissionToAccessChannel := false
-	if channel.Type == model.ChannelTypeOpen {
+
+	_, channelMemberErr := a.GetChannelMember(c, channel.Id, userID)
+
+	if channelMemberErr == nil {
 		hasPermissionToAccessChannel = true
-	} else if channel.Type == model.ChannelTypePrivate {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
-	} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
+	}
+
+	if !hasPermissionToAccessChannel {
+		if channel.Type == model.ChannelTypeOpen {
+			hasPermissionToAccessChannel = true
+		} else if channel.Type == model.ChannelTypePrivate {
+			hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
+		} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+			hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
+		}
 	}
 
 	if !hasPermissionToAccessChannel {
 		return nil, notFoundError
 	}
-
-	_, channelMemberErr := a.GetChannelMember(c, channel.Id, userID)
 
 	info := model.PostInfo{
 		ChannelId:          channel.Id,
