@@ -81,15 +81,16 @@ jobs:
         run: |
           npm run check
 
-  calculate-branch-identifier:
+  generate-build-variables:
     runs-on: ubuntu-22.04
     needs:
       - update-initial-status
     outputs:
-      BRANCH: "${{ steps.cbi.outputs.BRANCH }}"
+      BRANCH: "${{ steps.branch.outputs.BRANCH }}"
+      BUILD_ID_BASE: "${{ steps.build-id-base.outputs.BUILD_ID_BASE }}"
     steps:
-      - name: ci/calculate-branch
-        id: cbi
+      - name: ci/generate-branch
+        id: branch
         run: |
           PR_LIST=$(curl -L -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ github.token }}" \
@@ -105,8 +106,14 @@ jobs:
             # We want to display preferrably a tag/branch name on that commit, or at worst the short SHA
             BRANCH="$(git describe --all --always --exclude='*/HEAD' HEAD | rev | cut -d/ -f1 | rev)"
           fi
-          echo "Calculated branch identifier for E2E run: ${BRANCH}"
+          echo "Generated branch identifier for E2E run: ${BRANCH}"
           echo "BRANCH=${BRANCH}" >> "$GITHUB_OUTPUT"
+      - name: ci/calculate-build-id-base
+        id: build-id-base
+        run: |
+          BUILD_ID_BASE="$(git rev-parse --short=7 HEAD)-${{ github.run_id }}-${{ github.run_attempt }}-ent"
+          echo "Generated BUILD_ID base identifier for E2E run: ${BUILD_ID_BASE}"
+          echo "BUILD_ID_BASE=${BUILD_ID_BASE}" >> "$GITHUB_OUTPUT"
 
   smoketests:
     strategy:
@@ -124,7 +131,7 @@ jobs:
     needs:
       - cypress-check
       - playwright-check
-      - calculate-branch-identifier
+      - generate-build-variables
     defaults:
       run:
         shell: bash
@@ -133,7 +140,9 @@ jobs:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
       MM_LICENSE: "${{ secrets.MM_E2E_LICENSE_ONPREM }}"
-      BRANCH: "${{ needs.calculate-branch-identifier.outputs.BRANCH }}"
+      BRANCH: "${{ needs.generate-build-variables.outputs.BRANCH }}"
+      BUILD_ID: "${{ needs.generate-build-variables.outputs.BUILD_ID_BASE }}-smoketests"
+      # CI_BASE_URL needs to be unique for each E2E test worker
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -158,7 +167,6 @@ jobs:
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/e2e-smoketests-gencycle
         run: |
-          export BUILD_ID="$(git rev-parse --short=7 HEAD)-${{ github.run_id }}-smoketests-${{ github.run_attempt }}-ent"
           make generate-test-cycle
       - name: ci/e2e-smoketests
         run: |
