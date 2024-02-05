@@ -5,14 +5,19 @@ package app
 
 import (
 	"net/http"
+	"strconv"
+	"strings"
+
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
-const maxUsersLimit = 10000
+var MaxUsersLimit string
 
 func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
-	if !a.shouldShowUserLimits() {
+	userLimit, shouldShowLimits := a.shouldShowUserLimits()
+	if !shouldShowLimits {
 		return &model.UserLimits{}, nil
 	}
 
@@ -23,14 +28,24 @@ func (a *App) GetUserLimits() (*model.UserLimits, *model.AppError) {
 
 	return &model.UserLimits{
 		ActiveUserCount: activeUserCount,
-		MaxUsersLimit:   maxUsersLimit,
+		MaxUsersLimit:   userLimit,
 	}, nil
 }
 
-func (a *App) shouldShowUserLimits() bool {
-	if maxUsersLimit == 0 {
-		return false
+func (a *App) shouldShowUserLimits() (int64, bool) {
+	if strings.TrimSpace(MaxUsersLimit) == "" {
+		return 0, false
 	}
 
-	return a.License() == nil
+	userLimit, err := strconv.ParseInt(MaxUsersLimit, 10, 64)
+	if err != nil {
+		mlog.Debug("shouldShowUserLimits: failed to parse user limits", mlog.String("MaxUsersLimit", MaxUsersLimit), mlog.Err(err))
+		return 0, false
+	}
+
+	if userLimit <= 0 {
+		return 0, false
+	}
+
+	return userLimit, a.License() == nil
 }

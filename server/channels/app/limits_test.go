@@ -14,6 +14,11 @@ func TestGetUserLimits(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
+	MaxUsersLimit = "10000"
+	defer func() {
+		MaxUsersLimit = ""
+	}()
+
 	t.Run("base case", func(t *testing.T) {
 		userLimits, appErr := th.App.GetUserLimits()
 		require.Nil(t, appErr)
