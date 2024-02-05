@@ -16,18 +16,19 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
-	cachemocks "github.com/mattermost/mattermost/server/v8/platform/services/cache/mocks"
 )
 
 var mainHelper *testlib.MainHelper
 
+// TODO(Hanzei): Remove
+/*
 func getMockCacheProvider() cache.Provider {
 	mockCacheProvider := cachemocks.Provider{}
 	mockCacheProvider.On("NewCache", mock.Anything).
 		Return(cache.NewLRU[any](cache.LRUOptions{Size: 128}), nil)
 	return &mockCacheProvider
 }
+*/
 
 func getMockStore(t *testing.T) *mocks.Store {
 	mockStore := mocks.Store{}

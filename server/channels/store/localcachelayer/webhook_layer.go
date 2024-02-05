@@ -24,7 +24,7 @@ func (s *LocalCacheWebhookStore) handleClusterInvalidateWebhook(msg *model.Clust
 }
 
 func (s LocalCacheWebhookStore) ClearCaches() {
-	s.rootStore.doClearCacheCluster(s.rootStore.webhookCache)
+	doClearCacheCluster(s.rootStore.cluster, s.rootStore.webhookCache)
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Webhook - Purge")
@@ -32,7 +32,7 @@ func (s LocalCacheWebhookStore) ClearCaches() {
 }
 
 func (s LocalCacheWebhookStore) InvalidateWebhookCache(webhookId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.webhookCache, webhookId)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.webhookCache, webhookId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Webhook - Remove by WebhookId")
 	}
@@ -44,7 +44,7 @@ func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*mo
 	}
 
 	var incomingWebhook *model.IncomingWebhook
-	if err := s.rootStore.doStandardReadCache(s.rootStore.webhookCache, id, &incomingWebhook); err == nil {
+	if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.webhookCache, id, &incomingWebhook); err == nil {
 		return incomingWebhook, nil
 	}
 
@@ -53,7 +53,7 @@ func (s LocalCacheWebhookStore) GetIncoming(id string, allowFromCache bool) (*mo
 		return nil, err
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.webhookCache, id, incomingWebhook)
+	doStandardAddToCache(s.rootStore.webhookCache, id, incomingWebhook)
 
 	return incomingWebhook, nil
 }

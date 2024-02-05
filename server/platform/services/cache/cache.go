@@ -32,6 +32,7 @@ type Cache[T any] interface {
 
 	// Get the content stored in the cache for the given key, and decode it into the value interface.
 	// Return ErrKeyNotFound if the key is missing from the cache
+	// TODO: Change signature to Get(key string) (error, T)
 	Get(key string, value *T) error
 
 	// Remove deletes the value for a given key.

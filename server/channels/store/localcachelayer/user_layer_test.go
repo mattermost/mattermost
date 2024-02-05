@@ -31,8 +31,7 @@ func TestUserStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
@@ -46,8 +45,7 @@ func TestUserStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
@@ -61,8 +59,7 @@ func TestUserStoreCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, true)
@@ -77,8 +74,7 @@ func TestUserStoreCache(t *testing.T) {
 
 	t.Run("should always return a copy of the stored data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		storedUsers, err := mockStore.User().GetProfileByIds(context.Background(), fakeUserIds, &store.UserGetByIdsOpts{}, false)
@@ -125,10 +121,10 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 		fakeUserId: {Id: "456"},
 	}
 
+	// TODO(hanzei): Fix test
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotMap, err := cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
@@ -142,8 +138,7 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 
 	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotMap, err := cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
@@ -157,8 +152,7 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate by channel, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotMap, err := cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
@@ -174,8 +168,7 @@ func TestUserStoreProfilesInChannelCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate by user, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotMap, err := cachedStore.User().GetAllProfilesInChannel(context.Background(), fakeChannelId, true)
@@ -199,8 +192,7 @@ func TestUserStoreGetCache(t *testing.T) {
 	}
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
@@ -214,8 +206,7 @@ func TestUserStoreGetCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate, and then not cached again", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotUser, err := cachedStore.User().Get(context.Background(), fakeUserId)
@@ -231,8 +222,7 @@ func TestUserStoreGetCache(t *testing.T) {
 
 	t.Run("should always return a copy of the stored data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		storedUser, err := mockStore.User().Get(context.Background(), fakeUserId)
@@ -274,8 +264,7 @@ func TestUserStoreGetManyCache(t *testing.T) {
 	}
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotUsers, err := cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})
@@ -292,8 +281,7 @@ func TestUserStoreGetManyCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate one user, and then check that one is cached and one is fetched from db", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		gotUsers, err := cachedStore.User().GetMany(context.Background(), []string{fakeUser.Id, otherFakeUser.Id})

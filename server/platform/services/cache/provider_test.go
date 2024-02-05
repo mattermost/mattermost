@@ -12,12 +12,37 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+/*
+func newBase() base {
+	var b base
+	b.g1 = newG[int]()
+	b.g2 = newG[string]()
+
+	return b
+}
+
+type base struct {
+	g1 G[int]
+	g2 G[string]
+}
+
+type GFactory struct {
+
+}
+
+func (gf* GFactory ) newG[T any]() G[T] {
+	return G[T]{}
+}
+
+type G[T any] struct {
+	t T
+}
+*/
+
 func TestNewCache(t *testing.T) {
 	t.Run("with only size option given", func(t *testing.T) {
-		p := NewProvider[string]()
-
 		size := 1
-		c, err := p.NewCache(&CacheOptions{
+		c, err := NewCache[string](&CacheOptions{
 			Size: size,
 		})
 		require.NoError(t, err)
@@ -34,10 +59,8 @@ func TestNewCache(t *testing.T) {
 	})
 
 	t.Run("with only size option given", func(t *testing.T) {
-		p := NewProvider[string]()
-
 		size := 1
-		c, err := p.NewCache(&CacheOptions{
+		c, err := NewCache[string](&CacheOptions{
 			Size: size,
 		})
 		require.NoError(t, err)
@@ -54,12 +77,10 @@ func TestNewCache(t *testing.T) {
 	})
 
 	t.Run("with all options specified", func(t *testing.T) {
-		p := NewProvider[string]()
-
 		size := 1
 		expiry := 1 * time.Second
 		event := model.ClusterEvent("clusterEvent")
-		c, err := p.NewCache(&CacheOptions{
+		c, err := NewCache[string](&CacheOptions{
 			Size:                   size,
 			Name:                   "name",
 			DefaultExpiry:          expiry,
@@ -93,10 +114,8 @@ func TestNewCache(t *testing.T) {
 
 func TestNewCache_Striped(t *testing.T) {
 	t.Run("with only size option given", func(t *testing.T) {
-		p := NewProvider[string]()
-
 		size := 1
-		c, err := p.NewCache(&CacheOptions{
+		c, err := NewCache[string](&CacheOptions{
 			Size:           size,
 			Striped:        true,
 			StripedBuckets: 1,
@@ -115,10 +134,8 @@ func TestNewCache_Striped(t *testing.T) {
 	})
 
 	t.Run("with only size option given", func(t *testing.T) {
-		p := NewProvider[string]()
-
 		size := 1
-		c, err := p.NewCache(&CacheOptions{
+		c, err := NewCache[string](&CacheOptions{
 			Size:           size,
 			Striped:        true,
 			StripedBuckets: 1,
@@ -137,12 +154,10 @@ func TestNewCache_Striped(t *testing.T) {
 	})
 
 	t.Run("with all options specified", func(t *testing.T) {
-		p := NewProvider[string]()
-
 		size := 1
 		expiry := 1 * time.Second
 		event := model.ClusterEvent("clusterEvent")
-		c, err := p.NewCache(&CacheOptions{
+		c, err := NewCache[string](&CacheOptions{
 			Size:                   size,
 			Name:                   "name",
 			DefaultExpiry:          expiry,
@@ -174,14 +189,4 @@ func TestNewCache_Striped(t *testing.T) {
 		err = c.Get("key3", &v)
 		require.Equal(t, ErrKeyNotFound, err)
 	})
-}
-
-func TestConnectClose(t *testing.T) {
-	p := NewProvider[any]()
-
-	err := p.Connect()
-	require.NoError(t, err)
-
-	err = p.Close()
-	require.NoError(t, err)
 }

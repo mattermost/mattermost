@@ -31,7 +31,7 @@ func (s LocalCacheTeamStore) ClearCaches() {
 }
 
 func (s LocalCacheTeamStore) InvalidateAllTeamIdsForUser(userId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.teamAllTeamIdsForUserCache, userId)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.teamAllTeamIdsForUserCache, userId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("All Team Ids for User - Remove by UserId")
 	}
@@ -43,7 +43,7 @@ func (s LocalCacheTeamStore) GetUserTeamIds(userID string, allowFromCache bool) 
 	}
 
 	var userTeamIds []string
-	if err := s.rootStore.doStandardReadCache(s.rootStore.teamAllTeamIdsForUserCache, userID, &userTeamIds); err == nil {
+	if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.teamAllTeamIdsForUserCache, userID, &userTeamIds); err == nil {
 		return userTeamIds, nil
 	}
 
@@ -53,7 +53,7 @@ func (s LocalCacheTeamStore) GetUserTeamIds(userID string, allowFromCache bool) 
 	}
 
 	if len(userTeamIds) > 0 {
-		s.rootStore.doStandardAddToCache(s.rootStore.teamAllTeamIdsForUserCache, userID, userTeamIds)
+		doStandardAddToCache(s.rootStore.teamAllTeamIdsForUserCache, userID, userTeamIds)
 	}
 
 	return userTeamIds, nil
@@ -73,10 +73,10 @@ func (s LocalCacheTeamStore) Update(team *model.Team) (*model.Team, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+	defer doClearCacheCluster(s.rootStore.cluster, s.rootStore.rolePermissionsCache)
 
 	if oldTeam != nil && oldTeam.DeleteAt == 0 {
-		s.rootStore.doClearCacheCluster(s.rootStore.teamAllTeamIdsForUserCache)
+		doClearCacheCluster(s.rootStore.cluster, s.rootStore.teamAllTeamIdsForUserCache)
 	}
 
 	return tm, err

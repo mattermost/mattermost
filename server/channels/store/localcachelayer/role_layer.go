@@ -36,15 +36,15 @@ func (s *LocalCacheRoleStore) handleClusterInvalidateRolePermissions(msg *model.
 
 func (s LocalCacheRoleStore) Save(role *model.Role) (*model.Role, error) {
 	if role.Name != "" {
-		defer s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name)
-		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+		defer doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.roleCache, role.Name)
+		defer doClearCacheCluster(s.rootStore.cluster, s.rootStore.rolePermissionsCache)
 	}
 	return s.RoleStore.Save(role)
 }
 
 func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model.Role, error) {
 	var role *model.Role
-	if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, name, &role); err == nil {
+	if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.roleCache, name, &role); err == nil {
 		return role, nil
 	}
 
@@ -52,7 +52,7 @@ func (s LocalCacheRoleStore) GetByName(ctx context.Context, name string) (*model
 	if err != nil {
 		return nil, err
 	}
-	s.rootStore.doStandardAddToCache(s.rootStore.roleCache, name, role)
+	doStandardAddToCache(s.rootStore.roleCache, name, role)
 	return role, nil
 }
 
@@ -62,7 +62,7 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 
 	for _, roleName := range names {
 		var role *model.Role
-		if err := s.rootStore.doStandardReadCache(s.rootStore.roleCache, roleName, &role); err == nil {
+		if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.roleCache, roleName, &role); err == nil {
 			foundRoles = append(foundRoles, role)
 		} else {
 			rolesToQuery = append(rolesToQuery, roleName)
@@ -75,7 +75,7 @@ func (s LocalCacheRoleStore) GetByNames(names []string) ([]*model.Role, error) {
 	}
 
 	for _, role := range roles {
-		s.rootStore.doStandardAddToCache(s.rootStore.roleCache, role.Name, role)
+		doStandardAddToCache(s.rootStore.roleCache, role.Name, role)
 	}
 
 	return append(foundRoles, roles...), nil
@@ -85,16 +85,16 @@ func (s LocalCacheRoleStore) Delete(roleId string) (*model.Role, error) {
 	role, err := s.RoleStore.Delete(roleId)
 
 	if err == nil {
-		s.rootStore.doInvalidateCacheCluster(s.rootStore.roleCache, role.Name)
-		defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+		doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.roleCache, role.Name)
+		defer doClearCacheCluster(s.rootStore.cluster, s.rootStore.rolePermissionsCache)
 	}
 	return role, err
 }
 
 func (s LocalCacheRoleStore) PermanentDeleteAll() error {
 	defer s.rootStore.roleCache.Purge()
-	defer s.rootStore.doClearCacheCluster(s.rootStore.roleCache)
-	defer s.rootStore.doClearCacheCluster(s.rootStore.rolePermissionsCache)
+	defer doClearCacheCluster(s.rootStore.cluster, s.rootStore.roleCache)
+	defer doClearCacheCluster(s.rootStore.cluster, s.rootStore.rolePermissionsCache)
 
 	return s.RoleStore.PermanentDeleteAll()
 }
@@ -103,7 +103,7 @@ func (s LocalCacheRoleStore) ChannelHigherScopedPermissions(roleNames []string) 
 	sort.Strings(roleNames)
 	cacheKey := strings.Join(roleNames, "/")
 	var rolePermissionsMap map[string]*model.RolePermissions
-	if err := s.rootStore.doStandardReadCache(s.rootStore.rolePermissionsCache, cacheKey, &rolePermissionsMap); err == nil {
+	if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.rolePermissionsCache, cacheKey, &rolePermissionsMap); err == nil {
 		return rolePermissionsMap, nil
 	}
 
@@ -112,6 +112,6 @@ func (s LocalCacheRoleStore) ChannelHigherScopedPermissions(roleNames []string) 
 		return nil, err
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.rolePermissionsCache, cacheKey, rolePermissionsMap)
+	doStandardAddToCache(s.rootStore.rolePermissionsCache, cacheKey, rolePermissionsMap)
 	return rolePermissionsMap, nil
 }

@@ -96,6 +96,8 @@ type Server struct {
 	// from RootRouter only if the SiteURL contains a /subpath.
 	Router *mux.Router
 
+	newCache func(opts *cache.CacheOptions) (cache.Cache[any], error)
+
 	Server      *http.Server
 	ListenAddr  *net.TCPAddr
 	RateLimiter *RateLimiter
@@ -341,15 +343,13 @@ func NewServer(options ...Option) (*Server, error) {
 	}
 	model.AppErrorInit(i18n.T)
 
-	c, err := s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+	if s.seenPendingPostIdsCache, err = cache.NewCache[string](&cache.CacheOptions{
 		Size: PendingPostIDsCacheSize,
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create pending post ids cache")
 	}
-	s.seenPendingPostIdsCache = c.(cache.Cache[string])
 
-	if s.openGraphDataCache, err = s.platform.CacheProvider().NewCache(&cache.CacheOptions{
+	if s.openGraphDataCache, err = cache.NewCache[[]byte](&cache.CacheOptions{
 		Size: openGraphMetadataCacheSize,
 	}); err != nil {
 		return nil, errors.Wrap(err, "Unable to create opengraphdata cache")

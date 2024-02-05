@@ -23,8 +23,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		count, err := cachedStore.Channel().GetMemberCount("id", true)
@@ -39,8 +38,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 
 	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetMemberCount("id", true)
@@ -51,8 +49,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 
 	t.Run("first call force not cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetMemberCount("id", false)
@@ -65,8 +62,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 
 	t.Run("first call with GetMemberCountFromCache not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		count := cachedStore.Channel().GetMemberCountFromCache("id")
@@ -79,8 +75,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 
 	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetMemberCount("id", true)
@@ -92,8 +87,7 @@ func TestChannelStoreChannelMemberCountsCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetMemberCount("id", true)
@@ -112,8 +106,7 @@ func TestChannelStoreChannelsMemberCountCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		channelsCount, err := cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"})
@@ -128,8 +121,7 @@ func TestChannelStoreChannelsMemberCountCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetChannelsMemberCount([]string{"channel1", "channel2"})
@@ -146,8 +138,7 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		count, err := cachedStore.Channel().GetPinnedPostCount("id", true)
@@ -162,8 +153,7 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 
 	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetPinnedPostCount("id", true)
@@ -174,8 +164,7 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 
 	t.Run("first call force not cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetPinnedPostCount("id", false)
@@ -188,8 +177,7 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 
 	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetPinnedPostCount("id", true)
@@ -201,8 +189,7 @@ func TestChannelStoreChannelPinnedPostsCountsCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetPinnedPostCount("id", true)
@@ -218,8 +205,7 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 
 	t.Run("first call not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		count, err := cachedStore.Channel().GetGuestCount("id", true)
@@ -234,8 +220,7 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 
 	t.Run("first call not cached, second force not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetGuestCount("id", true)
@@ -246,8 +231,7 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 
 	t.Run("first call force not cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetGuestCount("id", false)
@@ -260,8 +244,7 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 
 	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetGuestCount("id", true)
@@ -273,8 +256,7 @@ func TestChannelStoreGuestCountCache(t *testing.T) {
 
 	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().GetGuestCount("id", true)
@@ -290,8 +272,7 @@ func TestChannelStoreChannel(t *testing.T) {
 	fakeChannel := model.Channel{Id: channelId}
 	t.Run("first call by id not cached, second cached and returning same data", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		channel, err := cachedStore.Channel().Get(channelId, true)
@@ -306,8 +287,7 @@ func TestChannelStoreChannel(t *testing.T) {
 
 	t.Run("first call not cached, second force no cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().Get(channelId, true)
@@ -318,8 +298,7 @@ func TestChannelStoreChannel(t *testing.T) {
 
 	t.Run("first call force no cached, second not cached, third cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 		cachedStore.Channel().Get(channelId, false)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)
@@ -331,8 +310,7 @@ func TestChannelStoreChannel(t *testing.T) {
 
 	t.Run("first call not cached, clear cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 
 		cachedStore.Channel().Get(channelId, true)
@@ -344,8 +322,7 @@ func TestChannelStoreChannel(t *testing.T) {
 
 	t.Run("first call not cached, invalidate cache, second call not cached", func(t *testing.T) {
 		mockStore := getMockStore(t)
-		mockCacheProvider := getMockCacheProvider()
-		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil, mockCacheProvider)
+		cachedStore, err := NewLocalCacheLayer(mockStore, nil, nil)
 		require.NoError(t, err)
 		cachedStore.Channel().Get(channelId, true)
 		mockStore.Channel().(*mocks.ChannelStore).AssertNumberOfCalls(t, "Get", 1)

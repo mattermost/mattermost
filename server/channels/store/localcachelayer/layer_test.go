@@ -102,7 +102,7 @@ func initStores() {
 			if err != nil {
 				return err
 			}
-			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil, getMockCacheProvider())
+			st.Store, err = NewLocalCacheLayer(st.SqlStore, nil, nil)
 			if err != nil {
 				return err
 			}

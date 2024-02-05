@@ -147,13 +147,13 @@ func (es *LocalCacheEmojiStore) Delete(emoji *model.Emoji, time int64) error {
 }
 
 func (es *LocalCacheEmojiStore) addToCache(emoji *model.Emoji) {
-	es.rootStore.doStandardAddToCache(es.rootStore.emojiCacheById, emoji.Id, emoji)
-	es.rootStore.doStandardAddToCache(es.rootStore.emojiIdCacheByName, emoji.Name, emoji.Id)
+	doStandardAddToCache(es.rootStore.emojiCacheById, emoji.Id, emoji)
+	doStandardAddToCache(es.rootStore.emojiIdCacheByName, emoji.Name, emoji.Id)
 }
 
 func (es *LocalCacheEmojiStore) getFromCacheById(id string) (*model.Emoji, bool) {
 	var emoji *model.Emoji
-	if err := es.rootStore.doStandardReadCache(es.rootStore.emojiCacheById, id, &emoji); err == nil {
+	if err := doStandardReadCache(es.rootStore.metrics, es.rootStore.emojiCacheById, id, &emoji); err == nil {
 		return emoji, true
 	}
 	return nil, false
@@ -161,7 +161,7 @@ func (es *LocalCacheEmojiStore) getFromCacheById(id string) (*model.Emoji, bool)
 
 func (es *LocalCacheEmojiStore) getFromCacheByName(name string) (*model.Emoji, bool) {
 	var emojiId string
-	if err := es.rootStore.doStandardReadCache(es.rootStore.emojiIdCacheByName, name, &emojiId); err == nil {
+	if err := doStandardReadCache(es.rootStore.metrics, es.rootStore.emojiIdCacheByName, name, &emojiId); err == nil {
 		return es.getFromCacheById(emojiId)
 	}
 	return nil, false
@@ -171,10 +171,10 @@ func (es *LocalCacheEmojiStore) removeFromCache(emoji *model.Emoji) {
 	es.emojiByIdMut.Lock()
 	es.emojiByIdInvalidations[emoji.Id] = true
 	es.emojiByIdMut.Unlock()
-	es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiCacheById, emoji.Id)
+	doInvalidateCacheCluster(es.rootStore.cluster, es.rootStore.emojiCacheById, emoji.Id)
 
 	es.emojiByNameMut.Lock()
 	es.emojiByNameInvalidations[emoji.Name] = true
 	es.emojiByNameMut.Unlock()
-	es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiIdCacheByName, emoji.Name)
+	doInvalidateCacheCluster(es.rootStore.cluster, es.rootStore.emojiIdCacheByName, emoji.Name)
 }

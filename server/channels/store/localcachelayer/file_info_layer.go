@@ -34,7 +34,7 @@ func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, inclu
 	}
 
 	var fileInfo []*model.FileInfo
-	if err := s.rootStore.doStandardReadCache(s.rootStore.fileInfoCache, cacheKey, &fileInfo); err == nil {
+	if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.fileInfoCache, cacheKey, &fileInfo); err == nil {
 		return fileInfo, nil
 	}
 
@@ -44,7 +44,7 @@ func (s LocalCacheFileInfoStore) GetForPost(postId string, readFromMaster, inclu
 	}
 
 	if len(fileInfos) > 0 {
-		s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, cacheKey, fileInfos)
+		doStandardAddToCache(s.rootStore.fileInfoCache, cacheKey, fileInfos)
 	}
 
 	return fileInfos, nil
@@ -62,7 +62,7 @@ func (s LocalCacheFileInfoStore) InvalidateFileInfosForPostCache(postId string, 
 	if deleted {
 		cacheKey += "_deleted"
 	}
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.fileInfoCache, cacheKey)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.fileInfoCache, cacheKey)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("File Info Cache - Remove by PostId")
 	}
@@ -80,20 +80,23 @@ func (s LocalCacheFileInfoStore) GetStorageUsage(allowFromCache, includeDeleted 
 			return 0, err
 		}
 
-		s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, storageUsageKey, usage)
+		// TODO(hanzei): Move usage to different cache
+		//doStandardAddToCache(s.rootStore.fileInfoCache, storageUsageKey, usage)
 		return usage, nil
 	}
 
 	var usage int64
-	if err := s.rootStore.doStandardReadCache(s.rootStore.fileInfoCache, storageUsageKey, &usage); err == nil {
-		return usage, nil
-	}
+	// TODO(hanzei): Move usage to different cache
+	//if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.fileInfoCache, storageUsageKey, &usage); err == nil {
+	//	return usage, nil
+	//}
 
 	usage, err := s.FileInfoStore.GetStorageUsage(allowFromCache, includeDeleted)
 	if err != nil {
 		return 0, err
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.fileInfoCache, storageUsageKey, usage)
+	// TODO(hanzei): Move usage to different cache
+	//	doStandardAddToCache(s.rootStore.fileInfoCache, storageUsageKey, usage)
 	return usage, nil
 }

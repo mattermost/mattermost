@@ -24,12 +24,12 @@ func (s *LocalCacheReactionStore) handleClusterInvalidateReaction(msg *model.Clu
 }
 
 func (s LocalCacheReactionStore) Save(reaction *model.Reaction) (*model.Reaction, error) {
-	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.reactionCache, reaction.PostId)
+	defer doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.reactionCache, reaction.PostId)
 	return s.ReactionStore.Save(reaction)
 }
 
 func (s LocalCacheReactionStore) Delete(reaction *model.Reaction) (*model.Reaction, error) {
-	defer s.rootStore.doInvalidateCacheCluster(s.rootStore.reactionCache, reaction.PostId)
+	defer doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.reactionCache, reaction.PostId)
 	return s.ReactionStore.Delete(reaction)
 }
 
@@ -39,7 +39,7 @@ func (s LocalCacheReactionStore) GetForPost(postId string, allowFromCache bool) 
 	}
 
 	var reaction []*model.Reaction
-	if err := s.rootStore.doStandardReadCache(s.rootStore.reactionCache, postId, &reaction); err == nil {
+	if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.reactionCache, postId, &reaction); err == nil {
 		return reaction, nil
 	}
 
@@ -48,7 +48,7 @@ func (s LocalCacheReactionStore) GetForPost(postId string, allowFromCache bool) 
 		return nil, err
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.reactionCache, postId, reaction)
+	doStandardAddToCache(s.rootStore.reactionCache, postId, reaction)
 
 	return reaction, nil
 }
@@ -56,6 +56,6 @@ func (s LocalCacheReactionStore) GetForPost(postId string, allowFromCache bool) 
 func (s LocalCacheReactionStore) DeleteAllWithEmojiName(emojiName string) error {
 	// This could be improved. Right now we just clear the whole
 	// cache because we don't have a way find what post Ids have this emoji name.
-	defer s.rootStore.doClearCacheCluster(s.rootStore.reactionCache)
+	defer doClearCacheCluster(s.rootStore.cluster, s.rootStore.reactionCache)
 	return s.ReactionStore.DeleteAllWithEmojiName(emojiName)
 }

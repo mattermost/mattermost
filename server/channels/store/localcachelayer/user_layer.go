@@ -6,6 +6,7 @@ package localcachelayer
 import (
 	"bytes"
 	"context"
+	"log"
 	"sort"
 	"sync"
 
@@ -54,7 +55,7 @@ func (s *LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
 	s.userProfileByIdsMut.Lock()
 	s.userProfileByIdsInvalidations[userId] = true
 	s.userProfileByIdsMut.Unlock()
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.userProfileByIdsCache, userId)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.userProfileByIdsCache, userId)
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
@@ -68,7 +69,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			var userMap map[string]*model.User
 			if err = s.rootStore.profilesInChannelCache.Get(key, &userMap); err == nil {
 				if _, userInCache := userMap[userId]; userInCache {
-					s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key)
+					doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.profilesInChannelCache, key)
 					if s.rootStore.metrics != nil {
 						s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by User")
 					}
@@ -79,7 +80,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 }
 
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCache(channelID string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, channelID)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.profilesInChannelCache, channelID)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by Channel")
 	}
@@ -88,7 +89,9 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCache(channelID string)
 func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
 	if allowFromCache {
 		var cachedMap map[string]*model.User
-		if err := s.rootStore.doStandardReadCache(s.rootStore.profilesInChannelCache, channelId, &cachedMap); err == nil {
+		err := doStandardReadCache(s.rootStore.metrics, s.rootStore.profilesInChannelCache, channelId, &cachedMap)
+		log.Printf("err: %#+v\n", err.Error())
+		if err == nil {
 			return cachedMap, nil
 		}
 	}
@@ -97,9 +100,10 @@ func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, chann
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("userMap: %#+v\n", userMap)
 
 	if allowFromCache {
-		s.rootStore.doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, model.UserMap(userMap))
+		doStandardAddToCache(s.rootStore.profilesInChannelCache, channelId, userMap)
 	}
 
 	return userMap, nil
@@ -120,7 +124,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 	fromMaster := false
 	for _, userId := range userIds {
 		var cacheItem *model.User
-		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, userId, &cacheItem); err == nil {
+		if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.userProfileByIdsCache, userId, &cacheItem); err == nil {
 			if options.Since == 0 || cacheItem.UpdateAt > options.Since {
 				users = append(users, cacheItem)
 			}
@@ -146,7 +150,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 			return nil, err
 		}
 		for _, user := range remainingUsers {
-			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
+			doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
 			users = append(users, user)
 		}
 	}
@@ -160,7 +164,7 @@ func (s *LocalCacheUserStore) GetProfileByIds(ctx context.Context, userIds []str
 // cache.
 func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, error) {
 	var cacheItem *model.User
-	if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
+	if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.userProfileByIdsCache, id, &cacheItem); err == nil {
 		if s.rootStore.metrics != nil {
 			s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
 		}
@@ -183,7 +187,7 @@ func (s *LocalCacheUserStore) Get(ctx context.Context, id string) (*model.User, 
 	if err != nil {
 		return nil, err
 	}
-	s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
+	doStandardAddToCache(s.rootStore.userProfileByIdsCache, id, user)
 	return user, nil
 }
 
@@ -201,7 +205,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 	fromMaster := false
 	for _, id := range uniqIDs {
 		var cachedUser *model.User
-		if err := s.rootStore.doStandardReadCache(s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
+		if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.userProfileByIdsCache, id, &cachedUser); err == nil {
 			if s.rootStore.metrics != nil {
 				s.rootStore.metrics.AddMemCacheHitCounter("Profile By Id", float64(1))
 			}
@@ -232,7 +236,7 @@ func (s *LocalCacheUserStore) GetMany(ctx context.Context, ids []string) ([]*mod
 			return nil, err
 		}
 		for _, user := range dbUsers {
-			s.rootStore.doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
+			doStandardAddToCache(s.rootStore.userProfileByIdsCache, user.Id, user)
 			cachedUsers = append(cachedUsers, user)
 		}
 	}

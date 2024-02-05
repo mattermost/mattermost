@@ -46,10 +46,9 @@ type PlatformService struct {
 	filestore       filestore.FileBackend
 	exportFilestore filestore.FileBackend
 
-	cacheProvider cache.Provider
-	statusCache   cache.Cache[*model.Status]
-	sessionCache  cache.Cache[*model.Session]
-	sessionPool   sync.Pool
+	statusCache  cache.Cache[*model.Status]
+	sessionCache cache.Cache[*model.Session]
+	sessionPool  sync.Pool
 
 	asymmetricSigningKey atomic.Pointer[ecdsa.PrivateKey]
 	clientConfig         atomic.Value
@@ -134,14 +133,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)
 
-	// Step 1: Cache provider.
-	// At the moment we only have this implementation
-	// in the future the cache provider will be built based on the loaded config
-	ps.cacheProvider = cache.NewProvider()
-	if err2 := ps.cacheProvider.Connect(); err2 != nil {
-		return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
-	}
-
 	// Apply options, some of the options overrides the default config actually.
 	for _, option := range options {
 		if err := option(ps); err != nil {
@@ -164,7 +155,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.configStore = configStore
 	}
 
-	// Step 2: Start logging.
+	// Step 1: Start logging.
 	if err := ps.initLogging(); err != nil {
 		return nil, fmt.Errorf("failed to initialize logging: %w", err)
 	}
@@ -172,7 +163,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
 
-	// Step 3: Search Engine
+	// Step 2: Search Engine
 	searchEngine := searchengine.NewBroker(ps.Config())
 	bleveEngine := bleveengine.NewBleveEngine(ps.Config())
 	if err := bleveEngine.Start(); err != nil {
@@ -181,16 +172,16 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	searchEngine.RegisterBleveEngine(bleveEngine)
 	ps.SearchEngine = searchEngine
 
-	// Step 4: Init Enterprise
+	// Step 3: Init Enterprise
 	// Depends on step 3 (s.SearchEngine must be non-nil)
 	ps.initEnterprise()
 
-	// Step 5: Init Metrics
+	// Step 4: Init Metrics
 	if metricsInterfaceFn != nil && ps.metricsIFace == nil { // if the metrics interface is set by options, do not override it
 		ps.metricsIFace = metricsInterfaceFn(ps, *ps.configStore.Get().SqlSettings.DriverName, *ps.configStore.Get().SqlSettings.DataSource)
 	}
 
-	// Step 6: Store.
+	// Step 5: Store.
 	// Depends on Step 0 (config), 1 (cacheProvider), 3 (search engine), 5 (metrics) and cluster.
 	if ps.newStore == nil {
 		ps.newStore = func() (store.Store, error) {
@@ -224,7 +215,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 				timerlayer.New(searchStore, ps.metricsIFace),
 				ps.metricsIFace,
 				ps.clusterIFace,
-				ps.cacheProvider,
 			)
 			if err2 != nil {
 				return nil, fmt.Errorf("cannot create local cache layer: %w", err2)
@@ -272,21 +262,19 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	// Needed before loading license
-	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+	if ps.statusCache, err = cache.NewCache[*model.Status](&cache.CacheOptions{
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, fmt.Errorf("unable to create status cache: %w", err)
 	}
 
-	ps.sessionCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
+	if ps.sessionCache, err = cache.NewCache[*model.Session](&cache.CacheOptions{
 		Size:           model.SessionCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
-	})
-	if err != nil {
+	}); err != nil {
 		return nil, fmt.Errorf("could not create session cache: %w", err)
 	}
 
@@ -451,17 +439,7 @@ func (ps *PlatformService) Shutdown() error {
 		ps.Store.Close()
 	}
 
-	if ps.cacheProvider != nil {
-		if err := ps.cacheProvider.Close(); err != nil {
-			return fmt.Errorf("unable to cleanly shutdown cache: %w", err)
-		}
-	}
-
 	return nil
-}
-
-func (ps *PlatformService) CacheProvider() cache.Provider {
-	return ps.cacheProvider
 }
 
 func (ps *PlatformService) StatusCache() cache.Cache[*model.Status] {

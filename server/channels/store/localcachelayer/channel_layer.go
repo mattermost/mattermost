@@ -5,6 +5,7 @@ package localcachelayer
 
 import (
 	"bytes"
+	"log"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
@@ -48,10 +49,10 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.C
 }
 
 func (s LocalCacheChannelStore) ClearCaches() {
-	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
-	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
-	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
-	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
+	doClearCacheCluster(s.rootStore.cluster, s.rootStore.channelMemberCountsCache)
+	doClearCacheCluster(s.rootStore.cluster, s.rootStore.channelPinnedPostCountsCache)
+	doClearCacheCluster(s.rootStore.cluster, s.rootStore.channelGuestCountCache)
+	doClearCacheCluster(s.rootStore.cluster, s.rootStore.channelByIdCache)
 	s.ChannelStore.ClearCaches()
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
@@ -62,28 +63,28 @@ func (s LocalCacheChannelStore) ClearCaches() {
 }
 
 func (s LocalCacheChannelStore) InvalidatePinnedPostCount(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelPinnedPostCountsCache, channelId)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.channelPinnedPostCountsCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Remove by ChannelId")
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, channelId)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.channelMemberCountsCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Remove by ChannelId")
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestCountCache, channelId)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.channelGuestCountCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Remove by channelId")
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId)
+	doInvalidateCacheCluster(s.rootStore.cluster, s.rootStore.channelByIdCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
 	}
@@ -92,14 +93,15 @@ func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache bool) (int64, error) {
 	if allowFromCache {
 		var count int64
-		if err := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelId, &count); err == nil {
+		if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.channelMemberCountsCache, channelId, &count); err == nil {
+			log.Printf("err: %#+v\n", err)
 			return count, nil
 		}
 	}
 	count, err := s.ChannelStore.GetMemberCount(channelId, allowFromCache)
 
 	if allowFromCache && err == nil {
-		s.rootStore.doStandardAddToCache(s.rootStore.channelMemberCountsCache, channelId, count)
+		doStandardAddToCache(s.rootStore.channelMemberCountsCache, channelId, count)
 	}
 
 	return count, err
@@ -108,14 +110,14 @@ func (s LocalCacheChannelStore) GetMemberCount(channelId string, allowFromCache 
 func (s LocalCacheChannelStore) GetGuestCount(channelId string, allowFromCache bool) (int64, error) {
 	if allowFromCache {
 		var count int64
-		if err := s.rootStore.doStandardReadCache(s.rootStore.channelGuestCountCache, channelId, &count); err == nil {
+		if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.channelGuestCountCache, channelId, &count); err == nil {
 			return count, nil
 		}
 	}
 	count, err := s.ChannelStore.GetGuestCount(channelId, allowFromCache)
 
 	if allowFromCache && err == nil {
-		s.rootStore.doStandardAddToCache(s.rootStore.channelGuestCountCache, channelId, count)
+		doStandardAddToCache(s.rootStore.channelGuestCountCache, channelId, count)
 	}
 
 	return count, err
@@ -123,7 +125,7 @@ func (s LocalCacheChannelStore) GetGuestCount(channelId string, allowFromCache b
 
 func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 {
 	var count int64
-	if err := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelId, &count); err == nil {
+	if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.channelMemberCountsCache, channelId, &count); err == nil {
 		return count
 	}
 
@@ -138,7 +140,7 @@ func (s LocalCacheChannelStore) GetMemberCountFromCache(channelId string) int64 
 func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCache bool) (int64, error) {
 	if allowFromCache {
 		var count int64
-		if err := s.rootStore.doStandardReadCache(s.rootStore.channelPinnedPostCountsCache, channelId, &count); err == nil {
+		if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.channelPinnedPostCountsCache, channelId, &count); err == nil {
 			return count, nil
 		}
 	}
@@ -150,7 +152,7 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 	}
 
 	if allowFromCache {
-		s.rootStore.doStandardAddToCache(s.rootStore.channelPinnedPostCountsCache, channelId, count)
+		doStandardAddToCache(s.rootStore.channelPinnedPostCountsCache, channelId, count)
 	}
 
 	return count, nil
@@ -159,7 +161,7 @@ func (s LocalCacheChannelStore) GetPinnedPostCount(channelId string, allowFromCa
 func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Channel, error) {
 	if allowFromCache {
 		var cacheItem *model.Channel
-		if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &cacheItem); err == nil {
+		if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.channelByIdCache, id, &cacheItem); err == nil {
 			return cacheItem, nil
 		}
 	}
@@ -167,7 +169,7 @@ func (s LocalCacheChannelStore) Get(id string, allowFromCache bool) (*model.Chan
 	ch, err := s.ChannelStore.Get(id, allowFromCache)
 
 	if allowFromCache && err == nil {
-		s.rootStore.doStandardAddToCache(s.rootStore.channelByIdCache, id, ch)
+		doStandardAddToCache(s.rootStore.channelByIdCache, id, ch)
 	}
 
 	return ch, err
@@ -180,7 +182,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	if allowFromCache {
 		for _, id := range ids {
 			var ch *model.Channel
-			if err := s.rootStore.doStandardReadCache(s.rootStore.channelByIdCache, id, &ch); err == nil {
+			if err := doStandardReadCache(s.rootStore.metrics, s.rootStore.channelByIdCache, id, &ch); err == nil {
 				foundChannels = append(foundChannels, ch)
 			} else {
 				channelsToQuery = append(channelsToQuery, id)
@@ -198,7 +200,7 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	}
 
 	for _, ch := range channels {
-		s.rootStore.doStandardAddToCache(s.rootStore.channelByIdCache, ch.Id, ch)
+		doStandardAddToCache(s.rootStore.channelByIdCache, ch.Id, ch)
 	}
 
 	return append(foundChannels, channels...), nil
@@ -230,7 +232,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 
 	for _, channelID := range channelIDs {
 		var cacheItem int64
-		err := s.rootStore.doStandardReadCache(s.rootStore.channelMemberCountsCache, channelID, &cacheItem)
+		err := doStandardReadCache(s.rootStore.metrics, s.rootStore.channelMemberCountsCache, channelID, &cacheItem)
 		if err == nil {
 			counts[channelID] = cacheItem
 		} else {
@@ -245,7 +247,7 @@ func (s LocalCacheChannelStore) GetChannelsMemberCount(channelIDs []string) (_ m
 		}
 
 		for id, count := range remainingChannels {
-			s.rootStore.doStandardAddToCache(s.rootStore.channelMemberCountsCache, id, count)
+			doStandardAddToCache(s.rootStore.channelMemberCountsCache, id, count)
 			counts[id] = count
 		}
 	}
