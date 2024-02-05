@@ -4852,7 +4852,7 @@
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
-    "translation": "Unable to add a deactivated user as a member of the channel."
+    "translation": "Unable to add thr user as a member of the channel."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
