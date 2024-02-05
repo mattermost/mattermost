@@ -40,16 +40,6 @@ export const queue = new PQueue({concurrency: 4});
 const dispatch = store.dispatch;
 const getState = store.getState;
 
-export function loadProfilesAndStatusesInChannel(channelId: string, page = 0, perPage: number = General.PROFILE_CHUNK_SIZE, sort = '', options = {}): NewActionFuncAsync { // HARRISONTODO unused
-    return async (doDispatch) => {
-        const {data} = await doDispatch(UserActions.getProfilesInChannel(channelId, page, perPage, sort, options));
-        if (data) {
-            doDispatch(loadStatusesForProfilesList(data));
-        }
-        return {data: true};
-    };
-}
-
 export function loadProfilesAndReloadTeamMembers(page: number, perPage: number, teamId: string, options = {}): NewActionFuncAsync {
     return async (doDispatch, doGetState) => {
         const newTeamId = teamId || getCurrentTeamId(doGetState());

@@ -43,7 +43,7 @@ function UsersLimitsAnnouncementBar(props: Props) {
             message={
                 <FormattedMessage
                     id='users_limits_announcement_bar.copyText'
-                    defaultMessage='User limits exceeded. Contact administrator with: ERROR_USER_LIMITS_EXCEEDED'
+                    defaultMessage='User limits exceeded. Contact administrator with: ERROR_SAFETY_LIMITS_EXCEEDED'
                 />
             }
             type={AnnouncementBarTypes.CRITICAL}

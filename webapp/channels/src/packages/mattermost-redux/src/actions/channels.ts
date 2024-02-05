@@ -256,114 +256,36 @@ export function createGroupChannel(userIds: string[]): NewActionFuncAsync<Channe
 }
 
 export function patchChannel(channelId: string, patch: Partial<Channel>): NewActionFuncAsync<Channel> {
-    return async (dispatch, getState) => {
-        dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
-
-        let updated;
-        try {
-            updated = await Client4.patchChannel(channelId, patch);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-
-            dispatch({type: ChannelTypes.UPDATE_CHANNEL_FAILURE, error});
-            dispatch(logError(error));
-            return {error};
-        }
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.RECEIVED_CHANNEL,
-                data: updated,
-            },
-            {
-                type: ChannelTypes.UPDATE_CHANNEL_SUCCESS,
-            },
-        ]));
-
-        return {data: updated};
-    };
-}
-
-export function updateChannel(channel: Channel): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
-
-        let updated;
-        try {
-            updated = await Client4.updateChannel(channel);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-
-            dispatch({type: ChannelTypes.UPDATE_CHANNEL_FAILURE, error});
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.RECEIVED_CHANNEL,
-                data: updated,
-            },
-            {
-                type: ChannelTypes.UPDATE_CHANNEL_SUCCESS,
-            },
-        ]));
-
-        return {data: updated};
-    };
+    return bindClientFunc({
+        clientFunc: Client4.patchChannel,
+        onSuccess: [ChannelTypes.RECEIVED_CHANNEL],
+        params: [channelId, patch],
+    });
 }
 
 export function updateChannelPrivacy(channelId: string, privacy: string): NewActionFuncAsync<Channel> {
-    return async (dispatch, getState) => {
-        dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
-
-        let updatedChannel;
-        try {
-            updatedChannel = await Client4.updateChannelPrivacy(channelId, privacy);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-
-            dispatch({type: ChannelTypes.UPDATE_CHANNEL_FAILURE, error});
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.RECEIVED_CHANNEL,
-                data: updatedChannel,
-            },
-            {
-                type: ChannelTypes.UPDATE_CHANNEL_SUCCESS,
-            },
-        ]));
-
-        return {data: updatedChannel};
-    };
+    return bindClientFunc({
+        clientFunc: Client4.updateChannelPrivacy,
+        onSuccess: [ChannelTypes.RECEIVED_CHANNEL],
+        params: [channelId, privacy],
+    });
 }
 
 export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): NewActionFuncAsync {
     return async (dispatch, getState) => {
-        dispatch({type: ChannelTypes.UPDATE_CHANNEL_REQUEST, data: null});
-
         let updatedChannel;
         try {
             updatedChannel = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: ChannelTypes.UPDATE_CHANNEL_FAILURE, error});
             dispatch(logError(error));
             return {error};
         }
 
-        dispatch(batchActions([
-            {
-                type: ChannelTypes.RECEIVED_CHANNEL,
-                data: updatedChannel,
-            },
-            {
-                type: ChannelTypes.UPDATE_CHANNEL_SUCCESS,
-            },
-        ]));
+        dispatch({
+            type: ChannelTypes.RECEIVED_CHANNEL,
+            data: updatedChannel,
+        });
 
         // move the channel from direct message category to the default "channels" category
         const channelsCategory = getCategoryInTeamByType(getState(), teamID, CategoryTypes.CHANNELS);
@@ -1136,60 +1058,6 @@ export function removeChannelMember(channelId: string, userId: string): NewActio
     };
 }
 
-export function updateChannelMemberRoles(channelId: string, userId: string, roles: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        try {
-            await Client4.updateChannelMemberRoles(channelId, userId, roles);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        const membersInChannel = getState().entities.channels.membersInChannel[channelId];
-        if (membersInChannel && membersInChannel[userId]) {
-            dispatch({
-                type: ChannelTypes.RECEIVED_CHANNEL_MEMBER,
-                data: {...membersInChannel[userId], roles},
-            });
-        }
-
-        return {data: true};
-    };
-}
-
-export function updateChannelHeader(channelId: string, header: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch) => {
-        Client4.trackEvent('action', 'action_channels_update_header', {channel_id: channelId});
-
-        dispatch({
-            type: ChannelTypes.UPDATE_CHANNEL_HEADER,
-            data: {
-                channelId,
-                header,
-            },
-        });
-
-        return {data: true};
-    };
-}
-
-export function updateChannelPurpose(channelId: string, purpose: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch) => {
-        Client4.trackEvent('action', 'action_channels_update_purpose', {channel_id: channelId});
-
-        dispatch({
-            type: ChannelTypes.UPDATE_CHANNEL_PURPOSE,
-            data: {
-                channelId,
-                purpose,
-            },
-        });
-
-        return {data: true};
-    };
-}
-
 export function markChannelAsRead(channelId: string, skipUpdateViewTime = false): NewActionFunc {
     return (dispatch, getState) => {
         if (skipUpdateViewTime) {
@@ -1494,7 +1362,6 @@ export default {
     selectChannel,
     createChannel,
     createDirectChannel,
-    updateChannel,
     patchChannel,
     updateChannelNotifyProps,
     getChannel,
@@ -1513,8 +1380,6 @@ export default {
     getChannelStats,
     addChannelMember,
     removeChannelMember,
-    updateChannelHeader,
-    updateChannelPurpose,
     markChannelAsRead,
     favoriteChannel,
     unfavoriteChannel,

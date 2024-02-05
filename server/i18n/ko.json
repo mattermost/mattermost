@@ -8332,10 +8332,6 @@
     "translation": "유효하지 않은 요청 본문입니다."
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "본문 데이터를 구문 분석하는 동안 오류가 발생했습니다."
-  },
-  {
     "id": "api.team.set_team_icon.check_image_limits.app_error",
     "translation": "이미지 제한 확인에 실패했습니다. 해상도가 너무 높습니다."
   },

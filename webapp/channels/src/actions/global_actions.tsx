@@ -28,7 +28,6 @@ import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/a
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {handleNewPost} from 'actions/post_actions';
-import {stopPeriodicStatusUpdates} from 'actions/status_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {clearUserCookie} from 'actions/views/cookie';
 import {close as closeLhs} from 'actions/views/lhs';
@@ -188,25 +187,6 @@ export function sendEphemeralPost(message: string, channelId?: string, parentId?
     };
 }
 
-export function sendGenericPostMessage(message: string, channelId?: string, parentId?: string, userId?: string): NewActionFuncAsync<boolean, GlobalState> { // HARRISONTODO unused
-    return (doDispatch, doGetState) => {
-        const timestamp = Utils.getTimestamp();
-        const post = {
-            id: Utils.generateId(),
-            user_id: userId || '0',
-            channel_id: channelId || getCurrentChannelId(doGetState()),
-            message,
-            type: PostTypes.SYSTEM_GENERIC,
-            create_at: timestamp,
-            update_at: timestamp,
-            root_id: parentId || '',
-            props: {},
-        } as Post;
-
-        return doDispatch(handleNewPost(post));
-    };
-}
-
 export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: string, addedUserId: string, channelId: string, postRootId = '', timestamp: number) {
     const post = {
         id: Utils.generateId(),
@@ -271,7 +251,6 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
             BrowserStore.signalLogout();
         }
 
-        stopPeriodicStatusUpdates();
         WebsocketActions.close();
 
         clearUserCookie();

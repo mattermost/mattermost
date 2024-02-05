@@ -30,18 +30,7 @@ function getTeams(state: RequestStatusType = initialRequestState(), action: AnyA
     );
 }
 
-function joinTeam(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
-    return handleRequest(
-        TeamTypes.JOIN_TEAM_REQUEST,
-        TeamTypes.JOIN_TEAM_SUCCESS,
-        TeamTypes.JOIN_TEAM_FAILURE,
-        state,
-        action,
-    );
-}
-
 export default combineReducers({
     getTeams,
     getMyTeams,
-    joinTeam,
 });

@@ -11,9 +11,7 @@ import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {getChannelAndMyMember, getMyChannelMember} from './channels';
 import {bindClientFunc} from './helpers';
-import {getProfilesByIds, getProfilesInChannel} from './users';
 
 import {Preferences} from '../constants';
 
@@ -48,60 +46,6 @@ export function getMyPreferences() {
         clientFunc: Client4.getMyPreferences,
         onSuccess: PreferenceTypes.RECEIVED_ALL_PREFERENCES,
     });
-}
-
-export function makeDirectChannelVisibleIfNecessary(otherUserId: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const state = getState();
-        const myPreferences = getMyPreferencesSelector(state);
-        const currentUserId = getCurrentUserId(state);
-
-        let preference = myPreferences[getPreferenceKey(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId)];
-
-        if (!preference || preference.value === 'false') {
-            preference = {
-                user_id: currentUserId,
-                category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
-                name: otherUserId,
-                value: 'true',
-            };
-            dispatch(getProfilesByIds([otherUserId]));
-            dispatch(savePreferences(currentUserId, [preference]));
-        }
-
-        return {data: true};
-    };
-}
-
-export function makeGroupMessageVisibleIfNecessary(channelId: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const state = getState();
-        const myPreferences = getMyPreferencesSelector(state);
-        const currentUserId = getCurrentUserId(state);
-        const {channels} = state.entities.channels;
-
-        let preference = myPreferences[getPreferenceKey(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId)];
-
-        if (!preference || preference.value === 'false') {
-            preference = {
-                user_id: currentUserId,
-                category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
-                name: channelId,
-                value: 'true',
-            };
-
-            if (channels[channelId]) {
-                dispatch(getMyChannelMember(channelId));
-            } else {
-                dispatch(getChannelAndMyMember(channelId));
-            }
-
-            dispatch(getProfilesInChannel(channelId, 0));
-            dispatch(savePreferences(currentUserId, [preference]));
-        }
-
-        return {data: true};
-    };
 }
 
 export function setActionsMenuInitialisationState(initializationState: Record<string, boolean>): ThunkActionFunc<void> {

@@ -147,36 +147,6 @@ function channels(state: IDMappedObjects<Channel> = {}, action: AnyAction) {
             },
         };
     }
-    case ChannelTypes.UPDATE_CHANNEL_HEADER: {
-        const {channelId, header} = action.data;
-
-        if (!state[channelId]) {
-            return state;
-        }
-
-        return {
-            ...state,
-            [channelId]: {
-                ...state[channelId],
-                header,
-            },
-        };
-    }
-    case ChannelTypes.UPDATE_CHANNEL_PURPOSE: {
-        const {channelId, purpose} = action.data;
-
-        if (!state[channelId]) {
-            return state;
-        }
-
-        return {
-            ...state,
-            [channelId]: {
-                ...state[channelId],
-                purpose,
-            },
-        };
-    }
     case ChannelTypes.LEAVE_CHANNEL: {
         if (action.data) {
             const nextState = {...state};

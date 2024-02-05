@@ -206,7 +206,7 @@ func (th *TestHelper) addUserToChannel(channel *model.Channel, user *model.User)
 	}
 
 	var err error
-	newMember, err = th.store.Channel().SaveMember(newMember)
+	newMember, err = th.store.Channel().SaveMember(th.Context, newMember)
 	if err != nil {
 		panic(err)
 	}

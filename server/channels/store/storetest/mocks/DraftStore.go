@@ -28,8 +28,36 @@ func (_m *DraftStore) Delete(userID string, channelID string, rootID string) err
 	return r0
 }
 
+// DeleteDraftsAssociatedWithPost provides a mock function with given fields: channelID, rootID
+func (_m *DraftStore) DeleteDraftsAssociatedWithPost(channelID string, rootID string) error {
+	ret := _m.Called(channelID, rootID)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(channelID, rootID)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteEmptyDraftsByCreateAtAndUserId provides a mock function with given fields: createAt, userId
 func (_m *DraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
+	ret := _m.Called(createAt, userId)
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(int64, string) error); ok {
+		r0 = rf(createAt, userId)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
+// DeleteOrphanDraftsByCreateAtAndUserId provides a mock function with given fields: createAt, userId
+func (_m *DraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error {
 	ret := _m.Called(createAt, userId)
 
 	var r0 error

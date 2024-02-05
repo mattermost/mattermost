@@ -44,8 +44,7 @@ x^2 + y^2 = z^2
             const input = `- a
 - b
 - c`;
-            const expected = `<ul className="markdown__list">
-<li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ul>`;
+            const expected = '<ul className="markdown__list"><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ul>';
 
             const output = format(input);
             expect(output).toBe(expected);
@@ -55,8 +54,7 @@ x^2 + y^2 = z^2
             const input = `1. a
 2. b
 3. c`;
-            const expected = `<ol className="markdown__list" style="counter-reset: list 0">
-<li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>`;
+            const expected = '<ol className="markdown__list" style="counter-reset: list 0"><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>';
 
             const output = format(input);
             expect(output).toBe(expected);
@@ -66,8 +64,7 @@ x^2 + y^2 = z^2
             const input = `0. a
 1. b
 2. c`;
-            const expected = `<ol className="markdown__list" style="counter-reset: list -1">
-<li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>`;
+            const expected = '<ol className="markdown__list" style="counter-reset: list -1"><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>';
 
             const output = format(input);
             expect(output).toBe(expected);
@@ -77,8 +74,7 @@ x^2 + y^2 = z^2
             const input = `999. a
 1. b
 1. c`;
-            const expected = `<ol className="markdown__list" style="counter-reset: list 998">
-<li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>`;
+            const expected = '<ol className="markdown__list" style="counter-reset: list 998"><li><span>a</span></li><li><span>b</span></li><li><span>c</span></li></ol>';
 
             const output = format(input);
             expect(output).toBe(expected);

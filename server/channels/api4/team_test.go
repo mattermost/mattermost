@@ -2977,6 +2977,10 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s4)
+	require.Error(t, err) // user is a guest, cannot be set as member or admin
+	CheckBadRequestStatus(t, resp)
+
 	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), "ASDF", th.BasicUser.Id, s4)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)

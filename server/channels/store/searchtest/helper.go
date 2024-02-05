@@ -432,7 +432,7 @@ func (th *SearchTestHelper) addUserToTeams(user *model.User, teamIDS []string) e
 
 func (th *SearchTestHelper) addUserToChannels(user *model.User, channelIDS []string) error {
 	for _, channelID := range channelIDS {
-		_, err := th.Store.Channel().SaveMember(&model.ChannelMember{
+		_, err := th.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
 			ChannelId:   channelID,
 			UserId:      user.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),

@@ -7670,5 +7670,65 @@
   {
     "id": "api.command_share.invalid_value.error",
     "translation": "Neplatná hodnota pro '{{.Arg}}': {{.Error}}"
+  },
+  {
+    "id": "api.command_share.name",
+    "translation": "sdilet-kanal"
+  },
+  {
+    "id": "api.command_share.no_remote_invited",
+    "translation": "K tomuto kanálu nebyla pozvána žádná zabezpečená připojení."
+  },
+  {
+    "id": "api.command_share.remote_id_invalid.error",
+    "translation": "ID zabezpečeného připojení je neplatné: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.remote_not_valid",
+    "translation": "Chcete-li zrušit pozvánku, musíte zadat platné ID zabezpečeného připojení"
+  },
+  {
+    "id": "api.command_share.remote_table_header",
+    "translation": "| Bezpečné připojení | URL webu | Pouze pro čtení | Pozvánka přijata | Online | Poslední synchronizace |"
+  },
+  {
+    "id": "api.command_share.channel_remote_id_not_exists",
+    "translation": "Zabezpečené připojení sdíleného kanálu `{{.RemoteId}}` pro tento kanál neexistuje."
+  },
+  {
+    "id": "api.command_share.fetch_remote.error",
+    "translation": "Chyba při načítání zabezpečených připojení: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.fetch_remote_status.error",
+    "translation": "Nelze načíst stav zabezpečených připojení: {{.Error}}."
+  },
+  {
+    "id": "api.command_share.invitation_sent",
+    "translation": "Pozvánka ke sdílenému kanálu byla odeslána na adresu `{{.Name}} {{.SiteURL}}`."
+  },
+  {
+    "id": "api.command_share.invite_remote.help",
+    "translation": "Invites an external Mattermost instance to the current shared channel"
+  },
+  {
+    "id": "api.command_share.missing_action",
+    "translation": "Chybějící akce. Dostupné akce: {{.Actions}}"
+  },
+  {
+    "id": "api.command_share.remote_already_invited",
+    "translation": "Zabezpečené připojení již bylo pozváno."
+  },
+  {
+    "id": "api.command_share.remote_id.help",
+    "translation": "ID existujícího zabezpečeného připojení. Chcete-li přidat zabezpečené připojení, viz příkaz `secure-connection`."
+  },
+  {
+    "id": "api.command_share.channel_invite_not_home.error",
+    "translation": "Nelze pozvat zabezpečené připojení ke sdílenému kanálu pocházejícímu někde jinde."
+  },
+  {
+    "id": "api.command_share.hint",
+    "translation": "[akce]"
   }
 ]

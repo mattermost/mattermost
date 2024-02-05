@@ -9087,10 +9087,6 @@
     "translation": "{{ .SenderName }} invited you to join the {{ .ChannelName }} Channel on the {{ .TeamDisplayName }} Team"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "An error occurred while parsing the body data."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Invalid request body."
   },

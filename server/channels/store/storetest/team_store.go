@@ -3130,10 +3130,10 @@ func testGetChannelUnreadsForAllTeams(t *testing.T, rctx request.CTX, ss store.S
 	require.NoError(t, nErr)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	_, err := ss.Channel().SaveMember(cm1)
+	_, err := ss.Channel().SaveMember(rctx, cm1)
 	require.NoError(t, err)
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m2.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	_, err = ss.Channel().SaveMember(cm2)
+	_, err = ss.Channel().SaveMember(rctx, cm2)
 	require.NoError(t, err)
 
 	ms1, nErr := ss.Team().GetChannelUnreadsForAllTeams("", uid)
@@ -3184,10 +3184,10 @@ func testGetChannelUnreadsForTeam(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, nErr)
 
 	cm1 := &model.ChannelMember{ChannelId: c1.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	_, nErr = ss.Channel().SaveMember(cm1)
+	_, nErr = ss.Channel().SaveMember(rctx, cm1)
 	require.NoError(t, nErr)
 	cm2 := &model.ChannelMember{ChannelId: c2.Id, UserId: m1.UserId, NotifyProps: model.GetDefaultChannelNotifyProps(), MsgCount: 90}
-	_, nErr = ss.Channel().SaveMember(cm2)
+	_, nErr = ss.Channel().SaveMember(rctx, cm2)
 	require.NoError(t, nErr)
 
 	ms, err := ss.Team().GetChannelUnreadsForTeam(m1.TeamId, m1.UserId)

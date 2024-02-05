@@ -333,13 +333,13 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 
 	userId := model.NewId()
 
-	channel1, err := createTestChannel(ss, "channel_1")
+	channel1, err := createTestChannel(ss, rctx, "channel_1")
 	require.NoError(t, err)
 
-	channel2, err := createTestChannel(ss, "channel_2")
+	channel2, err := createTestChannel(ss, rctx, "channel_2")
 	require.NoError(t, err)
 
-	channel3, err := createTestChannel(ss, "channel_3")
+	channel3, err := createTestChannel(ss, rctx, "channel_3")
 	require.NoError(t, err)
 
 	// Create shared channels
@@ -442,13 +442,13 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 
 	userId := model.NewId()
 
-	channel1, err := createTestChannel(ss, "channel_1")
+	channel1, err := createTestChannel(ss, rctx, "channel_1")
 	require.NoError(t, err)
 
-	channel2, err := createTestChannel(ss, "channel_2")
+	channel2, err := createTestChannel(ss, rctx, "channel_2")
 	require.NoError(t, err)
 
-	channel3, err := createTestChannel(ss, "channel_3")
+	channel3, err := createTestChannel(ss, rctx, "channel_3")
 	require.NoError(t, err)
 
 	// Create shared channels

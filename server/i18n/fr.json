@@ -8724,10 +8724,6 @@
     "translation": "Confirmation de mise à niveau de Mattermost"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Erreur lors de l'analyse des données du corps."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Corps de la requête invalide."
   },

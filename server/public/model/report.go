@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	ReportDurationAllTime       = "all_time"
 	ReportDurationLast30Days    = "last_30_days"
 	ReportDurationPreviousMonth = "previous_month"
 	ReportDurationLast6Months   = "last_6_months"

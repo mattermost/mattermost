@@ -175,7 +175,6 @@ export type ViewsState = {
         newCategoryIds: string[];
         multiSelectedChannelIds: string[];
         lastSelectedChannel: string;
-        firstChannelName: string;
     };
 
     statusDropdown: {

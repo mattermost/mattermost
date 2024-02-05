@@ -643,7 +643,7 @@ func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, rctx request.CTX, 
 			require.NoError(t, err)
 		}
 		for _, channelID := range channelIDs {
-			_, err := ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channelID, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+			_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channelID, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
 			require.NoError(t, err)
 		}
 		// Teams

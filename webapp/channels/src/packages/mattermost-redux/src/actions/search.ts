@@ -19,7 +19,7 @@ import {receivedFiles} from './files';
 import {forceLogoutIfNecessary} from './helpers';
 import {getMentionsAndStatusesForPosts, receivedPosts} from './posts';
 
-const WEBAPP_SEARCH_PER_PAGE = 20;
+export const WEBAPP_SEARCH_PER_PAGE = 20;
 
 export function getMissingChannelsFromPosts(posts: PostList['posts']): ThunkActionFunc<unknown> {
     return async (dispatch, getState) => {
@@ -182,10 +182,6 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
     };
 }
 
-export function searchFiles(teamId: string, terms: string, isOrSearch: boolean, includeDeletedChannels: boolean) { // HARRISONTODO unused
-    return searchFilesWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
-}
-
 export function getMoreFilesForSearch(): NewActionFuncAsync {
     return async (dispatch, getState) => {
         const teamId = getCurrentTeamId(getState());
@@ -269,35 +265,7 @@ export function getPinnedPosts(channelId: string): NewActionFuncAsync {
     };
 }
 
-export function clearPinnedPosts(channelId: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch) => {
-        dispatch({
-            type: SearchTypes.REMOVE_SEARCH_PINNED_POSTS,
-            data: {
-                channelId,
-            },
-        });
-
-        return {data: true};
-    };
-}
-
-export function removeSearchTerms(teamId: string, terms: string): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch) => {
-        dispatch({
-            type: SearchTypes.REMOVE_SEARCH_TERM,
-            data: {
-                teamId,
-                terms,
-            },
-        });
-
-        return {data: true};
-    };
-}
-
 export default {
     clearSearch,
-    removeSearchTerms,
     searchPosts,
 };

@@ -23,24 +23,6 @@ import type {GlobalState} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
 
-export function fetchRemoteListing(): NewActionFuncAsync<MarketplacePlugin[], GlobalState> { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const state = getState();
-        const filter = getFilter(state);
-
-        try {
-            const plugins = await Client4.getRemoteMarketplacePlugins(filter);
-            dispatch({
-                type: ActionTypes.RECEIVED_MARKETPLACE_PLUGINS,
-                plugins,
-            });
-            return {data: plugins};
-        } catch (error: any) {
-            return {error};
-        }
-    };
-}
-
 // fetchPlugins fetches the latest marketplace plugins and apps, subject to any existing search filter.
 export function fetchListing(localOnly = false): NewActionFuncAsync<Array<MarketplacePlugin | MarketplaceApp>, GlobalState> {
     return async (dispatch, getState) => {

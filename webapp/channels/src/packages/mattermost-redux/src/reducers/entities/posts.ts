@@ -1136,17 +1136,6 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
     }
 }
 
-function selectedPostId(state = '', action: AnyAction) {
-    switch (action.type) {
-    case PostTypes.RECEIVED_POST_SELECTED:
-        return action.data;
-    case UserTypes.LOGOUT_SUCCESS:
-        return '';
-    default:
-        return state;
-    }
-}
-
 export function postEditHistory(state: Post[] = [], action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST_HISTORY:
@@ -1171,18 +1160,6 @@ function currentFocusedPostId(state = '', action: AnyAction) {
 
 export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: AnyAction) {
     switch (action.type) {
-    case PostTypes.RECEIVED_REACTIONS: {
-        const reactionsList = action.data;
-        const nextReactions: Record<string, Reaction> = {};
-        reactionsList.forEach((reaction: Reaction) => {
-            nextReactions[reaction.user_id + '-' + reaction.emoji_name] = reaction;
-        });
-
-        return {
-            ...state,
-            [action.postId!]: nextReactions,
-        };
-    }
     case PostTypes.RECEIVED_REACTION: {
         const reaction = action.data as Reaction;
         const nextReactions = {...(state[reaction.post_id] || {})};
@@ -1588,9 +1565,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: AnyActi
         // with no guaranteed order
         postsInThread: postsInThread(state.postsInThread, action, state.posts!),
 
-        // The current selected post
-        selectedPostId: selectedPostId(state.selectedPostId, action),
-
         // The post history of selected post
         postEditHistory: postEditHistory(state.postEditHistory, action),
 
@@ -1616,7 +1590,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: AnyActi
     if (state.posts === nextState.posts && state.postsInChannel === nextState.postsInChannel &&
         state.postsInThread === nextState.postsInThread &&
         state.pendingPostIds === nextState.pendingPostIds &&
-        state.selectedPostId === nextState.selectedPostId &&
         state.postEditHistory === nextState.postEditHistory &&
         state.currentFocusedPostId === nextState.currentFocusedPostId &&
         state.reactions === nextState.reactions &&

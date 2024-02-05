@@ -23,17 +23,6 @@ function config(state: Partial<ClientConfig> = {}, action: AnyAction) {
     }
 }
 
-function dataRetentionPolicy(state: any = {}, action: AnyAction) {
-    switch (action.type) {
-    case GeneralTypes.RECEIVED_DATA_RETENTION_POLICY:
-        return action.data;
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-    default:
-        return state;
-    }
-}
-
 function license(state: ClientLicense = {}, action: AnyAction) {
     switch (action.type) {
     case GeneralTypes.CLIENT_LICENSE_RECEIVED:
@@ -61,8 +50,6 @@ function serverVersion(state = '', action: AnyAction) {
 
 function warnMetricsStatus(state: any = {}, action: AnyAction) {
     switch (action.type) {
-    case GeneralTypes.WARN_METRICS_STATUS_RECEIVED:
-        return action.data;
     case GeneralTypes.WARN_METRIC_STATUS_RECEIVED: {
         const nextState = {...state};
         nextState[action.data.id] = action.data;
@@ -102,7 +89,6 @@ function firstAdminCompleteSetup(state = false, action: AnyAction) {
 
 export default combineReducers({
     config,
-    dataRetentionPolicy,
     license,
     serverVersion,
     warnMetricsStatus,

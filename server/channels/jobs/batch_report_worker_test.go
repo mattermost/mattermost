@@ -23,7 +23,7 @@ func (rma *ReportMockApp) SaveReportChunk(format string, prefix string, count in
 func (rma *ReportMockApp) CompileReportChunks(format string, prefix string, numberOfChunks int, headers []string) *model.AppError {
 	return nil
 }
-func (rma *ReportMockApp) SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError {
+func (rma *ReportMockApp) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
 	return nil
 }
 func (rma *ReportMockApp) CleanupReportChunks(format string, prefix string, numberOfChunks int) *model.AppError {
@@ -122,23 +122,6 @@ func TestBatchReportWorker(t *testing.T) {
 		worker, job = setupBatchWorker(t, th, func(data model.StringMap) ([]model.ReportableObject, model.StringMap, bool, error) {
 			go worker.Stop() // Shut down the worker right after this
 			return []model.ReportableObject{}, createData(th, data), false, errors.New("failed to fetch data")
-		})
-
-		// Queue the work to be done
-		worker.JobChannel() <- *job
-
-		th.WaitForJobStatus(t, job, model.JobStatusError)
-	})
-
-	t.Run("should fail if there is no user id to send the report to", func(t *testing.T) {
-		th := Setup(t).InitBasic()
-		defer th.TearDown()
-
-		var worker model.Worker
-		var job *model.Job
-		worker, job = setupBatchWorker(t, th, func(data model.StringMap) ([]model.ReportableObject, model.StringMap, bool, error) {
-			go worker.Stop() // Shut down the worker right after this
-			return []model.ReportableObject{}, make(model.StringMap), true, nil
 		})
 
 		// Queue the work to be done

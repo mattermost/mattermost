@@ -30,16 +30,6 @@ function createChannel(state: RequestStatusType = initialRequestState(), action:
     );
 }
 
-function updateChannel(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
-    return handleRequest(
-        ChannelTypes.UPDATE_CHANNEL_REQUEST,
-        ChannelTypes.UPDATE_CHANNEL_SUCCESS,
-        ChannelTypes.UPDATE_CHANNEL_FAILURE,
-        state,
-        action,
-    );
-}
-
 function getChannels(state: RequestStatusType = initialRequestState(), action: AnyAction): RequestStatusType {
     return handleRequest(
         ChannelTypes.GET_CHANNELS_REQUEST,
@@ -65,5 +55,4 @@ export default combineReducers({
     getAllChannels,
     myChannels,
     createChannel,
-    updateChannel,
 });

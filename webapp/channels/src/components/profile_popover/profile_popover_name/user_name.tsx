@@ -13,7 +13,7 @@ const UserName = ({
     hasFullName,
     username,
 }: Props) => {
-    const userNameClass = classNames('overflow--ellipsis pb-1', {'user-profile-popover__heading': hasFullName});
+    const userNameClass = classNames('overflow--ellipsis pb-1', {'user-profile-popover__heading': !hasFullName});
     return (
         <div
             id='userPopoverUsername'

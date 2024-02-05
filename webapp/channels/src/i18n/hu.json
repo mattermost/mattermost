@@ -3375,7 +3375,7 @@
   "integrations.successful": "Beállítás sikeres",
   "interactive_dialog.cancel": "Mégsem",
   "interactive_dialog.element.optional": "(nem kötelező)",
-  "interactive_dialog.submit": "Küldés",
+  "interactive_dialog.submit": "Elküldés",
   "interactive_dialog.submitting": "Beküldés...",
   "intro_messages.DM": "Itt kezdődik Ön és {teammate} közvetlen üzeneteinek előzménye.\nAz itt megosztott közvetlen üzenetek és fájlok nem lesznek láthatóak ezen a területen kívüli személyeknek.",
   "intro_messages.addGroupsToTeam": "További csoportok hozzáadása a csapathoz",

@@ -10,26 +10,6 @@ type ReducerState = ReturnType<typeof storageReducer>;
 describe('Reducers.Storage', () => {
     const now = new Date();
 
-    it('Storage.SET_ITEM', () => {
-        const nextState = storageReducer(
-            {
-                storage: {},
-            } as ReducerState,
-            {
-                type: StorageTypes.SET_ITEM,
-                data: {
-                    name: 'key',
-                    prefix: 'user_id_',
-                    value: 'value',
-                    timestamp: now,
-                },
-            },
-        );
-        expect(nextState.storage).toEqual({
-            user_id_key: {value: 'value', timestamp: now},
-        });
-    });
-
     it('Storage.SET_GLOBAL_ITEM', () => {
         const nextState = storageReducer(
             {
@@ -47,37 +27,6 @@ describe('Reducers.Storage', () => {
         expect(nextState.storage).toEqual({
             key: {value: 'value', timestamp: now},
         });
-    });
-
-    it('Storage.REMOVE_ITEM', () => {
-        let nextState = storageReducer(
-            {
-                storage: {
-                    user_id_key: 'value',
-                },
-            } as unknown as ReducerState,
-            {
-                type: StorageTypes.REMOVE_ITEM,
-                data: {
-                    name: 'key',
-                    prefix: 'user_id_',
-                },
-            },
-        );
-        expect(nextState.storage).toEqual({});
-        nextState = storageReducer(
-            {
-                storage: {},
-            } as ReducerState,
-            {
-                type: StorageTypes.REMOVE_ITEM,
-                data: {
-                    name: 'key',
-                    prefix: 'user_id_',
-                },
-            },
-        );
-        expect(nextState.storage).toEqual({});
     });
 
     it('Storage.REMOVE_GLOBAL_ITEM', () => {

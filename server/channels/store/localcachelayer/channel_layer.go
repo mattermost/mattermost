@@ -205,8 +205,8 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	return append(foundChannels, channels...), nil
 }
 
-func (s LocalCacheChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
-	member, err := s.ChannelStore.SaveMember(member)
+func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
+	member, err := s.ChannelStore.SaveMember(rctx, member)
 	if err != nil {
 		return nil, err
 	}

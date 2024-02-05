@@ -208,9 +208,6 @@ describe('Actions.Users', () => {
         // channel stats is not empty
         expect(channels.stats).toEqual({});
 
-        // selected post id is not empty
-        expect(posts.selectedPostId).toEqual('');
-
         // current focused post id is not empty
         expect(posts.currentFocusedPostId).toEqual('');
 
@@ -1227,43 +1224,6 @@ describe('Actions.Users', () => {
             reply(200, {id: data.id, description: 'test token', user_id: currentUserId});
 
         await store.dispatch(Actions.getUserAccessToken(data.id));
-
-        const {myUserAccessTokens} = store.getState().entities.users;
-        const {userAccessTokensByUser, userAccessTokens} = store.getState().entities.admin;
-
-        expect(myUserAccessTokens).toBeTruthy();
-        expect(myUserAccessTokens[data.id]).toBeTruthy();
-        expect(!myUserAccessTokens[data.id].token).toBeTruthy();
-        expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][data.id]).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][data.id].token).toBeTruthy();
-        expect(userAccessTokens).toBeTruthy();
-        expect(userAccessTokens[data.id]).toBeTruthy();
-        expect(!userAccessTokens[data.id].token).toBeTruthy();
-    });
-
-    it('getUserAccessTokens', async () => {
-        TestHelper.mockLogin();
-        store.dispatch({
-            type: UserTypes.LOGIN_SUCCESS,
-        });
-        await store.dispatch(Actions.loadMe());
-
-        const currentUserId = store.getState().entities.users.currentUserId;
-
-        nock(Client4.getBaseRoute()).
-            post(`/users/${currentUserId}/tokens`).
-            reply(201, {id: 'someid', token: 'sometoken', description: 'test token', user_id: currentUserId});
-
-        const {data} = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
-
-        nock(Client4.getBaseRoute()).
-            get('/users/tokens').
-            query(true).
-            reply(200, [{id: data.id, description: 'test token', user_id: currentUserId}]);
-
-        await store.dispatch(Actions.getUserAccessTokens());
 
         const {myUserAccessTokens} = store.getState().entities.users;
         const {userAccessTokensByUser, userAccessTokens} = store.getState().entities.admin;

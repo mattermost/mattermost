@@ -7,8 +7,6 @@
   "private": true,
   "dependencies": {
     "@floating-ui/react": "0.26.6",
-    "@floating-ui/react-dom": "1.0.0",
-    "@floating-ui/react-dom-interactions": "0.10.3",
     "@giphy/js-fetch-api": "5.1.0",
     "@giphy/react-components": "8.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",

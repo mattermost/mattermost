@@ -1086,6 +1086,10 @@ func TestGetPublicFile(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode, "failed to get image with public link")
 
+	resp, err = http.Head(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode, "failed to respond to HEAD request")
+
 	resp, err = http.Get(link[:strings.LastIndex(link, "?")])
 	require.NoError(t, err)
 	require.Equal(t, http.StatusBadRequest, resp.StatusCode, "should've failed to get image with public link without hash", resp.Status)

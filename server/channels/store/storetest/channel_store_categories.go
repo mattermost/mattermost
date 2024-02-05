@@ -199,7 +199,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 			Name:   "channel1",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -212,7 +212,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 			Name:   "channel2",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel2.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -261,7 +261,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 			DisplayName: "zebra",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -275,7 +275,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 			DisplayName: "aardvark",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel2.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -398,7 +398,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 			Name:   "channel1",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -728,7 +728,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:        model.ChannelTypePrivate,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -742,7 +742,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:        model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel2.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -797,7 +797,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.NoError(t, nErr)
 		defer ss.Channel().PermanentDelete(rctx, channel1.Id)
 
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -841,7 +841,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:        model.ChannelTypePrivate,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -855,7 +855,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 			Type:        model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel2.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -951,7 +951,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		}, 10)
 		require.NoError(t, nErr)
 		defer ss.Channel().PermanentDelete(rctx, gmChannel.Id)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   gmChannel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1299,7 +1299,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1559,13 +1559,13 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId2,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1672,7 +1672,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1840,7 +1840,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1908,7 +1908,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -2359,7 +2359,7 @@ func testSidebarCategoryDeadlock(t *testing.T, rctx request.CTX, ss store.Store)
 		TeamId: team.Id,
 	}, 10)
 	require.NoError(t, err)
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		UserId:      userID,
 		ChannelId:   channel.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),

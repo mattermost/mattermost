@@ -41,7 +41,7 @@ func (api *API) InitFile() {
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles)).Methods("POST")
 
-	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET")
+	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET", "HEAD")
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
