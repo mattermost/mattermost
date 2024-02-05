@@ -29,7 +29,7 @@ export function filterGroupsMatchingTerm(groups: Group[], term: string): Group[]
 
         return groupSuggestions.
             filter((suggestion) => suggestion !== '').
-            some((suggestion) => suggestion.includes(trimmedTerm));
+            some((suggestion) => suggestion.startsWith(trimmedTerm));
     });
 }
 
