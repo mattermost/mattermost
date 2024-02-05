@@ -94,7 +94,7 @@ function descriptorOrStringToString(text: string | MessageDescriptor | undefined
     return typeof text === 'string' ? text : intl.formatMessage(text, values);
 }
 
-class SchemaAdminSettings extends React.PureComponent<Props, State> {
+export class SchemaAdminSettings extends React.PureComponent<Props, State> {
     private isPlugin: boolean;
     private saveActions: Array<() => Promise<{error?: {message?: string}}>>;
     private buildSettingFunctions: {[x: string]: (setting: any) => JSX.Element};
