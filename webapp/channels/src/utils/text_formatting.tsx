@@ -3,12 +3,11 @@
 
 import emojiRegex from 'emoji-regex';
 import type {Renderer} from 'marked';
+import {formatWithRenderer} from 'utils/markdown';
 
 import type {SystemEmoji} from '@mattermost/types/emojis';
 
 import type {HighlightWithoutNotificationKey} from 'mattermost-redux/selectors/entities/users';
-
-import {formatWithRenderer} from 'utils/markdown';
 
 import Constants from './constants';
 import type EmojiMap from './emoji_map.js';
@@ -200,6 +199,13 @@ export interface TextFormattingOptionsBase {
      * Defaults to `false`.
      */
     atPlanMentions: boolean;
+
+    /**
+     * If true, the renderer will assume links are not safe.
+     *
+     * Defaults to `false`.
+     */
+    unsafeLinks: boolean;
 }
 
 export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
@@ -227,6 +233,7 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     proxyImages: false,
     editedAt: 0,
     postId: '',
+    unsafeLinks: false,
 };
 
 /**
