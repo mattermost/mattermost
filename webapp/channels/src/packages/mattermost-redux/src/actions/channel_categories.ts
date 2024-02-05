@@ -28,14 +28,6 @@ import {insertMultipleWithoutDuplicates, insertWithoutDuplicates, removeItem} fr
 
 import {General} from '../constants';
 
-export function expandCategory(categoryId: string) { // HARRISONTODO unused
-    return setCategoryCollapsed(categoryId, false);
-}
-
-export function collapseCategory(categoryId: string) { // HARRISONTODO unused
-    return setCategoryCollapsed(categoryId, true);
-}
-
 export function setCategoryCollapsed(categoryId: string, collapsed: boolean) {
     return patchCategory(categoryId, {
         collapsed,

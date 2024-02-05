@@ -295,15 +295,6 @@ function userAccessTokens(state: Record<string, UserAccessToken> = {}, action: A
 
         return {...state, ...nextState};
     }
-    case AdminTypes.RECEIVED_USER_ACCESS_TOKENS: {
-        const nextState: any = {};
-
-        for (const uat of action.data) {
-            nextState[uat.id] = uat;
-        }
-
-        return {...state, ...nextState};
-    }
     case UserTypes.REVOKED_USER_ACCESS_TOKEN: {
         const nextState = {...state};
         Reflect.deleteProperty(nextState, action.data);
@@ -340,16 +331,6 @@ function userAccessTokensByUser(state: RelationOneToOne<UserProfile, Record<stri
         }
 
         return {...state, [action.userId]: nextUserState};
-    }
-    case AdminTypes.RECEIVED_USER_ACCESS_TOKENS: { // UserAccessToken[]
-        const nextUserState: any = {};
-
-        for (const uat of action.data) {
-            nextUserState[uat.user_id] = nextUserState[uat.user_id] || {};
-            nextUserState[uat.user_id][uat.id] = uat;
-        }
-
-        return {...state, ...nextUserState};
     }
     case UserTypes.REVOKED_USER_ACCESS_TOKEN: {
         const userIds = Object.keys(state);

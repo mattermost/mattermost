@@ -123,10 +123,6 @@ export function selectPostFromRightHandSideSearch(post: Post) {
     return selectPostFromRightHandSideSearchWithPreviousState(post);
 }
 
-export function selectPostCardFromRightHandSideSearch(post: Post) { // HARRISONTODO unused
-    return selectPostCardFromRightHandSideSearchWithPreviousState(post);
-}
-
 export function selectPostFromRightHandSideSearchByPostId(postId: string): NewActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
@@ -523,17 +519,6 @@ export function setRhsExpanded(expanded: boolean) {
 export function toggleRhsExpanded() {
     return {
         type: ActionTypes.TOGGLE_RHS_EXPANDED,
-    };
-}
-
-export function selectPostAndParentChannel(post: Post): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const channel = getChannelSelector(getState(), post.channel_id);
-        if (!channel) {
-            await dispatch(getChannel(post.channel_id));
-        }
-        dispatch(selectPost(post));
-        return {data: true};
     };
 }
 
