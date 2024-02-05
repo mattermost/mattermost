@@ -185,7 +185,7 @@ func (a *App) forEachPersistentNotificationPost(posts []*model.Post, fn func(pos
 			mentions = getExplicitMentions(post, keywords)
 			for groupID := range mentions.GroupMentions {
 				group := channelGroupMap[channel.Id][groupID]
-				_, err := a.insertGroupMentions(group, channel, profileMap, mentions)
+				_, err := a.insertGroupMentions(post.UserId, group, channel, profileMap, mentions)
 				if err != nil {
 					return errors.Wrapf(err, "failed to include mentions from group - %s for channel - %s", group.Id, channel.Id)
 				}
