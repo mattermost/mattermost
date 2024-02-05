@@ -8,7 +8,6 @@ import {useDispatch} from 'react-redux';
 
 import {GenericModal} from '@mattermost/components';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {validateBusinessEmail} from 'actions/cloud';
@@ -36,7 +35,7 @@ const RequestBusinessEmailModal = (
         onExited,
     }: Props): JSX.Element | null => {
     const {formatMessage} = useIntl();
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const [email, setEmail] = useState<string>('');
     const [customInputLabel, setCustomInputLabel] = useState<CustomMessageInputType>(null);
     const [trialBtnDisabled, setTrialBtnDisabled] = useState<boolean>(true);
@@ -102,6 +101,7 @@ const RequestBusinessEmailModal = (
     return (
         <GenericModal
             className='RequestBusinessEmailModal'
+            compassDesign={true}
             id='RequestBusinessEmailModal'
             onExited={handleOnClose}
         >

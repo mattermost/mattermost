@@ -226,15 +226,6 @@ export const getListableTeamIds: (state: GlobalState) => Array<Team['id']> = cre
     },
 );
 
-export const getListableTeams: (state: GlobalState) => Team[] = createSelector(
-    'getListableTeams',
-    getTeams,
-    getListableTeamIds,
-    (teams, listableTeamIds) => {
-        return listableTeamIds.map((id) => teams[id]);
-    },
-);
-
 export const getSortedListableTeams: (state: GlobalState, locale: string) => Team[] = createSelector(
     'getSortedListableTeams',
     getTeams,

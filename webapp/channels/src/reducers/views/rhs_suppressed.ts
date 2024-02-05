@@ -1,14 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import {UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
 import type {ViewsState} from 'types/store/views';
 
-export default function rhsSuppressed(state: ViewsState['rhsSuppressed'] = false, action: GenericAction): boolean {
+export default function rhsSuppressed(state: ViewsState['rhsSuppressed'] = false, action: AnyAction): boolean {
     switch (action.type) {
     case ActionTypes.SUPPRESS_RHS:
         return true;

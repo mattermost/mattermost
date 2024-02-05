@@ -1193,7 +1193,7 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		SchemeAdmin: false,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	_, err = ss.Channel().SaveMember(cm1)
+	_, err = ss.Channel().SaveMember(rctx, cm1)
 	require.NoError(t, err)
 
 	// returns both members not yet added to channel
@@ -1218,9 +1218,9 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
 
-	_, err = ss.Channel().SaveMember(cm2)
+	_, err = ss.Channel().SaveMember(rctx, cm2)
 	require.NoError(t, err)
-	_, err = ss.Channel().SaveMember(cm3)
+	_, err = ss.Channel().SaveMember(rctx, cm3)
 	require.NoError(t, err)
 
 	// returns none when all members have been added to team and channel
@@ -2541,7 +2541,7 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, rctx request.CTX, ss 
 	require.NoError(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      user.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -2549,7 +2549,7 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, rctx request.CTX, ss 
 		require.NoError(t, nErr)
 	}
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   channel2.Id,
 		UserId:      user3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -2713,7 +2713,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, rctx request.CTX, ss store.Sto
 	}
 
 	for _, item := range userIDChannelIDs {
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      item[0],
 			ChannelId:   item[1],
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -3639,7 +3639,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		UserId:      user1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	}
-	_, err = ss.Channel().SaveMember(&m1)
+	_, err = ss.Channel().SaveMember(rctx, &m1)
 	require.NoError(t, err)
 
 	user2.DeleteAt = 1
@@ -4177,7 +4177,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 		users = append(users, user)
 
 		trueOrFalse := int(math.Mod(float64(i), 2)) == 0
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel.Id,
 			UserId:      user.Id,
 			SchemeUser:  trueOrFalse,
@@ -4194,7 +4194,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 	})
 	require.NoError(t, err)
 	users = append(users, user)
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
 		SchemeUser:  true,
@@ -4882,7 +4882,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 	require.NoError(t, err)
 
 	for _, user := range []*model.User{user1, user2, user3} {
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel.Id,
 			UserId:      user.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -4890,7 +4890,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 		require.NoError(t, err)
 	}
 
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      user4.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),

@@ -10,7 +10,7 @@ import {Link} from 'react-router-dom';
 import type {ClientConfig, WarnMetricStatus} from '@mattermost/types/config';
 import type {PreferenceType} from '@mattermost/types/preferences';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -47,9 +47,7 @@ type Props = {
     warnMetricsStatus?: Record<string, WarnMetricStatus>;
     actions: {
         dismissNotice: (notice: string) => void;
-        savePreferences: (userId: string, preferences: PreferenceType[]) => (dispatch: DispatchFunc) => Promise<{
-            data: boolean;
-        }>;
+        savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
     };
 };
 

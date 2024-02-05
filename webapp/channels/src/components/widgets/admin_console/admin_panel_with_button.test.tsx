@@ -10,13 +10,16 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
     const defaultProps = {
         className: 'test-class-name',
         id: 'test-id',
-        titleId: 'test-title-id',
-        titleDefault: 'test-title-default',
-        subtitleId: 'test-subtitle-id',
-        subtitleDefault: 'test-subtitle-default',
+        title: {id: 'test-title-id', defaultMessage: 'test-title-default'},
+        subtitle: {
+            id: 'test-subtitle-id',
+            defaultMessage: 'test-subtitle-default',
+        },
         onButtonClick: jest.fn(),
-        buttonTextId: 'test-button-text-id',
-        buttonTextDefault: 'test-button-text-default',
+        buttonText: {
+            id: 'test-button-text-id',
+            defaultMessage: 'test-button-text-default',
+        },
         disabled: false,
     };
 
@@ -42,10 +45,18 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
               }
               className="AdminPanelWithButton test-class-name"
               id="test-id"
-              subtitleDefault="test-subtitle-default"
-              subtitleId="test-subtitle-id"
-              titleDefault="test-title-default"
-              titleId="test-title-id"
+              subtitle={
+                Object {
+                  "defaultMessage": "test-subtitle-default",
+                  "id": "test-subtitle-id",
+                }
+              }
+              title={
+                Object {
+                  "defaultMessage": "test-title-default",
+                  "id": "test-title-id",
+                }
+              }
             >
               Test
             </AdminPanel>
@@ -77,10 +88,18 @@ describe('components/widgets/admin_console/AdminPanelWithButton', () => {
               }
               className="AdminPanelWithButton test-class-name"
               id="test-id"
-              subtitleDefault="test-subtitle-default"
-              subtitleId="test-subtitle-id"
-              titleDefault="test-title-default"
-              titleId="test-title-id"
+              subtitle={
+                Object {
+                  "defaultMessage": "test-subtitle-default",
+                  "id": "test-subtitle-id",
+                }
+              }
+              title={
+                Object {
+                  "defaultMessage": "test-title-default",
+                  "id": "test-title-id",
+                }
+              }
             >
               Test
             </AdminPanel>

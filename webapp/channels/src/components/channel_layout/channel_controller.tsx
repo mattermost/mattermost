@@ -5,8 +5,6 @@ import classNames from 'classnames';
 import React, {useEffect} from 'react';
 import {useDispatch} from 'react-redux';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
-
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 
 import CenterChannel from 'components/channel_layout/center_channel';
@@ -27,7 +25,7 @@ type Props = {
 }
 
 export default function ChannelController(props: Props) {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const isMsBrowser = isInternetExplorer() || isEdge();
