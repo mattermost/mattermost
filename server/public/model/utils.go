@@ -542,7 +542,7 @@ func StringInterfaceToJSON(objmap map[string]any) string {
 	return string(b)
 }
 
-// Deprecated: ArrayFromJSON is deprecated,
+// Deprecated:  StringInterfaceFromJSON is deprecated,
 // use StringInterfaceFromJSONLimited instead
 func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	var objmap map[string]any
