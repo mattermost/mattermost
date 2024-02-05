@@ -2866,22 +2866,5 @@ func (a *App) getAllSystemAdmins() ([]*model.User, *model.AppError) {
 		Role:     model.SystemAdminRoleId,
 		Inactive: false,
 	}
-
-	var sysAdmins []*model.User
-	for {
-		sysAdminsList, appErr := a.GetUsersFromProfiles(userOptions)
-		if appErr != nil {
-			return nil, appErr
-		}
-
-		sysAdmins = append(sysAdmins, sysAdminsList...)
-
-		if len(sysAdminsList) < userOptions.PerPage {
-			break
-		}
-
-		userOptions.Page += 1
-	}
-
-	return sysAdmins, nil
+	return a.GetUsersFromProfiles(userOptions)
 }
