@@ -86,7 +86,7 @@ jobs:
     needs:
       - update-initial-status
     outputs:
-      BRANCH: "${{ steps.cb.outputs.BRANCH }}"
+      BRANCH: "${{ steps.cbi.outputs.BRANCH }}"
     steps:
       - name: ci/calculate-branch
         id: cbi
@@ -105,6 +105,7 @@ jobs:
             # We want to display preferrably a tag/branch name on that commit, or at worst the short SHA
             BRANCH="$(git describe --all --always --exclude='*/HEAD' HEAD | rev | cut -d/ -f1 | rev)"
           fi
+          echo "Calculated branch identifier for E2E run: ${BRANCH}"
           echo "BRANCH=${BRANCH}" >> "$GITHUB_OUTPUT"
 
   smoketests:
