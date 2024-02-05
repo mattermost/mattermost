@@ -325,7 +325,7 @@ generate_env_files() {
       ;;
     esac
     # Add Automation Dashboard related variables to cypress container
-    if [ -n "${AUTOMATION_DASHBOARD_URL}" ]; then
+    if [ -n "${AUTOMATION_DASHBOARD_URL:-}" ]; then
       mme2e_log "Automation dashboard URL is set: loading related variables into the Cypress container"
       mme2e_generate_envfile_from_var_names >>.env.cypress <<-EOF
 	AUTOMATION_DASHBOARD_URL

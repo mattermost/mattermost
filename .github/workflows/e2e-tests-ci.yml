@@ -34,6 +34,7 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
       - name: ci/setup-node
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         id: setup_node
@@ -60,6 +61,7 @@ jobs:
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
       - name: ci/setup-node
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         id: setup_node
@@ -79,6 +81,33 @@ jobs:
         run: |
           npm run check
 
+  calculate-branch-identifier:
+    runs-on: ubuntu-22.04
+    needs:
+      - update-initial-status
+    outputs:
+      BRANCH: "${{ steps.cb.outputs.BRANCH }}"
+    steps:
+      - name: ci/calculate-branch
+        id: cbi
+        run: |
+          set -eu -o pipeline
+          PR_LIST=$(curl -L -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer ${{ github.token }}" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/OWNER/REPO/commits/${{ inputs.commit_sha || github.sha }}/pulls" 2>/dev/null || echo -n "")
+          if [ -n "$PR_LIST" ]; then
+            # This commit belongs to one or more PRs.
+            # Prefer displaying the PR names in the Automation Dashboard, instead of the branch name
+            PR_NAMES_LIST=$(echo -n "$PR_LIST" | jq -r 'map(.number) | join("-")')
+            BRANCH="server-pr-${PR_NAMES_LIST}"
+          else
+            # This commit does not belong to a PR.
+            # We want to display preferrably a tag/branch name on that commit, or at worst the short SHA
+            BRANCH="$(git describe --all --always --exclude='*/HEAD' HEAD | rev | cut -d/ -f1 | rev)"
+          fi
+          echo "BRANCH=${BRANCH}" >> "$GITHUB_OUTPUT"
+
   smoketests:
     strategy:
       matrix:
@@ -95,6 +124,7 @@ jobs:
     needs:
       - cypress-check
       - playwright-check
+      - calculate-branch-identifier
     defaults:
       run:
         shell: bash
@@ -103,11 +133,13 @@ jobs:
       AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
       AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
       MM_LICENSE: "${{ secrets.MM_E2E_LICENSE_ONPREM }}"
+      BRANCH: "${{ needs.calculate-branch-identifier.outputs.BRANCH }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
+          fetch-depth: 0
       - name: ci/setup-macos-docker
         if: runner.os == 'macos'
         # https://github.com/actions/runner-images/issues/17#issuecomment-1537238473
@@ -117,16 +149,21 @@ jobs:
           mkdir -p ~/.docker/cli-plugins
           ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose
           sudo ln -sf $HOME/.colima/default/docker.sock /var/run/docker.sock
-      - name: ci/e2e-smoketests-genvars
+      - name: ci/setup-node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/e2e-smoketests-gencycle
         run: |
-           echo "BUILD_ID=$(git rev-parse --short=8 HEAD)-${{ github.run_id }}-smoketests-${{ github.run_attempt }}-ent" >> "$GITHUB_ENV"
-           echo "CI_BASE_URL=http://localhost:8065/?runner_index=1" >> "$GITHUB_ENV"
+          export BUILD_ID="$(git rev-parse --short=7 HEAD)-${{ github.run_id }}-smoketests-${{ github.run_attempt }}-ent"
+          make generate-test-cycle
       - name: ci/e2e-smoketests
         run: |
-          make start-server
-          make prepare-server
-          make generate-test-cycle
-          make run-test
+          export CI_BASE_URL="http://localhost:8065/?runner_index=1"
+          make
       - name: ci/e2e-smoketests-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
