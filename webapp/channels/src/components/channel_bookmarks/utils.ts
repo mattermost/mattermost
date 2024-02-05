@@ -14,8 +14,10 @@ import {getConfig, getFeatureFlagValue, getLicense} from 'mattermost-redux/selec
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {fetchChannelBookmarks} from 'actions/channel_bookmarks';
+import {loadCustomEmojisIfNeeded} from 'actions/emoji_actions';
 
 import Constants from 'utils/constants';
+import {trimmedEmojiName} from 'utils/emoji_utils';
 import {canUploadFiles, isPublicLinksEnabled} from 'utils/file_utils';
 
 export const MAX_BOOKMARKS_PER_CHANNEL = 50;
@@ -111,6 +113,20 @@ export const useChannelBookmarks = (channelId: string) => {
             dispatch(fetchChannelBookmarks(channelId));
         }
     }, [channelId]);
+
+    useEffect(() => {
+        const emojis = Object.values(bookmarks).reduce<string[]>((result, {emoji}) => {
+            if (emoji) {
+                result.push(trimmedEmojiName(emoji));
+            }
+
+            return result;
+        }, []);
+
+        if (emojis.length) {
+            dispatch(loadCustomEmojisIfNeeded(emojis));
+        }
+    }, [bookmarks]);
 
     return {
         bookmarks,

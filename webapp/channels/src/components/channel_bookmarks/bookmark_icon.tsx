@@ -12,6 +12,8 @@ import RenderEmoji from 'components/emoji/render_emoji';
 import FileThumbnail from 'components/file_attachment/file_thumbnail';
 import type {FilePreviewInfo} from 'components/file_preview/file_preview';
 
+import {trimmedEmojiName} from 'utils/emoji_utils';
+
 type Props = {
     type: ChannelBookmark['type'];
     emoji?: string;
@@ -28,8 +30,7 @@ const BookmarkIcon = ({
     size = 16,
 }: Props) => {
     let icon = type === 'link' ? <BookOutlineIcon size={size}/> : <FileGenericOutlineIcon size={size}/>;
-
-    const emojiName = emoji && emoji.startsWith(':') && emoji.endsWith(':') ? emoji?.slice(1, -1) : emoji;
+    const emojiName = emoji && trimmedEmojiName(emoji);
 
     if (emojiName) {
         icon = (
