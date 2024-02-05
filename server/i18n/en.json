@@ -5263,6 +5263,10 @@
     "translation": "Failed to record channel member history. Failed to update existing join record"
   },
   {
+    "id": "app.channels.opengraph.error",
+    "translation": ""
+  },
+  {
     "id": "app.cloud.get_cloud_products.app_error",
     "translation": "Couldn't retrieve cloud products"
   },
