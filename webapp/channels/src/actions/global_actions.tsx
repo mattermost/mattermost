@@ -24,7 +24,7 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {handleNewPost} from 'actions/post_actions';
@@ -168,7 +168,7 @@ export function showMobileSubMenuModal(elements: any[]) { // TODO Use more speci
     dispatch(openModal(submenuModalData));
 }
 
-export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): NewActionFuncAsync<boolean, GlobalState> {
+export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFuncAsync<boolean, GlobalState> {
     return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
         const post = {
@@ -209,7 +209,7 @@ export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: 
 
 let lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId: string, parentPostId: string) {
-    const userTyping: NewActionFuncAsync = async (actionDispatch, actionGetState) => {
+    const userTyping: ActionFuncAsync = async (actionDispatch, actionGetState) => {
         const state = actionGetState();
         const config = getConfig(state);
 

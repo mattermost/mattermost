@@ -764,6 +764,22 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 	}
 }
 
+func TestAddChannelMemberDeletedUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	_, err := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
+	require.Nil(t, err)
+
+	deactivated, err := th.App.UpdateActive(th.Context, user, false)
+	require.Greater(t, deactivated.DeleteAt, int64(0))
+
+	require.Nil(t, err)
+	_, err = th.App.AddChannelMember(th.Context, user.Id, th.BasicChannel, ChannelMemberOpts{})
+	require.NotNil(t, err)
+}
+
 func TestAppUpdateChannelScheme(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()

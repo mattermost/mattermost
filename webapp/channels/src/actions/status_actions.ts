@@ -8,13 +8,13 @@ import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels'
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
 import type {GlobalState} from 'types/store';
 
-export function loadStatusesForChannelAndSidebar(): NewActionFunc<boolean, GlobalState> {
+export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState();
         const statusesToLoad: Record<string, true> = {};
@@ -47,7 +47,7 @@ export function loadStatusesForChannelAndSidebar(): NewActionFunc<boolean, Globa
     };
 }
 
-export function loadStatusesForProfilesList(users: UserProfile[] | null): NewActionFunc<boolean> {
+export function loadStatusesForProfilesList(users: UserProfile[] | null): ActionFunc<boolean> {
     return (dispatch) => {
         if (users == null) {
             return {data: false};
@@ -64,7 +64,7 @@ export function loadStatusesForProfilesList(users: UserProfile[] | null): NewAct
     };
 }
 
-export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | UserProfile[] | null): NewActionFunc {
+export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | UserProfile[] | null): ActionFunc {
     return (dispatch) => {
         if (users == null) {
             return {data: false};
@@ -83,7 +83,7 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
     };
 }
 
-export function loadStatusesByIds(userIds: string[]): NewActionFunc {
+export function loadStatusesByIds(userIds: string[]): ActionFunc {
     return (dispatch) => {
         if (userIds.length === 0) {
             return {data: false};
@@ -95,7 +95,7 @@ export function loadStatusesByIds(userIds: string[]): NewActionFunc {
     };
 }
 
-export function loadProfilesMissingStatus(users: UserProfile[]): NewActionFunc {
+export function loadProfilesMissingStatus(users: UserProfile[]): ActionFunc {
     return (dispatch, getState) => {
         const state = getState();
         const statuses = state.entities.users.statuses;

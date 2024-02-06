@@ -12,7 +12,7 @@ import {getCurrentChannel, getChannel as getChannelFromRedux} from 'mattermost-r
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeam, getTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
 import {isSystemAdmin} from 'mattermost-redux/utils/user_utils';
 
@@ -33,7 +33,7 @@ type Option = {
     skipRedirectReplyPermalink: boolean;
 }
 
-function focusRootPost(post: Post, channel: Channel): NewActionFuncAsync {
+function focusRootPost(post: Post, channel: Channel): ActionFuncAsync {
     return async (dispatch, getState) => {
         const postURL = getPostURL(getState() as GlobalState, post);
 
@@ -49,7 +49,7 @@ function focusRootPost(post: Post, channel: Channel): NewActionFuncAsync {
     };
 }
 
-function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: string, option: Option): NewActionFuncAsync {
+function focusReplyPost(post: Post, channel: Channel, teamId: string, returnTo: string, option: Option): ActionFuncAsync {
     return async (dispatch, getState) => {
         const {data} = await dispatch(getPostThread(post.root_id));
 

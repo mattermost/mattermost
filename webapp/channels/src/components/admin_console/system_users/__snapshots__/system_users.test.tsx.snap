@@ -17,7 +17,7 @@ exports[`components/admin_console/system_users should match default snapshot 1`]
     <RevokeSessionsButton />
   </AdminHeader>
   <div
-    className="admin-console__wrapper"
+    className="admin-console__wrapper ignore-marking"
   >
     <div
       className="admin-console__content"

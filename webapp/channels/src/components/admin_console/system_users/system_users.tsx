@@ -315,7 +315,7 @@ export class SystemUsers extends React.PureComponent<Props, State> {
                     />
                     <RevokeSessionsButton/>
                 </AdminHeader>
-                <div className='admin-console__wrapper'>
+                <div className='admin-console__wrapper ignore-marking'>
                     <div className='admin-console__content'>
                         <div className='more-modal__list member-list-holder'>
                             <div className='system-users__filter-row'>

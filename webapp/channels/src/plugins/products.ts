@@ -3,7 +3,7 @@
 
 import type {Store} from 'redux';
 
-import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
 
@@ -23,14 +23,14 @@ export function initializeProducts(): ThunkActionFunc<Promise<unknown>> {
     };
 }
 
-function configureClient(): NewActionFuncAsync {
+function configureClient(): ActionFuncAsync {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     return (dispatch, getState) => {
         return Promise.resolve({data: true});
     };
 }
 
-function loadRemoteModules(): NewActionFuncAsync {
+function loadRemoteModules(): ActionFuncAsync {
     /* eslint-disable no-console */
     return async (/*dispatch, getState*/) => {
         // const config = getConfig(getState());

@@ -9,9 +9,9 @@ import {UserTypes} from 'mattermost-redux/action_types';
 import {logError} from 'mattermost-redux/actions/errors';
 import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {Client4} from 'mattermost-redux/client';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
-export function login(loginId: string, password: string, mfaToken = ''): NewActionFuncAsync {
+export function login(loginId: string, password: string, mfaToken = ''): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
 
@@ -45,7 +45,7 @@ export function login(loginId: string, password: string, mfaToken = ''): NewActi
     };
 }
 
-export function loginWithDesktopToken(token: string): NewActionFuncAsync {
+export function loginWithDesktopToken(token: string): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
 
@@ -79,7 +79,7 @@ export function loginWithDesktopToken(token: string): NewActionFuncAsync {
     };
 }
 
-export function loginById(id: string, password: string): NewActionFuncAsync {
+export function loginById(id: string, password: string): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: UserTypes.LOGIN_REQUEST, data: null});
 

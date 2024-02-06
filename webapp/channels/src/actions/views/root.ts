@@ -4,7 +4,7 @@
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
@@ -18,7 +18,7 @@ const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 
 export type TranslationPluginFunction = (locale: string) => Translations
 
-export function loadConfigAndMe(): NewActionFuncAsync<boolean> {
+export function loadConfigAndMe(): ActionFuncAsync<boolean> {
     return async (dispatch) => {
         await Promise.all([
             dispatch(getClientConfig()),
@@ -60,7 +60,7 @@ export function unregisterPluginTranslationsSource(pluginId: string) {
     Reflect.deleteProperty(pluginTranslationSources, pluginId);
 }
 
-export function loadTranslations(locale: string, url: string): NewActionFuncAsync {
+export function loadTranslations(locale: string, url: string): ActionFuncAsync {
     return async (dispatch) => {
         const translations = {...en};
         Object.values(pluginTranslationSources).forEach((pluginFunc) => {
@@ -87,7 +87,7 @@ export function loadTranslations(locale: string, url: string): NewActionFuncAsyn
     };
 }
 
-export function registerCustomPostRenderer(type: string, component: any, id: string): NewActionFuncAsync {
+export function registerCustomPostRenderer(type: string, component: any, id: string): ActionFuncAsync {
     return async (dispatch) => {
         // piggyback on plugins state to register a custom post renderer
         dispatch({

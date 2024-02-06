@@ -10,7 +10,7 @@ import Permissions from 'mattermost-redux/constants/permissions';
 import {getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -71,7 +71,7 @@ type JoinPrivateChannelPromptResult = {
     };
 };
 
-export function joinPrivateChannelPrompt(team: Team, channelDisplayName: string, handleOnCancel = true): NewActionFuncAsync<JoinPrivateChannelPromptResult['data']> {
+export function joinPrivateChannelPrompt(team: Team, channelDisplayName: string, handleOnCancel = true): ActionFuncAsync<JoinPrivateChannelPromptResult['data']> {
     return async (dispatch, getState) => {
         const result: JoinPrivateChannelPromptResult = await new Promise((resolve) => {
             const modalData = {

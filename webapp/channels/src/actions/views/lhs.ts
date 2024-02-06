@@ -3,7 +3,7 @@
 
 import {selectChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import type {NewActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -80,7 +80,7 @@ export const selectLhsItem = (type: LhsItemType, id?: string): ThunkActionFunc<u
     };
 };
 
-export function switchToLhsStaticPage(id: string): NewActionFunc<boolean, GlobalState> {
+export function switchToLhsStaticPage(id: string): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState();
         const teamUrl = getCurrentRelativeTeamUrl(state);

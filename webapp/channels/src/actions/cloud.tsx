@@ -10,7 +10,7 @@ import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import type {NewActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -249,7 +249,7 @@ export function deleteWorkspace(deletionRequest: WorkspaceDeletionRequest) {
     };
 }
 
-export function retryFailedCloudFetches(): NewActionFunc<boolean, GlobalState> {
+export function retryFailedCloudFetches(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const errors = getCloudErrors(getState());
         if (Object.keys(errors).length === 0) {

@@ -4855,6 +4855,10 @@
     "translation": "Unable to delete the bot."
   },
   {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Unable to add thr user as a member of the channel."
+  },
+  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "Unable to get channel type counts."
   },

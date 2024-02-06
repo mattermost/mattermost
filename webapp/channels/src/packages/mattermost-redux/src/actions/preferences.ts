@@ -8,14 +8,14 @@ import {Client4} from 'mattermost-redux/client';
 import {getMyPreferences as getMyPreferencesSelector, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
 import {bindClientFunc} from './helpers';
 
 import {Preferences} from '../constants';
 
-export function deletePreferences(userId: string, preferences: PreferenceType[]): NewActionFuncAsync {
+export function deletePreferences(userId: string, preferences: PreferenceType[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const myPreferences = getMyPreferencesSelector(state);
@@ -76,7 +76,7 @@ export function setCustomStatusInitialisationState(initializationState: Record<s
     };
 }
 
-export function savePreferences(userId: string, preferences: PreferenceType[]): NewActionFuncAsync {
+export function savePreferences(userId: string, preferences: PreferenceType[]): ActionFuncAsync {
     return async (dispatch) => {
         (async function savePreferencesWrapper() {
             try {
@@ -98,7 +98,7 @@ export function savePreferences(userId: string, preferences: PreferenceType[]): 
     };
 }
 
-export function saveTheme(teamId: string, theme: Theme): NewActionFuncAsync {
+export function saveTheme(teamId: string, theme: Theme): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -114,7 +114,7 @@ export function saveTheme(teamId: string, theme: Theme): NewActionFuncAsync {
     };
 }
 
-export function deleteTeamSpecificThemes(): NewActionFuncAsync {
+export function deleteTeamSpecificThemes(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
 

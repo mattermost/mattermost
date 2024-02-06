@@ -6,7 +6,7 @@ import type {Role} from '@mattermost/types/roles';
 import {RoleTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getRoles} from 'mattermost-redux/selectors/entities/roles_helpers';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {bindClientFunc} from './helpers';
 
@@ -68,7 +68,7 @@ export function setPendingRoles(roles: string[]) {
     };
 }
 
-export function loadRolesIfNeeded(roles: Iterable<string>): NewActionFuncAsync<Record<string, Role>> {
+export function loadRolesIfNeeded(roles: Iterable<string>): ActionFuncAsync<Record<string, Role>> {
     return async (dispatch, getState) => {
         const state = getState();
         let pendingRoles = new Set<string>();

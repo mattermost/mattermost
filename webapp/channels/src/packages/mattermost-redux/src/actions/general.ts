@@ -6,13 +6,13 @@ import type {SystemSetting} from '@mattermost/types/general';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 import {loadRolesIfNeeded} from './roles';
 
-export function getClientConfig(): NewActionFuncAsync {
+export function getClientConfig(): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -51,7 +51,7 @@ export function logClientError(message: string, level = LogLevel.Error) {
     });
 }
 
-export function setServerVersion(serverVersion: string): NewActionFuncAsync {
+export function setServerVersion(serverVersion: string): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: GeneralTypes.RECEIVED_SERVER_VERSION, data: serverVersion});
         dispatch(loadRolesIfNeeded([]));
@@ -65,7 +65,7 @@ export function setUrl(url: string) {
     return true;
 }
 
-export function setFirstAdminVisitMarketplaceStatus(): NewActionFuncAsync {
+export function setFirstAdminVisitMarketplaceStatus(): ActionFuncAsync {
     return async (dispatch) => {
         try {
             await Client4.setFirstAdminVisitMarketplaceStatus();
@@ -79,7 +79,7 @@ export function setFirstAdminVisitMarketplaceStatus(): NewActionFuncAsync {
 }
 
 // accompanying "set" happens as part of Client4.completeSetup
-export function getFirstAdminSetupComplete(): NewActionFuncAsync<SystemSetting> {
+export function getFirstAdminSetupComplete(): ActionFuncAsync<SystemSetting> {
     return async (dispatch, getState) => {
         let data;
         try {

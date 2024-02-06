@@ -15,7 +15,7 @@ import {Client4} from 'mattermost-redux/client';
 import Preferences from 'mattermost-redux/constants/preferences';
 import {syncedDraftsAreAllowedAndEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {makeGetDrafts} from 'selectors/drafts';
@@ -37,7 +37,7 @@ type Draft = {
  * Gets drafts stored on the server and reconciles them with any locally stored drafts.
  * @param teamId Only drafts for the given teamId will be fetched.
  */
-export function getDrafts(teamId: string): NewActionFuncAsync<boolean, GlobalState> {
+export function getDrafts(teamId: string): ActionFuncAsync<boolean, GlobalState> {
     const getLocalDrafts = makeGetDrafts(false);
 
     return async (dispatch, getState) => {
@@ -98,7 +98,7 @@ export function getDrafts(teamId: string): NewActionFuncAsync<boolean, GlobalSta
     };
 }
 
-export function removeDraft(key: string, channelId: string, rootId = ''): NewActionFuncAsync<boolean, GlobalState> {
+export function removeDraft(key: string, channelId: string, rootId = ''): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -124,7 +124,7 @@ export function removeDraft(key: string, channelId: string, rootId = ''): NewAct
     };
 }
 
-export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): NewActionFuncAsync<boolean, GlobalState> {
+export function updateDraft(key: string, value: PostDraft|null, rootId = '', save = false): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         let updatedValue: PostDraft|null = null;
@@ -171,7 +171,7 @@ function upsertDraft(draft: PostDraft, userId: UserProfile['id'], rootId = '', c
     return Client4.upsertDraft(newDraft, connectionId);
 }
 
-export function setDraftsTourTipPreference(initializationState: Record<string, boolean>): NewActionFuncAsync {
+export function setDraftsTourTipPreference(initializationState: Record<string, boolean>): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -186,7 +186,7 @@ export function setDraftsTourTipPreference(initializationState: Record<string, b
     };
 }
 
-export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean): NewActionFunc {
+export function setGlobalDraft(key: string, value: PostDraft|null, isRemote: boolean): ActionFunc {
     return (dispatch) => {
         dispatch(setGlobalItem(key, value));
         dispatch(setGlobalDraftSource(key, isRemote));

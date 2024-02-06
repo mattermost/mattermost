@@ -61,7 +61,7 @@ describe('components/AdminSidebar', () => {
                 webapp: {bundle_path: 'webapp/dist/main.js'},
             },
         },
-        onFilterChange: jest.fn(),
+        onSearchChange: jest.fn(),
         actions: {
             getPlugins: jest.fn(),
         },
@@ -175,7 +175,7 @@ describe('components/AdminSidebar', () => {
                     webapp: {bundle_path: 'webapp/dist/main.js'},
                 },
             },
-            onFilterChange: jest.fn(),
+            onSearchChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
@@ -221,7 +221,7 @@ describe('components/AdminSidebar', () => {
                     webapp: {bundle_path: 'webapp/dist/main.js'},
                 },
             },
-            onFilterChange: jest.fn(),
+            onSearchChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
@@ -269,7 +269,7 @@ describe('components/AdminSidebar', () => {
                     webapp: {bundle_path: 'webapp/dist/main.js'},
                 },
             },
-            onFilterChange: jest.fn(),
+            onSearchChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
@@ -345,7 +345,7 @@ describe('components/AdminSidebar', () => {
                     webapp: {bundle_path: 'webapp/dist/main.js'},
                 },
             },
-            onFilterChange: jest.fn(),
+            onSearchChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
@@ -379,7 +379,7 @@ describe('components/AdminSidebar', () => {
             plugins: {
                 'mattermost-autolink': samplePlugin1,
             },
-            onFilterChange: jest.fn(),
+            onSearchChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },
@@ -467,7 +467,7 @@ describe('components/AdminSidebar', () => {
             plugins: {
                 'mattermost-autolink': samplePlugin1,
             },
-            onFilterChange: jest.fn(),
+            onSearchChange: jest.fn(),
             actions: {
                 getPlugins: jest.fn(),
             },

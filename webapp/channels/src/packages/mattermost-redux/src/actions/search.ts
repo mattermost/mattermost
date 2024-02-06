@@ -11,7 +11,7 @@ import {SearchTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getChannelAndMyMember, getChannelMembers} from './channels';
 import {logError} from './errors';
@@ -67,7 +67,7 @@ export function getMissingChannelsFromFiles(files: Map<string, FileSearchResultI
     };
 }
 
-export function searchPostsWithParams(teamId: string, params: SearchParameter): NewActionFuncAsync<PostSearchResults> {
+export function searchPostsWithParams(teamId: string, params: SearchParameter): ActionFuncAsync<PostSearchResults> {
     return async (dispatch, getState) => {
         const isGettingMore = params.page > 0;
         dispatch({
@@ -117,7 +117,7 @@ export function searchPosts(teamId: string, terms: string, isOrSearch: boolean, 
     return searchPostsWithParams(teamId, {terms, is_or_search: isOrSearch, include_deleted_channels: includeDeletedChannels, page: 0, per_page: WEBAPP_SEARCH_PER_PAGE});
 }
 
-export function getMorePostsForSearch(): NewActionFuncAsync {
+export function getMorePostsForSearch(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const teamId = getCurrentTeamId(getState());
         const {params, isEnd} = getState().entities.search.current[teamId];
@@ -130,7 +130,7 @@ export function getMorePostsForSearch(): NewActionFuncAsync {
     };
 }
 
-export function clearSearch(): NewActionFuncAsync {
+export function clearSearch(): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({type: SearchTypes.REMOVE_SEARCH_POSTS});
         dispatch({type: SearchTypes.REMOVE_SEARCH_FILES});
@@ -139,7 +139,7 @@ export function clearSearch(): NewActionFuncAsync {
     };
 }
 
-export function searchFilesWithParams(teamId: string, params: SearchParameter): NewActionFuncAsync {
+export function searchFilesWithParams(teamId: string, params: SearchParameter): ActionFuncAsync {
     return async (dispatch, getState) => {
         const isGettingMore = params.page > 0;
         dispatch({
@@ -182,7 +182,7 @@ export function searchFilesWithParams(teamId: string, params: SearchParameter): 
     };
 }
 
-export function getMoreFilesForSearch(): NewActionFuncAsync {
+export function getMoreFilesForSearch(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const teamId = getCurrentTeamId(getState());
         const {params, isFilesEnd} = getState().entities.search.current[teamId];
@@ -195,7 +195,7 @@ export function getMoreFilesForSearch(): NewActionFuncAsync {
     };
 }
 
-export function getFlaggedPosts(): NewActionFuncAsync<PostList> {
+export function getFlaggedPosts(): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         const state = getState();
         const userId = getCurrentUserId(state);
@@ -229,7 +229,7 @@ export function getFlaggedPosts(): NewActionFuncAsync<PostList> {
     };
 }
 
-export function getPinnedPosts(channelId: string): NewActionFuncAsync {
+export function getPinnedPosts(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({type: SearchTypes.SEARCH_PINNED_POSTS_REQUEST});
 
