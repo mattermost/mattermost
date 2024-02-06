@@ -280,6 +280,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     className="col-md-5 col-sm-8"
                   >
                     <input
+                      autoComplete="off"
                       className="form-control"
                       id="client_id"
                       onChange={[Function]}
@@ -320,6 +321,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     className="col-md-5 col-sm-8"
                   >
                     <input
+                      autoComplete="off"
                       className="form-control disabled"
                       disabled={true}
                       id="client_secret"
@@ -391,10 +393,11 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     >
                       <ValidateButton
                         onClick={[Function]}
+                        setUnvalidated={[Function]}
                         status="initial"
                       >
                         <button
-                          className="btn btn-tertiary"
+                          className="btn btn-tertiary btn-sm"
                           id="validateConnection"
                           onClick={[Function]}
                           type="button"
@@ -974,6 +977,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     className="col-md-5 col-sm-8"
                   >
                     <input
+                      autoComplete="off"
                       className="form-control"
                       id="client_id"
                       onChange={[Function]}
@@ -1014,6 +1018,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     className="col-md-5 col-sm-8"
                   >
                     <input
+                      autoComplete="off"
                       className="form-control disabled"
                       disabled={true}
                       id="client_secret"
@@ -1085,10 +1090,11 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     >
                       <ValidateButton
                         onClick={[Function]}
+                        setUnvalidated={[Function]}
                         status="initial"
                       >
                         <button
-                          className="btn btn-tertiary"
+                          className="btn btn-tertiary btn-sm"
                           id="validateConnection"
                           onClick={[Function]}
                           type="button"
@@ -1667,6 +1673,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     className="col-md-5 col-sm-8"
                   >
                     <input
+                      autoComplete="off"
                       className="form-control"
                       id="client_id"
                       onChange={[Function]}
@@ -1707,6 +1714,7 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     className="col-md-5 col-sm-8"
                   >
                     <input
+                      autoComplete="off"
                       className="form-control disabled"
                       disabled={true}
                       id="client_secret"
@@ -1778,10 +1786,11 @@ exports[`components/integrations/EditOutgoingOAuthConnection should match snapsh
                     >
                       <ValidateButton
                         onClick={[Function]}
+                        setUnvalidated={[Function]}
                         status="initial"
                       >
                         <button
-                          className="btn btn-tertiary"
+                          className="btn btn-tertiary btn-sm"
                           id="validateConnection"
                           onClick={[Function]}
                           type="button"

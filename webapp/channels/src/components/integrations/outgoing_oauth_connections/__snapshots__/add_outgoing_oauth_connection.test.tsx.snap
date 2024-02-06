@@ -214,6 +214,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     className="col-md-5 col-sm-8"
                   >
                     <input
+                      autoComplete="off"
                       className="form-control"
                       id="client_id"
                       onChange={[Function]}
@@ -254,6 +255,7 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     className="col-md-5 col-sm-8"
                   >
                     <input
+                      autoComplete="off"
                       className="form-control"
                       id="client_secret"
                       onChange={[Function]}
@@ -317,10 +319,11 @@ exports[`components/integrations/AddOutgoingOAuthConnection should match snapsho
                     >
                       <ValidateButton
                         onClick={[Function]}
+                        setUnvalidated={[Function]}
                         status="initial"
                       >
                         <button
-                          className="btn btn-tertiary"
+                          className="btn btn-tertiary btn-sm"
                           id="validateConnection"
                           onClick={[Function]}
                           type="button"
