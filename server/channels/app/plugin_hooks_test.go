@@ -1708,4 +1708,89 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_1 value=test_value_1")
 		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_2 value=test_value_2")
 	})
+
+	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		pluginCode := `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			const (
+				userID = "` + th.BasicUser.Id + `"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
+				// Note that plugin hooks can trigger themselves, and this test sets a preference to trigger that
+				// it has run, so be careful not to introduce an infinite loop here
+
+				if len(preferences) == 1 && preferences[0].Category == "test_category" && preferences[0].Name == "test_name" {
+					if preferences[0].Value == "test_value_first" {
+						appErr := p.API.UpdatePreferencesForUser(userID, []model.Preference{
+							{
+								UserId:   userID,
+								Category: "test_category",
+								Name:     "test_name",
+								Value:    "test_value_second",
+							},
+						})
+						if appErr != nil {
+							panic("error setting preference to second value")
+						}
+					} else if preferences[0].Value == "test_value_second" {
+						appErr := p.API.UpdatePreferencesForUser(userID, []model.Preference{
+							{
+								UserId:   userID,
+								Category: "test_category",
+								Name:     "test_name",
+								Value:    "test_value_third",
+							},
+						})
+						if appErr != nil {
+							panic("error setting preference to third value")
+						}
+					}
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`
+		pluginID := "testplugin"
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		// Confirm plugin is actually running
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		appErr := th.App.UpdatePreferences(th.Context, th.BasicUser.Id, model.Preferences{
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_name",
+				Value:    "test_value_first",
+			},
+		})
+		require.Nil(t, appErr)
+
+		// Hooks are run in a goroutine, so wait for those to complete
+		time.Sleep(1 * time.Second)
+
+		preference, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, th.BasicUser.Id, "test_category", "test_name")
+
+		require.Nil(t, appErr)
+		assert.Equal(t, "test_value_third", preference.Value)
+	})
 }
