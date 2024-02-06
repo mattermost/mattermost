@@ -10277,5 +10277,9 @@
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
     "translation": "Date range provided is invalid."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "You cannot acknowledgment in an archived channel."
   }
 ]
