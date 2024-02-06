@@ -5,6 +5,7 @@ import os from 'node:os';
 
 import {expect} from '@playwright/test';
 
+import {test} from './test_fixture';
 import {callsPluginId} from './constant';
 import {getAdminClient} from './server/init';
 
@@ -32,4 +33,11 @@ export async function shouldHaveFeatureFlag(name: string, value: string | boolea
 export async function shouldRunInLinux() {
     const platform = os.platform();
     await expect(platform, 'Run in Linux or Playwright docker image only').toBe('linux');
+}
+
+export async function skipIfNoLicense() {
+    const {adminClient} = await getAdminClient();
+    const license = await adminClient.getClientLicenseOld();
+
+    test.skip(license.IsLicensed === 'false', 'Skipping test - server not licensed');
 }

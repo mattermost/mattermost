@@ -1619,7 +1619,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	return newMembers, nil
 }
 
-func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s SqlChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	newMembers, err := s.SaveMultipleMembers([]*model.ChannelMember{member})
 	if err != nil {
 		return nil, err
@@ -1861,6 +1861,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		sql, args, err2 := s.getQueryBuilder().
 			Update("channelmembers").
 			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
+			Set("LastUpdateAt", model.GetMillis()).
 			Where(sq.Eq{
 				"userid":    userID,
 				"channelid": channelID,
@@ -1884,6 +1885,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		sql, args, err2 := s.getQueryBuilder().
 			Update("ChannelMembers").
 			Set("NotifyProps", jsonExpr).
+			Set("LastUpdateAt", model.GetMillis()).
 			Where(sq.Eq{
 				"UserId":    userID,
 				"ChannelId": channelID,

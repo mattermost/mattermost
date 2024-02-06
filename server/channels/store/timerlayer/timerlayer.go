@@ -2152,10 +2152,10 @@ func (s *TimerLayerChannelStore) SaveDirectChannel(ctx request.CTX, channel *mod
 	return result, err
 }
 
-func (s *TimerLayerChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s *TimerLayerChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	start := time.Now()
 
-	result, err := s.ChannelStore.SaveMember(member)
+	result, err := s.ChannelStore.SaveMember(rctx, member)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -3223,6 +3223,22 @@ func (s *TimerLayerDraftStore) Delete(userID string, channelID string, rootID st
 	return err
 }
 
+func (s *TimerLayerDraftStore) DeleteDraftsAssociatedWithPost(channelID string, rootID string) error {
+	start := time.Now()
+
+	err := s.DraftStore.DeleteDraftsAssociatedWithPost(channelID, rootID)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeleteDraftsAssociatedWithPost", success, elapsed)
+	}
+	return err
+}
+
 func (s *TimerLayerDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
 	start := time.Now()
 
@@ -3235,6 +3251,22 @@ func (s *TimerLayerDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int
 			success = "true"
 		}
 		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeleteEmptyDraftsByCreateAtAndUserId", success, elapsed)
+	}
+	return err
+}
+
+func (s *TimerLayerDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error {
+	start := time.Now()
+
+	err := s.DraftStore.DeleteOrphanDraftsByCreateAtAndUserId(createAt, userId)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("DraftStore.DeleteOrphanDraftsByCreateAtAndUserId", success, elapsed)
 	}
 	return err
 }

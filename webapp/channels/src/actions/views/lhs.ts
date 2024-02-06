@@ -3,7 +3,7 @@
 
 import {selectChannel} from 'mattermost-redux/actions/channels';
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {SidebarSize} from 'components/resizable_sidebar/constants';
 
@@ -59,8 +59,8 @@ export const selectStaticPage = (itemId: string) => ({
     data: itemId,
 });
 
-export const selectLhsItem = (type: LhsItemType, id?: string) => {
-    return (dispatch: DispatchFunc) => {
+export const selectLhsItem = (type: LhsItemType, id?: string): ThunkActionFunc<unknown> => {
+    return (dispatch) => {
         switch (type) {
         case LhsItemType.Channel:
             dispatch(selectChannel(id || ''));
@@ -80,9 +80,9 @@ export const selectLhsItem = (type: LhsItemType, id?: string) => {
     };
 };
 
-export function switchToLhsStaticPage(id: string) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+export function switchToLhsStaticPage(id: string): ActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
+        const state = getState();
         const teamUrl = getCurrentRelativeTeamUrl(state);
         getHistory().push(`${teamUrl}/${id}`);
 
