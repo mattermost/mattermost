@@ -10,6 +10,7 @@ import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
 import {updateMe} from './users';
 
 export function autoUpdateTimezone(deviceTimezone: string) {
+    moment.tz.setDefault(deviceTimezone);
     return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
         const currentUser = getCurrentUser(getState());
         const currentTimezone = getCurrentTimezoneFull(getState());
@@ -29,8 +30,6 @@ export function autoUpdateTimezone(deviceTimezone: string) {
 
             updateMe(updatedUser)(dispatch, getState);
         }
-
-        moment.tz.setDefault(deviceTimezone);
 
         return {data: true};
     };
