@@ -21,7 +21,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channel_categories';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {
-    NewActionFuncAsync,
+    ActionFuncAsync,
     ThunkActionFunc,
 } from 'mattermost-redux/types/actions';
 import {insertMultipleWithoutDuplicates, insertWithoutDuplicates, removeItem} from 'mattermost-redux/utils/array_utils';
@@ -40,7 +40,7 @@ export function setCategorySorting(categoryId: string, sorting: CategorySorting)
     });
 }
 
-export function patchCategory(categoryId: string, patch: Partial<ChannelCategory>): NewActionFuncAsync {
+export function patchCategory(categoryId: string, patch: Partial<ChannelCategory>): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -73,7 +73,7 @@ export function patchCategory(categoryId: string, patch: Partial<ChannelCategory
     };
 }
 
-export function setCategoryMuted(categoryId: string, muted: boolean): NewActionFuncAsync {
+export function setCategoryMuted(categoryId: string, muted: boolean): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const category = getCategory(state, categoryId);
@@ -107,7 +107,7 @@ export function setCategoryMuted(categoryId: string, muted: boolean): NewActionF
     };
 }
 
-function updateCategory(category: ChannelCategory): NewActionFuncAsync {
+function updateCategory(category: ChannelCategory): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -163,7 +163,7 @@ export function fetchMyCategories(teamId: string, isWebSocket?: boolean): ThunkA
 //
 // Unless setOnServer is true, this only affects the categories on this client. If it is set to true, this updates
 // categories on the server too.
-export function addChannelToInitialCategory(channel: Channel, setOnServer = false): NewActionFuncAsync {
+export function addChannelToInitialCategory(channel: Channel, setOnServer = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const categories = Object.values(getAllCategoriesByIds(state));
@@ -220,14 +220,14 @@ export function addChannelToInitialCategory(channel: Channel, setOnServer = fals
 // addChannelToCategory returns an action that can be dispatched to add a channel to a given category without specifying
 // its order. The channel will be removed from its previous category (if any) on the given category's team and it will be
 // placed first in its new category.
-export function addChannelToCategory(categoryId: string, channelId: string): NewActionFuncAsync {
+export function addChannelToCategory(categoryId: string, channelId: string): ActionFuncAsync {
     return moveChannelToCategory(categoryId, channelId, 0, false);
 }
 
 // moveChannelToCategory returns an action that moves a channel into a category and puts it at the given index at the
 // category. The channel will also be removed from its previous category (if any) on that category's team. The category's
 // order will also be set to manual by default.
-export function moveChannelToCategory(categoryId: string, channelId: string, newIndex: number, setManualSorting = true): NewActionFuncAsync {
+export function moveChannelToCategory(categoryId: string, channelId: string, newIndex: number, setManualSorting = true): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const targetCategory = getCategory(state, categoryId);
@@ -285,7 +285,7 @@ export function moveChannelToCategory(categoryId: string, channelId: string, new
     };
 }
 
-export function moveChannelsToCategory(categoryId: string, channelIds: string[], newIndex: number, setManualSorting = true): NewActionFuncAsync {
+export function moveChannelsToCategory(categoryId: string, channelIds: string[], newIndex: number, setManualSorting = true): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const targetCategory = getCategory(state, categoryId);
@@ -364,7 +364,7 @@ export function moveChannelsToCategory(categoryId: string, channelIds: string[],
     };
 }
 
-export function moveCategory(teamId: string, categoryId: string, newIndex: number): NewActionFuncAsync {
+export function moveCategory(teamId: string, categoryId: string, newIndex: number): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const order = getCategoryIdsForTeam(state, teamId)!;
@@ -413,7 +413,7 @@ export function receivedCategoryOrder(teamId: string, order: string[]) {
     };
 }
 
-export function createCategory(teamId: string, displayName: string, channelIds: Array<Channel['id']> = []): NewActionFuncAsync<ChannelCategory> {
+export function createCategory(teamId: string, displayName: string, channelIds: Array<Channel['id']> = []): ActionFuncAsync<ChannelCategory> {
     return async (dispatch, getState) => {
         const currentUserId = getCurrentUserId(getState());
 
@@ -443,7 +443,7 @@ export function renameCategory(categoryId: string, displayName: string) {
     });
 }
 
-export function deleteCategory(categoryId: string): NewActionFuncAsync {
+export function deleteCategory(categoryId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const category = getCategory(state, categoryId);
