@@ -14,7 +14,6 @@ import {
 } from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {getHistory} from 'utils/browser_history';
 import {isCustomerCardExpired} from 'utils/cloud_utils';
@@ -25,7 +24,7 @@ import AnnouncementBar from '../default_announcement_bar';
 
 export default function PaymentAnnouncementBar() {
     const [requestedCustomer, setRequestedCustomer] = useState(false);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const subscription = useSelector(selectCloudSubscription);
     const customer = useSelector(selectCloudCustomer);
     const isStarterFree = useSelector(getSubscriptionProduct)?.sku === CloudProducts.STARTER;

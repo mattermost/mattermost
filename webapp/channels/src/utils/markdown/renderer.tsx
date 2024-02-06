@@ -40,23 +40,29 @@ export default class Renderer extends marked.Renderer {
         let searchedContent = '';
 
         if (this.formattingOptions.searchPatterns) {
-            const tokens = new Map();
+            try {
+                const tokens = new TextFormatting.Tokens();
 
-            let searched = TextFormatting.sanitizeHtml(code);
-            searched = TextFormatting.highlightSearchTerms(
-                searched,
-                tokens,
-                this.formattingOptions.searchPatterns,
-            );
-
-            if (tokens.size > 0) {
-                searched = TextFormatting.replaceTokens(searched, tokens);
-
-                searchedContent = (
-                    '<div class="post-code__search-highlighting">' +
-                        searched +
-                    '</div>'
+                let searched = TextFormatting.sanitizeHtml(code);
+                searched = TextFormatting.highlightSearchTerms(
+                    searched,
+                    tokens,
+                    this.formattingOptions.searchPatterns,
                 );
+
+                if (tokens.size > 0) {
+                    searched = TextFormatting.replaceTokens(searched, tokens);
+
+                    searchedContent = (
+                        '<div class="post-code__search-highlighting">' +
+                            searched +
+                        '</div>'
+                    );
+                }
+            } catch (error) {
+                if (!TextFormatting.isFormatTokenLimitError(error)) {
+                    throw error;
+                }
             }
         }
 
@@ -69,13 +75,20 @@ export default class Renderer extends marked.Renderer {
         let output = text;
 
         if (this.formattingOptions.searchPatterns) {
-            const tokens = new Map();
-            output = TextFormatting.highlightSearchTerms(
-                output,
-                tokens,
-                this.formattingOptions.searchPatterns,
-            );
-            output = TextFormatting.replaceTokens(output, tokens);
+            try {
+                const tokens = new TextFormatting.Tokens();
+                output = TextFormatting.highlightSearchTerms(
+                    output,
+                    tokens,
+                    this.formattingOptions.searchPatterns,
+                );
+                output = TextFormatting.replaceTokens(output, tokens);
+            } catch (error) {
+                if (!TextFormatting.isFormatTokenLimitError(error)) {
+                    throw error;
+                }
+                output = text;
+            }
         }
 
         return (
@@ -222,7 +235,7 @@ export default class Renderer extends marked.Renderer {
             // style it properly. We need to use a CSS counter to tell the ::before elements which numbers to show.
             output += ` style="counter-reset: list ${start - 1}"`;
         }
-        output += `>\n${content}</${type}>`;
+        output += `>${content}</${type}>`;
 
         return output;
     }

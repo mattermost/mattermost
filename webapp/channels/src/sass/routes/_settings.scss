@@ -68,7 +68,8 @@
         }
 
         .modal-body {
-            min-height: calc(100% - 62px);
+            display: flex;
+            flex-direction: column;
             padding: 0;
             margin: 0 auto;
         }
@@ -187,26 +188,12 @@
         }
 
         .settings-table {
-            display: table;
+            display: flex;
             width: 100%;
             max-width: 1000px;
+            min-height: 0;
+            flex: 1;
             margin: 0 auto;
-            table-layout: fixed;
-
-            > div {
-                display: table-cell;
-                vertical-align: top;
-            }
-
-            .nav {
-                position: fixed;
-                width: 179px;
-                margin: 0;
-
-                &.position--top {
-                    top: 57px;
-                }
-            }
 
             .security-links {
                 margin-right: 20px;
@@ -217,11 +204,14 @@
             }
 
             .settings-links {
+                overflow: auto;
                 width: 180px;
                 background: var(--sidebar-bg);
             }
 
             .settings-content {
+                overflow: auto;
+                flex: 1;
                 padding: 0 20px 30px;
 
                 .modal-header {
@@ -425,6 +415,13 @@
                 .setting-list {
                     padding: 0;
                     list-style-type: none;
+
+                    .radio {
+                        p {
+                            padding-top: 5px;
+                            padding-left: 20px;
+                        }
+                    }
                 }
 
                 .setting-box__item {
@@ -508,6 +505,13 @@
                 text-align: left;
                 text-overflow: ellipsis;
                 white-space: nowrap;
+            }
+
+            img {
+                &.icon {
+                    height: 18px;
+                    vertical-align: top;
+                }
             }
 
             .icon {

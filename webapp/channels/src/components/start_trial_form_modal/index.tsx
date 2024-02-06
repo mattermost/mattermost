@@ -9,7 +9,6 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/common';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {requestTrialLicense} from 'actions/admin_actions';
 import {validateBusinessEmail} from 'actions/cloud';
@@ -18,7 +17,7 @@ import {closeModal, openModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
 import {makeAsyncComponent} from 'components/async_load';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import useGetTotalUsersNoBots from 'components/common/hooks/useGetTotalUsersNoBots';
 import DropdownInput from 'components/dropdown_input';
 import ExternalLink from 'components/external_link';
@@ -69,7 +68,7 @@ type Props = {
 
 function StartTrialFormModal(props: Props): JSX.Element | null {
     const [status, setLoadStatus] = useState(TrialLoadStatus.NotStarted);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const currentUser = useSelector(getCurrentUser);
     const [name, setName] = useState('');
     const [email, setEmail] = useState(currentUser.email);
@@ -78,7 +77,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
     const [country, setCountry] = useState('');
     const [businessEmailError, setBusinessEmailError] = useState<CustomMessageInputType | undefined>(undefined);
     const {formatMessage} = useIntl();
-    const canReachCWS = useCWSAvailabilityCheck();
+    const cwsAvailability = useCWSAvailabilityCheck();
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.START_TRIAL_FORM_MODAL));
     const totalUsers = useGetTotalUsersNoBots(true) || 0;
     const [didOnce, setDidOnce] = useState(false);
@@ -149,7 +148,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
             let buttonText;
             let onTryAgain = handleErrorModalTryAgain;
 
-            if (data.status === 422) {
+            if ((data as any).status === 422) {
                 title = (<></>);
                 subtitle = (
                     <FormattedMessage
@@ -236,7 +235,7 @@ function StartTrialFormModal(props: Props): JSX.Element | null {
         status === TrialLoadStatus.Success
     );
 
-    if (typeof canReachCWS !== 'undefined' && !canReachCWS) {
+    if (cwsAvailability === CSWAvailabilityCheckTypes.Unavailable) {
         return (
             <AirGappedModal
                 onClose={handleOnClose}

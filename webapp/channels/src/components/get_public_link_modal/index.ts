@@ -10,7 +10,6 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getFilePublicLink} from 'mattermost-redux/actions/files';
 import * as Selectors from 'mattermost-redux/selectors/entities/files';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import GetPublicLinkModal from './get_public_link_modal';
 
@@ -21,7 +20,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             getFilePublicLink,

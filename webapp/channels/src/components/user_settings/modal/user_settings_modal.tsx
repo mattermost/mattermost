@@ -12,8 +12,9 @@ import type {
     IntlShape} from 'react-intl';
 import {Provider} from 'react-redux';
 
-import type {StatusOK} from '@mattermost/types/client4';
 import type {UserProfile} from '@mattermost/types/users';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import store from 'stores/redux_store';
 
@@ -24,8 +25,10 @@ import * as Keyboard from 'utils/keyboard';
 import * as NotificationSounds from 'utils/notification_sounds';
 import * as Utils from 'utils/utils';
 
+import type {PluginConfiguration} from 'types/plugins/user_settings';
+
 const UserSettings = React.lazy(() => import(/* webpackPrefetch: true */ 'components/user_settings'));
-const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ '../../settings_sidebar'));
+const SettingsSidebar = React.lazy(() => import(/* webpackPrefetch: true */ 'components/settings_sidebar'));
 
 const holders = defineMessages({
     profile: {
@@ -76,13 +79,9 @@ export type Props = {
     intl: IntlShape;
     isContentProductSettings: boolean;
     actions: {
-        sendVerificationEmail: (email: string) => Promise<{
-            data: StatusOK;
-            error: {
-                err: string;
-            };
-        }>;
+        sendVerificationEmail: (email: string) => Promise<ActionResult>;
     };
+    pluginSettings: {[pluginId: string]: PluginConfiguration};
 }
 
 type State = {
@@ -277,11 +276,18 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
             return (<div/>);
         }
         const tabs = [];
+        let pluginTabs;
         if (this.props.isContentProductSettings) {
             tabs.push({name: 'notifications', uiName: formatMessage(holders.notifications), icon: 'icon icon-bell-outline', iconTitle: Utils.localizeMessage('user.settings.notifications.icon', 'Notification Settings Icon')});
             tabs.push({name: 'display', uiName: formatMessage(holders.display), icon: 'icon icon-eye-outline', iconTitle: Utils.localizeMessage('user.settings.display.icon', 'Display Settings Icon')});
             tabs.push({name: 'sidebar', uiName: formatMessage(holders.sidebar), icon: 'icon icon-dock-left', iconTitle: Utils.localizeMessage('user.settings.sidebar.icon', 'Sidebar Settings Icon')});
             tabs.push({name: 'advanced', uiName: formatMessage(holders.advanced), icon: 'icon icon-tune', iconTitle: Utils.localizeMessage('user.settings.advance.icon', 'Advanced Settings Icon')});
+            pluginTabs = Object.values(this.props.pluginSettings).map((v) => ({
+                icon: v.icon ? {url: v.icon} : 'icon-power-plug-outline',
+                iconTitle: v.uiName,
+                name: v.id,
+                uiName: v.uiName,
+            }));
         } else {
             tabs.push({name: 'profile', uiName: formatMessage(holders.profile), icon: 'icon icon-settings-outline', iconTitle: Utils.localizeMessage('user.settings.profile.icon', 'Profile Settings Icon')});
             tabs.push({name: 'security', uiName: formatMessage(holders.security), icon: 'icon icon-lock-outline', iconTitle: Utils.localizeMessage('user.settings.security.icon', 'Security Settings Icon')});
@@ -324,6 +330,7 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                 <Provider store={store}>
                                     <SettingsSidebar
                                         tabs={tabs}
+                                        pluginTabs={pluginTabs}
                                         activeTab={this.state.active_tab}
                                         updateTab={this.updateTab}
                                     />
@@ -347,6 +354,8 @@ class UserSettingsModal extends React.PureComponent<Props, State> {
                                                 this.customConfirmAction = customConfirmAction!;
                                             }
                                         }
+                                        pluginSettings={this.props.pluginSettings}
+                                        user={this.props.currentUser}
                                     />
                                 </Provider>
                             </React.Suspense>

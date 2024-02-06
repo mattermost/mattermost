@@ -5,13 +5,13 @@ import moment from 'moment-timezone';
 
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {updateMe} from './users';
 
-export function autoUpdateTimezone(deviceTimezone: string) {
+export function autoUpdateTimezone(deviceTimezone: string): NewActionFuncAsync {
     moment.tz.setDefault(deviceTimezone);
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return async (dispatch, getState) => {
         const currentUser = getCurrentUser(getState());
         const currentTimezone = getCurrentTimezoneFull(getState());
         const newTimezoneExists = currentTimezone.automaticTimezone !== deviceTimezone;
@@ -28,7 +28,7 @@ export function autoUpdateTimezone(deviceTimezone: string) {
                 timezone,
             };
 
-            updateMe(updatedUser)(dispatch, getState);
+            dispatch(updateMe(updatedUser));
         }
 
         return {data: true};

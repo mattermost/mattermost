@@ -214,12 +214,12 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	post.SanitizeProps()
 
-	var pchan chan store.GenericStoreResult[*model.PostList]
+	var pchan chan store.StoreResult[*model.PostList]
 	if post.RootId != "" {
-		pchan = make(chan store.GenericStoreResult[*model.PostList], 1)
+		pchan = make(chan store.StoreResult[*model.PostList], 1)
 		go func() {
 			r, pErr := a.Srv().Store().Post().Get(sqlstore.WithMaster(context.Background()), post.RootId, model.GetPostsOptions{}, "", a.Config().GetSanitizeOptions())
-			pchan <- store.GenericStoreResult[*model.PostList]{Data: r, NErr: pErr}
+			pchan <- store.StoreResult[*model.PostList]{Data: r, NErr: pErr}
 			close(pchan)
 		}()
 	}
@@ -574,6 +574,7 @@ func (a *App) SendEphemeralPost(c request.CTX, userID string, post *model.Post) 
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = post.Clone()
 		sanitizedPost.Metadata = nil
+		sanitizedPost.DelProp(model.PostPropsPreviewedPost)
 	}
 	post = sanitizedPost
 
@@ -599,6 +600,18 @@ func (a *App) UpdateEphemeralPost(c request.CTX, userID string, post *model.Post
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", post.ChannelId, userID, nil, "")
 	post = a.PreparePostForClientWithEmbedsAndImages(c, post, true, false, true)
 	post = model.AddPostActionCookies(post, a.PostActionCookieSecret())
+
+	sanitizedPost, appErr := a.SanitizePostMetadataForUser(c, post, userID)
+	if appErr != nil {
+		mlog.Error("Failed to sanitize post metadata for user", mlog.String("user_id", userID), mlog.Err(appErr))
+
+		// If we failed to sanitize the post, we still want to remove the metadata.
+		sanitizedPost = post.Clone()
+		sanitizedPost.Metadata = nil
+		sanitizedPost.DelProp(model.PostPropsPreviewedPost)
+	}
+	post = sanitizedPost
+
 	postJSON, jsonErr := post.ToJSON()
 	if jsonErr != nil {
 		c.Logger().Warn("Failed to encode post to JSON", mlog.Err(jsonErr))
@@ -744,17 +757,18 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 	}
 
 	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
-	postJSON, jsonErr := rpost.ToJSON()
-	if jsonErr != nil {
-		return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
-	}
-	message.Add("post", postJSON)
 
 	published, err := a.publishWebsocketEventForPermalinkPost(c, rpost, message)
 	if err != nil {
 		return nil, err
 	}
 	if !published {
+		removePermalinkMetadataFromPost(rpost)
+		postJSON, jsonErr := rpost.ToJSON()
+		if jsonErr != nil {
+			return nil, model.NewAppError("UpdatePost", "app.post.marshal.app_error", nil, "", http.StatusInternalServerError).Wrap(jsonErr)
+		}
+		message.Add("post", postJSON)
 		a.Publish(message)
 	}
 
@@ -768,6 +782,7 @@ func (a *App) UpdatePost(c request.CTX, receivedUpdatedPost *model.Post, safeUpd
 		// If we failed to sanitize the post, we still want to remove the metadata.
 		sanitizedPost = rpost.Clone()
 		sanitizedPost.Metadata = nil
+		sanitizedPost.DelProp(model.PostPropsPreviewedPost)
 	}
 	rpost = sanitizedPost
 
@@ -1278,15 +1293,15 @@ func (a *App) AddCursorIdsForPostList(originalList *model.PostList, afterPost, b
 	originalList.PrevPostId = prevPostId
 }
 func (a *App) GetPostsForChannelAroundLastUnread(c request.CTX, channelID, userID string, limitBefore, limitAfter int, skipFetchThreads bool, collapsedThreads, collapsedThreadsExtended bool) (*model.PostList, *model.AppError) {
-	var member *model.ChannelMember
+	var lastViewedAt int64
 	var err *model.AppError
-	if member, err = a.Srv().getChannelMemberOnly(c, channelID, userID); err != nil {
+	if lastViewedAt, err = a.Srv().getChannelMemberLastViewedAt(c, channelID, userID); err != nil {
 		return nil, err
-	} else if member.LastViewedAt == 0 {
+	} else if lastViewedAt == 0 {
 		return model.NewPostList(), nil
 	}
 
-	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, member.LastViewedAt, collapsedThreads)
+	lastUnreadPostId, err := a.GetPostIdAfterTime(channelID, lastViewedAt, collapsedThreads)
 	if err != nil {
 		return nil, err
 	} else if lastUnreadPostId == "" {
@@ -1402,9 +1417,21 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	})
 
+	// delete drafts associated with the post when deleting the post
+	a.Srv().Go(func() {
+		a.deleteDraftsAssociatedWithPost(c, channel, post)
+	})
+
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return post, nil
+}
+
+func (a *App) deleteDraftsAssociatedWithPost(c request.CTX, channel *model.Channel, post *model.Post) {
+	if err := a.Srv().Store().Draft().DeleteDraftsAssociatedWithPost(channel.Id, post.Id); err != nil {
+		c.Logger().Error("Failed to delete drafts associated with post when deleting post", mlog.Err(err))
+		return
+	}
 }
 
 func (a *App) deleteFlaggedPosts(c request.CTX, postID string) {
@@ -1460,7 +1487,7 @@ func (a *App) parseAndFetchChannelIdByNameFromInFilter(c request.CTX, channelNam
 func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*model.SearchParams, modifierFun func(*model.SearchParams)) (*model.PostList, *model.AppError) {
 	var wg sync.WaitGroup
 
-	pchan := make(chan store.GenericStoreResult[*model.PostList], len(paramsList))
+	pchan := make(chan store.StoreResult[*model.PostList], len(paramsList))
 
 	for _, params := range paramsList {
 		// Don't allow users to search for everything.
@@ -1473,7 +1500,7 @@ func (a *App) searchPostsInTeam(teamID string, userID string, paramsList []*mode
 		go func(params *model.SearchParams) {
 			defer wg.Done()
 			postList, err := a.Srv().Store().Post().Search(teamID, userID, params)
-			pchan <- store.GenericStoreResult[*model.PostList]{Data: postList, NErr: err}
+			pchan <- store.StoreResult[*model.PostList]{Data: postList, NErr: err}
 		}(params)
 	}
 
@@ -1682,10 +1709,10 @@ func (a *App) SearchPostsForUser(c request.CTX, terms string, userID string, tea
 }
 
 func (a *App) GetFileInfosForPostWithMigration(rctx request.CTX, postID string, includeDeleted bool) ([]*model.FileInfo, *model.AppError) {
-	pchan := make(chan store.GenericStoreResult[*model.Post], 1)
+	pchan := make(chan store.StoreResult[*model.Post], 1)
 	go func() {
 		post, err := a.Srv().Store().Post().GetSingle(postID, includeDeleted)
-		pchan <- store.GenericStoreResult[*model.Post]{Data: post, NErr: err}
+		pchan <- store.StoreResult[*model.Post]{Data: post, NErr: err}
 		close(pchan)
 	}()
 
@@ -2055,10 +2082,10 @@ func (a *App) GetPostIfAuthorized(c request.CTX, postID string, session *model.S
 	if !a.SessionHasPermissionToChannel(c, *session, channel.Id, model.PermissionReadChannelContent) {
 		if channel.Type == model.ChannelTypeOpen && !*a.Config().ComplianceSettings.Enable {
 			if !a.SessionHasPermissionToTeam(*session, channel.TeamId, model.PermissionReadPublicChannel) {
-				return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
+				return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadPublicChannel})
 			}
 		} else {
-			return nil, a.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent})
+			return nil, model.MakePermissionError(session, []*model.Permission{model.PermissionReadChannelContent})
 		}
 	}
 
@@ -2281,19 +2308,26 @@ func (a *App) GetPostInfo(c request.CTX, postID string) (*model.PostInfo, *model
 	}
 
 	hasPermissionToAccessChannel := false
-	if channel.Type == model.ChannelTypeOpen {
+
+	_, channelMemberErr := a.GetChannelMember(c, channel.Id, userID)
+
+	if channelMemberErr == nil {
 		hasPermissionToAccessChannel = true
-	} else if channel.Type == model.ChannelTypePrivate {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
-	} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
-		hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
+	}
+
+	if !hasPermissionToAccessChannel {
+		if channel.Type == model.ChannelTypeOpen {
+			hasPermissionToAccessChannel = true
+		} else if channel.Type == model.ChannelTypePrivate {
+			hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionManagePrivateChannelMembers)
+		} else if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
+			hasPermissionToAccessChannel = a.HasPermissionToChannel(c, userID, channel.Id, model.PermissionReadChannelContent)
+		}
 	}
 
 	if !hasPermissionToAccessChannel {
 		return nil, notFoundError
 	}
-
-	_, channelMemberErr := a.GetChannelMember(c, channel.Id, userID)
 
 	info := model.PostInfo{
 		ChannelId:          channel.Id,
@@ -2348,4 +2382,256 @@ func (a *App) applyPostWillBeConsumedHook(post **model.Post) {
 		}
 		return true
 	}, plugin.MessagesWillBeConsumedID)
+}
+
+func makePostLink(siteURL, teamName, postID string) string {
+	return fmt.Sprintf("%s/%s/pl/%s", siteURL, teamName, postID)
+}
+
+// validateMoveOrCopy performs validation on a provided post list to determine
+// if all permissions are in place to allow the for the posts to be moved or
+// copied.
+func (a *App) ValidateMoveOrCopy(c request.CTX, wpl *model.WranglerPostList, originalChannel *model.Channel, targetChannel *model.Channel, user *model.User) error {
+	if wpl.NumPosts() == 0 {
+		return errors.New("The wrangler post list contains no posts")
+	}
+
+	config := a.Config().WranglerSettings
+
+	switch originalChannel.Type {
+	case model.ChannelTypePrivate:
+		if !*config.MoveThreadFromPrivateChannelEnable {
+			return errors.New("Wrangler is currently configured to not allow moving posts from private channels")
+		}
+	case model.ChannelTypeDirect:
+		if !*config.MoveThreadFromDirectMessageChannelEnable {
+			return errors.New("Wrangler is currently configured to not allow moving posts from direct message channels")
+		}
+	case model.ChannelTypeGroup:
+		if !*config.MoveThreadFromGroupMessageChannelEnable {
+			return errors.New("Wrangler is currently configured to not allow moving posts from group message channels")
+		}
+	}
+
+	if !originalChannel.IsGroupOrDirect() && !targetChannel.IsGroupOrDirect() {
+		// DM and GM channels are "teamless" so it doesn't make sense to check
+		// the MoveThreadToAnotherTeamEnable config when dealing with those.
+		if !*config.MoveThreadToAnotherTeamEnable && targetChannel.TeamId != originalChannel.TeamId {
+			return errors.New("Wrangler is currently configured to not allow moving messages to different teams")
+		}
+	}
+
+	if *config.MoveThreadMaxCount != int64(0) && *config.MoveThreadMaxCount < int64(wpl.NumPosts()) {
+		return fmt.Errorf("the thread is %d posts long, but this command is configured to only move threads of up to %d posts", wpl.NumPosts(), *config.MoveThreadMaxCount)
+	}
+
+	_, appErr := a.GetChannelMember(c, targetChannel.Id, user.Id)
+	if appErr != nil {
+		return fmt.Errorf("channel with ID %s doesn't exist or you are not a member", targetChannel.Id)
+	}
+
+	_, appErr = a.GetChannelMember(c, originalChannel.Id, user.Id)
+	if appErr != nil {
+		return fmt.Errorf("channel with ID %s doesn't exist or you are not a member", originalChannel.Id)
+	}
+
+	return nil
+}
+
+func (a *App) CopyWranglerPostlist(c request.CTX, wpl *model.WranglerPostList, targetChannel *model.Channel) (*model.Post, *model.AppError) {
+	var appErr *model.AppError
+	var newRootPost *model.Post
+
+	if wpl.ContainsFileAttachments() {
+		// The thread contains at least one attachment. To properly move the
+		// thread, the files will have to be re-uploaded. This is completed
+		// before any messages are moved.
+		// TODO: check number of files that need to be re-uploaded or file size?
+		c.Logger().Info("Wrangler is re-uploading file attachments",
+			mlog.String("file_count", fmt.Sprintf("%d", wpl.FileAttachmentCount)),
+		)
+
+		for _, post := range wpl.Posts {
+			var newFileIDs []string
+			var fileBytes []byte
+			var oldFileInfo, newFileInfo *model.FileInfo
+			for _, fileID := range post.FileIds {
+				oldFileInfo, appErr = a.GetFileInfo(c, fileID)
+				if appErr != nil {
+					return nil, appErr
+				}
+				fileBytes, appErr = a.GetFile(c, fileID)
+				if appErr != nil {
+					return nil, appErr
+				}
+				newFileInfo, appErr = a.UploadFile(c, fileBytes, targetChannel.Id, oldFileInfo.Name)
+				if appErr != nil {
+					return nil, appErr
+				}
+
+				newFileIDs = append(newFileIDs, newFileInfo.Id)
+			}
+
+			post.FileIds = newFileIDs
+		}
+	}
+
+	for i, post := range wpl.Posts {
+		var reactions []*model.Reaction
+
+		// Store reactions to be reapplied later.
+		reactions, appErr = a.GetReactionsForPost(post.Id)
+		if appErr != nil {
+			// Reaction-based errors are logged, but do not abort
+			c.Logger().Error("Failed to get reactions on original post")
+		}
+
+		newPost := post.Clone()
+		newPost = newPost.CleanPost()
+		newPost.ChannelId = targetChannel.Id
+
+		if i == 0 {
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			if appErr != nil {
+				return nil, appErr
+			}
+			newRootPost = newPost.Clone()
+		} else {
+			newPost.RootId = newRootPost.Id
+			newPost, appErr = a.CreatePost(c, newPost, targetChannel, false, false)
+			if appErr != nil {
+				return nil, appErr
+			}
+		}
+
+		for _, reaction := range reactions {
+			reaction.PostId = newPost.Id
+			_, appErr = a.SaveReactionForPost(c, reaction)
+			if appErr != nil {
+				// Reaction-based errors are logged, but do not abort
+				c.Logger().Error("Failed to reapply reactions to post")
+			}
+		}
+	}
+
+	return newRootPost, nil
+}
+
+func (a *App) MoveThread(c request.CTX, postID string, sourceChannelID, channelID string, user *model.User) *model.AppError {
+	postListResponse, appErr := a.GetPostThread(postID, model.GetPostsOptions{}, user.Id)
+	if appErr != nil {
+		return model.NewAppError("getPostThread", "app.post.move_thread_command.error", nil, "postID="+postID+", "+"UserId="+user.Id+"", http.StatusBadRequest)
+	}
+	wpl := postListResponse.BuildWranglerPostList()
+
+	originalChannel, appErr := a.GetChannel(c, sourceChannelID)
+	if appErr != nil {
+		return appErr
+	}
+	targetChannel, appErr := a.GetChannel(c, channelID)
+	if appErr != nil {
+		return appErr
+	}
+
+	err := a.ValidateMoveOrCopy(c, wpl, originalChannel, targetChannel, user)
+	if err != nil {
+		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, err.Error(), http.StatusBadRequest)
+	}
+
+	var targetTeam *model.Team
+	if targetChannel.IsGroupOrDirect() {
+		if !originalChannel.IsGroupOrDirect() {
+			targetTeam, appErr = a.GetTeam(originalChannel.TeamId)
+		}
+	} else {
+		targetTeam, appErr = a.GetTeam(targetChannel.TeamId)
+	}
+
+	if appErr != nil {
+		return appErr
+	}
+
+	if targetTeam == nil {
+		return model.NewAppError("validateMoveOrCopy", "app.post.move_thread_command.error", nil, "target team is nil", http.StatusBadRequest)
+	}
+
+	// Begin creating the new thread.
+	c.Logger().Info("Wrangler is moving a thread", mlog.String("user_id", user.Id), mlog.String("original_post_id", wpl.RootPost().Id), mlog.String("original_channel_id", originalChannel.Id))
+
+	// To simulate the move, we first copy the original messages(s) to the
+	// new channel and later delete the original messages(s).
+	newRootPost, appErr := a.CopyWranglerPostlist(c, wpl, targetChannel)
+	if appErr != nil {
+		return appErr
+	}
+
+	T, err := i18n.GetTranslationsBySystemLocale()
+	if err != nil {
+		return model.NewAppError("MoveThread", "app.post.move_thread_command.error", nil, err.Error(), http.StatusInternalServerError)
+	}
+
+	ephemeralPostProps := model.StringInterface{
+		"TranslationID": "app.post.move_thread.from_another_channel",
+	}
+	_, appErr = a.CreatePost(c, &model.Post{
+		UserId:    user.Id,
+		Type:      model.PostTypeWrangler,
+		RootId:    newRootPost.Id,
+		ChannelId: channelID,
+		Message:   T("app.post.move_thread.from_another_channel"),
+		Props:     ephemeralPostProps,
+	}, targetChannel, false, false)
+	if appErr != nil {
+		return appErr
+	}
+	// Cleanup is handled by simply deleting the root post. Any comments/replies
+	// are automatically marked as deleted for us.
+	_, appErr = a.DeletePost(c, wpl.RootPost().Id, user.Id)
+	if appErr != nil {
+		return appErr
+	}
+
+	c.Logger().Info("Wrangler thread move complete", mlog.String("user_id", user.Id), mlog.String("new_post_id", newRootPost.Id), mlog.String("channel_id", channelID))
+
+	// Translate to the system locale, webapp will attempt to render in each user's specific locale (based on the TranslationID prop) before falling back on the initiating user's locale
+	ephemeralPostProps = model.StringInterface{}
+
+	msg := T("app.post.move_thread_command.direct_or_group.multiple_messages", model.StringInterface{"NumMessages": wpl.NumPosts()})
+	ephemeralPostProps["TranslationID"] = "app.post.move_thread_command.direct_or_group.multiple_messages"
+	if wpl.NumPosts() == 1 {
+		msg = T("app.post.move_thread_command.direct_or_group.one_message")
+		ephemeralPostProps["TranslationID"] = "app.post.move_thread_command.direct_or_group.one_message"
+	}
+
+	if targetChannel.TeamId != "" {
+		targetTeam, teamErr := a.GetTeam(targetChannel.TeamId)
+		if teamErr != nil {
+			return teamErr
+		}
+		targetName := targetTeam.Name
+		newPostLink := makePostLink(*a.Config().ServiceSettings.SiteURL, targetName, newRootPost.Id)
+		msg = T("app.post.move_thread_command.channel.multiple_messages", model.StringInterface{"NumMessages": wpl.NumPosts(), "Link": newPostLink})
+		ephemeralPostProps["TranslationID"] = "app.post.move_thread_command.channel.multiple_messages"
+		if wpl.NumPosts() == 1 {
+			msg = T("app.post.move_thread_command.channel.one_message", model.StringInterface{"Link": newPostLink})
+			ephemeralPostProps["TranslationID"] = "app.post.move_thread_command.channel.one_message"
+		}
+		ephemeralPostProps["MovedThreadPermalink"] = newPostLink
+	}
+
+	ephemeralPostProps["NumMessages"] = wpl.NumPosts()
+
+	_, appErr = a.CreatePost(c, &model.Post{
+		UserId:    user.Id,
+		Type:      model.PostTypeWrangler,
+		ChannelId: originalChannel.Id,
+		Message:   msg,
+		Props:     ephemeralPostProps,
+	}, originalChannel, false, false)
+	if appErr != nil {
+		return appErr
+	}
+
+	c.Logger().Info(msg)
+	return nil
 }

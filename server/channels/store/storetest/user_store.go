@@ -6,6 +6,8 @@ package storetest
 import (
 	"context"
 	"errors"
+	"fmt"
+	"sort"
 	"strings"
 	"testing"
 	"time"
@@ -96,6 +98,7 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetKnownUsers", func(t *testing.T) { testGetKnownUsers(t, rctx, ss) })
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
 	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
+	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss, s) })
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -907,28 +910,28 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 	c2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u4.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -939,7 +942,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 	_, err = ss.User().Update(rctx, u4, true)
 	require.NoError(t, err)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1016,7 +1019,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: user2Admin.Id}, -1)
 		require.NoError(t, nErr)
 
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:     c1.Id,
 			UserId:        user2Admin.Id,
 			NotifyProps:   model.GetDefaultChannelNotifyProps(),
@@ -1077,14 +1080,14 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, rctx request.CTX, ss
 	c1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      user1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:     c1.Id,
 		UserId:        user2Admin.Id,
 		NotifyProps:   model.GetDefaultChannelNotifyProps(),
@@ -1093,7 +1096,7 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, rctx request.CTX, ss
 	require.NoError(t, nErr)
 	ss.Channel().UpdateMembersRole(c1.Id, []string{user2Admin.Id})
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      user3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1181,28 +1184,28 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 	c2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u4.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1213,7 +1216,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 	_, err = ss.User().Update(rctx, u4, true)
 	require.NoError(t, err)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1398,28 +1401,28 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, rctx request.CTX, ss sto
 	c2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1546,28 +1549,28 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 		}, profiles)
 	})
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1754,7 +1757,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, rctx request.
 	require.NoError(t, nErr)
 
 	for _, uId := range []string{u1.Id, u2.Id, u3.Id} {
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   gc1.Id,
 			UserId:      uId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1770,7 +1773,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, rctx request.
 	require.NoError(t, nErr)
 
 	for _, uId := range []string{u1.Id, u3.Id, u4.Id} {
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   gc2.Id,
 			UserId:      uId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -2442,7 +2445,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	m2.UserId = u2.Id
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	_, nErr = ss.Channel().SaveMember(&m2)
+	_, nErr = ss.Channel().SaveMember(rctx, &m2)
 	require.NoError(t, nErr)
 
 	m3 := model.ChannelMember{}
@@ -2450,7 +2453,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	m3.UserId = u3.Id
 	m3.NotifyProps = model.GetDefaultChannelNotifyProps()
 
-	_, nErr = ss.Channel().SaveMember(&m3)
+	_, nErr = ss.Channel().SaveMember(rctx, &m3)
 	require.NoError(t, nErr)
 
 	m1.ChannelId = c2.Id
@@ -2729,11 +2732,11 @@ func assertUsers(t *testing.T, expected, actual []*model.User) {
 
 func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 		Roles:     "system_user system_admin",
 	}
 	_, err := ss.User().Save(u1)
@@ -2741,7 +2744,7 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_user system_user_manager",
 	}
@@ -2750,7 +2753,7 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_guest",
 	}
@@ -2877,18 +2880,18 @@ func testUserStoreSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 
 func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -2896,7 +2899,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.St
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -2946,19 +2949,19 @@ func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.St
 	c2, nErr := ss.Channel().Save(&ch2, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -3103,11 +3106,11 @@ func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.St
 
 func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 		Roles:     "system_user system_admin",
 	}
 	_, err := ss.User().Save(u1)
@@ -3115,7 +3118,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 		Roles:    "system_user",
 	}
@@ -3124,7 +3127,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 		Roles:    "system_user",
@@ -3175,7 +3178,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 	c2, nErr := ss.Channel().Save(&ch2, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -3183,7 +3186,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 		SchemeUser:  true,
 	})
 	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -3191,7 +3194,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 		SchemeUser:  true,
 	})
 	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -3337,18 +3340,18 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 
 func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3356,7 +3359,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -3373,7 +3376,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.Bot().PermanentDelete(u3.Id)) }()
 
 	u4 := &model.User{
-		Username: "simon" + model.NewId(),
+		Username: "simon" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 0,
 	}
@@ -3382,7 +3385,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
 
 	u5 := &model.User{
-		Username:  "yu" + model.NewId(),
+		Username:  "yu" + NewTestId(),
 		FirstName: "En",
 		LastName:  "Yu",
 		Nickname:  "enyu",
@@ -3393,7 +3396,7 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u5.Id)) }()
 
 	u6 := &model.User{
-		Username:  "underscore" + model.NewId(),
+		Username:  "underscore" + NewTestId(),
 		FirstName: "Du_",
 		LastName:  "_DE",
 		Nickname:  "lodash",
@@ -3529,18 +3532,18 @@ func testUserStoreSearchNotInTeam(t *testing.T, rctx request.CTX, ss store.Store
 
 func testUserStoreSearchWithoutTeam(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim2-bobby" + model.NewId(),
+		Username: "jim2-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3548,7 +3551,7 @@ func testUserStoreSearchWithoutTeam(t *testing.T, rctx request.CTX, ss store.Sto
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 		DeleteAt: 1,
 	}
@@ -3634,18 +3637,18 @@ func testUserStoreSearchWithoutTeam(t *testing.T, rctx request.CTX, ss store.Sto
 
 func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3653,7 +3656,7 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u3)
@@ -3668,21 +3671,21 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceLdap,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3777,18 +3780,18 @@ func testUserStoreSearchInGroup(t *testing.T, rctx request.CTX, ss store.Store) 
 
 func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{
-		Username:  "jimbo1" + model.NewId(),
+		Username:  "jimbo1" + NewTestId(),
 		FirstName: "Tim",
 		LastName:  "Bill",
 		Nickname:  "Rob",
-		Email:     "harold" + model.NewId() + "@simulator.amazonses.com",
+		Email:     "harold" + NewTestId() + "@simulator.amazonses.com",
 	}
 	_, err := ss.User().Save(u1)
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	u2 := &model.User{
-		Username: "jim-bobby" + model.NewId(),
+		Username: "jim-bobby" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u2)
@@ -3796,7 +3799,7 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 
 	u3 := &model.User{
-		Username: "jimbo3" + model.NewId(),
+		Username: "jimbo3" + NewTestId(),
 		Email:    MakeEmail(),
 	}
 	_, err = ss.User().Save(u3)
@@ -3811,21 +3814,21 @@ func testUserStoreSearchNotInGroup(t *testing.T, rctx request.CTX, ss store.Stor
 	u3.AuthData = nilAuthData
 
 	g1 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g1)
 	require.NoError(t, err)
 
 	g2 := &model.Group{
-		Name:        model.NewString(model.NewId()),
-		DisplayName: model.NewId(),
-		Description: model.NewId(),
+		Name:        model.NewString(NewTestId()),
+		DisplayName: NewTestId(),
+		Description: NewTestId(),
 		Source:      model.GroupSourceCustom,
-		RemoteId:    model.NewString(model.NewId()),
+		RemoteId:    model.NewString(NewTestId()),
 	}
 	_, err = ss.Group().Create(g2)
 	require.NoError(t, err)
@@ -3919,7 +3922,7 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(regularUser.Id)) }()
 	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: regularUser.Id, SchemeAdmin: false, SchemeUser: true}, -1)
 	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{UserId: regularUser.Id, ChannelId: channelId, SchemeAdmin: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{UserId: regularUser.Id, ChannelId: channelId, SchemeAdmin: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 	require.NoError(t, nErr)
 
 	guestUser := &model.User{}
@@ -3930,7 +3933,7 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(guestUser.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: guestUser.Id, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true}, -1)
 	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{UserId: guestUser.Id, ChannelId: channelId, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{UserId: guestUser.Id, ChannelId: channelId, SchemeAdmin: false, SchemeUser: false, SchemeGuest: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 	require.NoError(t, nErr)
 
 	teamAdmin := &model.User{}
@@ -3941,7 +3944,7 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(teamAdmin.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: teamAdmin.Id, SchemeAdmin: true, SchemeUser: true}, -1)
 	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{UserId: teamAdmin.Id, ChannelId: channelId, SchemeAdmin: true, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{UserId: teamAdmin.Id, ChannelId: channelId, SchemeAdmin: true, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 	require.NoError(t, nErr)
 
 	sysAdmin := &model.User{}
@@ -3952,7 +3955,7 @@ func testCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	defer func() { require.NoError(t, ss.User().PermanentDelete(sysAdmin.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId, UserId: sysAdmin.Id, SchemeAdmin: false, SchemeUser: true}, -1)
 	require.NoError(t, nErr)
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{UserId: sysAdmin.Id, ChannelId: channelId, SchemeAdmin: true, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{UserId: sysAdmin.Id, ChannelId: channelId, SchemeAdmin: true, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 	require.NoError(t, nErr)
 
 	// Deleted
@@ -4904,6 +4907,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u1.Id)) }()
 
 	time.Sleep(time.Millisecond)
 
@@ -4913,18 +4917,19 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u2.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		UserId: u2.Id,
 		TeamId: t1.Id,
 	}, 100)
 	require.NoError(t, nErr)
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		UserId:      u2.Id,
 		ChannelId:   cPub1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, err)
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		UserId:      u2.Id,
 		ChannelId:   cPub2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -4939,19 +4944,20 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		CreateAt: model.GetMillis(),
 	})
 	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(u3.Id)) }()
 	_, nErr = ss.Team().SaveMember(&model.TeamMember{
 		UserId:   u3.Id,
 		TeamId:   t1.Id,
 		DeleteAt: model.GetMillis(),
 	}, 100)
 	require.NoError(t, nErr)
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		UserId:      u3.Id,
 		ChannelId:   cPub2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, err)
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		UserId:      u3.Id,
 		ChannelId:   cPriv.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -5156,7 +5162,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 	userGroupA, userGroupB, userNoGroup := testUsers[0], testUsers[1], testUsers[2]
 
 	// add non-group-member to the channel (to prove that the query isn't just returning all members)
-	_, err := ss.Channel().SaveMember(&model.ChannelMember{
+	_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      userNoGroup.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -5228,7 +5234,7 @@ func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.
 	requireNUsers(2)
 
 	// add team membership of allowed user
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      userGroupA.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -5273,7 +5279,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
@@ -5319,7 +5325,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
@@ -5415,7 +5421,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
@@ -5460,7 +5466,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		err = ss.User().PromoteGuestToUser(user.Id)
@@ -5506,7 +5512,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		}, -1)
 		require.NoError(t, nErr)
 
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user1.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user1.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		id = model.NewId()
@@ -5526,7 +5532,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		err = ss.User().PromoteGuestToUser(user1.Id)
@@ -5588,7 +5594,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
@@ -5632,7 +5638,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: true, SchemeUser: false, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
@@ -5722,7 +5728,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
@@ -5765,7 +5771,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 			Type:        model.ChannelTypeOpen,
 		}, -1)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user.Id)
@@ -5809,7 +5815,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		}, -1)
 		require.NoError(t, nErr)
 
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user1.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user1.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		id = model.NewId()
@@ -5829,7 +5835,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: teamId2, UserId: user2.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channel.Id, UserId: user2.Id, SchemeGuest: false, SchemeUser: true, NotifyProps: model.GetDefaultChannelNotifyProps()})
 		require.NoError(t, nErr)
 
 		updatedUser, err := ss.User().DemoteUserToGuest(user1.Id)
@@ -6048,35 +6054,35 @@ func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	c3, nErr := ss.Channel().Save(ch3, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c1.Id,
 		UserId:      u2.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u3.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c2.Id,
 		UserId:      u1.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
 	})
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   c3.Id,
 		UserId:      u4.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -6181,4 +6187,399 @@ func testUpdateLastLogin(t *testing.T, rctx request.CTX, ss store.Store) {
 	user, err := ss.User().Get(context.Background(), u1.Id)
 	require.NoError(t, err)
 	require.Equal(t, int64(1234567890), user.LastLogin)
+}
+
+func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
+	numRegularUsers := 90
+	numSysAdmins := 10
+	numInactiveUsers := 15
+	numUsers := numRegularUsers + numSysAdmins + numInactiveUsers
+
+	numPostsPerUser := 10
+
+	now := time.Now()
+
+	users := make([]*model.User, numUsers)
+	for i := 0; i < numUsers; i++ {
+		user := &model.User{Username: fmt.Sprintf("username_%d", i), DeleteAt: 0}
+		user.Email = MakeEmail()
+
+		if i >= numRegularUsers && i < numRegularUsers+numSysAdmins {
+			user.Roles = "system"
+		}
+
+		if i >= numRegularUsers+numSysAdmins {
+			user.DeleteAt = now.UnixMilli()
+		}
+
+		user, err := ss.User().Save(user)
+		require.NoError(t, err)
+		users[i] = user
+	}
+
+	sort.Slice(users, func(i, j int) bool {
+		return users[i].Username < users[j].Username
+	})
+
+	// cleanup users after the test
+	defer func() {
+		for _, user := range users {
+			require.NoError(t, ss.User().PermanentDelete(user.Id))
+		}
+	}()
+
+	for _, user := range users {
+		for i := 0; i < numPostsPerUser; i++ {
+			post := model.Post{UserId: user.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
+			_, err := ss.Post().Save(&post)
+			require.NoError(t, err)
+		}
+	}
+
+	team, err := ss.Team().Save(&model.Team{
+		DisplayName: model.NewId(),
+		Name:        NewTestId(),
+		Email:       MakeEmail(),
+		Type:        model.TeamOpen,
+	})
+	require.NoError(t, err)
+
+	_, err = ss.Team().SaveMember(&model.TeamMember{UserId: users[0].Id, TeamId: team.Id}, 100)
+	require.NoError(t, err)
+
+	_, err = ss.Team().SaveMember(&model.TeamMember{UserId: users[1].Id, TeamId: team.Id}, 100)
+	require.NoError(t, err)
+
+	defer func() {
+		require.NoError(t, ss.Team().RemoveMember(rctx, team.Id, users[0].Id))
+		require.NoError(t, ss.Team().RemoveMember(rctx, team.Id, users[1].Id))
+		require.NoError(t, ss.Team().PermanentDelete(team.Id))
+	}()
+
+	err = ss.User().RefreshPostStatsForUsers()
+	require.NoError(t, err)
+
+	t.Run("should return info for all the users", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Len(t, userReport, 50)
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[0].Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, users[1].Username, userReport[1].Username)
+
+		require.NotNil(t, userReport[2])
+		require.Equal(t, users[2].Username, userReport[2].Username)
+	})
+
+	t.Run("should return in the correct order", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				SortDesc:   true,
+				PageSize:   50,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Len(t, userReport, 50)
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[numUsers-1].Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, users[numUsers-2].Username, userReport[1].Username)
+
+		require.NotNil(t, userReport[2])
+		require.Equal(t, users[numUsers-3].Username, userReport[2].Username)
+	})
+
+	t.Run("should fail on invalid sort column", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "FakeColumn",
+				SortDesc:   true,
+				PageSize:   50,
+			},
+		})
+		require.Error(t, err)
+		require.Nil(t, userReport)
+	})
+
+	t.Run("should only return amount of users in page", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   2,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 2, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[0].Username, userReport[0].Username)
+
+		require.NotNil(t, userReport[1])
+		require.Equal(t, users[1].Username, userReport[1].Username)
+	})
+
+	t.Run("should return correct paging", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				Direction:       "next",
+				PageSize:        50,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 50, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[11].Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				SortDesc:        true,
+				Direction:       "next",
+				PageSize:        50,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 10, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[9].Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				Direction:       "prev",
+				PageSize:        50,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 10, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[0].Username, userReport[0].Username)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn:      "Username",
+				SortDesc:        true,
+				Direction:       "prev",
+				PageSize:        50,
+				FromColumnValue: users[10].Username,
+				FromId:          users[10].Id,
+			},
+		})
+		require.NoError(t, err)
+		require.NotNil(t, userReport)
+		require.Equal(t, 50, len(userReport))
+
+		require.NotNil(t, userReport[0])
+		require.Equal(t, users[60].Username, userReport[0].Username)
+	})
+
+	t.Run("should return all users regardless of date range", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    now.AddDate(1000, 0, 0).UnixMilli(),
+				EndAt:      now.AddDate(1000, 0, 0).UnixMilli(),
+			},
+		})
+
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+	})
+
+	t.Run("should return accurate post stats for various date ranges", func(t *testing.T) {
+		// These stats are disabled for MySQL
+		if s.DriverName() == model.DatabaseDriverMysql {
+			return
+		}
+
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		require.Equal(t, numPostsPerUser, *userReport[0].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[0].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, numPostsPerUser, *userReport[1].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[1].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, numPostsPerUser, *userReport[2].TotalPosts)
+		require.Equal(t, numPostsPerUser, *userReport[2].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    now.AddDate(0, 0, -2).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		require.Equal(t, 3, *userReport[0].TotalPosts)
+		require.Equal(t, 3, *userReport[0].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 3, *userReport[1].TotalPosts)
+		require.Equal(t, 3, *userReport[1].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 3, *userReport[2].TotalPosts)
+		require.Equal(t, 3, *userReport[2].DaysActive)
+		require.Equal(t, now.UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				EndAt:      now.AddDate(0, 0, -2).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		require.Equal(t, 7, *userReport[0].TotalPosts)
+		require.Equal(t, 7, *userReport[0].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 7, *userReport[1].TotalPosts)
+		require.Equal(t, 7, *userReport[1].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 7, *userReport[2].TotalPosts)
+		require.Equal(t, 7, *userReport[2].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+				StartAt:    now.AddDate(0, 0, -3).UnixMilli(),
+				EndAt:      now.AddDate(0, 0, -2).UnixMilli(),
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		require.Equal(t, 1, *userReport[0].TotalPosts)
+		require.Equal(t, 1, *userReport[0].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[0].LastPostDate)
+		require.Equal(t, 1, *userReport[1].TotalPosts)
+		require.Equal(t, 1, *userReport[1].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[1].LastPostDate)
+		require.Equal(t, 1, *userReport[2].TotalPosts)
+		require.Equal(t, 1, *userReport[2].DaysActive)
+		require.Equal(t, now.AddDate(0, 0, -3).UnixMilli(), *userReport[2].LastPostDate)
+	})
+
+	t.Run("should filter on roles", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			Role: "system",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 10)
+	})
+
+	t.Run("should filter on teams", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			HasNoTeam: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+		require.Equal(t, users[2].Id, userReport[0].Id)
+		require.Equal(t, users[3].Id, userReport[1].Id)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			Team: team.Id,
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 2)
+		require.Equal(t, users[0].Id, userReport[0].Id)
+		require.Equal(t, users[1].Id, userReport[1].Id)
+	})
+
+	t.Run("should filter on activation", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			HideInactive: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 50)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			HideActive: true,
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 15)
+	})
+
+	t.Run("should filter on search term", func(t *testing.T) {
+		userReport, err := ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			SearchTerm: "username_1",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 26)
+
+		userReport, err = ss.User().GetUserReport(&model.UserReportOptions{
+			ReportingBaseOptions: model.ReportingBaseOptions{
+				SortColumn: "Username",
+				PageSize:   50,
+			},
+			SearchTerm: "username_2",
+		})
+		require.NoError(t, err)
+		require.Len(t, userReport, 11)
+	})
 }

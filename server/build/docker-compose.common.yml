@@ -1,7 +1,7 @@
 version: '2.4'
 services:
   mysql:
-    image: "mysql/mysql-server:5.7.12"
+    image: "mysql/mysql-server:8.0.32"
     restart: always
     networks:
       - mm-test
@@ -19,12 +19,15 @@ services:
     volumes:
       - ./docker/mysql.conf.d/source.cnf:/etc/mysql/conf.d/mysql.cnf
   mysql-read-replica:
-    image: "mysql/mysql-server:5.7.12"
+    image: "mysql/mysql-server:8.0.32"
     restart: always
     networks:
       - mm-test
     ports:
-      - 3307:3306
+      - target: 3306
+        published: 3307
+        protocol: tcp
+        mode: host
     environment:
       MYSQL_ROOT_HOST: "%"
       MYSQL_ROOT_PASSWORD: mostest
