@@ -5,12 +5,12 @@ import moment from 'moment-timezone';
 
 import {getCurrentTimezoneFull} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {updateMe} from './users';
 
 
-export function autoUpdateTimezone(deviceTimezone: string): NewActionFuncAsync {
+export function autoUpdateTimezone(deviceTimezone: string): ActionFuncAsync {
     moment.tz.setDefault(deviceTimezone);
     return async (dispatch, getState) => {
         const currentUser = getCurrentUser(getState());
