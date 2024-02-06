@@ -80,8 +80,8 @@ export MME2E_OSTYPE=$(docker version -f '{{ .Client.Os }}')
 export MME2E_ARCHTYPE=$(docker version -f '{{ .Client.Arch }}')
 export NODE_VERSION_REQUIRED=$(cat ../../.nvmrc)
 
-# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose' in your shell
-# NB: this won't work in the script
+# Utility alias, for interactive shell usage. Can be reversed with 'unalias docker-compose-mmserver' in your shell
+# NB: this only works in interactive shells
 alias docker-compose-mmserver='${MME2E_DC_SERVER}'
 alias docker-compose-mmdashboard='${MME2E_DC_DASHBOARD}'
 

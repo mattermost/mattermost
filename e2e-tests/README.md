@@ -33,13 +33,12 @@ Instructions, detailed:
   * Note that if you run the dashboard locally, but also specify other `AUTOMATION_DASHBOARD_*` variables in your `.ci/env` file, the latter variables will take precedence.
   * The dashboard is used for orchestrating specs with parallel test run and is typically used in CI.
   * Only Cypress is currently using the dashboard; Playwright is not.
-  * You may need to run `npm i` in the `cypress` directory, if you're running the E2E tests locally for the first time.
 3. `make`: start and prepare the server, then run the Cypress smoke tests
   * You can track the progress of the run in the `http://localhost:4000/cycles` dashboard, if you launched it locally
   * When running with `SERVER=cloud`, this will automatically create a cloud customer against the specified `CWS_URL` service, and delete that user after the run is complete.
   * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make`
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
-  * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machiness (that are using the same `BUILD_ID` value) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
+  * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machiness (NB: you must use the same `BUILD_ID` and `BRANCH` values that you used for `make generate-test-cycle`) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
 4. `make stop`: tears down the server (and the dashboard, if running)
   * `make clean` will also remove any generated environment or docker-compose files, in addition to stopping the containers.
 
