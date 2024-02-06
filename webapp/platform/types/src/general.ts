@@ -5,7 +5,6 @@ import {ClientConfig, ClientLicense, WarnMetricStatus} from './config';
 
 export type GeneralState = {
     config: Partial<ClientConfig>;
-    dataRetentionPolicy: any;
     firstAdminVisitMarketplaceStatus: boolean;
     firstAdminCompleteSetup: boolean;
     license: ClientLicense;

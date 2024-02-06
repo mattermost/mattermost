@@ -478,7 +478,7 @@ function SystemUsers(props: Props) {
                 </FormattedMessage>
                 <RevokeSessionsButton/>
             </AdminHeader>
-            <div className='admin-console__wrapper'>
+            <div className='admin-console__wrapper ignore-marking'>
                 {showMySqlBanner &&
                 <AlertBanner
                     className='systemUsers__mySqlAlertBanner'

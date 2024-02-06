@@ -62,7 +62,7 @@ const SidebarHeading = styled(Heading).attrs(() => ({
     margin: 'none',
     size: 200,
 }))<SidebarHeaderProps>`
-    color: var(--sidebar-header-text-color);
+    color: var(--sidebar-text);
     cursor: pointer;
     display: flex;
 
