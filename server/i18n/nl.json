@@ -10372,5 +10372,9 @@
   {
     "id": "app.report.send_report_to_user.missing_user_id",
     "translation": "Geen gebruikersid om het rapport naar toe te sturen"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Ongeldige update teamlid: Een gast kan geen teamlid of teambeheerder worden. Maak van de gast eerst een gebruiker."
   }
 ]
