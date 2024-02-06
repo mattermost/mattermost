@@ -7,7 +7,6 @@ import (
 	"crypto/ecdsa"
 	"crypto/rand"
 	"encoding/json"
-	"net/http"
 	"net/url"
 	"reflect"
 	"strconv"
@@ -228,18 +227,6 @@ func (a *App) GetEnvironmentConfig(filter func(reflect.StructField) bool) map[st
 
 // SaveConfig replaces the active configuration, optionally notifying cluster peers.
 func (a *App) SaveConfig(newCfg *model.Config, sendConfigChangeClusterMessage bool) (*model.Config, *model.Config, *model.AppError) {
-	// if Elasticsearch autocomplete was enabled, we need to verify if channels index is in right state.
-	// "Test Connection" button in system console checks this and set a flag in ES service,
-	// so we just need to check that flag's value.
-	oldESChannelAutocompleteWasDisabled := !*a.Config().ElasticsearchSettings.EnableAutocomplete
-	newESChannelAutocompleteIsEnabled := *newCfg.ElasticsearchSettings.EnableAutocomplete
-
-	if oldESChannelAutocompleteWasDisabled && newESChannelAutocompleteIsEnabled {
-		if !a.SearchEngine().ElasticsearchEngine.IsAutocompletionEnabled() {
-			return nil, nil, model.NewAppError("SaveConfig", "app.save_config.elasticsearch.autocomplete_cannot_be_enabled_error", nil, "", http.StatusBadRequest)
-		}
-	}
-
 	return a.Srv().platform.SaveConfig(newCfg, sendConfigChangeClusterMessage)
 }
 
