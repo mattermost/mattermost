@@ -3,6 +3,7 @@
 
 import marked from 'marked';
 import type {MarkedOptions} from 'marked';
+
 import EmojiMap from 'utils/emoji_map';
 import * as PostUtils from 'utils/post_utils';
 import * as TextFormatting from 'utils/text_formatting';
