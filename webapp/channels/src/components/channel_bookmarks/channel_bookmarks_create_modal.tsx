@@ -144,7 +144,6 @@ function ChannelBookmarkCreateModal({
         const url = validHttpUrl(link);
 
         (async () => {
-            let meta;
             resetParsed();
 
             if (!url) {
@@ -160,13 +159,12 @@ function ChannelBookmarkCreateModal({
                 openGraphRequestAbortController?.current?.abort('stale request');
                 openGraphRequestAbortController.current = new AbortController();
                 setIsLoadingOpenGraphMetaLink(link);
-                meta = await Client4.fetchChannelBookmarkOpenGraph(channelId, url.toString(), openGraphRequestAbortController.current.signal);
 
-                const {title, images} = meta;
+                const {title, images} = await Client4.fetchChannelBookmarkOpenGraph(channelId, url.toString(), openGraphRequestAbortController.current.signal);
 
                 setParsedDisplayName(title || link);
-                const favicon = images?.find(({type}) => type === 'image/x-mm-icon')?.url;
-                setIcon(favicon || '');
+                const favicon = images?.find(({type}) => type === 'image/x-mm-icon');
+                setIcon(favicon?.secure_url || favicon?.url || '');
                 setLinkError('');
             } catch (err) {
                 if (err.server_error_id === 'api.context.invalid_url_param.app_error') {
@@ -182,7 +180,7 @@ function ChannelBookmarkCreateModal({
                 });
             }
         })();
-    }, [link, bookmark?.link_url]);
+    }, [link, bookmark?.link_url, channelId]);
 
     // type === 'file'
     const canUploadFiles = useCanUploadFiles();
@@ -307,10 +305,10 @@ function ChannelBookmarkCreateModal({
         }
     }, [promptedFile]);
 
-    const handleOnExited = () => {
+    const handleOnExited = useCallback(() => {
         uploadRequestRef.current?.abort();
         onExited?.();
-    };
+    }, [onExited]);
 
     // controls logic
     const hasChanges = (() => {
@@ -318,7 +316,7 @@ function ChannelBookmarkCreateModal({
             return true;
         }
 
-        if (emoji !== bookmark?.emoji) {
+        if ((emoji || bookmark?.emoji) && emoji !== bookmark?.emoji) {
             return true;
         }
 
@@ -351,12 +349,13 @@ function ChannelBookmarkCreateModal({
     })();
     const showControls = type === 'file' || (isValid || bookmark);
 
-    const cancel = () => {
+    const cancel = useCallback(() => {
         if (type === 'file') {
             uploadRequestRef.current?.abort();
         }
-    };
-    const confirm = async () => {
+    }, [type]);
+
+    const confirm = useCallback(async () => {
         setSaving(true);
         if (type === 'link') {
             const url = validHttpUrl(link);
@@ -403,7 +402,7 @@ function ChannelBookmarkCreateModal({
                 setSaveError(formatMessage(msg.saveError));
             }
         }
-    };
+    }, [type, link, onConfirm, onHide, fileInfo, displayNameValue, emoji, icon]);
 
     const confirmDisabled = saving || !isValid || !hasChanges;
 
