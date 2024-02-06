@@ -6896,7 +6896,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Hiba történt a megosztott csatorna létezésének ellenőrzése során: {{.Error}}"
+    "translation": "Hiba történt a {{.ChannelID}} megosztott csatorna létezésének ellenőrzése során: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
