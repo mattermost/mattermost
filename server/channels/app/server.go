@@ -227,6 +227,7 @@ func NewServer(options ...Option) (*Server, error) {
 		WebHub:       s.platform,
 		ConfigFn:     s.platform.Config,
 		LicenseFn:    s.License,
+		Logger:       s.Log(),
 	})
 	if err != nil {
 		return nil, errors.Wrapf(err, "unable to create teams service")

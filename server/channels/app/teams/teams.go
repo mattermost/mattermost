@@ -56,7 +56,8 @@ func (ts *TeamService) createDefaultChannels(teamID string) ([]*model.Channel, e
 		// and let the subscribers do the job, in this case it would be the channels service.
 		// Currently we are adding services to the server and because of that we are using
 		// the channel store here. This should be replaced in the future.
-		if _, err := ts.channelStore.Save(channel, *ts.config().TeamSettings.MaxChannelsPerTeam); err != nil {
+		rctx := request.EmptyContext(ts.log)
+		if _, err := ts.channelStore.Save(rctx, channel, *ts.config().TeamSettings.MaxChannelsPerTeam); err != nil {
 			return nil, err
 		}
 		channels = append(channels, channel)

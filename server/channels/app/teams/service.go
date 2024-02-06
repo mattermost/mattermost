@@ -7,6 +7,7 @@ import (
 	"errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -18,6 +19,7 @@ type TeamService struct {
 	wh           WebHub
 	config       func() *model.Config
 	license      func() *model.License
+	log          mlog.LoggerIFace
 }
 
 // ServiceConfig is used to initialize the TeamService.
@@ -30,6 +32,7 @@ type ServiceConfig struct {
 	WebHub       WebHub
 	ConfigFn     func() *model.Config
 	LicenseFn    func() *model.License
+	Logger       mlog.LoggerIFace
 }
 
 // Users is a subset of UserService interface
@@ -56,6 +59,7 @@ func New(c ServiceConfig) (*TeamService, error) {
 		config:       c.ConfigFn,
 		license:      c.LicenseFn,
 		wh:           c.WebHub,
+		log:          c.Logger,
 	}, nil
 }
 
