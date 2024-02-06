@@ -349,6 +349,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         const isLastPost = itemId === this.props.lastPost.id;
         const isRootPost = itemId === this.props.selected.id;
+        const replyCount = this.props.selected.reply_count;
 
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;
@@ -379,6 +380,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
                     listId={itemId}
+                    replyCount={replyCount}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
