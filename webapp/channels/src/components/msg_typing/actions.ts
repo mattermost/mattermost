@@ -8,7 +8,7 @@ import {General, Preferences, WebsocketEvents} from 'mattermost-redux/constants'
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 function getTimeBetweenTypingEvents(state: GlobalState) {
     const config = getConfig(state);
@@ -16,8 +16,8 @@ function getTimeBetweenTypingEvents(state: GlobalState) {
     return config.TimeBetweenUserTypingUpdatesMilliseconds === undefined ? 0 : parseInt(config.TimeBetweenUserTypingUpdatesMilliseconds, 10);
 }
 
-export function userStartedTyping(userId: string, channelId: string, rootId: string, now: number) {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function userStartedTyping(userId: string, channelId: string, rootId: string, now: number): ThunkActionFunc<void> {
+    return (dispatch, getState) => {
         const state = getState();
 
         if (
@@ -45,8 +45,8 @@ export function userStartedTyping(userId: string, channelId: string, rootId: str
     };
 }
 
-function fillInMissingInfo(userId: string) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+function fillInMissingInfo(userId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
 

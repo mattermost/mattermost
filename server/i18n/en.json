@@ -2759,14 +2759,6 @@
     "translation": "This action is forbidden to a restricted system admin."
   },
   {
-    "id": "api.retrieveBatchReportFile.invalid_format",
-    "translation": "Report format is invalid."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_report_id",
-    "translation": "Report ID is invalid."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Unable to get that many roles by name. Only {{.MaxNames}} roles can be requested at once."
   },
@@ -3315,10 +3307,6 @@
     "translation": "Invalid request body."
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error while parsing the body data."
-  },
-  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3425,6 +3413,14 @@
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
     "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Invalid team member update: A guest cannot be made team member or team admin, please promote as a user first."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Invalid team member update: A user must cannot be set as a guest and admin at the same time."
   },
   {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
@@ -4909,6 +4905,10 @@
   {
     "id": "app.bot.permenent_delete.bad_id",
     "translation": "Unable to delete the bot."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Unable to add thr user as a member of the channel."
   },
   {
     "id": "app.channel.analytics_type_count.app_error",
@@ -6779,6 +6779,22 @@
     "translation": "Unable to save the token."
   },
   {
+    "id": "app.report.date_range.all_time",
+    "translation": "all time"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "the last 30 days"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "the last 6 months"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "the previous month"
+  },
+  {
     "id": "app.report.get_user_count_for_report.store_error",
     "translation": "Failed to fetch user count."
   },
@@ -6787,12 +6803,20 @@
     "translation": "Failed to fetch user report."
   },
   {
-    "id": "app.report.retrieve_batch_report.license_error",
-    "translation": "Batch reporting export only available to Pro and Enterprise."
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Your export is ready. The CSV file contains user data for {{.DateRange}}. Click on the link below to download the report."
   },
   {
-    "id": "app.report.send_report_to_user.export_finished",
-    "translation": "Report processing is finished. You can download the report [here]({{.Link}})"
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Failed to save file info."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Missing date range"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "No user id to send the report to"
   },
   {
     "id": "app.report.start_users_batch_export.job_exists",
@@ -6804,7 +6828,7 @@
   },
   {
     "id": "app.report.start_users_batch_export.started_export",
-    "translation": "You have requested the export of user data. A CSV will be delivered to you when the export is complete."
+    "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",

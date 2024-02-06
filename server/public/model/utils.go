@@ -397,17 +397,17 @@ func NewRandomString(length int) string {
 
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return GetMillisForTime(time.Now())
 }
 
 // GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
 func GetMillisForTime(thisTime time.Time) int64 {
-	return thisTime.UnixNano() / int64(time.Millisecond)
+	return thisTime.UnixMilli()
 }
 
 // GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
 func GetTimeForMillis(millis int64) time.Time {
-	return time.Unix(0, millis*int64(time.Millisecond))
+	return time.UnixMilli(millis)
 }
 
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
@@ -551,6 +551,16 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	}
 
 	return objmap
+}
+
+func StructFromJSONLimited[V any](data io.Reader, maxBytes int64, obj *V) error {
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
+	if err != nil || obj == nil {
+		return err
+	}
+
+	return nil
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
