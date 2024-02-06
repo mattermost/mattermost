@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
 	"path"
 	"reflect"
 	"runtime"
@@ -55,6 +56,7 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/latest_version", api.APISessionRequired(getLatestVersion)).Methods("GET")
+	api.BaseRoutes.APIRoot.Handle("/root_check", api.APISessionRequired(checkForRootUser)).Methods("GET")
 
 	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
@@ -500,6 +502,18 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(b)
+}
+
+func checkForRootUser(c *Context, w http.ResponseWriter, r *http.Request) {
+	flag := make(map[string]bool)
+	flag["is_root"] = false
+
+	if os.Geteuid() == 0 {
+		flag["is_root"] = true
+	}
+
+	j, _ := json.Marshal(flag)
+	w.Write(j)
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {

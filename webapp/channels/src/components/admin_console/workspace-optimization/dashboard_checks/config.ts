@@ -76,6 +76,40 @@ const sessionLength = (
     };
 };
 
+/**
+ *
+ * @description This checks to see if Mattermost is running as root.
+ */
+const rootUserCheck = async (
+    config: Partial<AdminConfig>,
+    formatMessage: ReturnType<typeof useIntl>['formatMessage'],
+    options: Options,
+) => {
+    const fetchRootStatus = async () => {
+        const result = await fetch(`${Client4.getBaseRoute()}/root_check`).then((result) => result.json());
+
+        return result.is_root ? ItemStatus.WARNING : ItemStatus.OK;
+    };
+
+    const status = await fetchRootStatus();
+    
+    return {
+        id: 'root_check,',
+        title: formatMessage({
+            id: 'admin.reporting.workspace_optimization.configuration.root_check.title',
+            defaultMessage: 'Mattermost is running as root',
+        }),
+        description: formatMessage({
+            id: 'admin.reporting.workspace_optimization.configuration.root_check.description',
+            defaultMessage: 'Running Mattermost as root is not recommended. Please use a non-root user.',
+        }),
+        telemetryAction: 'root_check',
+        status: status,
+        scoreImpact: 25,
+        impactModifier: impactModifiers[status],
+    };
+};
+
 const fileStorage = async (
     config: Partial<AdminConfig>,
     formatMessage: ReturnType<typeof useIntl>['formatMessage'],
@@ -119,6 +153,7 @@ export const runConfigChecks = async (
         ssl,
         sessionLength,
         fileStorage,
+        rootUserCheck,
     ];
     const results = await Promise.all(checks.map((check) => check(config, formatMessage, options)));
     return results;
