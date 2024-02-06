@@ -10352,5 +10352,13 @@
   {
     "id": "app.report.send_report_to_user.missing_user_id",
     "translation": "缺少发送报告至的用户 id"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "团队成员更新无效：用户不能被同时设为访客和管理员。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "团队成员更新无效：访客不能成为团队成员或团队管理员，请先将其提升为用户。"
   }
 ]
