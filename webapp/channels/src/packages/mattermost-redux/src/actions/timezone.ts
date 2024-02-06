@@ -9,7 +9,6 @@ import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {updateMe} from './users';
 
-
 export function autoUpdateTimezone(deviceTimezone: string): ActionFuncAsync {
     moment.tz.setDefault(deviceTimezone);
     return async (dispatch, getState) => {
