@@ -627,9 +627,9 @@ https://myothersite.com/api/v2"
                 }
               >
                 <span>
-                  Get help with 
+                  Get help with
                   <a
-                    href="https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections"
+                    href="https://mattermost.com/pl/outgoing-oauth-connections"
                     key=".$.1"
                   >
                     configuring outgoing OAuth connections
@@ -1348,9 +1348,9 @@ https://myothersite.com/api/v2"
                 }
               >
                 <span>
-                  Get help with 
+                  Get help with
                   <a
-                    href="https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections"
+                    href="https://mattermost.com/pl/outgoing-oauth-connections"
                     key=".$.1"
                   >
                     configuring outgoing OAuth connections
@@ -2068,9 +2068,9 @@ https://myothersite.com/api/v2"
                 }
               >
                 <span>
-                  Get help with 
+                  Get help with
                   <a
-                    href="https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections"
+                    href="https://mattermost.com/pl/outgoing-oauth-connections"
                     key=".$.1"
                   >
                     configuring outgoing OAuth connections

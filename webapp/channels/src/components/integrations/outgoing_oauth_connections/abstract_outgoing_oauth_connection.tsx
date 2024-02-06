@@ -529,7 +529,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                     defaultMessage={'Get help with <link>configuring outgoing OAuth connections</link>.'}
                     values={{
                         link: (text: string) => (
-                            <a href='https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections'>{text}</a>
+                            <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
                         ),
                     }}
                 />
