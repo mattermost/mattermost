@@ -2058,7 +2058,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 			post := posts.Posts[postID]
 
 			if strings.HasPrefix(post.Message, "Test: ") {
-				t.Fatal("Plugin message found:", post.Message)
+				t.Log("Plugin message found:", post.Message)
+				t.FailNow()
 			}
 		}
 	})
@@ -2088,7 +2089,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 			post := posts.Posts[postID]
 
 			if strings.HasPrefix(post.Message, "Test: ") {
-				t.Fatal("Plugin message found:", post.Message)
+				t.Log("Plugin message found:", post.Message)
+				t.FailNow()
 			}
 		}
 	})
@@ -2119,7 +2121,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 			post := posts.Posts[postID]
 
 			if strings.HasPrefix(post.Message, "Test: ") {
-				t.Fatal("Plugin message found:", post.Message)
+				t.Log("Plugin message found:", post.Message)
+				t.FailNow()
 			}
 		}
 	})
