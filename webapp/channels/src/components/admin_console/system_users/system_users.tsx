@@ -478,7 +478,7 @@ function SystemUsers(props: Props) {
                 </FormattedMessage>
                 <RevokeSessionsButton/>
             </AdminHeader>
-            <div className='admin-console__wrapper ignore-marking'>
+            <div className='admin-console__wrapper'>
                 {showMySqlBanner &&
                 <AlertBanner
                     className='systemUsers__mySqlAlertBanner'
@@ -522,7 +522,7 @@ function SystemUsers(props: Props) {
                     onDismiss={handleDismissMySqlNotice}
                 />
                 }
-                <div className='admin-console__container'>
+                <div className='admin-console__container ignore-marking'>
                     <div className='admin-console__filters-rows'>
                         <SystemUsersSearch
                             searchTerm={props.tablePropertySearchTerm}
