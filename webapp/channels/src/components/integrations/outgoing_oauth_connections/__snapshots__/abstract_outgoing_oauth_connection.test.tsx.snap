@@ -476,7 +476,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               }
             >
               <span>
-                Get help with
+                Get help with 
                 <a
                   href="https://mattermost.com/pl/outgoing-oauth-connections"
                   key=".$.1"
@@ -1064,7 +1064,7 @@ exports[`components/integrations/AbstractOutgoingOAuthConnection should match sn
               }
             >
               <span>
-                Get help with
+                Get help with 
                 <a
                   href="https://mattermost.com/pl/outgoing-oauth-connections"
                   key=".$.1"

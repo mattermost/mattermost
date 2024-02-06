@@ -358,7 +358,7 @@ exports[`components/integrations/ConfirmIntegration should match snapshot, outgo
     >
       <MemoizedFormattedMessage
         defaultMessage="Outgoing OAuth 2.0 Connections"
-        id="installed_oauth2_outgoing_oauth_connections.header"
+        id="installed_outgoing_oauth_connections.header"
       />
     </Link>
     <MemoizedFormattedMessage
