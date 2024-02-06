@@ -26,8 +26,12 @@ const (
 )
 
 func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
-	if !*a.Config().ServiceSettings.EnableLinkPreviews || !a.isLinkAllowedForPreview(requestURL) {
-		return nil, model.NewAppError("GetOpenGraphMetadata", "app.channels.opengraph.error", nil, "", http.StatusForbidden)
+	if !*a.Config().ServiceSettings.EnableLinkPreviews {
+		return nil, model.NewAppError("GetOpenGraphMetadata", "app.channel.opengraph.link_previews_disabled.error", nil, "", http.StatusForbidden)
+	}
+
+	if !a.isLinkAllowedForPreview(requestURL) {
+		return nil, model.NewAppError("GetOpenGraphMetadata", "app.channel.opengraph.link_not_allowed.error", nil, "", http.StatusBadRequest)
 	}
 
 	var ogJSONGeneric []byte
@@ -69,7 +73,7 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 		mlog.Warn("parseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
 	}
 
-	fav, _ := parseLinkFavicon(requestURL, html)
+	fav, _ := parseLinkFavicon(html)
 
 	if fav != "" {
 		og.Images = append(og.Images, &image.Image{
@@ -98,7 +102,7 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	return og
 }
 
-func parseLinkFavicon(requestURL string, html []byte) (string, error) {
+func parseLinkFavicon(html []byte) (string, error) {
 	htmlParser := parser.NewHTMLParser(string(html))
 
 	url, err := htmlParser.GetFaviconURL()
