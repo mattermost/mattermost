@@ -257,7 +257,9 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         }
     };
 
-    const setUnvalidated = () => {
+    const setUnvalidated = (e?: React.FormEvent) => {
+        e?.preventDefault();
+
         if (validationStatus !== ValidationStatus.DIRTY) {
             setValidationStatus(ValidationStatus.DIRTY);
         }
@@ -314,6 +316,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         <input
             id='client_secret'
             type='text'
+            autoComplete='off'
             className='form-control'
             value={formState.clientSecret}
             onChange={updateClientSecret}
@@ -326,6 +329,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                 <input
                     id='client_secret'
                     disabled={true}
+                    autoComplete='off'
                     type='text'
                     className='form-control disabled'
                     value={'•'.repeat(40)}
@@ -396,6 +400,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             <input
                                 id='client_id'
                                 type='text'
+                                autoComplete='off'
                                 className='form-control'
                                 value={formState.clientId}
                                 onChange={updateClientId}
@@ -455,6 +460,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                             <div className='outgoing-oauth-connection-validate-button-container'>
                                 <ValidateButton
                                     onClick={handleValidate}
+                                    setUnvalidated={setUnvalidated}
                                     status={validationStatus}
                                 />
                             </div>
@@ -533,18 +539,22 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
 type ValidateButtonProps = {
     status: ValidationStatus;
     onClick: (e: FormEvent) => void;
+    setUnvalidated: (e: FormEvent) => void;
 }
 
-const ValidateButton = ({status, onClick}: ValidateButtonProps) => {
+const ValidateButton = ({status, onClick, setUnvalidated}: ValidateButtonProps) => {
     if (status === ValidationStatus.ERROR) {
         return (
             <span
                 className='outgoing-oauth-connection-validation-message validation-error'
             >
-                <AlertOutlineIcon/>
+                <AlertOutlineIcon size={20}/>
                 <FormattedMessage
-                    id={'add_outgoing_oauth_connection.validation-error'}
-                    defaultMessage={'Connection not validated. Please check the server logs for details.'}
+                    id={'add_outgoing_oauth_connection.validation_error'}
+                    defaultMessage={'Connection not validated. Please check the server logs for details or <link>try again</link>.'}
+                    values={{
+                        link: (text: string) => <a onClick={setUnvalidated}>{text}</a>,
+                    }}
                 />
             </span>
         );
@@ -555,10 +565,10 @@ const ValidateButton = ({status, onClick}: ValidateButtonProps) => {
             <span
                 className='outgoing-oauth-connection-validation-message validation-success'
             >
-                <CheckCircleOutlineIcon/>
+                <CheckCircleOutlineIcon size={20}/>
                 <FormattedMessage
-                    id={'add_outgoing_oauth_connection.validated'}
-                    defaultMessage={'Validated'}
+                    id={'add_outgoing_oauth_connection.validated_connection'}
+                    defaultMessage={'Validated connection'}
                 />
             </span>
         );
@@ -583,7 +593,7 @@ const ValidateButton = ({status, onClick}: ValidateButtonProps) => {
 
     const validateButton = (
         <button
-            className='btn btn-tertiary'
+            className='btn btn-tertiary btn-sm'
             type='button'
             onClick={onClick}
             id='validateConnection'

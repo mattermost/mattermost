@@ -110,9 +110,9 @@
     .section-title,
     .subsection-title {
         display: block;
-        padding-left: 2em;
+        padding: 6px 12px 6px 34px;
         font-size: 0.95em;
-        line-height: 29px;
+        line-height: 20px;
         text-decoration: none;
     }
 
@@ -576,8 +576,10 @@
 
     svg {
         margin-right: 5px;
+        // margin-top: 2px;
     }
 
+    display: flex;
     font-size: 13px;
     font-weight: 700;
 }
