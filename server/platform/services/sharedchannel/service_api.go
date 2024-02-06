@@ -32,10 +32,9 @@ func (scs *Service) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel,
 		return nil, fmt.Errorf("cannot check if channel %s is shared: %w", sc.ChannelId, err)
 	}
 
-	sc.TeamId = channel.TeamId
-	sc.Home = true
-	sc.RemoteId = ""
-
+	if sc.TeamId == "" {
+		sc.TeamId = channel.TeamId
+	}
 	if sc.Type == "" {
 		sc.Type = channel.Type
 	}
