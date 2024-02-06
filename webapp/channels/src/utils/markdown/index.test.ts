@@ -163,4 +163,10 @@ this is long text this is long text this is long text this is long text this is 
             });
         }
     });
+
+    test('unsafe mode links are rendered as text : link', () => {
+        const originalString = '[link text](http://markdownlink.com)';
+        const output = format(originalString, {unsafeLinks: true});
+        expect(output).toEqual('<p>link text : http://markdownlink.com</p>');
+    });
 });
