@@ -6287,6 +6287,14 @@
     "translation": "We encountered an error updating the app."
   },
   {
+    "id": "app.permanent_delete_user.user_is_admin_of_team.app_error",
+    "translation": "Can not delete a user who is admin of a team."
+  },
+  {
+    "id": "app.permanent_delete_user.user_is_admin_of_team.internal_server_error.app_error",
+    "translation": "Unable to check if user is an admin of a team."
+  },
+  {
     "id": "app.plugin.cluster.save_config.app_error",
     "translation": "The plugin configuration in your config.json file must be updated manually when using ReadOnlyConfig with clustering enabled."
   },
@@ -7686,7 +7694,7 @@
     "id": "common.parse_error_int64",
     "translation": "Failed to parse the value:{{.Value}} to int64"
   },
-  {
+{
     "id": "ent.account_migration.get_all_failed",
     "translation": "Unable to get users."
   },
@@ -7722,7 +7730,7 @@
     "id": "ent.cluster.save_config.error",
     "translation": "System Console is set to read-only when High Availability is enabled unless ReadOnlyConfig is disabled in the configuration file."
   },
-  {
+{
     "id": "ent.cluster.timeout.error",
     "translation": "Timed out waiting for cluster response"
   },
@@ -7794,7 +7802,7 @@
     "id": "ent.compliance.licence_disable.app_error",
     "translation": "Compliance functionality disabled by current license. Please contact your system administrator about upgrading your enterprise license."
   },
-  {
+{
     "id": "ent.compliance.run_export.template_watcher.appError",
     "translation": "Unable to load export templates. Please try again."
   },
@@ -7806,7 +7814,7 @@
     "id": "ent.data_retention.generic.license.error",
     "translation": "Your license does not support Data Retention."
   },
-  {
+{
     "id": "ent.data_retention.policies.internal_error",
     "translation": "We encountered an error performing the requested operation."
   },
@@ -8066,7 +8074,7 @@
     "id": "ent.elasticsearch.test_config.reenter_password",
     "translation": "The Elasticsearch Server URL or Username has changed. Please re-enter the Elasticsearch password to test connection."
   },
-  {
+{
     "id": "ent.get_users_in_channel_during",
     "translation": "Failed to get users in channel during specified time period."
   },
@@ -8082,7 +8090,7 @@
     "id": "ent.ldap.app_error",
     "translation": "ldap interface was nil."
   },
-  {
+{
     "id": "ent.ldap.create_fail",
     "translation": "Unable to create LDAP user."
   },
@@ -8090,7 +8098,7 @@
     "id": "ent.ldap.disabled.app_error",
     "translation": "AD/LDAP disabled or licence does not support AD/LDAP."
   },
-  {
+{
     "id": "ent.ldap.do_login.bind_admin_user.app_error",
     "translation": "Unable to bind to AD/LDAP server. Check BindUsername and BindPassword."
   },
@@ -8182,7 +8190,7 @@
     "id": "ent.ldap.validate_guest_filter.app_error",
     "translation": "Invalid AD/LDAP Guest Filter."
   },
-  {
+{
     "id": "ent.ldap_groups.group_search_error",
     "translation": "error retrieving ldap group"
   },
@@ -8206,7 +8214,7 @@
     "id": "ent.ldap_id_migrate.app_error",
     "translation": "unable to migrate."
   },
-  {
+{
     "id": "ent.message_export.actiance_export.get_attachment_error",
     "translation": "Failed to get file info for a post."
   },
