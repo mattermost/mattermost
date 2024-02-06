@@ -15,6 +15,9 @@ import (
 )
 
 func (a *App) initElasticsearchChannelIndexCheck() {
+	// the logic of when to perform the check has been derived from platform/searchengine.StartSearchEngine()
+	// Wherever we're starting the engine, we're checking the index mapping here.
+
 	a.elasticsearchChannelIndexCheckWithRetry()
 
 	a.AddConfigListener(func(oldConfig, newConfig *model.Config) {
@@ -49,6 +52,8 @@ func (a *App) initElasticsearchChannelIndexCheck() {
 }
 
 func (a *App) elasticsearchChannelIndexCheckWithRetry() {
+	// this is being done async to not block license application and config
+	// processes as the listeners for those are called synchronously.
 	go func() {
 		// using progressive retry because ES client may take some time to connect and be ready.
 		_ = utils.LongProgressiveRetry(func() error {
