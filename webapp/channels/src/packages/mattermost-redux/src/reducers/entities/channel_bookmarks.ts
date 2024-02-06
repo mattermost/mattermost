@@ -1,14 +1,13 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {combineReducers} from 'redux';
+import {combineReducers, type AnyAction} from 'redux';
 
 import type {ChannelBookmark, ChannelBookmarksState} from '@mattermost/types/channel_bookmarks';
 import type {Channel} from '@mattermost/types/channels';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {ChannelBookmarkTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 const toNewObj = <T extends {id: string}>(current: IDMappedObjects<T>, arr: T[]) => {
     return arr.reduce((acc, x) => {
@@ -16,7 +15,7 @@ const toNewObj = <T extends {id: string}>(current: IDMappedObjects<T>, arr: T[])
     }, {...current});
 };
 
-export function byChannelId(state: ChannelBookmarksState['byChannelId'] = {}, action: GenericAction) {
+export function byChannelId(state: ChannelBookmarksState['byChannelId'] = {}, action: AnyAction) {
     switch (action.type) {
     case ChannelBookmarkTypes.RECEIVED_BOOKMARKS: {
         const channelId: Channel['id'] = action.data.channelId;
