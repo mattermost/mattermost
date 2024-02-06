@@ -523,11 +523,31 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
                     </div>
                 </form>
             </div>
+            <div className='outgoing-oauth-connections-docs-link'>
+                <FormattedMessage
+                    id={'add_outgoing_oauth_connection.documentation_link'}
+                    defaultMessage={'Get help with <link>configuring outgoing OAuth connections</link>.'}
+                    values={{
+                        link: (text: string) => (
+                            <a href='https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections'>{text}</a>
+                        ),
+                    }}
+                />
+            </div>
             <ConfirmModal
                 show={isValidationModalOpen}
-                message={'This connection has not been validated, Do you want to save anyway?'}
-                title='Save Outgoing OAuth Connection'
-                confirmButtonText='Save anyway'
+                message={intl.formatMessage({
+                    id: 'add_outgoing_oauth_connection.save_without_validation_warning',
+                    defaultMessage: 'This connection has not been validated, Do you want to save anyway?',
+                })}
+                title={intl.formatMessage({
+                    id: 'add_outgoing_oauth_connection.confirm_save',
+                    defaultMessage: 'Save Outgoing OAuth Connection',
+                })}
+                confirmButtonText={intl.formatMessage({
+                    id: 'add_outgoing_oauth_connection.save_anyway',
+                    defaultMessage: 'Save anyway',
+                })}
                 onExited={hideSkipValidateModal}
                 onCancel={hideSkipValidateModal}
                 onConfirm={handleSubmit}

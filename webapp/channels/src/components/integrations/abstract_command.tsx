@@ -539,6 +539,17 @@ export class AbstractCommand extends React.PureComponent<Props, State> {
                                         defaultMessage='Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run.'
                                     />
                                 </div>
+                                <div className='form__help'>
+                                    <FormattedMessage
+                                        id={'add_command.outgoing_oauth_connections.help_text'}
+                                        defaultMessage={'You can connect commands to <link>outgoing OAuth connections</link>.'}
+                                        values={{
+                                            link: (text: string) => (
+                                                <a href='https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections'>{text}</a>
+                                            ),
+                                        }}
+                                    />
+                                </div>
                             </div>
                         </div>
                         <div className='form-group'>

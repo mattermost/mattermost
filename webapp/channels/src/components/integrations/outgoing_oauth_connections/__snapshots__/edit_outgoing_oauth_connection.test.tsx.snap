@@ -614,6 +614,30 @@ https://myothersite.com/api/v2"
                 </div>
               </form>
             </div>
+            <div
+              className="outgoing-oauth-connections-docs-link"
+            >
+              <FormattedMessage
+                defaultMessage="Get help with <link>configuring outgoing OAuth connections</link>."
+                id="add_outgoing_oauth_connection.documentation_link"
+                values={
+                  Object {
+                    "link": [Function],
+                  }
+                }
+              >
+                <span>
+                  Get help with 
+                  <a
+                    href="https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections"
+                    key=".$.1"
+                  >
+                    configuring outgoing OAuth connections
+                  </a>
+                  .
+                </span>
+              </FormattedMessage>
+            </div>
             <ConfirmModal
               confirmButtonClass="btn btn-primary"
               confirmButtonText="Save anyway"
@@ -1311,6 +1335,30 @@ https://myothersite.com/api/v2"
                 </div>
               </form>
             </div>
+            <div
+              className="outgoing-oauth-connections-docs-link"
+            >
+              <FormattedMessage
+                defaultMessage="Get help with <link>configuring outgoing OAuth connections</link>."
+                id="add_outgoing_oauth_connection.documentation_link"
+                values={
+                  Object {
+                    "link": [Function],
+                  }
+                }
+              >
+                <span>
+                  Get help with 
+                  <a
+                    href="https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections"
+                    key=".$.1"
+                  >
+                    configuring outgoing OAuth connections
+                  </a>
+                  .
+                </span>
+              </FormattedMessage>
+            </div>
             <ConfirmModal
               confirmButtonClass="btn btn-primary"
               confirmButtonText="Save anyway"
@@ -2006,6 +2054,30 @@ https://myothersite.com/api/v2"
                   </ConfirmModal>
                 </div>
               </form>
+            </div>
+            <div
+              className="outgoing-oauth-connections-docs-link"
+            >
+              <FormattedMessage
+                defaultMessage="Get help with <link>configuring outgoing OAuth connections</link>."
+                id="add_outgoing_oauth_connection.documentation_link"
+                values={
+                  Object {
+                    "link": [Function],
+                  }
+                }
+              >
+                <span>
+                  Get help with 
+                  <a
+                    href="https://developers.mattermost.com/integrate/slash-commands/outgoing-oauth-connections"
+                    key=".$.1"
+                  >
+                    configuring outgoing OAuth connections
+                  </a>
+                  .
+                </span>
+              </FormattedMessage>
             </div>
             <ConfirmModal
               confirmButtonClass="btn btn-primary"

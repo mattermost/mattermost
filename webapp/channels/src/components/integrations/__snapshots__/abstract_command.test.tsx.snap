@@ -182,6 +182,19 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
               id="add_command.url.help"
             />
           </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
+            />
+          </div>
         </div>
       </div>
       <div
@@ -618,6 +631,19 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
               id="add_command.url.help"
             />
           </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
+            />
+          </div>
         </div>
       </div>
       <div
@@ -1052,6 +1078,19 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             <MemoizedFormattedMessage
               defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
               id="add_command.url.help"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
             />
           </div>
         </div>
