@@ -110,6 +110,10 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
+	if o.ImageUrl != "" && o.FileId != "" {
+		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.link_file.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
 	if o.OriginalId != "" && !IsValidId(o.OriginalId) {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}

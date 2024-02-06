@@ -8755,6 +8755,10 @@
     "translation": "Invalid image url."
   },
   {
+    "id": "model.channel_bookmark.is_valid.link_file.app_error",
+    "translation": "Cannot set a link and a file in the same bookmark."
+  },
+  {
     "id": "model.channel_bookmark.is_valid.link_url.missing_or_invalid.app_error",
     "translation": "Link url is missing or invalid."
   },
