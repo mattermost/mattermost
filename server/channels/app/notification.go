@@ -126,7 +126,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
 		for groupID := range mentions.GroupMentions {
 			group := groups[groupID]
-			anyUsersMentionedByGroup, err := a.insertGroupMentions(group, channel, profileMap, mentions)
+			anyUsersMentionedByGroup, err := a.insertGroupMentions(sender.Id, group, channel, profileMap, mentions)
 			if err != nil {
 				return nil, err
 			}
@@ -1200,7 +1200,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
-func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *MentionResults) (bool, *model.AppError) {
+func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *MentionResults) (bool, *model.AppError) {
 	var err error
 	var groupMembers []*model.User
 	outOfChannelGroupMembers := []*model.User{}
@@ -1221,10 +1221,12 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	}
 
 	for _, member := range groupMembers {
-		if _, ok := profileMap[member.Id]; ok {
-			mentions.Mentions[member.Id] = GroupMention
-		} else {
-			outOfChannelGroupMembers = append(outOfChannelGroupMembers, member)
+		if member.Id != senderID {
+			if _, ok := profileMap[member.Id]; ok {
+				mentions.Mentions[member.Id] = GroupMention
+			} else {
+				outOfChannelGroupMembers = append(outOfChannelGroupMembers, member)
+			}
 		}
 	}
 
