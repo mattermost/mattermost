@@ -1785,13 +1785,12 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		// Hooks are run in a goroutine, so wait for those to complete
-		time.Sleep(1 * time.Second)
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			preference, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, th.BasicUser.Id, "test_category", "test_name")
 
-		preference, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, th.BasicUser.Id, "test_category", "test_name")
-
-		require.Nil(t, appErr)
-		assert.Equal(t, "test_value_third", preference.Value)
+			require.Nil(t, appErr)
+			assert.Equal(t, "test_value_third", preference.Value)
+		}, 1*time.Second, 10*time.Millisecond)
 	})
 }
 
@@ -1849,16 +1848,14 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		assert.Eventually(t, func() bool {
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
 			require.Nil(t, appErr)
 
-			if len(posts.Posts) == 0 {
-				return false
-			}
-
 			post := posts.Posts[posts.Order[0]]
-			return post.ChannelId == channel.Id && post.Message == "ChannelHasBeenCreated has been called for "+channel.Id
+			assert.Equal(t, channel.Id, post.ChannelId)
+			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
 		}, 1*time.Second, 10*time.Millisecond)
 	})
 
@@ -1876,16 +1873,14 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		assert.Eventually(t, func() bool {
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
 			require.Nil(t, appErr)
 
-			if len(posts.Posts) == 0 {
-				return false
-			}
-
 			post := posts.Posts[posts.Order[0]]
-			return post.ChannelId == channel.Id && post.Message == "ChannelHasBeenCreated has been called for "+channel.Id
+			assert.Equal(t, channel.Id, post.ChannelId)
+			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
 		}, 1*time.Second, 10*time.Millisecond)
 	})
 
@@ -1906,16 +1901,14 @@ func TestChannelHasBeenCreated(t *testing.T) {
 		require.Nil(t, appErr)
 		require.NotNil(t, channel)
 
-		assert.Eventually(t, func() bool {
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
 			require.Nil(t, appErr)
 
-			if len(posts.Posts) == 0 {
-				return false
-			}
-
 			post := posts.Posts[posts.Order[0]]
-			return post.ChannelId == channel.Id && post.Message == "ChannelHasBeenCreated has been called for "+channel.Id
+			assert.Equal(t, channel.Id, post.ChannelId)
+			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
 		}, 1*time.Second, 10*time.Millisecond)
 	})
 }
