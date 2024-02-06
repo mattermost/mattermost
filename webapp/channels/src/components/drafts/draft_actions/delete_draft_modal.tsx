@@ -49,6 +49,8 @@ function DeleteDraftModal({
             onExited={onExited}
             compassDesign={true}
             isDeleteModal={true}
+            autoFocusConfirmButton={true}
+            confirmButtonClassName={'a11y--active a11y--focused'}
         >
             {message}
         </GenericModal>
