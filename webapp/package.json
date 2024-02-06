@@ -2,7 +2,7 @@
   "name": "@mattermost/webapp",
   "private": true,
   "engines": {
-    "node": "^18.10.0",
+    "node": "^18.10.0||^21.2.0",
     "npm": "^9.0.0 || ^10.0.0"
   },
   "scripts": {
