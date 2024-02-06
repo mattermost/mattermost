@@ -7,7 +7,7 @@ import type {UserReportOptions, UserReport, UserReportFilter, ReportDuration} fr
 import {logError} from 'mattermost-redux/actions/errors';
 import {forceLogoutIfNecessary} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {ActionTypes} from 'utils/constants';
 
@@ -37,7 +37,7 @@ export function setAdminConsoleUsersManagementTableProperties(data?: Partial<Adm
     };
 }
 
-export function getUserReports(options = {} as UserReportOptions): NewActionFuncAsync<UserReport[]> {
+export function getUserReports(options = {} as UserReportOptions): ActionFuncAsync<UserReport[]> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -52,7 +52,7 @@ export function getUserReports(options = {} as UserReportOptions): NewActionFunc
     };
 }
 
-export function getUserCountForReporting(filter = {} as UserReportFilter): NewActionFuncAsync<number> {
+export function getUserCountForReporting(filter = {} as UserReportFilter): ActionFuncAsync<number> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -67,7 +67,7 @@ export function getUserCountForReporting(filter = {} as UserReportFilter): NewAc
     };
 }
 
-export function startUsersBatchExport(dateRange: ReportDuration): NewActionFuncAsync {
+export function startUsersBatchExport(dateRange: ReportDuration): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.startUsersBatchExport(dateRange);
