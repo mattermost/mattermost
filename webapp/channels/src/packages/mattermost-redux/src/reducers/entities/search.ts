@@ -6,7 +6,6 @@ import {combineReducers} from 'redux';
 
 import type {Post} from '@mattermost/types/posts';
 import type {PreferenceType} from '@mattermost/types/preferences';
-import type {Search} from '@mattermost/types/search';
 
 import {PostTypes, PreferenceTypes, SearchTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Preferences} from 'mattermost-redux/constants';
@@ -196,61 +195,6 @@ function pinned(state: Record<string, string[]> = {}, action: AnyAction) {
 
         return removePinnedPost(state, action.data);
     }
-    case SearchTypes.REMOVE_SEARCH_PINNED_POSTS: {
-        const {channelId} = action.data;
-        const nextState = {...state};
-        if (nextState[channelId]) {
-            Reflect.deleteProperty(nextState, channelId);
-            return nextState;
-        }
-
-        return state;
-    }
-    case UserTypes.LOGOUT_SUCCESS:
-        return {};
-
-    default:
-        return state;
-    }
-}
-
-function recent(state: Record<string, Search[]> = {}, action: AnyAction) {
-    const {data, type} = action;
-
-    switch (type) {
-    case SearchTypes.RECEIVED_SEARCH_TERM: {
-        const nextState = {...state};
-        const {teamId, params} = data;
-        const {terms, isOrSearch} = params || {};
-        const team = [...(nextState[teamId] || [])];
-        const index = team.findIndex((r) => r.terms === terms);
-        if (index === -1) {
-            team.push({terms, isOrSearch});
-        } else {
-            team[index] = {terms, isOrSearch};
-        }
-        return {
-            ...nextState,
-            [teamId]: team,
-        };
-    }
-    case SearchTypes.REMOVE_SEARCH_TERM: {
-        const nextState = {...state};
-        const {teamId, terms} = data;
-        const team = [...(nextState[teamId] || [])];
-        const index = team.findIndex((r) => r.terms === terms);
-
-        if (index !== -1) {
-            team.splice(index, 1);
-
-            return {
-                ...nextState,
-                [teamId]: team,
-            };
-        }
-
-        return nextState;
-    }
     case UserTypes.LOGOUT_SUCCESS:
         return {};
 
@@ -340,10 +284,6 @@ export default combineReducers({
 
     // Object where every key is a post id mapping to an array of matched words in that post
     matches,
-
-    // Object where every key is a team composed with
-    // an object where the key is the term and the value indicates is "or" search
-    recent,
 
     // Object holding the current searches for every team
     current,

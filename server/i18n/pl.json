@@ -10304,20 +10304,8 @@
     "translation": "Liczba dni i godzin przechowywania plików nie może być większa niż 0."
   },
   {
-    "id": "app.report.retrieve_batch_report.license_error",
-    "translation": "Eksport raportów wsadowych jest dostępny tylko dla wersji Pro i Enterprise."
-  },
-  {
     "id": "app.report.start_users_batch_export.started_export",
-    "translation": "Zażądano eksportu danych użytkownika. Po zakończeniu eksportu otrzymasz plik CSV."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_format",
-    "translation": "Format raportu jest nieprawidłowy."
-  },
-  {
-    "id": "api.retrieveBatchReportFile.invalid_report_id",
-    "translation": "Identyfikator raportu jest nieprawidłowy."
+    "translation": "Rozpocząłeś eksport danych użytkownika dla {{.DateRange}}. Po zakończeniu eksportu plik CSV zostanie dostarczony w tej bezpośredniej wiadomości."
   },
   {
     "id": "app.compile_csv_chunks.header_error",
@@ -10329,7 +10317,7 @@
   },
   {
     "id": "app.report.send_report_to_user.export_finished",
-    "translation": "Przetwarzanie raportu zostało zakończone. Raport można pobrać [tutaj]({{.Link}})"
+    "translation": "Eksport jest gotowy. Plik CSV zawiera dane użytkownika dla {{.DateRange}}. Kliknij poniższy link, aby pobrać raport."
   },
   {
     "id": "app.report.start_users_batch_export.job_exists",
@@ -10346,5 +10334,33 @@
   {
     "id": "app.save_report_chunk.unsupported_format",
     "translation": "Nieobsługiwany format raportu."
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "cały czas"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "ostatnie 30 dni"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "ostatnie 6 miesięcy"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "poprzedni miesiąc"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Nie udało się zapisać informacji o pliku."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Brakujący zakres dat"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Brak identyfikatora użytkownika do wysłania raportu"
   }
 ]

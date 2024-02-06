@@ -12,7 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getChannelByName, getOtherChannels, getChannel, getChannelsNameMapInTeam, getRedirectChannelNameForTeam} from 'mattermost-redux/selectors/entities/channels';
 import {getTeamByName} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, getUserByUsername as selectUserByUsername, getUser as selectUser, getUserByEmail as selectUserByEmail} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 import * as UserUtils from 'mattermost-redux/utils/user_utils';
 
 import {openDirectChannelToUserId} from 'actions/channel_actions';
@@ -29,7 +29,7 @@ const LENGTH_OF_GROUP_ID = 40;
 const LENGTH_OF_USER_ID_PAIR = 54;
 const USER_ID_PAIR_REGEXP = new RegExp(`^[a-zA-Z0-9]{${LENGTH_OF_ID}}__[a-zA-Z0-9]{${LENGTH_OF_ID}}$`);
 
-export function onChannelByIdentifierEnter({match, history}: MatchAndHistory): NewActionFuncAsync {
+export function onChannelByIdentifierEnter({match, history}: MatchAndHistory): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {path, identifier, team} = match.params;
@@ -124,7 +124,7 @@ export async function getPathFromIdentifier(state: GlobalState, path: string, id
     return 'error';
 }
 
-export function goToChannelByChannelId(match: Match, history: History): NewActionFuncAsync {
+export function goToChannelByChannelId(match: Match, history: History): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {team, identifier} = match.params;
@@ -154,7 +154,7 @@ export function goToChannelByChannelId(match: Match, history: History): NewActio
     };
 }
 
-export function goToChannelByChannelName(match: Match, history: History): NewActionFuncAsync {
+export function goToChannelByChannelName(match: Match, history: History): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {team, identifier} = match.params;
@@ -224,7 +224,7 @@ export function goToChannelByChannelName(match: Match, history: History): NewAct
     };
 }
 
-function goToDirectChannelByUsername(match: Match, history: History): NewActionFuncAsync {
+function goToDirectChannelByUsername(match: Match, history: History): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {team, identifier} = match.params;
@@ -254,7 +254,7 @@ function goToDirectChannelByUsername(match: Match, history: History): NewActionF
     };
 }
 
-export function goToDirectChannelByUserId(match: Match, history: History, userId: string): NewActionFuncAsync {
+export function goToDirectChannelByUserId(match: Match, history: History, userId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {team} = match.params;
@@ -276,7 +276,7 @@ export function goToDirectChannelByUserId(match: Match, history: History, userId
     };
 }
 
-export function goToDirectChannelByUserIds(match: Match, history: History): NewActionFuncAsync {
+export function goToDirectChannelByUserIds(match: Match, history: History): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {team, identifier} = match.params;
@@ -299,7 +299,7 @@ export function goToDirectChannelByUserIds(match: Match, history: History): NewA
     };
 }
 
-export function goToDirectChannelByEmail(match: Match, history: History): NewActionFuncAsync {
+export function goToDirectChannelByEmail(match: Match, history: History): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {team, identifier} = match.params;
@@ -322,7 +322,7 @@ export function goToDirectChannelByEmail(match: Match, history: History): NewAct
     };
 }
 
-function goToGroupChannelByGroupId(match: Match, history: History): NewActionFuncAsync {
+function goToGroupChannelByGroupId(match: Match, history: History): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {identifier, team} = match.params;

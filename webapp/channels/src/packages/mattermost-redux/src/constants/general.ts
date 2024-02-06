@@ -13,7 +13,6 @@ export default {
     TEAMS_CHUNK_SIZE: 50,
     JOBS_CHUNK_SIZE: 50,
     SEARCH_TIMEOUT_MILLISECONDS: 100,
-    STATUS_INTERVAL: 60000,
     AUTOCOMPLETE_SPLIT_CHARACTERS: ['.', '-', '_'],
     OUT_OF_OFFICE: 'ooo',
     OFFLINE: 'offline',
