@@ -207,9 +207,6 @@ func (o *ChannelBookmark) Patch(patch *ChannelBookmarkPatch) {
 	if patch.Emoji != nil {
 		o.Emoji = *patch.Emoji
 	}
-	if patch.Type != nil {
-		o.Type = *patch.Type
-	}
 }
 
 type ChannelBookmarkWithFileInfo struct {

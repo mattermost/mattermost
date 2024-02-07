@@ -522,16 +522,18 @@ func TestChannelBookmarkPreUpdate(t *testing.T) {
 }
 
 func TestChannelBookmarkPatch(t *testing.T) {
+	bType := ChannelBookmarkFile
 	p := &ChannelBookmarkPatch{
 		DisplayName: NewString(NewId()),
 		SortOrder:   NewInt64(1),
 		LinkUrl:     NewString(NewId()),
+		Type:        &bType,
 	}
 
 	b := ChannelBookmark{
 		Id:          NewId(),
 		DisplayName: NewId(),
-		Type:        ChannelBookmarkLink,
+		Type:        ChannelBookmarkLink, // should not update
 		LinkUrl:     NewId(),
 	}
 	b.Patch(p)
