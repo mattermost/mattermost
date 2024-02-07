@@ -2189,10 +2189,6 @@
     "translation": "We were unable to process the request due to limitations for embargoed countries. [Learn more in our documentation](https://mattermost.com/pl/limitations-for-embargoed-countries), or reach out to legal@mattermost.com for questions around export limitations."
   },
   {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Unable to get a trial license, please try again or contact with support@mattermost.com. Cannot obtain the number of registered users."
-  },
-  {
     "id": "api.license.true_up_review.create_error",
     "translation": "Could not create true up status record"
   },
@@ -6605,10 +6601,6 @@
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
     "translation": "Onboarding can only be completed by a System Administrator."
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "We encountered an error finding the system properties."
   },
   {
     "id": "app.system.get_by_name.app_error",
