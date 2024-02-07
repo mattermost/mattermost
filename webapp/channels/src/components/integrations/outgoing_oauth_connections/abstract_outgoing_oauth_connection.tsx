@@ -236,10 +236,13 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return;
         }
 
+        setError('');
         setValidationStatus(ValidationStatus.VALIDATING);
 
         const connection = parseForm();
         if (!connection) {
+            // Defer to the form validation error
+            setValidationStatus(ValidationStatus.INITIAL);
             return;
         }
 
