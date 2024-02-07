@@ -644,6 +644,18 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, sent)
 	})
+
+	t.Run("should send ephemeral post when there is an out of team mention", func(t *testing.T) {
+		outOfTeamUser := th.CreateUser()
+		post := &model.Post{}
+		potentialMentions := []string{outOfTeamUser.Username}
+
+		sent, err := th.App.sendOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.True(t, sent)
+	})
+
 }
 
 func TestFilterOutOfChannelMentions(t *testing.T) {
@@ -670,12 +682,29 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Len(t, outOfChannelUsers, 2)
 		assert.True(t, (outOfChannelUsers[0].Id == user2.Id || outOfChannelUsers[1].Id == user2.Id))
 		assert.True(t, (outOfChannelUsers[0].Id == user3.Id || outOfChannelUsers[1].Id == user3.Id))
+		assert.Nil(t, outOfGroupUsers)
+	})
+
+	t.Run("should return users not in the team", func(t *testing.T) {
+		notThisTeamUser1 := th.CreateUser()
+		notThisTeamUser2 := th.CreateUser()
+		post := &model.Post{}
+		potentialMentions := []string{notThisTeamUser1.Username, notThisTeamUser2.Username}
+
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+
+		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 2)
+		assert.Nil(t, outOfChannelUsers)
+		assert.True(t, (outOfTeamUsers[0].Id == notThisTeamUser1.Id || outOfTeamUsers[1].Id == notThisTeamUser1.Id))
+		assert.True(t, (outOfTeamUsers[0].Id == notThisTeamUser2.Id || outOfTeamUsers[1].Id == notThisTeamUser2.Id))
 		assert.Nil(t, outOfGroupUsers)
 	})
 
@@ -683,9 +712,10 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{user2.Username, user3.Username, user4.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, guest, post, channel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, guest, post, channel, potentialMentions)
 
 		require.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		require.Len(t, outOfChannelUsers, 1)
 		assert.Equal(t, user4.Id, outOfChannelUsers[0].Id)
 		assert.Nil(t, outOfGroupUsers)
@@ -697,9 +727,10 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -711,9 +742,10 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, directChannel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, directChannel, potentialMentions)
 
 		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -725,9 +757,10 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		}
 		potentialMentions := []string{user2.Username, user3.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, groupChannel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, groupChannel, potentialMentions)
 
 		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -740,23 +773,24 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{inactiveUser.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
 
 	t.Run("should not return bot users", func(t *testing.T) {
-		botUser := th.CreateUser()
-		botUser.IsBot = true
+		botUser := th.CreateBot()
 
 		post := &model.Post{}
 		potentialMentions := []string{botUser.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -765,9 +799,10 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{"foo", "bar"}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, channel, potentialMentions)
 
 		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Nil(t, outOfChannelUsers)
 		assert.Nil(t, outOfGroupUsers)
 	})
@@ -799,9 +834,10 @@ func TestFilterOutOfChannelMentions(t *testing.T) {
 		post := &model.Post{}
 		potentialMentions := []string{nonChannelMember.Username, nonGroupMember.Username}
 
-		outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, constrainedChannel, potentialMentions)
+		outOfTeamUsers, outOfChannelUsers, outOfGroupUsers, err := th.App.filterOutOfChannelMentions(th.Context, user1, post, constrainedChannel, potentialMentions)
 
 		assert.NoError(t, err)
+		assert.Len(t, outOfTeamUsers, 0)
 		assert.Len(t, outOfChannelUsers, 1)
 		assert.Equal(t, nonChannelMember.Id, outOfChannelUsers[0].Id)
 		assert.Len(t, outOfGroupUsers, 1)
