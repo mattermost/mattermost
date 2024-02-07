@@ -229,7 +229,7 @@ describe('Message permalink', () => {
         });
     });
 
-    it('Non-channel-admin users can use message links in private channels', () => {
+    it('MM-T5526 - Non-channel-admin users can use message links in private channels', () => {
         let tempUser;
         let privateChannel;
         let permalink;
