@@ -309,7 +309,7 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) err
 	}
 
 	if deleteFile {
-		fileQuery := s.getSubQueryBuilder().
+		fileIdQuery := s.getSubQueryBuilder().
 			Select("FileInfoId").
 			From("ChannelBookmarks").
 			Where(sq.And{
@@ -317,18 +317,18 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) err
 				sq.Eq{"DeleteAt": 0},
 			})
 
-		query, args, err = s.getQueryBuilder().
+		fileQuery, fileArgs, fileErr := s.getQueryBuilder().
 			Update("FileInfo").
 			Set("DeleteAt", now).
 			Set("UpdateAt", now).
-			Where(sq.Expr("Id = ?", fileQuery)).
+			Where(sq.Expr("Id IN (?)", fileIdQuery)).
 			ToSql()
 
-		if err != nil {
+		if fileErr != nil {
 			return errors.Wrap(err, "channel_bookmark_delete_tosql")
 		}
 
-		_, err = transaction.Exec(query, args...)
+		_, err = transaction.Exec(fileQuery, fileArgs...)
 		if err != nil {
 			return errors.Wrapf(err, "failed to delete channel bookmark with id=%s", bookmarkId)
 		}
