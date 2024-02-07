@@ -10360,5 +10360,17 @@
   {
     "id": "app.report.send_report_to_user.missing_user_id",
     "translation": "Keine Benutzerkennung zum Senden des Berichts"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Ungültige Aktualisierung eines Teammitglieds: Ein Benutzer kann nicht gleichzeitig als Gast und als Administrator festgelegt werden."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Ungültige Teammitglied Aktualisierung: Ein Gast kann nicht zum Teammitglied oder -administrator ernannt werden. Bitte ernenne ihn zuerst zu einem Benutzer."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Der Benutzer konnte nicht als Mitglied des Kanals hinzugefügt werden."
   }
 ]
