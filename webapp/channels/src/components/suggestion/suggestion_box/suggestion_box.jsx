@@ -259,6 +259,7 @@ export default class SuggestionBox extends React.PureComponent {
     handleEmitClearSuggestions = (delay = 0) => {
         setTimeout(() => {
             this.clear();
+            this.handlePretextChanged('');
         }, delay);
     };
 
