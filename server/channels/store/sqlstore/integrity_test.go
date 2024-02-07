@@ -342,11 +342,11 @@ func createTeam(ss store.Store) *model.Team {
 	return t
 }
 
-func createTeamMember(ss store.Store, teamId, userId string) *model.TeamMember {
+func createTeamMember(rctx request.CTX, ss store.Store, teamId, userId string) *model.TeamMember {
 	m := model.TeamMember{}
 	m.TeamId = teamId
 	m.UserId = userId
-	tm, _ := ss.Team().SaveMember(&m, -1)
+	tm, _ := ss.Team().SaveMember(rctx, &m, -1)
 	return tm
 }
 
@@ -966,7 +966,7 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			team := createTeam(ss)
-			member := createTeamMember(ss, team.Id, model.NewId())
+			member := createTeamMember(rctx, ss, team.Id, model.NewId())
 			dbmap.Exec(`DELETE FROM Teams WHERE Id=?`, team.Id)
 			result := checkTeamsTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)
@@ -1563,7 +1563,7 @@ func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(rctx, ss)
 			team := createTeam(ss)
-			member := createTeamMember(ss, team.Id, user.Id)
+			member := createTeamMember(rctx, ss, team.Id, user.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 			result := checkUsersTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)

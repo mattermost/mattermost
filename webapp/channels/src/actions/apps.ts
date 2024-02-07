@@ -9,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {openModal} from 'actions/views/modals';
@@ -207,8 +207,8 @@ export function doAppLookup<Res=unknown>(call: AppCallRequest, intl: any): Thunk
     };
 }
 
-export function makeFetchBindings(location: string): (channelId: string, teamId: string) => NewActionFuncAsync<AppBinding[]> {
-    return (channelId: string, teamId: string): NewActionFuncAsync<AppBinding[]> => {
+export function makeFetchBindings(location: string): (channelId: string, teamId: string) => ActionFuncAsync<AppBinding[]> {
+    return (channelId: string, teamId: string): ActionFuncAsync<AppBinding[]> => {
         return async () => {
             try {
                 const allBindings = await Client4.getAppsBindings(channelId, teamId);

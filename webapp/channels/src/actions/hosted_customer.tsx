@@ -14,7 +14,7 @@ import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import {getSelfHostedErrors} from 'mattermost-redux/selectors/entities/hosted_customer';
-import type {NewActionFunc, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getConfirmCardSetup} from 'components/payment_form/stripe';
 
@@ -42,7 +42,7 @@ export function confirmSelfHostedSignup(
     billingDetails: BillingDetails,
     initialProgress: ValueOf<typeof SelfHostedSignupProgress>,
     subscriptionRequest: CreateSubscriptionRequest,
-): NewActionFuncAsync<SelfHostedSignupSuccessResponse['license'] | false> {
+): ActionFuncAsync<SelfHostedSignupSuccessResponse['license'] | false> {
     return async (dispatch) => {
         const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
@@ -165,7 +165,7 @@ export function getSelfHostedInvoices(): ThunkActionFunc<Promise<boolean | Serve
         return true;
     };
 }
-export function retryFailedHostedCustomerFetches(): NewActionFunc<boolean, GlobalState> {
+export function retryFailedHostedCustomerFetches(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const errors = getSelfHostedErrors(getState());
         if (Object.keys(errors).length === 0) {
@@ -209,7 +209,7 @@ export function confirmSelfHostedExpansion(
     billingDetails: BillingDetails,
     initialProgress: ValueOf<typeof SelfHostedSignupProgress>,
     expansionRequest: SelfHostedExpansionRequest,
-): NewActionFuncAsync<SelfHostedSignupSuccessResponse['license'] | false> {
+): ActionFuncAsync<SelfHostedSignupSuccessResponse['license'] | false> {
     return async (dispatch) => {
         const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
