@@ -29,13 +29,14 @@ import (
 )
 
 const (
-	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
-	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS          = "0123456789"
-	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	BinaryParamKey   = "MM_BINARY_PARAMETERS"
-	NoTranslation    = "<untranslated>"
-	maxPropSizeBytes = 1024 * 1024
+	LowercaseLetters  = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	BinaryParamKey    = "MM_BINARY_PARAMETERS"
+	NoTranslation     = "<untranslated>"
+	maxPropSizeBytes  = 1024 * 1024
+	PayloadParseError = "api.payload.parse.error"
 )
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
@@ -553,6 +554,16 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	}
 
 	return objmap
+}
+
+func StructFromJSONLimited[V any](data io.Reader, maxBytes int64, obj *V) error {
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
+	if err != nil || obj == nil {
+		return err
+	}
+
+	return nil
 }
 
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
