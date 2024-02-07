@@ -963,9 +963,7 @@ func (a *App) SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.R
 			return "", samlErr
 		}
 
-		token := b64.StdEncoding.EncodeToString([]byte(samlToken.Token))
-
-		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email_token=" + utils.URLEncode(token), nil
+		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email_token=" + utils.URLEncode(samlToken.Token), nil
 	}
 
 	authURL, err := a.GetAuthorizationCode(c, w, r, service, stateProps, "")
