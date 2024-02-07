@@ -8680,6 +8680,10 @@
     "translation": "Invalid maximum notifications per channel for team settings. Must be a positive number."
   },
   {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
+  },
+  {
     "id": "model.config.is_valid.max_users.app_error",
     "translation": "Invalid maximum users per team for team settings. Must be a positive number."
   },

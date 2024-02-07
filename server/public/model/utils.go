@@ -29,13 +29,14 @@ import (
 )
 
 const (
-	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
-	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS          = "0123456789"
-	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	BinaryParamKey   = "MM_BINARY_PARAMETERS"
-	NoTranslation    = "<untranslated>"
-	maxPropSizeBytes = 1024 * 1024
+	LowercaseLetters  = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	BinaryParamKey    = "MM_BINARY_PARAMETERS"
+	NoTranslation     = "<untranslated>"
+	maxPropSizeBytes  = 1024 * 1024
+	PayloadParseError = "api.payload.parse.error"
 )
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
