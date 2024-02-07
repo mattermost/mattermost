@@ -110,10 +110,6 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                     },
                 },
                 cloud: {
-                    customer: undefined,
-                    subscription: undefined,
-                    products: undefined,
-                    invoices: undefined,
                     limits,
                 },
                 usage,
@@ -130,10 +126,6 @@ describe('components/widgets/menu/menu_items/menu_cloud_trial', () => {
                 users,
                 general: {},
                 cloud: {
-                    customer: undefined,
-                    subscription: undefined,
-                    products: undefined,
-                    invoices: undefined,
                     limits,
                 },
                 usage,
