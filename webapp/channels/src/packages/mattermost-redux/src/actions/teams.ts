@@ -19,7 +19,7 @@ import {General} from 'mattermost-redux/constants';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
@@ -75,7 +75,7 @@ export function getMyTeams() {
 // The argument skipCurrentTeam is a (not ideal) workaround for CRT mention counts. Unread mentions are stored in the reducer per
 // team but we do not track unread mentions for DMs/GMs independently. This results in a bit of funky logic and edge case bugs
 // that need workarounds like this. In the future we should fix the root cause with better APIs and redux state.
-export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = false): NewActionFuncAsync {
+export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         let unreads;
         try {
@@ -127,7 +127,7 @@ export function getTeamByName(teamName: string) {
     });
 }
 
-export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false): NewActionFuncAsync {
+export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
 
@@ -166,9 +166,9 @@ export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, i
     };
 }
 
-export function searchTeams(term: string, opts: PagedTeamSearchOpts): NewActionFuncAsync<Team[]>;
-export function searchTeams(term: string, opts?: NotPagedTeamSearchOpts): NewActionFuncAsync<TeamsWithCount>;
-export function searchTeams(term: string, opts: TeamSearchOpts = {}): NewActionFuncAsync {
+export function searchTeams(term: string, opts: PagedTeamSearchOpts): ActionFuncAsync<Team[]>;
+export function searchTeams(term: string, opts?: NotPagedTeamSearchOpts): ActionFuncAsync<TeamsWithCount>;
+export function searchTeams(term: string, opts: TeamSearchOpts = {}): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({type: TeamTypes.GET_TEAMS_REQUEST, data: null});
 
@@ -204,7 +204,7 @@ export function searchTeams(term: string, opts: TeamSearchOpts = {}): NewActionF
     };
 }
 
-export function createTeam(team: Team): NewActionFuncAsync<Team> {
+export function createTeam(team: Team): ActionFuncAsync<Team> {
     return async (dispatch, getState) => {
         let created;
         try {
@@ -244,7 +244,7 @@ export function createTeam(team: Team): NewActionFuncAsync<Team> {
     };
 }
 
-export function deleteTeam(teamId: string): NewActionFuncAsync {
+export function deleteTeam(teamId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.deleteTeam(teamId);
@@ -277,7 +277,7 @@ export function deleteTeam(teamId: string): NewActionFuncAsync {
     };
 }
 
-export function unarchiveTeam(teamId: string): NewActionFuncAsync {
+export function unarchiveTeam(teamId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let team: Team;
         try {
@@ -327,7 +327,7 @@ export function regenerateTeamInviteId(teamId: string) {
     });
 }
 
-export function getMyTeamMembers(): NewActionFuncAsync<TeamMembership[]> {
+export function getMyTeamMembers(): ActionFuncAsync<TeamMembership[]> {
     return async (dispatch) => {
         const getMyTeamMembersFunc = bindClientFunc({
             clientFunc: Client4.getMyTeamMembers,
@@ -367,7 +367,7 @@ export function getTeamMembers(teamId: string, page = 0, perPage: number = Gener
     });
 }
 
-export function getTeamMember(teamId: string, userId: string): NewActionFuncAsync {
+export function getTeamMember(teamId: string, userId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let member;
         try {
@@ -391,7 +391,7 @@ export function getTeamMember(teamId: string, userId: string): NewActionFuncAsyn
     };
 }
 
-export function getTeamMembersByIds(teamId: string, userIds: string[]): NewActionFuncAsync<TeamMembership[]> {
+export function getTeamMembersByIds(teamId: string, userIds: string[]): ActionFuncAsync<TeamMembership[]> {
     return async (dispatch, getState) => {
         let members;
         try {
@@ -460,7 +460,7 @@ export function addUserToTeamFromInvite(token: string, inviteId: string) {
     });
 }
 
-export function addUserToTeam(teamId: string, userId: string): NewActionFuncAsync<TeamMembership> {
+export function addUserToTeam(teamId: string, userId: string): ActionFuncAsync<TeamMembership> {
     return async (dispatch, getState) => {
         let member;
         try {
@@ -486,7 +486,7 @@ export function addUserToTeam(teamId: string, userId: string): NewActionFuncAsyn
     };
 }
 
-export function addUsersToTeamGracefully(teamId: string, userIds: string[]): NewActionFuncAsync<TeamMemberWithError[]> {
+export function addUsersToTeamGracefully(teamId: string, userIds: string[]): ActionFuncAsync<TeamMemberWithError[]> {
     return async (dispatch, getState) => {
         let result: TeamMemberWithError[];
         try {
@@ -516,7 +516,7 @@ export function addUsersToTeamGracefully(teamId: string, userIds: string[]): New
     };
 }
 
-export function removeUserFromTeam(teamId: string, userId: string): NewActionFuncAsync {
+export function removeUserFromTeam(teamId: string, userId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.removeFromTeam(teamId, userId);
@@ -642,7 +642,7 @@ export function getTeamInviteInfo(inviteId: string) {
     });
 }
 
-export function checkIfTeamExists(teamName: string): NewActionFuncAsync<boolean> {
+export function checkIfTeamExists(teamName: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -657,7 +657,7 @@ export function checkIfTeamExists(teamName: string): NewActionFuncAsync<boolean>
     };
 }
 
-export function setTeamIcon(teamId: string, imageData: File): NewActionFuncAsync {
+export function setTeamIcon(teamId: string, imageData: File): ActionFuncAsync {
     return async (dispatch) => {
         await Client4.setTeamIcon(teamId, imageData);
         const team = await Client4.getTeam(teamId);
@@ -669,7 +669,7 @@ export function setTeamIcon(teamId: string, imageData: File): NewActionFuncAsync
     };
 }
 
-export function removeTeamIcon(teamId: string): NewActionFuncAsync {
+export function removeTeamIcon(teamId: string): ActionFuncAsync {
     return async (dispatch) => {
         await Client4.removeTeamIcon(teamId);
         const team = await Client4.getTeam(teamId);
@@ -681,7 +681,7 @@ export function removeTeamIcon(teamId: string): NewActionFuncAsync {
     };
 }
 
-export function updateTeamScheme(teamId: string, schemeId: string): NewActionFuncAsync<{teamId: string; schemeId: string}> {
+export function updateTeamScheme(teamId: string, schemeId: string): ActionFuncAsync<{teamId: string; schemeId: string}> {
     return bindClientFunc({
         clientFunc: async () => {
             await Client4.updateTeamScheme(teamId, schemeId);
@@ -696,7 +696,7 @@ export function updateTeamMemberSchemeRoles(
     userId: string,
     isSchemeUser: boolean,
     isSchemeAdmin: boolean,
-): NewActionFuncAsync {
+): ActionFuncAsync {
     return bindClientFunc({
         clientFunc: async () => {
             await Client4.updateTeamMemberSchemeRoles(teamId, userId, isSchemeUser, isSchemeAdmin);

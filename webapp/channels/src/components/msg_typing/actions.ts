@@ -9,7 +9,7 @@ import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entitie
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 function getTimeBetweenTypingEvents(state: GlobalState) {
     const config = getConfig(state);
@@ -46,7 +46,7 @@ export function userStartedTyping(userId: string, channelId: string, rootId: str
     };
 }
 
-function fillInMissingInfo(userId: string): NewActionFuncAsync {
+function fillInMissingInfo(userId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
