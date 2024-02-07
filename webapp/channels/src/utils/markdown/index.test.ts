@@ -174,6 +174,7 @@ this is long text this is long text this is long text this is long text this is 
             {input: '[link text](http://my.site.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p><a class="theme markdown__link" href="http://my.site.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur" rel="noreferrer" data-link="/someteam/pl/c18xpcpusjd88en1g4j7us31ur">link text</a></p>'},
             {input: '[link text](http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur/ohno)', expected: '<p>link text : http://my.site.com/_redirect/pl/c18xpcpusjd88en1g4j7us31ur/ohno</p>'},
             {input: '[link text](http://my.site.com/more/stuff/here/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p>link text : http://my.site.com/more/stuff/here/pl/c18xpcpusjd88en1g4j7us31ur</p>'},
+            {input: '[link text](http://myqsite.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur)', expected: '<p>link text : http://myqsite.com/someteam/pl/c18xpcpusjd88en1g4j7us31ur</p>'},
 
         ];
         for (const testCase of testCases) {

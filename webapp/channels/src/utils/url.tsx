@@ -1,11 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {getModule} from 'module_registry';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {IntlShape} from 'react-intl';
-
-import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import {latinise} from 'utils/latinise';
@@ -176,8 +175,12 @@ export function doesNotTriggerExternalRequests(url: string, siteURL?: string): b
         if (standardSiteURL[standardSiteURL.length - 1] === '/') {
             standardSiteURL = standardSiteURL.substring(0, standardSiteURL.length - 1);
         }
-        const regexp = new RegExp(`^${standardSiteURL}/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}$`);
-        return regexp.test(url);
+        if (!url.startsWith(standardSiteURL)) {
+            return false;
+        }
+        const afterSiteURL = url.substring(standardSiteURL.length);
+        const regexp = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}$');
+        return regexp.test(afterSiteURL);
     }
     return false;
 }
