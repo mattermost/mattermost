@@ -102,7 +102,9 @@ describe('Actions.User', () => {
                 },
             },
             general: {
-                config: {},
+                config: {
+                    EnableUserStatuses: 'true',
+                },
             },
             preferences: {
                 myPreferences: {
