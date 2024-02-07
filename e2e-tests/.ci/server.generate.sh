@@ -259,9 +259,7 @@ EOL
 generate_env_files() {
   # Generate .env.server
   mme2e_log "Generating .env.server"
-  mme2e_generate_envfile_from_var_names >.env.server <<-EOF
-	MM_LICENSE
-	EOF
+  truncate --size=0 .env.server
 
   # Setting SERVER-specific variables
   case "$SERVER" in
@@ -289,6 +287,8 @@ generate_env_files() {
   case "$TEST" in
   cypress)
     mme2e_log "Cypress: Generating .env.cypress"
+    truncate --size=0 .env.cypress
+
     mme2e_generate_envfile_from_var_names >.env.cypress <<-EOF
 	BRANCH
 	BUILD_ID
