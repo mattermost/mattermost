@@ -45,7 +45,7 @@ type OwnProps = {
     rootId: string;
     channelId: string;
     latestPostId: string;
-    isPlugin: boolean;
+    isPlugin?: boolean;
 };
 
 function makeMapStateToProps() {
