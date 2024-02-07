@@ -136,7 +136,7 @@ export default class Renderer extends marked.Renderer {
     public link(href: string, title: string, text: string, isUrl = false) {
         let outHref = href;
 
-        if (this.formattingOptions.unsafeLinks && !href.startsWith('/')) {
+        if (this.formattingOptions.unsafeLinks) {
             if (text === href) {
                 return text;
             }
