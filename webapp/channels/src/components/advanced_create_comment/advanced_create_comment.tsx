@@ -28,11 +28,11 @@ import PostDeletedModal from 'components/post_deleted_modal';
 import type {TextboxClass, TextboxElement} from 'components/textbox';
 
 import Constants, {AdvancedTextEditor as AdvancedTextEditorConst, Locations, ModalIdentifiers, Preferences} from 'utils/constants';
+import type {
+    ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     applyMarkdown,
 } from 'utils/markdown/apply_markdown';
-import type {
-    ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {
     specialMentionsInText,
     postMessageOnKeyPress,
@@ -182,6 +182,7 @@ export type Props = {
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<ActionResult>;
     postEditorActions: PluginComponent[];
     placeholder?: string;
+    isPlugin: boolean;
 }
 
 type State = {

@@ -45,6 +45,7 @@ type OwnProps = {
     rootId: string;
     channelId: string;
     latestPostId: string;
+    isPlugin: boolean;
 };
 
 function makeMapStateToProps() {
@@ -134,20 +135,22 @@ function makeMapDispatchToProps() {
     let latestPostId: string;
 
     return (dispatch: Dispatch, ownProps: OwnProps) => {
-        if (rootId !== ownProps.rootId) {
-            onUpdateCommentDraft = makeOnUpdateCommentDraft(ownProps.rootId, ownProps.channelId);
-        }
+        if (!ownProps.isPlugin) {
+            if (rootId !== ownProps.rootId) {
+                onUpdateCommentDraft = makeOnUpdateCommentDraft(ownProps.rootId, ownProps.channelId);
+            }
 
-        if (channelId !== ownProps.channelId) {
-            updateCommentDraftWithRootId = makeUpdateCommentDraftWithRootId(ownProps.channelId);
-        }
+            if (channelId !== ownProps.channelId) {
+                updateCommentDraftWithRootId = makeUpdateCommentDraftWithRootId(ownProps.channelId);
+            }
 
-        if (rootId !== ownProps.rootId) {
-            onEditLatestPost = makeOnEditLatestPost(ownProps.rootId);
-        }
+            if (rootId !== ownProps.rootId) {
+                onEditLatestPost = makeOnEditLatestPost(ownProps.rootId);
+            }
 
-        if (rootId !== ownProps.rootId || channelId !== ownProps.channelId || latestPostId !== ownProps.latestPostId) {
-            onSubmit = makeOnSubmit(ownProps.channelId, ownProps.rootId, ownProps.latestPostId);
+            if (rootId !== ownProps.rootId || channelId !== ownProps.channelId || latestPostId !== ownProps.latestPostId) {
+                onSubmit = makeOnSubmit(ownProps.channelId, ownProps.rootId, ownProps.latestPostId);
+            }
         }
 
         rootId = ownProps.rootId;
