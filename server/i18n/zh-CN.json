@@ -10360,5 +10360,9 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "团队成员更新无效：访客不能成为团队成员或团队管理员，请先将其提升为用户。"
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "无法添加此用户为频道成员。"
   }
 ]
