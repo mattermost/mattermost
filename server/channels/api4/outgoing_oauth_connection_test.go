@@ -42,6 +42,108 @@ func outgoingOauthConnectionsCleanup(t *testing.T, th *TestHelper) {
 	}
 }
 
+// Helper tests
+func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
+	t.Run("no permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c := &Context{}
+		c.AppContext = th.Context.WithSession(&session)
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		valid := checkOutgoingOAuthConnectionReadPermissions(c)
+		require.False(t, valid)
+	})
+
+	t.Run("with management permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c := &Context{}
+		c.AppContext = th.Context.WithSession(&session)
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+
+		valid := checkOutgoingOAuthConnectionReadPermissions(c)
+		require.True(t, valid)
+	})
+
+	t.Run("with other permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c := &Context{}
+		c.AppContext = th.Context.WithSession(&session)
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+
+		valid := checkOutgoingOAuthConnectionReadPermissions(c)
+		require.True(t, valid)
+	})
+}
+
+func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
+	t.Run("no permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c := &Context{}
+		c.AppContext = th.Context.WithSession(&session)
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		valid := checkOutgoingOAuthConnectionWritePermissions(c)
+		require.False(t, valid)
+	})
+
+	t.Run("with permissions", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		session := model.Session{
+			Id:     model.NewId(),
+			UserId: model.NewId(),
+			Roles:  model.SystemUserRoleId,
+		}
+		c := &Context{}
+		c.AppContext = th.Context.WithSession(&session)
+		c.App = th.App
+		c.Logger = th.App.Srv().Log()
+
+		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
+
+		valid := checkOutgoingOAuthConnectionWritePermissions(c)
+		require.True(t, valid)
+	})
+}
+
 // Client tests
 
 func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
