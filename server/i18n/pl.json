@@ -10370,5 +10370,9 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Nieprawidłowa aktualizacja członka zespołu: Gość nie może zostać członkiem zespołu ani administratorem zespołu, proszę zamienić go najpierw na użytkownika."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Nie można dodać użytkownika jako członka kanału."
   }
 ]
