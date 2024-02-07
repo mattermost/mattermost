@@ -15,7 +15,7 @@ import {isMarketplaceEnabled} from 'mattermost-redux/selectors/entities/general'
 import {haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentRelativeTeamUrl, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import * as GlobalActions from 'actions/global_actions';
 import * as PostActions from 'actions/post_actions';
@@ -39,7 +39,7 @@ import type {GlobalState} from 'types/store';
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForCommandArgs} from './apps';
 import {trackEvent} from './telemetry_actions';
 
-export function executeCommand(message: string, args: CommandArgs): NewActionFuncAsync<boolean, GlobalState> {
+export function executeCommand(message: string, args: CommandArgs): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState() as GlobalState;
 

@@ -1619,7 +1619,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	return newMembers, nil
 }
 
-func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s SqlChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	newMembers, err := s.SaveMultipleMembers([]*model.ChannelMember{member})
 	if err != nil {
 		return nil, err

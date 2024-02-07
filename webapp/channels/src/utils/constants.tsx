@@ -11,6 +11,7 @@ import keyMirror from 'key-mirror';
 
 import {CustomStatusDuration} from '@mattermost/types/users';
 
+import {Preferences as ReduxPreferences} from 'mattermost-redux/constants';
 import Permissions from 'mattermost-redux/constants/permissions';
 import * as PostListUtils from 'mattermost-redux/utils/post_list';
 
@@ -62,8 +63,8 @@ export const PreviousViewedTypes = {
 
 export const Preferences = {
     CATEGORY_CHANNEL_OPEN_TIME: 'channel_open_time',
-    CATEGORY_DIRECT_CHANNEL_SHOW: 'direct_channel_show',
-    CATEGORY_GROUP_CHANNEL_SHOW: 'group_channel_show',
+    CATEGORY_DIRECT_CHANNEL_SHOW: ReduxPreferences.CATEGORY_DIRECT_CHANNEL_SHOW,
+    CATEGORY_GROUP_CHANNEL_SHOW: ReduxPreferences.CATEGORY_GROUP_CHANNEL_SHOW,
     CATEGORY_DISPLAY_SETTINGS: 'display_settings',
     CATEGORY_SIDEBAR_SETTINGS: 'sidebar_settings',
     CATEGORY_ADVANCED_SETTINGS: 'advanced_settings',
@@ -314,8 +315,6 @@ export const ActionTypes = keyMirror({
 
     SUPPRESS_RHS: null,
     UNSUPPRESS_RHS: null,
-
-    FIRST_CHANNEL_NAME: null,
 
     SET_EDIT_CHANNEL_MEMBERS: null,
     NEEDS_LOGGED_IN_LIMIT_REACHED_CHECK: null,
@@ -868,8 +867,6 @@ export const SearchTypes = keyMirror({
 });
 
 export const StorageTypes = keyMirror({
-    SET_ITEM: null,
-    REMOVE_ITEM: null,
     SET_GLOBAL_ITEM: null,
     REMOVE_GLOBAL_ITEM: null,
     ACTION_ON_GLOBAL_ITEMS_WITH_PREFIX: null,

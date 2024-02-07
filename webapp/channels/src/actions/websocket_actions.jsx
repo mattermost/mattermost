@@ -100,7 +100,7 @@ import {redirectUserToDefaultTeam} from 'actions/global_actions';
 import {sendDesktopNotification} from 'actions/notification_actions.jsx';
 import {handleNewPost} from 'actions/post_actions';
 import * as StatusActions from 'actions/status_actions';
-import {setGlobalItem} from 'actions/storage';
+import {removeGlobalItem, setGlobalItem} from 'actions/storage';
 import {loadProfilesForDM, loadProfilesForGM} from 'actions/user_actions';
 import {syncPostsInChannel} from 'actions/views/channel';
 import {setGlobalDraft, transformServerDraft} from 'actions/views/drafts';
@@ -118,7 +118,7 @@ import RemovedFromChannelModal from 'components/removed_from_channel_modal';
 import WebSocketClient from 'client/web_websocket_client';
 import {loadPlugin, loadPluginsIfNecessary, removePlugin} from 'plugins';
 import {getHistory} from 'utils/browser_history';
-import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext} from 'utils/constants';
+import {ActionTypes, Constants, AnnouncementBarMessages, SocketEvents, UserStatuses, ModalIdentifiers, PageLoadContext, StoragePrefixes} from 'utils/constants';
 import {getSiteURL} from 'utils/url';
 
 import {temporarilySetPageLoadContext} from './telemetry_actions';
@@ -777,6 +777,19 @@ async function handlePostDeleteEvent(msg) {
     }
 
     dispatch(postDeleted(post));
+
+    // remove draft associated with this post from store
+    const draftKey = `${StoragePrefixes.COMMENT_DRAFT}${post.id}`;
+
+    // update the draft first to re-render
+    await dispatch(setGlobalItem(draftKey, {
+        message: '',
+        fileInfos: [],
+        uploadsInProgress: [],
+    }));
+
+    // then remove it
+    await dispatch(removeGlobalItem(draftKey));
 
     // update thread when a comment is deleted and CRT is on
     if (post.root_id && collapsedThreads) {
@@ -1725,11 +1738,15 @@ function handleDeleteDraftEvent(msg) {
         const draft = JSON.parse(msg.data.draft);
         const {key} = transformServerDraft(draft);
 
-        doDispatch(setGlobalItem(key, {
+        // update the draft first to re-render
+        await doDispatch(setGlobalItem(key, {
             message: '',
             fileInfos: [],
             uploadsInProgress: [],
         }));
+
+        // then remove it
+        await doDispatch(removeGlobalItem(key));
     };
 }
 
