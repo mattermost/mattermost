@@ -168,6 +168,15 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
     return errors;
 }
 
+// Returns true when the URL should not trigger any external requests.
+// Currently internal links that are not to the image proxy.
+export function doesNotTriggerExternalRequests(url: string, siteURL?: string): boolean {
+    if (siteURL && siteURL !== '') {
+        return url.startsWith(siteURL) && !url.includes('v4/image');
+    }
+    return false;
+}
+
 export function isInternalURL(url: string, siteURL?: string): boolean {
     return url.startsWith(siteURL || '') || url.startsWith('/');
 }

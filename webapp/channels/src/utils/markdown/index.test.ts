@@ -165,8 +165,15 @@ this is long text this is long text this is long text this is long text this is 
     });
 
     test('unsafe mode links are rendered as text : link', () => {
-        const originalString = '[link text](http://markdownlink.com)';
-        const output = format(originalString, {unsafeLinks: true});
-        expect(output).toEqual('<p>link text : http://markdownlink.com</p>');
+        const testCases = [
+            {input: '[link text](http://markdownlink.com)', expected: '<p>link text : http://markdownlink.com</p>'},
+            {input: '[link text](//markdownlink.com/test)', expected: '<p>link text : //markdownlink.com/test</p>'},
+            {input: '[link text](http://my.site.com/whatever)', expected: '<p><a class="theme markdown__link" href="http://my.site.com/whatever" rel="noreferrer" data-link="whatever">link text</a></p>'},
+            {input: '[link text](http://my.site.com/api/v4/image?url=ohno)', expected: '<p>link text : http://my.site.com/api/v4/image?url=ohno</p>'},
+        ];
+        for (const testCase of testCases) {
+            const output = format(testCase.input, {unsafeLinks: true, siteURL: 'http://my.site.com/'});
+            expect(output).toEqual(testCase.expected);
+        }
     });
 });
