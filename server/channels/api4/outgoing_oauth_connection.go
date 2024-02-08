@@ -32,12 +32,12 @@ func (api *API) InitOutgoingOAuthConnection() {
 
 // checkOutgoingOAuthConnectionReadPermissions checks if the user has the permissions to read outgoing oauth connections.
 // An user with the permissions to manage outgoing oauth connections can read outgoing oauth connections.
-// Otherwise the user needs to have the permissions to manage outgoing webhooks and slash commands in order to read outgoing
-// oauth connections so that they can use them in their outgoing webhooks and slash commands.
+// Otherwise the user needs to have the permissions to manage outgoing webhooks or slash commands in order to read outgoing
+// oauth connections so that they can use them.
 // This is made in this way so only users with the management permission can setup the outgoing oauth connections and then
 // other users can use them in their outgoing webhooks and slash commands if they have permissions to manage those.
 func checkOutgoingOAuthConnectionReadPermissions(c *Context) bool {
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) || (c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingWebhooks) && c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSlashCommands)) {
+	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingWebhooks) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSlashCommands) {
 		return true
 	}
 
