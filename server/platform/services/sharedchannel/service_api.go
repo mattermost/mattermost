@@ -88,7 +88,7 @@ func (scs *Service) UnshareChannel(channelID string) (bool, error) {
 		return false, err
 	}
 
-	// deletes the ShareChannel, unsets the share flag on the channel, deletes all remotes for the channel
+	// deletes the ShareChannel, unsets the share flag on the channel, deletes all records in SharedChannelRemotes for the channel.
 	deleted, err := scs.server.GetStore().SharedChannel().Delete(channelID)
 	if err != nil {
 		return false, err

@@ -78,6 +78,8 @@ func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFac
 		return err
 	}
 
+	shouldNotify := channel.IsShared()
+
 	// check if any remotes need to be auto-subscribed to this channel. Remotes are auto-subscribed to DM/GM's if they registered
 	// with the AutoShareDMs flag set.
 	if channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup {
@@ -95,14 +97,12 @@ func handleContentSync(ps *PlatformService, syncService SharedChannelServiceIFac
 			if err := syncService.InviteRemoteToChannel(channel.Id, remote.RemoteId, remote.CreatorId, true); err != nil {
 				return fmt.Errorf("cannot invite remote to channel %s: %w", channel.Id, err)
 			}
-			if !channel.IsShared() {
-				channel.Shared = model.NewBool(true)
-			}
+			shouldNotify = true
 		}
 	}
 
 	// notify
-	if channel != nil && channel.IsShared() {
+	if shouldNotify {
 		syncService.NotifyChannelChanged(channel.Id)
 	}
 
