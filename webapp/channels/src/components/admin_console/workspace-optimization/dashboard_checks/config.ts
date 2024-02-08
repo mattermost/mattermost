@@ -86,24 +86,24 @@ const rootUserCheck = async (
     options: Options,
 ) => {
     const fetchRootStatus = async () => {
-        const result = await fetch(`${Client4.getBaseRoute()}/root_check`).then((result) => result.json());
+        const result = await Client4.ping(false);
 
-        return result.is_root ? ItemStatus.WARNING : ItemStatus.OK;
+        return result.root_status === "true" ? ItemStatus.WARNING : ItemStatus.OK;
     };
 
     const status = await fetchRootStatus();
     
     return {
-        id: 'root_check,',
+        id: 'root_status,',
         title: formatMessage({
-            id: 'admin.reporting.workspace_optimization.configuration.root_check.title',
+            id: 'admin.reporting.workspace_optimization.configuration.root_status.title',
             defaultMessage: 'Mattermost is running as root',
         }),
         description: formatMessage({
-            id: 'admin.reporting.workspace_optimization.configuration.root_check.description',
+            id: 'admin.reporting.workspace_optimization.configuration.root_status.description',
             defaultMessage: 'Running Mattermost as root is not recommended. Please use a non-root user.',
         }),
-        telemetryAction: 'root_check',
+        telemetryAction: 'root_status',
         status: status,
         scoreImpact: 25,
         impactModifier: impactModifiers[status],

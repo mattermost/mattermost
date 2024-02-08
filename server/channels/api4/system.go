@@ -56,7 +56,6 @@ func (api *API) InitSystem() {
 
 	api.BaseRoutes.APIRoot.Handle("/analytics/old", api.APISessionRequired(getAnalytics)).Methods("GET")
 	api.BaseRoutes.APIRoot.Handle("/latest_version", api.APISessionRequired(getLatestVersion)).Methods("GET")
-	api.BaseRoutes.APIRoot.Handle("/root_check", api.APISessionRequired(checkForRootUser)).Methods("GET")
 
 	api.BaseRoutes.APIRoot.Handle("/redirect_location", api.APISessionRequiredTrustRequester(getRedirectLocation)).Methods("GET")
 
@@ -195,6 +194,13 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
+
+	// Checking if mattermost is running as root
+	rootStatusKey := "root_status"
+	s[rootStatusKey] = "false"
+	if os.Geteuid() == 0 {
+		s[rootStatusKey] = "true"
+	}
 
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
@@ -502,18 +508,6 @@ func getLatestVersion(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.Write(b)
-}
-
-func checkForRootUser(c *Context, w http.ResponseWriter, r *http.Request) {
-	flag := make(map[string]bool)
-	flag["is_root"] = false
-
-	if os.Geteuid() == 0 {
-		flag["is_root"] = true
-	}
-
-	j, _ := json.Marshal(flag)
-	w.Write(j)
 }
 
 func getSupportedTimezones(c *Context, w http.ResponseWriter, r *http.Request) {
