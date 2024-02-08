@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getModule} from 'module_registry';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 import type {IntlShape} from 'react-intl';
+
+import {getModule} from 'module_registry';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import {latinise} from 'utils/latinise';
@@ -167,22 +168,22 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
     return errors;
 }
 
-// Returns true when the URL should not trigger any external requests.
-// Currently returns true only for permalinks
-export function doesNotTriggerExternalRequests(url: string, siteURL?: string): boolean {
+// Returns true when the URL could possibly cause any external requests.
+// Currently returns false only for permalinks
+export function mightTriggerExternalRequest(url: string, siteURL?: string): boolean {
     if (siteURL && siteURL !== '') {
         let standardSiteURL = siteURL;
         if (standardSiteURL[standardSiteURL.length - 1] === '/') {
             standardSiteURL = standardSiteURL.substring(0, standardSiteURL.length - 1);
         }
         if (!url.startsWith(standardSiteURL)) {
-            return false;
+            return true;
         }
         const afterSiteURL = url.substring(standardSiteURL.length);
         const regexp = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}$');
-        return regexp.test(afterSiteURL);
+        return !regexp.test(afterSiteURL);
     }
-    return false;
+    return true;
 }
 
 export function isInternalURL(url: string, siteURL?: string): boolean {

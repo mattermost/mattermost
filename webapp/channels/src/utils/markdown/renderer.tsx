@@ -7,7 +7,7 @@ import type {MarkedOptions} from 'marked';
 import EmojiMap from 'utils/emoji_map';
 import * as PostUtils from 'utils/post_utils';
 import * as TextFormatting from 'utils/text_formatting';
-import {doesNotTriggerExternalRequests, getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
+import {mightTriggerExternalRequest, getScheme, isUrlSafe, shouldOpenInNewTab} from 'utils/url';
 
 import {parseImageDimensions} from './helpers';
 
@@ -136,7 +136,7 @@ export default class Renderer extends marked.Renderer {
     public link(href: string, title: string, text: string, isUrl = false) {
         let outHref = href;
 
-        if (this.formattingOptions.unsafeLinks && !doesNotTriggerExternalRequests(href, this.formattingOptions.siteURL)) {
+        if (this.formattingOptions.unsafeLinks && mightTriggerExternalRequest(href, this.formattingOptions.siteURL)) {
             if (text === href) {
                 return text;
             }
