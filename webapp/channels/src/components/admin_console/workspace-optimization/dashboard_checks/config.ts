@@ -92,7 +92,7 @@ const rootUserCheck = async (
     };
 
     const status = await fetchRootStatus();
-    
+
     return {
         id: 'root_status,',
         title: formatMessage({
@@ -104,7 +104,7 @@ const rootUserCheck = async (
             defaultMessage: 'Running Mattermost as root is not recommended. Please use a non-root user.',
         }),
         telemetryAction: 'root_status',
-        status: status,
+        status,
         scoreImpact: 25,
         impactModifier: impactModifiers[status],
     };
