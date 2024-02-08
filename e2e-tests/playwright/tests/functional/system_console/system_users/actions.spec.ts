@@ -4,6 +4,7 @@
 import {TestBrowser} from '@e2e-support//browser_context';
 import {Client, createRandomTeam, createRandomUser} from '@e2e-support/server';
 import {expect, test} from '@e2e-support/test_fixture';
+import {ConfirmModal} from '@e2e-support/ui/components/channels/confirm_modal';
 import {SystemConsolePage} from '@e2e-support/ui/pages/system_console';
 import {getRandomId} from '@e2e-support/util';
 import {UserProfile} from '@mattermost/types/users';
@@ -58,7 +59,8 @@ test('MM-X should activate and deactivate users', async ({pw, pages}) => {
     await systemConsolePage.systemUsers.actionMenuButtons[0].click();
     const deactivate = await systemConsolePage.systemUsersActionMenus[0].getMenuItem('Deactivate')
     await deactivate.click()
-    await systemConsolePage.page.locator('#confirmModalButton').click();
+    const confirmModal = new ConfirmModal(systemConsolePage.page);
+    await confirmModal.clickConfirmButton();
 
     // * Verify user is deactivated
     const firstRow = await systemConsolePage.systemUsers.getNthRow(1);
@@ -167,7 +169,7 @@ test('MM-X should reset the users password', async ({pw, pages}) => {
     await systemConsolePage.page.locator('button.btn-primary').click()
 
     // * Verify that the modal closed and no error showed
-    passwordInput.waitFor({state: "detached"})
+    await passwordInput.waitFor({state: "detached"})
 })
 
 test('MM-X should change the users email', async ({pw, pages}) => {
@@ -201,11 +203,11 @@ test('MM-X should revoke sessions', async ({pw, pages}) => {
     const removeSessions = await systemConsolePage.systemUsersActionMenus[0].getMenuItem('Remove sessions')
     await removeSessions.click()
 
-    const modal = systemConsolePage.page.locator('div.modal-dialog')
-    await modal.locator('#confirmModalButton').click();
+    const confirmModal = new ConfirmModal(systemConsolePage.page);
+    await confirmModal.clickConfirmButton();
 
     // * Verify that the modal closed and no error showed
-    modal.waitFor({state: "detached"})
+    await confirmModal.waitForDetached();
     const firstRow = await systemConsolePage.systemUsers.getNthRow(1);
     expect(await firstRow.innerHTML()).not.toContain('class="error"');
 })

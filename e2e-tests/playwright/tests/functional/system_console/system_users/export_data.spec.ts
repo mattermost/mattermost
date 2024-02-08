@@ -5,6 +5,7 @@ import {expect} from '@playwright/test';
 
 import {test} from '@e2e-support/test_fixture';
 import { duration } from '@e2e-support/util';
+import {ConfirmModal} from '@e2e-support/ui/components/channels/confirm_modal';
 
 test('MM-X should begin export of data when export button is pressed', async ({pw, pages}) => {
     test.slow();
@@ -35,7 +36,8 @@ test('MM-X should begin export of data when export button is pressed', async ({p
 
     // # Click Export button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    await page.locator('#confirmModalButton').click();
+    const confirmModal = new ConfirmModal(page);
+    await confirmModal.clickConfirmButton();
 
     // # Change the export duration to all time
     await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
@@ -43,11 +45,11 @@ test('MM-X should begin export of data when export button is pressed', async ({p
     
     // # Click Export button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    await page.locator('#confirmModalButton').click();
+    await confirmModal.clickConfirmButton();
 
     // # Click Export again button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
-    await page.locator('#confirmModalButton').click();
+    await confirmModal.clickConfirmButton();
  
     // * Verify that we are told that one is already running
     const modalHeader = await page.getByText("Export is in progress")
