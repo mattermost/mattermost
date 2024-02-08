@@ -38,25 +38,6 @@ function storage(state: Record<string, any> = {}, action: AnyAction) {
 
         return nextState;
     }
-    case StorageTypes.SET_ITEM: {
-        if (!state[action.data.prefix + action.data.name] ||
-            !state[action.data.prefix + action.data.name].timestamp ||
-            state[action.data.prefix + action.data.name].timestamp < action.data.timestamp
-        ) {
-            const nextState = {...state};
-            nextState[action.data.prefix + action.data.name] = {
-                timestamp: action.data.timestamp,
-                value: action.data.value,
-            };
-            return nextState;
-        }
-        return state;
-    }
-    case StorageTypes.REMOVE_ITEM: {
-        const nextState = {...state};
-        Reflect.deleteProperty(nextState, action.data.prefix + action.data.name);
-        return nextState;
-    }
     case StorageTypes.SET_GLOBAL_ITEM: {
         if (!state[action.data.name] ||
             !state[action.data.name].timestamp ||
