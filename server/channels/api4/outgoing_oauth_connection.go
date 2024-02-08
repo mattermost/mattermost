@@ -31,7 +31,7 @@ func (api *API) InitOutgoingOAuthConnection() {
 }
 
 // checkOutgoingOAuthConnectionReadPermissions checks if the user has the permissions to read outgoing oauth connections.
-// An user with the permissions to manage outgoing webhooks and slash commands can also read outgoing oauth connections.
+// An user with the permissions to manage outgoing oauth connections can read outgoing oauth connections.
 // Otherwise the user needs to have the permissions to manage outgoing webhooks and slash commands in order to read outgoing
 // oauth connections so that they can use them in their outgoing webhooks and slash commands.
 // This is made in this way so only users with the management permission can setup the outgoing oauth connections and then
