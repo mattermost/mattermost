@@ -283,7 +283,12 @@ export default class EditChannelHeaderModal extends React.PureComponent<Props, S
                                 updatePreview={this.setShowPreview}
                                 hasText={this.state.header ? this.state.header.length > 0 : false}
                                 hasExceededCharacterLimit={this.state.header ? this.state.header.length > headerMaxLength : false}
-                                previewMessageLink={localizeMessage('edit_channel_header.previewHeader', 'Edit Header')}
+                                previewMessageLink={
+                                    <FormattedMessage
+                                        id='edit_channel_header.previewHeader'
+                                        defaultMessage='Edit Header'
+                                    />
+                                }
                             />
                         </div>
                         {this.renderError()}

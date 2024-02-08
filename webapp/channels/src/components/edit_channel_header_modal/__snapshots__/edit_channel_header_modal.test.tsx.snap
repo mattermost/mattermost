@@ -85,7 +85,12 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit Header"
+              id="edit_channel_header.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
@@ -211,7 +216,12 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit Header"
+              id="edit_channel_header.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
@@ -355,7 +365,12 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit Header"
+              id="edit_channel_header.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
@@ -491,7 +506,12 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit Header"
+              id="edit_channel_header.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
@@ -617,7 +637,12 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit Header"
+              id="edit_channel_header.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
