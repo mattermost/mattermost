@@ -303,7 +303,7 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
-		outgoingOauthIface.Mock.On("GetConnections", mock.Anything, model.OutgoingOAuthConnectionGetConnectionsFilter{Limit: 1, Audience: "knowhere.com"}).Return([]*model.OutgoingOAuthConnection{conn}, nil)
+		outgoingOauthIface.Mock.On("GetConnectionForAudience", mock.Anything, "knowhere.com").Return(conn, nil)
 		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
 		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
 		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections

@@ -147,10 +147,25 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	connections, errList := service.GetConnections(c.AppContext, query.ToFilter())
-	if errList != nil {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, errList.Error(), http.StatusInternalServerError)
-		return
+	var connections []*model.OutgoingOAuthConnection
+	if query.Audience != "" {
+		// If the consumer expects an audience match, use the `GetConnectionByAudience` method to
+		// retrieve a single connection.
+		connection, err := service.GetConnectionForAudience(c.AppContext, query.Audience)
+		if err != nil {
+			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		connections = append(connections, connection)
+	} else {
+		// If the consumer does not expect an audience match, use the `GetConnections` method to
+		// retrieve a list of connections that potentially matches the provided audience.
+		var errList *model.AppError
+		connections, errList = service.GetConnections(c.AppContext, query.ToFilter())
+		if errList != nil {
+			c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.list_connections.app_error", nil, errList.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
 
 	service.SanitizeConnections(connections)
