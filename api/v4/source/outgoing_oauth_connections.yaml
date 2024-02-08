@@ -170,3 +170,6 @@
           $ref: "#/components/responses/InternalServerError"
         "501":
           $ref: "#/components/responses/NotImplemented"
+        "502":
+          description: The connection configuration may be valid, but the server is unable to validate it upstream.
+          $ref: "#/components/responses/BadGateway"
