@@ -14,6 +14,7 @@ clean:
 
 .PHONY: generate-server start-server prepare-server run-test stop-server restart-server
 generate-server:
+	env
 	bash ./.ci/server.generate.sh
 start-server: generate-server
 	bash ./.ci/server.start.sh
