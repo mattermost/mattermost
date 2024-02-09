@@ -169,13 +169,9 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder="Must start with http:// or https://"
-            type="text"
             value="https://google.com/command"
           />
           <div
@@ -184,6 +180,19 @@ exports[`components/integrations/AbstractCommand should match snapshot 1`] = `
             <MemoizedFormattedMessage
               defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
               id="add_command.url.help"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
             />
           </div>
         </div>
@@ -609,13 +618,9 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder="Must start with http:// or https://"
-            type="text"
             value="https://google.com/command"
           />
           <div
@@ -624,6 +629,19 @@ exports[`components/integrations/AbstractCommand should match snapshot when head
             <MemoizedFormattedMessage
               defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
               id="add_command.url.help"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
             />
           </div>
         </div>
@@ -1049,13 +1067,9 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
         <div
           className="col-md-5 col-sm-8"
         >
-          <input
-            className="form-control"
-            id="url"
-            maxLength={1024}
+          <OAuthConnectionAudienceInput
             onChange={[Function]}
             placeholder="Must start with http:// or https://"
-            type="text"
             value="https://google.com/command"
           />
           <div
@@ -1064,6 +1078,19 @@ exports[`components/integrations/AbstractCommand should match snapshot, displays
             <MemoizedFormattedMessage
               defaultMessage="Specify the callback URL to receive the HTTP POST or GET event request when the slash command is run."
               id="add_command.url.help"
+            />
+          </div>
+          <div
+            className="form__help"
+          >
+            <MemoizedFormattedMessage
+              defaultMessage="You can connect commands to <link>outgoing OAuth connections</link>."
+              id="add_command.outgoing_oauth_connections.help_text"
+              values={
+                Object {
+                  "link": [Function],
+                }
+              }
             />
           </div>
         </div>
