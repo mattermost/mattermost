@@ -17,6 +17,6 @@
         status_check_context: "E2E Tests/smoketests"
       # TODO: remove, these will only be used in the full E2E test run
       secrets:
-        MM_LICENSE: "${{ secrets.MM_E2E_LICENSE_ONPREM }}"
+        MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
         AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
         AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
