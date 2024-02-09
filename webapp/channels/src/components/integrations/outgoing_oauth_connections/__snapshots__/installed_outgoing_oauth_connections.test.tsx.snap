@@ -1,0 +1,260 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledOutgoingOAuthConnections should match snapshot 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <InstalledOutgoingOAuthConnections
+        team={
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "name",
+            "email": "",
+            "group_constrained": false,
+            "id": "team_id",
+            "invite_id": "",
+            "name": "test",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+      >
+        <BackstageList
+          addButtonId="addOutgoingOauthConnection"
+          addLink="/test/integrations/outgoing-oauth2-connections/add"
+          addText="Add Outgoing OAuth Connection"
+          emptyText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="No Outgoing OAuth Connections found"
+              id="installed_outgoing_oauth_connections.empty"
+            />
+          }
+          emptyTextSearch={
+            <FormattedMarkdownMessage
+              defaultMessage="No Outgoing OAuth Connections match {searchTerm}"
+              id="installed_outgoing_oauth_connections.emptySearch"
+            />
+          }
+          header={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Outgoing OAuth Connections"
+              id="installed_outgoing_oauth_connections.header"
+            />
+          }
+          helpText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Create {outgoingOauthConnections} to securely integrate bots and third-party apps with Mattermost."
+              id="installed_outgoing_oauth_connections.help"
+              values={
+                Object {
+                  "outgoingOauthConnections": <ExternalLink
+                    href="https://mattermost.com/pl/setup-oauth-2.0"
+                    location="installed_outgoing_oauth_connections"
+                  >
+                    <Memo(MemoizedFormattedMessage)
+                      defaultMessage="Outgoing OAuth Connections"
+                      id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
+                    />
+                  </ExternalLink>,
+                }
+              }
+            />
+          }
+          loading={true}
+          searchPlaceholder="Search Outgoing OAuth Connections"
+        >
+          <div
+            className="backstage-content"
+          >
+            <div
+              className="backstage-header"
+            >
+              <h1>
+                <FormattedMessage
+                  defaultMessage="Outgoing OAuth Connections"
+                  id="installed_outgoing_oauth_connections.header"
+                >
+                  <span>
+                    Outgoing OAuth Connections
+                  </span>
+                </FormattedMessage>
+              </h1>
+              <Link
+                className="add-link"
+                to="/test/integrations/outgoing-oauth2-connections/add"
+              >
+                <LinkAnchor
+                  className="add-link"
+                  href="/test/integrations/outgoing-oauth2-connections/add"
+                  navigate={[Function]}
+                >
+                  <a
+                    className="add-link"
+                    href="/test/integrations/outgoing-oauth2-connections/add"
+                    onClick={[Function]}
+                  >
+                    <button
+                      className="btn btn-primary"
+                      id="addOutgoingOauthConnection"
+                      type="button"
+                    >
+                      <span>
+                        Add Outgoing OAuth Connection
+                      </span>
+                    </button>
+                  </a>
+                </LinkAnchor>
+              </Link>
+            </div>
+            <div
+              className="backstage-filters"
+            >
+              <div
+                className="backstage-filter__search"
+              >
+                <SearchIcon>
+                  <i
+                    className="fa fa-search"
+                    title="Search Icon"
+                  />
+                </SearchIcon>
+                <input
+                  className="form-control"
+                  id="searchInput"
+                  onChange={[Function]}
+                  placeholder="Search Outgoing OAuth Connections"
+                  style={
+                    Object {
+                      "flexGrow": 0,
+                      "flexShrink": 0,
+                    }
+                  }
+                  type="search"
+                  value=""
+                />
+              </div>
+            </div>
+            <span
+              className="backstage-list__help"
+            >
+              <FormattedMessage
+                defaultMessage="Create {outgoingOauthConnections} to securely integrate bots and third-party apps with Mattermost."
+                id="installed_outgoing_oauth_connections.help"
+                values={
+                  Object {
+                    "outgoingOauthConnections": <ExternalLink
+                      href="https://mattermost.com/pl/setup-oauth-2.0"
+                      location="installed_outgoing_oauth_connections"
+                    >
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Outgoing OAuth Connections"
+                        id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
+                      />
+                    </ExternalLink>,
+                  }
+                }
+              >
+                <span>
+                  Create 
+                  <ExternalLink
+                    href="https://mattermost.com/pl/setup-oauth-2.0"
+                    key=".$.1"
+                    location="installed_outgoing_oauth_connections"
+                  >
+                    <a
+                      href="https://mattermost.com/pl/setup-oauth-2.0?utm_source=mattermost&utm_medium=in-product-cloud&utm_content=installed_outgoing_oauth_connections&uid=current_user_id&sid="
+                      location="installed_outgoing_oauth_connections"
+                      onClick={[Function]}
+                      rel="noopener noreferrer"
+                      target="_blank"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Outgoing OAuth Connections"
+                        id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
+                      >
+                        <span>
+                          Outgoing OAuth Connections
+                        </span>
+                      </FormattedMessage>
+                    </a>
+                  </ExternalLink>
+                   to securely integrate bots and third-party apps with Mattermost.
+                </span>
+              </FormattedMessage>
+            </span>
+            <div
+              className="backstage-list"
+            >
+              <LoadingScreen>
+                <div
+                  className="loading-screen"
+                  style={
+                    Object {
+                      "position": "relative",
+                    }
+                  }
+                >
+                  <div
+                    className="loading__content"
+                  >
+                    <p>
+                      Loading
+                    </p>
+                    <div
+                      className="round round-1"
+                    />
+                    <div
+                      className="round round-2"
+                    />
+                    <div
+                      className="round round-3"
+                    />
+                  </div>
+                </div>
+              </LoadingScreen>
+            </div>
+          </div>
+        </BackstageList>
+      </InstalledOutgoingOAuthConnections>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
