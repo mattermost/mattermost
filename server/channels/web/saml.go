@@ -46,7 +46,7 @@ func loginWithSaml(c *Context, w http.ResponseWriter, r *http.Request) {
 		relayProps["team_id"] = teamId
 		relayProps["action"] = action
 		if action == model.OAuthActionEmailToSSO {
-			relayProps["email"] = r.URL.Query().Get("email")
+			relayProps["email_token"] = r.URL.Query().Get("email_token")
 		}
 	}
 
