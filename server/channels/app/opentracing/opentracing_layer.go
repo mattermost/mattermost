@@ -9024,7 +9024,7 @@ func (a *OpenTracingAppLayer) GetSamlEmailToken(token string) (*model.Token, *mo
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetSamlMetadata(c request.CTX) (string, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSamlMetadata(c *request.Context) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSamlMetadata")
 

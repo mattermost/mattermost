@@ -760,7 +760,7 @@ type AppIface interface {
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
 	GetSamlCertificateStatus() *model.SamlCertificateStatus
 	GetSamlEmailToken(token string) (*model.Token, *model.AppError)
-	GetSamlMetadata(c request.CTX) (string, *model.AppError)
+	GetSamlMetadata(c *request.Context) (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataURL string) (*model.SamlMetadataResponse, *model.AppError)
 	GetSanitizeOptions(asAdmin bool) map[string]bool
 	GetScheme(id string) (*model.Scheme, *model.AppError)
