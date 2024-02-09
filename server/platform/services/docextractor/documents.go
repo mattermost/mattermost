@@ -9,7 +9,7 @@ import (
 	"path"
 	"strings"
 
-	"code.sajari.com/docconv"
+	"code.sajari.com/docconv/v2"
 )
 
 type documentExtractor struct{}
