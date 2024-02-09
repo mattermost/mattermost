@@ -243,6 +243,7 @@ const FormattingBar = (props: FormattingBarProps): JSX.Element => {
                         ref={setReference}
                         className={classNames({active: showHiddenControls})}
                         aria-label={HiddenControlsButtonAriaLabel}
+                        type='button'
                         {...getClickReferenceProps()}
                         {...getDismissReferenceProps()}
                     >
