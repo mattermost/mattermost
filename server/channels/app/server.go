@@ -41,6 +41,7 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
@@ -654,7 +655,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
+	scs, err := sharedchannel.NewSharedChannelService(s, s.Platform(), appInstance)
 	if err != nil {
 		return err
 	}
@@ -1591,6 +1592,11 @@ func (s *Server) initJobs() {
 	s.Jobs.RegisterJobType(
 		model.JobTypeDeleteEmptyDraftsMigration,
 		delete_empty_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
+
+	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteOrphanDraftsMigration,
+		delete_orphan_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
 		nil)
 
 	s.Jobs.RegisterJobType(

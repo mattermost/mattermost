@@ -58,12 +58,12 @@ func createCommand(ss store.Store, userId, teamId string) *model.Command {
 	return cmd
 }
 
-func createChannelMember(ss store.Store, channelId, userId string) *model.ChannelMember {
+func createChannelMember(rctx request.CTX, ss store.Store, channelId, userId string) *model.ChannelMember {
 	m := model.ChannelMember{}
 	m.ChannelId = channelId
 	m.UserId = userId
 	m.NotifyProps = model.GetDefaultChannelNotifyProps()
-	cm, _ := ss.Channel().SaveMember(&m)
+	cm, _ := ss.Channel().SaveMember(rctx, &m)
 	return cm
 }
 
@@ -83,8 +83,8 @@ func createChannelWithCreatorId(ss store.Store, id string) *model.Channel {
 	return createChannel(ss, model.NewId(), id)
 }
 
-func createChannelMemberWithChannelId(ss store.Store, id string) *model.ChannelMember {
-	return createChannelMember(ss, id, model.NewId())
+func createChannelMemberWithChannelId(rctx request.CTX, ss store.Store, id string) *model.ChannelMember {
+	return createChannelMember(rctx, ss, id, model.NewId())
 }
 
 func createCommandWebhook(ss store.Store, commandId, userId, channelId string) *model.CommandWebhook {
@@ -342,11 +342,11 @@ func createTeam(ss store.Store) *model.Team {
 	return t
 }
 
-func createTeamMember(ss store.Store, teamId, userId string) *model.TeamMember {
+func createTeamMember(rctx request.CTX, ss store.Store, teamId, userId string) *model.TeamMember {
 	m := model.TeamMember{}
 	m.TeamId = teamId
 	m.UserId = userId
-	tm, _ := ss.Team().SaveMember(&m, -1)
+	tm, _ := ss.Team().SaveMember(rctx, &m, -1)
 	return tm
 }
 
@@ -484,7 +484,7 @@ func TestCheckChannelsChannelMembersIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			channel := createChannel(ss, model.NewId(), model.NewId())
-			member := createChannelMemberWithChannelId(ss, channel.Id)
+			member := createChannelMemberWithChannelId(rctx, ss, channel.Id)
 			dbmap.Exec(`DELETE FROM Channels Where Id=?`, channel.Id)
 			result := checkChannelsChannelMembersIntegrity(store)
 			require.NoError(t, result.Err)
@@ -966,7 +966,7 @@ func TestCheckTeamsTeamMembersIntegrity(t *testing.T) {
 
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			team := createTeam(ss)
-			member := createTeamMember(ss, team.Id, model.NewId())
+			member := createTeamMember(rctx, ss, team.Id, model.NewId())
 			dbmap.Exec(`DELETE FROM Teams WHERE Id=?`, team.Id)
 			result := checkTeamsTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)
@@ -1110,7 +1110,7 @@ func TestCheckUsersChannelMembersIntegrity(t *testing.T) {
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(ss)
 			channel := createChannelWithCreatorId(ss, user.Id)
-			member := createChannelMember(ss, channel.Id, user.Id)
+			member := createChannelMember(rctx, ss, channel.Id, user.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 			result := checkUsersChannelMembersIntegrity(store)
 			require.NoError(t, result.Err)
@@ -1563,7 +1563,7 @@ func TestCheckUsersTeamMembersIntegrity(t *testing.T) {
 		t.Run("should generate a report with one record", func(t *testing.T) {
 			user := createUser(ss)
 			team := createTeam(ss)
-			member := createTeamMember(ss, team.Id, user.Id)
+			member := createTeamMember(rctx, ss, team.Id, user.Id)
 			dbmap.Exec(`DELETE FROM Users WHERE Id=?`, user.Id)
 			result := checkUsersTeamMembersIntegrity(store)
 			require.NoError(t, result.Err)

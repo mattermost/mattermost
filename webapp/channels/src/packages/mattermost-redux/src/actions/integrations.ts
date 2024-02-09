@@ -10,7 +10,7 @@ import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
@@ -49,7 +49,7 @@ export function getIncomingHooks(teamId = '', page = 0, perPage: number = Genera
     });
 }
 
-export function removeIncomingHook(hookId: string): NewActionFuncAsync {
+export function removeIncomingHook(hookId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.removeIncomingWebhook(hookId);
@@ -114,7 +114,7 @@ export function getOutgoingHooks(channelId = '', teamId = '', page = 0, perPage:
     });
 }
 
-export function removeOutgoingHook(hookId: string): NewActionFuncAsync {
+export function removeOutgoingHook(hookId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.removeOutgoingWebhook(hookId);
@@ -218,7 +218,7 @@ export function executeCommand(command: string, args: CommandArgs) {
     });
 }
 
-export function regenCommandToken(id: string): NewActionFuncAsync {
+export function regenCommandToken(id: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let res;
         try {
@@ -244,7 +244,7 @@ export function regenCommandToken(id: string): NewActionFuncAsync {
     };
 }
 
-export function deleteCommand(id: string): NewActionFuncAsync {
+export function deleteCommand(id: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.deleteCommand(id);
@@ -389,7 +389,7 @@ export function getOAuthApp(appId: string) {
     });
 }
 
-export function getAuthorizedOAuthApps(): NewActionFuncAsync<OAuthApp[]> {
+export function getAuthorizedOAuthApps(): ActionFuncAsync<OAuthApp[]> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -416,7 +416,7 @@ export function deauthorizeOAuthApp(clientId: string) {
     });
 }
 
-export function deleteOAuthApp(id: string): NewActionFuncAsync {
+export function deleteOAuthApp(id: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.deleteOAuthApp(id);
@@ -448,7 +448,7 @@ export function regenOAuthAppSecret(appId: string) {
     });
 }
 
-export function deleteOutgoingOAuthConnection(id: string): NewActionFuncAsync<boolean> {
+export function deleteOutgoingOAuthConnection(id: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         try {
             await Client4.deleteOutgoingOAuthConnection(id);
@@ -468,7 +468,7 @@ export function deleteOutgoingOAuthConnection(id: string): NewActionFuncAsync<bo
     };
 }
 
-export function submitInteractiveDialog(submission: DialogSubmission): NewActionFuncAsync<SubmitDialogResponse> {
+export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse> {
     return async (dispatch, getState) => {
         const state = getState();
         submission.channel_id = getCurrentChannelId(state);

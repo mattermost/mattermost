@@ -9,7 +9,7 @@ import {AppBindingLocations, AppCallResponseTypes} from 'mattermost-redux/consta
 import {appsEnabled} from 'mattermost-redux/selectors/entities/apps';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getFilter, getPlugin} from 'selectors/views/marketplace';
 
@@ -23,26 +23,8 @@ import type {GlobalState} from 'types/store';
 
 import {doAppSubmit, openAppsModal, postEphemeralCallResponseForContext} from './apps';
 
-export function fetchRemoteListing(): NewActionFuncAsync<MarketplacePlugin[], GlobalState> { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const state = getState();
-        const filter = getFilter(state);
-
-        try {
-            const plugins = await Client4.getRemoteMarketplacePlugins(filter);
-            dispatch({
-                type: ActionTypes.RECEIVED_MARKETPLACE_PLUGINS,
-                plugins,
-            });
-            return {data: plugins};
-        } catch (error: any) {
-            return {error};
-        }
-    };
-}
-
 // fetchPlugins fetches the latest marketplace plugins and apps, subject to any existing search filter.
-export function fetchListing(localOnly = false): NewActionFuncAsync<Array<MarketplacePlugin | MarketplaceApp>, GlobalState> {
+export function fetchListing(localOnly = false): ActionFuncAsync<Array<MarketplacePlugin | MarketplaceApp>, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const filter = getFilter(state);

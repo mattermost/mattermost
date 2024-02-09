@@ -3,7 +3,7 @@
 
 /**
  * @param {Post} originalPost
- * @returns {NewActionFuncAsync<Post>}
+ * @returns {ActionFuncAsync<Post>}
  */
 export function runMessageWillBePostedHooks(originalPost) {
     return async (dispatch, getState) => {
