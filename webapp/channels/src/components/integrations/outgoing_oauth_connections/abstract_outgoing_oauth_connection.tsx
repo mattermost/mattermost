@@ -97,7 +97,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
 
     const isNewConnection = !props.initialConnection;
 
-    const parseForm = (): OutgoingOAuthConnection | undefined => {
+    const parseForm = (requireAudienceUrl: boolean): OutgoingOAuthConnection | undefined => {
         if (!formState.name) {
             setIsSubmitting(false);
             setError(
@@ -167,7 +167,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             }
         }
 
-        if (audienceUrls.length === 0) {
+        if (requireAudienceUrl && audienceUrls.length === 0) {
             setIsSubmitting(false);
             setError(
                 <FormattedMessage
@@ -209,7 +209,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             return;
         }
 
-        const connection = parseForm();
+        const connection = parseForm(true);
         if (!connection) {
             return;
         }
@@ -239,7 +239,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         setError('');
         setValidationStatus(ValidationStatus.VALIDATING);
 
-        const connection = parseForm();
+        const connection = parseForm(false);
         if (!connection) {
             // Defer to the form validation error
             setValidationStatus(ValidationStatus.INITIAL);
