@@ -2798,6 +2798,13 @@ export default class Client4 {
         );
     };
 
+    getOutgoingOAuthConnectionsForAudience = (audience: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<OutgoingOAuthConnection[]>(
+            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({page, per_page: perPage, audience})}`,
+            {method: 'get'},
+        );
+    };
+
     getOutgoingOAuthConnection = (connectionId: string) => {
         return this.doFetch<OutgoingOAuthConnection>(
             `${this.getOutgoingOAuthConnectionRoute(connectionId)}`,

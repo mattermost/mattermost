@@ -588,17 +588,15 @@
     margin-top: 40px;
 }
 
-.outgoing-oauth-audience-match-message {
+.outgoing-oauth-audience-match-message-container {
     height: 27px;
 
-    svg {
+    > span {
         position: absolute;
         top: 45px;
     }
 
-    span {
-        position: absolute;
-        top: 45px;
+    .outgoing-oauth-audience-match-message {
         left: 42px;
     }
 }

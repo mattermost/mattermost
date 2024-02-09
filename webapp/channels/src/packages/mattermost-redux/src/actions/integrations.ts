@@ -308,6 +308,18 @@ export function getOutgoingOAuthConnections(page = 0, perPage: number = General.
     });
 }
 
+export function getOutgoingOAuthConnectionsForAudience(audience: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
+    return bindClientFunc({
+        clientFunc: Client4.getOutgoingOAuthConnectionsForAudience,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS],
+        params: [
+            audience,
+            page,
+            perPage,
+        ],
+    });
+}
+
 export function addOutgoingOAuthConnection(connection: OutgoingOAuthConnection) {
     return bindClientFunc({
         clientFunc: Client4.createOutgoingOAuthConnection,
