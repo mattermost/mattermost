@@ -496,41 +496,63 @@ func TestPreparePostForClient(t *testing.T) {
 		}))
 
 		for _, tc := range []struct {
-			name string
-			link string
+			name          string
+			link          string
+			notImplmented bool
 		}{
 			{
 				name: "normal link",
-				link: noAccessServer.URL,
+				link: "%s",
 			},
 			{
 				name: "normal image",
-				link: noAccessServer.URL + "/image.png",
+				link: "%s/test-image1.png",
 			},
 			{
 				name: "markdown",
-				link: "[markdown](" + noAccessServer.URL + ") link",
+				link: "[markdown](%s) link",
+				// This is because markdown links are not currently supported in the opengraph fetching code
+				// if you just implmented this, remove the `notImplmented` field
+				notImplmented: true,
 			},
 			{
 				name: "markdown image",
-				link: "![markdown](" + noAccessServer.URL + "/image.png) link",
+				link: "![markdown](%s/test-image1.png) link",
 			},
 		} {
 			t.Run(tc.name, func(t *testing.T) {
-				prepost := &model.Post{
-					UserId:    th.BasicUser.Id,
-					ChannelId: th.BasicChannel.Id,
-					Message:   `Bla bla bla: ` + tc.link,
+				t.Run("prop set", func(t *testing.T) {
+					prepost := &model.Post{
+						UserId:    th.BasicUser.Id,
+						ChannelId: th.BasicChannel.Id,
+						Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, noAccessServer.URL),
+					}
+					prepost.AddProp(UnsafeLinksPostProp, "true")
+
+					post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+					require.Nil(t, err)
+
+					clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
+
+					assert.Len(t, clientPost.Metadata.Embeds, 0)
+					assert.Len(t, clientPost.Metadata.Images, 0)
+				})
+				if !tc.notImplmented {
+					t.Run("prop not set", func(t *testing.T) {
+						prepost := &model.Post{
+							UserId:    th.BasicUser.Id,
+							ChannelId: th.BasicChannel.Id,
+							Message:   `Bla bla bla: ` + fmt.Sprintf(tc.link, server.URL),
+						}
+
+						post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
+						require.Nil(t, err)
+
+						clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
+
+						assert.Greater(t, len(clientPost.Metadata.Embeds)+len(clientPost.Metadata.Images), 0)
+					})
 				}
-				prepost.AddProp(UnsafeLinksPostProp, "true")
-
-				post, err := th.App.CreatePost(th.Context, prepost, th.BasicChannel, false, true)
-				require.Nil(t, err)
-
-				clientPost := th.App.PreparePostForClient(th.Context, post, false, false, false)
-
-				assert.Len(t, clientPost.Metadata.Embeds, 0)
-				assert.Len(t, clientPost.Metadata.Images, 0)
 			})
 		}
 	})
