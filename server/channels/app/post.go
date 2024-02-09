@@ -1384,9 +1384,21 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	})
 
+	// delete drafts associated with the post when deleting the post
+	a.Srv().Go(func() {
+		a.deleteDraftsAssociatedWithPost(c, channel, post)
+	})
+
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return post, nil
+}
+
+func (a *App) deleteDraftsAssociatedWithPost(c request.CTX, channel *model.Channel, post *model.Post) {
+	if err := a.Srv().Store().Draft().DeleteDraftsAssociatedWithPost(channel.Id, post.Id); err != nil {
+		c.Logger().Error("Failed to delete drafts associated with post when deleting post", mlog.Err(err))
+		return
+	}
 }
 
 func (a *App) deleteFlaggedPosts(c request.CTX, postID string) {

@@ -11,12 +11,12 @@ import type {UserProfile} from '@mattermost/types/users';
 import {ChannelTypes, GroupTypes, UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
-export function linkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>): NewActionFuncAsync {
+export function linkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -48,7 +48,7 @@ export function linkGroupSyncable(groupID: string, syncableID: string, syncableT
     };
 }
 
-export function unlinkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType): NewActionFuncAsync {
+export function unlinkGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.unlinkGroupSyncable(groupID, syncableID, syncableType);
@@ -83,7 +83,7 @@ export function unlinkGroupSyncable(groupID: string, syncableID: string, syncabl
     };
 }
 
-export function getGroupSyncables(groupID: string, syncableType: SyncableType): NewActionFuncAsync {
+export function getGroupSyncables(groupID: string, syncableType: SyncableType): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -114,7 +114,7 @@ export function getGroupSyncables(groupID: string, syncableType: SyncableType): 
     };
 }
 
-export function patchGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>): NewActionFuncAsync {
+export function patchGroupSyncable(groupID: string, syncableID: string, syncableType: SyncableType, patch: Partial<SyncablePatch>): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -324,7 +324,7 @@ export function getGroupStats(groupID: string) {
     });
 }
 
-export function createGroupWithUserIds(group: GroupCreateWithUserIds): NewActionFuncAsync<Group> {
+export function createGroupWithUserIds(group: GroupCreateWithUserIds): ActionFuncAsync<Group> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -342,7 +342,7 @@ export function createGroupWithUserIds(group: GroupCreateWithUserIds): NewAction
     };
 }
 
-export function addUsersToGroup(groupId: string, userIds: string[]): NewActionFuncAsync<UserProfile[]> {
+export function addUsersToGroup(groupId: string, userIds: string[]): ActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -364,7 +364,7 @@ export function addUsersToGroup(groupId: string, userIds: string[]): NewActionFu
     };
 }
 
-export function removeUsersFromGroup(groupId: string, userIds: string[]): NewActionFuncAsync<UserProfile[]> {
+export function removeUsersFromGroup(groupId: string, userIds: string[]): ActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -386,7 +386,7 @@ export function removeUsersFromGroup(groupId: string, userIds: string[]): NewAct
     };
 }
 
-export function searchGroups(params: GroupSearchParams): NewActionFuncAsync {
+export function searchGroups(params: GroupSearchParams): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -411,7 +411,7 @@ export function searchGroups(params: GroupSearchParams): NewActionFuncAsync {
     };
 }
 
-export function archiveGroup(groupId: string): NewActionFuncAsync<Group> {
+export function archiveGroup(groupId: string): ActionFuncAsync<Group> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -433,7 +433,7 @@ export function archiveGroup(groupId: string): NewActionFuncAsync<Group> {
     };
 }
 
-export function restoreGroup(groupId: string): NewActionFuncAsync<Group> {
+export function restoreGroup(groupId: string): ActionFuncAsync<Group> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -455,7 +455,7 @@ export function restoreGroup(groupId: string): NewActionFuncAsync<Group> {
     };
 }
 
-export function createGroupTeamsAndChannels(userID: string): NewActionFuncAsync<{user_id: string}> {
+export function createGroupTeamsAndChannels(userID: string): ActionFuncAsync<{user_id: string}> {
     return async (dispatch, getState) => {
         try {
             await Client4.createGroupTeamsAndChannels(userID);

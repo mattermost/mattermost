@@ -480,13 +480,21 @@ func (a *App) UpdateTeamMemberSchemeRoles(c request.CTX, teamID string, userID s
 		return nil, err
 	}
 
+	if member.SchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if isSchemeUser && isSchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if isSchemeAdmin && isSchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest_and_admin.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
 	member.SchemeGuest = isSchemeGuest
-
-	if member.SchemeUser && member.SchemeGuest {
-		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
-	}
 
 	// If the migration is not completed, we also need to check the default team_admin/team_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {

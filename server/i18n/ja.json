@@ -9066,10 +9066,6 @@
     "translation": "{{ .SenderName }} があなたを {{ .TeamDisplayName }} チームの {{ .ChannelName }} チャンネルに招待しました"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Bodyデータを解析中にエラーが発生しました。"
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "リクエストボディが不正です。"
   },

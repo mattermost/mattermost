@@ -9084,10 +9084,6 @@
     "translation": "{{ .SenderName }} запрасіў вас далучыцца да {{ .ChannelName }} у камандзе {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Памылка пры аналізе даных цела."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Несапраўднае цела запыту."
   },
