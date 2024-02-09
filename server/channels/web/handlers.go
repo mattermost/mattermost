@@ -143,6 +143,7 @@ func generateDevCSP(c Context) string {
 }
 
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	fmt.Println("Debugging.........")
 	w = newWrappedWriter(w)
 	now := time.Now()
 
