@@ -7,6 +7,7 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"mime/multipart"
@@ -295,4 +296,33 @@ func (a *App) ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs
 		return
 	}
 	return
+}
+
+func (a *App) CreateSamlRelayToken(extra string) (*model.Token, *model.AppError) {
+	token := model.NewToken(model.TokenTypeSaml, extra)
+
+	if err := a.Srv().Store().Token().Save(token); err != nil {
+		var appErr *model.AppError
+		switch {
+		case errors.As(err, &appErr):
+			return nil, appErr
+		default:
+			return nil, model.NewAppError("CreateSamlRelayToken", "app.recover.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
+	return token, nil
+}
+
+func (a *App) GetSamlEmailToken(token string) (*model.Token, *model.AppError) {
+	mToken, err := a.Srv().Store().Token().GetByToken(token)
+	if err != nil {
+		return nil, model.NewAppError("GetSamlEmailToken", "api.saml.invalid_email_token.app_error", nil, "", http.StatusBadRequest).Wrap(err)
+	}
+
+	if mToken.Type != model.TokenTypeSaml {
+		return nil, model.NewAppError("GetSamlEmailToken", "api.saml.invalid_email_token.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	return mToken, nil
 }
