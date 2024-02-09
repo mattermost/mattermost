@@ -138,7 +138,7 @@ type TeamStore interface {
 	PermanentDelete(teamID string) error
 	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
-	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
+	SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(rctx request.CTX, member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
 	GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error)
@@ -219,7 +219,7 @@ type ChannelStore interface {
 	GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error)
 	GetForPost(postID string) (*model.Channel, error)
 	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
-	SaveMember(member *model.ChannelMember) (*model.ChannelMember, error)
+	SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMember(ctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
 	// UpdateMemberNotifyProps patches the notifyProps field with the given props map.
