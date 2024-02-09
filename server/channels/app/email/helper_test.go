@@ -223,7 +223,7 @@ func (th *TestHelper) addUserToTeam(team *model.Team, user *model.User) *model.T
 	}
 
 	var err error
-	tm, err = th.store.Team().SaveMember(tm, *th.service.config().TeamSettings.MaxUsersPerTeam)
+	tm, err = th.store.Team().SaveMember(th.Context, tm, *th.service.config().TeamSettings.MaxUsersPerTeam)
 	if err != nil {
 		panic(err)
 	}

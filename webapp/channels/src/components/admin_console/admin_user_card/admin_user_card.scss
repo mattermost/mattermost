@@ -3,6 +3,13 @@
     margin: 2em 0 1em;
     border-radius: 2px;
     box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+
+    .noUserBody {
+        display: flex;
+        min-height: 20vh;
+        align-items: center;
+        justify-content: center;
+    }
 }
 
 .AdminUserCard__header {

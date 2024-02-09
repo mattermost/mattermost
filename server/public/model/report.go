@@ -145,6 +145,7 @@ func (u *UserReportOptions) IsValid() *AppError {
 }
 
 func (u *UserReportQuery) ToReport() *UserReport {
+	u.ClearNonProfileFields()
 	return &UserReport{
 		User:          u.User,
 		UserPostStats: u.UserPostStats,

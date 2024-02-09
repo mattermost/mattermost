@@ -425,7 +425,7 @@
 
             .code-preview {
                 display: flex;
-                height: calc(100vh - 168px);
+                max-height: calc(100vh - 168px);
                 flex-direction: column;
                 border-radius: 8px;
 

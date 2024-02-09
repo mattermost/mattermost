@@ -1,0 +1,17 @@
+.systemUsersColumnToggler {
+    margin-inline-end: 8px;
+}
+
+#systemUsersColumnTogglerMenu {
+    i.icon.icon-checkbox-marked {
+        color: var(--button-bg);
+    }
+
+    i.icon.icon-checkbox-blank-outline {
+        color: rgba(var(--sys-center-channel-color-rgb), 0.24);
+    }
+
+    .systemUsersColumnToggler__lockedItem {
+        pointer-events: auto;
+    }
+}

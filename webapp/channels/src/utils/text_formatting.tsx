@@ -24,7 +24,7 @@ const FORMAT_TOKEN_LIMIT = 1000;
 const FORMAT_TOKEN_LIMIT_ERROR = 'maximum number of tokens reached';
 
 export function isFormatTokenLimitError(error: unknown) {
-    return Boolean(error && typeof error === 'object' && 'message' in error && error.message === FORMAT_TOKEN_LIMIT_ERROR);
+    return Boolean(error && typeof error === 'object' && 'message' in error && (error as Record<string, string>).message === FORMAT_TOKEN_LIMIT_ERROR);
 }
 
 // Performs formatting of user posts including highlighting mentions and search terms and converting urls, hashtags,

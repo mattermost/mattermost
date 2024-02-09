@@ -54,8 +54,8 @@ func (a *App) CompileReportChunks(format string, prefix string, numberOfChunks i
 func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []string) *model.AppError {
 	filePath := makeCompiledFilePath(prefix, "csv")
 
-	var headerBuf bytes.Buffer
-	w := csv.NewWriter(&headerBuf)
+	var compiledBuf bytes.Buffer
+	w := csv.NewWriter(&compiledBuf)
 	err := w.Write(headers)
 	if err != nil {
 		return model.NewAppError("compileCSVChunks", "app.compile_csv_chunks.header_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -64,10 +64,6 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 	if err = w.Error(); err != nil {
 		return model.NewAppError("saveCSVChunk", "app.save_csv_chunk.write_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	_, appErr := a.WriteFile(&headerBuf, filePath)
-	if appErr != nil {
-		return appErr
-	}
 
 	for i := 0; i < numberOfChunks; i++ {
 		chunkFilePath := makeFilePath(prefix, i, "csv")
@@ -75,9 +71,15 @@ func (a *App) compileCSVChunks(prefix string, numberOfChunks int, headers []stri
 		if err != nil {
 			return err
 		}
-		if _, err = a.AppendFile(bytes.NewReader(chunk), filePath); err != nil {
+		_, writeErr := compiledBuf.Write(chunk)
+		if writeErr != nil {
 			return err
 		}
+	}
+
+	_, appErr := a.WriteFile(&compiledBuf, filePath)
+	if appErr != nil {
+		return appErr
 	}
 
 	return nil
@@ -230,7 +232,7 @@ func (a *App) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt 
 		}
 	}
 
-	_, err = a.Srv().Jobs.CreateJobOnce(rctx, model.JobTypeExportUsersToCSV, options)
+	_, err = a.Srv().Jobs.CreateJob(rctx, model.JobTypeExportUsersToCSV, options)
 	if err != nil {
 		return err
 	}

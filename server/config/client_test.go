@@ -241,6 +241,19 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
+			"disable EnableUserStatuses",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableUserStatuses: model.NewBool(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableUserStatuses": "false",
+			},
+		},
+		{
 			"Shared channels enterprise license",
 			&model.Config{
 				ExperimentalSettings: model.ExperimentalSettings{

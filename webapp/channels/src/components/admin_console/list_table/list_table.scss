@@ -1,3 +1,13 @@
+@mixin textElipsis {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.adminConsoleListTableContainer {
+    overflow: auto;
+}
+
 table.adminConsoleListTable {
     // This is rgba(var(--sys-center-channel-color-rgb), 0.08) but since we cannot use opacity
     // due to sticky row which shows the background thus a defined color is used
@@ -17,10 +27,10 @@ table.adminConsoleListTable {
             white-space: nowrap;
 
             th {
-                max-width: 50rem;
                 background-color: var(--sys-center-channel-bg);
                 padding-block-end: 12px;
                 padding-block-start: 12px;
+                vertical-align: middle;
 
                 &:first-child {
                     padding-inline-end: 12px;
@@ -42,7 +52,6 @@ table.adminConsoleListTable {
                     z-index: 1;
                     right: 0;
                     left: 0;
-                    min-width: 20rem;
                     background-color: var(--sys-center-channel-bg);
 
                     &:first-child {
@@ -81,8 +90,6 @@ table.adminConsoleListTable {
                 }
 
                 &.sortable {
-                    vertical-align: middle;
-
                     &:hover {
                         background-color: $sysCenterChannelColorWith8Alpha;
                         cursor: pointer;
@@ -102,25 +109,6 @@ table.adminConsoleListTable {
                             visibility: hidden;
                         }
                     }
-                }
-
-                &.sortable.pinned {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-
-                    & > span {
-                        &:first-child {
-                            flex-grow: 1;
-                            justify-content: flex-start;
-                        }
-                    }
-                }
-
-                &.pinned:not(.sortable) {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
                 }
             }
         }
@@ -143,6 +131,11 @@ table.adminConsoleListTable {
                 // set the background color of the sticky element to the same as the on hover
                 td.pinned {
                     background-color: $sysCenterChannelColorWith8Alpha;
+                }
+
+                td.noRows {
+                    background-color: var(--sys-center-channel-bg);
+                    cursor: default;
                 }
             }
 
@@ -203,6 +196,10 @@ table.adminConsoleListTable {
                         }
                     }
                 }
+
+                &.noRows {
+                    text-align: center;
+                }
             }
         }
     }
@@ -233,11 +230,14 @@ table.adminConsoleListTable {
     .adminConsoleListTablePageSize {
         display: flex;
         flex-direction: row;
+        flex-grow: 1;
         align-items: center;
-        justify-content: center;
+        justify-content: flex-end;
+        justify-self: flex-end;
+        margin-inline-end: 12px;
 
         & > .react-select {
-            min-width: 64px;
+            min-width: 72px;
             margin: 0 6px;
 
             .react-select__value-container {

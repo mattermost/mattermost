@@ -127,12 +127,11 @@ describe('Guest Account - Guest User Invitation Flow', () => {
             cy.visit('/admin_console/user_management/users');
 
             // # Search for User by username and select the option to update email
-            cy.get('#searchUsers').should('be.visible').type(guest.username);
+            cy.findByPlaceholderText('Search users').should('be.visible').type(guest.username).wait(TIMEOUTS.ONE_SEC);
 
             // # Click on the option to update email
-            cy.wait(TIMEOUTS.HALF_SEC);
-            cy.findByTestId('userListRow').find('.MenuWrapper a').should('be.visible').click();
-            cy.findByText('Update Email').should('be.visible').click();
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click();
+            cy.findByText('Update email').should('be.visible').click();
 
             // * Update email outside whitelisted domain and verify error message
             cy.findByTestId('resetEmailModal').should('be.visible').within(() => {

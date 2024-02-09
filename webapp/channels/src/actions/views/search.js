@@ -45,13 +45,6 @@ export function setUserGridFilters(filters = {}) {
     };
 }
 
-export function setSystemUsersSearch(term, team = '', filter = '') {
-    return {
-        type: SearchTypes.SET_SYSTEM_USERS_SEARCH,
-        data: {term, team, filter},
-    };
-}
-
 export function setTeamListSearch(term) {
     return {
         type: SearchTypes.SET_TEAM_LIST_SEARCH,

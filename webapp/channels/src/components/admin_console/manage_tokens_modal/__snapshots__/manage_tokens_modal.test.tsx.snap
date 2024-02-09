@@ -23,11 +23,12 @@ exports[`components/admin_console/manage_tokens_modal/manage_tokens_modal.tsx sh
       "remove": [Function],
     }
   }
-  onHide={[MockFunction]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="dialog"
-  show={false}
+  show={true}
 >
   <ModalHeader
     bsClass="modal-header"

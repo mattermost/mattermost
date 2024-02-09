@@ -853,7 +853,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 	return newMembers, nil
 }
 
-func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+func (s SqlTeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	members, err := s.SaveMultipleMembers([]*model.TeamMember{member}, maxUsersPerTeam)
 	if err != nil {
 		return nil, err

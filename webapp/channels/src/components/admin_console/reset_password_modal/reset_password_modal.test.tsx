@@ -13,7 +13,6 @@ import {TestHelper} from 'utils/test_helper';
 import ResetPasswordModal from './reset_password_modal';
 
 describe('components/admin_console/reset_password_modal/reset_password_modal.tsx', () => {
-    const emptyFunction = jest.fn();
     const notifyProps: UserNotifyProps = {
         channel: 'true',
         comments: 'never',
@@ -37,9 +36,8 @@ describe('components/admin_console/reset_password_modal/reset_password_modal.tsx
         actions: {updateUserPassword: jest.fn(() => Promise.resolve({data: ''}))},
         currentUserId: user.id,
         user,
-        show: true,
-        onModalSubmit: emptyFunction,
-        onModalDismissed: emptyFunction,
+        onHide: jest.fn(),
+        onExited: jest.fn(),
         passwordConfig: {
             minimumLength: 10,
             requireLowercase: true,

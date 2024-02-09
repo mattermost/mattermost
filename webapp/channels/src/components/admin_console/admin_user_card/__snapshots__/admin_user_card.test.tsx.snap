@@ -47,9 +47,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match d
       <div
         class="AdminUserCard__user-id"
       >
-        User ID:
-         
-        1234
+        User ID: 1234
       </div>
     </div>
     <div
@@ -104,9 +102,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       <div
         class="AdminUserCard__user-id"
       >
-        User ID:
-         
-        1234
+        User ID: 1234
       </div>
     </div>
     <div
@@ -159,9 +155,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       <div
         class="AdminUserCard__user-id"
       >
-        User ID:
-         
-        1234
+        User ID: 1234
       </div>
     </div>
     <div
@@ -216,9 +210,7 @@ exports[`components/admin_console/admin_user_card/admin_user_card should match s
       <div
         class="AdminUserCard__user-id"
       >
-        User ID:
-         
-        1234
+        User ID: 1234
       </div>
     </div>
     <div
