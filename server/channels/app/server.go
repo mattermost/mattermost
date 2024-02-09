@@ -651,7 +651,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
+	scs, err := sharedchannel.NewSharedChannelService(s, s.Platform(), appInstance)
 	if err != nil {
 		return err
 	}
