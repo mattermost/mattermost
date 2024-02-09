@@ -950,7 +950,12 @@ func (a *App) SwitchEmailToOAuth(w http.ResponseWriter, r *http.Request, email, 
 	stateProps["email"] = email
 
 	if service == model.UserAuthServiceSaml {
-		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email=" + utils.URLEncode(email), nil
+		samlToken, samlErr := a.CreateSamlRelayToken(email)
+		if samlErr != nil {
+			return "", samlErr
+		}
+
+		return a.GetSiteURL() + "/login/sso/saml?action=" + model.OAuthActionEmailToSSO + "&email_token=" + utils.URLEncode(samlToken.Token), nil
 	}
 
 	authURL, err := a.GetAuthorizationCode(w, r, service, stateProps, "")
