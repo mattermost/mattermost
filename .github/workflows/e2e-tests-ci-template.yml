@@ -13,6 +13,10 @@ on:
         type: number
         required: false
         default: 1
+      testcase_failure_fatal:
+        type: boolean
+        required: false
+        default: true
       # NB: this will skip individual preflight steps, rather than the whole jobs,
       #     to let the dependent jobs run anyaway in case this is false
       run_preflight_checks:
@@ -257,11 +261,12 @@ jobs:
       - name: ci/e2e-test-store-results
         uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
         with:
-          name: e2e-test-results-${{ matrix.os }}
+          name: e2e-test-results-${{ matrix.os }}-${{ matrix.worker_index }}
           path: |
             e2e-tests/cypress/logs/
             e2e-tests/cypress/results/
       - name: ci/e2e-test-assert-results
+        if: "${{ inputs.testcase_failure_fatal }}"
         run: |
           # Assert that the run contained 0 failures
           CYPRESS_FAILURES=$(find cypress/results -name '*.json' | xargs -l jq -r '.stats.failures' | jq -s add)
