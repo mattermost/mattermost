@@ -6,7 +6,7 @@ import {expect} from '@playwright/test';
 import {test} from '@e2e-support/test_fixture';
 import {createRandomTeam, createRandomUser} from '@e2e-support/server';
 
-test('MM-X The team filter should correctly apply the filter', async ({pw, pages}) => {
+test('MM-T5521-7 The team filter should correctly apply the filter', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -61,7 +61,7 @@ test('MM-X The team filter should correctly apply the filter', async ({pw, pages
     expect(systemConsolePage.systemUsers.container.getByText(userAndItsTeam[1].user.email)).not.toBeVisible();
 });
 
-test('MM-X The role filter should correctly apply the filter', async ({pw, pages}) => {
+test('MM-T5521-8 The role filter should correctly apply the filter', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -118,7 +118,7 @@ test('MM-X The role filter should correctly apply the filter', async ({pw, pages
     expect(systemConsolePage.systemUsers.container.getByText(regularUser.email)).not.toBeVisible();
 });
 
-test('MM-X The status filter should correctly apply the filter', async ({pw, pages}) => {
+test('MM-T5521-9 The status filter should correctly apply the filter', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
