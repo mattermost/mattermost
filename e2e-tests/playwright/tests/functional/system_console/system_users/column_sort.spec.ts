@@ -17,9 +17,9 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
     // # Log in as admin
     const {page} = await pw.testBrowser.login(adminUser);
 
+    // # Create 10 random users
     for (let i = 0; i < 10; i++) {
-        const randomUser = createRandomUser();
-        await adminClient.createUser(randomUser, '', '');
+        await adminClient.createUser(createRandomUser(), '', '');
     }
 
     // # Visit system console
@@ -31,7 +31,7 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
     await systemConsolePage.sidebar.goToItem('Users');
     await systemConsolePage.systemUsers.toBeVisible();
 
-    // * Verify that Email column has aria-sort attribute
+    // * Verify that 'Email' column has aria-sort attribute
     const userDetailsColumnHeader = await systemConsolePage.systemUsers.getColumnHeader('Email');
     expect(await userDetailsColumnHeader.isVisible()).toBe(true);
     expect(userDetailsColumnHeader).toHaveAttribute('aria-sort');
@@ -40,7 +40,7 @@ test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw
     const firstRowWithoutSort = await systemConsolePage.systemUsers.getNthRow(1);
     const firstRowEmailWithoutSort = await firstRowWithoutSort.getByText(simpleEmailRe).allInnerTexts();
 
-    // # Click on the Email column header to sort
+    // # Click on the 'Email' column header to sort
     await systemConsolePage.systemUsers.clickSortOnColumn('Email');
     await systemConsolePage.systemUsers.isLoadingComplete();
 
@@ -62,9 +62,9 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
     // # Log in as admin
     const {page} = await pw.testBrowser.login(adminUser);
 
+    // # Create 10 random users
     for (let i = 0; i < 10; i++) {
-        const randomUser = createRandomUser();
-        await adminClient.createUser(randomUser, '', '');
+        await adminClient.createUser(createRandomUser(), '', '');
     }
 
     // # Visit system console
@@ -76,7 +76,7 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
     await systemConsolePage.sidebar.goToItem('Users');
     await systemConsolePage.systemUsers.toBeVisible();
 
-    // * Verify that Last login column does not have aria-sort attribute
+    // * Verify that 'Last login' column does not have aria-sort attribute
     const userDetailsColumnHeader = await systemConsolePage.systemUsers.getColumnHeader('Last login');
     expect(await userDetailsColumnHeader.isVisible()).toBe(true);
     expect(userDetailsColumnHeader).not.toHaveAttribute('aria-sort');
@@ -85,7 +85,7 @@ test('MM-T5523-2 Non sortable columns should not sort the list when clicked', as
     const firstRowWithoutSort = await systemConsolePage.systemUsers.getNthRow(1);
     const firstRowEmailWithoutSort = await firstRowWithoutSort.getByText(simpleEmailRe).allInnerTexts();
 
-    // # Try to click on the Last login column header to sort
+    // # Try to click on the 'Last login' column header to sort
     await systemConsolePage.systemUsers.clickSortOnColumn('Last login');
 
     // # Store the first row's email after sorting

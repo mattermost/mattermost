@@ -7,7 +7,7 @@ import {test} from '@e2e-support/test_fixture';
 import { duration } from '@e2e-support/util';
 import {ConfirmModal} from '@e2e-support/ui/components/channels/confirm_modal';
 
-test('MM-T5522 should begin export of data when export button is pressed', async ({pw, pages}) => {
+test('MM-T5522 Should begin export of data when export button is pressed', async ({pw, pages}) => {
     test.slow();
 
     // # Skip test if no license
@@ -32,7 +32,7 @@ test('MM-T5522 should begin export of data when export button is pressed', async
 
     // # Change the export duration to 30 days
     await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
-    (await systemConsolePage.systemUsersDateRangeMenu.getMenuItem('All time')).click();
+    await systemConsolePage.systemUsersDateRangeMenu.clickMenuItem('All time');
 
     // # Click Export button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
@@ -41,7 +41,7 @@ test('MM-T5522 should begin export of data when export button is pressed', async
 
     // # Change the export duration to all time
     await systemConsolePage.systemUsers.dateRangeSelectorMenuButton.click();
-    (await systemConsolePage.systemUsersDateRangeMenu.getMenuItem('Last 30 days')).click();
+    await systemConsolePage.systemUsersDateRangeMenu.clickMenuItem('Last 30 days');
     
     // # Click Export button and confirm the modal
     await systemConsolePage.systemUsers.exportButton.click();
@@ -52,8 +52,7 @@ test('MM-T5522 should begin export of data when export button is pressed', async
     await confirmModal.clickConfirmButton();
  
     // * Verify that we are told that one is already running
-    const modalHeader = await page.getByText("Export is in progress")
-    expect(modalHeader).toBeVisible()
+    expect(page.getByText("Export is in progress")).toBeVisible()
 
     // # Go back to Channels and open the system bot DM
     const channelsPage = new pages.ChannelsPage(page);
