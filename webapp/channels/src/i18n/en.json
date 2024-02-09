@@ -3854,7 +3854,6 @@
   "installed_oauth_apps.trusted.no": "No",
   "installed_oauth_apps.trusted.yes": "Yes",
   "installed_oauth2_apps.header": "OAuth 2.0 Applications",
-  "installed_outgoing_oauth_connections.header": "Outgoing OAuth 2.0 Connections",
   "installed_outgoing_oauth_connections.add": "Add Outgoing OAuth Connection",
   "installed_outgoing_oauth_connections.client_secret": "Client Secret: ********",
   "installed_outgoing_oauth_connections.delete.confirm": "Are you sure you want to delete {connectionName}?",

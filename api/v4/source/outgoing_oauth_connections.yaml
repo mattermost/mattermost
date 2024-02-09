@@ -10,6 +10,13 @@
 
         __Minimum server version__: 9.6
       operationId: ListOutgoingOAuthConnections
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: Successfully fetched outgoing OAuth connections
@@ -36,6 +43,13 @@
 
         __Minimum server version__: 9.6
       operationId: CreateOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
       requestBody:
         description: Outgoing OAuth connection to create
         content:
@@ -69,6 +83,13 @@
 
         __Minimum server version__: 9.6
       operationId: GetOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: Successfully fetched outgoing OAuth connection
@@ -93,6 +114,13 @@
 
         __Minimum server version__: 9.6
       operationId: UpdateOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
       requestBody:
         description: Outgoing OAuth connection to update
         content:
@@ -127,6 +155,13 @@
 
         __Minimum server version__: 9.6
       operationId: DeleteOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
       responses:
         "200":
           description: Successfully deleted outgoing OAuth connection
@@ -150,6 +185,13 @@
 
         __Minimum server version__: 9.6
       operationId: ValidateOutgoingOAuthConnection
+      parameters:
+        - name: team_id
+          in: query
+          description: Current Team ID in integrations backstage
+          required: true
+          schema:
+            type: string
       requestBody:
         description: Outgoing OAuth connection to validate
         content:

@@ -58,7 +58,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		valid := checkOutgoingOAuthConnectionReadPermissions(c)
+		valid := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
 		require.False(t, valid)
 	})
 
@@ -78,7 +78,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
-		valid := checkOutgoingOAuthConnectionReadPermissions(c)
+		valid := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
 		require.True(t, valid)
 	})
 
@@ -99,7 +99,7 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
 		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
 
-		valid := checkOutgoingOAuthConnectionReadPermissions(c)
+		valid := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
 		require.True(t, valid)
 	})
 }
@@ -119,7 +119,7 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		valid := checkOutgoingOAuthConnectionWritePermissions(c)
+		valid := checkOutgoingOAuthConnectionWritePermissions(c, th.BasicTeam.Id)
 		require.False(t, valid)
 	})
 
@@ -139,7 +139,7 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
-		valid := checkOutgoingOAuthConnectionWritePermissions(c)
+		valid := checkOutgoingOAuthConnectionWritePermissions(c, th.BasicTeam.Id)
 		require.True(t, valid)
 	})
 }

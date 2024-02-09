@@ -53,6 +53,12 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/AppError"
+    BadGateway:
+      description: Bad gateway
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/AppError"
   schemas:
     User:
       type: object
