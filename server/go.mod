@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost/server/v8
 
-go 1.20
+go 1.19
 
 require (
 	code.sajari.com/docconv/v2 v2.0.0-pre.3.0.20240118234718-6e3f8759fa34
