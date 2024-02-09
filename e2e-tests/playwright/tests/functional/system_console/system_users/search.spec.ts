@@ -1,14 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {expect} from '@playwright/test';
-
 import {test} from '@e2e-support/test_fixture';
 import {createRandomUser} from '@e2e-support/server';
-import {SystemConsolePage} from '@e2e-support/ui/pages/system_console';
-import {UserProfile} from '@mattermost/types/users';
+import {getRandomId} from '@e2e-support/util';
 
-test('MM-X Search should search with first name', async ({pw, pages}) => {
+test('MM-T5521-1 Should be able to search users with their first names', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -18,13 +15,9 @@ test('MM-X Search should search with first name', async ({pw, pages}) => {
     // # Log in as admin
     const {page} = await pw.testBrowser.login(adminUser);
 
-    const users = [];
-
-    // # Create 2 users for search filter
-    for (let i = 0; i < 2; i++) {
-        const user = await adminClient.createUser(createRandomUser(), '', '');
-        users.push(user);
-    }
+    // # Create 2 users
+    const user1 = await adminClient.createUser(createRandomUser(), '', '');
+    const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
     const systemConsolePage = new pages.SystemConsolePage(page);
@@ -35,15 +28,17 @@ test('MM-X Search should search with first name', async ({pw, pages}) => {
     await systemConsolePage.sidebar.goToItem('Users');
     await systemConsolePage.systemUsers.toBeVisible();
 
-    // * Enter the firstname of the first user and verify that it appears in the list
-    await systemConsolePage.systemUsers.enterSearchText(users[0].first_name);
-    await verifyUserIsFoundInTheList(systemConsolePage, users[0]);
+    // # Enter the 'First Name' of the first user in the search box
+    await systemConsolePage.systemUsers.enterSearchText(user1.first_name);
 
-    // * Verify that the second user's details are not visible
-    expect(systemConsolePage.systemUsers.container.getByText(users[1].email)).not.toBeVisible();
+    // * Verify that the searched user i.e first user is found in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+
+    // * Verify that the second user doesnt appear in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-X Search should search with last name', async ({pw, pages}) => {
+test('MM-T5521-2 Should be able to search users with their last names', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -53,13 +48,9 @@ test('MM-X Search should search with last name', async ({pw, pages}) => {
     // # Log in as admin
     const {page} = await pw.testBrowser.login(adminUser);
 
-    const users = [];
-    // # Create 2 team to filter
-    for (let i = 0; i < 2; i++) {
-        // # Create a user corresponding to the team
-        const user = await adminClient.createUser(createRandomUser(), '', '');
-        users.push(user);
-    }
+    // # Create 2 users
+    const user1 = await adminClient.createUser(createRandomUser(), '', '');
+    const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
     const systemConsolePage = new pages.SystemConsolePage(page);
@@ -70,15 +61,17 @@ test('MM-X Search should search with last name', async ({pw, pages}) => {
     await systemConsolePage.sidebar.goToItem('Users');
     await systemConsolePage.systemUsers.toBeVisible();
 
-    // * Enter the last name of the user and verify that it searches correctly with the last name
-    await systemConsolePage.systemUsers.enterSearchText(users[0].last_name);
-    await verifyUserIsFoundInTheList(systemConsolePage, users[0]);
+    // # Enter the 'Last Name' of the user in the search box
+    await systemConsolePage.systemUsers.enterSearchText(user1.last_name);
 
-    //  * Verify that the another user is not visible
-    expect(systemConsolePage.systemUsers.container.getByText(users[1].email)).not.toBeVisible();
+    // * Verify that the searched user i.e first user is found in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+
+    //  * Verify that the second user doesnt appear in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-X Search should search with the email', async ({pw, pages}) => {
+test('MM-T5521-3 Should be able to search users with their emails', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -88,13 +81,9 @@ test('MM-X Search should search with the email', async ({pw, pages}) => {
     // # Log in as admin
     const {page} = await pw.testBrowser.login(adminUser);
 
-    const users = [];
-    // # Create 2 team to filter
-    for (let i = 0; i < 2; i++) {
-        // # Create a user corresponding to the team
-        const user = await adminClient.createUser(createRandomUser(), '', '');
-        users.push(user);
-    }
+    // # Create 2 users
+    const user1 = await adminClient.createUser(createRandomUser(), '', '');
+    const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
     const systemConsolePage = new pages.SystemConsolePage(page);
@@ -105,15 +94,17 @@ test('MM-X Search should search with the email', async ({pw, pages}) => {
     await systemConsolePage.sidebar.goToItem('Users');
     await systemConsolePage.systemUsers.toBeVisible();
 
-    // * Enter the email of the a user and verify that it searches correctly with the email
-    await systemConsolePage.systemUsers.enterSearchText(users[0].email);
-    await verifyUserIsFoundInTheList(systemConsolePage, users[0]);
+    // * Enter the 'Email' of the first user in the search box
+    await systemConsolePage.systemUsers.enterSearchText(user1.email);
 
-    //  * Verify that the another user is not visible
-    expect(systemConsolePage.systemUsers.container.getByText(users[1].email)).not.toBeVisible();
+    // * Verify that the searched user i.e first user is found in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+
+    //  * Verify that the second user doesnt appear in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-X Search should search with the username', async ({pw, pages}) => {
+test('MM-T5521-4 Should be able to search users with their usernames', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -123,13 +114,9 @@ test('MM-X Search should search with the username', async ({pw, pages}) => {
     // # Log in as admin
     const {page} = await pw.testBrowser.login(adminUser);
 
-    const users = [];
-    // # Create 2 team to filter
-    for (let i = 0; i < 2; i++) {
-        // # Create a user corresponding to the team
-        const user = await adminClient.createUser(createRandomUser(), '', '');
-        users.push(user);
-    }
+    // # Create 2 users
+    const user1 = await adminClient.createUser(createRandomUser(), '', '');
+    const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
     const systemConsolePage = new pages.SystemConsolePage(page);
@@ -140,15 +127,17 @@ test('MM-X Search should search with the username', async ({pw, pages}) => {
     await systemConsolePage.sidebar.goToItem('Users');
     await systemConsolePage.systemUsers.toBeVisible();
 
-    // * Enter the username of the user and verify that it searches correctly
-    await systemConsolePage.systemUsers.enterSearchText(users[0].username);
-    await verifyUserIsFoundInTheList(systemConsolePage, users[0]);
+    // # Enter the 'Username' of the first user in the search box
+    await systemConsolePage.systemUsers.enterSearchText(user1.username);
+
+    // * Verify that the searched user i.e first user is found in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
 
     //  * Verify that the another user is not visible
-    expect(systemConsolePage.systemUsers.container.getByText(users[1].email)).not.toBeVisible();
+    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-test('MM-X Search should search with the nickname', async ({pw, pages}) => {
+test('MM-T5521-5 Should be able to search users with their nick names', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -158,13 +147,9 @@ test('MM-X Search should search with the nickname', async ({pw, pages}) => {
     // # Log in as admin
     const {page} = await pw.testBrowser.login(adminUser);
 
-    const users = [];
-    // # Create 2 team to filter
-    for (let i = 0; i < 2; i++) {
-        // # Create a user corresponding to the team
-        const user = await adminClient.createUser(createRandomUser(), '', '');
-        users.push(user);
-    }
+    // # Create 2 users
+    const user1 = await adminClient.createUser(createRandomUser(), '', '');
+    const user2 = await adminClient.createUser(createRandomUser(), '', '');
 
     // # Visit system console
     const systemConsolePage = new pages.SystemConsolePage(page);
@@ -174,16 +159,36 @@ test('MM-X Search should search with the nickname', async ({pw, pages}) => {
     // # Go to Users section
     await systemConsolePage.sidebar.goToItem('Users');
 
-    // * Enter the nickname of the a user and verify that it searches
-    await systemConsolePage.systemUsers.enterSearchText(users[0].nickname);
-    await verifyUserIsFoundInTheList(systemConsolePage, users[0]);
+    // # Enter the 'Nickname' of the first user in the search box
+    await systemConsolePage.systemUsers.enterSearchText(user1.nickname);
 
-    //  * Verify that the another user is not visible
-    expect(systemConsolePage.systemUsers.container.getByText(users[1].email)).not.toBeVisible();
+    // * Verify that the searched user i.e first user is found in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsFound(user1.email);
+
+    //  * Verify that the second user doesnt appear in the list
+    await systemConsolePage.systemUsers.verifyRowWithTextIsNotFound(user2.email);
 });
 
-async function verifyUserIsFoundInTheList(systemConsolePage: SystemConsolePage, user: UserProfile) {
-    const foundUser = systemConsolePage.systemUsers.container.getByText(user.email);
-    await foundUser.waitFor();
-    expect(foundUser).toBeVisible();
-}
+test('MM-T5521-6 Should show no user is found when user doesnt exists', async ({pw, pages}) => {
+    const {adminUser} = await pw.initSetup();
+
+    if (!adminUser) {
+        throw new Error('Failed to create admin user');
+    }
+
+    // # Log in as admin
+    const {page} = await pw.testBrowser.login(adminUser);
+
+    // # Visit system console
+    const systemConsolePage = new pages.SystemConsolePage(page);
+    await systemConsolePage.goto();
+    await systemConsolePage.toBeVisible();
+
+    // # Go to Users section
+    await systemConsolePage.sidebar.goToItem('Users');
+
+    // # Enter random text in the search box
+    await systemConsolePage.systemUsers.enterSearchText(`!${getRandomId(15)}_^^^_${getRandomId(15)}!`);
+
+    await systemConsolePage.systemUsers.verifyRowWithTextIsFound('No data');
+});

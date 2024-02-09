@@ -108,6 +108,24 @@ export default class SystemUsers {
 
         await this.isLoadingComplete();
     }
+
+    /**
+     * Searches and verifies that the row with given text is found 
+     */
+    async verifyRowWithTextIsFound(text: string) {
+        const foundUser = this.container.getByText(text);
+        await foundUser.waitFor();
+
+        await expect(foundUser).toBeVisible();
+    }
+
+    /**
+     * Searches and verifies that the row with given text is not found
+     */
+    async verifyRowWithTextIsNotFound(text: string) {
+        const foundUser = this.container.getByText(text);
+        await expect(foundUser).not.toBeVisible();
+    }
 }
 
 export {SystemUsers};
