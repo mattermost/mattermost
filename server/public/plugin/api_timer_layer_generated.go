@@ -1351,9 +1351,9 @@ func (api *apiTimerLayer) SyncSharedChannel(channelID string) error {
 	return _returnsA
 }
 
-func (api *apiTimerLayer) InviteRemoteToChannel(channelID string, remoteID string, userID string) error {
+func (api *apiTimerLayer) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
 	startTime := timePkg.Now()
-	_returnsA := api.apiImpl.InviteRemoteToChannel(channelID, remoteID, userID)
+	_returnsA := api.apiImpl.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
 	api.recordTime(startTime, "InviteRemoteToChannel", _returnsA == nil)
 	return _returnsA
 }
