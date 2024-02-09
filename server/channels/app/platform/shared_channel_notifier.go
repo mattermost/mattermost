@@ -31,7 +31,7 @@ var sharedChannelEventsForInvitation = []model.WebsocketEventType{
 // Only on the leader node it will notify the sync service to perform necessary updates to the remote for the given
 // shared channel.
 func (ps *PlatformService) SharedChannelSyncHandler(event *model.WebSocketEvent) {
-	syncService := ps.sharedChannelService
+	syncService := ps.GetSharedChannelService()
 	if syncService == nil {
 		return
 	}
