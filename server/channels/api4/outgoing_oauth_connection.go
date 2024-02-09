@@ -36,8 +36,10 @@ func (api *API) InitOutgoingOAuthConnection() {
 // oauth connections so that they can use them.
 // This is made in this way so only users with the management permission can setup the outgoing oauth connections and then
 // other users can use them in their outgoing webhooks and slash commands if they have permissions to manage those.
-func checkOutgoingOAuthConnectionReadPermissions(c *Context) bool {
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingWebhooks) || c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageSlashCommands) {
+func checkOutgoingOAuthConnectionReadPermissions(c *Context, teamId string) bool {
+	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOutgoingOAuthConnections) ||
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOutgoingWebhooks) ||
+		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageSlashCommands) {
 		return true
 	}
 
@@ -47,8 +49,8 @@ func checkOutgoingOAuthConnectionReadPermissions(c *Context) bool {
 
 // checkOutgoingOAuthConnectionWritePermissions checks if the user has the permissions to write outgoing oauth connections.
 // This is a more granular permissions intended for system admins to manage (setup) outgoing oauth connections.
-func checkOutgoingOAuthConnectionWritePermissions(c *Context) bool {
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) {
+func checkOutgoingOAuthConnectionWritePermissions(c *Context, teamId string) bool {
+	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOutgoingOAuthConnections) {
 		return true
 	}
 
@@ -127,7 +129,8 @@ func NewListOutgoingOAuthConnectionsQueryFromURLQuery(values url.Values) (*listO
 }
 
 func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !checkOutgoingOAuthConnectionReadPermissions(c) {
+	teamId := r.URL.Query().Get("team_id")
+	if !checkOutgoingOAuthConnectionReadPermissions(c, teamId) {
 		return
 	}
 
@@ -177,7 +180,8 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 }
 
 func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !checkOutgoingOAuthConnectionReadPermissions(c) {
+	teamId := r.URL.Query().Get("team_id")
+	if !checkOutgoingOAuthConnectionReadPermissions(c, teamId) {
 		return
 	}
 
@@ -207,7 +211,8 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	teamId := r.URL.Query().Get("team_id")
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamId) {
 		return
 	}
 
@@ -253,7 +258,8 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	audit.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	teamId := r.URL.Query().Get("team_id")
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamId) {
 		return
 	}
 
@@ -320,7 +326,8 @@ func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	audit.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	teamId := r.URL.Query().Get("team_id")
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamId) {
 		return
 	}
 
@@ -360,7 +367,8 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	teamId := r.URL.Query().Get("team_id")
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamId) {
 		return
 	}
 

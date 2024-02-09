@@ -14,6 +14,7 @@ import OAuthConnectionAudienceInput from 'components/integrations/outgoing_oauth
 
 import {mountWithIntl} from 'tests/helpers/intl-test-helper';
 import mockStore from 'tests/test_store';
+import {TestHelper} from 'utils/test_helper';
 
 describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudienceInput', () => {
     const connection: OutgoingOAuthConnection = {
@@ -35,6 +36,8 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
         placeholder: '',
     };
 
+    const team = TestHelper.getTeamMock({name: 'test'});
+
     const stateFromOAuthConnections = (connections: Record<string, OutgoingOAuthConnection>) => {
         return {
             entities: {
@@ -46,6 +49,12 @@ describe('components/integrations/outgoing_oauth_connections/OAuthConnectionAudi
                         IsLicensed: 'true',
                         Cloud: 'true',
                     },
+                },
+                teams: {
+                    teams: {
+                        [team.id]: team,
+                    },
+                    currentTeamId: team.id,
                 },
                 users: {
                     currentUserId: 'current_user_id',

@@ -114,7 +114,6 @@ const BackstageController = (props: Props) => {
                 <Pluggable pluggableName='Root'/>
                 <BackstageSidebar
                     team={props.team}
-                    user={props.user}
                     enableCustomEmoji={props.enableCustomEmoji}
                     enableIncomingWebhooks={props.enableIncomingWebhooks}
                     enableOutgoingWebhooks={props.enableOutgoingWebhooks}

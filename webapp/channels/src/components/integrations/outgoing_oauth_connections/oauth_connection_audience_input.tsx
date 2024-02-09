@@ -15,6 +15,7 @@ import {
 } from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
@@ -27,16 +28,16 @@ type Props = {
 const OAuthConnectionAudienceInput = (props: Props) => {
     const mounted = useRef(false);
     const [matchedConnection, setMatchingOAuthConnection] = useState<OutgoingOAuthConnection | null>(null);
+    const [loadingAudienceMatch, setLoadingAudienceMatch] = useState(false);
 
     const oauthConnections = useSelector(getOutgoingOAuthConnections);
     const oauthConnectionsEnabled = useSelector(getConfig).EnableOutgoingOAuthConnections === 'true';
+    const teamId = useSelector(getCurrentTeamId);
 
     const dispatch = useDispatch();
 
-    const [loadingAudienceMatch, setLoadingAudienceMatch] = useState(false);
-
     const matchConnectionsOnInput = useCallback(async (inputValue: string) => {
-        const res = await dispatch(fetchOutgoingOAuthConnectionsForAudience(inputValue));
+        const res = await dispatch(fetchOutgoingOAuthConnectionsForAudience(teamId, inputValue));
         setLoadingAudienceMatch(false);
 
         if (res.data && res.data.length) {
@@ -44,7 +45,7 @@ const OAuthConnectionAudienceInput = (props: Props) => {
         } else {
             setMatchingOAuthConnection(null);
         }
-    }, [dispatch]);
+    }, [dispatch, teamId]);
 
     const debouncedMatchConnections = useMemo(() => {
         return debounce((inputValue: string) => matchConnectionsOnInput(inputValue), 1000);
@@ -57,13 +58,13 @@ const OAuthConnectionAudienceInput = (props: Props) => {
         mounted.current = true;
 
         if (oauthConnectionsEnabled) {
-            dispatch(fetchOutgoingOAuthConnections());
+            dispatch(fetchOutgoingOAuthConnections(teamId));
             if (props.value) {
                 setLoadingAudienceMatch(true);
                 matchConnectionsOnInput(props.value);
             }
         }
-    }, [oauthConnectionsEnabled, props.value, matchConnectionsOnInput, dispatch, mounted]);
+    }, [oauthConnectionsEnabled, props.value, teamId, matchConnectionsOnInput, dispatch, mounted]);
 
     const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         props.onChange(e);

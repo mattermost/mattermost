@@ -2791,46 +2791,46 @@ export default class Client4 {
         );
     };
 
-    getOutgoingOAuthConnections = (page = 0, perPage = PER_PAGE_DEFAULT) => {
+    getOutgoingOAuthConnections = (teamId: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
         return this.doFetch<OutgoingOAuthConnection[]>(
-            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({page, per_page: perPage})}`,
+            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({team_id: teamId, page, per_page: perPage})}`,
             {method: 'get'},
         );
     };
 
-    getOutgoingOAuthConnectionsForAudience = (audience: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
+    getOutgoingOAuthConnectionsForAudience = (teamId: string, audience: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
         return this.doFetch<OutgoingOAuthConnection[]>(
-            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({page, per_page: perPage, audience})}`,
+            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({team_id: teamId, page, per_page: perPage, audience})}`,
             {method: 'get'},
         );
     };
 
-    getOutgoingOAuthConnection = (connectionId: string) => {
+    getOutgoingOAuthConnection = (teamId: string, connectionId: string) => {
         return this.doFetch<OutgoingOAuthConnection>(
-            `${this.getOutgoingOAuthConnectionRoute(connectionId)}`,
+            `${this.getOutgoingOAuthConnectionRoute(connectionId)}${buildQueryString({team_id: teamId})}`,
             {method: 'get'},
         );
     };
 
-    createOutgoingOAuthConnection = (connection: OutgoingOAuthConnection) => {
+    createOutgoingOAuthConnection = (teamId: string, connection: OutgoingOAuthConnection) => {
         this.trackEvent('api', 'api_outgoing_oauth_connection_register');
 
         return this.doFetch<OutgoingOAuthConnection>(
-            `${this.getOutgoingOAuthConnectionsRoute()}`,
+            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({team_id: teamId})}`,
             {method: 'post', body: JSON.stringify(connection)},
         );
     };
 
-    editOutgoingOAuthConnection = (connection: OutgoingOAuthConnection) => {
+    editOutgoingOAuthConnection = (teamId: string, connection: OutgoingOAuthConnection) => {
         return this.doFetch<OutgoingOAuthConnection>(
-            `${this.getOutgoingOAuthConnectionsRoute()}/${connection.id}`,
+            `${this.getOutgoingOAuthConnectionsRoute()}/${connection.id}${buildQueryString({team_id: teamId})}`,
             {method: 'put', body: JSON.stringify(connection)},
         );
     };
 
-    validateOutgoingOAuthConnection = (connection: OutgoingOAuthConnection) => {
+    validateOutgoingOAuthConnection = (teamId: string, connection: OutgoingOAuthConnection) => {
         return this.doFetch<OutgoingOAuthConnection>(
-            `${this.getOutgoingOAuthConnectionsRoute()}/validate`,
+            `${this.getOutgoingOAuthConnectionsRoute()}/validate${buildQueryString({team_id: teamId})}`,
             {method: 'post', body: JSON.stringify(connection)},
         );
     };

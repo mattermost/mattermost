@@ -6,12 +6,13 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
 import {deleteOutgoingOAuthConnection} from 'mattermost-redux/actions/integrations';
 import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getOutgoingOAuthConnections} from 'mattermost-redux/selectors/entities/integrations';
-import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles_helpers';
+import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
 
 import {loadOutgoingOAuthConnectionsAndProfiles} from 'actions/integration_actions';
 
@@ -26,12 +27,12 @@ import type {GlobalState} from 'types/store';
 import InstalledOutgoingOAuthConnection, {matchesFilter} from './installed_outgoing_oauth_connection';
 
 type Props = {
-    team: {name: string};
+    team: Team;
 };
 
 const InstalledOutgoingOAuthConnections = (props: Props) => {
     const [loading, setLoading] = useState(true);
-    const canManageOutgoingOAuthConnections = useSelector((state) => haveISystemPermission(state as GlobalState, {permission: Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS}));
+    const canManageOutgoingOAuthConnections = useSelector((state) => haveITeamPermission(state as GlobalState, props.team.id, Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS));
     const enableOutgoingOAuthConnections = (useSelector(getConfig).EnableOutgoingOAuthConnections === 'true');
     const connections = useSelector(getOutgoingOAuthConnections);
 
@@ -40,11 +41,11 @@ const InstalledOutgoingOAuthConnections = (props: Props) => {
 
     useEffect(() => {
         if (canManageOutgoingOAuthConnections) {
-            (dispatch(loadOutgoingOAuthConnectionsAndProfiles()) as unknown as Promise<void>).then(
+            (dispatch(loadOutgoingOAuthConnectionsAndProfiles(props.team.id)) as unknown as Promise<void>).then(
                 () => setLoading(false),
             );
         }
-    }, [canManageOutgoingOAuthConnections, dispatch]);
+    }, [canManageOutgoingOAuthConnections, props.team, dispatch]);
 
     const deleteOutgoingOAuthConnectionLocal = (connection: OutgoingOAuthConnection): void => {
         if (connection && connection.id) {

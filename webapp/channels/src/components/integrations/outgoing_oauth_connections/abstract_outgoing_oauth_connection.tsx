@@ -250,7 +250,7 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
             connection.id = props.initialConnection.id;
         }
 
-        const {error} = await dispatch(validateOutgoingOAuthConnection(connection));
+        const {error} = await dispatch(validateOutgoingOAuthConnection(props.team.id, connection));
 
         if (error) {
             setValidationStatus(ValidationStatus.ERROR);

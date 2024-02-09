@@ -47,9 +47,9 @@ const EditOutgoingOAuthConnection = (props: Props) => {
 
     useEffect(() => {
         if (enableOAuthServiceProvider) {
-            dispatch(getOutgoingOAuthConnection(connectionId));
+            dispatch(getOutgoingOAuthConnection(props.team.id, connectionId));
         }
-    }, [connectionId, enableOAuthServiceProvider, dispatch]);
+    }, [connectionId, enableOAuthServiceProvider, props.team, dispatch]);
 
     const handleInitialSubmit = async (connection: OutgoingOAuthConnection) => {
         setNewConnection(connection);
@@ -79,7 +79,7 @@ const EditOutgoingOAuthConnection = (props: Props) => {
     const createOutgoingOAuthConnection = async (connection: OutgoingOAuthConnection) => {
         setServerError('');
 
-        const res = await dispatch(editOutgoingOAuthConnection(connection));
+        const res = await dispatch(editOutgoingOAuthConnection(props.team.id, connection));
 
         if ('data' in res && res.data) {
             getHistory().push(`/${props.team.name}/integrations/outgoing-oauth2-connections`);

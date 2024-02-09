@@ -158,7 +158,8 @@ export default class Integrations extends React.PureComponent <Props> {
 
         if (this.props.enableOutgoingOAuthConnections) {
             options.push(
-                <SystemPermissionGate
+                <TeamPermissionGate
+                    teamId={this.props.team.id}
                     permissions={[Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]}
                     key='outgoingOAuthConnectionsPermission'
                 >
@@ -179,7 +180,7 @@ export default class Integrations extends React.PureComponent <Props> {
                         }
                         link={'/' + this.props.team.name + '/integrations/outgoing-oauth2-connections'}
                     />
-                </SystemPermissionGate>,
+                </TeamPermissionGate>,
             );
         }
 

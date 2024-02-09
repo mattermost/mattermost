@@ -16,7 +16,6 @@ describe('components/backstage/components/BackstageSidebar', () => {
             id: 'team-id',
             name: 'team_name',
         }),
-        user: TestHelper.getUserMock({}),
         enableCustomEmoji: false,
         enableIncomingWebhooks: false,
         enableOutgoingWebhooks: false,

@@ -297,22 +297,24 @@ export function getOAuthApps(page = 0, perPage: number = General.PAGE_SIZE_DEFAU
     });
 }
 
-export function getOutgoingOAuthConnections(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
+export function getOutgoingOAuthConnections(teamId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getOutgoingOAuthConnections,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS],
         params: [
+            teamId,
             page,
             perPage,
         ],
     });
 }
 
-export function getOutgoingOAuthConnectionsForAudience(audience: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
+export function getOutgoingOAuthConnectionsForAudience(teamId: string, audience: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getOutgoingOAuthConnectionsForAudience,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS],
         params: [
+            teamId,
             audience,
             page,
             perPage,
@@ -320,40 +322,44 @@ export function getOutgoingOAuthConnectionsForAudience(audience: string, page = 
     });
 }
 
-export function addOutgoingOAuthConnection(connection: OutgoingOAuthConnection) {
+export function addOutgoingOAuthConnection(teamId: string, connection: OutgoingOAuthConnection) {
     return bindClientFunc({
         clientFunc: Client4.createOutgoingOAuthConnection,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
         params: [
+            teamId,
             connection,
         ],
     });
 }
 
-export function editOutgoingOAuthConnection(connection: OutgoingOAuthConnection) {
+export function editOutgoingOAuthConnection(teamId: string, connection: OutgoingOAuthConnection) {
     return bindClientFunc({
         clientFunc: Client4.editOutgoingOAuthConnection,
         onSuccess: IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION,
         params: [
+            teamId,
             connection,
         ],
     });
 }
 
-export function getOutgoingOAuthConnection(connectionId: string) {
+export function getOutgoingOAuthConnection(teamId: string, connectionId: string) {
     return bindClientFunc({
         clientFunc: Client4.getOutgoingOAuthConnection,
         onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
         params: [
+            teamId,
             connectionId,
         ],
     });
 }
 
-export function validateOutgoingOAuthConnection(connection: OutgoingOAuthConnection) {
+export function validateOutgoingOAuthConnection(teamId: string, connection: OutgoingOAuthConnection) {
     return bindClientFunc({
         clientFunc: Client4.validateOutgoingOAuthConnection,
         params: [
+            teamId,
             connection,
         ],
     });

@@ -31,7 +31,7 @@ const AddOutgoingOAuthConnection = ({team}: Props): JSX.Element => {
     const submit = async (connection: OutgoingOAuthConnection) => {
         setServerError('');
 
-        const {data, error} = (await dispatch(addOutgoingOAuthConnection(connection))) as unknown as {data: OutgoingOAuthConnection; error: Error};
+        const {data, error} = (await dispatch(addOutgoingOAuthConnection(team.id, connection))) as unknown as {data: OutgoingOAuthConnection; error: Error};
         if (data) {
             history.push(`/${team.name}/integrations/confirm?type=outgoing-oauth2-connections&id=${data.id}`);
             return;

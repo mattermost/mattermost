@@ -39,7 +39,21 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
       <InstalledOutgoingOAuthConnections
         team={
           Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "name",
+            "email": "",
+            "group_constrained": false,
+            "id": "team_id",
+            "invite_id": "",
             "name": "test",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
           }
         }
       >

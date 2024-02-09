@@ -138,9 +138,9 @@ export function loadProfilesForOAuthApps(apps: OAuthApp[]): NewActionFuncAsync {
     };
 }
 
-export function loadOutgoingOAuthConnectionsAndProfiles(page = 0, perPage = DEFAULT_PAGE_SIZE): NewActionFuncAsync<null> {
+export function loadOutgoingOAuthConnectionsAndProfiles(teamId: string, page = 0, perPage = DEFAULT_PAGE_SIZE): NewActionFuncAsync<null> {
     return async (dispatch) => {
-        const {data} = await dispatch(IntegrationActions.getOutgoingOAuthConnections(page, perPage));
+        const {data} = await dispatch(IntegrationActions.getOutgoingOAuthConnections(teamId, page, perPage));
         if (data) {
             dispatch(loadProfilesForOutgoingOAuthConnections(data));
         }
