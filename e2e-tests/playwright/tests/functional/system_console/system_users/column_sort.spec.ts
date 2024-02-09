@@ -7,7 +7,7 @@ import {test} from '@e2e-support/test_fixture';
 import {createRandomUser} from '@e2e-support/server';
 import {simpleEmailRe} from '@e2e-support/util';
 
-test('MM-X Sortable columns should sort the list when clicked', async ({pw, pages}) => {
+test('MM-T5523-1 Sortable columns should sort the list when clicked', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {
@@ -52,7 +52,7 @@ test('MM-X Sortable columns should sort the list when clicked', async ({pw, page
     expect(firstRowEmailWithoutSort).not.toBe(firstRowEmailWithSort);
 });
 
-test('MM-X Non sortable columns should not sort the list when clicked', async ({pw, pages}) => {
+test('MM-T5523-2 Non sortable columns should not sort the list when clicked', async ({pw, pages}) => {
     const {adminUser, adminClient} = await pw.initSetup();
 
     if (!adminUser) {

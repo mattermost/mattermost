@@ -52,7 +52,7 @@ async function setupAndGetRandomUser(
     return {getUser: () => adminClient.getUser(user.id), systemConsolePage};
 }
 
-test('MM-X should activate and deactivate users', async ({pw, pages}) => {
+test('MM-T5520-1 should activate and deactivate users', async ({pw, pages}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw, pages);
 
     // # Open menu and deactivate the user
@@ -78,7 +78,7 @@ test('MM-X should activate and deactivate users', async ({pw, pages}) => {
     expect(await firstRow.innerText()).toContain('Member');
 })
 
-test('MM-X should change user roles', async ({pw, pages}) => {
+test('MM-T5520-2 should change user roles', async ({pw, pages}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw, pages);
 
     // # Open menu and click Manage roles
@@ -119,7 +119,7 @@ test('MM-X should change user roles', async ({pw, pages}) => {
     expect((await getUser()).roles).toContain('system_user');
 })
 
-test('MM-X should be able to manage teams', async ({pw, pages}) => {
+test('MM-T5520-3 should be able to manage teams', async ({pw, pages}) => {
     const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
 
     // # Open menu and click Manage teams
@@ -155,7 +155,7 @@ test('MM-X should be able to manage teams', async ({pw, pages}) => {
     expect(team).not.toBeVisible();
 })
 
-test('MM-X should reset the users password', async ({pw, pages}) => {
+test('MM-T5520-4 should reset the users password', async ({pw, pages}) => {
     const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
 
     // # Open menu and click Reset Password
@@ -172,7 +172,7 @@ test('MM-X should reset the users password', async ({pw, pages}) => {
     await passwordInput.waitFor({state: "detached"})
 })
 
-test('MM-X should change the users email', async ({pw, pages}) => {
+test('MM-T5520-5 should change the users email', async ({pw, pages}) => {
     const {getUser, systemConsolePage} = await setupAndGetRandomUser(pw, pages);
     const newEmail = `${getRandomId()}@example.com`;
 
@@ -195,7 +195,7 @@ test('MM-X should change the users email', async ({pw, pages}) => {
     expect((await getUser()).email).toEqual(newEmail);
 })
 
-test('MM-X should revoke sessions', async ({pw, pages}) => {
+test('MM-T5520-6 should revoke sessions', async ({pw, pages}) => {
     const {systemConsolePage} = await setupAndGetRandomUser(pw, pages);
 
     // # Open menu and revoke sessions

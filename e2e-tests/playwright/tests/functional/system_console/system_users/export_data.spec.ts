@@ -7,7 +7,7 @@ import {test} from '@e2e-support/test_fixture';
 import { duration } from '@e2e-support/util';
 import {ConfirmModal} from '@e2e-support/ui/components/channels/confirm_modal';
 
-test('MM-X should begin export of data when export button is pressed', async ({pw, pages}) => {
+test('MM-T5522 should begin export of data when export button is pressed', async ({pw, pages}) => {
     test.slow();
 
     // # Skip test if no license
