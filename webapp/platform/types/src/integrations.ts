@@ -106,6 +106,7 @@ export type OAuthApp = {
 
 export type OutgoingOAuthConnection = {
     'id': string;
+    'team_id': string;
     'name': string;
     'creator_id': string;
     'create_at': number;

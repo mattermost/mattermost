@@ -22,6 +22,7 @@ import (
 func newOutgoingOAuthConnection() *model.OutgoingOAuthConnection {
 	return &model.OutgoingOAuthConnection{
 		Name:          "test",
+		TeamId:        model.NewId(),
 		ClientId:      "test",
 		ClientSecret:  "test",
 		OAuthTokenURL: "http://localhost:9999/oauth/token",
@@ -78,11 +79,8 @@ func TestCheckOutgoingOAuthConnectionReadPermissions(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
-		canReadWithTeam := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
-		require.True(t, canReadWithTeam)
-
-		canReadWithoutTeam := checkOutgoingOAuthConnectionReadPermissions(c, "")
-		require.True(t, canReadWithoutTeam)
+		canRead := checkOutgoingOAuthConnectionReadPermissions(c, th.BasicTeam.Id)
+		require.True(t, canRead)
 	})
 
 	t.Run("with slash command management permissions", func(t *testing.T) {
@@ -141,7 +139,7 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 		c.App = th.App
 		c.Logger = th.App.Srv().Log()
 
-		canWrite := checkOutgoingOAuthConnectionWritePermissions(c)
+		canWrite := checkOutgoingOAuthConnectionWritePermissions(c, th.BasicTeam.Id)
 		require.False(t, canWrite)
 	})
 
@@ -161,14 +159,14 @@ func TestCheckOutgoingOAuthConnectionWritePermissions(t *testing.T) {
 
 		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
 
-		canWrite := checkOutgoingOAuthConnectionWritePermissions(c)
+		canWrite := checkOutgoingOAuthConnectionWritePermissions(c, th.BasicTeam.Id)
 		require.True(t, canWrite)
 	})
 }
 
 // Client tests
 
-func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
+func TestClientListOutgoingOAuthConnectionLicense(t *testing.T) {
 	t.Run("No license returns 501", func(t *testing.T) {
 		os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION", "true")
 		defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTION")
@@ -240,8 +238,6 @@ func TestClientOutgoingOAuthConnectionGet(t *testing.T) {
 }
 
 func TestClientListOutgoingOAuthConnection(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -262,7 +258,7 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		th.LoginBasic()
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:  10,
@@ -274,41 +270,6 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		require.Equal(t, http.StatusForbidden, response.StatusCode)
 	})
 
-	t.Run("manager do not require team id", func(t *testing.T) {
-		defer outgoingOauthConnectionsCleanup(t, th)
-
-		defaultRolePermissions := th.SaveDefaultRolePermissions()
-		defer func() {
-			th.RestoreDefaultRolePermissions(defaultRolePermissions)
-		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingOAuthConnections.Id, model.SystemUserRoleId)
-
-		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
-		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
-		outgoingOauthIface.Mock.On("GetConnections", mock.Anything, mock.Anything).Return([]*model.OutgoingOAuthConnection{}, nil)
-		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
-
-		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
-		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
-		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
-		t.Cleanup(func() {
-			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
-			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
-		})
-		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
-
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
-
-		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
-			Limit: 10,
-		}
-		connections, response, err := th.Client.GetOutgoingOAuthConnections(context.Background(), filters)
-		require.NoError(t, err)
-
-		require.Equal(t, 200, response.StatusCode)
-		require.Equal(t, 0, len(connections))
-	})
-
 	t.Run("empty", func(t *testing.T) {
 		defer outgoingOauthConnectionsCleanup(t, th)
 
@@ -316,8 +277,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
 
 		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
@@ -333,7 +294,7 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		th.LoginTeamAdmin()
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:  10,
@@ -353,8 +314,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.Audiences = []string{"http://knowhere.com"}
@@ -376,7 +337,7 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		th.LoginTeamAdmin()
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:    1,
@@ -398,8 +359,8 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		defer func() {
 			th.RestoreDefaultRolePermissions(defaultRolePermissions)
 		}()
-		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.SystemUserRoleId)
-		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.SystemUserRoleId)
+		th.AddPermissionToRole(model.PermissionManageOutgoingWebhooks.Id, model.TeamAdminRoleId)
+		th.AddPermissionToRole(model.PermissionManageSlashCommands.Id, model.TeamAdminRoleId)
 
 		conn := newOutgoingOAuthConnection()
 		conn.CreatorId = model.NewId()
@@ -421,7 +382,7 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 		})
 		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
 
-		th.Client.Login(context.Background(), th.BasicUser.Email, th.BasicUser.Password)
+		th.LoginTeamAdmin()
 
 		filters := model.OutgoingOAuthConnectionGetConnectionsFilter{
 			Limit:  10,
@@ -437,8 +398,6 @@ func TestClientListOutgoingOAuthConnection(t *testing.T) {
 }
 
 func TestClientGetOutgoingOAuthConnection(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	defer th.App.Srv().RemoveLicense()
@@ -508,8 +467,6 @@ func TestClientGetOutgoingOAuthConnection(t *testing.T) {
 }
 
 func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	defer th.App.Srv().RemoveLicense()
@@ -581,8 +538,6 @@ func TestClientCreateOutgoingOAuthConnection(t *testing.T) {
 }
 
 func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	defer th.App.Srv().RemoveLicense()
@@ -660,8 +615,6 @@ func TestClientUpdateOutgoingOAuthConnection(t *testing.T) {
 }
 
 func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 	defer th.App.Srv().RemoveLicense()
@@ -733,7 +686,7 @@ func TestClientDeleteOutgoingOAuthConnection(t *testing.T) {
 // Handler tests
 
 func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
-	t.Run("no feature flag, no interface, no license", func(t *testing.T) {
+	t.Run("no configuration, no interface, no license", func(t *testing.T) {
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
@@ -823,8 +776,6 @@ func TestEnsureOutgoingOAuthConnectionInterface(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -891,7 +842,7 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 	})
 
 	t.Run("listOutgoingOAuthConnections", func(t *testing.T) {
-		req, err := http.NewRequest("GET", "/", nil)
+		req, err := http.NewRequest("GET", "/?team_id="+th.BasicTeam.Id, nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -918,7 +869,7 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 	})
 
 	t.Run("listOutgoingOAuthConnections with limit", func(t *testing.T) {
-		req, err := http.NewRequest("GET", "/?limit=2", nil)
+		req, err := http.NewRequest("GET", "/?team_id="+th.BasicTeam.Id+"&limit=2", nil)
 		if err != nil {
 			t.Error(err)
 		}
@@ -946,8 +897,6 @@ func TestHandlerOutgoingOAuthConnectionListGet(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1040,8 +989,6 @@ func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1250,8 +1197,6 @@ func TestHandlerOutgoingOAuthConnectionUpdate(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
@@ -1396,8 +1341,6 @@ func TestHandlerOutgoingOAuthConnectionHandlerCreate(t *testing.T) {
 }
 
 func TestHandlerOutgoingOAuthConnectionHandlerValidate(t *testing.T) {
-	os.Setenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS", "true")
-	defer os.Unsetenv("MM_FEATUREFLAGS_OUTGOINGOAUTHCONNECTIONS")
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 

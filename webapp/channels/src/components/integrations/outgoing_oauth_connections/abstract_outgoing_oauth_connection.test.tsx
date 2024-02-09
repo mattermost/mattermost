@@ -22,6 +22,7 @@ describe('components/integrations/AbstractOutgoingOAuthConnection', () => {
     const loading = {id: 'Loading', defaultMessage: 'Loading'};
     const initialConnection: OutgoingOAuthConnection = {
         id: 'facxd9wpzpbpfp8pad78xj75pr',
+        team_id: '88oybd1dwfdoxpkpw1h5kpbyca',
         name: 'testConnection',
         client_secret: '',
         client_id: 'clientid',

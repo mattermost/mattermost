@@ -236,6 +236,8 @@ channels/db/migrations/mysql/000118_create_index_poststats.down.sql
 channels/db/migrations/mysql/000118_create_index_poststats.up.sql
 channels/db/migrations/mysql/000119_msteams_shared_channels_opts.down.sql
 channels/db/migrations/mysql/000119_msteams_shared_channels_opts.up.sql
+channels/db/migrations/mysql/000120_add_teamid_outgoing_oauth_connection.down.sql
+channels/db/migrations/mysql/000120_add_teamid_outgoing_oauth_connection.up.sql
 channels/db/migrations/postgres/000001_create_teams.down.sql
 channels/db/migrations/postgres/000001_create_teams.up.sql
 channels/db/migrations/postgres/000002_create_team_members.down.sql
@@ -472,3 +474,5 @@ channels/db/migrations/postgres/000118_create_index_poststats.down.sql
 channels/db/migrations/postgres/000118_create_index_poststats.up.sql
 channels/db/migrations/postgres/000119_msteams_shared_channels_opts.down.sql
 channels/db/migrations/postgres/000119_msteams_shared_channels_opts.up.sql
+channels/db/migrations/postgres/000120_add_teamid_outgoing_oauth_connection.down.sql
+channels/db/migrations/postgres/000120_add_teamid_outgoing_oauth_connection.up.sql

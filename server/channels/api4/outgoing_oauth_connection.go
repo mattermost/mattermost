@@ -37,19 +37,19 @@ func (api *API) InitOutgoingOAuthConnection() {
 // This is made in this way so only users with the management permission can setup the outgoing oauth connections and then
 // other users can use them in their outgoing webhooks and slash commands if they have permissions to manage those.
 func checkOutgoingOAuthConnectionReadPermissions(c *Context, teamId string) bool {
-	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) ||
+	if c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOutgoingOAuthConnections) ||
 		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageOutgoingWebhooks) ||
 		c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), teamId, model.PermissionManageSlashCommands) {
 		return true
 	}
 
-	c.SetPermissionError(model.PermissionManageOutgoingWebhooks, model.PermissionManageSlashCommands)
+	c.SetPermissionError(model.PermissionManageOutgoingWebhooks, model.PermissionManageSlashCommands, model.PermissionManageOutgoingOAuthConnections)
 	return false
 }
 
 // checkOutgoingOAuthConnectionWritePermissions checks if the user has the permissions to write outgoing oauth connections.
 // This is a more granular permissions intended for system admins to manage (setup) outgoing oauth connections.
-func checkOutgoingOAuthConnectionWritePermissions(c *Context) bool {
+func checkOutgoingOAuthConnectionWritePermissions(c *Context, _ string) bool {
 	if c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionManageOutgoingOAuthConnections) {
 		return true
 	}
@@ -72,6 +72,7 @@ func ensureOutgoingOAuthConnectionInterface(c *Context, where string) (einterfac
 }
 
 type listOutgoingOAuthConnectionsQuery struct {
+	TeamID   string
 	FromID   string
 	Limit    int
 	Audience string
@@ -123,6 +124,11 @@ func NewListOutgoingOAuthConnectionsQueryFromURLQuery(values url.Values) (*listO
 	audience := values.Get("audience")
 	if audience != "" {
 		query.Audience = audience
+	}
+
+	teamID := values.Get("team_id")
+	if teamID != "" {
+		query.TeamID = teamID
 	}
 
 	return query, nil
@@ -180,7 +186,11 @@ func listOutgoingOAuthConnections(c *Context, w http.ResponseWriter, r *http.Req
 }
 
 func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	teamID := r.URL.Query().Get("team_id")
+	// We check for write permissions because the user needs to have the permissions to manage outgoing oauth connections
+	// and the read permissions are only used on the listOutgoingOAuthConnections function to search
+	// by audience.
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamID) {
 		return
 	}
 
@@ -197,6 +207,11 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), connection.TeamId, model.PermissionManageOutgoingOAuthConnections) {
+		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.get_connection.permission_error", nil, "", http.StatusForbidden)
+		return
+	}
+
 	service.SanitizeConnection(connection)
 
 	if err := json.NewEncoder(w).Encode(connection); err != nil {
@@ -206,11 +221,12 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 }
 
 func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamID := r.URL.Query().Get("team_id")
 	auditRec := c.MakeAuditRecord("createOutgoingOauthConnection", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamID) {
 		return
 	}
 
@@ -251,12 +267,13 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamID := r.URL.Query().Get("team_id")
 	auditRec := c.MakeAuditRecord("updateOutgoingOAuthConnection", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamID) {
 		return
 	}
 
@@ -318,12 +335,14 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 }
 
 func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamID := r.URL.Query().Get("team_id")
+
 	auditRec := c.MakeAuditRecord("deleteOutgoingOAuthConnection", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "outgoing_oauth_connection_id", c.Params.OutgoingOAuthConnectionID)
 	c.LogAudit("attempt")
 
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamID) {
 		return
 	}
 
@@ -359,11 +378,12 @@ func deleteOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 // with the provided connection configuration. If the credentials are valid, the request will return a 200 status code and
 // if the credentials are invalid, the request will return a 400 status code.
 func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWriter, r *http.Request) {
+	teamID := r.URL.Query().Get("team_id")
 	auditRec := c.MakeAuditRecord("validateOutgoingOAuthConnectionCredentials", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	if !checkOutgoingOAuthConnectionWritePermissions(c) {
+	if !checkOutgoingOAuthConnectionWritePermissions(c, teamID) {
 		return
 	}
 

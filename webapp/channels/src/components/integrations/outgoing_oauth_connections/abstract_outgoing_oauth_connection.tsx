@@ -69,6 +69,7 @@ const useOutgoingOAuthForm = (connection: OutgoingOAuthConnection): [State, (sta
 
 const initialState: OutgoingOAuthConnection = {
     id: '',
+    team_id: '',
     name: '',
     creator_id: '',
     create_at: 0,
@@ -224,6 +225,8 @@ export default function AbstractOutgoingOAuthConnection(props: Props) {
         }
 
         setIsSubmitting(true);
+
+        connection.team_id = props.team.id;
 
         const res = props.submitAction(connection);
         res.then(() => setIsSubmitting(false));

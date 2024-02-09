@@ -25,6 +25,7 @@ const (
 
 type OutgoingOAuthConnection struct {
 	Id                  string                           `json:"id"`
+	TeamId              string                           `json:"team_id"`
 	CreatorId           string                           `json:"creator_id"`
 	CreateAt            int64                            `json:"create_at"`
 	UpdateAt            int64                            `json:"update_at"`
@@ -91,6 +92,10 @@ func (oa *OutgoingOAuthConnection) Patch(conn *OutgoingOAuthConnection) {
 func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 	if !IsValidId(oa.Id) {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.id.error", nil, "", http.StatusBadRequest)
+	}
+
+	if !IsValidId(oa.TeamId) {
+		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.team_id.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
 	if oa.CreateAt == 0 {
@@ -182,11 +187,7 @@ type OutgoingOAuthConnectionGetConnectionsFilter struct {
 	OffsetId string
 	Limit    int
 	Audience string
-
-	// TeamId is not used as a filter but as a way to check if the current user has permission to
-	// access the outgoing oauth connection for the given team in order to use them in the slash
-	// commands and outgoing webhooks.
-	TeamId string
+	TeamId   string
 }
 
 // SetDefaults sets the default values for the filter

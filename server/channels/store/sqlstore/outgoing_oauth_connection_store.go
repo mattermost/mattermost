@@ -34,9 +34,9 @@ func (s *SqlOutgoingOAuthConnectionStore) SaveConnection(c request.CTX, conn *mo
 	}
 
 	if _, err := s.GetMasterX().NamedExec(`INSERT INTO OutgoingOAuthConnections
-	(Id, Name, ClientId, ClientSecret, CreateAt, UpdateAt, CreatorId, OAuthTokenURL, GrantType, Audiences)
+	(Id, TeamId, Name, ClientId, ClientSecret, CreateAt, UpdateAt, CreatorId, OAuthTokenURL, GrantType, Audiences)
 	VALUES
-	(:Id, :Name, :ClientId, :ClientSecret, :CreateAt, :UpdateAt, :CreatorId, :OAuthTokenURL, :GrantType, :Audiences)`, conn); err != nil {
+	(:Id, :TeamId, :Name, :ClientId, :ClientSecret, :CreateAt, :UpdateAt, :CreatorId, :OAuthTokenURL, :GrantType, :Audiences)`, conn); err != nil {
 		return nil, errors.Wrap(err, "failed to save OutgoingOAuthConnection")
 	}
 	return conn, nil
@@ -104,6 +104,10 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 		From("OutgoingOAuthConnections").
 		OrderBy("Id").
 		Limit(uint64(filters.Limit))
+
+	if filters.TeamId != "" {
+		query = query.Where(sq.Eq{"TeamId": filters.TeamId})
+	}
 
 	if filters.OffsetId != "" {
 		query = query.Where("Id > ?", filters.OffsetId)

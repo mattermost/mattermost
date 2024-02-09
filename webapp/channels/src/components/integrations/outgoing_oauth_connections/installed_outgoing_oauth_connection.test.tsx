@@ -14,6 +14,7 @@ describe('components/integrations/InstalledOutgoingOAuthConnection', () => {
     const team = {name: 'team_name'};
     const outgoingOAuthConnection: OutgoingOAuthConnection = {
         id: 'someid',
+        team_id: 'someteamid',
         create_at: 1501365458934,
         creator_id: 'someuserid',
         update_at: 1501365458934,
