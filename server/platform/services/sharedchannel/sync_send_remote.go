@@ -78,6 +78,15 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, task.channelID)
 	}
 
+	start := model.GetMillis()
+	var metricsRecorded bool
+	defer func() {
+		if !metricsRecorded {
+			scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, float64(model.GetMillis()-start))
+			metricsRecorded = true
+		}
+	}()
+
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
 	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
 		// if SharedChannelRemote not found and remote has autoinvite flag, create a scr for it, thus inviting the remote.
@@ -175,12 +184,22 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		mlog.Int("attachments", len(sd.attachments)),
 	)
 
+	if !metricsRecorded {
+		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, float64(model.GetMillis()-start))
+		metricsRecorded = true
+	}
+
 	return scs.sendSyncData(sd)
 }
 
 // fetchUsersForSync populates the sync data with any channel users who updated their user profile
 // since the last sync.
 func (scs *Service) fetchUsersForSync(sd *syncData) error {
+	start := model.GetMillis()
+	defer func() {
+		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Users", float64(model.GetMillis()-start))
+	}()
+
 	filter := model.GetUsersForSyncFilter{
 		ChannelID: sd.task.channelID,
 		Limit:     MaxUsersPerSync,
@@ -212,6 +231,11 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 
 // fetchPostsForSync populates the sync data with any new or edited posts since the last sync.
 func (scs *Service) fetchPostsForSync(sd *syncData) error {
+	start := model.GetMillis()
+	defer func() {
+		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Posts", float64(model.GetMillis()-start))
+	}()
+
 	options := model.GetPostsSinceForSyncOptions{
 		ChannelId:      sd.task.channelID,
 		IncludeDeleted: true,
@@ -288,6 +312,11 @@ func containsPost(posts []*model.Post, post *model.Post) bool {
 
 // fetchReactionsForSync populates the sync data with any new reactions since the last sync.
 func (scs *Service) fetchReactionsForSync(sd *syncData) error {
+	start := model.GetMillis()
+	defer func() {
+		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Reactions", float64(model.GetMillis()-start))
+	}()
+
 	merr := merror.New()
 	for _, post := range sd.posts {
 		// any reactions originating from the remote cluster are filtered out
@@ -303,6 +332,11 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 
 // fetchPostUsersForSync populates the sync data with all users associated with posts.
 func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
+	start := model.GetMillis()
+	defer func() {
+		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "PostUsers", float64(model.GetMillis()-start))
+	}()
+
 	sc, err := scs.server.GetStore().SharedChannel().Get(sd.task.channelID)
 	if err != nil {
 		return fmt.Errorf("cannot determine teamID: %w", err)
@@ -367,6 +401,11 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 // fetchPostAttachmentsForSync populates the sync data with any file attachments for new posts.
 func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
+	start := model.GetMillis()
+	defer func() {
+		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Attachments", float64(model.GetMillis()-start))
+	}()
+
 	merr := merror.New()
 	for _, post := range sd.posts {
 		fis, err := scs.server.GetStore().FileInfo().GetForPost(post.Id, false, true, true)
@@ -462,6 +501,11 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 
 // sendUserSyncData sends the collected user updates to the remote cluster.
 func (scs *Service) sendUserSyncData(sd *syncData) error {
+	start := model.GetMillis()
+	defer func() {
+		scs.server.GetMetrics().ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Users", float64(model.GetMillis()-start))
+	}()
+
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Users = sd.users
 
