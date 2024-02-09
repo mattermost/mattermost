@@ -207,11 +207,6 @@ func getOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), connection.TeamId, model.PermissionManageOutgoingOAuthConnections) {
-		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.get_connection.permission_error", nil, "", http.StatusForbidden)
-		return
-	}
-
 	service.SanitizeConnection(connection)
 
 	if err := json.NewEncoder(w).Encode(connection); err != nil {
