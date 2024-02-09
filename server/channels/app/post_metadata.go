@@ -175,7 +175,7 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 		post.Metadata.Embeds = []*model.PostEmbed{}
 	}
 
-	if post.GetProp(UnsafeLinksPostProp) != nil {
+	if unsafeLinksProp := post.GetProp(UnsafeLinksPostProp); unsafeLinksProp != nil && unsafeLinksProp.(string) == "true" {
 		return post
 	}
 
