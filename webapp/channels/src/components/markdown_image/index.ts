@@ -16,7 +16,7 @@ import type {Props} from './markdown_image';
 
 function mapStateToProps(state: GlobalState, ownProps: Props) {
     const post = getPost(state, ownProps.postId);
-    const isUnsafeLinksPost = post?.props?.unsafe_links !== '';
+    const isUnsafeLinksPost = post?.props?.unsafe_links === 'true';
 
     return {
         isUnsafeLinksPost,
