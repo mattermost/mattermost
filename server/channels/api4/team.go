@@ -1412,7 +1412,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		var invitesWithError []*model.EmailInviteWithError
 		var appErr *model.AppError
 		if emailList != nil {
-			invitesWithError, appErr = c.App.InviteNewUsersToTeamGracefully(memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
+			invitesWithError, appErr = c.App.InviteNewUsersToTeamGracefully(c.AppContext, memberInvite, c.Params.TeamId, c.AppContext.Session().UserId, "")
 		}
 
 		if invitesWithError != nil {
@@ -1458,7 +1458,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		w.Write(js)
 	} else {
-		appErr := c.App.InviteNewUsersToTeam(emailList, c.Params.TeamId, c.AppContext.Session().UserId)
+		appErr := c.App.InviteNewUsersToTeam(c.AppContext, emailList, c.Params.TeamId, c.AppContext.Session().UserId)
 		if appErr != nil {
 			c.Err = appErr
 			return
@@ -1528,7 +1528,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 		var appErr *model.AppError
 
 		if guestsInvite.Emails != nil {
-			invitesWithError, appErr = c.App.InviteGuestsToChannelsGracefully(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
+			invitesWithError, appErr = c.App.InviteGuestsToChannelsGracefully(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		}
 
 		if appErr != nil {
@@ -1549,7 +1549,7 @@ func inviteGuestsToChannels(c *Context, w http.ResponseWriter, r *http.Request) 
 
 		w.Write(js)
 	} else {
-		appErr := c.App.InviteGuestsToChannels(c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
+		appErr := c.App.InviteGuestsToChannels(c.AppContext, c.Params.TeamId, &guestsInvite, c.AppContext.Session().UserId)
 		if appErr != nil {
 			c.Err = appErr
 			return
