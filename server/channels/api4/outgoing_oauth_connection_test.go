@@ -1012,7 +1012,7 @@ func TestHandlerOutgoingOAuthConnectionListReadOnly(t *testing.T) {
 	})
 
 	t.Run("listOutgoingOAuthConnections with limit", func(t *testing.T) {
-		req, err := http.NewRequest("GET", "/?limit=2", nil)
+		req, err := http.NewRequest("GET", "/?limit=2&team_id="+th.BasicTeam.Id, nil)
 		if err != nil {
 			t.Error(err)
 		}
