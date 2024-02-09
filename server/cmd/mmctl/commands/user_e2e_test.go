@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 
@@ -1075,6 +1076,13 @@ func (s *MmctlE2ETestSuite) cleanUpPreferences(userID string) {
 	// Delete any existing preferences
 	preferences, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), userID)
 	s.NoError(err)
+
+	b, err := json.Marshal(preferences)
+	if err != nil {
+		fmt.Println(err.Error())
+	} else {
+		fmt.Println("##########$$$$$$$$$$ " + string(b))
+	}
 
 	_, err = s.th.SystemAdminClient.DeletePreferences(context.Background(), userID, preferences)
 	s.NoError(err)
