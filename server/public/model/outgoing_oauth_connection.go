@@ -182,6 +182,11 @@ type OutgoingOAuthConnectionGetConnectionsFilter struct {
 	OffsetId string
 	Limit    int
 	Audience string
+
+	// TeamId is not used as a filter but as a way to check if the current user has permission to
+	// access the outgoing oauth connection for the given team in order to use them in the slash
+	// commands and outgoing webhooks.
+	TeamId string
 }
 
 // SetDefaults sets the default values for the filter
@@ -205,6 +210,10 @@ func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) ToURLValues() url.Values
 
 	if oaf.Audience != "" {
 		v.Set("audience", oaf.Audience)
+	}
+
+	if oaf.TeamId != "" {
+		v.Set("team_id", oaf.TeamId)
 	}
 	return v
 }
