@@ -1279,10 +1279,11 @@ type API interface {
 
 	// InviteRemoteToChannel invites a remote, or this plugin, as a target for synchronizing. Once invited, the
 	// remote will start to receive synchronization messages for any changed content in the specified channel.
+	// If `shareIfNotShared` is true, the channel's shared flag will be set, if not already.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 9.5
-	InviteRemoteToChannel(channelID string, remoteID string, userID string) error
+	InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error
 
 	// UninviteRemoteFromChannel uninvites a remote, or this plugin, such that it will stop receiving sychronization
 	// messages for the channel.

@@ -11964,7 +11964,7 @@ func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(memberInvite *model
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) InviteRemoteToChannel(channelID string, remoteID string, userID string) error {
+func (a *OpenTracingAppLayer) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteRemoteToChannel")
 
@@ -11976,7 +11976,7 @@ func (a *OpenTracingAppLayer) InviteRemoteToChannel(channelID string, remoteID s
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.InviteRemoteToChannel(channelID, remoteID, userID)
+	resultVar0 := a.app.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
