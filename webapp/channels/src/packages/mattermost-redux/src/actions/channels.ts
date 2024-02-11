@@ -32,7 +32,7 @@ import {
 } from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import type {GetStateFunc, NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {getChannelByName} from 'mattermost-redux/utils/channel_utils';
 
 import {addChannelToInitialCategory, addChannelToCategory} from './channel_categories';
@@ -51,7 +51,7 @@ export function selectChannel(channelId: string) {
     };
 }
 
-export function createChannel(channel: Channel, userId: string): NewActionFuncAsync<Channel> {
+export function createChannel(channel: Channel, userId: string): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         let created;
         try {
@@ -102,7 +102,7 @@ export function createChannel(channel: Channel, userId: string): NewActionFuncAs
     };
 }
 
-export function createDirectChannel(userId: string, otherUserId: string): NewActionFuncAsync<Channel> {
+export function createDirectChannel(userId: string, otherUserId: string): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.CREATE_CHANNEL_REQUEST, data: null});
 
@@ -165,7 +165,7 @@ export function createDirectChannel(userId: string, otherUserId: string): NewAct
     };
 }
 
-export function markGroupChannelOpen(channelId: string): NewActionFuncAsync {
+export function markGroupChannelOpen(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const {currentUserId} = getState().entities.users;
 
@@ -178,7 +178,7 @@ export function markGroupChannelOpen(channelId: string): NewActionFuncAsync {
     };
 }
 
-export function createGroupChannel(userIds: string[]): NewActionFuncAsync<Channel> {
+export function createGroupChannel(userIds: string[]): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.CREATE_CHANNEL_REQUEST, data: null});
 
@@ -255,7 +255,7 @@ export function createGroupChannel(userIds: string[]): NewActionFuncAsync<Channe
     };
 }
 
-export function patchChannel(channelId: string, patch: Partial<Channel>): NewActionFuncAsync<Channel> {
+export function patchChannel(channelId: string, patch: Partial<Channel>): ActionFuncAsync<Channel> {
     return bindClientFunc({
         clientFunc: Client4.patchChannel,
         onSuccess: [ChannelTypes.RECEIVED_CHANNEL],
@@ -263,7 +263,7 @@ export function patchChannel(channelId: string, patch: Partial<Channel>): NewAct
     });
 }
 
-export function updateChannelPrivacy(channelId: string, privacy: string): NewActionFuncAsync<Channel> {
+export function updateChannelPrivacy(channelId: string, privacy: string): ActionFuncAsync<Channel> {
     return bindClientFunc({
         clientFunc: Client4.updateChannelPrivacy,
         onSuccess: [ChannelTypes.RECEIVED_CHANNEL],
@@ -271,7 +271,7 @@ export function updateChannelPrivacy(channelId: string, privacy: string): NewAct
     });
 }
 
-export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): NewActionFuncAsync {
+export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let updatedChannel;
         try {
@@ -297,7 +297,7 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
     };
 }
 
-export function updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): NewActionFuncAsync {
+export function updateChannelNotifyProps(userId: string, channelId: string, props: Partial<ChannelNotifyProps>): ActionFuncAsync {
     return async (dispatch, getState) => {
         const notifyProps = {
             user_id: userId,
@@ -329,7 +329,7 @@ export function updateChannelNotifyProps(userId: string, channelId: string, prop
     };
 }
 
-export function getChannelByNameAndTeamName(teamName: string, channelName: string, includeDeleted = false): NewActionFuncAsync<Channel> {
+export function getChannelByNameAndTeamName(teamName: string, channelName: string, includeDeleted = false): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -350,7 +350,7 @@ export function getChannelByNameAndTeamName(teamName: string, channelName: strin
     };
 }
 
-export function getChannel(channelId: string): NewActionFuncAsync<Channel> {
+export function getChannel(channelId: string): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -371,7 +371,7 @@ export function getChannel(channelId: string): NewActionFuncAsync<Channel> {
     };
 }
 
-export function getChannelAndMyMember(channelId: string): NewActionFuncAsync<{channel: Channel; member: ChannelMembership}> {
+export function getChannelAndMyMember(channelId: string): ActionFuncAsync<{channel: Channel; member: ChannelMembership}> {
     return async (dispatch, getState) => {
         let channel;
         let member;
@@ -404,7 +404,7 @@ export function getChannelAndMyMember(channelId: string): NewActionFuncAsync<{ch
     };
 }
 
-export function getChannelTimezones(channelId: string): NewActionFuncAsync<string[]> {
+export function getChannelTimezones(channelId: string): ActionFuncAsync<string[]> {
     return async (dispatch, getState) => {
         let channelTimezones;
         try {
@@ -421,7 +421,7 @@ export function getChannelTimezones(channelId: string): NewActionFuncAsync<strin
     };
 }
 
-export function fetchChannelsAndMembers(teamId: string): NewActionFuncAsync<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
+export function fetchChannelsAndMembers(teamId: string): ActionFuncAsync<{channels: ServerChannel[]; channelMembers: ChannelMembership[]}> {
     return async (dispatch, getState) => {
         let channels;
         let channelMembers;
@@ -462,7 +462,7 @@ export function fetchChannelsAndMembers(teamId: string): NewActionFuncAsync<{cha
     };
 }
 
-export function fetchAllMyTeamsChannelsAndChannelMembersREST(): NewActionFuncAsync {
+export function fetchAllMyTeamsChannelsAndChannelMembersREST(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {currentUserId} = state.entities.users;
@@ -511,7 +511,7 @@ export function fetchAllMyTeamsChannelsAndChannelMembersREST(): NewActionFuncAsy
     };
 }
 
-export function getChannelMembers(channelId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): NewActionFuncAsync<ChannelMembership[]> {
+export function getChannelMembers(channelId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFuncAsync<ChannelMembership[]> {
     return async (dispatch, getState) => {
         let channelMembers: ChannelMembership[];
 
@@ -537,7 +537,7 @@ export function getChannelMembers(channelId: string, page = 0, perPage: number =
     };
 }
 
-export function leaveChannel(channelId: string): NewActionFuncAsync {
+export function leaveChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const {currentUserId} = state.entities.users;
@@ -583,7 +583,7 @@ export function leaveChannel(channelId: string): NewActionFuncAsync {
     };
 }
 
-export function joinChannel(userId: string, teamId: string, channelId: string, channelName?: string): NewActionFuncAsync<{channel: Channel; member: ChannelMembership} | null> {
+export function joinChannel(userId: string, teamId: string, channelId: string, channelName?: string): ActionFuncAsync<{channel: Channel; member: ChannelMembership} | null> {
     return async (dispatch, getState) => {
         if (!channelId && !channelName) {
             return {data: null};
@@ -632,7 +632,7 @@ export function joinChannel(userId: string, teamId: string, channelId: string, c
     };
 }
 
-export function deleteChannel(channelId: string): NewActionFuncAsync {
+export function deleteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let state = getState();
         const viewArchivedChannels = state.entities.general.config.ExperimentalViewArchivedChannels === 'true';
@@ -662,7 +662,7 @@ export function deleteChannel(channelId: string): NewActionFuncAsync {
     };
 }
 
-export function unarchiveChannel(channelId: string): NewActionFuncAsync {
+export function unarchiveChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.unarchiveChannel(channelId);
@@ -681,7 +681,7 @@ export function unarchiveChannel(channelId: string): NewActionFuncAsync {
     };
 }
 
-export function updateApproximateViewTime(channelId: string): NewActionFuncAsync {
+export function updateApproximateViewTime(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const {currentUserId} = getState().entities.users;
 
@@ -699,7 +699,7 @@ export function updateApproximateViewTime(channelId: string): NewActionFuncAsync
     };
 }
 
-export function readMultipleChannels(channelIds: string[]): NewActionFuncAsync {
+export function readMultipleChannels(channelIds: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         let response;
         try {
@@ -716,7 +716,7 @@ export function readMultipleChannels(channelIds: string[]): NewActionFuncAsync {
     };
 }
 
-export function getChannels(teamId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): NewActionFuncAsync<Channel[]> {
+export function getChannels(teamId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFuncAsync<Channel[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
@@ -745,7 +745,7 @@ export function getChannels(teamId: string, page = 0, perPage: number = General.
     };
 }
 
-export function getArchivedChannels(teamId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): NewActionFuncAsync<Channel[]> {
+export function getArchivedChannels(teamId: string, page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE): ActionFuncAsync<Channel[]> {
     return async (dispatch, getState) => {
         let channels;
         try {
@@ -765,7 +765,7 @@ export function getArchivedChannels(teamId: string, page = 0, perPage: number = 
     };
 }
 
-export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false): NewActionFuncAsync<ChannelsWithTotalCount> {
+export function getAllChannelsWithCount(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, includeDeleted = false, excludePolicyConstrained = false): ActionFuncAsync<ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
@@ -797,7 +797,7 @@ export function getAllChannelsWithCount(page = 0, perPage: number = General.CHAN
     };
 }
 
-export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, excludePolicyConstrained = false): NewActionFuncAsync<ChannelWithTeamData[]> {
+export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUNK_SIZE, notAssociatedToGroup = '', excludeDefaultChannels = false, excludePolicyConstrained = false): ActionFuncAsync<ChannelWithTeamData[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
@@ -825,7 +825,7 @@ export function getAllChannels(page = 0, perPage: number = General.CHANNELS_CHUN
     };
 }
 
-export function autocompleteChannels(teamId: string, term: string): NewActionFuncAsync<Channel[]> {
+export function autocompleteChannels(teamId: string, term: string): ActionFuncAsync<Channel[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
@@ -854,7 +854,7 @@ export function autocompleteChannels(teamId: string, term: string): NewActionFun
     };
 }
 
-export function autocompleteChannelsForSearch(teamId: string, term: string): NewActionFuncAsync<Channel[]> {
+export function autocompleteChannelsForSearch(teamId: string, term: string): ActionFuncAsync<Channel[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
@@ -883,7 +883,7 @@ export function autocompleteChannelsForSearch(teamId: string, term: string): New
     };
 }
 
-export function searchChannels(teamId: string, term: string, archived?: boolean): NewActionFuncAsync<Channel[]> {
+export function searchChannels(teamId: string, term: string, archived?: boolean): ActionFuncAsync<Channel[]> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_CHANNELS_REQUEST, data: null});
 
@@ -916,9 +916,9 @@ export function searchChannels(teamId: string, term: string, archived?: boolean)
     };
 }
 
-export function searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts): NewActionFuncAsync<ChannelsWithTotalCount>;
-export function searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> | undefined): NewActionFuncAsync<ChannelWithTeamData[]>;
-export function searchAllChannels(term: string, opts: ChannelSearchOpts = {}): NewActionFuncAsync<Channel[] | ChannelsWithTotalCount> {
+export function searchAllChannels(term: string, opts: {page: number; per_page: number} & ChannelSearchOpts): ActionFuncAsync<ChannelsWithTotalCount>;
+export function searchAllChannels(term: string, opts: Omit<ChannelSearchOpts, 'page' | 'per_page'> | undefined): ActionFuncAsync<ChannelWithTeamData[]>;
+export function searchAllChannels(term: string, opts: ChannelSearchOpts = {}): ActionFuncAsync<Channel[] | ChannelsWithTotalCount> {
     return async (dispatch, getState) => {
         dispatch({type: ChannelTypes.GET_ALL_CHANNELS_REQUEST, data: null});
 
@@ -955,7 +955,7 @@ export function searchGroupChannels(term: string) {
     });
 }
 
-export function getChannelStats(channelId: string, includeFileCount?: boolean): NewActionFuncAsync<ChannelStats> {
+export function getChannelStats(channelId: string, includeFileCount?: boolean): ActionFuncAsync<ChannelStats> {
     return async (dispatch, getState) => {
         let stat;
         try {
@@ -975,7 +975,7 @@ export function getChannelStats(channelId: string, includeFileCount?: boolean): 
     };
 }
 
-export function getChannelsMemberCount(channelIds: string[]): NewActionFuncAsync<Record<string, number>> {
+export function getChannelsMemberCount(channelIds: string[]): ActionFuncAsync<Record<string, number>> {
     return async (dispatch, getState) => {
         let channelsMemberCount;
 
@@ -996,7 +996,7 @@ export function getChannelsMemberCount(channelIds: string[]): NewActionFuncAsync
     };
 }
 
-export function addChannelMember(channelId: string, userId: string, postRootId = ''): NewActionFuncAsync<ChannelMembership> {
+export function addChannelMember(channelId: string, userId: string, postRootId = ''): ActionFuncAsync<ChannelMembership> {
     return async (dispatch, getState) => {
         let member;
         try {
@@ -1031,7 +1031,7 @@ export function addChannelMember(channelId: string, userId: string, postRootId =
     };
 }
 
-export function removeChannelMember(channelId: string, userId: string): NewActionFuncAsync {
+export function removeChannelMember(channelId: string, userId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.removeFromChannel(userId, channelId);
@@ -1058,7 +1058,7 @@ export function removeChannelMember(channelId: string, userId: string): NewActio
     };
 }
 
-export function markChannelAsRead(channelId: string, skipUpdateViewTime = false): NewActionFunc {
+export function markChannelAsRead(channelId: string, skipUpdateViewTime = false): ActionFunc {
     return (dispatch, getState) => {
         if (skipUpdateViewTime) {
             dispatch(updateApproximateViewTime(channelId));
@@ -1074,7 +1074,7 @@ export function markChannelAsRead(channelId: string, skipUpdateViewTime = false)
     };
 }
 
-export function markMultipleChannelsAsRead(channelTimes: Record<string, number>): NewActionFunc {
+export function markMultipleChannelsAsRead(channelTimes: Record<string, number>): ActionFunc {
     return (dispatch, getState) => {
         const actions: AnyAction[] = [];
         for (const id of Object.keys(channelTimes)) {
@@ -1089,7 +1089,7 @@ export function markMultipleChannelsAsRead(channelTimes: Record<string, number>)
     };
 }
 
-export function markChannelAsViewedOnServer(channelId: string): NewActionFuncAsync {
+export function markChannelAsViewedOnServer(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.viewMyChannel(channelId);
@@ -1246,7 +1246,7 @@ export function getMyChannelMember(channelId: string) {
     });
 }
 
-export function loadMyChannelMemberAndRole(channelId: string): NewActionFuncAsync {
+export function loadMyChannelMemberAndRole(channelId: string): ActionFuncAsync {
     return async (dispatch) => {
         const result = await dispatch(getMyChannelMember(channelId));
         const roles = result.data?.roles.split(' ');
@@ -1258,7 +1258,7 @@ export function loadMyChannelMemberAndRole(channelId: string): NewActionFuncAsyn
 }
 
 // favoriteChannel moves the provided channel into the current team's Favorites category.
-export function favoriteChannel(channelId: string): NewActionFuncAsync {
+export function favoriteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannelSelector(state, channelId);
@@ -1275,7 +1275,7 @@ export function favoriteChannel(channelId: string): NewActionFuncAsync {
 }
 
 // unfavoriteChannel moves the provided channel into the current team's Channels/DMs category.
-export function unfavoriteChannel(channelId: string): NewActionFuncAsync {
+export function unfavoriteChannel(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannelSelector(state, channelId);
