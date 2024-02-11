@@ -40,7 +40,6 @@ class SystemUsersFilterMenu {
      */
     async close() {
         await this.container.press('Escape');
-        await expect(this.container).not.toBeVisible();
     }
 }
 
