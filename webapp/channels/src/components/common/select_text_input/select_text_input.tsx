@@ -27,17 +27,25 @@ type Props = {
 }
 
 const styles = {
+    control: (baseStyles: CSSProperties) => ({
+        ...baseStyles,
+        background: 'var(--center-channel-color-rgb)',
+    }),
+    input: (baseStyles: CSSProperties) => ({
+        ...baseStyles,
+        color: 'rgba(var(--center-channel-color-rgb), 0.64)',
+    }),
     multiValue: (baseStyles: CSSProperties) => ({
         ...baseStyles,
         borderRadius: '10px',
-        background: 'rgba(var(--center-channel-color-rgb, 63, 67, 80), 0.08)',
+        background: 'rgba(var(--center-channel-color-rgb), 0.08)',
         display: 'flex',
         alignItems: 'center',
     }),
     multiValueLabel: (baseStyles: CSSProperties) => ({
         ...baseStyles,
         padding: '4px 6px 4px 10px',
-        color: 'var(--center-channel-color, #3F4350)',
+        color: 'var(--center-channel-color)',
         fontFamily: 'Open Sans',
         fontSize: '10px',
         fontWeight: 600,
@@ -47,7 +55,7 @@ const styles = {
     multiValueRemove: (baseStyles: CSSProperties) => ({
         ...baseStyles,
         borderRadius: '50%',
-        background: 'rgba(var(--center-channel-color-rgb, 63, 67, 80), 0.32)',
+        background: 'rgba(var(--center-channel-color-rgb), 0.32)',
         fontFamily: 'compass-icons',
         fontSize: '12px',
         fontWeight: 400,
@@ -57,7 +65,7 @@ const styles = {
         padding: 0,
         marginRight: '4px',
         ':hover': {
-            background: 'rgba(var(--center-channel-color-rgb, 63, 67, 80), 0.32)',
+            background: 'rgba(var(--center-channel-color-rgb), 0.32)',
             color: 'white',
         },
     }),
