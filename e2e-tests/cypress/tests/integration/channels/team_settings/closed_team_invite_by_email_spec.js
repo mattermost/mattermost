@@ -59,7 +59,9 @@ describe('Team Settings', () => {
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
+            // # Go to Access section
             cy.get('#accessButton').click();
+
             cy.get('.access-allowed-domains-section').should('exist').within(() => {
                 // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
                 cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
