@@ -317,7 +317,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 				)
 			}
 		} else {
-			scs.app.InvalidateCacheForUser(update.New.Id)
+			scs.platform.InvalidateCacheForUser(update.New.Id)
 			scs.app.NotifySharedChannelUserUpdate(update.New)
 			return update.New, nil
 		}

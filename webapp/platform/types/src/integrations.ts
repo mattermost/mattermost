@@ -104,10 +104,26 @@ export type OAuthApp = {
     'is_trusted': boolean;
 };
 
+export type OutgoingOAuthConnection = {
+    'id': string;
+    'name': string;
+    'creator_id': string;
+    'create_at': number;
+    'update_at': number;
+    'client_id': string;
+    'client_secret'?: string;
+    'credentials_username'?: string;
+    'credentials_password'?: string;
+    'oauth_token_url': string;
+    'grant_type': 'client_credentials' | 'password';
+    'audiences': string[];
+};
+
 export type IntegrationsState = {
     incomingHooks: IDMappedObjects<IncomingWebhook>;
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     oauthApps: IDMappedObjects<OAuthApp>;
+    outgoingOAuthConnections: IDMappedObjects<OutgoingOAuthConnection>;
     appsOAuthAppIDs: string[];
     appsBotIDs: string[];
     systemCommands: IDMappedObjects<Command>;
