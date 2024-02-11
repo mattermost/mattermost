@@ -19,6 +19,7 @@ import {PostReminderMenu} from './channels/post_reminder_menu';
 import {PostMenu} from './channels/post_menu';
 import {ThreadFooter} from './channels/thread_footer';
 import {EmojiGifPicker} from './channels/emoji_gif_picker';
+import {GenericConfirmModal} from './channels/generic_confirm_modal';
 
 import {SystemConsoleSidebar} from './system_console/sidebar';
 import {SystemConsoleNavbar} from './system_console/navbar';
@@ -47,6 +48,7 @@ const components = {
     MainHeader,
     PostReminderMenu,
     EmojiGifPicker,
+    GenericConfirmModal,
     SystemConsoleSidebar,
     SystemConsoleNavbar,
     SystemUsers,

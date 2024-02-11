@@ -40,9 +40,12 @@ class SystemConsolePage {
         this.systemUsersColumnToggleMenu = new components.SystemUsersColumnToggleMenu(
             page.locator('#systemUsersColumnTogglerMenu'),
         );
-        this.systemUsersDateRangeMenu = new components.SystemUsersFilterMenu(page.locator('#systemUsersDateRangeSelectorMenu'));
-        this.systemUsersActionMenus = Array.from(Array(10).keys()).map((index) => 
-            new components.SystemUsersFilterMenu(page.locator(`#actionMenu-systemUsersTable-${index}`)));
+        this.systemUsersDateRangeMenu = new components.SystemUsersFilterMenu(
+            page.locator('#systemUsersDateRangeSelectorMenu'),
+        );
+        this.systemUsersActionMenus = Array.from(Array(10).keys()).map(
+            (index) => new components.SystemUsersFilterMenu(page.locator(`#actionMenu-systemUsersTable-${index}`)),
+        );
     }
 
     async toBeVisible() {

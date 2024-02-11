@@ -24,10 +24,11 @@ export default class SystemUsers {
         this.searchInput = this.container.getByLabel('Search users');
         this.columnToggleMenuButton = this.container.locator('#systemUsersColumnTogglerMenuButton');
         this.dateRangeSelectorMenuButton = this.container.locator('#systemUsersDateRangeSelectorMenuButton');
-        this.exportButton = this.container.getByText('Export')
+        this.exportButton = this.container.getByText('Export');
         this.filterPopoverButton = this.container.getByText(/Filters \(\d+\)/);
-        this.actionMenuButtons = Array.from(Array(10).keys()).map((index) => 
-            this.container.locator(`#actionMenuButton-systemUsersTable-${index}`));
+        this.actionMenuButtons = Array.from(Array(10).keys()).map((index) =>
+            this.container.locator(`#actionMenuButton-systemUsersTable-${index}`),
+        );
 
         this.loadingSpinner = this.container.getByText('Loading');
     }
@@ -110,7 +111,7 @@ export default class SystemUsers {
     }
 
     /**
-     * Searches and verifies that the row with given text is found 
+     * Searches and verifies that the row with given text is found
      */
     async verifyRowWithTextIsFound(text: string) {
         const foundUser = this.container.getByText(text);
