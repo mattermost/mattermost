@@ -78,11 +78,13 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, task.channelID)
 	}
 
+	metrics := scs.server.GetMetrics()
+
 	start := model.GetMillis()
 	var metricsRecorded bool
 	defer func() {
-		if !metricsRecorded {
-			scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, float64(model.GetMillis()-start))
+		if !metricsRecorded && metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, float64(model.GetMillis()-start))
 			metricsRecorded = true
 		}
 	}()
@@ -184,8 +186,8 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		mlog.Int("attachments", len(sd.attachments)),
 	)
 
-	if !metricsRecorded {
-		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, float64(model.GetMillis()-start))
+	if !metricsRecorded && metrics != nil {
+		metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, float64(model.GetMillis()-start))
 		metricsRecorded = true
 	}
 
@@ -197,7 +199,9 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 func (scs *Service) fetchUsersForSync(sd *syncData) error {
 	start := model.GetMillis()
 	defer func() {
-		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Users", float64(model.GetMillis()-start))
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Users", float64(model.GetMillis()-start))
+		}
 	}()
 
 	filter := model.GetUsersForSyncFilter{
@@ -233,7 +237,9 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	start := model.GetMillis()
 	defer func() {
-		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Posts", float64(model.GetMillis()-start))
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Posts", float64(model.GetMillis()-start))
+		}
 	}()
 
 	options := model.GetPostsSinceForSyncOptions{
@@ -314,7 +320,9 @@ func containsPost(posts []*model.Post, post *model.Post) bool {
 func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 	start := model.GetMillis()
 	defer func() {
-		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Reactions", float64(model.GetMillis()-start))
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Reactions", float64(model.GetMillis()-start))
+		}
 	}()
 
 	merr := merror.New()
@@ -334,7 +342,9 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 	start := model.GetMillis()
 	defer func() {
-		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "PostUsers", float64(model.GetMillis()-start))
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "PostUsers", float64(model.GetMillis()-start))
+		}
 	}()
 
 	sc, err := scs.server.GetStore().SharedChannel().Get(sd.task.channelID)
@@ -403,7 +413,9 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
 	start := model.GetMillis()
 	defer func() {
-		scs.server.GetMetrics().ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Attachments", float64(model.GetMillis()-start))
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Attachments", float64(model.GetMillis()-start))
+		}
 	}()
 
 	merr := merror.New()
@@ -503,7 +515,9 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 func (scs *Service) sendUserSyncData(sd *syncData) error {
 	start := model.GetMillis()
 	defer func() {
-		scs.server.GetMetrics().ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Users", float64(model.GetMillis()-start))
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Users", float64(model.GetMillis()-start))
+		}
 	}()
 
 	msg := model.NewSyncMsg(sd.task.channelID)
@@ -548,6 +562,13 @@ func (scs *Service) sendAttachmentSyncData(sd *syncData) {
 
 // sendPostSyncData sends the collected post updates to the remote cluster.
 func (scs *Service) sendPostSyncData(sd *syncData) error {
+	start := model.GetMillis()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Posts", float64(model.GetMillis()-start))
+		}
+	}()
+
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Posts = sd.posts
 
@@ -569,6 +590,13 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 
 // sendReactionSyncData sends the collected reaction updates to the remote cluster.
 func (scs *Service) sendReactionSyncData(sd *syncData) error {
+	start := model.GetMillis()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Reactions", float64(model.GetMillis()-start))
+		}
+	}()
+
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Reactions = sd.reactions
 

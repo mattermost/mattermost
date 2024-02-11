@@ -178,6 +178,7 @@ func (scs *Service) doSync() time.Duration {
 	var task syncTask
 	var ok bool
 	var shortestWait time.Duration
+	metrics := scs.server.GetMetrics()
 
 	for {
 		task, ok, shortestWait = scs.removeOldestTask()
@@ -185,7 +186,9 @@ func (scs *Service) doSync() time.Duration {
 			break
 		}
 
-		scs.server.GetMetrics().ObserveSharedChannelsTaskInQueueDuration(float64(model.GetMillis() - model.GetMillisForTime(task.AddedAt)))
+		if metrics != nil {
+			metrics.ObserveSharedChannelsTaskInQueueDuration(float64(model.GetMillis() - model.GetMillisForTime(task.AddedAt)))
+		}
 
 		if err := scs.processTask(task); err != nil {
 			// put task back into map so it will update again
