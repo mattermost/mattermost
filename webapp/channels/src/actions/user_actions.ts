@@ -20,6 +20,7 @@ import {
     getMyChannelMember,
     getMyChannels,
 } from 'mattermost-redux/selectors/entities/channels';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getTeamMember} from 'mattermost-redux/selectors/entities/teams';
 import * as Selectors from 'mattermost-redux/selectors/entities/users';
@@ -423,10 +424,17 @@ export function autocompleteUsers(username: string): ThunkActionFunc<Promise<Use
 
 export function autoResetStatus(): ActionFuncAsync<UserStatus> {
     return async (doDispatch) => {
-        const {currentUserId} = getState().entities.users;
+        const state = getState();
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+
+        if (!enabledUserStatuses) {
+            return {data: undefined};
+        }
+
+        const {currentUserId} = state.entities.users;
         const {data: userStatus} = await doDispatch(UserActions.getStatus(currentUserId));
 
-        if (userStatus!.status === UserStatuses.OUT_OF_OFFICE || !userStatus!.manual) {
+        if (userStatus?.status === UserStatuses.OUT_OF_OFFICE || !userStatus?.manual) {
             return {data: userStatus};
         }
 

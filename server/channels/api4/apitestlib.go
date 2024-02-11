@@ -157,6 +157,8 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 		th.App.SetSearchEngine(searchEngine)
 	}
 
+	th.App.Srv().SetLicense(getLicense(enterprise, memoryConfig))
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.TeamSettings.MaxUsersPerTeam = 50
 		*cfg.RateLimitSettings.Enable = false
@@ -186,12 +188,6 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	web.New(th.App.Srv())
 	wsapi.Init(th.App.Srv())
 
-	if enterprise {
-		th.App.Srv().SetLicense(model.NewTestLicense())
-	} else {
-		th.App.Srv().SetLicense(nil)
-	}
-
 	th.Client = th.CreateClient()
 	th.SystemAdminClient = th.CreateClient()
 	th.SystemManagerClient = th.CreateClient()
@@ -213,6 +209,16 @@ func setupTestHelper(dbStore store.Store, searchEngine *searchengine.Broker, ent
 	}
 
 	return th
+}
+
+func getLicense(enterprise bool, cfg *model.Config) *model.License {
+	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+	}
+	if enterprise {
+		return model.NewTestLicense()
+	}
+	return nil
 }
 
 func SetupEnterprise(tb testing.TB, options ...app.Option) *TestHelper {
@@ -285,6 +291,7 @@ func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelpe
 	dbStore := mainHelper.GetStore()
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
 	searchEngine := mainHelper.GetSearchEngine()
 	th := setupTestHelper(dbStore, searchEngine, false, true, updateConfig, nil)
 	th.InitLogin()
