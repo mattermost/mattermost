@@ -88,6 +88,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
 
             return (
                 <div
+                    id='teamIconImage'
                     alt='team image preview'
                     style={imageStyles}
                     className='team-img-preview'
@@ -98,6 +99,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
         if (teamImageSource) {
             return (
                 <img
+                    id='teamIconImage'
                     className='team-img-preview'
                     src={teamImageSource}
                     onClick={handleInputFile}
@@ -107,6 +109,7 @@ const TeamPictureSection = ({team, file, teamName, disabled, onFileChange, onRem
         return (
             <div className='team-picture-section__team-icon' >
                 <span
+                    id='teamIconInitial'
                     onClick={handleInputFile}
                     className='team-picture-section__team-name'
                 >{teamName.charAt(0).toUpperCase() + teamName.charAt(1)}</span>
