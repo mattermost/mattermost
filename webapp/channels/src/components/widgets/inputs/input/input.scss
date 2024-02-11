@@ -23,7 +23,6 @@
 
     .Input {
         position: relative;
-        z-index: 2;
         left: 0;
         width: 100%;
         padding: 0;
@@ -129,7 +128,6 @@
 
     .Input_fieldset {
         position: relative;
-        z-index: 3;
         display: flex;
         width: 100%;
         box-sizing: border-box;
@@ -178,7 +176,7 @@
 
     .Input_legend {
         position: absolute;
-        z-index: 4;
+        z-index: 1;
         top: -8px;
         display: flex;
         width: auto;
