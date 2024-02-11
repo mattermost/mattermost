@@ -5,9 +5,8 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import type {DialogSubmission, SubmitDialogResponse, DialogElement as TDialogElement} from '@mattermost/types/integrations';
+import type {DialogSubmission} from '@mattermost/types/integrations';
 
-import type {ActionResult} from 'mattermost-redux/types/actions';
 import {
     checkDialogElementForError,
     checkIfErrorsMatchElements,
@@ -15,33 +14,17 @@ import {
 
 import SpinnerButton from 'components/spinner_button';
 
-import type EmojiMap from 'utils/emoji_map';
-
 import DialogElement from './dialog_element';
 import DialogIntroductionText from './dialog_introduction_text';
 
-export type MapStateToProps = {
-    url: string;
-    callbackId?: string;
-    elements?: TDialogElement[];
-    title: string;
-    introductionText?: string;
-    iconUrl?: string;
-    submitLabel?: string;
-    notifyOnCancel?: boolean;
-    state?: string;
-    emojiMap: EmojiMap;
-};
+import type {PropsFromRedux} from './index';
 
-export type MapDispatchToProps = {
-    actions: {
-        submitInteractiveDialog: (submission: DialogSubmission) => Promise<ActionResult<SubmitDialogResponse>>;
-    };
-}
+// We are using Partial as we are returning empty object with dialog redux state is empty in connect
+type OptionalProsFromRedux = Partial<PropsFromRedux> & Pick<PropsFromRedux, 'actions'>;
 
-export interface Props extends MapStateToProps, MapDispatchToProps {
+export type Props = {
     onExited?: () => void;
-}
+} & OptionalProsFromRedux;
 
 type State = {
     show: boolean;

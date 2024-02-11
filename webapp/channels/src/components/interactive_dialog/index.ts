@@ -13,12 +13,11 @@ import {getEmojiMap} from 'selectors/emojis';
 import type {GlobalState} from 'types/store';
 
 import InteractiveDialog from './interactive_dialog';
-import type {MapStateToProps} from './interactive_dialog';
 
 function mapStateToProps(state: GlobalState) {
     const data = state.entities.integrations.dialog;
     if (!data || !data.dialog) {
-        return {} as MapStateToProps;
+        return {};
     }
 
     return {
