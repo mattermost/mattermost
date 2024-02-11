@@ -485,6 +485,23 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
+	var accessToken *model.OutgoingOAuthConnectionToken
+
+	// Retrieve an access token from a connection if one exists to use for the webhook request
+	if a.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && *a.Config().ServiceSettings.EnableOutgoingOAuthConnections && a.OutgoingOAuthConnections() != nil {
+		connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(rctx, cmd.URL)
+		if err != nil {
+			a.Log().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
+		}
+
+		if connection != nil {
+			accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(rctx, connection)
+			if err != nil {
+				a.Log().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
+			}
+		}
+	}
+
 	// Prepare the request
 	var req *http.Request
 	var err error
@@ -506,7 +523,14 @@ func (a *App) DoCommandRequest(rctx request.CTX, cmd *model.Command, p url.Value
 	}
 
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("Authorization", "Token "+cmd.Token)
+	if cmd.Token != "" {
+		req.Header.Set("Authorization", "Token "+cmd.Token)
+	}
+
+	if accessToken != nil {
+		req.Header.Set("Authorization", accessToken.AsHeaderValue())
+	}
+
 	if cmd.Method == model.CommandMethodPost {
 		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	}
