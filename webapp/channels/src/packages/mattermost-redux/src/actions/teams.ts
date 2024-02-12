@@ -16,17 +16,21 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionResult, DispatchFunc, GetStateFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
+    const state = getState();
     const {
         currentUserId,
         profiles,
         statuses,
-    } = getState().entities.users;
+    } = state.entities.users;
+    const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+
     const profilesToLoad: string[] = [];
     const statusesToLoad: string[] = [];
     userIds.forEach((userId) => {
@@ -44,7 +48,7 @@ async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: Dis
         requests.push(dispatch(getProfilesByIds(profilesToLoad)));
     }
 
-    if (statusesToLoad.length) {
+    if (statusesToLoad.length && enabledUserStatuses) {
         requests.push(dispatch(getStatusesByIds(statusesToLoad)));
     }
 
