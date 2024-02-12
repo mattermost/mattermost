@@ -10,10 +10,10 @@ import {getSiteURL} from 'utils/url';
 type Props = {
     id: string;
     value: string;
-    emojiMap: EmojiMap;
+    emojiMap?: EmojiMap;
 }
 
-export default function DialogIntroductionText({id, value, emojiMap}: Props): JSX.Element {
+export default function DialogIntroductionText({id, value, emojiMap}: Props) {
     const formattedMessage = Markdown.format(
         value,
         {

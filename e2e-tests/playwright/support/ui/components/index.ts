@@ -19,6 +19,15 @@ import {PostReminderMenu} from './channels/post_reminder_menu';
 import {PostMenu} from './channels/post_menu';
 import {ThreadFooter} from './channels/thread_footer';
 import {EmojiGifPicker} from './channels/emoji_gif_picker';
+import {GenericConfirmModal} from './channels/generic_confirm_modal';
+
+import {SystemConsoleSidebar} from './system_console/sidebar';
+import {SystemConsoleNavbar} from './system_console/navbar';
+
+import {SystemUsers} from './system_console/sections/system_users/system_users';
+import {SystemUsersFilterPopover} from './system_console/sections/system_users/filter_popover';
+import {SystemUsersFilterMenu} from './system_console/sections/system_users/filter_menu';
+import {SystemUsersColumnToggleMenu} from './system_console/sections/system_users/column_toggle_menu';
 
 const components = {
     GlobalHeader,
@@ -39,6 +48,13 @@ const components = {
     MainHeader,
     PostReminderMenu,
     EmojiGifPicker,
+    GenericConfirmModal,
+    SystemConsoleSidebar,
+    SystemConsoleNavbar,
+    SystemUsers,
+    SystemUsersFilterPopover,
+    SystemUsersFilterMenu,
+    SystemUsersColumnToggleMenu,
 };
 
 export {

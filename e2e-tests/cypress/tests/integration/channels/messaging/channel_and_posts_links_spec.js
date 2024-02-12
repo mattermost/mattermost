@@ -228,4 +228,47 @@ describe('Message permalink', () => {
             });
         });
     });
+
+    it('MM-T5526 - Non-channel-admin users can use message links in private channels', () => {
+        let tempUser;
+        let privateChannel;
+        let permalink;
+        let testMessagePostId;
+        const postMessage = 'This is posted for non-channel-admins';
+
+        // # Create a private channel
+        cy.apiCreateChannel(testTeam.id, 'private', 'Private', 'P').then(({channel}) => {
+            privateChannel = channel;
+            cy.visit(`/${testTeam.name}/channels/${privateChannel.name}`);
+        });
+
+        // # Post a message
+        cy.postMessage(postMessage);
+
+        // # Create a permalink for the last post
+        cy.getLastPostId().then((id) => {
+            testMessagePostId = id;
+            permalink = `${Cypress.config('baseUrl')}/${testTeam.name}/pl/${id}`;
+            cy.postMessage(permalink);
+        });
+
+        // # Create a temporary user
+        cy.apiCreateUser({prefix: 'temp'}).then(({user: user1}) => {
+            tempUser = user1;
+            cy.apiAddUserToTeam(testTeam.id, tempUser.id);
+            cy.apiAddUserToChannel(privateChannel.id, tempUser.id);
+
+            // # Login as the other user
+            cy.apiLogout();
+            cy.apiLogin(tempUser);
+            cy.visit(`/${testTeam.name}/channels/${privateChannel.name}`);
+
+            // # Click on the permalink
+            cy.get('div.attachment--permalink').click();
+
+            // * Verify that the permalinked post is highlighted in the center channel
+            cy.url().should('contain', testMessagePostId);
+            cy.get(`#post_${testMessagePostId}.post--highlight`).should('be.visible');
+        });
+    });
 });

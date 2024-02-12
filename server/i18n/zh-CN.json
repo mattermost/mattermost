@@ -1795,7 +1795,7 @@
   },
   {
     "id": "api.templates.email_organization",
-    "translation": "发送人 "
+    "translation": "发送者： "
   },
   {
     "id": "api.templates.email_warning",
@@ -1907,7 +1907,7 @@
   },
   {
     "id": "api.templates.verify_body.info",
-    "translation": "该电子邮件地址已用于创建 Mattermost 帐户。"
+    "translation": "该电子邮件地址被用于创建 Mattermost 帐户。"
   },
   {
     "id": "api.templates.verify_body.title",
@@ -1927,7 +1927,7 @@
   },
   {
     "id": "api.templates.welcome_body.info",
-    "translation": "该电子邮件地址已用于创建 Mattermost 帐户。"
+    "translation": "该电子邮件地址被用于创建 Mattermost 帐户。"
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -3715,11 +3715,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "文件保留至少一天。"
+    "translation": "文件保留天数不能小于 0。"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "消息保留至少一天。"
+    "translation": "消息保留天数不能小于 0。"
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -7707,7 +7707,7 @@
   },
   {
     "id": "app.license.generate_renewal_token.no_license",
-    "translation": "没有许可证"
+    "translation": "许可证不存在"
   },
   {
     "id": "app.license.generate_renewal_token.bad_license",
@@ -8035,11 +8035,11 @@
   },
   {
     "id": "api.templates.welcome_body.subTitle2",
-    "translation": "单击下面以验证您的电子邮件地址。"
+    "translation": "单击下方按钮以验证您的邮箱地址。"
   },
   {
     "id": "api.templates.welcome_body.subTitle1",
-    "translation": "感谢您的加入 "
+    "translation": "感谢您加入 "
   },
   {
     "id": "api.templates.welcome_body.serverURL",
@@ -8047,7 +8047,7 @@
   },
   {
     "id": "api.templates.welcome_body.info1",
-    "translation": "如果不是您，则可以放心地忽略此电子邮件。"
+    "translation": "如果不是您想创建账号，则可以放心地忽略此邮件。"
   },
   {
     "id": "api.templates.welcome_body.app_download_title",
@@ -8059,11 +8059,11 @@
   },
   {
     "id": "api.templates.verify_body.subTitle2",
-    "translation": "单击下面以验证您的电子邮件地址。"
+    "translation": "单击下方按钮以验证您的邮箱地址。"
   },
   {
     "id": "api.templates.verify_body.subTitle1",
-    "translation": "感谢您的加入 "
+    "translation": "感谢您加入 "
   },
   {
     "id": "api.templates.verify_body.serverURL",
@@ -8071,7 +8071,7 @@
   },
   {
     "id": "api.templates.verify_body.info1",
-    "translation": "如果不是您，则可以放心地忽略此电子邮件。"
+    "translation": "如果不是您想创建账号，则可以放心地忽略此邮件。"
   },
   {
     "id": "api.templates.reset_body.subTitle",
@@ -8083,7 +8083,7 @@
   },
   {
     "id": "api.templates.questions_footer.title",
-    "translation": "有什么疑问吗？"
+    "translation": "有疑问吗？"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -9008,10 +9008,6 @@
   {
     "id": "api.templates.cloud_upgrade_confirmation.subject",
     "translation": "确认升级Mattermost"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "解析主体数据时出错。"
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -10172,5 +10168,197 @@
   {
     "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
     "translation": "服务设置中的对外集成请求超时无效。必须是正整数。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "列出对外 OAuth 连接时出现错误。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "输入参数无效。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "删除对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "获取对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "保存此对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "无法确认邀请：{{.Error}}"
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "现在续订"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "请续订以避免任何中断"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "您的年付帐单需要在 30 天内支付"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "年度订阅需在 60 天内续期"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "获取对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "未找到该对外 oauth 连接。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "更新此对外 oauth 连接时出现错误。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "消息保留天数和消息保留小时数不能均大于 0。"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "读取载荷时出现错误。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "文件保留小时数不能小于 0"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "无法更新频道成员的通知属性。"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "无法更新过多频道成员。每次最多只能更新 {{.Max}} 位频道成员。"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "获取用户数量失败。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "文件保留天数和文件保留小时数不能均为 0。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "消息保留小时数不能小于 0"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "无法找到用户。"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "年付帐单需要在 30 天内支付"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "年度订阅需在 60 天内续期"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "需要操作：年度订阅需在 7 天内续期"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "您即将在 7 天后失去对您的工作区的访问"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "检查用户是否有自定义个人资料图片时出现错误。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "文件保留天数和文件保留小时数不能均大于 0。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "消息保留天数和消息保留小时数不能均为 0。"
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "服务设置中包含无效的最大载荷大小。必须是大于 0 的整数。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "批量报告导出仅对专业版和企业版可用。"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "写入 CSV 标头失败。"
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "不支持的报告格式。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "已存在针对此用户和时间区间的任务。"
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "您已开始导出 {{.DateRange}} 的用户数据。导出完成后，一份 CSV 文件将通过此私信送达。"
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "CSV 区块写入失败。"
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "不支持的报告格式。"
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "您的导出已准备就绪。CSV 文件中包含 {{.DateRange}} 的用户数据。点击下方的链接以下载报告。"
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "所有时间"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "过去 30 天"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "过去 6 个月"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "上一个月"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "保存文件信息失败。"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "缺少日期范围"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "缺少发送报告至的用户 id"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "团队成员更新无效：用户不能被同时设为访客和管理员。"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "团队成员更新无效：访客不能成为团队成员或团队管理员，请先将其提升为用户。"
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "无法添加此用户为频道成员。"
   }
 ]
