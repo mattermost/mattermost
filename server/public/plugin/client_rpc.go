@@ -182,6 +182,7 @@ var _ Hooks = &hooksRPCClient{}
 
 func (g *hooksRPCClient) Implemented() (impl []string, err error) {
 	err = g.client.Call("Plugin.Implemented", struct{}{}, &impl)
+	log.Printf("impl: %#+v\n", impl)
 	for _, hookName := range impl {
 		if hookId, ok := hookNameToId[hookName]; ok {
 			g.implemented[hookId] = true
@@ -1104,6 +1105,139 @@ func (s *hooksRPCServer) ServeMetrics(args *Z_ServeMetricsArgs, returns *struct{
 		hook.ServeMetrics(args.Context, w, r)
 	} else {
 		http.NotFound(w, r)
+	}
+
+	return nil
+}
+
+type Z_ServeDebugArgs struct {
+	ResponseWriterStream uint32
+	Request              *http.Request
+	Context              *Context
+	RequestBodyStream    uint32
+}
+
+func (g *hooksRPCClient) ServeDebug(c *Context, w http.ResponseWriter, r *http.Request) {
+	serveHTTPStreamId := g.muxBroker.NextId()
+	go func() {
+		connection, err := g.muxBroker.Accept(serveHTTPStreamId)
+		if err != nil {
+			g.log.Error("Plugin failed to ServeDebug, muxBroker couldn't accept connection", mlog.Uint("serve_http_stream_id", serveHTTPStreamId), mlog.Err(err))
+			return
+		}
+		defer connection.Close()
+
+		rpcServer := rpc.NewServer()
+		if err := rpcServer.RegisterName("Plugin", &httpResponseWriterRPCServer{w: w, log: g.log}); err != nil {
+			g.log.Error("Plugin failed to ServeDebug, couldn't register RPC name", mlog.Err(err))
+			return
+		}
+		rpcServer.ServeConn(connection)
+	}()
+
+	requestBodyStreamId := uint32(0)
+	if r.Body != nil {
+		requestBodyStreamId = g.muxBroker.NextId()
+		go func() {
+			bodyConnection, err := g.muxBroker.Accept(requestBodyStreamId)
+			if err != nil {
+				g.log.Error("Plugin failed to ServeDebug, muxBroker couldn't Accept request body connection", mlog.Err(err))
+				return
+			}
+			defer bodyConnection.Close()
+			serveIOReader(r.Body, bodyConnection)
+		}()
+	}
+
+	forwardedRequest := &http.Request{
+		Method:     r.Method,
+		URL:        r.URL,
+		Proto:      r.Proto,
+		ProtoMajor: r.ProtoMajor,
+		ProtoMinor: r.ProtoMinor,
+		Header:     r.Header,
+		Host:       r.Host,
+		RemoteAddr: r.RemoteAddr,
+		RequestURI: r.RequestURI,
+	}
+
+	if err := g.client.Call("Plugin.ServeDebug", Z_ServeHTTPArgs{
+		Context:              c,
+		ResponseWriterStream: serveHTTPStreamId,
+		Request:              forwardedRequest,
+		RequestBodyStream:    requestBodyStreamId,
+	}, nil); err != nil {
+		g.log.Error("Plugin failed to ServeDebug, RPC call failed", mlog.Err(err))
+		http.Error(w, "500 internal server error", http.StatusInternalServerError)
+	}
+}
+
+func (s *hooksRPCServer) ServeDebug(args *Z_ServeHTTPArgs, returns *struct{}) error {
+	connection, err := s.muxBroker.Dial(args.ResponseWriterStream)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote response writer stream, error: %v", err.Error())
+		return err
+	}
+	w := connectHTTPResponseWriter(connection)
+	defer w.Close()
+
+	r := args.Request
+	if args.RequestBodyStream != 0 {
+		connection, err := s.muxBroker.Dial(args.RequestBodyStream)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "[ERROR] Can't connect to remote request body stream, error: %v", err.Error())
+			return err
+		}
+		r.Body = connectIOReader(connection)
+	} else {
+		r.Body = io.NopCloser(&bytes.Buffer{})
+	}
+	defer r.Body.Close()
+
+	const useMux = false
+	router := http.NewServeMux()
+	//mux.HandleFunc()
+
+	log.Printf("r.URL.String(): %#+v\n", r.URL.String())
+
+	router.HandleFunc("/pprof/", pprof.Index)
+	router.HandleFunc("/pprof/cmdline", pprof.Cmdline)
+	router.HandleFunc("/pprof/profile", pprof.Profile)
+	router.HandleFunc("/pprof/symbol", pprof.Symbol)
+	router.HandleFunc("/pprof/trace", pprof.Trace)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	router.Handle("/pprof/goroutine", pprof.Handler("goroutine"))
+	router.Handle("/pprof/heap", pprof.Handler("heap"))
+	router.Handle("/pprof/threadcreate", pprof.Handler("threadcreate"))
+	router.Handle("/pprof/block", pprof.Handler("block"))
+
+	// ----------------------
+
+	router2 := mux.NewRouter()
+	//router.HandleFunc("/", rootHandler) // TODO(hanzei): consider if a landing page is needed
+
+	// TODO(hanzei):
+	//router2.StrictSlash(true)
+	//router2.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
+	//router2.Handle("/pprof", http.RedirectHandler("pprof/", http.StatusMovedPermanently))
+
+	router2.HandleFunc("/pprof/", pprof.Index)
+	router2.HandleFunc("/pprof/cmdline", pprof.Cmdline)
+	router2.HandleFunc("/pprof/profile", pprof.Profile)
+	router2.HandleFunc("/pprof/symbol", pprof.Symbol)
+	router2.HandleFunc("/pprof/trace", pprof.Trace)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	router2.Handle("/pprof/goroutine", pprof.Handler("goroutine"))
+	router2.Handle("/pprof/heap", pprof.Handler("heap"))
+	router2.Handle("/pprof/threadcreate", pprof.Handler("threadcreate"))
+	router2.Handle("/pprof/block", pprof.Handler("block"))
+
+	if useMux {
+		router.ServeHTTP(w, r)
+	} else {
+		router2.ServeHTTP(w, r)
 	}
 
 	return nil

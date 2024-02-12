@@ -11,6 +11,7 @@ import (
 	"net/http/pprof"
 	"path"
 	"runtime"
+	"sort"
 	"strings"
 	"sync"
 	"text/template"
@@ -139,17 +140,17 @@ func (pm *platformMetrics) initMetricsRouter() error {
 
 	metricsPage := `
 			<html>
-				<body>{{if .}}
-					<div><a href="/metrics">Metrics</a></div>{{end}}
-					<div><a href="/debug/pprof/">Profiling Root</a></div>
-					<div><a href="/debug/pprof/cmdline">Profiling Command Line</a></div>
-					<div><a href="/debug/pprof/symbol">Profiling Symbols</a></div>
-					<div><a href="/debug/pprof/goroutine">Profiling Goroutines</a></div>
-					<div><a href="/debug/pprof/heap">Profiling Heap</a></div>
-					<div><a href="/debug/pprof/threadcreate">Profiling Threads</a></div>
-					<div><a href="/debug/pprof/block">Profiling Blocking</a></div>
-					<div><a href="/debug/pprof/trace">Profiling Execution Trace</a></div>
-					<div><a href="/debug/pprof/profile">Profiling CPU</a></div>
+				<body>{{ if .hasMetrics }}
+					<div><a href="metrics">Metrics</a></div>{{ end }}
+					<div><a href="debug/pprof/">Profiling Root</a></div>
+					<div><a href="debug/pprof/cmdline">Profiling Command Line</a></div>
+					<div><a href="debug/pprof/symbol">Profiling Symbols</a></div>
+					<div><a href="debug/pprof/goroutine">Profiling Goroutines</a></div>
+					<div><a href="debug/pprof/heap">Profiling Heap</a></div>
+					<div><a href="debug/pprof/threadcreate">Profiling Threads</a></div>
+					<div><a href="debug/pprof/block">Profiling Blocking</a></div>
+					<div><a href="debug/pprof/trace">Profiling Execution Trace</a></div>{{if .root }}
+					<div><a href="plugins">Plugins Profiling</a></div>{{ end }}
 				</body>
 			</html>
 		`
@@ -159,7 +160,10 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	}
 
 	rootHandler := func(w http.ResponseWriter, r *http.Request) {
-		metricsPageTmpl.Execute(w, pm.metricsImpl != nil)
+		metricsPageTmpl.Execute(w, map[string]any{
+			"hasMetrics": pm.metricsImpl != nil,
+			"root":       true,
+		})
 	}
 
 	pm.router.HandleFunc("/", rootHandler)
@@ -180,25 +184,34 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	pm.router.Handle("/debug/pprof/block", pprof.Handler("block"))
 	pm.router.Handle("/debug/pprof/mutex", pprof.Handler("mutex"))
 
+	pluginsRouter := pm.router.PathPrefix("/plugins").Subrouter()
+	pluginsRouter.HandleFunc("/", pm.serveListPluginsRequest)
+
+	pluginRouter := pluginsRouter.PathPrefix("/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}").Subrouter()
+	pluginRouter.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		metricsPageTmpl.Execute(w, map[string]any{
+			"hasMetrics": pm.metricsImpl != nil,
+		})
+	})
+
 	// Plugins metrics route
-	pluginsMetricsRoute := pm.router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/metrics").Subrouter()
+	pluginsMetricsRoute := pluginRouter.PathPrefix("/metrics").Subrouter()
 	pluginsMetricsRoute.HandleFunc("", pm.servePluginMetricsRequest)
 	pluginsMetricsRoute.HandleFunc("/{anything:.*}", pm.servePluginMetricsRequest)
 
-	// Plugins metrics route
-	debugRoute := pm.router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/debug/pprof").Subrouter()
-	debugRoute.HandleFunc("", pm.servePluginDebugMetricsRequest)
-	debugRoute.HandleFunc("/{anything:.*}", pm.servePluginDebugMetricsRequest)
+	// Plugins debug route
+	debugRouter := pluginRouter.PathPrefix("/debug").Subrouter()
+	debugRouter.StrictSlash(false)
+	debugRouter.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently)) // TODO(hanzei): Maybe add this
+	debugRouter.HandleFunc("/{anything:.*}", pm.servePluginDebugMetricsRequest)
 
 	return nil
 }
 
-func (pm *platformMetrics) servePluginDebugMetricsRequest(w http.ResponseWriter, r *http.Request) {
-	pluginID := mux.Vars(r)["plugin_id"]
-
+func (pm *platformMetrics) serveListPluginsRequest(w http.ResponseWriter, r *http.Request) {
 	pluginsEnvironment := pm.getPluginsEnv()
 	if pluginsEnvironment == nil {
-		appErr := model.NewAppError("ServePluginMetricsRequest", "app.plugin.disabled.app_error",
+		appErr := model.NewAppError("serveListPluginsRequest", "app.plugin.disabled.app_error",
 			nil, "Enable plugins to serve plugin metric requests", http.StatusNotImplemented)
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
@@ -207,19 +220,56 @@ func (pm *platformMetrics) servePluginDebugMetricsRequest(w http.ResponseWriter,
 		return
 	}
 
-	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
+	bundles := pluginsEnvironment.Active()
+
+	var ids []string
+	for _, b := range bundles {
+		ids = append(ids, b.Manifest.Id)
+	}
+	sort.Strings(ids)
+
+	page := `
+	<html>
+		<body>
+		{{range .}}
+			<div><a href="/plugins/{{.}}">{{.}}</a></div>
+		{{end}}
+		</body>
+	</html>
+`
+	metricsPageTmpl, err := template.New("page").Parse(page)
 	if err != nil {
-		mlog.Debug("Access to route for non-existent plugin",
-			mlog.String("missing_plugin_id", pluginID),
-			mlog.String("url", r.URL.String()),
-			mlog.Err(err))
-		http.NotFound(w, r)
+		//return errors.Wrap(err, "failed to create template")
+		appErr := model.NewAppError("serveListPluginsRequest", "app.plugin.disabled.app_error",
+			nil, "TODO", http.StatusNotImplemented)
+		mlog.Error(appErr.Error())
+		w.WriteHeader(appErr.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(appErr.ToJSON()))
+		return
+	}
+
+	metricsPageTmpl.Execute(w, ids)
+
+}
+
+func (pm *platformMetrics) servePluginDebugMetricsRequest(w http.ResponseWriter, r *http.Request) {
+	pluginID := mux.Vars(r)["plugin_id"]
+
+	pluginsEnvironment := pm.getPluginsEnv()
+	if pluginsEnvironment == nil {
+		appErr := model.NewAppError("servePluginDebugMetricsRequest", "app.plugin.disabled.app_error",
+			nil, "Enable plugins to serve plugin metric requests", http.StatusNotImplemented)
+		mlog.Error(appErr.Error())
+		w.WriteHeader(appErr.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(appErr.ToJSON()))
 		return
 	}
 
 	subpath, err := utils.GetSubpathFromConfig(pm.cfgFn())
 	if err != nil {
-		appErr := model.NewAppError("ServePluginMetricsRequest", "app.plugin.subpath_parse.app_error",
+		appErr := model.NewAppError("servePluginDebugMetricsRequest", "app.plugin.subpath_parse.app_error",
 			nil, "Failed to parse SiteURL subpath", http.StatusInternalServerError).Wrap(err)
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
@@ -228,11 +278,11 @@ func (pm *platformMetrics) servePluginDebugMetricsRequest(w http.ResponseWriter,
 		return
 	}
 
-	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID, "metrics"))
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID, "debug"))
 
 	// Passing an empty plugin context for the time being. To be decided whether we
 	// should support forms of authentication in the future.
-	hooks.ServeHTTP(&plugin.Context{}, w, r)
+	pluginsEnvironment.ServeDebug(pluginID, &plugin.Context{}, w, r)
 }
 
 func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *http.Request) {

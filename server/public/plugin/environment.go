@@ -6,6 +6,7 @@ package plugin
 import (
 	"fmt"
 	"hash/fnv"
+	"net/http"
 	"os"
 	"path/filepath"
 	"sync"
@@ -593,6 +594,19 @@ func (env *Environment) HooksForPlugin(id string) (Hooks, error) {
 	}
 
 	return nil, fmt.Errorf("plugin not found: %v", id)
+}
+
+// TODO(hanzei): better calling
+func (env *Environment) ServeDebug(id string, c *Context, w http.ResponseWriter, r *http.Request) error {
+	if p, ok := env.registeredPlugins.Load(id); ok {
+		rp := p.(registeredPlugin)
+		if rp.supervisor != nil && env.IsActive(id) {
+			rp.supervisor.hooksClient.ServeDebug(c, w, r)
+			return nil
+		}
+	}
+
+	return fmt.Errorf("plugin not found: %v", id)
 }
 
 // RunMultiPluginHook invokes hookRunnerFunc for each active plugin that implements the given hookId.
