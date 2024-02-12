@@ -13,7 +13,7 @@ import (
 
 func (api *API) InitBrand() {
 	api.BaseRoutes.Brand.Handle("/image", api.APIHandlerTrustRequester(getBrandImage)).Methods("GET")
-	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(uploadBrandImage, fileAPIKey, true)).Methods("POST")
+	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(uploadBrandImage, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.Brand.Handle("/image", api.APISessionRequired(deleteBrandImage)).Methods("DELETE")
 }
 
