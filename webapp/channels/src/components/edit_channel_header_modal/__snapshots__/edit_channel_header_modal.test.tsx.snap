@@ -65,7 +65,7 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -87,8 +87,8 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
           isMarkdownPreviewEnabled={false}
           previewMessageLink={
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit Header"
-              id="edit_channel_header.previewHeader"
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
             />
           }
           showPreview={false}
@@ -196,7 +196,7 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -218,8 +218,8 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
           isMarkdownPreviewEnabled={false}
           previewMessageLink={
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit Header"
-              id="edit_channel_header.previewHeader"
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
             />
           }
           showPreview={false}
@@ -345,7 +345,7 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -367,8 +367,8 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
           isMarkdownPreviewEnabled={false}
           previewMessageLink={
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit Header"
-              id="edit_channel_header.previewHeader"
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
             />
           }
           showPreview={false}
@@ -486,7 +486,7 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -508,8 +508,8 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
           isMarkdownPreviewEnabled={false}
           previewMessageLink={
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit Header"
-              id="edit_channel_header.previewHeader"
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
             />
           }
           showPreview={false}
@@ -617,7 +617,7 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -639,8 +639,8 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
           isMarkdownPreviewEnabled={false}
           previewMessageLink={
             <Memo(MemoizedFormattedMessage)
-              defaultMessage="Edit Header"
-              id="edit_channel_header.previewHeader"
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
             />
           }
           showPreview={false}
