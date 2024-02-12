@@ -118,7 +118,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         </FormattedMessage>
       </h4>
       <div
-        className="col-sm-9 col-sm-offset-3"
+        className="sectionContent col-sm-10 col-sm-offset-2"
       >
         <div
           className="setting-list"
@@ -502,7 +502,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
         </FormattedMessage>
       </h4>
       <div
-        className="col-sm-9 col-sm-offset-3"
+        className="sectionContent col-sm-10 col-sm-offset-2"
       >
         <div
           className="setting-list"
@@ -919,7 +919,7 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Notify me about threads I'm following"
-                id="user.settings.notifications.threads.allActivity"
+                id="user.settings.notifications.email.threads.allActivity"
               />
             </label>
             <br />

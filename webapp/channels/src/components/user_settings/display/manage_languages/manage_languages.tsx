@@ -256,7 +256,6 @@ export class ManageLanguage extends React.PureComponent<Props, State> {
                         defaultMessage='Language'
                     />
                 }
-                width='medium'
                 submit={this.changeLanguage}
                 saving={this.state.isSaving}
                 inputs={[input]}

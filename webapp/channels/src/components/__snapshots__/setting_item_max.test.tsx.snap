@@ -11,7 +11,7 @@ exports[`components/SettingItemMax should match snapshot 1`] = `
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"
@@ -72,7 +72,7 @@ exports[`components/SettingItemMax should match snapshot, on clientError 1`] = `
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"
@@ -143,7 +143,7 @@ exports[`components/SettingItemMax should match snapshot, on serverError 1`] = `
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"
@@ -214,7 +214,7 @@ exports[`components/SettingItemMax should match snapshot, with new saveTextButto
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"
@@ -270,7 +270,7 @@ exports[`components/SettingItemMax should match snapshot, without submit 1`] = `
     title
   </h4>
   <div
-    className="col-sm-12"
+    className="sectionContent col-sm-10 col-sm-offset-2"
   >
     <div
       className="setting-list"

@@ -88,15 +88,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="desktopTitle"
+                id="desktopAndMobileTitle"
               >
-                Desktop Notifications
+                Desktop and mobile notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="desktopTitle desktopEdit"
+                aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
                 class="color--link style--none section-min__edit"
-                id="desktopEdit"
+                id="desktopAndMobileEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -107,7 +107,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="desktopDesc"
+              id="desktopAndMobileDesc"
             >
               For all activity, without sound
             </div>
@@ -193,15 +193,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="keysWithNotificationTitle"
+                id="keywordsAndMentionsTitle"
               >
                 Keywords That Trigger Notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
+                aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
                 class="color--link style--none section-min__edit"
-                id="keysWithNotificationEdit"
+                id="keywordsAndMentionsEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -212,7 +212,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="keysWithNotificationDesc"
+              id="keywordsAndMentionsDesc"
             >
               "@some-user"
             </div>
@@ -228,15 +228,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="keysWithHighlightTitle"
+                id="keywordsAndHighlightTitle"
               >
                 Keywords That Get Highlighted (Without Notifications)
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
+                aria-labelledby="keywordsAndHighlightTitle keywordsAndHighlightEdit"
                 class="color--link style--none section-min__edit"
-                id="keysWithHighlightEdit"
+                id="keywordsAndHighlightEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -247,7 +247,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="keysWithHighlightDesc"
+              id="keywordsAndHighlightDesc"
             >
               None
             </div>
@@ -346,15 +346,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="desktopTitle"
+              id="desktopAndMobileTitle"
             >
-              Desktop Notifications
+              Desktop and mobile notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="desktopTitle desktopEdit"
+              aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
               class="color--link style--none section-min__edit"
-              id="desktopEdit"
+              id="desktopAndMobileEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -365,7 +365,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="desktopDesc"
+            id="desktopAndMobileDesc"
           >
             For all activity, without sound
           </div>
@@ -451,15 +451,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="keysWithNotificationTitle"
+              id="keywordsAndMentionsTitle"
             >
               Keywords That Trigger Notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
+              aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
               class="color--link style--none section-min__edit"
-              id="keysWithNotificationEdit"
+              id="keywordsAndMentionsEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -470,7 +470,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="keysWithNotificationDesc"
+            id="keywordsAndMentionsDesc"
           >
             "@some-user"
           </div>
@@ -486,15 +486,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="keysWithHighlightTitle"
+              id="keywordsAndHighlightTitle"
             >
               Keywords That Get Highlighted (Without Notifications)
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="keysWithHighlightTitle keysWithHighlightEdit"
+              aria-labelledby="keywordsAndHighlightTitle keywordsAndHighlightEdit"
               class="color--link style--none section-min__edit"
-              id="keysWithHighlightEdit"
+              id="keywordsAndHighlightEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -505,7 +505,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="keysWithHighlightDesc"
+            id="keywordsAndHighlightDesc"
           >
             None
           </div>
@@ -663,15 +663,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="desktopTitle"
+                id="desktopAndMobileTitle"
               >
-                Desktop Notifications
+                Desktop and mobile notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="desktopTitle desktopEdit"
+                aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
                 class="color--link style--none section-min__edit"
-                id="desktopEdit"
+                id="desktopAndMobileEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -682,7 +682,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="desktopDesc"
+              id="desktopAndMobileDesc"
             >
               For all activity, without sound
             </div>
@@ -768,15 +768,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="keysWithNotificationTitle"
+                id="keywordsAndMentionsTitle"
               >
                 Keywords That Trigger Notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
+                aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
                 class="color--link style--none section-min__edit"
-                id="keysWithNotificationEdit"
+                id="keywordsAndMentionsEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -787,7 +787,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="keysWithNotificationDesc"
+              id="keywordsAndMentionsDesc"
             >
               "@some-user"
             </div>
@@ -806,7 +806,7 @@ Object {
             >
               <h4
                 class="section-min__title isDisabled"
-                id="keysWithHighlightTitle"
+                id="keywordsAndHighlightTitle"
               >
                 Keywords That Get Highlighted (Without Notifications)
               </h4>
@@ -828,7 +828,7 @@ Object {
             </div>
             <div
               class="section-min__describe isDisabled"
-              id="keysWithHighlightDesc"
+              id="keywordsAndHighlightDesc"
             >
               None
             </div>
@@ -924,15 +924,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="desktopTitle"
+              id="desktopAndMobileTitle"
             >
-              Desktop Notifications
+              Desktop and mobile notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="desktopTitle desktopEdit"
+              aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
               class="color--link style--none section-min__edit"
-              id="desktopEdit"
+              id="desktopAndMobileEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -943,7 +943,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="desktopDesc"
+            id="desktopAndMobileDesc"
           >
             For all activity, without sound
           </div>
@@ -1029,15 +1029,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="keysWithNotificationTitle"
+              id="keywordsAndMentionsTitle"
             >
               Keywords That Trigger Notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
+              aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
               class="color--link style--none section-min__edit"
-              id="keysWithNotificationEdit"
+              id="keywordsAndMentionsEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -1048,7 +1048,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="keysWithNotificationDesc"
+            id="keywordsAndMentionsDesc"
           >
             "@some-user"
           </div>
@@ -1067,7 +1067,7 @@ Object {
           >
             <h4
               class="section-min__title isDisabled"
-              id="keysWithHighlightTitle"
+              id="keywordsAndHighlightTitle"
             >
               Keywords That Get Highlighted (Without Notifications)
             </h4>
@@ -1089,7 +1089,7 @@ Object {
           </div>
           <div
             class="section-min__describe isDisabled"
-            id="keysWithHighlightDesc"
+            id="keywordsAndHighlightDesc"
           >
             None
           </div>
@@ -1244,15 +1244,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="desktopTitle"
+                id="desktopAndMobileTitle"
               >
-                Desktop Notifications
+                Desktop and mobile notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="desktopTitle desktopEdit"
+                aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
                 class="color--link style--none section-min__edit"
-                id="desktopEdit"
+                id="desktopAndMobileEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -1263,7 +1263,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="desktopDesc"
+              id="desktopAndMobileDesc"
             >
               For all activity, without sound
             </div>
@@ -1349,15 +1349,15 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="keysWithNotificationTitle"
+                id="keywordsAndMentionsTitle"
               >
                 Keywords That Trigger Notifications
               </h4>
               <button
                 aria-expanded="false"
-                aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
+                aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
                 class="color--link style--none section-min__edit"
-                id="keysWithNotificationEdit"
+                id="keywordsAndMentionsEdit"
               >
                 <i
                   class="icon-pencil-outline"
@@ -1368,7 +1368,7 @@ Object {
             </div>
             <div
               class="section-min__describe"
-              id="keysWithNotificationDesc"
+              id="keywordsAndMentionsDesc"
             >
               "@some-user"
             </div>
@@ -1467,15 +1467,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="desktopTitle"
+              id="desktopAndMobileTitle"
             >
-              Desktop Notifications
+              Desktop and mobile notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="desktopTitle desktopEdit"
+              aria-labelledby="desktopAndMobileTitle desktopAndMobileEdit"
               class="color--link style--none section-min__edit"
-              id="desktopEdit"
+              id="desktopAndMobileEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -1486,7 +1486,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="desktopDesc"
+            id="desktopAndMobileDesc"
           >
             For all activity, without sound
           </div>
@@ -1572,15 +1572,15 @@ Object {
           >
             <h4
               class="section-min__title"
-              id="keysWithNotificationTitle"
+              id="keywordsAndMentionsTitle"
             >
               Keywords That Trigger Notifications
             </h4>
             <button
               aria-expanded="false"
-              aria-labelledby="keysWithNotificationTitle keysWithNotificationEdit"
+              aria-labelledby="keywordsAndMentionsTitle keywordsAndMentionsEdit"
               class="color--link style--none section-min__edit"
-              id="keysWithNotificationEdit"
+              id="keywordsAndMentionsEdit"
             >
               <i
                 class="icon-pencil-outline"
@@ -1591,7 +1591,7 @@ Object {
           </div>
           <div
             class="section-min__describe"
-            id="keysWithNotificationDesc"
+            id="keywordsAndMentionsDesc"
           >
             "@some-user"
           </div>

@@ -350,7 +350,7 @@ export default class EmailNotificationSetting extends React.PureComponent<Props,
                                     onChange={this.handleThreadsOnChange}
                                 />
                                 <FormattedMessage
-                                    id='user.settings.notifications.threads.allActivity'
+                                    id='user.settings.notifications.email.threads.allActivity'
                                     defaultMessage={'Notify me about threads I\'m following'}
                                 />
                             </label>

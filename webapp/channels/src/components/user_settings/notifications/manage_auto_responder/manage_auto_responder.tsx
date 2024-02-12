@@ -109,7 +109,6 @@ export default class ManageAutoResponder extends React.PureComponent<Props> {
                         defaultMessage='Automatic Direct Message Replies'
                     />
                 }
-                width='medium'
                 shiftEnter={true}
                 submit={this.props.submit}
                 saving={this.props.saving}

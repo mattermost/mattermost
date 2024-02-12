@@ -5,9 +5,10 @@ import {shallow} from 'enzyme';
 import React from 'react';
 import type {ComponentProps} from 'react';
 
-import {NotificationLevels} from 'utils/constants';
+import Constants, {NotificationLevels} from 'utils/constants';
 
-import DesktopNotificationSettings from './desktop_notification_settings';
+import type {PushNotificationOption} from './desktop_notification_settings';
+import DesktopNotificationSettings, {getCheckedStateForDesktopThreads, getPushNotificationOptionValue} from './desktop_notification_settings';
 
 jest.mock('utils/notification_sounds', () => {
     const original = jest.requireActual('utils/notification_sounds');
@@ -17,7 +18,7 @@ jest.mock('utils/notification_sounds', () => {
     };
 });
 
-describe('components/user_settings/notifications/DesktopNotificationSettings', () => {
+describe('DesktopNotificationSettings', () => {
     const baseProps: ComponentProps<typeof DesktopNotificationSettings> = {
         active: true,
         updateSection: jest.fn(),
@@ -28,8 +29,11 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
         setParentState: jest.fn(),
         areAllSectionsInactive: false,
         isCollapsedThreadsEnabled: false,
-        activity: NotificationLevels.MENTION,
-        threads: NotificationLevels.ALL,
+        desktopActivity: NotificationLevels.MENTION,
+        pushActivity: NotificationLevels.MENTION,
+        pushStatus: Constants.UserStatuses.OFFLINE,
+        desktopThreads: NotificationLevels.ALL,
+        pushThreads: NotificationLevels.ALL,
         sound: 'false',
         callsSound: 'false',
         selectedSound: 'Bing',
@@ -138,7 +142,7 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
 
         expect(wrapper.instance().buildMaximizedSetting()).toMatchSnapshot();
 
-        wrapper.setProps({activity: NotificationLevels.NONE});
+        wrapper.setProps({desktopActivity: NotificationLevels.NONE});
         expect(wrapper.instance().buildMaximizedSetting()).toMatchSnapshot();
     });
 
@@ -149,7 +153,56 @@ describe('components/user_settings/notifications/DesktopNotificationSettings', (
 
         expect(wrapper.instance().buildMinimizedSetting()).toMatchSnapshot();
 
-        wrapper.setProps({activity: NotificationLevels.NONE});
+        wrapper.setProps({desktopActivity: NotificationLevels.NONE});
         expect(wrapper.instance().buildMinimizedSetting()).toMatchSnapshot();
+    });
+});
+
+describe('getCheckedStateForDesktopThreads', () => {
+    test('should return false when desktopThreads is undefined', () => {
+        expect(getCheckedStateForDesktopThreads('all')).toBe(false);
+    });
+
+    test('should return false if either of them is not for all threads', () => {
+        expect(getCheckedStateForDesktopThreads('all', 'mention')).toBe(false);
+        expect(getCheckedStateForDesktopThreads('all', 'none')).toBe(false);
+        expect(getCheckedStateForDesktopThreads('all', 'default')).toBe(false);
+
+        expect(getCheckedStateForDesktopThreads('none', 'all')).toBe(false);
+        expect(getCheckedStateForDesktopThreads('mention', 'all')).toBe(false);
+        expect(getCheckedStateForDesktopThreads('default', 'all')).toBe(false);
+    });
+
+    test('should return true if both of them are for all threads', () => {
+        expect(getCheckedStateForDesktopThreads('all', 'all')).toBe(true);
+    });
+});
+
+describe('getPushNotificationOptionValue', () => {
+    test('When input is undefined it should return the last option', () => {
+        expect(getPushNotificationOptionValue(undefined)).not.toBeUndefined();
+
+        const result = getPushNotificationOptionValue(undefined) as PushNotificationOption;
+        expect(result.value).toBe(Constants.UserStatuses.OFFLINE);
+    });
+
+    test('when input is defined but is not a valid option it should return the last option', () => {
+        // We are purposely testing with an invalid value hence the 'any'
+        expect(getPushNotificationOptionValue('invalid' as any)).not.toBeUndefined();
+
+        const result = getPushNotificationOptionValue('invalid' as any) as PushNotificationOption;
+        expect(result.value).toBe(Constants.UserStatuses.OFFLINE);
+    });
+
+    test('When input is a valid option it should return the same option', () => {
+        expect(getPushNotificationOptionValue(Constants.UserStatuses.ONLINE)).not.toBeUndefined();
+
+        const result = getPushNotificationOptionValue(Constants.UserStatuses.ONLINE) as PushNotificationOption;
+        expect(result.value).toBe(Constants.UserStatuses.ONLINE);
+
+        expect(getPushNotificationOptionValue(Constants.UserStatuses.AWAY)).not.toBeUndefined();
+
+        const result2 = getPushNotificationOptionValue(Constants.UserStatuses.AWAY) as PushNotificationOption;
+        expect(result2.value).toBe(Constants.UserStatuses.AWAY);
     });
 });

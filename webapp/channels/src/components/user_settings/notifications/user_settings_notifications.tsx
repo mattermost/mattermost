@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+/* eslint-disable max-lines */
+
 import React from 'react';
 import type {ChangeEvent} from 'react';
 import type {WrappedComponentProps} from 'react-intl';
@@ -19,11 +21,11 @@ import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
 import RestrictedIndicator from 'components/widgets/menu/menu_items/restricted_indicator';
 
-import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus} from 'utils/constants';
+import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSettingsNotificationSections} from 'utils/constants';
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
-import DesktopNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
+import DesktopAndMobileNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 
@@ -48,7 +50,7 @@ type OwnProps = {
     collapseModal: () => void;
 }
 
-type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
+export type Props = PropsFromRedux & OwnProps & WrappedComponentProps;
 
 type State = {
     enableEmail: UserNotifyProps['email'];
@@ -303,11 +305,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState((prevState) => ({...prevState, ...data}));
     };
 
-    handleNotifyPushThread = (e: ChangeEvent<HTMLInputElement>): void => {
-        const pushThreads = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
-        this.setState({pushThreads});
-    };
-
     handleNotifyCommentsRadio = (notifyCommentsLevel: UserNotifyProps['comments'], e?: React.ChangeEvent): void => {
         this.setState({notifyCommentsLevel});
         a11yFocus(e?.currentTarget as HTMLElement);
@@ -315,11 +312,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
     handlePushRadio = (pushActivity: UserNotifyProps['push'], e?: React.ChangeEvent): void => {
         this.setState({pushActivity});
-        a11yFocus(e?.currentTarget as HTMLElement);
-    };
-
-    handlePushStatusRadio = (pushStatus: UserNotifyProps['push_status'], e?: React.ChangeEvent): void => {
-        this.setState({pushStatus});
         a11yFocus(e?.currentTarget as HTMLElement);
     };
 
@@ -487,123 +479,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     pushActivityRadio[1] = true;
                 }
 
-                const pushStatusRadio = [false, false, false];
-                if (this.state.pushStatus === Constants.UserStatuses.ONLINE) {
-                    pushStatusRadio[0] = true;
-                } else if (this.state.pushStatus === Constants.UserStatuses.AWAY) {
-                    pushStatusRadio[1] = true;
-                } else {
-                    pushStatusRadio[2] = true;
-                }
-
-                let pushThreadsNotificationSelection = null;
-                if (this.props.isCollapsedThreadsEnabled && this.state.pushActivity === NotificationLevels.MENTION) {
-                    pushThreadsNotificationSelection = (
-                        <React.Fragment key='userNotificationPushThreadsOptions'>
-                            <hr/>
-                            <fieldset>
-                                <legend className='form-legend'>
-                                    <FormattedMessage
-                                        id='user.settings.notifications.threads.push'
-                                        defaultMessage='Thread reply notifications'
-                                    />
-                                </legend>
-                                <div className='checkbox'>
-                                    <label>
-                                        <input
-                                            id='pushThreadsNotificationAllActivity'
-                                            type='checkbox'
-                                            name='pushThreadsNotificationLevel'
-                                            checked={this.state.pushThreads === NotificationLevels.ALL}
-                                            onChange={this.handleNotifyPushThread}
-                                        />
-                                        <FormattedMessage
-                                            id='user.settings.notifications.push_threads.allActivity'
-                                            defaultMessage={'Notify me about threads I\'m following'}
-                                        />
-                                    </label>
-                                    <br/>
-                                </div>
-                                <div className='mt-5'>
-                                    <FormattedMessage
-                                        id='user.settings.notifications.push_threads'
-                                        defaultMessage={'When enabled, any reply to a thread you\'re following will send a mobile push notification.'}
-                                    />
-                                </div>
-                            </fieldset>
-                        </React.Fragment>
-                    );
-                }
-                let pushStatusSettings;
-                if (this.state.pushActivity !== NotificationLevels.NONE) {
-                    pushStatusSettings = (
-                        <React.Fragment key='userNotificationPushStatusOptions'>
-                            <hr/>
-                            <fieldset>
-                                <legend className='form-legend'>
-                                    <FormattedMessage
-                                        id='user.settings.notifications.push_notification.status'
-                                        defaultMessage='Trigger push notifications when'
-                                    />
-                                </legend>
-                                <div className='radio'>
-                                    <label>
-                                        <input
-                                            id='pushNotificationOnline'
-                                            type='radio'
-                                            name='pushNotificationStatus'
-                                            checked={pushStatusRadio[0]}
-                                            onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.ONLINE)}
-                                        />
-                                        <FormattedMessage
-                                            id='user.settings.push_notification.online'
-                                            defaultMessage='Online, away or offline'
-                                        />
-                                    </label>
-                                </div>
-                                <div className='radio'>
-                                    <label>
-                                        <input
-                                            id='pushNotificationAway'
-                                            type='radio'
-                                            name='pushNotificationStatus'
-                                            checked={pushStatusRadio[1]}
-                                            onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.AWAY)}
-                                        />
-                                        <FormattedMessage
-                                            id='user.settings.push_notification.away'
-                                            defaultMessage='Away or offline'
-                                        />
-                                    </label>
-                                </div>
-                                <div className='radio'>
-                                    <label>
-                                        <input
-                                            id='pushNotificationOffline'
-                                            type='radio'
-                                            name='pushNotificationStatus'
-                                            checked={pushStatusRadio[2]}
-                                            onChange={this.handlePushStatusRadio.bind(this, Constants.UserStatuses.OFFLINE)}
-                                        />
-                                        <FormattedMessage
-                                            id='user.settings.push_notification.offline'
-                                            defaultMessage='Offline'
-                                        />
-                                    </label>
-                                </div>
-                                <div className='mt-5'>
-                                    <span>
-                                        <FormattedMessage
-                                            id='user.settings.push_notification.status_info'
-                                            defaultMessage='Notification alerts are only pushed to your mobile device when your availability matches the selection above.'
-                                        />
-                                    </span>
-                                </div>
-                            </fieldset>
-                        </React.Fragment>
-                    );
-                }
-
                 inputs.push(
                     <div>
                         <fieldset key='userNotificationLevelOption'>
@@ -623,8 +498,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                         onChange={this.handlePushRadio.bind(this, NotificationLevels.ALL)}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.push_notification.allActivity'
-                                        defaultMessage='For all activity'
+                                        id='user.settings.notifications.desktopAndMobile.mobilePush.allActivity'
+                                        defaultMessage='All new messages'
                                     />
                                 </label>
                             </div>
@@ -638,8 +513,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                         onChange={this.handlePushRadio.bind(this, NotificationLevels.MENTION)}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.push_notification.onlyMentions'
-                                        defaultMessage='For mentions and direct messages'
+                                        id='user.settings.notifications.desktopAndMobile.mobilePush.onlyMentions'
+                                        defaultMessage='Mentions, direct messages, and group messages'
                                     />
                                 </label>
                             </div>
@@ -653,21 +528,13 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                                         onChange={this.handlePushRadio.bind(this, NotificationLevels.NONE)}
                                     />
                                     <FormattedMessage
-                                        id='user.settings.notifications.never'
-                                        defaultMessage='Never'
+                                        id='user.settings.notifications.desktopAndMobile.mobilePush.never'
+                                        defaultMessage='Nothing'
                                     />
                                 </label>
                             </div>
-                            <div className='mt-5'>
-                                <FormattedMessage
-                                    id='user.settings.push_notification.info'
-                                    defaultMessage='Notification alerts are pushed to your mobile device when there is activity in Mattermost.'
-                                />
-                            </div>
                         </fieldset>
                     </div>,
-                    pushStatusSettings,
-                    pushThreadsNotificationSelection,
                 );
 
                 submit = this.handleSubmit;
@@ -774,7 +641,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     createKeywordsWithNotificationSection = () => {
         const serverError = this.state.serverError;
         const user = this.props.user;
-        const isSectionExpanded = this.props.activeSection === 'keysWithNotification';
+        const isSectionExpanded = this.props.activeSection === UserSettingsNotificationSections.KEYWORDS_MENTIONS;
 
         let expandedSection = null;
         if (isSectionExpanded) {
@@ -931,7 +798,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         return (
             <SettingItem
                 title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithNotification.title', defaultMessage: 'Keywords That Trigger Notifications'})}
-                section='keysWithNotification'
+                section={UserSettingsNotificationSections.KEYWORDS_MENTIONS}
                 active={isSectionExpanded}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 describe={collapsedDescription}
@@ -941,7 +808,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     };
 
     createKeywordsWithHighlightSection = () => {
-        const isSectionExpanded = this.props.activeSection === 'keysWithHighlight';
+        const isSectionExpanded = this.props.activeSection === UserSettingsNotificationSections.KEYWORDS_HIGHTLIGHT;
 
         let expandedSection = null;
         if (isSectionExpanded) {
@@ -1062,7 +929,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         return (
             <SettingItem
                 title={this.props.intl.formatMessage({id: 'user.settings.notifications.keywordsWithHighlight.title', defaultMessage: 'Keywords That Get Highlighted (Without Notifications)'})}
-                section='keysWithHighlight'
+                section={UserSettingsNotificationSections.KEYWORDS_HIGHTLIGHT}
                 active={isSectionExpanded}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 describe={collapsedDescription}
@@ -1222,7 +1089,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         return (
             <SettingItem
-                active={this.props.activeSection === 'auto-responder'}
+                active={this.props.activeSection === UserSettingsNotificationSections.AUTO_RESPONDER}
                 areAllSectionsInactive={this.props.activeSection === ''}
                 title={
                     <FormattedMessage
@@ -1231,7 +1098,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     />
                 }
                 describe={describe}
-                section={'auto-responder'}
+                section={UserSettingsNotificationSections.AUTO_RESPONDER}
                 updateSection={this.handleUpdateSection}
                 max={(
                     <div>
@@ -1300,8 +1167,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         }
                     />
                     <div className='divider-dark first'/>
-                    <DesktopNotificationSettings
-                        active={this.props.activeSection === 'desktop'}
+                    <DesktopAndMobileNotificationSettings
+                        active={this.props.activeSection === UserSettingsNotificationSections.DESKTOP_AND_MOBILE}
                         updateSection={this.handleUpdateSection}
                         onSubmit={this.handleSubmit}
                         onCancel={this.handleCancel}
@@ -1310,8 +1177,12 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         setParentState={this.setStateValue}
                         areAllSectionsInactive={this.props.activeSection === ''}
                         isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
-                        activity={this.state.desktopActivity}
-                        threads={this.state.desktopThreads}
+                        desktopActivity={this.state.desktopActivity}
+                        sendPushNotifications={this.props.sendPushNotifications}
+                        pushActivity={this.state.pushActivity}
+                        pushStatus={this.state.pushStatus}
+                        desktopThreads={this.state.desktopThreads}
+                        pushThreads={this.state.pushThreads}
                         sound={this.state.desktopSound}
                         callsSound={this.state.callsDesktopSound}
                         selectedSound={this.state.desktopNotificationSound || 'default'}
@@ -1320,7 +1191,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                     />
                     <div className='divider-light'/>
                     <EmailNotificationSetting
-                        active={this.props.activeSection === 'email'}
+                        active={this.props.activeSection === UserSettingsNotificationSections.EMAIL}
                         updateSection={this.handleUpdateSection}
                         onSubmit={this.handleSubmit}
                         onCancel={this.handleCancel}

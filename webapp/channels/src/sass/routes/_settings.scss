@@ -78,9 +78,18 @@
             list-style: none;
         }
 
-        label {
-            font-weight: 600;
+        .checkbox.single-checkbox {
+            min-height: unset;
+            padding: 0;
+        }
 
+        hr {
+            padding: 0;
+            margin-block-end: 24px;
+            margin-block-start: 24px;
+        }
+
+        label {
             &.text-left {
                 text-align: left;
             }
@@ -221,13 +230,24 @@
                 .section-max {
                     @include pie-clearfix;
 
-                    padding: 1em 0 1.3em;
+                    padding: 12px;
                     margin-bottom: 0;
                     background: rgba(var(--center-channel-color-rgb), 0.04);
 
                     .section-title {
-                        padding-left: 14px;
-                        margin: 0 0 5px;
+                        padding: 0;
+                        margin: 0;
+                        font-size: 14px;
+                        font-weight: 400;
+                        line-height: 20px;
+                    }
+
+                    .sectionContent {
+                        padding: 20px 0 0 0;
+                    }
+
+                    .singleSelectLabel {
+                        margin-bottom: 12px;
                         font-size: 14px;
                         font-weight: 600;
                         line-height: 20px;

@@ -77,7 +77,6 @@ exports[`MfaSection rendering when section is expanded and MFA is active and enf
     />
   }
   updateSection={[MockFunction]}
-  width="medium"
 />
 `;
 
@@ -118,7 +117,6 @@ exports[`MfaSection rendering when section is expanded and MFA is active but not
     />
   }
   updateSection={[MockFunction]}
-  width="medium"
 />
 `;
 
@@ -159,7 +157,6 @@ exports[`MfaSection rendering when section is expanded and MFA is not active 1`]
     />
   }
   updateSection={[MockFunction]}
-  width="medium"
 />
 `;
 
@@ -200,6 +197,5 @@ exports[`MfaSection rendering when section is expanded with a server error 1`] =
     />
   }
   updateSection={[MockFunction]}
-  width="medium"
 />
 `;
