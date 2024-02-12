@@ -2531,11 +2531,11 @@ func (s *RetryLayerChannelStore) SaveDirectChannel(ctx request.CTX, channel *mod
 
 }
 
-func (s *RetryLayerChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s *RetryLayerChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.ChannelStore.SaveMember(member)
+		result, err := s.ChannelStore.SaveMember(rctx, member)
 		if err == nil {
 			return result, nil
 		}
@@ -11657,11 +11657,11 @@ func (s *RetryLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 
 }
 
-func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+		result, err := s.TeamStore.SaveMember(rctx, member, maxUsersPerTeam)
 		if err == nil {
 			return result, nil
 		}

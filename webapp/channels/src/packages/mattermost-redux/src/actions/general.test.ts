@@ -64,58 +64,6 @@ describe('Actions.General', () => {
         expect(serverVersion).toEqual(version);
     });
 
-    it('getDataRetentionPolicy', async () => {
-        const responseData = {
-            message_deletion_enabled: true,
-            file_deletion_enabled: false,
-            message_retention_cutoff: Date.now(),
-            file_retention_cutoff: 0,
-        };
-
-        nock(Client4.getBaseRoute()).
-            get('/data_retention/policy').
-            query(true).
-            reply(200, responseData);
-
-        await store.dispatch(Actions.getDataRetentionPolicy());
-        await TestHelper.wait(100);
-        const {dataRetentionPolicy} = store.getState().entities.general;
-        expect(dataRetentionPolicy).toEqual(responseData);
-    });
-
-    it('getWarnMetricsStatus', async () => {
-        const responseData = {
-            metric1: true,
-            metric2: false,
-        };
-
-        nock(Client4.getBaseRoute()).
-            get('/warn_metrics/status').
-            query(true).
-            reply(200, responseData);
-
-        await store.dispatch(Actions.getWarnMetricsStatus());
-        const {warnMetricsStatus} = store.getState().entities.general;
-        expect(warnMetricsStatus.metric1).toEqual(true);
-        expect(warnMetricsStatus.metric2).toEqual(false);
-    });
-
-    it('getFirstAdminVisitMarketplaceStatus', async () => {
-        const responseData = {
-            name: 'FirstAdminVisitMarketplace',
-            value: 'false',
-        };
-
-        nock(Client4.getPluginsRoute()).
-            get('/marketplace/first_admin_visit').
-            query(true).
-            reply(200, responseData);
-
-        await store.dispatch(Actions.getFirstAdminVisitMarketplaceStatus());
-        const {firstAdminVisitMarketplaceStatus} = store.getState().entities.general;
-        expect(firstAdminVisitMarketplaceStatus).toEqual(false);
-    });
-
     it('setFirstAdminVisitMarketplaceStatus', async () => {
         nock(Client4.getPluginsRoute()).
             post('/marketplace/first_admin_visit').
