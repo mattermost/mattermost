@@ -14,6 +14,9 @@ import (
 
 	// Enterprise Imports
 	_ "github.com/mattermost/mattermost/server/v8/enterprise"
+
+	// Automaxprocs automatically set GOMAXPROCS to match Linux container CPU quota.
+	_ "go.uber.org/automaxprocs"
 )
 
 func main() {
