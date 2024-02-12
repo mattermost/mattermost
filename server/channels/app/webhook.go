@@ -117,7 +117,27 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 
 		go func() {
 			defer wg.Done()
-			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType)
+
+			var accessToken *model.OutgoingOAuthConnectionToken
+
+			// Retrieve an access token from a connection if one exists to use for the webhook request
+			if a.Config().ServiceSettings.EnableOutgoingOAuthConnections != nil && *a.Config().ServiceSettings.EnableOutgoingOAuthConnections && a.OutgoingOAuthConnections() != nil {
+				connection, err := a.OutgoingOAuthConnections().GetConnectionForAudience(c, url)
+				if err != nil {
+					c.Logger().Error("Failed to find an outgoing oauth connection for the webhook", mlog.Err(err))
+					return
+				}
+
+				if connection != nil {
+					accessToken, err = a.OutgoingOAuthConnections().RetrieveTokenForConnection(c, connection)
+					if err != nil {
+						c.Logger().Error("Failed to retrieve token for outgoing oauth connection", mlog.Err(err))
+						return
+					}
+				}
+			}
+
+			webhookResp, err := a.doOutgoingWebhookRequest(url, body, contentType, accessToken)
 			if err != nil {
 				if errors.Is(err, context.DeadlineExceeded) {
 					c.Logger().Error("Outgoing Webhook POST timed out. Consider increasing ServiceSettings.OutgoingIntegrationRequestsTimeout.", mlog.Err(err))
@@ -162,7 +182,7 @@ func (a *App) TriggerWebhook(c request.CTX, payload *model.OutgoingWebhookPayloa
 	wg.Wait()
 }
 
-func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string) (*model.OutgoingWebhookResponse, error) {
+func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType string, accessToken *model.OutgoingOAuthConnectionToken) (*model.OutgoingWebhookResponse, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Duration(*a.Config().ServiceSettings.OutgoingIntegrationRequestsTimeout)*time.Second)
 	defer cancel()
 
@@ -173,6 +193,10 @@ func (a *App) doOutgoingWebhookRequest(url string, body io.Reader, contentType s
 
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Accept", "application/json")
+
+	if accessToken != nil {
+		req.Header.Add("Authorization", accessToken.AsHeaderValue())
+	}
 
 	resp, err := a.Srv().outgoingWebhookClient.Do(req)
 	if err != nil {
