@@ -762,7 +762,13 @@ describe('makeCombineUserActivityPosts', () => {
                     ...state.entities,
                     posts: {
                         ...state.entities.posts,
-                        selectedPostId: 'post2',
+                        messagesHistory: {
+                            messages: [],
+                            index: {
+                                post: 4,
+                                comment: 3,
+                            },
+                        },
                     },
                 },
             };
