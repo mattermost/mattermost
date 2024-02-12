@@ -70,6 +70,16 @@
             }
         }
 
+        .textarea-wrapper-preview {
+            .custom-textarea.textbox-preview-area {
+                display: block;
+            }
+
+            .textbox-edit-area {
+                display: none;
+            }
+        }
+
         .edit-post-footer {
             position: relative;
             display: inline-block;
