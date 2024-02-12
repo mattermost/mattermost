@@ -185,7 +185,54 @@ func (pm *platformMetrics) initMetricsRouter() error {
 	pluginsMetricsRoute.HandleFunc("", pm.servePluginMetricsRequest)
 	pluginsMetricsRoute.HandleFunc("/{anything:.*}", pm.servePluginMetricsRequest)
 
+	// Plugins metrics route
+	debugRoute := pm.router.PathPrefix("/plugins/{plugin_id:[A-Za-z0-9\\_\\-\\.]+}/debug/pprof").Subrouter()
+	debugRoute.HandleFunc("", pm.servePluginDebugMetricsRequest)
+	debugRoute.HandleFunc("/{anything:.*}", pm.servePluginDebugMetricsRequest)
+
 	return nil
+}
+
+func (pm *platformMetrics) servePluginDebugMetricsRequest(w http.ResponseWriter, r *http.Request) {
+	pluginID := mux.Vars(r)["plugin_id"]
+
+	pluginsEnvironment := pm.getPluginsEnv()
+	if pluginsEnvironment == nil {
+		appErr := model.NewAppError("ServePluginMetricsRequest", "app.plugin.disabled.app_error",
+			nil, "Enable plugins to serve plugin metric requests", http.StatusNotImplemented)
+		mlog.Error(appErr.Error())
+		w.WriteHeader(appErr.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(appErr.ToJSON()))
+		return
+	}
+
+	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
+	if err != nil {
+		mlog.Debug("Access to route for non-existent plugin",
+			mlog.String("missing_plugin_id", pluginID),
+			mlog.String("url", r.URL.String()),
+			mlog.Err(err))
+		http.NotFound(w, r)
+		return
+	}
+
+	subpath, err := utils.GetSubpathFromConfig(pm.cfgFn())
+	if err != nil {
+		appErr := model.NewAppError("ServePluginMetricsRequest", "app.plugin.subpath_parse.app_error",
+			nil, "Failed to parse SiteURL subpath", http.StatusInternalServerError).Wrap(err)
+		mlog.Error(appErr.Error())
+		w.WriteHeader(appErr.StatusCode)
+		w.Header().Set("Content-Type", "application/json")
+		w.Write([]byte(appErr.ToJSON()))
+		return
+	}
+
+	r.URL.Path = strings.TrimPrefix(r.URL.Path, path.Join(subpath, "plugins", pluginID, "metrics"))
+
+	// Passing an empty plugin context for the time being. To be decided whether we
+	// should support forms of authentication in the future.
+	hooks.ServeHTTP(&plugin.Context{}, w, r)
 }
 
 func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *http.Request) {

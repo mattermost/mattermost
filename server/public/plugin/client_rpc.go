@@ -15,12 +15,14 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/http/pprof"
 	"net/rpc"
 	"os"
 	"reflect"
 	"sync"
 
 	"github.com/go-sql-driver/mysql"
+	"github.com/gorilla/mux"
 	"github.com/hashicorp/go-plugin"
 	"github.com/lib/pq"
 
@@ -447,12 +449,61 @@ func (s *hooksRPCServer) ServeHTTP(args *Z_ServeHTTPArgs, returns *struct{}) err
 	}
 	defer r.Body.Close()
 
+	const useMux = false
+	router := http.NewServeMux()
+	//mux.HandleFunc()
+
+	router.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
+	router.HandleFunc("/debug/pprof/", pprof.Index)
+	router.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	router.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	router.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	router.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	router.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	router.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	router.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+	router.Handle("/debug/pprof/block", pprof.Handler("block"))
+
+	// ----------------------
+
+	router2 := mux.NewRouter()
+	//router.HandleFunc("/", rootHandler)
+	router2.StrictSlash(false)
+
+	router2.Handle("/debug", http.RedirectHandler("/", http.StatusMovedPermanently))
+	router2.HandleFunc("/debug/pprof/", pprof.Index)
+	router2.HandleFunc("/debug/pprof/cmdline", pprof.Cmdline)
+	router2.HandleFunc("/debug/pprof/profile", pprof.Profile)
+	router2.HandleFunc("/debug/pprof/symbol", pprof.Symbol)
+	router2.HandleFunc("/debug/pprof/trace", pprof.Trace)
+
+	// Manually add support for paths linked to by index page at /debug/pprof/
+	router2.Handle("/debug/pprof/goroutine", pprof.Handler("goroutine"))
+	router2.Handle("/debug/pprof/heap", pprof.Handler("heap"))
+	router2.Handle("/debug/pprof/threadcreate", pprof.Handler("threadcreate"))
+	router2.Handle("/debug/pprof/block", pprof.Handler("block"))
+
+	var defaultHF http.HandlerFunc
+
 	if hook, ok := s.impl.(interface {
 		ServeHTTP(c *Context, w http.ResponseWriter, r *http.Request)
 	}); ok {
-		hook.ServeHTTP(args.Context, w, r)
+		log.Println("Calling plugin ServeHTTP hook")
+		defaultHF = func(w http.ResponseWriter, r *http.Request) {
+			hook.ServeHTTP(args.Context, w, r)
+		}
 	} else {
-		http.NotFound(w, r)
+		defaultHF = http.NotFound
+	}
+	router.Handle("/", defaultHF)
+	router2.NotFoundHandler = defaultHF
+
+	if useMux {
+		router.ServeHTTP(w, r)
+	} else {
+		router2.ServeHTTP(w, r)
 	}
 
 	return nil
