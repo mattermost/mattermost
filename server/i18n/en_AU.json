@@ -10119,10 +10119,6 @@
     "translation": "Cannot invite remote because channel {{.ChannelID}} is not shared."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "This feature is restricted by a feature flag."
-  },
-  {
     "id": "api.payload.parse.error",
     "translation": "An error occurred while parsing the payload."
   },

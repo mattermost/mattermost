@@ -10180,10 +10180,6 @@
     "translation": "Nieprawidłowe parametry wejściowe."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "Ta funkcja jest ograniczona przez flagę funkcji."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Nie można uzyskać tylu ról według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} ról."
   },

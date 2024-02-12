@@ -10180,10 +10180,6 @@
     "translation": "Недопустимые входные параметры."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "Эта функция ограничена флагом функции."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Невозможно получить такое количество ролей по имени. Одновременно можно запросить только {{.MaxNames}} ролей."
   },

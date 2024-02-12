@@ -10178,10 +10178,6 @@
     "translation": "输入参数无效。"
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "此功能被功能标记限制。"
-  },
-  {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
     "translation": "删除对外 oauth 连接时出现错误。"
   },

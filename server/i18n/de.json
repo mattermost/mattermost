@@ -10174,10 +10174,6 @@
     "translation": "Ungültige Eingabeparameter."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "Diese Funktion wird durch ein Feature Flag eingeschränkt."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Es ist nicht möglich, so viele Rollen nach Namen zu erhalten. Es können nur {{.MaxNames}} Rollen auf einmal angefordert werden."
   },

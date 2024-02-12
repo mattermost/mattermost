@@ -10190,10 +10190,6 @@
     "translation": "Ongeldige invoerparameters."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "Deze functie wordt beperkt door een feature flag."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Kan niet zoveel rollen op naam krijgen. Alleen {{.MaxNames}} rollen kunnen in één keer worden opgevraagd."
   },
