@@ -10180,10 +10180,6 @@
     "translation": "Nieprawidłowe parametry wejściowe."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "Ta funkcja jest ograniczona przez flagę funkcji."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Nie można uzyskać tylu ról według nazwy. Jednocześnie można zażądać tylko {{.MaxNames}} ról."
   },
@@ -10362,5 +10358,17 @@
   {
     "id": "app.report.send_report_to_user.missing_user_id",
     "translation": "Brak identyfikatora użytkownika do wysłania raportu"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka zespołu: Użytkownik nie może być jednocześnie gościem i administratorem."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Nieprawidłowa aktualizacja członka zespołu: Gość nie może zostać członkiem zespołu ani administratorem zespołu, proszę zamienić go najpierw na użytkownika."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Nie można dodać użytkownika jako członka kanału."
   }
 ]
