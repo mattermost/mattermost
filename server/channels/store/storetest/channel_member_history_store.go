@@ -212,7 +212,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 	// available in the ChannelMemberHistory table. Instead, we'll fall back to the ChannelMembers table for a rough approximation
 	joinTime := int64(1000)
 	leaveTime := joinTime + 5000
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		ChannelId:   channel.Id,
 		UserId:      user.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),

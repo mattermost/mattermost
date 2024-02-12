@@ -13,6 +13,27 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
+// PingNow emits a ping immediately without waiting for next ping loop.
+func (rcs *Service) PingNow(rc *model.RemoteCluster) {
+	online := rc.IsOnline()
+
+	if err := rcs.pingRemote(rc); err != nil {
+		rcs.server.Log().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
+			mlog.String("remote", rc.DisplayName),
+			mlog.String("remoteId", rc.RemoteId),
+			mlog.String("pluginId", rc.PluginID),
+			mlog.Err(err),
+		)
+	}
+
+	if online != rc.IsOnline() {
+		if metrics := rcs.server.GetMetrics(); metrics != nil {
+			metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
+		}
+		rcs.fireConnectionStateChgEvent(rc)
+	}
+}
+
 // pingLoop periodically sends a ping to all remote clusters.
 func (rcs *Service) pingLoop(done <-chan struct{}) {
 	pingChan := make(chan *model.RemoteCluster, MaxConcurrentSends*2)
@@ -45,7 +66,8 @@ func (rcs *Service) pingGenerator(pingChan chan *model.RemoteCluster, done <-cha
 		}
 
 		for _, rc := range remotes {
-			if rc.SiteURL != "" { // filter out unconfirmed invites
+			// filter out unconfirmed invites so we don't ping them without permission
+			if rc.IsConfirmed() {
 				pingChan <- rc
 			}
 		}
@@ -72,24 +94,7 @@ func (rcs *Service) pingEmitter(pingChan <-chan *model.RemoteCluster, done <-cha
 			if rc == nil {
 				return
 			}
-
-			online := rc.IsOnline()
-
-			if err := rcs.pingRemote(rc); err != nil {
-				rcs.server.Log().Log(mlog.LvlRemoteClusterServiceWarn, "Remote cluster ping failed",
-					mlog.String("remote", rc.DisplayName),
-					mlog.String("remoteId", rc.RemoteId),
-					mlog.String("pluginId", rc.PluginID),
-					mlog.Err(err),
-				)
-			}
-
-			if online != rc.IsOnline() {
-				if metrics := rcs.server.GetMetrics(); metrics != nil {
-					metrics.IncrementRemoteClusterConnStateChangeCounter(rc.RemoteId, rc.IsOnline())
-				}
-				rcs.fireConnectionStateChgEvent(rc)
-			}
+			rcs.PingNow(rc)
 		case <-done:
 			return
 		}
@@ -103,7 +108,7 @@ var ErrPluginPingFail = errors.New("plugin ping failed")
 func (rcs *Service) pingRemote(rc *model.RemoteCluster) error {
 	ping := model.RemoteClusterPing{}
 
-	if rc.PluginID != "" {
+	if rc.IsPlugin() {
 		ping.SentAt = model.GetMillis()
 		if ok := rcs.app.OnSharedChannelsPing(rc); !ok {
 			return ErrPluginPingFail

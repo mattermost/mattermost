@@ -9,28 +9,32 @@ import (
 	"net/http"
 
 	"github.com/mattermost/mattermost/server/public/model"
+	"github.com/mattermost/mattermost/server/public/plugin"
+	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-var (
-	errNotFound = errors.New("not found")
-)
+func (a *App) getSharedChannelsService() (SharedChannelServiceIFace, error) {
+	scService := a.Srv().GetSharedChannelSyncService()
+	if scService == nil || !scService.Active() {
+		return nil, model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
+			nil, "", http.StatusBadRequest)
+	}
+	return scService, nil
+}
 
 func (a *App) checkChannelNotShared(c request.CTX, channelId string) error {
 	// check that channel exists.
-	if _, err := a.GetChannel(c, channelId); err != nil {
-		return fmt.Errorf("cannot share this channel: %w", err)
+	if _, appErr := a.GetChannel(c, channelId); appErr != nil {
+		return fmt.Errorf("cannot find channel: %w", appErr)
 	}
 
 	// Check channel is not already shared.
 	if _, err := a.GetSharedChannel(channelId); err == nil {
-		var errNotFound *store.ErrNotFound
-		if errors.As(err, &errNotFound) {
-			return fmt.Errorf("channel is already shared: %w", err)
-		}
-		return fmt.Errorf("cannot find channel: %w", err)
+		return model.ErrChannelAlreadyShared
 	}
+
 	return nil
 }
 
@@ -46,42 +50,21 @@ func (a *App) checkChannelIsShared(channelId string) error {
 }
 
 func (a *App) CheckCanInviteToSharedChannel(channelId string) error {
-	sc, err := a.GetSharedChannel(channelId)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
-		var errNotFound *store.ErrNotFound
-		if errors.As(err, &errNotFound) {
-			return fmt.Errorf("channel is not shared: %w", err)
-		}
-		return fmt.Errorf("cannot find channel: %w", err)
+		return err
 	}
-
-	if !sc.Home {
-		return errors.New("channel is homed on a remote cluster")
-	}
-	return nil
-}
-
-func (a *App) notifyClientsForSharedChannelUpdate(teamID, channelID string) {
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, teamID, "", "", nil, "")
-	messageWs.Add("channel_id", channelID)
-	a.Publish(messageWs)
+	return scService.CheckCanInviteToSharedChannel(channelId)
 }
 
 // SharedChannels
 
 func (a *App) ShareChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error) {
-	if err := a.checkChannelNotShared(c, sc.ChannelId); err != nil {
-		return nil, err
-	}
-
-	// stores a SharedChannel and set the share flag on the channel.
-	scNew, err := a.Srv().Store().SharedChannel().Save(sc)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
 		return nil, err
 	}
-
-	a.notifyClientsForSharedChannelUpdate(scNew.TeamId, scNew.ChannelId)
-	return scNew, nil
+	return scService.ShareChannel(sc)
 }
 
 func (a *App) GetSharedChannel(channelID string) (*model.SharedChannel, error) {
@@ -105,103 +88,37 @@ func (a *App) GetSharedChannelsCount(opts model.SharedChannelFilterOpts) (int64,
 }
 
 func (a *App) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	scUpdated, err := a.Srv().Store().SharedChannel().Update(sc)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
 		return nil, err
 	}
-	a.notifyClientsForSharedChannelUpdate(scUpdated.TeamId, scUpdated.ChannelId)
-	return scUpdated, nil
+	return scService.UpdateSharedChannel(sc)
 }
 
 func (a *App) UnshareChannel(channelID string) (bool, error) {
-	// fetch the SharedChannel first
-	sc, err := a.GetSharedChannel(channelID)
+	scService, err := a.getSharedChannelsService()
 	if err != nil {
 		return false, err
 	}
-
-	// deletes the ShareChannel, unsets the share flag on the channel, deletes all remotes for the channel
-	deleted, err := a.Srv().Store().SharedChannel().Delete(channelID)
-	if err != nil {
-		return false, err
-	}
-	a.notifyClientsForSharedChannelUpdate(sc.TeamId, sc.ChannelId)
-	return deleted, nil
+	return scService.UnshareChannel(channelID)
 }
 
 // SharedChannelRemotes
 
-func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string) error {
-	syncService := a.Srv().GetSharedChannelSyncService()
-	if syncService == nil || !syncService.Active() {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.service_disabled",
-			nil, "", http.StatusBadRequest)
-	}
-
-	hasRemote, err := a.HasRemote(channelID, remoteID)
+func (a *App) InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error {
+	ssService, err := a.getSharedChannelsService()
 	if err != nil {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.fetch_remote.error",
-			map[string]any{"Error": err.Error()}, "", http.StatusInternalServerError)
+		return err
 	}
-	if hasRemote {
-		// already invited
-		return nil
-	}
-
-	// Check if channel is shared or not.
-	hasChan, err := a.HasSharedChannel(channelID)
-	if err != nil {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.check_channel_exist.error",
-			map[string]any{"ChannelID": channelID, "Error": err.Error()}, "", http.StatusInternalServerError)
-	}
-	if !hasChan {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_not_shared.error",
-			map[string]any{"ChannelID": channelID}, "", http.StatusBadRequest)
-	}
-
-	// don't allow invitation to shared channel originating from remote.
-	// (also blocks cyclic invitations)
-	if err := a.CheckCanInviteToSharedChannel(channelID); err != nil {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite_not_home.error", nil, "", http.StatusInternalServerError)
-	}
-
-	rc, appErr := a.GetRemoteCluster(remoteID)
-	if appErr != nil {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.remote_id_invalid.error",
-			map[string]any{"Error": appErr.Error()}, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-
-	channel, errApp := a.GetChannel(request.EmptyContext(a.Log()), channelID)
-	if errApp != nil {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
-			map[string]any{"Name": rc.DisplayName, "Error": errApp.Error()}, "", http.StatusInternalServerError).Wrap(appErr)
-	}
-	// send channel invite to remote cluster. Will notify clients of channel change.
-	if err := syncService.SendChannelInvite(channel, userID, rc); err != nil {
-		return model.NewAppError("InviteRemoteToChannel", "api.command_share.channel_invite.error",
-			map[string]any{"Name": rc.DisplayName, "Error": err.Error()}, "", http.StatusInternalServerError).Wrap(err)
-	}
-	return nil
+	return ssService.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
 }
 
 func (a *App) UninviteRemoteFromChannel(channelID, remoteID string) error {
-	scr, err := a.GetSharedChannelRemoteByIds(channelID, remoteID)
-	if err != nil || scr.ChannelId != channelID {
-		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.channel_remote_id_not_exists",
-			map[string]any{"RemoteId": remoteID}, "", http.StatusInternalServerError)
+	ssService, err := a.getSharedChannelsService()
+	if err != nil {
+		return err
 	}
-
-	deleted, err := a.Srv().Store().SharedChannel().DeleteRemote(scr.Id)
-	if err != nil || !deleted {
-		code := http.StatusInternalServerError
-		if err == nil {
-			err = errNotFound
-			code = http.StatusBadRequest
-		}
-		return model.NewAppError("UninviteRemoteFromChannel", "api.command_share.could_not_uninvite.error",
-			map[string]any{"RemoteId": remoteID, "Error": err.Error()}, "", code)
-	}
-	return nil
+	return ssService.UninviteRemoteFromChannel(channelID, remoteID)
 }
 
 func (a *App) SaveSharedChannelRemote(remote *model.SharedChannelRemote) (*model.SharedChannelRemote, error) {
@@ -302,17 +219,19 @@ func (a *App) SyncSharedChannel(channelID string) error {
 
 // Hooks
 
-var ErrPluginUnavailable = errors.New("plugin unavialable")
+var ErrPluginUnavailable = errors.New("plugin unavailable")
+
+func getPluginHooks(env *plugin.Environment, pluginID string) (plugin.Hooks, error) {
+	if env == nil {
+		return nil, ErrPluginUnavailable
+	}
+	return env.HooksForPlugin(pluginID)
+}
 
 // OnSharedChannelsSyncMsg is called by the Shared Channels service for a registered plugin when there is new content
 // that needs to be synchronized.
 func (a *App) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error) {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return model.SyncResponse{}, fmt.Errorf("cannot deliver sync msg to plugin %s: %w", rc.PluginID, ErrPluginUnavailable)
-	}
-
-	pluginHooks, err := pluginsEnvironment.HooksForPlugin(rc.PluginID)
+	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
 	if err != nil {
 		return model.SyncResponse{}, fmt.Errorf("cannot deliver sync msg to plugin %s: %w", rc.PluginID, err)
 	}
@@ -320,18 +239,36 @@ func (a *App) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluste
 	return pluginHooks.OnSharedChannelsSyncMsg(msg, rc)
 }
 
-// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin wto check that the plugin
+// OnSharedChannelsPing is called by the Shared Channels service for a registered plugin to check that the plugin
 // is still responding and has a connection to any upstream services it needs (e.g. MS Graph API).
 func (a *App) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
-	pluginsEnvironment := a.GetPluginsEnvironment()
-	if pluginsEnvironment == nil {
-		return false
-	}
-
-	pluginHooks, err := pluginsEnvironment.HooksForPlugin(rc.PluginID)
+	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
 	if err != nil {
+		a.Log().Error("Ping for shared channels cannot get plugin hooks", mlog.String("plugin_id", rc.PluginID), mlog.Err(err))
 		return false
 	}
 
 	return pluginHooks.OnSharedChannelsPing(rc)
+}
+
+// OnSharedChannelsAttachmentSyncMsg is called by the Shared Channels service for a registered plugin when a file attachment
+// needs to be synchronized.
+func (a *App) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
+	if err != nil {
+		return fmt.Errorf("cannot deliver file attachment sync msg to plugin %s: %w", rc.PluginID, err)
+	}
+
+	return pluginHooks.OnSharedChannelsAttachmentSyncMsg(fi, post, rc)
+}
+
+// OnSharedChannelsProfileImageSyncMsg is called by the Shared Channels service for a registered plugin when a user's
+// profile image needs to be synchronized.
+func (a *App) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
+	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
+	if err != nil {
+		return fmt.Errorf("cannot deliver user profile image sync msg to plugin %s: %w", rc.PluginID, err)
+	}
+
+	return pluginHooks.OnSharedChannelsProfileImageSyncMsg(user, rc)
 }

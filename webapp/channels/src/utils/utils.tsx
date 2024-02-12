@@ -1397,7 +1397,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
                                 }
                             }
                             if (!member) {
-                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel, false));
+                                const {data} = await store.dispatch(joinPrivateChannelPrompt(team, channel.display_name, false));
                                 if (data.join) {
                                     let error = false;
                                     if (!getTeamMemberships(state)[team.id]) {
@@ -1419,7 +1419,7 @@ export async function handleFormattedTextClick(e: React.MouseEvent, currentRelat
             e.stopPropagation();
 
             if (match && match.type === 'permalink' && isTeamSameWithCurrentTeam(state, match.teamName) && isReply && crtEnabled) {
-                focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true})(store.dispatch, store.getState);
+                store.dispatch(focusPost(match.postId ?? '', linkAttribute.value, user.id, {skipRedirectReplyPermalink: true}));
             } else {
                 getHistory().push(linkAttribute.value);
             }

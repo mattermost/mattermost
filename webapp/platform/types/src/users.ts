@@ -143,16 +143,3 @@ export type GetFilteredUsersStatsOpts = {
 export type AuthChangeResponse = {
     follow_link: string;
 };
-
-export type UserReport = {
-    id: string;
-    username: string;
-    email: string;
-    create_at: number;
-    display_name: string;
-    last_login_at: number;
-	last_status_at?: number;
-	last_post_date?: number;
-	days_active?: number;
-	total_posts?: number;
-}

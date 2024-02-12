@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -268,6 +269,15 @@ func (api *PluginAPI) GetUsersByUsernames(usernames []string) ([]*model.User, *m
 func (api *PluginAPI) GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError) {
 	options := &model.UserGetOptions{InTeamId: teamID, Page: page, PerPage: perPage}
 	return api.app.GetUsersInTeam(options)
+}
+
+func (api *PluginAPI) GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError) {
+	pref, err := api.app.GetPreferenceByCategoryAndNameForUser(api.ctx, userID, category, name)
+	if err != nil {
+		return model.Preference{}, err
+	}
+
+	return *pref, nil
 }
 
 func (api *PluginAPI) GetPreferencesForUser(userID string) ([]model.Preference, *model.AppError) {
@@ -609,6 +619,11 @@ func (api *PluginAPI) UpdateChannelMemberRoles(channelID, userID, newRoles strin
 
 func (api *PluginAPI) UpdateChannelMemberNotifications(channelID, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError) {
 	return api.app.UpdateChannelMemberNotifyProps(api.ctx, notifications, channelID, userID)
+}
+
+func (api *PluginAPI) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifications map[string]string) *model.AppError {
+	_, err := api.app.PatchChannelMembersNotifyProps(api.ctx, members, notifications)
+	return err
 }
 
 func (api *PluginAPI) DeleteChannelMember(channelID, userID string) *model.AppError {
@@ -1289,7 +1304,12 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 }
 
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
-	return api.app.ShareChannel(api.ctx, sc)
+	scShared, err := api.app.ShareChannel(api.ctx, sc)
+	if errors.Is(err, model.ErrChannelAlreadyShared) {
+		// sharing an already shared channel is not an error; treat as idempotent and return the existing shared channel
+		return api.app.GetSharedChannel(sc.ChannelId)
+	}
+	return scShared, err
 }
 
 func (api *PluginAPI) UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
@@ -1308,8 +1328,8 @@ func (api *PluginAPI) SyncSharedChannel(channelID string) error {
 	return api.app.SyncSharedChannel(channelID)
 }
 
-func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string) error {
-	return api.app.InviteRemoteToChannel(channelID, remoteID, userID)
+func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string, shareIfNotShared bool) error {
+	return api.app.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
 }
 
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {

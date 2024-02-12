@@ -166,6 +166,14 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError)
 
+	// GetPreferenceForUser gets a single preference for a user. An error is returned if the user has no preference
+	// set with the given category and name, an error is returned.
+	//
+	// @tag User
+	// @tag Preference
+	// Minimum server version: 9.5
+	GetPreferenceForUser(userID, category, name string) (model.Preference, *model.AppError)
+
 	// GetPreferencesForUser gets a user's preferences.
 	//
 	// @tag User
@@ -456,7 +464,8 @@ type API interface {
 	// Minimum server version: 5.2
 	GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError)
 
-	// GetChannelsForTeamForUser gets a list of channels for given user ID in given team ID.
+	// GetChannelsForTeamForUser  gets a list of channels for given user ID in given team ID, including DMs.
+	// If an empty string is passed as the team ID, the user's channels on all teams and their DMs will be returned.
 	//
 	// @tag Channel
 	// @tag Team
@@ -592,6 +601,15 @@ type API interface {
 	// @tag User
 	// Minimum server version: 5.2
 	UpdateChannelMemberNotifications(channelId, userID string, notifications map[string]string) (*model.ChannelMember, *model.AppError)
+
+	// PatchChannelMembersNotifications updates the notification properties for multiple channel members.
+	// Other changes made to the channel memberships will be ignored. A maximum of 200 members can be
+	// updated at once.
+	//
+	// @tag Channel
+	// @tag User
+	// Minimum server version: 9.5
+	PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError
 
 	// GetGroup gets a group by ID.
 	//
@@ -1263,10 +1281,11 @@ type API interface {
 
 	// InviteRemoteToChannel invites a remote, or this plugin, as a target for synchronizing. Once invited, the
 	// remote will start to receive synchronization messages for any changed content in the specified channel.
+	// If `shareIfNotShared` is true, the channel's shared flag will be set, if not already.
 	//
 	// @tag SharedChannels
 	// Minimum server version: 9.5
-	InviteRemoteToChannel(channelID string, remoteID string, userID string) error
+	InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error
 
 	// UninviteRemoteFromChannel uninvites a remote, or this plugin, such that it will stop receiving sychronization
 	// messages for the channel.

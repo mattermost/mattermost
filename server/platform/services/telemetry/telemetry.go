@@ -410,6 +410,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_insecure_outgoing_connections":                    *cfg.ServiceSettings.EnableInsecureOutgoingConnections,
 		"enable_incoming_webhooks":                                cfg.ServiceSettings.EnableIncomingWebhooks,
 		"enable_outgoing_webhooks":                                cfg.ServiceSettings.EnableOutgoingWebhooks,
+		"enable_outgoing_oauth_connections":                       cfg.ServiceSettings.EnableOutgoingOAuthConnections,
 		"enable_commands":                                         *cfg.ServiceSettings.EnableCommands,
 		"outgoing_integrations_requests_timeout":                  cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
@@ -495,6 +496,7 @@ func (ts *TelemetryService) trackConfig() {
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
+		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{
@@ -828,7 +830,9 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_message_deletion":       *cfg.DataRetentionSettings.EnableMessageDeletion,
 		"enable_file_deletion":          *cfg.DataRetentionSettings.EnableFileDeletion,
 		"message_retention_days":        *cfg.DataRetentionSettings.MessageRetentionDays,
+		"message_retention_hours":       *cfg.DataRetentionSettings.MessageRetentionHours,
 		"file_retention_days":           *cfg.DataRetentionSettings.FileRetentionDays,
+		"file_retention_hours":          *cfg.DataRetentionSettings.FileRetentionHours,
 		"deletion_job_start_time":       *cfg.DataRetentionSettings.DeletionJobStartTime,
 		"batch_size":                    *cfg.DataRetentionSettings.BatchSize,
 		"time_between_batches":          *cfg.DataRetentionSettings.TimeBetweenBatchesMilliseconds,

@@ -7,6 +7,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrChannelAlreadyShared = errors.New("channel is already shared")
+	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
 )
 
 // SharedChannel represents a channel that can be synchronized with a remote cluster.
@@ -305,6 +312,7 @@ type RegisterPluginOpts struct {
 	PluginID     string // id of this plugin registering
 	CreatorID    string // id of the user/bot registering
 	AutoShareDMs bool   // when true, all DMs are automatically shared to this remote
+	AutoInvited  bool   // when true, the plugin is automatically invited and sync'd with all shared channels.
 }
 
 // GetOptionFlags returns a Bitmask of option flags as specified by the boolean options.
@@ -312,6 +320,9 @@ func (po RegisterPluginOpts) GetOptionFlags() Bitmask {
 	var flags Bitmask
 	if po.AutoShareDMs {
 		flags |= BitflagOptionAutoShareDMs
+	}
+	if po.AutoInvited {
+		flags |= BitflagOptionAutoInvited
 	}
 	return flags
 }

@@ -138,7 +138,7 @@ type TeamStore interface {
 	PermanentDelete(teamID string) error
 	AnalyticsTeamCount(opts *model.TeamSearch) (int64, error)
 	SaveMultipleMembers(members []*model.TeamMember, maxUsersPerTeam int) ([]*model.TeamMember, error)
-	SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
+	SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error)
 	UpdateMember(rctx request.CTX, member *model.TeamMember) (*model.TeamMember, error)
 	UpdateMultipleMembers(members []*model.TeamMember) ([]*model.TeamMember, error)
 	GetMember(c request.CTX, teamID string, userID string) (*model.TeamMember, error)
@@ -219,17 +219,16 @@ type ChannelStore interface {
 	GetChannelsWithTeamDataByIds(channelIds []string, includeDeleted bool) ([]*model.ChannelWithTeamData, error)
 	GetForPost(postID string) (*model.Channel, error)
 	SaveMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
-	SaveMember(member *model.ChannelMember) (*model.ChannelMember, error)
+	SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMember(ctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error)
 	UpdateMultipleMembers(members []*model.ChannelMember) ([]*model.ChannelMember, error)
 	// UpdateMemberNotifyProps patches the notifyProps field with the given props map.
 	// It replaces existing fields and creates new ones which don't exist.
 	UpdateMemberNotifyProps(channelID, userID string, props map[string]string) (*model.ChannelMember, error)
+	PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error)
 	GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error)
 	GetMember(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
-	// GetMemberOnly is a lite version of GetMember where it does not join
-	// with the different schemes tables.
-	GetMemberOnly(ctx context.Context, channelID string, userID string) (*model.ChannelMember, error)
+	GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error)
 	GetChannelMembersTimezones(channelID string) ([]model.StringMap, error)
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
@@ -237,7 +236,7 @@ type ChannelStore interface {
 	IsUserInChannelUseCache(userID string, channelID string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
 	InvalidateCacheForChannelMembersNotifyProps(channelID string)
-	GetMemberForPost(postID string, userID string) (*model.ChannelMember, error)
+	GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error)
 	InvalidateMemberCount(channelID string)
 	GetMemberCountFromCache(channelID string) int64
 	GetFileCount(channelID string) (int64, error)
@@ -295,7 +294,7 @@ type ChannelStore interface {
 	DeleteSidebarCategory(categoryID string) error
 	DeleteAllSidebarChannelForChannel(channelID string) error
 	GetAllChannelsForExportAfter(limit int, afterID string) ([]*model.ChannelForExport, error)
-	GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error)
+	GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error)
 	GetChannelMembersForExport(userID string, teamID string, includeArchivedChannel bool) ([]*model.ChannelMemberForExport, error)
 	RemoveAllDeactivatedMembers(ctx request.CTX, channelID string) error
 	GetChannelsBatchForIndexing(startTime int64, startChannelID string, limit int) ([]*model.Channel, error)
@@ -484,6 +483,7 @@ type UserStore interface {
 	InsertUsers(users []*model.User) error
 	RefreshPostStatsForUsers() error
 	GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error)
+	GetUserCountForReport(filter *model.UserReportOptions) (int64, error)
 }
 
 type BotStore interface {
@@ -1005,9 +1005,11 @@ type DraftStore interface {
 	Upsert(d *model.Draft) (*model.Draft, error)
 	Get(userID, channelID, rootID string, includeDeleted bool) (*model.Draft, error)
 	Delete(userID, channelID, rootID string) error
+	DeleteDraftsAssociatedWithPost(channelID, rootID string) error
 	GetDraftsForUser(userID, teamID string) ([]*model.Draft, error)
 	GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt int64, userId string) (int64, string, error)
 	DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error
+	DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error
 }
 
 type PostAcknowledgementStore interface {

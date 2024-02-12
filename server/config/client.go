@@ -29,6 +29,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["GoogleDeveloperKey"] = *c.ServiceSettings.GoogleDeveloperKey
 	props["EnableIncomingWebhooks"] = strconv.FormatBool(*c.ServiceSettings.EnableIncomingWebhooks)
 	props["EnableOutgoingWebhooks"] = strconv.FormatBool(*c.ServiceSettings.EnableOutgoingWebhooks)
+	props["EnableOutgoingOAuthConnections"] = strconv.FormatBool(*c.ServiceSettings.EnableOutgoingOAuthConnections)
 	props["EnableCommands"] = strconv.FormatBool(*c.ServiceSettings.EnableCommands)
 	props["EnablePostUsernameOverride"] = strconv.FormatBool(*c.ServiceSettings.EnablePostUsernameOverride)
 	props["EnablePostIconOverride"] = strconv.FormatBool(*c.ServiceSettings.EnablePostIconOverride)
@@ -122,9 +123,9 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["AllowCustomThemes"] = "true"
 	props["AllowedThemes"] = ""
 	props["DataRetentionEnableMessageDeletion"] = "false"
-	props["DataRetentionMessageRetentionDays"] = "0"
+	props["DataRetentionMessageRetentionHours"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
-	props["DataRetentionFileRetentionDays"] = "0"
+	props["DataRetentionFileRetentionHours"] = "0"
 
 	props["CustomUrlSchemes"] = strings.Join(c.DisplaySettings.CustomURLSchemes, ",")
 	props["MaxMarkdownNodes"] = strconv.FormatInt(int64(*c.DisplaySettings.MaxMarkdownNodes), 10)
@@ -204,9 +205,9 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 
 		if *license.Features.DataRetention {
 			props["DataRetentionEnableMessageDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableMessageDeletion)
-			props["DataRetentionMessageRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.MessageRetentionDays), 10)
+			props["DataRetentionMessageRetentionHours"] = strconv.FormatInt(int64(c.DataRetentionSettings.GetMessageRetentionHours()), 10)
 			props["DataRetentionEnableFileDeletion"] = strconv.FormatBool(*c.DataRetentionSettings.EnableFileDeletion)
-			props["DataRetentionFileRetentionDays"] = strconv.FormatInt(int64(*c.DataRetentionSettings.FileRetentionDays), 10)
+			props["DataRetentionFileRetentionHours"] = strconv.FormatInt(int64(c.DataRetentionSettings.GetFileRetentionHours()), 10)
 		}
 
 		if license.HasSharedChannels() {
@@ -284,6 +285,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["DefaultClientLocale"] = *c.LocalizationSettings.DefaultClientLocale
 
 	props["EnableCustomEmoji"] = strconv.FormatBool(*c.ServiceSettings.EnableCustomEmoji)
+	props["EnableUserStatuses"] = strconv.FormatBool(*c.ServiceSettings.EnableUserStatuses)
 	props["AppDownloadLink"] = *c.NativeAppSettings.AppDownloadLink
 	props["AndroidAppDownloadLink"] = *c.NativeAppSettings.AndroidAppDownloadLink
 	props["IosAppDownloadLink"] = *c.NativeAppSettings.IosAppDownloadLink

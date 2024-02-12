@@ -41,9 +41,11 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/active_users"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/cleanup_desktop_tokens"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_empty_drafts_migration"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/delete_orphan_drafts_migration"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/expirynotify"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_delete"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_process"
+	"github.com/mattermost/mattermost/server/v8/channels/jobs/export_users_to_csv"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/extract_content"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/hosted_purchase_screening"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/import_delete"
@@ -226,11 +228,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create users service")
 	}
 
-	if model.BuildEnterpriseReady == "true" {
-		// Dependent on user service
-		s.LoadLicense()
-	}
-
 	s.licenseWrapper = &licenseWrapper{
 		srv: s,
 	}
@@ -405,6 +402,10 @@ func NewServer(options ...Option) (*Server, error) {
 		s.IPFiltering = ipFilteringInterface(app)
 	}
 
+	if outgoingOauthConnectionInterface != nil {
+		s.OutgoingOAuthConnection = outgoingOauthConnectionInterface(app)
+	}
+
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
@@ -533,9 +534,9 @@ func NewServer(options ...Option) (*Server, error) {
 }
 
 func (s *Server) runJobs() {
+	s.runLicenseExpirationCheckJob()
 	s.Go(func() {
 		appInstance := New(ServerConnector(s.Channels()))
-		s.runLicenseExpirationCheckJob()
 		runDNDStatusExpireJob(appInstance)
 		runPostReminderJob(appInstance)
 	})
@@ -654,7 +655,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
+	scs, err := sharedchannel.NewSharedChannelService(s, s.Platform(), appInstance)
 	if err != nil {
 		return err
 	}
@@ -1415,7 +1416,8 @@ func (s *Server) doLicenseExpirationCheck() {
 	}
 
 	if license.IsCloud() {
-		mlog.Debug("Skipping license expiration check for Cloud")
+		appInstance := New(ServerConnector(s.Channels()))
+		appInstance.DoSubscriptionRenewalCheck()
 		return
 	}
 
@@ -1593,6 +1595,11 @@ func (s *Server) initJobs() {
 		nil)
 
 	s.Jobs.RegisterJobType(
+		model.JobTypeDeleteOrphanDraftsMigration,
+		delete_orphan_drafts_migration.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil)
+
+	s.Jobs.RegisterJobType(
 		model.JobTypeExportDelete,
 		export_delete.MakeWorker(s.Jobs, New(ServerConnector(s.Channels()))),
 		export_delete.MakeScheduler(s.Jobs),
@@ -1676,6 +1683,12 @@ func (s *Server) initJobs() {
 		refresh_post_stats.MakeScheduler(s.Jobs, *s.platform.Config().SqlSettings.DriverName),
 	)
 
+	s.Jobs.RegisterJobType(
+		model.JobTypeExportUsersToCSV,
+		export_users_to_csv.MakeWorker(s.Jobs, s.Store(), New(ServerConnector(s.Channels()))),
+		nil,
+	)
+
 	s.platform.Jobs = s.Jobs
 }
 
@@ -1747,7 +1760,7 @@ func (s *Server) GetProfileImage(user *model.User) ([]byte, bool, *model.AppErro
 		return img, false, nil
 	}
 
-	path := "users/" + user.Id + "/profile.png"
+	path := getProfileImagePath(user.Id)
 
 	data, err := s.ReadFile(path)
 	if err != nil {
