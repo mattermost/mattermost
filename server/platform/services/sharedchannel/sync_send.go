@@ -180,6 +180,13 @@ func (scs *Service) doSync() time.Duration {
 	var shortestWait time.Duration
 	metrics := scs.server.GetMetrics()
 
+	if metrics != nil {
+		scs.mux.Lock()
+		size := len(scs.tasks)
+		scs.mux.Unlock()
+		metrics.ObserveSharedChannelsQueueSize(int64(size))
+	}
+
 	for {
 		task, ok, shortestWait = scs.removeOldestTask()
 		if !ok {

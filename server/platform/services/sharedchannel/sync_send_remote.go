@@ -84,6 +84,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	var metricsRecorded bool
 	defer func() {
 		if !metricsRecorded && metrics != nil {
+			metrics.IncrementSharedChannelsSyncCounter(rc.RemoteId)
 			metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, float64(model.GetMillis()-start))
 			metricsRecorded = true
 		}
@@ -187,6 +188,7 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	)
 
 	if !metricsRecorded && metrics != nil {
+		metrics.IncrementSharedChannelsSyncCounter(rc.RemoteId)
 		metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, float64(model.GetMillis()-start))
 		metricsRecorded = true
 	}
@@ -471,8 +473,14 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 // remote cluster.
 // The order of items sent is important: users -> attachments -> posts -> reactions -> profile images
 func (scs *Service) sendSyncData(sd *syncData) error {
-	merr := merror.New()
+	start := model.GetMillis()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendDuration(sd.rc.RemoteId, float64(model.GetMillis()-start))
+		}
+	}()
 
+	merr := merror.New()
 	sanitizeSyncData(sd)
 
 	// send users
