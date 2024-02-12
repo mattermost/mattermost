@@ -24,6 +24,7 @@
           --excludeGroup="@te_only,@cloud_only,@high_availability,@smoke"
           --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
           --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+      secrets:
         MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
         AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
         AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
