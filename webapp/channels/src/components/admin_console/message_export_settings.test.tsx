@@ -3,9 +3,14 @@
 
 import React from 'react';
 
+import type {Job} from '@mattermost/types/jobs';
+
 import MessageExportSettings from 'components/admin_console/message_export_settings';
+import type {MessageExportSettings as MessageExportSettingsClass} from 'components/admin_console/message_export_settings';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
+
+import type {BaseProps} from './admin_settings';
 
 describe('components/MessageExportSettings', () => {
     test('should match snapshot, disabled, actiance', () => {
@@ -17,7 +22,7 @@ describe('components/MessageExportSettings', () => {
                 ExportFromTimestamp: null,
                 BatchSize: 10000,
             },
-        };
+        } as unknown as BaseProps['config'];
 
         const wrapper = shallowWithIntl(
             <MessageExportSettings
@@ -178,16 +183,16 @@ describe('components/MessageExportSettings/getJobDetails', () => {
 
     const wrapper = shallowWithIntl(<MessageExportSettings {...baseProps}/>);
 
-    function runTest(testJob, expectNull, expectedCount) {
-        const jobDetails = wrapper.instance().getJobDetails(testJob);
+    function runTest(testJob: Job, expectNull: boolean, expectedCount: number) {
+        const jobDetails = (wrapper.instance() as MessageExportSettingsClass).getJobDetails(testJob);
         if (expectNull) {
             expect(jobDetails).toBe(null);
         } else {
-            expect(jobDetails.length).toBe(expectedCount);
+            expect(jobDetails?.length).toBe(expectedCount);
         }
     }
 
-    const job = {};
+    const job = {} as Job;
     test('test no data', () => {
         runTest(job, true, 0);
     });
