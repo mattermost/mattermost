@@ -17,7 +17,7 @@ import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getThread} from 'mattermost-redux/selectors/entities/threads';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {
     isFromWebhook,
     isSystemMessage,
@@ -37,15 +37,15 @@ export type NewPostMessageProps = {
     team_id: string;
 }
 
-export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function completePostReceive(post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): ActionFuncAsync<boolean, GlobalState> {
+    return async (dispatch, getState) => {
         const state = getState();
         const rootPost = PostSelectors.getPost(state, post.root_id);
         if (post.root_id && !rootPost) {
             const result = await dispatch(PostActions.getPostThread(post.root_id));
 
             if ('error' in result) {
-                return result;
+                return {error: result.error};
             }
         }
         const actions: Redux.AnyAction[] = [];
@@ -77,7 +77,9 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
             dispatch(setThreadRead(post));
         }
 
-        return dispatch(sendDesktopNotification(post, websocketMessageProps) as unknown as ActionFunc);
+        dispatch(sendDesktopNotification(post, websocketMessageProps));
+
+        return {data: true};
     };
 }
 
@@ -125,10 +127,10 @@ export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetSta
     return actionsToMarkChannelAsUnread(getState, websocketMessageProps.team_id, post.channel_id, websocketMessageProps.mentions, fetchedChannelMember, post.root_id === '', post?.metadata?.priority?.priority);
 }
 
-export function setThreadRead(post: Post) {
+export function setThreadRead(post: Post): ActionFunc<boolean, GlobalState> {
     const getThreadLastViewedAt = makeGetThreadLastViewedAt();
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+    return (dispatch, getState) => {
+        const state = getState();
 
         const thread = getThread(state, post.root_id);
 

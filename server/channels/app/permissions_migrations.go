@@ -1141,6 +1141,21 @@ func (a *App) getAddIPFilterPermissionsMigration() (permissionsMap, error) {
 	return t, nil
 }
 
+func (a *App) getAddOutgoingOAuthConnectionsPermissions() (permissionsMap, error) {
+	t := []permissionTransformation{}
+
+	permissionManageOutgoingOAuthConnections := []string{
+		model.PermissionManageOutgoingOAuthConnections.Id,
+	}
+
+	t = append(t, permissionTransformation{
+		On:  permissionOr(isExactRole(model.SystemAdminRoleId)),
+		Add: permissionManageOutgoingOAuthConnections,
+	})
+
+	return t, nil
+}
+
 // DoPermissionsMigrations execute all the permissions migrations need by the current version.
 func (a *App) DoPermissionsMigrations() error {
 	return a.Srv().doPermissionsMigrations()
@@ -1186,6 +1201,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddCustomUserGroupsPermissionRestore, Migration: a.getAddCustomUserGroupsPermissionRestore},
 		{Key: model.MigrationKeyAddReadChannelContentPermissions, Migration: a.getAddChannelReadContentPermissions},
 		{Key: model.MigrationKeyAddIPFilteringPermissions, Migration: a.getAddIPFilterPermissionsMigration},
+		{Key: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Migration: a.getAddOutgoingOAuthConnectionsPermissions},
 	}
 
 	roles, err := s.Store().Role().GetAll()

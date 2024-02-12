@@ -599,7 +599,6 @@
   "admin.team_settings.team_list.no_teams_found": "Ingen fundet",
   "admin.user_grid.name": "Navn",
   "admin.user_grid.remove": "Fjern",
-  "admin.user_item.manageTokens": "Administrer Tokens",
   "audit_table.member": "medlem",
   "bot.add.post_all.help": "Adgang til at sende indlæg til alle Mattermost kanaler, herunder direkte beskeder.",
   "bot.add.post_channels.help": "Adgang til at sende indlæg til alle Mattermost offentlige kanaler.",

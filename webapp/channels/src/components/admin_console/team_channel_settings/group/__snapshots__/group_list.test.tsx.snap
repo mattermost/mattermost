@@ -28,13 +28,17 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
   }
   emptyListTextDefaultMessage="test"
   emptyListTextId="test"
+  groups={Array []}
   header={<Header />}
+  isModeSync={false}
   noPadding={false}
+  onGroupRemoved={[MockFunction]}
   onPageChangedCallback={[MockFunction]}
   removeGroup={[MockFunction]}
   renderRow={[Function]}
   setNewGroupRole={[MockFunction]}
   total={1}
+  totalGroups={0}
   type="team"
 />
 `;
@@ -502,13 +506,17 @@ exports[`admin_console/team_channel_settings/group/GroupList should match snapsh
   }
   emptyListTextDefaultMessage="test"
   emptyListTextId="test"
+  groups={Array []}
   header={<Header />}
+  isModeSync={false}
   noPadding={false}
+  onGroupRemoved={[MockFunction]}
   onPageChangedCallback={[MockFunction]}
   removeGroup={[MockFunction]}
   renderRow={[Function]}
   setNewGroupRole={[MockFunction]}
   total={30}
+  totalGroups={0}
   type="team"
 />
 `;

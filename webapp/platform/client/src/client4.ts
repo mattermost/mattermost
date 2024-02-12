@@ -52,7 +52,7 @@ import {
     ChannelSearchOpts,
     ServerChannel,
 } from '@mattermost/types/channels';
-import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions, UserReportOptions, UserReportFilter} from '@mattermost/types/client4';
+import {Options, StatusOK, ClientResponse, LogLevel, FetchPaginatedThreadOptions} from '@mattermost/types/client4';
 import {Compliance} from '@mattermost/types/compliance';
 import {
     ClientConfig,
@@ -92,6 +92,7 @@ import {
     DialogSubmission,
     IncomingWebhook,
     OAuthApp,
+    OutgoingOAuthConnection,
     OutgoingWebhook,
     SubmitDialogResponse,
 } from '@mattermost/types/integrations';
@@ -136,8 +137,8 @@ import {
     UserStatus,
     GetFilteredUsersStatsOpts,
     UserCustomStatus,
-    UserReport,
 } from '@mattermost/types/users';
+import {UserReport, UserReportFilter} from '@mattermost/types/reports';
 import {DeepPartial, RelationOneToOne} from '@mattermost/types/utilities';
 import {ProductNotices} from '@mattermost/types/product_notices';
 import {
@@ -148,7 +149,9 @@ import {
 } from '@mattermost/types/data_retention';
 import {CompleteOnboardingRequest} from '@mattermost/types/setup';
 import {UserThreadList, UserThread, UserThreadWithPost} from '@mattermost/types/threads';
+import {UserReportOptions} from '@mattermost/types/reports'
 import {UsersLimits} from '@mattermost/types/limits';
+
 
 import {cleanUrlForLogging} from './errors';
 import {buildQueryString} from './helpers';
@@ -176,7 +179,7 @@ export default class Client4 {
     csrf = '';
     url = '';
     urlVersion = '/api/v4';
-    userAgent: string|null = null;
+    userAgent: string | null = null;
     enableLogging = false;
     defaultHeaders: {[x: string]: string} = {};
     userId = '';
@@ -384,6 +387,15 @@ export default class Client4 {
     getOAuthAppRoute(appId: string) {
         return `${this.getOAuthAppsRoute()}/${appId}`;
     }
+
+    getOutgoingOAuthConnectionsRoute() {
+        return `${this.getBaseRoute()}/oauth/outgoing_connections`;
+    }
+
+    getOutgoingOAuthConnectionRoute(connectionId: string) {
+        return `${this.getBaseRoute()}/oauth/outgoing_connections/${connectionId}`;
+    }
+
 
     getEmojisRoute() {
         return `${this.getBaseRoute()}/emoji`;
@@ -1535,7 +1547,7 @@ export default class Client4 {
     sendEmailGuestInvitesToChannelsGracefully = async (teamId: string, channelIds: string[], emails: string[], message: string) => {
         this.trackEvent('api', 'api_teams_invite_guests', {team_id: teamId, channel_ids: channelIds});
 
-        return this.doFetch<TeamInviteWithError>(
+        return this.doFetch<TeamInviteWithError[]>(
             `${this.getTeamRoute(teamId)}/invite-guests/email?graceful=true`,
             {method: 'post', body: JSON.stringify({emails, channels: channelIds, message})},
         );
@@ -2781,6 +2793,50 @@ export default class Client4 {
         );
     };
 
+    getOutgoingOAuthConnections = (teamId: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<OutgoingOAuthConnection[]>(
+            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({team_id: teamId, page, per_page: perPage})}`,
+            {method: 'get'},
+        );
+    };
+
+    getOutgoingOAuthConnectionsForAudience = (teamId: string, audience: string, page = 0, perPage = PER_PAGE_DEFAULT) => {
+        return this.doFetch<OutgoingOAuthConnection[]>(
+            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({team_id: teamId, page, per_page: perPage, audience})}`,
+            {method: 'get'},
+        );
+    };
+
+    getOutgoingOAuthConnection = (teamId: string, connectionId: string) => {
+        return this.doFetch<OutgoingOAuthConnection>(
+            `${this.getOutgoingOAuthConnectionRoute(connectionId)}${buildQueryString({team_id: teamId})}`,
+            {method: 'get'},
+        );
+    };
+
+    createOutgoingOAuthConnection = (teamId: string, connection: OutgoingOAuthConnection) => {
+        this.trackEvent('api', 'api_outgoing_oauth_connection_register');
+
+        return this.doFetch<OutgoingOAuthConnection>(
+            `${this.getOutgoingOAuthConnectionsRoute()}${buildQueryString({team_id: teamId})}`,
+            {method: 'post', body: JSON.stringify(connection)},
+        );
+    };
+
+    editOutgoingOAuthConnection = (teamId: string, connection: OutgoingOAuthConnection) => {
+        return this.doFetch<OutgoingOAuthConnection>(
+            `${this.getOutgoingOAuthConnectionsRoute()}/${connection.id}${buildQueryString({team_id: teamId})}`,
+            {method: 'put', body: JSON.stringify(connection)},
+        );
+    };
+
+    validateOutgoingOAuthConnection = (teamId: string, connection: OutgoingOAuthConnection) => {
+        return this.doFetch<OutgoingOAuthConnection>(
+            `${this.getOutgoingOAuthConnectionsRoute()}/validate${buildQueryString({team_id: teamId})}`,
+            {method: 'post', body: JSON.stringify(connection)},
+        );
+    };
+
     getOAuthAppInfo = (appId: string) => {
         return this.doFetch<OAuthApp>(
             `${this.getOAuthAppRoute(appId)}/info`,
@@ -2801,6 +2857,15 @@ export default class Client4 {
         return this.doFetch<OAuthApp>(
             `${this.getOAuthAppRoute(appId)}/regen_secret`,
             {method: 'post'},
+        );
+    };
+
+    deleteOutgoingOAuthConnection = (connectionId: string) => {
+        this.trackEvent('api', 'api_apps_delete');
+
+        return this.doFetch<StatusOK>(
+            `${this.getOutgoingOAuthConnectionRoute(connectionId)}`,
+            {method: 'delete'},
         );
     };
 
