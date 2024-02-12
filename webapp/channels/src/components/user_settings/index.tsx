@@ -11,7 +11,7 @@ import AdvancedTab from './advanced';
 import DisplayTab from './display';
 import GeneralTab from './general';
 import NotificationsTab from './notifications';
-import PluginTab from './plugin/plugin';
+import PluginTab from './plugin';
 import SecurityTab from './security';
 import SidebarTab from './sidebar';
 
