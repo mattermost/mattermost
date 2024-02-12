@@ -127,6 +127,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
+                modalClass='integrations-backstage-modal'
                 show={this.state.showConfirmModal}
                 onConfirm={this.submitOAuthApp}
                 onCancel={this.confirmModalDismissed}

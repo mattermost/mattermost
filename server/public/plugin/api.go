@@ -166,7 +166,8 @@ type API interface {
 	// Minimum server version: 5.6
 	GetUsersInTeam(teamID string, page int, perPage int) ([]*model.User, *model.AppError)
 
-	// GetPreferenceForUser gets a single preference for a user.
+	// GetPreferenceForUser gets a single preference for a user. An error is returned if the user has no preference
+	// set with the given category and name, an error is returned.
 	//
 	// @tag User
 	// @tag Preference
@@ -463,7 +464,8 @@ type API interface {
 	// Minimum server version: 5.2
 	GetChannelByNameForTeamName(teamName, channelName string, includeDeleted bool) (*model.Channel, *model.AppError)
 
-	// GetChannelsForTeamForUser gets a list of channels for given user ID in given team ID.
+	// GetChannelsForTeamForUser  gets a list of channels for given user ID in given team ID, including DMs.
+	// If an empty string is passed as the team ID, the user's channels on all teams and their DMs will be returned.
 	//
 	// @tag Channel
 	// @tag Team

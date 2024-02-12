@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -8,6 +9,7 @@ import {FormattedMessage} from 'react-intl';
 import './confirm_modal.scss';
 
 type Props = {
+    id?: string;
 
     /*
      * Set to show modal
@@ -165,12 +167,12 @@ export default class ConfirmModal extends React.Component<Props, State> {
 
         return (
             <Modal
+                id={classNames('confirmModal', this.props.id)}
                 className={'modal-confirm ' + this.props.modalClass}
                 dialogClassName='a11y__modal'
                 show={this.props.show}
                 onHide={this.handleCancel}
                 onExited={this.props.onExited}
-                id='confirmModal'
                 role='dialog'
                 aria-modal={true}
                 aria-labelledby='confirmModalLabel'
