@@ -171,19 +171,17 @@ func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWi
 }
 
 type ChannelBookmarkPatch struct {
-	FileId      *string              `json:"file_id"`
-	DisplayName *string              `json:"display_name"`
-	SortOrder   *int64               `json:"sort_order"`
-	LinkUrl     *string              `json:"link_url,omitempty"`
-	ImageUrl    *string              `json:"image_url,omitempty"`
-	Emoji       *string              `json:"emoji,omitempty"`
-	Type        *ChannelBookmarkType `json:"type"`
+	FileId      *string `json:"file_id"`
+	DisplayName *string `json:"display_name"`
+	SortOrder   *int64  `json:"sort_order"`
+	LinkUrl     *string `json:"link_url,omitempty"`
+	ImageUrl    *string `json:"image_url,omitempty"`
+	Emoji       *string `json:"emoji,omitempty"`
 }
 
 func (o *ChannelBookmarkPatch) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"file_id": o.FileId,
-		"type":    o.Type,
 	}
 }
 

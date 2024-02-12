@@ -66,7 +66,10 @@ func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId 
 		Where(sq.Or{
 			sq.Expr("Id IN (?)", existingQuery),
 			sq.And{
-				sq.NotEq{"PostId": ""},
+				sq.Or{
+					sq.NotEq{"PostId": ""},
+					sq.NotEq{"CreatorId": model.BookmarkFileOwner},
+				},
 				sq.Eq{"Id": fileId},
 			},
 		})
