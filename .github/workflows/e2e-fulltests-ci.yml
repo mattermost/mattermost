@@ -1,0 +1,29 @@
+---
+  name: E2E Tests
+  on:
+    # For PRs, this workflow gets triggered from the Argo Events platform.
+    # Check the following repo for details: https://github.com/mattermost/delivery-platform
+    workflow_dispatch:
+      inputs:
+        commit_sha:
+          type: string
+          required: false
+
+  jobs:
+    e2e-smoketest:
+      uses: ./.github/workflows/e2e-tests-ci-template.yml
+      with:
+        commit_sha: "${{ inputs.commit_sha || github.sha }}"
+        status_check_context: "E2E Tests/test"
+        workers_number: 20
+        testcase_failure_fatal: false
+        run_preflight_checks: false
+        ENABLED_DOCKER_SERVICES: "postgres inbucket minio openldap elasticsearch keycloak"
+        TEST_FILTER: >-
+          --stage="@prod"
+          --excludeGroup="@te_only,@cloud_only,@high_availability,@smoke"
+          --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
+          --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
+	MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+	AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+	AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
