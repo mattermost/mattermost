@@ -71,6 +71,7 @@ export function ExportUserDataModal({onConfirm, onExited}: Props) {
 
     return (
         <ConfirmModalRedux
+            id='exportUserDataModal'
             title={title}
             message={message}
             confirmButtonText={exportDataButton}

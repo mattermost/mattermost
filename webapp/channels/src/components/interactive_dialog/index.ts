@@ -1,16 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {submitInteractiveDialog} from 'mattermost-redux/actions/integrations';
 
 import {getEmojiMap} from 'selectors/emojis';
 
+import type {GlobalState} from 'types/store';
+
 import InteractiveDialog from './interactive_dialog';
 
-function mapStateToProps(state) {
+function mapStateToProps(state: GlobalState) {
     const data = state.entities.integrations.dialog;
     if (!data || !data.dialog) {
         return {};
@@ -30,7 +34,7 @@ function mapStateToProps(state) {
     };
 }
 
-function mapDispatchToProps(dispatch) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             submitInteractiveDialog,
@@ -38,4 +42,8 @@ function mapDispatchToProps(dispatch) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(InteractiveDialog);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(InteractiveDialog);
