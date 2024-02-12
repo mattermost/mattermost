@@ -4641,7 +4641,7 @@ func (c *Client4) GetPingWithOptions(ctx context.Context, options SystemPingOpti
 	}
 	values := pingURL.Query()
 	values.Set("get_server_status", c.boolString(options.FullStatus))
-	values.Set("keep_rest_semantics", c.boolString(options.RESTSemantics))
+	values.Set("use_rest_semantics", c.boolString(options.RESTSemantics))
 	pingURL.RawQuery = values.Encode()
 	r, err := c.DoAPIGet(ctx, pingURL.String(), "")
 	if r != nil && r.StatusCode == 500 {

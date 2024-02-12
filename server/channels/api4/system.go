@@ -195,7 +195,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
 
-	if s[model.STATUS] != model.StatusOk && r.FormValue("keep_rest_semantics") != "true" {
+	if s[model.STATUS] != model.StatusOk && r.FormValue("use_rest_semantics") != "true" {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.Write([]byte(model.MapToJSON(s)))
