@@ -427,7 +427,7 @@ export function fetchChannelsAndMembers(teamId: string): ActionFuncAsync<{channe
         let channelMembers;
         try {
             [channels, channelMembers] = await Promise.all([
-                Client4.getMyChannels(teamId, false),
+                Client4.getMyChannels(teamId),
                 Client4.getMyChannelMembers(teamId),
             ]);
         } catch (error) {

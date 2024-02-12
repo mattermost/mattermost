@@ -231,7 +231,7 @@ function ChannelBookmarkCreateModal({
     const fileInput = (
         <input
             type='file'
-            id='bookmark-create-file-input'
+            id='bookmark-create-file-input-in-modal'
             className='bookmark-create-file-input'
             ref={fileInputRef}
             onChange={handleFileChanged}

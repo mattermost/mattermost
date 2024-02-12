@@ -3,7 +3,6 @@
 
 import {IDMappedObjects, RelationOneToMany, RelationOneToOne} from './utilities';
 import {Team} from './teams';
-import {ChannelBookmarkWithFileInfo} from './channel_bookmarks';
 
 // e.g.
 // **O**pen channel,
@@ -72,19 +71,6 @@ export type ServerChannel = Channel & {
      */
     total_msg_count_root: number;
 }
-
-export type ChannelWithBookmarks = Channel & {
-    bookmarks?: ChannelBookmarkWithFileInfo[]
-}
-
-export type ChannelWithTeamDataAndBookmarks = ChannelWithTeamData & {
-    bookmarks?: ChannelBookmarkWithFileInfo[];
-}
-
-export type ServerChannelWithBookmarks = Channel & {
-    bookmarks?: ChannelBookmarkWithFileInfo[]
-}
-
 
 export type ChannelMessageCount = {
 

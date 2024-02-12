@@ -28,7 +28,7 @@ const ChannelBookmarks = ({
     }
 
     return (
-        <Container>
+        <Container data-testid='channel-bookmarks-container'>
             {order.map((id) => {
                 return (
                     <BookmarkItem

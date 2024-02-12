@@ -104,16 +104,17 @@ const BookmarkItemDotMenu = ({
                 fileId: bookmark.file_id,
             },
         }));
-    }, [bookmark, dispatch]);
+    }, [bookmark.file_id, dispatch]);
 
     return (
         <Menu.Container
             anchorOrigin={{vertical: 'bottom', horizontal: 'right'}}
             transformOrigin={{vertical: 'top', horizontal: 'right'}}
             menuButton={{
-                id: 'channelBookmarksDotMenuButton',
+                id: `channelBookmarksDotMenuButton-${bookmark.id}`,
+                class: 'channelBookmarksDotMenuButton',
                 children: <DotsHorizontalIcon size={18}/>,
-                'aria-label': formatMessage({id: 'channel_bookmarks.addBookmarkLabel', defaultMessage: 'Add a bookmark'}),
+                'aria-label': formatMessage({id: 'channel_bookmarks.editBookmarkLabel', defaultMessage: 'Bookmark menu'}),
             }}
             menu={{
                 id: 'channelBookmarksDotMenuDropdown',

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import type {ComponentProps} from 'react';
-import React, {useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
@@ -93,9 +93,9 @@ const CreateModalNameInput = ({
         refocusEmojiButton();
     };
 
-    const handleInputChange: ComponentProps<typeof Input>['onChange'] = (e) => {
+    const handleInputChange: ComponentProps<typeof Input>['onChange'] = useCallback((e) => {
         setDisplayName(e.currentTarget.value);
-    };
+    }, []);
 
     const handleEmojiKeyDown = (e: React.KeyboardEvent<HTMLButtonElement>) => {
         if (isKeyPressed(e, Constants.KeyCodes.ENTER)) {

@@ -28,15 +28,13 @@
     }
 
     &:active:enabled,
-    &--active:enabled,
-    &--active:hover:enabled,
     &[aria-expanded="true"] {
         background: rgba(var(--button-bg-rgb), 0.08);
         color: rgb(var(--button-bg-rgb));
     }
 }
 
-#channelBookmarksDotMenuButton {
+.channelBookmarksDotMenuButton {
     display: flex;
     width: 18px;
     height: 18px;
@@ -58,8 +56,6 @@
     }
 
     &:active,
-    &--active,
-    &--active:hover,
     &[aria-expanded="true"] {
         background: rgba(var(--button-bg-rgb), 16%);
         background: color-mix(in sRGB, var(--center-channel-bg), var(--button-bg) 16%);
@@ -67,6 +63,7 @@
     }
 }
 
-#bookmark-create-file-input {
+#bookmark-create-file-input,
+#bookmark-create-file-input-in-modal {
     display: none;
 }
