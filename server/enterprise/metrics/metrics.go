@@ -954,8 +954,8 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace:   MetricsNamespace,
 			Subsystem:   MetricsSubsystemSharedChannels,
-			Name:        "task_in_queue_duration",
-			Help:        "Duration tasks spend in queue (millis)",
+			Name:        "task_in_queue_duration_seconds",
+			Help:        "Duration tasks spend in queue (seconds)",
 			ConstLabels: additionalLabels,
 		},
 	)
@@ -976,8 +976,8 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace:   MetricsNamespace,
 			Subsystem:   MetricsSubsystemSharedChannels,
-			Name:        "sync_collection_duration",
-			Help:        "Duration tasks spend collecting sync data (millis)",
+			Name:        "sync_collection_duration_seconds",
+			Help:        "Duration tasks spend collecting sync data (seconds)",
 			ConstLabels: additionalLabels,
 		},
 		[]string{"remote_id"},
@@ -988,8 +988,8 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace:   MetricsNamespace,
 			Subsystem:   MetricsSubsystemSharedChannels,
-			Name:        "sync_send_duration",
-			Help:        "Duration tasks spend sending sync data (millis)",
+			Name:        "sync_send_duration_seconds",
+			Help:        "Duration tasks spend sending sync data (seconds)",
 			ConstLabels: additionalLabels,
 		},
 		[]string{"remote_id"},
@@ -1000,8 +1000,8 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace:   MetricsNamespace,
 			Subsystem:   MetricsSubsystemSharedChannels,
-			Name:        "sync_collection_steps",
-			Help:        "Duration tasks spend in each step collecting data (millis)",
+			Name:        "sync_collection_step_duration_seconds",
+			Help:        "Duration tasks spend in each step collecting data (seconds)",
 			ConstLabels: additionalLabels,
 		},
 		[]string{"remote_id", "step"},
@@ -1012,8 +1012,8 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		prometheus.HistogramOpts{
 			Namespace:   MetricsNamespace,
 			Subsystem:   MetricsSubsystemSharedChannels,
-			Name:        "sync_send_steps",
-			Help:        "Duration tasks spend in each step sending data (millis)",
+			Name:        "sync_send_step_duration_seconds",
+			Help:        "Duration tasks spend in each step sending data (seconds)",
 			ConstLabels: additionalLabels,
 		},
 		[]string{"remote_id", "step"},

@@ -194,7 +194,7 @@ func (scs *Service) doSync() time.Duration {
 		}
 
 		if metrics != nil {
-			metrics.ObserveSharedChannelsTaskInQueueDuration(float64(model.GetMillis() - model.GetMillisForTime(task.AddedAt)))
+			metrics.ObserveSharedChannelsTaskInQueueDuration(time.Since(task.AddedAt).Seconds())
 		}
 
 		if err := scs.processTask(task); err != nil {

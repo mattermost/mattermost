@@ -82,10 +82,10 @@ func (rcs *Service) sendFile(task sendFileTask) {
 }
 
 func (rcs *Service) sendFileToRemote(timeout time.Duration, task sendFileTask) (*model.FileInfo, error) {
-	start := model.GetMillis()
+	start := time.Now()
 	defer func() {
 		if metrics := rcs.server.GetMetrics(); metrics != nil {
-			metrics.ObserveSharedChannelsSyncSendStepDuration(task.rc.RemoteId, "Attachments", float64(model.GetMillis()-start))
+			metrics.ObserveSharedChannelsSyncSendStepDuration(task.rc.RemoteId, "Attachments", time.Since(start).Seconds())
 		}
 	}()
 
