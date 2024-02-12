@@ -7,6 +7,13 @@ import (
 	"encoding/json"
 	"net/http"
 	"unicode/utf8"
+
+	"github.com/pkg/errors"
+)
+
+var (
+	ErrChannelAlreadyShared = errors.New("channel is already shared")
+	ErrChannelHomedOnRemote = errors.New("channel is homed on a remote cluster")
 )
 
 // SharedChannel represents a channel that can be synchronized with a remote cluster.

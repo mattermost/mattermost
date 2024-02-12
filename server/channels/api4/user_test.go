@@ -4328,6 +4328,23 @@ func TestSwitchAccount(t *testing.T) {
 	_, resp, err = th.Client.SwitchAccountType(context.Background(), sr)
 	require.Error(t, err)
 	CheckUnauthorizedStatus(t, resp)
+
+	sr = &model.SwitchRequest{
+		CurrentService: model.UserAuthServiceEmail,
+		NewService:     model.UserAuthServiceSaml,
+		Email:          th.BasicUser.Email,
+		Password:       th.BasicUser.Password,
+	}
+
+	link, _, err = th.Client.SwitchAccountType(context.Background(), sr)
+	require.NoError(t, err)
+
+	values, parseErr := url.ParseQuery(link)
+	require.NoError(t, parseErr)
+
+	appToken, tokenErr := th.App.Srv().Store().Token().GetByToken(values.Get("email_token"))
+	require.NoError(t, tokenErr)
+	require.Equal(t, th.BasicUser.Email, appToken.Extra)
 }
 
 func assertToken(t *testing.T, th *TestHelper, token *model.UserAccessToken, expectedUserId string) {
