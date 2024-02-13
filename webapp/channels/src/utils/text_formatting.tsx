@@ -200,6 +200,13 @@ interface TextFormattingOptionsBase {
      * Defaults to `false`.
      */
     atPlanMentions: boolean;
+
+    /**
+     * If true, the renderer will assume links are not safe.
+     *
+     * Defaults to `false`.
+     */
+    unsafeLinks: boolean;
 }
 
 export type TextFormattingOptions = Partial<TextFormattingOptionsBase>;
@@ -227,6 +234,7 @@ const DEFAULT_OPTIONS: TextFormattingOptions = {
     proxyImages: false,
     editedAt: 0,
     postId: '',
+    unsafeLinks: false,
 };
 
 /**
