@@ -40,7 +40,7 @@ describe('components/request_business_email_modal/request_business_email_modal',
             modals: {
                 modalState: {
                     request_business_email_modal: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },
