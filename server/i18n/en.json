@@ -2405,10 +2405,6 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
-    "id": "api.payload.parse.error",
-    "translation": "An error occurred while parsing the payload."
-  },
-  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
