@@ -17,7 +17,7 @@ describe('Support Packet Generation', () => {
         cy.apiUpdateConfig({
             LogSettings: {
                 FileLevel: 'ERROR',
-            }
+            },
         });
     });
 
