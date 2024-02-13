@@ -12,6 +12,7 @@ import (
 )
 
 const (
+	ReportDurationAllTime       = "all_time"
 	ReportDurationLast30Days    = "last_30_days"
 	ReportDurationPreviousMonth = "previous_month"
 	ReportDurationLast6Months   = "last_6_months"
@@ -144,6 +145,7 @@ func (u *UserReportOptions) IsValid() *AppError {
 }
 
 func (u *UserReportQuery) ToReport() *UserReport {
+	u.ClearNonProfileFields()
 	return &UserReport{
 		User:          u.User,
 		UserPostStats: u.UserPostStats,

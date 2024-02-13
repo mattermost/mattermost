@@ -3,7 +3,7 @@
 
 import {getCurrentUser, getCurrentUserId} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import type {NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {getTeamRedirectChannelIfIsAccesible} from 'actions/global_actions';
 import LocalStorageStore from 'stores/local_storage_store';
@@ -15,7 +15,7 @@ import {ActionTypes, Constants, ModalIdentifiers} from 'utils/constants';
 
 import {openModal} from './modals';
 
-export function switchToChannels(): NewActionFuncAsync<boolean> {
+export function switchToChannels(): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
@@ -31,7 +31,7 @@ export function switchToChannels(): NewActionFuncAsync<boolean> {
     };
 }
 
-export function openInvitationsModal(timeout = 1): NewActionFunc {
+export function openInvitationsModal(timeout = 1): ActionFunc {
     return (dispatch) => {
         dispatch(switchToChannels());
         setTimeout(() => {
