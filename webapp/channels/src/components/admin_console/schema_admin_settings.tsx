@@ -329,18 +329,24 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         if (!this.props.schema) {
             return '';
         }
-        if (!('name' in this.props.schema)) {
-            return this.props.schema.id;
+
+        let name: string | MessageDescriptor = this.props.schema.id;
+        if (('name' in this.props.schema)) {
+            name = this.props.schema.name;
         }
 
-        if (typeof this.props.schema.name === 'string') {
-            return this.props.schema.name;
+        if (typeof name === 'string') {
+            return (
+                <AdminHeader>
+                    {name}
+                </AdminHeader>
+            );
         }
 
         return (
             <AdminHeader>
                 <FormattedMessage
-                    {...this.props.schema.name}
+                    {...name}
                 />
             </AdminHeader>
         );
