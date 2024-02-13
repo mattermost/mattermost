@@ -75,7 +75,7 @@ export const searchableStrings: Array<string|MessageDescriptor|[MessageDescripto
     messages.globalRelayEmailAddress_description,
 ];
 
-class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentProps, State> {
+export class MessageExportSettings extends AdminSettings<BaseProps & WrappedComponentProps, State> {
     getConfigFromState = (config: AdminConfig) => {
         config.MessageExportSettings.EnableExport = this.state.enableComplianceExport;
         config.MessageExportSettings.ExportFormat = this.state.exportFormat;

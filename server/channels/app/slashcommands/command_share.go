@@ -232,6 +232,8 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 	}
 
 	// Check if channel is shared or not.
+	// TODO: have the share channels service generate the "channel has been shared post" and this section can be removed since
+	//       since `a.InviteRemoteToChannel` will share the channel automatically.
 	hasChan, err := a.HasSharedChannel(args.ChannelId)
 	if err != nil {
 		return responsef(args.T("api.command_share.check_channel_exist.error", map[string]any{"ChannelID": args.ChannelId, "Error": err.Error()}))
@@ -251,7 +253,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
 	}
 
-	if err = a.InviteRemoteToChannel(args.ChannelId, remoteID, args.UserId); err != nil {
+	if err = a.InviteRemoteToChannel(args.ChannelId, remoteID, args.UserId, true); err != nil {
 		return responsef(appErr.Error())
 	}
 

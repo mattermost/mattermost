@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MouseEvent} from 'react';
+import type {MouseEvent, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import ExternalLink from 'components/external_link';
 
 type Props = {
     showPreview?: boolean;
-    previewMessageLink?: string;
+    previewMessageLink?: ReactNode;
     hasText?: boolean;
     hasExceededCharacterLimit?: boolean;
     isMarkdownPreviewEnabled: boolean;
@@ -38,11 +38,7 @@ function TextboxLinks({
     }
 
     if (previewMessageLink) {
-        editHeader = (
-            <span>
-                {previewMessageLink}
-            </span>
-        );
+        editHeader = previewMessageLink;
     } else {
         editHeader = (
             <FormattedMessage
