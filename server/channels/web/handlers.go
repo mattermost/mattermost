@@ -31,7 +31,8 @@ import (
 )
 
 const (
-	frameAncestors = "'self' teams.microsoft.com"
+	frameAncestors   = "'self' teams.microsoft.com"
+	maxURLCharacters = 2048
 )
 
 func GetHandlerName(h func(*Context, http.ResponseWriter, *http.Request)) string {
@@ -143,7 +144,20 @@ func generateDevCSP(c Context) string {
 	return " " + strings.Join(devCSP, " ")
 }
 
+func (h Handler) basicSecurityChecks(w http.ResponseWriter, r *http.Request) *model.AppError {
+	if len(r.RequestURI) > maxURLCharacters {
+		return model.NewAppError("basicSecurityChecks", "", nil, "", http.StatusRequestURITooLong)
+	}
+
+	return nil
+}
+
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	if appErr := h.basicSecurityChecks(w, r); appErr != nil {
+		http.Error(w, appErr.Error(), appErr.StatusCode)
+		return
+	}
+
 	w = newWrappedWriter(w)
 	now := time.Now()
 
