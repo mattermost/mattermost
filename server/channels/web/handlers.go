@@ -146,7 +146,7 @@ func generateDevCSP(c Context) string {
 
 func (h Handler) basicSecurityChecks(w http.ResponseWriter, r *http.Request) *model.AppError {
 	if len(r.RequestURI) > maxURLCharacters {
-		return model.NewAppError("basicSecurityChecks", "", nil, "", http.StatusRequestURITooLong)
+		return model.NewAppError("basicSecurityChecks", "basic_security_check.url.too_long_error", nil, "", http.StatusRequestURITooLong)
 	}
 
 	return nil
