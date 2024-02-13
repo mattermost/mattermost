@@ -402,6 +402,10 @@ func NewServer(options ...Option) (*Server, error) {
 		s.IPFiltering = ipFilteringInterface(app)
 	}
 
+	if outgoingOauthConnectionInterface != nil {
+		s.OutgoingOAuthConnection = outgoingOauthConnectionInterface(app)
+	}
+
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if job schedulers should be running:", mlog.Bool("isLeader", s.IsLeader()))
 		if s.Jobs != nil {
@@ -651,7 +655,7 @@ func (s *Server) startInterClusterServices(license *model.License) error {
 		return nil
 	}
 
-	scs, err := sharedchannel.NewSharedChannelService(s, appInstance)
+	scs, err := sharedchannel.NewSharedChannelService(s, s.Platform(), appInstance)
 	if err != nil {
 		return err
 	}
