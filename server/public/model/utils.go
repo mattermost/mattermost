@@ -555,16 +555,6 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	return objmap
 }
 
-func StructFromJSONLimited[V any](data io.Reader, maxBytes int64, obj *V) error {
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
-	if err != nil || obj == nil {
-		return err
-	}
-
-	return nil
-}
-
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
 func ToJSON(v any) []byte {
 	b, _ := json.Marshal(v)
