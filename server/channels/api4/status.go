@@ -49,11 +49,9 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil {
-		c.Err = model.NewAppError("getUserStatusesByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	} else if len(userIds) == 0 {
+	userIds := model.ArrayFromJSON(r.Body)
+
+	if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}

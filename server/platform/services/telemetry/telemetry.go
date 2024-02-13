@@ -496,7 +496,6 @@ func (ts *TelemetryService) trackConfig() {
 		"self_hosted_purchase":                                    *cfg.ServiceSettings.SelfHostedPurchase,
 		"allow_synced_drafts":                                     *cfg.ServiceSettings.AllowSyncedDrafts,
 		"refresh_post_stats_run_time":                             *cfg.ServiceSettings.RefreshPostStatsRunTime,
-		"maximum_payload_size":                                    *cfg.ServiceSettings.MaximumPayloadSizeBytes,
 	})
 
 	ts.SendTelemetry(TrackConfigTeam, map[string]any{

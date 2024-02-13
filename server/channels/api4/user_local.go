@@ -233,14 +233,16 @@ func localGetUsers(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil {
-		c.Err = model.NewAppError("localGetUsersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	} else if len(userIDs) == 0 {
+	userIDs := model.ArrayFromJSON(r.Body)
+
+	if len(userIDs) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
+
+	// we remove the duplicate IDs as it can bring a significant load to the
+	// database.
+	userIDs = model.RemoveDuplicateStrings(userIDs)
 
 	sinceString := r.URL.Query().Get("since")
 
@@ -249,9 +251,9 @@ func localGetUsersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if sinceString != "" {
-		since, parseErr := strconv.ParseInt(sinceString, 10, 64)
-		if parseErr != nil {
-			c.SetInvalidParamWithErr("since", parseErr)
+		since, err := strconv.ParseInt(sinceString, 10, 64)
+		if err != nil {
+			c.SetInvalidParamWithErr("since", err)
 			return
 		}
 		options.Since = since

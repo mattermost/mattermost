@@ -644,12 +644,10 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err != nil {
-		c.Err = model.NewAppError("getTeamMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	} else if len(userIDs) == 0 {
-		c.SetInvalidParam("user_ids")
+	var userIDs []string
+	err := json.NewDecoder(r.Body).Decode(&userIDs)
+	if err != nil || len(userIDs) == 0 {
+		c.SetInvalidParamWithErr("user_ids", err)
 		return
 	}
 
