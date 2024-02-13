@@ -92,7 +92,9 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
 <div
   className="wrapper--fixed "
 >
-  config
+  <AdminHeader>
+    config
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
