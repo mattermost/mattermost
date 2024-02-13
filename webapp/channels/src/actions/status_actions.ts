@@ -5,6 +5,7 @@ import type {UserProfile} from '@mattermost/types/users';
 
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
 import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
@@ -84,8 +85,11 @@ export function loadStatusesForProfilesMap(users: Record<string, UserProfile> | 
 }
 
 export function loadStatusesByIds(userIds: string[]): ActionFunc {
-    return (dispatch) => {
-        if (userIds.length === 0) {
+    return (dispatch, getState) => {
+        const state = getState();
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+
+        if (userIds.length === 0 || !enabledUserStatuses) {
             return {data: false};
         }
 
@@ -98,13 +102,15 @@ export function loadStatusesByIds(userIds: string[]): ActionFunc {
 export function loadProfilesMissingStatus(users: UserProfile[]): ActionFunc {
     return (dispatch, getState) => {
         const state = getState();
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+
         const statuses = state.entities.users.statuses;
 
         const missingStatusByIds = users.
             filter((user) => !statuses[user.id]).
             map((user) => user.id);
 
-        if (missingStatusByIds.length === 0) {
+        if (missingStatusByIds.length === 0 || !enabledUserStatuses) {
             return {data: false};
         }
 
