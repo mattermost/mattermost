@@ -179,6 +179,38 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 		s.Require().Equal(fmt.Sprintf("1 error occurred:\n\t* user %s not found\n\n", emailArgs[1]), printer.GetErrorLines()[0])
 		s.Require().Equal(fmt.Sprintf("unable to change activation status of user: %v", mockUser3.Id), printer.GetErrorLines()[1])
 	})
+
+	s.Run("shell completion", func() {
+		s.Run("one element matches", func() {
+			mockUsers := []*model.User{
+				{
+					Id:       "0_id",
+					Username: "0_username",
+					Email:    "0_email@example.org",
+				},
+				{
+					Id:       "1_id",
+					Username: "1_username",
+					Email:    "1_email@example.org",
+				},
+				{
+					Id:       "2_id",
+					Username: "2_username",
+					Email:    "2_email@example.org",
+				},
+			}
+
+			s.client.
+				EXPECT().
+				GetUsersWithCustomQueryParameters(context.Background(), 0, perPage, "inactive=true", "").
+				Return(mockUsers, &model.Response{}, nil).
+				Times(1)
+
+			r, dir := userActivateCompletionF(context.Background(), s.client, nil, nil, "1")
+			s.Equal(cobra.ShellCompDirectiveNoFileComp, dir)
+			s.Equal([]string{"1_id", "1_username", "1_email@example.org"}, r)
+		})
+	})
 }
 
 func (s *MmctlUnitTestSuite) TestDeactivateUserCmd() {
