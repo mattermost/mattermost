@@ -4,36 +4,39 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
+import type {CloudState} from '@mattermost/types/cloud';
+import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
+
 import SchemaText from 'components/admin_console/schema_text';
 
 import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
 import SchemaAdminSettings from './schema_admin_settings';
+import type {SchemaAdminSettings as SchemaAdminSettingsClass} from './schema_admin_settings';
+import type {ConsoleAccess, AdminDefinitionSubSectionSchema, AdminDefinitionSettingInput} from './types';
 import ValidationResult from './validation';
 
-const getBaseProps = () => {
-    return {
-        cloud: {},
-        consoleAccess: {},
-        editRole: jest.fn(),
-        enterpriseReady: false,
-        isCurrentUserSystemAdmin: false,
-        isDisabled: false,
-        license: {},
-        roles: {},
-        setNavigationBlocked: jest.fn(),
-    };
+const DefaultProps = {
+    cloud: {} as CloudState,
+    consoleAccess: {} as ConsoleAccess,
+    editRole: jest.fn(),
+    enterpriseReady: false,
+    isCurrentUserSystemAdmin: false,
+    isDisabled: false,
+    license: {},
+    roles: {},
+    setNavigationBlocked: jest.fn(),
 };
 
 describe('components/admin_console/SchemaAdminSettings', () => {
-    let schema = null;
-    let config = null;
-    let environmentConfig = null;
+    let schema: AdminDefinitionSubSectionSchema | null = null;
+    let config: Partial<AdminConfig> = {};
+    let environmentConfig: Partial<EnvironmentConfig> = {};
 
     afterEach(() => {
         schema = null;
-        config = null;
-        environmentConfig = null;
+        config = {};
+        environmentConfig = {};
     });
 
     beforeEach(() => {
@@ -218,8 +221,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                     help_text_default: 'This is some help text for the first escaped field.',
                 },
             ],
-        };
-
+        } as AdminDefinitionSubSectionSchema;
         config = {
             FirstSettings: {
                 settinga: 'fsdsdg',
@@ -239,22 +241,21 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                     a: true,
                 },
             },
-        };
-
+        } as Partial<AdminConfig>;
         environmentConfig = {
             FirstSettings: {
                 settingl: true,
             },
-        };
+        } as Partial<EnvironmentConfig>;
     });
 
     test('should match snapshot with settings and plugin', () => {
         const wrapper = shallowWithIntl(
             <SchemaAdminSettings
-                {...getBaseProps()}
+                {...DefaultProps}
                 config={config}
                 environmentConfig={environmentConfig}
-                schema={{...schema}}
+                schema={{...schema} as AdminDefinitionSubSectionSchema}
                 updateConfig={jest.fn()}
             />,
         );
@@ -264,10 +265,10 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     test('should match snapshot with custom component', () => {
         const wrapper = shallowWithIntl(
             <SchemaAdminSettings
-                {...getBaseProps()}
+                {...DefaultProps}
                 config={config}
                 environmentConfig={environmentConfig}
-                schema={{component: () => <p>{'Test'}</p>}}
+                schema={{component: () => <p>{'Test'}</p>} as AdminDefinitionSubSectionSchema}
                 updateConfig={jest.fn()}
             />,
         );
@@ -277,13 +278,13 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     test('should render header using a SchemaText', () => {
         const headerText = 'This is [a link](!https://example.com) in the header';
         const props = {
-            ...getBaseProps(),
+            ...DefaultProps,
             config,
             environmentConfig,
             schema: {
                 ...schema,
                 header: headerText,
-            },
+            } as AdminDefinitionSubSectionSchema,
             updateConfig: jest.fn(),
         };
 
@@ -300,13 +301,13 @@ describe('components/admin_console/SchemaAdminSettings', () => {
     test('should render footer using a SchemaText', () => {
         const footerText = 'This is [a link](https://example.com) in the footer';
         const props = {
-            ...getBaseProps(),
+            ...DefaultProps,
             config,
             environmentConfig,
             schema: {
                 ...schema,
                 footer: footerText,
-            },
+            } as AdminDefinitionSubSectionSchema,
             updateConfig: jest.fn(),
         };
 
@@ -322,7 +323,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
     test('should render page not found', () => {
         const props = {
-            ...getBaseProps(),
+            ...DefaultProps,
             config,
             environmentConfig,
             schema: null,
@@ -341,51 +342,50 @@ describe('components/admin_console/SchemaAdminSettings', () => {
 
     test('should not try to validate when a setting does not contain a key', () => {
         const mockValidate = jest.fn(() => {
-            return new ValidationResult(true, '', '');
+            return new ValidationResult(true, '');
         });
 
-        const localSchema = {...schema};
+        const localSchema = {...schema} as AdminDefinitionSubSectionSchema & {settings: AdminDefinitionSettingInput[]};
         localSchema.settings = [
             {
-
-                // won't validate because no key
-                label: 'a banner',
-                type: 'banner',
+                label: 'a banner', // won't validate because no key
+                type: 'banner' as any,
                 validate: mockValidate,
             },
         ];
+
         const props = {
-            ...getBaseProps(),
+            ...DefaultProps,
             config,
+            id: '',
             environmentConfig,
             schema: localSchema,
             updateConfig: jest.fn(),
         };
 
         const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
+        const instance = wrapper.instance() as SchemaAdminSettingsClass;
 
-        expect(wrapper.instance().canSave()).toBe(true);
+        expect(instance.canSave()).toBe(true);
         expect(mockValidate).not.toHaveBeenCalled();
     });
 
     test('should validate when a setting contains a key and a validation method', () => {
         const mockValidate = jest.fn(() => {
-            return new ValidationResult(true, '', '');
+            return new ValidationResult(true, '');
         });
 
-        const localSchema = {...schema};
+        const localSchema = {...schema} as AdminDefinitionSubSectionSchema & {settings: AdminDefinitionSettingInput[]};
         localSchema.settings = [
             {
-
-                // will validate because it has a key AND a validate method
-                key: 'field1',
+                key: 'field1', // will validate because it has a key AND a validate method
                 label: 'with key and validation',
                 type: 'text',
                 validate: mockValidate,
             },
         ];
         const props = {
-            ...getBaseProps(),
+            ...DefaultProps,
             config,
             environmentConfig,
             schema: localSchema,
@@ -393,8 +393,9 @@ describe('components/admin_console/SchemaAdminSettings', () => {
         };
 
         const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
+        const instance = wrapper.instance() as SchemaAdminSettingsClass;
 
-        expect(wrapper.instance().canSave()).toBe(true);
+        expect(instance.canSave()).toBe(true);
         expect(mockValidate).toHaveBeenCalled();
     });
 });
