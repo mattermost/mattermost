@@ -18,13 +18,15 @@ type Context = web.Context
 
 type handlerFunc func(*Context, http.ResponseWriter, *http.Request)
 
+type APIHandlerOption string
+
 const (
-	handlerParamFileAPI = "fileAPI"
+	handlerParamFileAPI = APIHandlerOption("fileAPI")
 )
 
 // APIHandler provides a handler for API endpoints which do not require the user to be logged in order for access to be
 // granted.
-func (api *API) APIHandler(h handlerFunc, opts ...string) http.Handler {
+func (api *API) APIHandler(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -45,7 +47,7 @@ func (api *API) APIHandler(h handlerFunc, opts ...string) http.Handler {
 
 // APISessionRequired provides a handler for API endpoints which require the user to be logged in in order for access to
 // be granted.
-func (api *API) APISessionRequired(h handlerFunc, opts ...string) http.Handler {
+func (api *API) APISessionRequired(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -65,7 +67,7 @@ func (api *API) APISessionRequired(h handlerFunc, opts ...string) http.Handler {
 }
 
 // CloudAPIKeyRequired provides a handler for webhook endpoints to access Cloud installations from CWS
-func (api *API) CloudAPIKeyRequired(h handlerFunc, opts ...string) http.Handler {
+func (api *API) CloudAPIKeyRequired(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:             api.srv,
 		HandleFunc:      h,
@@ -86,7 +88,7 @@ func (api *API) CloudAPIKeyRequired(h handlerFunc, opts ...string) http.Handler 
 }
 
 // RemoteClusterTokenRequired provides a handler for remote cluster requests to /remotecluster endpoints.
-func (api *API) RemoteClusterTokenRequired(h handlerFunc, opts ...string) http.Handler {
+func (api *API) RemoteClusterTokenRequired(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:                       api.srv,
 		HandleFunc:                h,
@@ -110,7 +112,7 @@ func (api *API) RemoteClusterTokenRequired(h handlerFunc, opts ...string) http.H
 // APISessionRequiredMfa provides a handler for API endpoints which require a logged-in user session  but when accessed,
 // if MFA is enabled, the MFA process is not yet complete, and therefore the requirement to have completed the MFA
 // authentication must be waived.
-func (api *API) APISessionRequiredMfa(h handlerFunc, opts ...string) http.Handler {
+func (api *API) APISessionRequiredMfa(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -132,7 +134,7 @@ func (api *API) APISessionRequiredMfa(h handlerFunc, opts ...string) http.Handle
 // APIHandlerTrustRequester provides a handler for API endpoints which do not require the user to be logged in and are
 // allowed to be requested directly rather than via javascript/XMLHttpRequest, such as site branding images or the
 // websocket.
-func (api *API) APIHandlerTrustRequester(h handlerFunc, opts ...string) http.Handler {
+func (api *API) APIHandlerTrustRequester(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -153,7 +155,7 @@ func (api *API) APIHandlerTrustRequester(h handlerFunc, opts ...string) http.Han
 
 // APISessionRequiredTrustRequester provides a handler for API endpoints which do require the user to be logged in and
 // are allowed to be requested directly rather than via javascript/XMLHttpRequest, such as emoji or file uploads.
-func (api *API) APISessionRequiredTrustRequester(h handlerFunc, opts ...string) http.Handler {
+func (api *API) APISessionRequiredTrustRequester(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -174,7 +176,7 @@ func (api *API) APISessionRequiredTrustRequester(h handlerFunc, opts ...string) 
 
 // DisableWhenBusy provides a handler for API endpoints which should be disabled when the server is under load,
 // responding with HTTP 503 (Service Unavailable).
-func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, opts ...string) http.Handler {
+func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:             api.srv,
 		HandleFunc:      h,
@@ -198,7 +200,7 @@ func (api *API) APISessionRequiredDisableWhenBusy(h handlerFunc, opts ...string)
 // mode, this is, through a UNIX socket and without an authenticated
 // session, but with one that has no user set and no permission
 // restrictions
-func (api *API) APILocal(h handlerFunc, opts ...string) http.Handler {
+func (api *API) APILocal(h handlerFunc, opts ...APIHandlerOption) http.Handler {
 	handler := &web.Handler{
 		Srv:            api.srv,
 		HandleFunc:     h,
@@ -245,7 +247,7 @@ func minimumProfessionalLicense(c *Context) *model.AppError {
 	return nil
 }
 
-func setHandlerOpts(handler *web.Handler, opts ...string) {
+func setHandlerOpts(handler *web.Handler, opts ...APIHandlerOption) {
 	if len(opts) == 0 {
 		return
 	}
