@@ -150,4 +150,9 @@ type Client interface {
 	ResetSamlAuthDataToEmail(ctx context.Context, includeDeleted bool, dryRun bool, userIDs []string) (int64, *model.Response, error)
 	GenerateSupportPacket(ctx context.Context) ([]byte, *model.Response, error)
 	GetOAuthApps(ctx context.Context, page, perPage int) ([]*model.OAuthApp, *model.Response, error)
+	GetPreferences(ctx context.Context, userId string) (model.Preferences, *model.Response, error)
+	GetPreferencesByCategory(ctx context.Context, userId, category string) (model.Preferences, *model.Response, error)
+	GetPreferenceByCategoryAndName(ctx context.Context, userId, category, preferenceName string) (*model.Preference, *model.Response, error)
+	UpdatePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
+	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 }

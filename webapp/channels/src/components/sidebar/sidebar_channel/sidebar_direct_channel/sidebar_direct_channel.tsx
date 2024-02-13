@@ -31,7 +31,7 @@ type Props = {
     active: boolean;
     actions: {
         savePreferences: (userId: string, preferences: PreferenceType[]) => Promise<ActionResult>;
-        leaveDirectChannel: (channelId: string) => Promise<{data: boolean}>;
+        leaveDirectChannel: (channelId: string) => Promise<ActionResult>;
     };
 };
 

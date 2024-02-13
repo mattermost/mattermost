@@ -9,6 +9,7 @@ import type {PreferenceType} from '@mattermost/types/preferences';
 import type {UserStatus} from '@mattermost/types/users';
 
 import {Preferences} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ConfirmModal from 'components/confirm_modal';
 
@@ -139,7 +140,7 @@ type Props = {
         /*
          * Function to get and then reset the user's status if needed
          */
-        autoResetStatus: () => Promise<{data: UserStatus}>;
+        autoResetStatus: () => Promise<ActionResult<UserStatus>>;
 
         /*
          * Function to set the status for a user
@@ -172,14 +173,17 @@ export default class ResetStatusModal extends React.PureComponent<Props, State> 
 
     public componentDidMount(): void {
         this.props.actions.autoResetStatus().then(
-            (result: {data: UserStatus}) => {
-                const status = result.data;
-                const statusIsManual = status.manual;
+            (result) => {
+                if (result.data! === null) {
+                    return;
+                }
+                const status = result.data!;
+                const statusIsManual = status?.manual;
                 const autoResetPrefNotSet = this.props.autoResetPref === '';
 
                 this.setState({
                     currentUserStatus: status, // Set in state until status refactor where we store 'manual' field in redux
-                    show: Boolean(status.status === UserStatuses.OUT_OF_OFFICE || (statusIsManual && autoResetPrefNotSet)),
+                    show: Boolean(status?.status === UserStatuses.OUT_OF_OFFICE || (statusIsManual && autoResetPrefNotSet)),
                 });
             },
         );
@@ -219,7 +223,7 @@ export default class ResetStatusModal extends React.PureComponent<Props, State> 
     };
 
     public render(): JSX.Element {
-        const userStatus = this.state.currentUserStatus.status || '';
+        const userStatus = this.state.currentUserStatus?.status || '';
         const manualStatusTitle = messages[userStatus] ? (<FormattedMessage {...messages[userStatus].title}/>) : '';
 
         const manualStatusMessage = this.renderModalMessage();

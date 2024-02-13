@@ -10,7 +10,6 @@ import type {Feedback} from '@mattermost/types/cloud';
 
 import {getSubscriptionProduct} from 'mattermost-redux/selectors/entities/cloud';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {subscribeCloudSubscription, deleteWorkspace as deleteWorkspaceRequest} from 'actions/cloud';
 import {closeModal, openModal} from 'actions/views/modals';
@@ -45,7 +44,7 @@ export const messages = defineMessages({
 });
 
 export default function DeleteWorkspaceModal(props: Props) {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const openDowngradeModal = useOpenDowngradeModal();
 
     // License/product checks.

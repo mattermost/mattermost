@@ -139,13 +139,16 @@ export type Actions = {
     migrateRecentEmojis: () => void;
     loadConfigAndMe: () => Promise<ActionResult>;
     registerCustomPostRenderer: (type: string, component: any, id: string) => Promise<ActionResult>;
-    initializeProducts: () => Promise<ActionResult[]>;
+    initializeProducts: () => Promise<unknown>;
 }
 
 type Props = {
     theme: Theme;
     telemetryEnabled: boolean;
     telemetryId?: string;
+    iosDownloadLink?: string;
+    androidDownloadLink?: string;
+    appDownloadLink?: string;
     noAccounts: boolean;
     showTermsOfService: boolean;
     permalinkRedirectTeamName: string;
@@ -292,28 +295,65 @@ export default class Root extends React.PureComponent<Props, State> {
         this.props.actions.migrateRecentEmojis();
         store.dispatch(loadRecentlyUsedCustomEmojis());
 
-        const iosDownloadLink = getConfig(store.getState()).IosAppDownloadLink;
-        const androidDownloadLink = getConfig(store.getState()).AndroidAppDownloadLink;
-        const desktopAppDownloadLink = getConfig(store.getState()).AppDownloadLink;
-
-        const toResetPasswordScreen = this.props.location.pathname === '/reset_password_complete';
-
-        // redirect to the mobile landing page if the user hasn't seen it before
-        let landing;
-        if (UserAgent.isAndroidWeb()) {
-            landing = androidDownloadLink;
-        } else if (UserAgent.isIosWeb()) {
-            landing = iosDownloadLink;
-        } else {
-            landing = desktopAppDownloadLink;
-        }
-
-        if (landing && !this.props.isCloud && !BrowserStore.hasSeenLandingPage() && !toResetPasswordScreen && !this.props.location.pathname.includes('/landing') && !window.location.hostname?.endsWith('.test.mattermost.com') && !UserAgent.isDesktopApp() && !UserAgent.isChromebook()) {
-            this.props.history.push('/landing#' + this.props.location.pathname + this.props.location.search);
-            BrowserStore.setLandingPageSeen(true);
-        }
+        this.showLandingPageIfNecessary();
 
         Utils.applyTheme(this.props.theme);
+    };
+
+    private showLandingPageIfNecessary = () => {
+        // We have nothing to redirect to if we're already on Desktop App
+        // Chromebook has no Desktop App to switch to
+        if (UserAgent.isDesktopApp() || UserAgent.isChromebook()) {
+            return;
+        }
+
+        // Nothing to link to if we've removed the Android App download link
+        if (UserAgent.isAndroidWeb() && !this.props.androidDownloadLink) {
+            return;
+        }
+
+        // Nothing to link to if we've removed the iOS App download link
+        if (UserAgent.isIosWeb() && !this.props.iosDownloadLink) {
+            return;
+        }
+
+        // Nothing to link to if we've removed the Desktop App download link
+        if (!this.props.appDownloadLink) {
+            return;
+        }
+
+        // Only show the landing page once
+        if (BrowserStore.hasSeenLandingPage()) {
+            return;
+        }
+
+        // We don't want to show when resetting the password
+        if (this.props.location.pathname === '/reset_password_complete') {
+            return;
+        }
+
+        // We don't want to show when we're doing Desktop App external login
+        if (this.props.location.pathname === '/login/desktop') {
+            return;
+        }
+
+        // Stop this infinitely redirecting
+        if (this.props.location.pathname.includes('/landing')) {
+            return;
+        }
+
+        // Disabled to avoid breaking the CWS flow
+        if (this.props.isCloud) {
+            return;
+        }
+
+        // Disable for Rainforest tests
+        if (window.location.hostname?.endsWith('.test.mattermost.com')) {
+            return;
+        }
+
+        this.props.history.push('/landing#' + this.props.location.pathname + this.props.location.search);
+        BrowserStore.setLandingPageSeen(true);
     };
 
     componentDidUpdate(prevProps: Props) {
