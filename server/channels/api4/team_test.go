@@ -327,6 +327,7 @@ func TestGetTeamSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 		rteam, _, err := th.Client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
 
@@ -1452,7 +1453,16 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 	})
 
-	t.Run("team admin/non-admin", func(t *testing.T) {
+	t.Run("team admin/non-admin without invite permission", func(t *testing.T) {
+		rteam, _, err := th.Client.GetTeamByName(context.Background(), team.Name, "")
+		require.NoError(t, err)
+
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
+	})
+
+	t.Run("team admin/non-admin with invite permission", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 		rteam, _, err := th.Client.GetTeamByName(context.Background(), team.Name, "")
 		require.NoError(t, err)
 
