@@ -163,6 +163,7 @@ type ServiceInterface interface {
 	SendRemoveExpiredLicenseEmail(ctaText, ctaLink, email, locale, siteURL string) error
 	AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError
 	GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string
+	GenerateHyperlinkForChannels(postMessage, channelName, teamURL string) (string, error)
 	InitEmailBatching()
 	SendChangeUsernameEmail(newUsername, email, locale, siteURL string) error
 	CreateVerifyEmailToken(userID string, newEmail string) (*model.Token, error)

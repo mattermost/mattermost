@@ -6,6 +6,8 @@ package email
 import (
 	"bytes"
 	"fmt"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
+	"html"
 	"html/template"
 	"io"
 	"net/http"
@@ -332,12 +334,27 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				channelDisplayName = truncateUserNames(channel.DisplayName, 11)
 			}
 
+			postMessage := es.GetMessageForNotification(notification.post, translateFunc)
+			postMessage = html.EscapeString(postMessage)
+			markDownPostMessage, mdErr := utils.MarkdownToHTML(postMessage, siteURL)
+			if mdErr != nil {
+				mlog.Error("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
+				markDownPostMessage = postMessage
+			}
+
+			landingURL := siteURL + "/landing#/" + notification.teamName
+			normalizedPostMessage, err := es.GenerateHyperlinkForChannels(channel.TeamId, markDownPostMessage, landingURL)
+			if err != nil {
+				mlog.Error("Encountered error while generating hyperlink for channels", mlog.String("team_name", notification.teamName), mlog.Err(mdErr))
+				normalizedPostMessage = markDownPostMessage
+			}
+
 			postsData = append(postsData, &postData{
 				SenderPhoto:              senderPhoto,
 				SenderName:               truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
 				Time:                     t,
 				ChannelName:              channelDisplayName,
-				Message:                  template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
+				Message:                  template.HTML(normalizedPostMessage),
 				MessageURL:               MessageURL,
 				ShowChannelIcon:          showChannelIcon,
 				OtherChannelMembersCount: otherChannelMembersCount,
@@ -375,4 +392,27 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 	if nErr := es.SendMailWithEmbeddedFiles(user.Email, subject, renderedPage, embeddedFiles, "", "", "", "BatchedEmailNotification"); nErr != nil {
 		mlog.Warn("Unable to send batched email notification", mlog.String("email", user.Email), mlog.Err(nErr))
 	}
+}
+
+func (es *Service) GenerateHyperlinkForChannels(teamId, postMessage, landingURL string) (string, error) {
+	channelNames := model.ChannelMentions(postMessage)
+	if len(channelNames) == 0 {
+		return postMessage, nil
+	}
+
+	channels, err := es.store.Channel().GetByNames(teamId, channelNames, true)
+	if err != nil {
+		return "", err
+	}
+
+	visited := make(map[string]bool)
+	for _, ch := range channels {
+		if !visited[ch.Id] && ch.Type == model.ChannelTypeOpen {
+			channelURL := landingURL + "/channels/" + ch.Name
+			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
+			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
+			visited[ch.Id] = true
+		}
+	}
+	return postMessage, nil
 }
