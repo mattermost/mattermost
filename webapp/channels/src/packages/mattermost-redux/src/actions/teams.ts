@@ -16,19 +16,21 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
-import {isCompatibleWithJoinViewTeamPermissions} from 'mattermost-redux/selectors/entities/general';
-import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import EventEmitter from 'mattermost-redux/utils/event_emitter';
 
 async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: DispatchFunc, getState: GetStateFunc) {
+    const state = getState();
     const {
         currentUserId,
         profiles,
         statuses,
-    } = getState().entities.users;
+    } = state.entities.users;
+    const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
+
     const profilesToLoad: string[] = [];
     const statusesToLoad: string[] = [];
     userIds.forEach((userId) => {
@@ -46,7 +48,7 @@ async function getProfilesAndStatusesForMembers(userIds: string[], dispatch: Dis
         requests.push(dispatch(getProfilesByIds(profilesToLoad)));
     }
 
-    if (statusesToLoad.length) {
+    if (statusesToLoad.length && enabledUserStatuses) {
         requests.push(dispatch(getStatusesByIds(statusesToLoad)));
     }
 
@@ -73,7 +75,7 @@ export function getMyTeams() {
 // The argument skipCurrentTeam is a (not ideal) workaround for CRT mention counts. Unread mentions are stored in the reducer per
 // team but we do not track unread mentions for DMs/GMs independently. This results in a bit of funky logic and edge case bugs
 // that need workarounds like this. In the future we should fix the root cause with better APIs and redux state.
-export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = false): NewActionFuncAsync {
+export function getMyTeamUnreads(collapsedThreads: boolean, skipCurrentTeam = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         let unreads;
         try {
@@ -125,7 +127,7 @@ export function getTeamByName(teamName: string) {
     });
 }
 
-export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false): NewActionFuncAsync {
+export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, includeTotalCount = false, excludePolicyConstrained = false): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
 
@@ -164,9 +166,9 @@ export function getTeams(page = 0, perPage: number = General.TEAMS_CHUNK_SIZE, i
     };
 }
 
-export function searchTeams(term: string, opts: PagedTeamSearchOpts): NewActionFuncAsync<Team[]>;
-export function searchTeams(term: string, opts?: NotPagedTeamSearchOpts): NewActionFuncAsync<TeamsWithCount>;
-export function searchTeams(term: string, opts: TeamSearchOpts = {}): NewActionFuncAsync {
+export function searchTeams(term: string, opts: PagedTeamSearchOpts): ActionFuncAsync<Team[]>;
+export function searchTeams(term: string, opts?: NotPagedTeamSearchOpts): ActionFuncAsync<TeamsWithCount>;
+export function searchTeams(term: string, opts: TeamSearchOpts = {}): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({type: TeamTypes.GET_TEAMS_REQUEST, data: null});
 
@@ -202,7 +204,7 @@ export function searchTeams(term: string, opts: TeamSearchOpts = {}): NewActionF
     };
 }
 
-export function createTeam(team: Team): NewActionFuncAsync<Team> {
+export function createTeam(team: Team): ActionFuncAsync<Team> {
     return async (dispatch, getState) => {
         let created;
         try {
@@ -242,7 +244,7 @@ export function createTeam(team: Team): NewActionFuncAsync<Team> {
     };
 }
 
-export function deleteTeam(teamId: string): NewActionFuncAsync {
+export function deleteTeam(teamId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.deleteTeam(teamId);
@@ -275,7 +277,7 @@ export function deleteTeam(teamId: string): NewActionFuncAsync {
     };
 }
 
-export function unarchiveTeam(teamId: string): NewActionFuncAsync {
+export function unarchiveTeam(teamId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let team: Team;
         try {
@@ -325,7 +327,7 @@ export function regenerateTeamInviteId(teamId: string) {
     });
 }
 
-export function getMyTeamMembers(): NewActionFuncAsync<TeamMembership[]> {
+export function getMyTeamMembers(): ActionFuncAsync<TeamMembership[]> {
     return async (dispatch) => {
         const getMyTeamMembersFunc = bindClientFunc({
             clientFunc: Client4.getMyTeamMembers,
@@ -365,7 +367,7 @@ export function getTeamMembers(teamId: string, page = 0, perPage: number = Gener
     });
 }
 
-export function getTeamMember(teamId: string, userId: string): NewActionFuncAsync {
+export function getTeamMember(teamId: string, userId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let member;
         try {
@@ -389,7 +391,7 @@ export function getTeamMember(teamId: string, userId: string): NewActionFuncAsyn
     };
 }
 
-export function getTeamMembersByIds(teamId: string, userIds: string[]): NewActionFuncAsync<TeamMembership[]> {
+export function getTeamMembersByIds(teamId: string, userIds: string[]): ActionFuncAsync<TeamMembership[]> {
     return async (dispatch, getState) => {
         let members;
         try {
@@ -458,7 +460,7 @@ export function addUserToTeamFromInvite(token: string, inviteId: string) {
     });
 }
 
-export function addUserToTeam(teamId: string, userId: string): NewActionFuncAsync<TeamMembership> {
+export function addUserToTeam(teamId: string, userId: string): ActionFuncAsync<TeamMembership> {
     return async (dispatch, getState) => {
         let member;
         try {
@@ -484,37 +486,7 @@ export function addUserToTeam(teamId: string, userId: string): NewActionFuncAsyn
     };
 }
 
-export function addUsersToTeam(teamId: string, userIds: string[]): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        let members;
-        try {
-            members = await Client4.addUsersToTeam(teamId, userIds);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        const profiles: Array<Partial<UserProfile>> = [];
-        members.forEach((m: TeamMembership) => profiles.push({id: m.user_id}));
-
-        dispatch(batchActions([
-            {
-                type: UserTypes.RECEIVED_PROFILES_LIST_IN_TEAM,
-                data: profiles,
-                id: teamId,
-            },
-            {
-                type: TeamTypes.RECEIVED_MEMBERS_IN_TEAM,
-                data: members,
-            },
-        ]));
-
-        return {data: members};
-    };
-}
-
-export function addUsersToTeamGracefully(teamId: string, userIds: string[]): NewActionFuncAsync<TeamMemberWithError[]> {
+export function addUsersToTeamGracefully(teamId: string, userIds: string[]): ActionFuncAsync<TeamMemberWithError[]> {
     return async (dispatch, getState) => {
         let result: TeamMemberWithError[];
         try {
@@ -544,7 +516,7 @@ export function addUsersToTeamGracefully(teamId: string, userIds: string[]): New
     };
 }
 
-export function removeUserFromTeam(teamId: string, userId: string): NewActionFuncAsync {
+export function removeUserFromTeam(teamId: string, userId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.removeFromTeam(teamId, userId);
@@ -593,28 +565,6 @@ export function removeUserFromTeam(teamId: string, userId: string): NewActionFun
         }
 
         dispatch(batchActions(actions));
-
-        return {data: true};
-    };
-}
-
-export function updateTeamMemberRoles(teamId: string, userId: string, roles: string[]): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        try {
-            await Client4.updateTeamMemberRoles(teamId, userId, roles);
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch(logError(error));
-            return {error};
-        }
-
-        const membersInTeam = getState().entities.teams.membersInTeam[teamId];
-        if (membersInTeam && membersInTeam[userId]) {
-            dispatch({
-                type: TeamTypes.RECEIVED_MEMBER_IN_TEAM,
-                data: {...membersInTeam[userId], roles},
-            });
-        }
 
         return {data: true};
     };
@@ -692,7 +642,7 @@ export function getTeamInviteInfo(inviteId: string) {
     });
 }
 
-export function checkIfTeamExists(teamName: string): NewActionFuncAsync<boolean> {
+export function checkIfTeamExists(teamName: string): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -707,38 +657,7 @@ export function checkIfTeamExists(teamName: string): NewActionFuncAsync<boolean>
     };
 }
 
-export function joinTeam(inviteId: string, teamId: string): NewActionFuncAsync { // HARRISONTODO
-    return async (dispatch, getState) => {
-        dispatch({type: TeamTypes.JOIN_TEAM_REQUEST, data: null});
-
-        const state = getState();
-        try {
-            if (isCompatibleWithJoinViewTeamPermissions(state)) {
-                const currentUserId = state.entities.users.currentUserId;
-                await Client4.addToTeam(teamId, currentUserId);
-            } else {
-                await Client4.joinTeam(inviteId);
-            }
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            dispatch({type: TeamTypes.JOIN_TEAM_FAILURE, error});
-            dispatch(logError(error));
-            return {error};
-        }
-
-        dispatch(getMyTeamUnreads(isCollapsedThreadsEnabled(state)));
-
-        await Promise.all([
-            dispatch(getTeam(teamId)),
-            dispatch(getMyTeamMembers()),
-        ]);
-
-        dispatch({type: TeamTypes.JOIN_TEAM_SUCCESS, data: null});
-        return {data: true};
-    };
-}
-
-export function setTeamIcon(teamId: string, imageData: File): NewActionFuncAsync {
+export function setTeamIcon(teamId: string, imageData: File): ActionFuncAsync {
     return async (dispatch) => {
         await Client4.setTeamIcon(teamId, imageData);
         const team = await Client4.getTeam(teamId);
@@ -750,7 +669,7 @@ export function setTeamIcon(teamId: string, imageData: File): NewActionFuncAsync
     };
 }
 
-export function removeTeamIcon(teamId: string): NewActionFuncAsync {
+export function removeTeamIcon(teamId: string): ActionFuncAsync {
     return async (dispatch) => {
         await Client4.removeTeamIcon(teamId);
         const team = await Client4.getTeam(teamId);
@@ -762,7 +681,7 @@ export function removeTeamIcon(teamId: string): NewActionFuncAsync {
     };
 }
 
-export function updateTeamScheme(teamId: string, schemeId: string): NewActionFuncAsync<{teamId: string; schemeId: string}> {
+export function updateTeamScheme(teamId: string, schemeId: string): ActionFuncAsync<{teamId: string; schemeId: string}> {
     return bindClientFunc({
         clientFunc: async () => {
             await Client4.updateTeamScheme(teamId, schemeId);
@@ -777,7 +696,7 @@ export function updateTeamMemberSchemeRoles(
     userId: string,
     isSchemeUser: boolean,
     isSchemeAdmin: boolean,
-): NewActionFuncAsync {
+): ActionFuncAsync {
     return bindClientFunc({
         clientFunc: async () => {
             await Client4.updateTeamMemberSchemeRoles(teamId, userId, isSchemeUser, isSchemeAdmin);

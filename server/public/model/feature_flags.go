@@ -54,6 +54,7 @@ type FeatureFlags struct {
 	OutgoingOAuthConnections bool
 
 	CloudDedicatedExportUI bool
+
 }
 
 func (f *FeatureFlags) SetDefaults() {
