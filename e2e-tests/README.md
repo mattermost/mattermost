@@ -51,6 +51,7 @@ Notes:
   * If their value is fixed (e.g. a static server configuration), these may be simply added to the `docker_compose_generator.sh` file, to the appropriate container.
   * If you need to introduce variables that you want to control from `.ci/env`: you need to update the scripts under the `.ci/` dir, and configure them to write the new variables' values over to the appropriate `.env.*` file. In particular, avoid defining variables that depend on other variables within the docker-compose override files: this is to ensure uniformity in their availability, and simplifies the question of what container has access to which variable considerably.
   * Exceptions are of course accepted wherever it makes sense (e.g. if you need to group variables based on some common functionality)
+- The `publish-report` Make target is meant for internal usage. Usage and variables are documented in the respective scripts.
 
 ##### For code changes:
 * `make fmt-ci` to format and check yaml files and shell scripts.

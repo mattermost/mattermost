@@ -296,6 +296,7 @@ generate_env_files() {
 	BROWSER
         HEADLESS
         REPO
+        CYPRESS_pushNotificationServer
 	EOF
     # Adding service-specific cypress variables
     for SERVICE in $ENABLED_DOCKER_SERVICES; do
