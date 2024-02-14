@@ -46,7 +46,6 @@ export type ChannelBookmarkPatch = {
     link_url?: string;
     image_url?: string;
     emoji?: string;
-    type?: ChannelBookmarkType;
 }
 
 export type ChannelBookmarkWithFileInfo = ChannelBookmark & {
