@@ -158,41 +158,6 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="pushTitle"
-              >
-                Mobile Push Notifications
-              </h4>
-              <button
-                aria-expanded="false"
-                aria-labelledby="pushTitle pushEdit"
-                class="color--link style--none section-min__edit"
-                id="pushEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
-            <div
-              class="section-min__describe"
-              id="pushDesc"
-            >
-              Never
-            </div>
-          </div>
-          <div
-            class="divider-light"
-          />
-          <div
-            class="section-min"
-          >
-            <div
-              class="secion-min__header"
-            >
-              <h4
-                class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
                 Keywords That Trigger Notifications
@@ -403,41 +368,6 @@ Object {
             id="emailDesc"
           >
             Email notifications are not enabled
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="section-min"
-        >
-          <div
-            class="secion-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="pushTitle"
-            >
-              Mobile Push Notifications
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="pushTitle pushEdit"
-              class="color--link style--none section-min__edit"
-              id="pushEdit"
-            >
-              <i
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="pushDesc"
-          >
-            Never
           </div>
         </div>
         <div
@@ -733,41 +663,6 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="pushTitle"
-              >
-                Mobile Push Notifications
-              </h4>
-              <button
-                aria-expanded="false"
-                aria-labelledby="pushTitle pushEdit"
-                class="color--link style--none section-min__edit"
-                id="pushEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
-            <div
-              class="section-min__describe"
-              id="pushDesc"
-            >
-              Never
-            </div>
-          </div>
-          <div
-            class="divider-light"
-          />
-          <div
-            class="section-min"
-          >
-            <div
-              class="secion-min__header"
-            >
-              <h4
-                class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
                 Keywords That Trigger Notifications
@@ -981,41 +876,6 @@ Object {
             id="emailDesc"
           >
             Email notifications are not enabled
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="section-min"
-        >
-          <div
-            class="secion-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="pushTitle"
-            >
-              Mobile Push Notifications
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="pushTitle pushEdit"
-              class="color--link style--none section-min__edit"
-              id="pushEdit"
-            >
-              <i
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="pushDesc"
-          >
-            Never
           </div>
         </div>
         <div
@@ -1314,41 +1174,6 @@ Object {
             >
               <h4
                 class="section-min__title"
-                id="pushTitle"
-              >
-                Mobile Push Notifications
-              </h4>
-              <button
-                aria-expanded="false"
-                aria-labelledby="pushTitle pushEdit"
-                class="color--link style--none section-min__edit"
-                id="pushEdit"
-              >
-                <i
-                  class="icon-pencil-outline"
-                  title="Edit Icon"
-                />
-                Edit
-              </button>
-            </div>
-            <div
-              class="section-min__describe"
-              id="pushDesc"
-            >
-              Never
-            </div>
-          </div>
-          <div
-            class="divider-light"
-          />
-          <div
-            class="section-min"
-          >
-            <div
-              class="secion-min__header"
-            >
-              <h4
-                class="section-min__title"
                 id="keywordsAndMentionsTitle"
               >
                 Keywords That Trigger Notifications
@@ -1524,41 +1349,6 @@ Object {
             id="emailDesc"
           >
             Email notifications are not enabled
-          </div>
-        </div>
-        <div
-          class="divider-light"
-        />
-        <div
-          class="section-min"
-        >
-          <div
-            class="secion-min__header"
-          >
-            <h4
-              class="section-min__title"
-              id="pushTitle"
-            >
-              Mobile Push Notifications
-            </h4>
-            <button
-              aria-expanded="false"
-              aria-labelledby="pushTitle pushEdit"
-              class="color--link style--none section-min__edit"
-              id="pushEdit"
-            >
-              <i
-                class="icon-pencil-outline"
-                title="Edit Icon"
-              />
-              Edit
-            </button>
-          </div>
-          <div
-            class="section-min__describe"
-            id="pushDesc"
-          >
-            Never
           </div>
         </div>
         <div

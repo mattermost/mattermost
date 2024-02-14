@@ -22,12 +22,9 @@ exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSet
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="all"
-                id="desktopNotificationAllActivity"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="all"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="All new messages"
@@ -42,12 +39,9 @@ exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSet
             <label>
               <input
                 checked={true}
-                data-key="desktopActivity"
-                data-value="mention"
-                id="desktopNotificationMentions"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="mention"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Mentions, direct messages, and group messages"
@@ -62,12 +56,9 @@ exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSet
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="none"
-                id="desktopNotificationNever"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="none"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Nothing"
@@ -76,9 +67,28 @@ exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSet
             </label>
           </div>
         </fieldset>
-        <hr />
       </React.Fragment>,
       <React.Fragment>
+        <br />
+        <div
+          className="checkbox single-checkbox"
+        >
+          <label>
+            <input
+              checked={false}
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Use different settings for mobile notifications"
+              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
+            />
+          </label>
+        </div>
+      </React.Fragment>,
+      <hr />,
+      <React.Fragment>
+        <hr />
         <label
           className="singleSelectLabel"
           htmlFor="pushNotificationSelectInput"
@@ -180,12 +190,9 @@ exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSet
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="all"
-                id="desktopNotificationAllActivity"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="all"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="All new messages"
@@ -200,12 +207,9 @@ exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSet
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="mention"
-                id="desktopNotificationMentions"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="mention"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Mentions, direct messages, and group messages"
@@ -220,12 +224,9 @@ exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSet
             <label>
               <input
                 checked={true}
-                data-key="desktopActivity"
-                data-value="none"
-                id="desktopNotificationNever"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="none"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Nothing"
@@ -234,72 +235,26 @@ exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSet
             </label>
           </div>
         </fieldset>
-        <hr />
       </React.Fragment>,
       <React.Fragment>
-        <label
-          className="singleSelectLabel"
-          htmlFor="pushNotificationSelectInput"
-          id="pushNotificationLabel"
+        <br />
+        <div
+          className="checkbox single-checkbox"
         >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Send mobile notifications when I am:"
-            id="user.settings.notifications.desktopAndMobile.pushNotification"
-          />
-        </label>
-        <StateManager
-          aria-labelledby="pushNotificationLabel"
-          className="react-select singleSelect"
-          classNamePrefix="react-select"
-          clearable={false}
-          components={
-            Object {
-              "IndicatorSeparator": [Function],
-            }
-          }
-          defaultInputValue=""
-          defaultMenuIsOpen={false}
-          defaultValue={null}
-          inputId="pushNotificationSelectInput"
-          isClearable={false}
-          isSearchable={false}
-          onChange={[Function]}
-          options={
-            Array [
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Online, away or offline"
-                  id="user.settings.push_notification.online"
-                />,
-                "value": "online",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Away or offline"
-                  id="user.settings.push_notification.away"
-                />,
-                "value": "away",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Offline"
-                  id="user.settings.push_notification.offline"
-                />,
-                "value": "offline",
-              },
-            ]
-          }
-          value={
-            Object {
-              "label": <Memo(MemoizedFormattedMessage)
-                defaultMessage="Offline"
-                id="user.settings.push_notification.offline"
-              />,
-              "value": "offline",
-            }
-          }
-        />
+          <label>
+            <input
+              checked={false}
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Use different settings for mobile notifications"
+              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
+            />
+          </label>
+        </div>
       </React.Fragment>,
+      <hr />,
     ]
   }
   saving={false}
@@ -376,12 +331,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="all"
-                id="desktopNotificationAllActivity"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="all"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="All new messages"
@@ -396,12 +348,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             <label>
               <input
                 checked={true}
-                data-key="desktopActivity"
-                data-value="mention"
-                id="desktopNotificationMentions"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="mention"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Mentions, direct messages, and group messages"
@@ -416,12 +365,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="none"
-                id="desktopNotificationNever"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="none"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Nothing"
@@ -430,9 +376,28 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             </label>
           </div>
         </fieldset>
-        <hr />
       </React.Fragment>,
       <React.Fragment>
+        <br />
+        <div
+          className="checkbox single-checkbox"
+        >
+          <label>
+            <input
+              checked={false}
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Use different settings for mobile notifications"
+              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
+            />
+          </label>
+        </div>
+      </React.Fragment>,
+      <hr />,
+      <React.Fragment>
+        <hr />
         <label
           className="singleSelectLabel"
           htmlFor="pushNotificationSelectInput"
@@ -534,12 +499,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="all"
-                id="desktopNotificationAllActivity"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="all"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="All new messages"
@@ -554,12 +516,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={true}
-                data-key="desktopActivity"
-                data-value="mention"
-                id="desktopNotificationMentions"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="mention"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Mentions, direct messages, and group messages"
@@ -574,12 +533,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="none"
-                id="desktopNotificationNever"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="none"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Nothing"
@@ -588,9 +544,28 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             </label>
           </div>
         </fieldset>
-        <hr />
       </React.Fragment>,
       <React.Fragment>
+        <br />
+        <div
+          className="checkbox single-checkbox"
+        >
+          <label>
+            <input
+              checked={false}
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Use different settings for mobile notifications"
+              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
+            />
+          </label>
+        </div>
+      </React.Fragment>,
+      <hr />,
+      <React.Fragment>
+        <hr />
         <label
           className="singleSelectLabel"
           htmlFor="pushNotificationSelectInput"
@@ -692,12 +667,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="all"
-                id="desktopNotificationAllActivity"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="all"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="All new messages"
@@ -712,12 +684,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={true}
-                data-key="desktopActivity"
-                data-value="mention"
-                id="desktopNotificationMentions"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="mention"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Mentions, direct messages, and group messages"
@@ -732,12 +701,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="none"
-                id="desktopNotificationNever"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="none"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Nothing"
@@ -746,9 +712,28 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             </label>
           </div>
         </fieldset>
-        <hr />
       </React.Fragment>,
       <React.Fragment>
+        <br />
+        <div
+          className="checkbox single-checkbox"
+        >
+          <label>
+            <input
+              checked={false}
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Use different settings for mobile notifications"
+              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
+            />
+          </label>
+        </div>
+      </React.Fragment>,
+      <hr />,
+      <React.Fragment>
+        <hr />
         <label
           className="singleSelectLabel"
           htmlFor="pushNotificationSelectInput"
@@ -850,12 +835,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="all"
-                id="desktopNotificationAllActivity"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="all"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="All new messages"
@@ -870,12 +852,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={true}
-                data-key="desktopActivity"
-                data-value="mention"
-                id="desktopNotificationMentions"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="mention"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Mentions, direct messages, and group messages"
@@ -890,12 +869,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             <label>
               <input
                 checked={false}
-                data-key="desktopActivity"
-                data-value="none"
-                id="desktopNotificationNever"
-                name="desktopNotificationLevel"
                 onChange={[Function]}
                 type="radio"
+                value="none"
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Nothing"
@@ -904,9 +880,28 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting with 
             </label>
           </div>
         </fieldset>
-        <hr />
       </React.Fragment>,
       <React.Fragment>
+        <br />
+        <div
+          className="checkbox single-checkbox"
+        >
+          <label>
+            <input
+              checked={false}
+              onChange={[Function]}
+              type="checkbox"
+            />
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Use different settings for mobile notifications"
+              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
+            />
+          </label>
+        </div>
+      </React.Fragment>,
+      <hr />,
+      <React.Fragment>
+        <hr />
         <label
           className="singleSelectLabel"
           htmlFor="pushNotificationSelectInput"

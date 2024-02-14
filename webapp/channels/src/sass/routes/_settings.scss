@@ -78,17 +78,6 @@
             list-style: none;
         }
 
-        .checkbox.single-checkbox {
-            min-height: unset;
-            padding: 0;
-        }
-
-        hr {
-            padding: 0;
-            margin-block-end: 24px;
-            margin-block-start: 24px;
-        }
-
         label {
             &.text-left {
                 text-align: left;
@@ -244,13 +233,24 @@
 
                     .sectionContent {
                         padding: 20px 0 0 0;
-                    }
 
-                    .singleSelectLabel {
-                        margin-bottom: 12px;
-                        font-size: 14px;
-                        font-weight: 600;
-                        line-height: 20px;
+                        .checkbox.single-checkbox {
+                            min-height: unset;
+                            padding: 0;
+                        }
+
+                        .singleSelectLabel {
+                            margin-bottom: 12px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            line-height: 20px;
+                        }
+
+                        hr {
+                            padding: 0;
+                            margin-block-end: 24px;
+                            margin-block-start: 24px;
+                        }
                     }
                 }
 

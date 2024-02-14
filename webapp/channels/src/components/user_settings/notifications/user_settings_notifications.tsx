@@ -77,6 +77,7 @@ type State = {
     notifyCommentsLevel: UserNotifyProps['comments'];
     isSaving: boolean;
     serverError: string;
+    desktopAndMobileSettingsDifferent: boolean;
 };
 
 function getDefaultStateFromProps(props: Props): State {
@@ -97,6 +98,7 @@ function getDefaultStateFromProps(props: Props): State {
         id: 'user.settings.notifications.autoResponderDefault',
         defaultMessage: 'Hello, I am out of office and unable to respond to messages.',
     });
+    let desktopAndMobileSettingsDifferent = true;
 
     if (props.user.notify_props) {
         if (props.user.notify_props.desktop) {
@@ -142,6 +144,10 @@ function getDefaultStateFromProps(props: Props): State {
 
         if (props.user.notify_props.auto_responder_message) {
             autoResponderMessage = props.user.notify_props.auto_responder_message;
+        }
+
+        if (props.user.notify_props.desktop && props.user.notify_props.push) {
+            desktopAndMobileSettingsDifferent = areDesktopAndMobileSettingsDifferent(props.user.notify_props.desktop, props.user.notify_props.push);
         }
     }
 
@@ -211,6 +217,7 @@ function getDefaultStateFromProps(props: Props): State {
         notifyCommentsLevel: comments,
         isSaving: false,
         serverError: '',
+        desktopAndMobileSettingsDifferent,
     };
 }
 
@@ -234,8 +241,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.calls_notification_sound = this.state.callsNotificationSound;
         data.desktop = this.state.desktopActivity;
         data.desktop_threads = this.state.desktopThreads;
-        data.email_threads = this.state.emailThreads;
         data.push_threads = this.state.pushThreads;
+        data.email_threads = this.state.emailThreads;
         data.push = this.state.pushActivity;
         data.push_status = this.state.pushStatus;
         data.comments = this.state.notifyCommentsLevel;
@@ -243,6 +250,11 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.auto_responder_message = this.state.autoResponderMessage;
         data.first_name = this.state.firstNameKey ? 'true' : 'false';
         data.channel = this.state.channelKey ? 'true' : 'false';
+
+        // Override if desktop and mobile settings are not supposed to be different, use desktop settings for mobile as well
+        if (this.state.desktopAndMobileSettingsDifferent === false) {
+            data.push = this.state.desktopActivity;
+        }
 
         if (!data.auto_responder_message || data.auto_responder_message === '') {
             data.auto_responder_message = this.props.intl.formatMessage({
@@ -1119,7 +1131,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
     };
 
     render() {
-        const pushNotificationSection = this.createPushNotificationSection();
         const keywordsWithNotificationSection = this.createKeywordsWithNotificationSection();
         const keywordsWithHighlightSection = this.createKeywordsWithHighlightSection();
         const commentsSection = this.createCommentsSection();
@@ -1178,11 +1189,12 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         areAllSectionsInactive={this.props.activeSection === ''}
                         isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
                         desktopActivity={this.state.desktopActivity}
-                        sendPushNotifications={this.props.sendPushNotifications}
                         pushActivity={this.state.pushActivity}
+                        sendPushNotifications={this.props.sendPushNotifications}
                         pushStatus={this.state.pushStatus}
                         desktopThreads={this.state.desktopThreads}
                         pushThreads={this.state.pushThreads}
+                        desktopAndMobileSettingsDifferent={this.state.desktopAndMobileSettingsDifferent}
                         sound={this.state.desktopSound}
                         callsSound={this.state.callsDesktopSound}
                         selectedSound={this.state.desktopNotificationSound || 'default'}
@@ -1204,8 +1216,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         onChange={this.handleEmailRadio}
                         threads={this.state.emailThreads || ''}
                     />
-                    <div className='divider-light'/>
-                    {pushNotificationSection}
                     <div className='divider-light'/>
                     {keywordsWithNotificationSection}
                     {(!this.props.isEnterpriseOrCloudOrSKUStarterFree && this.props.isEnterpriseReady) && (
@@ -1282,5 +1292,17 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
         },
     })),
 };
+
+export function areDesktopAndMobileSettingsDifferent(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']): boolean {
+    const validActivities = [NotificationLevels.DEFAULT, NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.NONE];
+    if (!validActivities.includes(desktopActivity) || !validActivities.includes(pushActivity)) {
+        return false;
+    }
+    if (desktopActivity === pushActivity) {
+        return false;
+    }
+
+    return true;
+}
 
 export default injectIntl(NotificationsTab);

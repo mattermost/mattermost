@@ -15,7 +15,6 @@ import type SettingItemMinComponent from 'components/setting_item_min';
 
 import Constants, {NotificationLevels, UserSettingsNotificationSections} from 'utils/constants';
 import * as NotificationSounds from 'utils/notification_sounds';
-import {a11yFocus} from 'utils/utils';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
 
@@ -24,7 +23,7 @@ type SelectedOption = {
     value: string;
 };
 
-export type PushNotificationOption = {
+export type SelectOptions = {
     label: ReactNode;
     value: string;
 };
@@ -45,6 +44,7 @@ type Props = {
     pushStatus: UserNotifyProps['push_status'];
     desktopThreads?: UserNotifyProps['desktop_threads'];
     pushThreads: UserNotifyProps['push_threads'];
+    desktopAndMobileSettingsDifferent: boolean;
     sound: string;
     callsSound: string;
     selectedSound: string;
@@ -81,26 +81,32 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
         this.editButtonRef.current?.focus();
     }
 
-    handleMinUpdateSection = (section: string): void => {
+    handleChangeForMinSection = (section: string): void => {
         this.props.updateSection(section);
         this.props.onCancel();
     };
 
-    handleMaxUpdateSection = (section: string): void => this.props.updateSection(section);
+    handleChangeForMaxSection = (section: string): void => {
+        this.props.updateSection(section);
+    };
 
-    handleOnChange = (e: ChangeEvent<HTMLInputElement>): void => {
-        const key = e.currentTarget.getAttribute('data-key');
-        const value = e.currentTarget.getAttribute('data-value');
-        if (key && value) {
-            this.props.setParentState(key, value);
-            a11yFocus(e.currentTarget);
-        }
-        if (key === 'callsDesktopSound' && value === 'false') {
-            NotificationSounds.stopTryNotificationRing();
+    handleChangeForSendNotificationForRadio = (event: ChangeEvent<HTMLInputElement>): void => {
+        const value = event.target.value;
+        this.props.setParentState('desktopActivity', value);
+    };
+
+    handleChangeForDesktopAndMobileDifferentCheckbox = (event: ChangeEvent<HTMLInputElement>): void => {
+        const value = event.target.checked;
+        this.props.setParentState('desktopAndMobileSettingsDifferent', value);
+    };
+
+    handleChangeForSendMobileNotificationForSelect = (selectedOption: ValueType<SelectOptions>): void => {
+        if (selectedOption && 'value' in selectedOption) {
+            this.props.setParentState('pushActivity', selectedOption.value);
         }
     };
 
-    handleChangeForThreadsNotify = (e: ChangeEvent<HTMLInputElement>): void => {
+    handleChangeForThreadsNotificationCheckbox = (e: ChangeEvent<HTMLInputElement>): void => {
         const value = e.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
 
         // We set thread notification for desktop and mobile to the same value
@@ -108,25 +114,9 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
         this.props.setParentState('pushThreads', value);
     };
 
-    setDesktopNotificationSound: ReactSelect['onChange'] = (selectedOption: ValueType<SelectedOption>): void => {
-        if (selectedOption && 'value' in selectedOption) {
-            this.props.setParentState('desktopNotificationSound', selectedOption.value);
-            this.setState({selectedOption});
-            NotificationSounds.tryNotificationSound(selectedOption.value);
-        }
-    };
-
-    handlePushNotificationChange = (selectedOption: ValueType<PushNotificationOption>): void => {
+    handleChangeForSendMobileNotificationsWhen = (selectedOption: ValueType<SelectOptions>): void => {
         if (selectedOption && 'value' in selectedOption) {
             this.props.setParentState('pushStatus', selectedOption.value);
-        }
-    };
-
-    setCallsNotificationRing: ReactSelect['onChange'] = (selectedOption: ValueType<SelectedOption>): void => {
-        if (selectedOption && 'value' in selectedOption) {
-            this.props.setParentState('callsNotificationSound', selectedOption.value);
-            this.setState({callsSelectedOption: selectedOption});
-            NotificationSounds.tryNotificationRing(selectedOption.value);
         }
     };
 
@@ -145,15 +135,6 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
     buildMaximizedSetting = (): JSX.Element => {
         const maxizimedSettingInputs = [];
 
-        const activityRadio = [false, false, false];
-        if (this.props.desktopActivity === NotificationLevels.MENTION) {
-            activityRadio[1] = true;
-        } else if (this.props.desktopActivity === NotificationLevels.NONE) {
-            activityRadio[2] = true;
-        } else {
-            activityRadio[0] = true;
-        }
-
         // Desktop notification activity section
         const desktopNotificationSection = (
             <Fragment key='desktopNotificationSection'>
@@ -167,13 +148,10 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     <div className='radio'>
                         <label>
                             <input
-                                id='desktopNotificationAllActivity'
                                 type='radio'
-                                name='desktopNotificationLevel'
-                                checked={activityRadio[0]}
-                                data-key={'desktopActivity'}
-                                data-value={NotificationLevels.ALL}
-                                onChange={this.handleOnChange}
+                                checked={this.props.desktopActivity === NotificationLevels.ALL}
+                                value={NotificationLevels.ALL}
+                                onChange={this.handleChangeForSendNotificationForRadio}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.allActivity'
@@ -185,13 +163,10 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     <div className='radio'>
                         <label>
                             <input
-                                id='desktopNotificationMentions'
                                 type='radio'
-                                name='desktopNotificationLevel'
-                                checked={activityRadio[1]}
-                                data-key={'desktopActivity'}
-                                data-value={NotificationLevels.MENTION}
-                                onChange={this.handleOnChange}
+                                checked={this.props.desktopActivity === NotificationLevels.MENTION}
+                                value={NotificationLevels.MENTION}
+                                onChange={this.handleChangeForSendNotificationForRadio}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.onlyMentions'
@@ -203,13 +178,10 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     <div className='radio'>
                         <label>
                             <input
-                                id='desktopNotificationNever'
                                 type='radio'
-                                name='desktopNotificationLevel'
-                                checked={activityRadio[2]}
-                                data-key={'desktopActivity'}
-                                data-value={NotificationLevels.NONE}
-                                onChange={this.handleOnChange}
+                                checked={this.props.desktopActivity === NotificationLevels.NONE}
+                                value={NotificationLevels.NONE}
+                                onChange={this.handleChangeForSendNotificationForRadio}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.never'
@@ -222,6 +194,61 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
         );
         maxizimedSettingInputs.push(desktopNotificationSection);
 
+        if (this.props.sendPushNotifications) {
+            const threadNotificationSection = (
+                <Fragment key='differentMobileNotification'>
+                    <br/>
+                    <div className='checkbox single-checkbox'>
+                        <label>
+                            <input
+                                type='checkbox'
+                                checked={this.props.desktopAndMobileSettingsDifferent}
+                                onChange={this.handleChangeForDesktopAndMobileDifferentCheckbox}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.desktopAndMobile.diffentMobileNotification.title'
+                                defaultMessage='Use different settings for mobile notifications'
+                            />
+                        </label>
+                    </div>
+                </Fragment>
+            );
+            maxizimedSettingInputs.push(threadNotificationSection);
+        }
+
+        if (this.props.sendPushNotifications && this.props.desktopAndMobileSettingsDifferent) {
+            const mobileNotificationSection = (
+                <React.Fragment key='sendMobileNotificationForKey'>
+                    <br/>
+                    <label
+                        id='sendMobileNotificationForLabel'
+                        htmlFor='sendMobileNotificationForSelectInput'
+                        className='singleSelectLabel'
+                    >
+                        <FormattedMessage
+                            id='user.settings.notifications.desktopAndMobile.sendNotificationFor.mobile'
+                            defaultMessage='Send mobile notifications for:'
+                        />
+                    </label>
+                    <ReactSelect
+                        inputId='sendMobileNotificationForSelectInput'
+                        aria-labelledby='sendMobileNotificationForLabel'
+                        className='react-select singleSelect'
+                        classNamePrefix='react-select'
+                        options={sendMobileNotificationsForOptions}
+                        clearable={false}
+                        isClearable={false}
+                        isSearchable={false}
+                        onChange={this.handleChangeForSendMobileNotificationForSelect}
+                        value={getValueOfSendMobileNotificationForSelect(this.props.pushActivity)}
+                        components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
+                    />
+                    <hr/>
+                </React.Fragment>
+            );
+            maxizimedSettingInputs.push(mobileNotificationSection);
+        }
+
         maxizimedSettingInputs.push(<hr key='desktopAndMobileNotificationDivider'/>);
 
         // Thread notifications section for desktop and mobile
@@ -233,11 +260,9 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                     <div className='checkbox single-checkbox'>
                         <label>
                             <input
-                                id='desktopThreadsNotificationAllActivity'
                                 type='checkbox'
-                                name='desktopThreadsNotificationLevel'
                                 checked={isChecked}
-                                onChange={this.handleChangeForThreadsNotify}
+                                onChange={this.handleChangeForThreadsNotificationCheckbox}
                             />
                             <FormattedMessage
                                 id='user.settings.notifications.desktopAndMobile.notifyForthreads'
@@ -245,16 +270,16 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                             />
                         </label>
                     </div>
-                    <hr/>
                 </Fragment>
             );
             maxizimedSettingInputs.push(threadNotificationSection);
         }
 
         // Push mobile notifications section
-        if (this.props.sendPushNotifications && this.props.pushActivity !== NotificationLevels.NONE) {
+        if (this.props.sendPushNotifications && shouldShowSendMobileNotificationsForSelect(this.props.desktopActivity, this.props.pushActivity, this.props.desktopAndMobileSettingsDifferent)) {
             const pushMobileNotificationSection = (
                 <React.Fragment key='userNotificationPushStatusOptions'>
+                    <hr/>
                     <label
                         id='pushNotificationLabel'
                         htmlFor='pushNotificationSelectInput'
@@ -270,212 +295,18 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                         aria-labelledby='pushNotificationLabel'
                         className='react-select singleSelect'
                         classNamePrefix='react-select'
-                        options={pushMobileNotificationOptions}
+                        options={sendMobileNotificationWhenOptions}
                         clearable={false}
                         isClearable={false}
                         isSearchable={false}
-                        onChange={this.handlePushNotificationChange}
-                        value={getPushNotificationOptionValue(this.props.pushStatus)}
+                        onChange={this.handleChangeForSendMobileNotificationsWhen}
+                        value={getValueOfSendMobileNotificationWhenSelect(this.props.pushStatus)}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                     />
                 </React.Fragment>
             );
             maxizimedSettingInputs.push(pushMobileNotificationSection);
         }
-
-        // let soundSection;
-        // let notificationSelection;
-        // let callsSection;
-        // let callsNotificationSelection;
-        // if (this.props.activity !== NotificationLevels.NONE) {
-        //     const soundRadio = [false, false];
-        //     if (this.props.sound === 'false') {
-        //         soundRadio[1] = true;
-        //     } else {
-        //         soundRadio[0] = true;
-        //     }
-
-        //     if (this.props.sound === 'true') {
-        //         const sounds = Array.from(NotificationSounds.notificationSounds.keys());
-        //         const options = sounds.map((sound) => {
-        //             return {value: sound, label: sound};
-        //         });
-
-        //         notificationSelection = (<div className='pt-2'>
-        //             <ReactSelect
-        //                 className='react-select notification-sound-dropdown'
-        //                 classNamePrefix='react-select'
-        //                 id='displaySoundNotification'
-        //                 options={options}
-        //                 clearable={false}
-        //                 onChange={this.setDesktopNotificationSound}
-        //                 value={this.state.selectedOption}
-        //                 isSearchable={false}
-        //                 ref={this.dropdownSoundRef}
-        //                 components={{SingleValue: (props) => <div data-testid='displaySoundNotificationValue'>{props.children}</div>}}
-        //             /></div>);
-        //     }
-
-        //     if (this.props.isCallsRingingEnabled) {
-        //         const callsSoundRadio = [false, false];
-        //         if (this.props.callsSound === 'false') {
-        //             callsSoundRadio[1] = true;
-        //         } else {
-        //             callsSoundRadio[0] = true;
-        //         }
-
-        //         if (this.props.callsSound === 'true') {
-        //             const callsSounds = Array.from(NotificationSounds.callsNotificationSounds.keys());
-        //             const callsOptions = callsSounds.map((sound) => {
-        //                 return {value: sound, label: sound};
-        //             });
-
-        //             callsNotificationSelection = (<div className='pt-2'>
-        //                 <ReactSelect
-        //                     className='react-select notification-sound-dropdown'
-        //                     classNamePrefix='react-select'
-        //                     id='displayCallsSoundNotification'
-        //                     options={callsOptions}
-        //                     clearable={false}
-        //                     onChange={this.setCallsNotificationRing}
-        //                     value={this.state.callsSelectedOption}
-        //                     isSearchable={false}
-        //                     ref={this.callsDropdownRef}
-        //                     components={{SingleValue: (props) => <div data-testid='displayCallsSoundNotificationValue'>{props.children}</div>}}
-        //                 /></div>);
-        //         }
-
-        //         callsSection = (
-        //             <>
-        //                 <hr/>
-        //                 <fieldset>
-        //                     <legend className='form-legend'>
-        //                         <FormattedMessage
-        //                             id='user.settings.notifications.desktop.calls_sound'
-        //                             defaultMessage='Notification sound for incoming calls'
-        //                         />
-        //                     </legend>
-        //                     <div className='radio'>
-        //                         <label>
-        //                             <input
-        //                                 id='callsSoundOn'
-        //                                 type='radio'
-        //                                 name='callsNotificationSounds'
-        //                                 checked={callsSoundRadio[0]}
-        //                                 data-key={'callsDesktopSound'}
-        //                                 data-value={'true'}
-        //                                 onChange={this.handleOnChange}
-        //                             />
-        //                             <FormattedMessage
-        //                                 id='user.settings.notifications.on'
-        //                                 defaultMessage='On'
-        //                             />
-        //                         </label>
-        //                         <br/>
-        //                     </div>
-        //                     <div className='radio'>
-        //                         <label>
-        //                             <input
-        //                                 id='soundOff'
-        //                                 type='radio'
-        //                                 name='callsNotificationSounds'
-        //                                 checked={callsSoundRadio[1]}
-        //                                 data-key={'callsDesktopSound'}
-        //                                 data-value={'false'}
-        //                                 onChange={this.handleOnChange}
-        //                             />
-        //                             <FormattedMessage
-        //                                 id='user.settings.notifications.off'
-        //                                 defaultMessage='Off'
-        //                             />
-        //                         </label>
-        //                         <br/>
-        //                     </div>
-        //                     {callsNotificationSelection}
-        //                 </fieldset>
-        //             </>
-        //         );
-        //     }
-
-        //     if (NotificationSounds.hasSoundOptions()) {
-        //         soundSection = (
-        //             <fieldset>
-        //                 <legend className='form-legend'>
-        //                     <FormattedMessage
-        //                         id='user.settings.notifications.desktop.sound'
-        //                         defaultMessage='Notification sound'
-        //                     />
-        //                 </legend>
-        //                 <div className='radio'>
-        //                     <label>
-        //                         <input
-        //                             id='soundOn'
-        //                             type='radio'
-        //                             name='notificationSounds'
-        //                             checked={soundRadio[0]}
-        //                             data-key={'desktopSound'}
-        //                             data-value={'true'}
-        //                             onChange={this.handleOnChange}
-        //                         />
-        //                         <FormattedMessage
-        //                             id='user.settings.notifications.on'
-        //                             defaultMessage='On'
-        //                         />
-        //                     </label>
-        //                     <br/>
-        //                 </div>
-        //                 <div className='radio'>
-        //                     <label>
-        //                         <input
-        //                             id='soundOff'
-        //                             type='radio'
-        //                             name='notificationSounds'
-        //                             checked={soundRadio[1]}
-        //                             data-key={'desktopSound'}
-        //                             data-value={'false'}
-        //                             onChange={this.handleOnChange}
-        //                         />
-        //                         <FormattedMessage
-        //                             id='user.settings.notifications.off'
-        //                             defaultMessage='Off'
-        //                         />
-        //                     </label>
-        //                     <br/>
-        //                 </div>
-        //                 {notificationSelection}
-        //                 <div className='mt-5'>
-        //                     <FormattedMessage
-        //                         id='user.settings.notifications.sounds_info'
-        //                         defaultMessage='Notification sounds are available on Firefox, Edge, Safari, Chrome and Mattermost Desktop Apps.'
-        //                     />
-        //                 </div>
-        //             </fieldset>
-        //         );
-        //     } else {
-        //         soundSection = (
-        //             <fieldset>
-        //                 <legend className='form-legend'>
-        //                     <FormattedMessage
-        //                         id='user.settings.notifications.desktop.sound'
-        //                         defaultMessage='Notification sound'
-        //                     />
-        //                 </legend>
-        //                 <br/>
-        //                 <FormattedMessage
-        //                     id='user.settings.notifications.soundConfig'
-        //                     defaultMessage='Please configure notification sounds in your browser settings'
-        //                 />
-        //             </fieldset>
-        //         );
-        //     }
-        // }
-
-        // maxizimedSettingInputs.push(
-        //     <>
-        //         {soundSection}
-        //         {callsSection}
-        //     </>,
-        // );
 
         return (
             <SettingItemMax
@@ -489,7 +320,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                 submit={this.props.onSubmit}
                 saving={this.props.saving}
                 serverError={this.props.error}
-                updateSection={this.handleMaxUpdateSection}
+                updateSection={this.handleChangeForMaxSection}
             />
         );
     };
@@ -564,7 +395,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                 }
                 describe={collapsedDescription}
                 section={UserSettingsNotificationSections.DESKTOP_AND_MOBILE}
-                updateSection={this.handleMinUpdateSection}
+                updateSection={this.handleChangeForMinSection}
             />
         );
     };
@@ -595,7 +426,7 @@ function NoIndicatorSeparatorComponent() {
     return null;
 }
 
-const pushMobileNotificationOptions: OptionsType<PushNotificationOption> = [
+const sendMobileNotificationWhenOptions: OptionsType<SelectOptions> = [
     {
         label: (
             <FormattedMessage
@@ -625,13 +456,13 @@ const pushMobileNotificationOptions: OptionsType<PushNotificationOption> = [
     },
 ];
 
-export function getPushNotificationOptionValue(pushStatus?: UserNotifyProps['push_status']): ValueType<PushNotificationOption> {
+export function getValueOfSendMobileNotificationWhenSelect(pushStatus?: UserNotifyProps['push_status']): ValueType<SelectOptions> {
     if (!pushStatus) {
-        return pushMobileNotificationOptions[2];
+        return sendMobileNotificationWhenOptions[2];
     }
-    const option = pushMobileNotificationOptions.find((option) => option.value === pushStatus);
+    const option = sendMobileNotificationWhenOptions.find((option) => option.value === pushStatus);
     if (!option) {
-        return pushMobileNotificationOptions[2];
+        return sendMobileNotificationWhenOptions[2];
     }
 
     return option;
@@ -644,5 +475,85 @@ export function getCheckedStateForDesktopThreads(pushThreads: UserNotifyProps['p
         return true;
     }
 
+    return false;
+}
+
+export const validNotificationLevels = [NotificationLevels.DEFAULT, NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.NONE];
+
+export function getCheckedStateForDissimilarDesktopAndMobileNotification(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']): boolean {
+    const validActivities = [NotificationLevels.DEFAULT, NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.NONE];
+    if (!validActivities.includes(desktopActivity) || !validActivities.includes(pushActivity)) {
+        return false;
+    }
+
+    return desktopActivity === pushActivity;
+}
+
+export function getDefaultMobileNotificationLevelWhenUsedDifferent(desktopActivity: UserNotifyProps['desktop']): UserNotifyProps['push'] {
+    if (!validNotificationLevels.includes(desktopActivity)) {
+        return NotificationLevels.MENTION;
+    }
+    const currentIndex = validNotificationLevels.indexOf(desktopActivity);
+    const nextIndex = (currentIndex + 1) % validNotificationLevels.length;
+    const nextActivity = validNotificationLevels[nextIndex];
+    if (nextActivity === NotificationLevels.DEFAULT) {
+        return NotificationLevels.MENTION;
+    }
+    return nextActivity;
+}
+
+const sendMobileNotificationsForOptions: OptionsType<SelectOptions> = [
+    {
+        label: (
+            <FormattedMessage
+                id='user.settings.notifications.desktopAndMobile.mobilePush.allActivity'
+                defaultMessage='All new messages'
+            />
+        ),
+        value: NotificationLevels.ALL,
+    },
+    {
+        label: (
+            <FormattedMessage
+                id='user.settings.notifications.desktopAndMobile.mobilePush.onlyMentions'
+                defaultMessage='Mentions, direct messages, and group messages'
+            />
+        ),
+        value: NotificationLevels.MENTION,
+    },
+    {
+        label: (
+            <FormattedMessage
+                id='user.settings.notifications.desktopAndMobile.mobilePush.never'
+                defaultMessage='Nothing'
+            />
+        ),
+        value: NotificationLevels.NONE,
+    },
+];
+
+function getValueOfSendMobileNotificationForSelect(pushActivity: UserNotifyProps['push']): ValueType<SelectOptions> {
+    if (!pushActivity) {
+        return sendMobileNotificationsForOptions[2];
+    }
+
+    const option = sendMobileNotificationsForOptions.find((option) => option.value === pushActivity);
+    if (!option) {
+        return sendMobileNotificationsForOptions[2];
+    }
+
+    return option;
+}
+
+function shouldShowSendMobileNotificationsForSelect(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push'], desktopAndMobileSettingsDifferent: boolean): boolean {
+    if (desktopActivity === NotificationLevels.ALL || desktopActivity === NotificationLevels.MENTION) {
+        if (desktopAndMobileSettingsDifferent === false) {
+            return true;
+        }
+        if (pushActivity === NotificationLevels.ALL || pushActivity === NotificationLevels.MENTION) {
+            return true;
+        }
+        return false;
+    }
     return false;
 }

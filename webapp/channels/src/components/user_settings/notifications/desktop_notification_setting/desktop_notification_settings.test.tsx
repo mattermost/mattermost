@@ -7,8 +7,14 @@ import type {ComponentProps} from 'react';
 
 import Constants, {NotificationLevels} from 'utils/constants';
 
-import type {PushNotificationOption} from './desktop_notification_settings';
-import DesktopNotificationSettings, {getCheckedStateForDesktopThreads, getPushNotificationOptionValue} from './desktop_notification_settings';
+import type {SelectOptions} from './desktop_notification_settings';
+import DesktopNotificationSettings, {
+    getCheckedStateForDesktopThreads,
+    getValueOfSendMobileNotificationWhenSelect,
+    getCheckedStateForDissimilarDesktopAndMobileNotification,
+    validNotificationLevels,
+    getDefaultMobileNotificationLevelWhenUsedDifferent,
+} from './desktop_notification_settings';
 
 jest.mock('utils/notification_sounds', () => {
     const original = jest.requireActual('utils/notification_sounds');
@@ -34,6 +40,8 @@ describe('DesktopNotificationSettings', () => {
         pushStatus: Constants.UserStatuses.OFFLINE,
         desktopThreads: NotificationLevels.ALL,
         pushThreads: NotificationLevels.ALL,
+        sendPushNotifications: true,
+        desktopAndMobileSettingsDifferent: false,
         sound: 'false',
         callsSound: 'false',
         selectedSound: 'Bing',
@@ -85,54 +93,38 @@ describe('DesktopNotificationSettings', () => {
         expect(wrapper).toMatchSnapshot();
     });
 
-    test('should call props.updateSection and props.onCancel on handleMinUpdateSection', () => {
+    test('should call props.updateSection and props.onCancel on handleChangeForMinSection', () => {
         const props = {...baseProps, updateSection: jest.fn(), onCancel: jest.fn()};
         const wrapper = shallow<DesktopNotificationSettings>(
             <DesktopNotificationSettings {...props}/>,
         );
 
-        wrapper.instance().handleMinUpdateSection('');
+        wrapper.instance().handleChangeForMinSection('');
         expect(props.updateSection).toHaveBeenCalledTimes(1);
         expect(props.updateSection).toHaveBeenCalledWith('');
         expect(props.onCancel).toHaveBeenCalledTimes(1);
         expect(props.onCancel).toHaveBeenCalledWith();
 
-        wrapper.instance().handleMinUpdateSection('desktop');
+        wrapper.instance().handleChangeForMinSection('desktop');
         expect(props.updateSection).toHaveBeenCalledTimes(2);
         expect(props.updateSection).toHaveBeenCalledWith('desktop');
         expect(props.onCancel).toHaveBeenCalledTimes(2);
         expect(props.onCancel).toHaveBeenCalledWith();
     });
 
-    test('should call props.updateSection on handleMaxUpdateSection', () => {
+    test('should call props.updateSection on handleChangeForMaxSection', () => {
         const props = {...baseProps, updateSection: jest.fn()};
         const wrapper = shallow<DesktopNotificationSettings>(
             <DesktopNotificationSettings {...props}/>,
         );
 
-        wrapper.instance().handleMaxUpdateSection('');
+        wrapper.instance().handleChangeForMaxSection('');
         expect(props.updateSection).toHaveBeenCalledTimes(1);
         expect(props.updateSection).toHaveBeenCalledWith('');
 
-        wrapper.instance().handleMaxUpdateSection('desktop');
+        wrapper.instance().handleChangeForMaxSection('desktop');
         expect(props.updateSection).toHaveBeenCalledTimes(2);
         expect(props.updateSection).toHaveBeenCalledWith('desktop');
-    });
-
-    test('should call props.setParentState on handleOnChange', () => {
-        const props = {...baseProps, setParentState: jest.fn()};
-        const wrapper = shallow<DesktopNotificationSettings>(
-            <DesktopNotificationSettings {...props}/>,
-        );
-
-        wrapper.instance().handleOnChange({
-            currentTarget: {getAttribute: (key: string) => {
-                return {'data-key': 'dataKey', 'data-value': 'dataValue'}[key];
-            }},
-        } as unknown as React.ChangeEvent<HTMLInputElement>);
-
-        expect(props.setParentState).toHaveBeenCalledTimes(1);
-        expect(props.setParentState).toHaveBeenCalledWith('dataKey', 'dataValue');
     });
 
     test('should match snapshot, on buildMaximizedSetting', () => {
@@ -178,31 +170,72 @@ describe('getCheckedStateForDesktopThreads', () => {
     });
 });
 
-describe('getPushNotificationOptionValue', () => {
+describe('getValueOfSendMobileNotificationWhenSelect', () => {
     test('When input is undefined it should return the last option', () => {
-        expect(getPushNotificationOptionValue(undefined)).not.toBeUndefined();
+        expect(getValueOfSendMobileNotificationWhenSelect(undefined)).not.toBeUndefined();
 
-        const result = getPushNotificationOptionValue(undefined) as PushNotificationOption;
+        const result = getValueOfSendMobileNotificationWhenSelect(undefined) as SelectOptions;
         expect(result.value).toBe(Constants.UserStatuses.OFFLINE);
     });
 
     test('when input is defined but is not a valid option it should return the last option', () => {
         // We are purposely testing with an invalid value hence the 'any'
-        expect(getPushNotificationOptionValue('invalid' as any)).not.toBeUndefined();
+        expect(getValueOfSendMobileNotificationWhenSelect('invalid' as any)).not.toBeUndefined();
 
-        const result = getPushNotificationOptionValue('invalid' as any) as PushNotificationOption;
+        const result = getValueOfSendMobileNotificationWhenSelect('invalid' as any) as SelectOptions;
         expect(result.value).toBe(Constants.UserStatuses.OFFLINE);
     });
 
     test('When input is a valid option it should return the same option', () => {
-        expect(getPushNotificationOptionValue(Constants.UserStatuses.ONLINE)).not.toBeUndefined();
+        expect(getValueOfSendMobileNotificationWhenSelect(Constants.UserStatuses.ONLINE)).not.toBeUndefined();
 
-        const result = getPushNotificationOptionValue(Constants.UserStatuses.ONLINE) as PushNotificationOption;
+        const result = getValueOfSendMobileNotificationWhenSelect(Constants.UserStatuses.ONLINE) as SelectOptions;
         expect(result.value).toBe(Constants.UserStatuses.ONLINE);
 
-        expect(getPushNotificationOptionValue(Constants.UserStatuses.AWAY)).not.toBeUndefined();
+        expect(getValueOfSendMobileNotificationWhenSelect(Constants.UserStatuses.AWAY)).not.toBeUndefined();
 
-        const result2 = getPushNotificationOptionValue(Constants.UserStatuses.AWAY) as PushNotificationOption;
+        const result2 = getValueOfSendMobileNotificationWhenSelect(Constants.UserStatuses.AWAY) as SelectOptions;
         expect(result2.value).toBe(Constants.UserStatuses.AWAY);
+    });
+});
+
+describe('getCheckedStateForDissimilarDesktopAndMobileNotification', () => {
+    test('should return false when desktop and push notification levels are different', () => {
+        validNotificationLevels.forEach((desktopLevel) => {
+            validNotificationLevels.forEach((mobileLevel) => {
+                if (desktopLevel !== mobileLevel) {
+                    expect(getCheckedStateForDissimilarDesktopAndMobileNotification(desktopLevel, mobileLevel)).toBe(false);
+                }
+            });
+        });
+    });
+
+    test('should return true when desktop and push notification levels are the same', () => {
+        validNotificationLevels.forEach((level) => {
+            expect(getCheckedStateForDissimilarDesktopAndMobileNotification(level, level)).toBe(true);
+        });
+    });
+
+    test('should return false when desktop and push notification levels are undefined', () => {
+        expect(getCheckedStateForDissimilarDesktopAndMobileNotification(undefined as any, undefined as any)).toBe(false);
+        expect(getCheckedStateForDissimilarDesktopAndMobileNotification('hello' as any, NotificationLevels.ALL)).toBe(false);
+    });
+});
+
+describe('getDefaultMobileNotificationLevelWhenUsedDifferent', () => {
+    test('if invalid input is provided it should return the default value', () => {
+        expect(getDefaultMobileNotificationLevelWhenUsedDifferent('invalid' as any)).toBe(NotificationLevels.MENTION);
+    });
+
+    test('it should never return default notification level', () => {
+        validNotificationLevels.forEach((level) => {
+            expect(getDefaultMobileNotificationLevelWhenUsedDifferent(level)).not.toBe(NotificationLevels.DEFAULT);
+        });
+    });
+
+    test('it should return the next level when input is valid', () => {
+        // expect(getDefaultMobileNotificationLevelWhenUsedDifferent(NotificationLevels.NONE)).toBe(NotificationLevels.ALL);
+        expect(getDefaultMobileNotificationLevelWhenUsedDifferent(NotificationLevels.DEFAULT)).toBe(NotificationLevels.ALL);
+        expect(getDefaultMobileNotificationLevelWhenUsedDifferent(NotificationLevels.MENTION)).toBe(NotificationLevels.NONE);
     });
 });
