@@ -163,6 +163,7 @@ export default class EditOutgoingWebhook extends React.PureComponent<Props, Stat
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
+                modalClass='integrations-backstage-modal'
                 show={this.state.showConfirmModal}
                 onConfirm={this.submitHook}
                 onCancel={this.confirmModalDismissed}

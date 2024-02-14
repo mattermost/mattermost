@@ -141,25 +141,25 @@ func (_m *PostStore) Get(ctx context.Context, id string, opts model.GetPostsOpti
 	return r0, r1
 }
 
-// GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterID
-func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error) {
-	ret := _m.Called(limit, afterID)
+// GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
+func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
+	ret := _m.Called(limit, afterID, includeArchivedChannels)
 
 	var r0 []*model.DirectPostForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string) ([]*model.DirectPostForExport, error)); ok {
-		return rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) ([]*model.DirectPostForExport, error)); ok {
+		return rf(limit, afterID, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(int, string) []*model.DirectPostForExport); ok {
-		r0 = rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) []*model.DirectPostForExport); ok {
+		r0 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.DirectPostForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string) error); ok {
-		r1 = rf(limit, afterID)
+	if rf, ok := ret.Get(1).(func(int, string, bool) error); ok {
+		r1 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
