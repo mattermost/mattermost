@@ -256,7 +256,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		session, err := th.App.CreateSession(th.Context, session)
 		require.Nil(t, err)
 
-		ok := th.App.ExtendSessionExpiryIfNeeded(session)
+		ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 		require.False(t, ok)
 		require.Equal(t, expires, session.ExpiresAt)
@@ -273,7 +273,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 		expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session)
 		session.ExpiresAt = expires
 
-		ok := th.App.ExtendSessionExpiryIfNeeded(session)
+		ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 		require.False(t, ok)
 		require.Equal(t, expires, session.ExpiresAt)
@@ -303,7 +303,7 @@ func TestApp_ExtendExpiryIfNeeded(t *testing.T) {
 			expires := model.GetMillis() + th.App.GetSessionLengthInMillis(session) - hourMillis
 			session.ExpiresAt = expires
 
-			ok := th.App.ExtendSessionExpiryIfNeeded(session)
+			ok := th.App.ExtendSessionExpiryIfNeeded(th.Context, session)
 
 			if !test.enabled {
 				require.False(t, ok)
@@ -363,10 +363,10 @@ func TestGetCloudSession(t *testing.T) {
 func TestGetRemoteClusterSession(t *testing.T) {
 	th := Setup(t)
 	token := model.NewId()
-	remoteId := model.NewId()
+	remoteID := model.NewId()
 
 	rc := model.RemoteCluster{
-		RemoteId:     remoteId,
+		RemoteId:     remoteID,
 		RemoteTeamId: model.NewId(),
 		Name:         "test",
 		Token:        token,
@@ -377,14 +377,14 @@ func TestGetRemoteClusterSession(t *testing.T) {
 	require.NoError(t, err)
 
 	t.Run("Valid remote token should return session", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(token, remoteId)
+		session, err := th.App.GetRemoteClusterSession(token, remoteID)
 		require.Nil(t, err)
 		require.NotNil(t, session)
 		require.Equal(t, token, session.Token)
 	})
 
 	t.Run("Invalid remote token should return error", func(t *testing.T) {
-		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteId)
+		session, err := th.App.GetRemoteClusterSession(model.NewId(), remoteID)
 		require.NotNil(t, err)
 		require.Nil(t, session)
 	})

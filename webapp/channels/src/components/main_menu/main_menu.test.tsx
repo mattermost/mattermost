@@ -80,7 +80,13 @@ describe('components/Menu', () => {
     const defaultState = {
         entities: {
             channels: {
-                myMembers: [],
+                myMembers: {},
+            },
+            general: {
+                config: {},
+                license: {
+                    Cloud: 'false',
+                },
             },
             teams: {
                 currentTeamId: 'team-id',
@@ -89,7 +95,7 @@ describe('components/Menu', () => {
                         team_id: 'team-id',
                         user_id: 'test-user-id',
                         roles: 'team_user',
-                        scheme_user: 'true',
+                        scheme_user: true,
                     },
                 },
             },

@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useCallback} from 'react';
 
 import ColorInput from 'components/color_input';
 
@@ -16,27 +16,27 @@ type Props = {
     disabled?: boolean;
 }
 
-export default class ColorSetting extends React.PureComponent<Props> {
-    private handleChange = (color: string) => {
-        if (this.props.onChange) {
-            this.props.onChange(this.props.id, color);
+const ColorSetting = (props: Props) => {
+    const handleChange = useCallback((color: string) => {
+        if (props.onChange) {
+            props.onChange(props.id, color);
         }
-    };
+    }, [props.id, props.onChange]);
 
-    public render() {
-        return (
-            <Setting
-                label={this.props.label}
-                helpText={this.props.helpText}
-                inputId={this.props.id}
-            >
-                <ColorInput
-                    id={this.props.id}
-                    value={this.props.value}
-                    onChange={this.handleChange}
-                    isDisabled={this.props.disabled}
-                />
-            </Setting>
-        );
-    }
-}
+    return (
+        <Setting
+            label={props.label}
+            helpText={props.helpText}
+            inputId={props.id}
+        >
+            <ColorInput
+                id={props.id}
+                value={props.value}
+                onChange={handleChange}
+                isDisabled={props.disabled}
+            />
+        </Setting>
+    );
+};
+
+export default React.memo(ColorSetting);

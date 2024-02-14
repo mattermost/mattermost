@@ -4749,15 +4749,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 91+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 44+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 100+"
+    "translation": "Version 116+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -5693,7 +5693,7 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} n'est pas membre de cette équipe."
+    "translation": "Vous pouvez ajouter {{.Users}} à ce canal une fois membres de l'équipe **{{.Team}}**."
   },
   {
     "id": "api.command.execute_command.format.app_error",
@@ -8724,10 +8724,6 @@
     "translation": "Confirmation de mise à niveau de Mattermost"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Erreur lors de l'analyse des données du corps."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Corps de la requête invalide."
   },
@@ -9201,7 +9197,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost est une plateforme open source pour la communication sécurisée, la collaboration et l'orchestration du travail à travers les outils et les équipes.\nMattermost contient trois outils clés :\n\n**Channels** - Restez en contact avec votre équipe via des messages 1:1 et de groupe.\n**[Playbooks](/playbooks)** - Créez et configurez des processus reproductibles pour obtenir des résultats spécifiques et prévisibles.\n**[Boards](/boards)** - Gérez les projets et les tâches dans une structure de tableau Kanban pour aider votre équipe à atteindre les étapes clés.\n\n[Voir la documentation et les guides]({{.HelpLink}})\n\nTraduit avec www.DeepL.com/Translator (version gratuite)"
+    "translation": "Mattermost est une plateforme open source pour la communication sécurisée, la collaboration et l'orchestration du travail à travers les outils et les équipes.\nMattermost contient deux outils clés :\n\n**Canaux** - Restez en contact avec votre équipe via des messages 1:1 et de groupe.\n**[Playbooks](/playbooks)** - Créez et configurez des processus reproductibles pour obtenir des résultats spécifiques et prévisibles.\n\n[Voir la documentation et les guides]({{.HelpLink}})"
   },
   {
     "id": "api.config.update_config.translations.app_error",
@@ -9286,5 +9282,9 @@
   {
     "id": "api.command_marketplace.unsupported.app_error",
     "translation": "La commande marketplace n'est pas prise en charge par votre appareil."
+  },
+  {
+    "id": "api.license.request-trial.bad-request.business-email",
+    "translation": "Adresse e-mail professionnelle invalide pour l'essai"
   }
 ]

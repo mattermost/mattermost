@@ -65,7 +65,7 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -81,16 +81,20 @@ exports[`components/EditChannelHeaderModal edit direct message channel 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
       </div>
-      <br />
     </div>
   </ModalBody>
   <ModalFooter
@@ -192,7 +196,7 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -208,16 +212,20 @@ exports[`components/EditChannelHeaderModal error with intl message 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
       </div>
-      <br />
       <div
         className="form-group has-error"
       >
@@ -337,7 +345,7 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -353,16 +361,20 @@ exports[`components/EditChannelHeaderModal error without intl message 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
       </div>
-      <br />
       <div
         className="form-group has-error"
       >
@@ -474,7 +486,7 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -490,16 +502,20 @@ exports[`components/EditChannelHeaderModal should match snapshot, init 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
       </div>
-      <br />
     </div>
   </ModalBody>
   <ModalFooter
@@ -601,7 +617,7 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
         <Connect(Textbox)
           channelId="fake-id"
           characterLimit={1024}
-          createMessage="Edit the Channel Header..."
+          createMessage="Enter the Channel Header"
           handlePostError={[Function]}
           id="edit_textbox"
           onChange={[Function]}
@@ -617,16 +633,20 @@ exports[`components/EditChannelHeaderModal submitted 1`] = `
       <div
         className="post-create-footer"
       >
-        <Connect(TextboxLinks)
+        <TextboxLinks
           hasExceededCharacterLimit={false}
           hasText={true}
           isMarkdownPreviewEnabled={false}
-          previewMessageLink="Edit Header"
+          previewMessageLink={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Edit"
+              id="edit_channel_header_modal.previewHeader"
+            />
+          }
           showPreview={false}
           updatePreview={[Function]}
         />
       </div>
-      <br />
     </div>
   </ModalBody>
   <ModalFooter

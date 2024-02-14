@@ -524,7 +524,7 @@ func TestPatchTeam(t *testing.T) {
 	patch.CompanyName = model.NewString("Other company name")
 	patch.AllowOpenInvite = model.NewBool(true)
 
-	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestId(), patch)
+	_, resp, err := th.Client.PatchTeam(context.Background(), GenerateTestID(), patch)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
@@ -2162,11 +2162,11 @@ func TestAddTeamMember(t *testing.T) {
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddTeamMember(context.Background(), GenerateTestId(), otherUser.Id)
+	_, resp, err = client.AddTeamMember(context.Background(), GenerateTestID(), otherUser.Id)
 	require.Error(t, err)
 	CheckForbiddenStatus(t, resp)
 
-	_, resp, err = client.AddTeamMember(context.Background(), team.Id, GenerateTestId())
+	_, resp, err = client.AddTeamMember(context.Background(), team.Id, GenerateTestID())
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
@@ -2257,7 +2257,7 @@ func TestAddTeamMember(t *testing.T) {
 	th.App.DeleteToken(token)
 
 	// invalid team id
-	testId := GenerateTestId()
+	testId := GenerateTestID()
 	token = model.NewToken(
 		app.TokenTypeTeamInvitation,
 		model.MapToJSON(map[string]string{"teamId": testId}),
@@ -2498,6 +2498,12 @@ func TestAddTeamMembers(t *testing.T) {
 		otherUser.Id,
 	}
 
+	guestUser := th.CreateUser()
+	th.App.UpdateUserRoles(th.Context, guestUser.Id, model.SystemGuestRoleId, false)
+	guestList := []string{
+		guestUser.Id,
+	}
+
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.EnableBotAccountCreation = true
 	})
@@ -2526,35 +2532,46 @@ func TestAddTeamMembers(t *testing.T) {
 
 	require.Equal(t, tm[0].TeamId, team.Id, "team ids should have matched")
 
+	// Check the appropriate permissions are enforced.
+	defaultRolePermissions := th.SaveDefaultRolePermissions()
+	defer func() {
+		th.RestoreDefaultRolePermissions(defaultRolePermissions)
+	}()
+
+	// Regular user can add a guest member to a team they belong to.
+	th.AddPermissionToRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+	tm, resp, err = client.AddTeamMembers(context.Background(), team.Id, guestList)
+	require.NoError(t, err)
+	CheckCreatedStatus(t, resp)
+
+	// Check all the returned data.
+	require.NotNil(t, tm[0], "should have returned team member")
+	require.Equal(t, tm[0].UserId, guestUser.Id, "user ids should have matched")
+	require.Equal(t, tm[0].TeamId, team.Id, "team ids should have matched")
+
 	// Check with various invalid requests.
 	_, resp, err = client.AddTeamMembers(context.Background(), "junk", userList)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
-	_, resp, err = client.AddTeamMembers(context.Background(), GenerateTestId(), userList)
+	_, resp, err = client.AddTeamMembers(context.Background(), GenerateTestID(), userList)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
-	testUserList := append(userList, GenerateTestId())
+	testUserList := append(userList, GenerateTestID())
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, testUserList)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
 
 	// Test with many users.
 	for i := 0; i < 260; i++ {
-		testUserList = append(testUserList, GenerateTestId())
+		testUserList = append(testUserList, GenerateTestID())
 	}
 	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, testUserList)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
 	client.Logout(context.Background())
-
-	// Check the appropriate permissions are enforced.
-	defaultRolePermissions := th.SaveDefaultRolePermissions()
-	defer func() {
-		th.RestoreDefaultRolePermissions(defaultRolePermissions)
-	}()
 
 	// Set the config so that only team admins can add a user to a team.
 	th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
@@ -2591,6 +2608,13 @@ func TestAddTeamMembers(t *testing.T) {
 	// Should work as a regular user.
 	_, _, err = client.AddTeamMembers(context.Background(), team.Id, userList)
 	require.NoError(t, err)
+
+	// remove invite guests
+	th.RemovePermissionFromRole(model.PermissionInviteGuest.Id, model.TeamUserRoleId)
+	// Regular user can no longer add a guest member to a team they belong to.
+	_, resp, err = client.AddTeamMembers(context.Background(), team.Id, guestList)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 
 	// Set a team to group-constrained
 	team.GroupConstrained = model.NewBool(true)
@@ -2952,6 +2976,10 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, model.NewId(), s4)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
+
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s4)
+	require.Error(t, err) // user is a guest, cannot be set as member or admin
+	CheckBadRequestStatus(t, resp)
 
 	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), "ASDF", th.BasicUser.Id, s4)
 	require.Error(t, err)

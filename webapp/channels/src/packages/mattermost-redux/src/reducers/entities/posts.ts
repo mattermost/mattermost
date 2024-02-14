@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import type {
     OpenGraphMetadata,
     Post,
@@ -19,10 +21,9 @@ import type {
     RelationOneToMany,
 } from '@mattermost/types/utilities';
 
-import {ChannelTypes, GeneralTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {ChannelTypes, PostTypes, UserTypes, ThreadTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {Posts} from 'mattermost-redux/constants';
 import {PostTypes as PostConstant} from 'mattermost-redux/constants/posts';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 import {comparePosts, isPermalink, shouldUpdatePost} from 'mattermost-redux/utils/post_utils';
 
 export function removeUnneededMetadata(post: Post) {
@@ -98,7 +99,7 @@ export function removeUnneededMetadata(post: Post) {
     };
 }
 
-export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action: GenericAction) {
+export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
@@ -157,7 +158,7 @@ export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action
     }
 }
 
-export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: GenericAction) {
+export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
@@ -380,7 +381,7 @@ function handlePostReceived(nextState: any, post: Post, nestedPermalinkLevel?: n
     return currentState;
 }
 
-export function handlePendingPosts(state: string[] = [], action: GenericAction) {
+export function handlePendingPosts(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST: {
         const post = action.data;
@@ -446,7 +447,7 @@ export function handlePendingPosts(state: string[] = [], action: GenericAction) 
     }
 }
 
-export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: GenericAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
+export function postsInChannel(state: Record<string, PostOrderBlock[]> = {}, action: AnyAction, prevPosts: IDMappedObjects<Post>, nextPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RESET_POSTS_IN_CHANNEL: {
         return {};
@@ -936,7 +937,7 @@ export function mergePostOrder(left: string[], right: string[], posts: Record<st
     return result;
 }
 
-export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action: GenericAction, prevPosts: Record<string, Post>) {
+export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action: AnyAction, prevPosts: Record<string, Post>) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
@@ -1135,18 +1136,7 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
     }
 }
 
-function selectedPostId(state = '', action: GenericAction) {
-    switch (action.type) {
-    case PostTypes.RECEIVED_POST_SELECTED:
-        return action.data;
-    case UserTypes.LOGOUT_SUCCESS:
-        return '';
-    default:
-        return state;
-    }
-}
-
-export function postEditHistory(state: Post[] = [], action: GenericAction) {
+export function postEditHistory(state: Post[] = [], action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST_HISTORY:
         return action.data;
@@ -1157,7 +1147,7 @@ export function postEditHistory(state: Post[] = [], action: GenericAction) {
     }
 }
 
-function currentFocusedPostId(state = '', action: GenericAction) {
+function currentFocusedPostId(state = '', action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_FOCUSED_POST:
         return action.data;
@@ -1168,20 +1158,8 @@ function currentFocusedPostId(state = '', action: GenericAction) {
     }
 }
 
-export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: GenericAction) {
+export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: AnyAction) {
     switch (action.type) {
-    case PostTypes.RECEIVED_REACTIONS: {
-        const reactionsList = action.data;
-        const nextReactions: Record<string, Reaction> = {};
-        reactionsList.forEach((reaction: Reaction) => {
-            nextReactions[reaction.user_id + '-' + reaction.emoji_name] = reaction;
-        });
-
-        return {
-            ...state,
-            [action.postId!]: nextReactions,
-        };
-    }
     case PostTypes.RECEIVED_REACTION: {
         const reaction = action.data as Reaction;
         const nextReactions = {...(state[reaction.post_id] || {})};
@@ -1241,7 +1219,7 @@ export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>
     }
 }
 
-export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfile['id'], number>> = {}, action: GenericAction) {
+export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfile['id'], number>> = {}, action: AnyAction) {
     switch (action.type) {
     case PostTypes.CREATE_ACK_POST_SUCCESS: {
         const ack = action.data as PostAcknowledgement;
@@ -1353,7 +1331,7 @@ function storeAcknowledgementsForPost(state: any, post: Post) {
     };
 }
 
-export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: GenericAction) {
+export function openGraph(state: RelationOneToOne<Post, Record<string, OpenGraphMetadata>> = {}, action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_NEW_POST:
     case PostTypes.RECEIVED_POST: {
@@ -1417,7 +1395,7 @@ function messagesHistory(state: Partial<MessageHistory> = {
         post: -1,
         comment: -1,
     },
-}, action: GenericAction) {
+}, action: AnyAction) {
     switch (action.type) {
     case PostTypes.ADD_MESSAGE_INTO_HISTORY: {
         const nextIndex: Record<string, number> = {};
@@ -1492,23 +1470,6 @@ function messagesHistory(state: Partial<MessageHistory> = {
     }
 }
 
-export function expandedURLs(state: Record<string, string> = {}, action: GenericAction) {
-    switch (action.type) {
-    case GeneralTypes.REDIRECT_LOCATION_SUCCESS:
-        return {
-            ...state,
-            [action.data.url]: action.data.location,
-        };
-    case GeneralTypes.REDIRECT_LOCATION_FAILURE:
-        return {
-            ...state,
-            [action.data.url]: action.data.url,
-        };
-    default:
-        return state;
-    }
-}
-
 export const zeroStateLimitedViews = {
     threads: {},
     channels: {},
@@ -1516,7 +1477,7 @@ export const zeroStateLimitedViews = {
 
 export function limitedViews(
     state: PostsState['limitedViews'] = zeroStateLimitedViews,
-    action: GenericAction,
+    action: AnyAction,
 ): PostsState['limitedViews'] {
     switch (action.type) {
     case PostTypes.RECEIVED_POSTS:
@@ -1582,7 +1543,7 @@ export function limitedViews(
     }
 }
 
-export default function reducer(state: Partial<PostsState> = {}, action: GenericAction) {
+export default function reducer(state: Partial<PostsState> = {}, action: AnyAction) {
     const nextPosts = handlePosts(state.posts, action);
     const nextPostsInChannel = postsInChannel(state.postsInChannel, action, state.posts!, nextPosts);
 
@@ -1604,9 +1565,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
         // with no guaranteed order
         postsInThread: postsInThread(state.postsInThread, action, state.posts!),
 
-        // The current selected post
-        selectedPostId: selectedPostId(state.selectedPostId, action),
-
         // The post history of selected post
         postEditHistory: postEditHistory(state.postEditHistory, action),
 
@@ -1621,9 +1579,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
 
         // History of posts and comments
         messagesHistory: messagesHistory(state.messagesHistory, action),
-
-        expandedURLs: expandedURLs(state.expandedURLs, action),
-
         acknowledgements: acknowledgements(state.acknowledgements, action),
 
         // For cloud instances with a message limit,
@@ -1635,14 +1590,12 @@ export default function reducer(state: Partial<PostsState> = {}, action: Generic
     if (state.posts === nextState.posts && state.postsInChannel === nextState.postsInChannel &&
         state.postsInThread === nextState.postsInThread &&
         state.pendingPostIds === nextState.pendingPostIds &&
-        state.selectedPostId === nextState.selectedPostId &&
         state.postEditHistory === nextState.postEditHistory &&
         state.currentFocusedPostId === nextState.currentFocusedPostId &&
         state.reactions === nextState.reactions &&
         state.acknowledgements === nextState.acknowledgements &&
         state.openGraph === nextState.openGraph &&
         state.messagesHistory === nextState.messagesHistory &&
-        state.expandedURLs === nextState.expandedURLs &&
         state.limitedViews === nextState.limitedViews) {
         // None of the children have changed so don't even let the parent object change
         return state;

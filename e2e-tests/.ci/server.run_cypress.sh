@@ -2,11 +2,6 @@
 set -e -u -o pipefail
 cd "$(dirname "$0")"
 . .e2erc
-. .e2erc_setup
-
-# Set required variables
-TEST_FILTER_DEFAULT='--stage=@prod --group=@smoke'
-TEST_FILTER=${TEST_FILTER:-$TEST_FILTER_DEFAULT}
 
 # Print run information
 mme2e_log "Printing Cypress container informations"
@@ -37,8 +32,6 @@ EOF
 # shellcheck disable=SC2016
 if ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress bash -c '[ -n "${AUTOMATION_DASHBOARD_URL}" ]'; then
   mme2e_log "AUTOMATION_DASHBOARD_URL is set. Using run_test_cycle.js for the cypress run"
-  # shellcheck disable=SC2086
-  ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress node --trace-warnings generate_test_cycle.js $TEST_FILTER
   ${MME2E_DC_SERVER} exec -T -u "$MME2E_UID" -- cypress node run_test_cycle.js | tee ../cypress/logs/cypress.log
 else
   mme2e_log "AUTOMATION_DASHBOARD_URL is unset. Using run_tests.js for the cypress run"

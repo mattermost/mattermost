@@ -15,8 +15,6 @@ import {
     disablePlugin,
 } from 'mattermost-redux/actions/admin';
 import {appsFeatureFlagEnabled} from 'mattermost-redux/selectors/entities/apps';
-import {streamlinedMarketplaceEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import PluginManagement from './plugin_management';
 
@@ -25,11 +23,10 @@ function mapStateToProps(state: any) {
         plugins: state.entities.admin.plugins,
         pluginStatuses: state.entities.admin.pluginStatuses,
         appsFeatureFlagEnabled: appsFeatureFlagEnabled(state),
-        streamlinedMarketplaceFlagEnabled: streamlinedMarketplaceEnabled(state),
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             uploadPlugin,

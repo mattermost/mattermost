@@ -105,13 +105,17 @@ type WebConn struct {
 	// a reused connection.
 	// It's theoretically possible for this number to wrap around. But we
 	// leave that as an edge-case.
-	reuseCount   int
-	sessionToken atomic.Value
-	session      atomic.Pointer[model.Session]
-	connectionID atomic.Value
-	endWritePump chan struct{}
-	pumpFinished chan struct{}
-	pluginPosted chan pluginWSPostedHook
+	reuseCount                      int
+	sessionToken                    atomic.Value
+	session                         atomic.Pointer[model.Session]
+	connectionID                    atomic.Value
+	activeChannelID                 atomic.Value
+	activeTeamID                    atomic.Value
+	activeRHSThreadChannelID        atomic.Value
+	activeThreadViewThreadChannelID atomic.Value
+	endWritePump                    chan struct{}
+	pumpFinished                    chan struct{}
+	pluginPosted                    chan pluginWSPostedHook
 
 	// These counters are to suppress spammy websocket.slow
 	// and websocket.full logs which happen continuously, if they
@@ -232,6 +236,10 @@ func (ps *PlatformService) NewWebConn(cfg *WebConnConfig, suite SuiteIFace, runn
 	wc.SetSessionToken(cfg.Session.Token)
 	wc.SetSessionExpiresAt(cfg.Session.ExpiresAt)
 	wc.SetConnectionID(cfg.ConnectionID)
+	wc.SetActiveChannelID("")
+	wc.SetActiveTeamID("")
+	wc.SetActiveRHSThreadChannelID("")
+	wc.SetActiveThreadViewThreadChannelID("")
 
 	ps.Go(func() {
 		runner.RunMultiHook(func(hooks plugin.Hooks) bool {
@@ -288,6 +296,46 @@ func (wc *WebConn) SetConnectionID(id string) {
 // GetConnectionID returns the connection id of the connection.
 func (wc *WebConn) GetConnectionID() string {
 	return wc.connectionID.Load().(string)
+}
+
+// SetActiveChannelID sets the active channel id of the connection.
+func (wc *WebConn) SetActiveChannelID(id string) {
+	wc.activeChannelID.Store(id)
+}
+
+// GetActiveChannelID returns the active channel id of the connection.
+func (wc *WebConn) GetActiveChannelID() string {
+	return wc.activeChannelID.Load().(string)
+}
+
+// SetActiveTeamID sets the active team id of the connection.
+func (wc *WebConn) SetActiveTeamID(id string) {
+	wc.activeTeamID.Store(id)
+}
+
+// GetActiveTeamID returns the active team id of the connection.
+func (wc *WebConn) GetActiveTeamID() string {
+	return wc.activeTeamID.Load().(string)
+}
+
+// GetActiveRHSThreadChannelID returns the channel id of the active thread of the connection.
+func (wc *WebConn) GetActiveRHSThreadChannelID() string {
+	return wc.activeRHSThreadChannelID.Load().(string)
+}
+
+// SetActiveRHSThreadChannelID sets the channel id of the active thread of the connection.
+func (wc *WebConn) SetActiveRHSThreadChannelID(id string) {
+	wc.activeRHSThreadChannelID.Store(id)
+}
+
+// GetActiveThreadViewThreadChannelID returns the channel id of the active thread of the connection.
+func (wc *WebConn) GetActiveThreadViewThreadChannelID() string {
+	return wc.activeThreadViewThreadChannelID.Load().(string)
+}
+
+// SetActiveThreadViewThreadChannelID sets the channel id of the active thread of the connection.
+func (wc *WebConn) SetActiveThreadViewThreadChannelID(id string) {
+	wc.activeThreadViewThreadChannelID.Store(id)
 }
 
 // areAllInactive returns whether all of the connections
@@ -396,6 +444,10 @@ func (wc *WebConn) readPump() {
 			continue
 		}
 
+		if session := wc.GetSession(); session != nil {
+			clonedReq.Session.Id = session.Id
+		}
+
 		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, clonedReq}
 	}
 }
@@ -463,7 +515,7 @@ func (wc *WebConn) writePump() {
 			var err error
 			if evtOk {
 				evt = evt.SetSequence(wc.Sequence)
-				err = evt.Encode(enc)
+				err = evt.Encode(enc, &buf)
 				wc.Sequence++
 			} else {
 				err = enc.Encode(msg)
@@ -511,7 +563,7 @@ func (wc *WebConn) writePump() {
 
 		case <-authTicker.C:
 			if wc.GetSessionToken() == "" {
-				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Any("ip_address", wc.WebSocket.RemoteAddr()))
+				mlog.Debug("websocket.authTicker: did not authenticate", mlog.Stringer("ip_address", wc.WebSocket.RemoteAddr()))
 				return
 			}
 			authTicker.Stop()
@@ -530,7 +582,7 @@ func (wc *WebConn) writeMessage(msg *model.WebSocketEvent) error {
 	// We don't use the encoder from the write pump because it's unwieldy to pass encoders
 	// around, and this is only called during initialization of the webConn.
 	var buf bytes.Buffer
-	err := msg.Encode(json.NewEncoder(&buf))
+	err := msg.Encode(json.NewEncoder(&buf), &buf)
 	if err != nil {
 		mlog.Warn("Error in encoding websocket message", mlog.Err(err))
 		return nil
@@ -743,6 +795,13 @@ func (wc *WebConn) ShouldSendEvent(msg *model.WebSocketEvent) bool {
 			return false
 		}
 	}
+
+	// There are two checks here which differentiates between what to send to an admin user and what to send to a normal user.
+	// For websocket events containing sensitive data, we split that to create two events:
+	// 1. We sanitize all fields, and set ContainsSanitizedData to true. This goes to normal users.
+	// 2. We don't sanitize, and set ContainsSensitiveData to true. This goes to admins.
+	// Setting both ContainsSanitizedData and ContainsSensitiveData for the same event is a bug, and in that case
+	// the event gets sent to no one. This is unit tested in TestWebConnShouldSendEvent.
 
 	// If the event contains sanitized data, only send to users that don't have permission to
 	// see sensitive data. Prevents admin clients from receiving events with bad data

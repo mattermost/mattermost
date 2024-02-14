@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {getName} from 'country-list';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
@@ -29,9 +28,9 @@ export default function StateSelector(props: Props) {
     };
 
     let stateList = [] as StateCode[];
-    if (props.country === getName('US')) {
+    if (props.country === 'US') {
         stateList = US_STATES;
-    } else if (props.country === getName('CA')) {
+    } else if (props.country === 'CA') {
         stateList = CA_PROVINCES;
     }
 
@@ -51,7 +50,7 @@ export default function StateSelector(props: Props) {
                 }))}
                 legend={formatMessage({id: 'admin.billing.subscription.stateprovince', defaultMessage: 'State/Province'})}
                 placeholder={formatMessage({id: 'admin.billing.subscription.stateprovince', defaultMessage: 'State/Province'})}
-                name={'billing_dropdown'}
+                name={'country_dropdown'}
             />
         );
     }

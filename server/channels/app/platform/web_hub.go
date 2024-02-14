@@ -70,6 +70,7 @@ type Hub struct {
 	explicitStop    bool
 	checkRegistered chan *webConnSessionMessage
 	checkConn       chan *webConnCheckMessage
+	broadcastHooks  map[string]BroadcastHook
 }
 
 // newWebHub creates a new Hub.
@@ -90,9 +91,11 @@ func newWebHub(ps *PlatformService) *Hub {
 }
 
 // hubStart starts all the hubs.
-func (ps *PlatformService) hubStart() {
-	// Total number of hubs is twice the number of CPUs.
-	numberOfHubs := runtime.NumCPU() * 2
+func (ps *PlatformService) hubStart(broadcastHooks map[string]BroadcastHook) {
+	// After running some tests, we found using the same number of hubs
+	// as CPUs to be the ideal in terms of performance.
+	// https://github.com/mattermost/mattermost/pull/25798#issuecomment-1889386454
+	numberOfHubs := runtime.NumCPU()
 	ps.logger.Info("Starting websocket hubs", mlog.Int("number_of_hubs", numberOfHubs))
 
 	hubs := make([]*Hub, numberOfHubs)
@@ -100,6 +103,7 @@ func (ps *PlatformService) hubStart() {
 	for i := 0; i < numberOfHubs; i++ {
 		hubs[i] = newWebHub(ps)
 		hubs[i].connectionIndex = i
+		hubs[i].broadcastHooks = broadcastHooks
 		hubs[i].Start()
 	}
 	// Assigning to the hubs slice without any mutex is fine because it is only assigned once
@@ -492,14 +496,19 @@ func (h *Hub) Start() {
 				if metrics := h.platform.metricsIFace; metrics != nil {
 					metrics.DecrementWebSocketBroadcastBufferSize(strconv.Itoa(h.connectionIndex), 1)
 				}
+
+				// Remove the broadcast hook information before precomputing the JSON so that those aren't included in it
+				msg, broadcastHooks, broadcastHookArgs := msg.WithoutBroadcastHooks()
+
 				msg = msg.PrecomputeJSON()
+
 				broadcast := func(webConn *WebConn) {
 					if !connIndex.Has(webConn) {
 						return
 					}
 					if webConn.ShouldSendEvent(msg) {
 						select {
-						case webConn.send <- msg:
+						case webConn.send <- h.runBroadcastHooks(msg, webConn, broadcastHooks, broadcastHookArgs):
 						default:
 							// Don't log the warning if it's an inactive connection.
 							if webConn.active.Load() {
@@ -514,7 +523,7 @@ func (h *Hub) Start() {
 				}
 
 				if connID := msg.GetBroadcast().ConnectionId; connID != "" {
-					if webConn := connIndex.byConnectionId[connID]; webConn != nil {
+					if webConn := connIndex.ForConnection(connID); webConn != nil {
 						broadcast(webConn)
 						continue
 					}
@@ -630,7 +639,22 @@ func (i *hubConnectionIndex) Has(wc *WebConn) bool {
 
 // ForUser returns all connections for a user ID.
 func (i *hubConnectionIndex) ForUser(id string) []*WebConn {
-	return i.byUserId[id]
+	// Fast path if there is only one or fewer connection.
+	if len(i.byUserId[id]) <= 1 {
+		return i.byUserId[id]
+	}
+	// If there are multiple connections per user,
+	// then we have to return a clone of the slice
+	// to allow connIndex.Remove to be safely called while
+	// iterating the slice.
+	conns := make([]*WebConn, len(i.byUserId[id]))
+	copy(conns, i.byUserId[id])
+	return conns
+}
+
+// ForConnection returns the connection from its ID.
+func (i *hubConnectionIndex) ForConnection(id string) *WebConn {
+	return i.byConnectionId[id]
 }
 
 // All returns the full webConn index.

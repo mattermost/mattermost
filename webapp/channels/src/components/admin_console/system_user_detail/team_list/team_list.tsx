@@ -51,8 +51,8 @@ type Props = {
     emptyListTextId: string;
     emptyListTextDefaultMessage: string;
     actions: {
-        getTeamsData: (userId: string) => Promise<{data: Team[]}>;
-        getTeamMembersForUser: (userId: string) => Promise<{data: TeamMembership[]}>;
+        getTeamsData: (userId: string) => Promise<ActionResult<Team[]>>;
+        getTeamMembersForUser: (userId: string) => Promise<ActionResult<TeamMembership[]>>;
         removeUserFromTeam: (teamId: string, userId: string) => Promise<ActionResult>;
         updateTeamMemberSchemeRoles: (teamId: string, userId: string, isSchemeUser: boolean, isSchemeAdmin: boolean) => Promise<ActionResult>;
     };
@@ -103,11 +103,11 @@ export default class TeamList extends React.PureComponent<Props, State> {
     };
 
     // check this out
-    private mergeTeamsWithMemberships = (data: [{data: Team[]}, {data: TeamMembership[]}]): TeamWithMembership[] => {
+    private mergeTeamsWithMemberships = (data: [ActionResult<Team[]>, ActionResult<TeamMembership[]>]): TeamWithMembership[] => {
         const teams = data[0].data;
         const memberships = data[1].data;
-        let teamsWithMemberships = teams.map((object: Team) => {
-            const results = memberships.filter((team: TeamMembership) => team.team_id === object.id);
+        let teamsWithMemberships = teams!.map((object: Team) => {
+            const results = memberships!.filter((team: TeamMembership) => team.team_id === object.id);
             const team = {...object, ...results[0]};
             return team;
         });
@@ -142,6 +142,19 @@ export default class TeamList extends React.PureComponent<Props, State> {
         }
     };
 
+    private renderRow = (item: TeamWithMembership): JSX.Element => {
+        return (
+            <TeamRow
+                key={item.id}
+                team={item}
+                doRemoveUserFromTeam={this.doRemoveUserFromTeam}
+                doMakeUserTeamAdmin={this.doMakeUserTeamAdmin}
+                doMakeUserTeamMember={this.doMakeUserTeamMember}
+                readOnly={this.props.readOnly}
+            />
+        );
+    };
+
     public render(): JSX.Element {
         let serverError = null;
         if (this.state.serverError) {
@@ -167,17 +180,4 @@ export default class TeamList extends React.PureComponent<Props, State> {
             </React.Fragment>
         );
     }
-
-    private renderRow = (item: TeamWithMembership): JSX.Element => {
-        return (
-            <TeamRow
-                key={item.id}
-                team={item}
-                doRemoveUserFromTeam={this.doRemoveUserFromTeam}
-                doMakeUserTeamAdmin={this.doMakeUserTeamAdmin}
-                doMakeUserTeamMember={this.doMakeUserTeamMember}
-                readOnly={this.props.readOnly}
-            />
-        );
-    };
 }

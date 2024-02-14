@@ -276,13 +276,19 @@ function canAutomaticallyCloseBackticks(message: string) {
     return {allowSending: true};
 }
 
+export function isWithinCodeBlock(message: string, caretPosition: number): boolean {
+    const match = message.substring(0, caretPosition).match(Constants.REGEX_CODE_BLOCK_OPTIONAL_LANGUAGE_TAG);
+
+    return Boolean(match && match.length % 2 !== 0);
+}
+
 function sendOnCtrlEnter(message: string, ctrlOrMetaKeyPressed: boolean, isSendMessageOnCtrlEnter: boolean, caretPosition: number) {
-    const match = message.substring(0, caretPosition).match(Constants.TRIPLE_BACK_TICKS);
-    if (isSendMessageOnCtrlEnter && ctrlOrMetaKeyPressed && (!match || match.length % 2 === 0)) {
+    const inCodeBlock = isWithinCodeBlock(message, caretPosition);
+    if (isSendMessageOnCtrlEnter && ctrlOrMetaKeyPressed && !inCodeBlock) {
         return {allowSending: true};
-    } else if (!isSendMessageOnCtrlEnter && (!match || match.length % 2 === 0)) {
+    } else if (!isSendMessageOnCtrlEnter && !inCodeBlock) {
         return {allowSending: true};
-    } else if (ctrlOrMetaKeyPressed && match && match.length % 2 !== 0) {
+    } else if (ctrlOrMetaKeyPressed && inCodeBlock) {
         return canAutomaticallyCloseBackticks(message);
     }
 
@@ -434,7 +440,7 @@ export function makeGetMentionsFromMessage(): (state: GlobalState, post: Post) =
             const mentionsArray = post.message.match(Constants.MENTIONS_REGEX) || [];
             for (let i = 0; i < mentionsArray.length; i++) {
                 const mention = mentionsArray[i];
-                const user = getUserOrGroupFromMentionName(users, mention.substring(1)) as UserProfile | '';
+                const user = getMentionDetails(users, mention.substring(1)) as UserProfile | '';
 
                 if (user) {
                     mentions[mention] = user;
@@ -664,7 +670,7 @@ export function getPostURL(state: GlobalState, post: Post): string {
 }
 
 export function matchUserMentionTriggersWithMessageMentions(userMentionKeys: UserMentionKey[],
-    messageMentionKeys: RegExpMatchArray): boolean {
+    messageMentionKeys: string[]): boolean {
     let isMentioned = false;
     for (const mentionKey of userMentionKeys) {
         const isPresentInMessage = messageMentionKeys.includes(mentionKey.key);
@@ -704,7 +710,50 @@ export function makeGetUniqueReactionsToPost(): (state: GlobalState, postId: Pos
     );
 }
 
-export function getUserOrGroupFromMentionName(usersByUsername: Record<string, UserProfile | Group>, mentionName: string) {
+export function makeGetUniqueEmojiNameReactionsForPost(): (state: GlobalState, postId: Post['id']) => string[] | undefined | null {
+    const getReactionsForPost = makeGetReactionsForPost();
+
+    return createSelector(
+        'makeGetUniqueEmojiReactionsForPost',
+        (state: GlobalState, postId: string) => getReactionsForPost(state, postId),
+        getEmojiMap,
+        (reactions, emojiMap) => {
+            if (!reactions) {
+                return null;
+            }
+
+            const emojiNames: string[] = [];
+
+            Object.values(reactions).forEach((reaction) => {
+                if (emojiMap.get(reaction.emoji_name) && !emojiNames.includes(reaction.emoji_name)) {
+                    emojiNames.push(reaction.emoji_name);
+                }
+            });
+
+            return emojiNames;
+        },
+    );
+}
+
+export function makeGetIsReactionAlreadyAddedToPost(): (state: GlobalState, postId: Post['id'], emojiName: string) => boolean {
+    const getUniqueReactionsToPost = makeGetUniqueReactionsToPost();
+
+    return createSelector(
+        'makeGetIsReactionAlreadyAddedToPost',
+        (state: GlobalState, postId: string) => getUniqueReactionsToPost(state, postId),
+        getCurrentUserId,
+        (state: GlobalState, postId: string, emojiName: string) => emojiName,
+        (reactions, currentUserId, emojiName) => {
+            const reactionsForPost = reactions || {};
+
+            const isReactionAlreadyAddedToPost = Object.values(reactionsForPost).some((reaction) => reaction.user_id === currentUserId && reaction.emoji_name === emojiName);
+
+            return isReactionAlreadyAddedToPost;
+        },
+    );
+}
+
+export function getMentionDetails(usersByUsername: Record<string, UserProfile | Group>, mentionName: string): UserProfile | Group | undefined {
     let mentionNameToLowerCase = mentionName.toLowerCase();
 
     while (mentionNameToLowerCase.length > 0) {
@@ -720,7 +769,29 @@ export function getUserOrGroupFromMentionName(usersByUsername: Record<string, Us
         }
     }
 
-    return '';
+    return undefined;
+}
+
+export function getUserOrGroupFromMentionName(
+    mentionName: string,
+    users: Record<string, UserProfile>,
+    groups: Record<string, Group>,
+    groupsDisabled?: boolean,
+    getMention = getMentionDetails,
+): [UserProfile?, Group?] {
+    const user = getMention(users, mentionName) as UserProfile | undefined;
+
+    // prioritizes user if user exists with the same name as a group.
+    if (!user && !groupsDisabled) {
+        const group = getMention(groups, mentionName) as Group | undefined;
+        if (group && !group.allow_reference) {
+            return [undefined, undefined]; // remove group mention if not allowed to reference
+        }
+
+        return [undefined, group];
+    }
+
+    return [user, undefined];
 }
 
 export function mentionsMinusSpecialMentionsInText(message: string) {
@@ -736,10 +807,6 @@ export function mentionsMinusSpecialMentionsInText(message: string) {
     return mentions;
 }
 
-function isUserProfile(entity: UserProfile | Group): entity is UserProfile {
-    return (entity as UserProfile).username !== undefined;
-}
-
 export function makeGetUserOrGroupMentionCountFromMessage(): (state: GlobalState, message: Post['message']) => number {
     return createSelector(
         'getUserOrGroupMentionCountFromMessage',
@@ -751,15 +818,12 @@ export function makeGetUserOrGroupMentionCountFromMessage(): (state: GlobalState
             const markdownCleanedText = formatWithRenderer(message, new MentionableRenderer());
             const mentions = new Set(markdownCleanedText.match(Constants.MENTIONS_REGEX) || []);
             mentions.forEach((mention) => {
-                const data = {...groups, ...users};
-                const userOrGroup = getUserOrGroupFromMentionName(data, mention.substring(1));
+                const [user, group] = getUserOrGroupFromMentionName(mention.substring(1), users, groups);
 
-                if (userOrGroup) {
-                    if (isUserProfile(userOrGroup)) {
-                        count++;
-                    } else {
-                        count += userOrGroup.member_count;
-                    }
+                if (user) {
+                    count++;
+                } else if (group) {
+                    count += group.member_count;
                 }
             });
             return count;

@@ -42,7 +42,7 @@ func NewAutoUserCreator(a *app.App, client *model.Client4, team *model.Team) *Au
 }
 
 // Basic test team and user so you always know one
-func CreateBasicUser(a *app.App, client *model.Client4) error {
+func CreateBasicUser(rctx request.CTX, a *app.App, client *model.Client4) error {
 	found, _, _ := client.TeamExists(context.Background(), BTestTeamName, "")
 	if found {
 		return nil
@@ -62,7 +62,7 @@ func CreateBasicUser(a *app.App, client *model.Client4) error {
 	if err != nil {
 		return model.NewAppError("CreateBasicUser", "app.user.verify_email.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
-	if _, nErr := a.Srv().Store().Team().SaveMember(&model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id, CreateAt: model.GetMillis()}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
+	if _, nErr := a.Srv().Store().Team().SaveMember(rctx, &model.TeamMember{TeamId: basicteam.Id, UserId: ruser.Id, CreateAt: model.GetMillis()}, *a.Config().TeamSettings.MaxUsersPerTeam); nErr != nil {
 		var appErr *model.AppError
 		var conflictErr *store.ErrConflict
 		var limitExceededErr *store.ErrLimitExceeded
@@ -127,7 +127,7 @@ func (cfg *AutoUserCreator) createRandomUser(c request.CTX) (*model.User, error)
 			return nil, appErr
 		}
 		teamMember.CreateAt = cfg.JoinTime
-		_, err := cfg.app.Srv().Store().Team().UpdateMember(teamMember)
+		_, err := cfg.app.Srv().Store().Team().UpdateMember(c, teamMember)
 		if err != nil {
 			return nil, err
 		}

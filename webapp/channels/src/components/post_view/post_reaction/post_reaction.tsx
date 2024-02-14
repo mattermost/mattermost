@@ -4,7 +4,6 @@
 import classNames from 'classnames';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
-import type {Dispatch} from 'redux';
 
 import type {Emoji} from '@mattermost/types/emojis';
 
@@ -30,7 +29,7 @@ export type Props = {
     showEmojiPicker: boolean;
     toggleEmojiPicker: (e?: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
     actions: {
-        addReaction: (postId: string, emojiName: string) => (dispatch: Dispatch) => {data: boolean};
+        toggleReaction: (postId: string, emojiName: string) => void;
     };
 }
 
@@ -45,10 +44,10 @@ export default class PostReaction extends React.PureComponent<Props, State> {
         showEmojiPicker: false,
     };
 
-    handleAddEmoji = (emoji: Emoji): void => {
+    handleToggleEmoji = (emoji: Emoji): void => {
         this.setState({showEmojiPicker: false});
         const emojiName = 'short_name' in emoji ? emoji.short_name : emoji.name;
-        this.props.actions.addReaction(this.props.postId, emojiName);
+        this.props.actions.toggleReaction(this.props.postId, emojiName);
         this.props.toggleEmojiPicker();
     };
 
@@ -79,7 +78,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
                         show={showEmojiPicker}
                         target={this.props.getDotMenuRef}
                         onHide={this.props.toggleEmojiPicker}
-                        onEmojiClick={this.handleAddEmoji}
+                        onEmojiClick={this.handleToggleEmoji}
                         topOffset={TOP_OFFSET}
                         spaceRequiredAbove={spaceRequiredAbove}
                         spaceRequiredBelow={spaceRequiredBelow}

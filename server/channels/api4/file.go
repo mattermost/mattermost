@@ -41,7 +41,7 @@ func (api *API) InitFile() {
 
 	api.BaseRoutes.Team.Handle("/files/search", api.APISessionRequiredDisableWhenBusy(searchFiles)).Methods("POST")
 
-	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET")
+	api.BaseRoutes.PublicFile.Handle("", api.APIHandler(getPublicFile)).Methods("GET", "HEAD")
 }
 
 func parseMultipartRequestHeader(req *http.Request) (boundary string, err error) {
@@ -452,7 +452,7 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	defer c.LogAuditRec(auditRec)
 	audit.AddEventParameter(auditRec, "force_download", forceDownload)
 
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		setInaccessibleFileHeader(w, err)
@@ -485,7 +485,7 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		setInaccessibleFileHeader(w, err)
@@ -527,7 +527,7 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	auditRec := c.MakeAuditRecord("getFileLink", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		setInaccessibleFileHeader(w, err)
@@ -561,7 +561,7 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	forceDownload, _ := strconv.ParseBool(r.URL.Query().Get("download"))
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		setInaccessibleFileHeader(w, err)
@@ -595,7 +595,7 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		setInaccessibleFileHeader(w, err)
@@ -624,7 +624,7 @@ func getPublicFile(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	info, err := c.App.GetFileInfo(c.Params.FileId)
+	info, err := c.App.GetFileInfo(c.AppContext, c.Params.FileId)
 	if err != nil {
 		c.Err = err
 		setInaccessibleFileHeader(w, err)

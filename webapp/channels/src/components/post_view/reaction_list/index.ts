@@ -9,9 +9,8 @@ import type {Post} from '@mattermost/types/posts';
 
 import {getChannel} from 'mattermost-redux/selectors/entities/channels';
 import {canAddReactions} from 'mattermost-redux/selectors/entities/reactions';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-import {addReaction} from 'actions/post_actions';
+import {toggleReaction} from 'actions/post_actions';
 
 import {makeGetUniqueReactionsToPost} from 'utils/post_utils';
 
@@ -40,10 +39,10 @@ function makeMapStateToProps() {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
-            addReaction,
+            toggleReaction,
         }, dispatch),
     };
 }
