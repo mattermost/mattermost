@@ -15,12 +15,3 @@
       with:
         commit_sha: "${{ inputs.commit_sha || github.sha }}"
         status_check_context: "E2E Tests/smoketests"
-        # TODO just for testing the following flags, remove everything below this line after testing
-        workers_number: 2
-        testcase_failure_fatal: false
-        run_preflight_checks: false
-        ENABLED_DOCKER_SERVICES: "postgres inbucket minio openldap elasticsearch keycloak"
-      secrets:
-        MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
-        AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
-        AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"

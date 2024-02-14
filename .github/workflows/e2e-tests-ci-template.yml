@@ -10,9 +10,9 @@ on:
         type: string
         required: true
       workers_number:
-        type: number
+        type: string # Should ideally be a number; see https://github.com/orgs/community/discussions/67182
         required: false
-        default: 1
+        default: "1"
       testcase_failure_fatal:
         type: boolean
         required: false
@@ -32,12 +32,23 @@ on:
       MM_ENV:
         type: string
         required: false
+      REPORT_TYPE:
+        type: string
+        required: false
     secrets:
       MM_LICENSE:
         required: false
       AUTOMATION_DASHBOARD_URL:
         required: false
       AUTOMATION_DASHBOARD_TOKEN:
+        required: false
+      PUSH_NOTIFICATION_SERVER:
+        required: false
+      REPORT_WEBHOOK_URL:
+        required: false
+      REPORT_TM4J_API_KEY:
+        required: false
+      REPORT_TM4J_TEST_CYCLE_LINK_PREFIX:
         required: false
 
 jobs:
