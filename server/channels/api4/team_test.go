@@ -327,6 +327,9 @@ func TestGetTeamSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin default removed", func(t *testing.T) {
+		// the above test removes PermissionInviteUser from TeamUser,
+		// which also removes it from TeamAdmin. By default, TeamAdmin
+		// permission is inherited from TeamUser.
 		rteam, _, err := th.Client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
 
@@ -334,7 +337,7 @@ func TestGetTeamSanitization(t *testing.T) {
 		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 	})
 
-	t.Run("team admin permission added", func(t *testing.T) {
+	t.Run("team admin permission re-added", func(t *testing.T) {
 		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 		rteam, _, err := th.Client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
@@ -1462,6 +1465,9 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 	})
 
 	t.Run("team admin/non-admin without invite permission", func(t *testing.T) {
+		// the above test removes PermissionInviteUser from TeamUser,
+		// which also removes it from TeamAdmin. By default, TeamAdmin
+		// permission is inherited from TeamUser.
 		rteam, _, err := th.Client.GetTeamByName(context.Background(), team.Name, "")
 		require.NoError(t, err)
 
