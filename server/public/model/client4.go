@@ -4607,6 +4607,7 @@ func (c *Client4) GenerateSupportPacket(ctx context.Context) ([]byte, *Response,
 }
 
 // GetPing will return ok if the running goRoutines are below the threshold and unhealthy for above.
+// DEPRECATED: Use GetPingWithOptions method instead.
 func (c *Client4) GetPing(ctx context.Context) (string, *Response, error) {
 	ping, resp, err := c.GetPingWithOptions(ctx, SystemPingOptions{})
 	status := ""
@@ -4618,6 +4619,7 @@ func (c *Client4) GetPing(ctx context.Context) (string, *Response, error) {
 
 // GetPingWithServerStatus will return ok if several basic server health checks
 // all pass successfully.
+// DEPRECATED: Use GetPingWithOptions method instead.
 func (c *Client4) GetPingWithServerStatus(ctx context.Context) (string, *Response, error) {
 	ping, resp, err := c.GetPingWithOptions(ctx, SystemPingOptions{FullStatus: true})
 	status := ""
@@ -4629,6 +4631,7 @@ func (c *Client4) GetPingWithServerStatus(ctx context.Context) (string, *Respons
 
 // GetPingWithFullServerStatus will return the full status if several basic server
 // health checks all pass successfully.
+// DEPRECATED: Use GetPingWithOptions method instead.
 func (c *Client4) GetPingWithFullServerStatus(ctx context.Context) (map[string]string, *Response, error) {
 	return c.GetPingWithOptions(ctx, SystemPingOptions{FullStatus: true})
 }
