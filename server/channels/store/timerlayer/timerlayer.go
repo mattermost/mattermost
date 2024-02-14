@@ -2504,10 +2504,10 @@ func (s *TimerLayerChannelStore) UserBelongsToChannels(userID string, channelIds
 	return result, err
 }
 
-func (s *TimerLayerChannelBookmarkStore) Delete(bookmarkId string) error {
+func (s *TimerLayerChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
 	start := time.Now()
 
-	err := s.ChannelBookmarkStore.Delete(bookmarkId)
+	err := s.ChannelBookmarkStore.Delete(bookmarkId, deleteFile)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

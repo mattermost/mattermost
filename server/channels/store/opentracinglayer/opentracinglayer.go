@@ -2712,7 +2712,7 @@ func (s *OpenTracingLayerChannelStore) UserBelongsToChannels(userID string, chan
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelBookmarkStore) Delete(bookmarkId string) error {
+func (s *OpenTracingLayerChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelBookmarkStore.Delete")
 	s.Root.Store.SetContext(newCtx)
@@ -2721,7 +2721,7 @@ func (s *OpenTracingLayerChannelBookmarkStore) Delete(bookmarkId string) error {
 	}()
 
 	defer span.Finish()
-	err := s.ChannelBookmarkStore.Delete(bookmarkId)
+	err := s.ChannelBookmarkStore.Delete(bookmarkId, deleteFile)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

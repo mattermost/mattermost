@@ -79,7 +79,7 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 		}
 
 		existingBookmark.DeleteAt = model.GetMillis()
-		if err := a.Srv().Store().ChannelBookmark().Delete(updateBookmark.Id); err != nil {
+		if err := a.Srv().Store().ChannelBookmark().Delete(updateBookmark.Id, false); err != nil {
 			return nil, model.NewAppError("UpdateChannelBookmark", "app.channel.bookmark.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 
@@ -104,7 +104,7 @@ func (a *App) UpdateChannelBookmark(c request.CTX, updateBookmark *model.Channel
 }
 
 func (a *App) DeleteChannelBookmark(bookmarkId, connectionId string) (*model.ChannelBookmarkWithFileInfo, *model.AppError) {
-	if err := a.Srv().Store().ChannelBookmark().Delete(bookmarkId); err != nil {
+	if err := a.Srv().Store().ChannelBookmark().Delete(bookmarkId, true); err != nil {
 		return nil, model.NewAppError("DeleteChannelBookmark", "app.channel.bookmark.delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 

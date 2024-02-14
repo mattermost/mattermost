@@ -66,7 +66,10 @@ func (s *SqlChannelBookmarkStore) ErrorIfBookmarkFileInfoAlreadyAttached(fileId 
 		Where(sq.Or{
 			sq.Expr("Id IN (?)", existingQuery),
 			sq.And{
-				sq.NotEq{"PostId": ""},
+				sq.Or{
+					sq.NotEq{"PostId": ""},
+					sq.NotEq{"CreatorId": model.BookmarkFileOwner},
+				},
 				sq.Eq{"Id": fileId},
 			},
 		})
@@ -286,8 +289,13 @@ func (s *SqlChannelBookmarkStore) UpdateSortOrder(bookmarkId, channelId string, 
 	return bookmarks, err
 }
 
-func (s *SqlChannelBookmarkStore) Delete(bookmarkId string) error {
+func (s *SqlChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
 	now := model.GetMillis()
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return err
+	}
+	defer finalizeTransactionX(transaction, &err)
 	query, args, err := s.getQueryBuilder().
 		Update("ChannelBookmarks").
 		Set("DeleteAt", now).
@@ -298,11 +306,38 @@ func (s *SqlChannelBookmarkStore) Delete(bookmarkId string) error {
 		return errors.Wrap(err, "channel_bookmark_delete_tosql")
 	}
 
-	_, err = s.GetMasterX().Exec(query, args...)
+	_, err = transaction.Exec(query, args...)
 	if err != nil {
 		return errors.Wrapf(err, "failed to delete channel bookmark with id=%s", bookmarkId)
 	}
-	return nil
+
+	if deleteFile {
+		fileIdQuery := s.getSubQueryBuilder().
+			Select("FileInfoId").
+			From("ChannelBookmarks").
+			Where(sq.And{
+				sq.Eq{"Id": bookmarkId},
+				sq.Eq{"DeleteAt": 0},
+			})
+
+		fileQuery, fileArgs, fileErr := s.getQueryBuilder().
+			Update("FileInfo").
+			Set("DeleteAt", now).
+			Set("UpdateAt", now).
+			Where(sq.Expr("Id IN (?)", fileIdQuery)).
+			ToSql()
+
+		if fileErr != nil {
+			return errors.Wrap(err, "channel_bookmark_delete_tosql")
+		}
+
+		_, err = transaction.Exec(fileQuery, fileArgs...)
+		if err != nil {
+			return errors.Wrapf(err, "failed to delete channel bookmark with id=%s", bookmarkId)
+		}
+	}
+
+	return transaction.Commit()
 }
 
 func (s *SqlChannelBookmarkStore) GetBookmarksForChannelSince(channelId string, since int64) ([]*model.ChannelBookmarkWithFileInfo, error) {

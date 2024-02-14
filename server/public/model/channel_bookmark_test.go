@@ -403,6 +403,44 @@ func TestChannelBookmarkIsValid(t *testing.T) {
 			},
 			false,
 		},
+		{
+			"bookmark of type link with a file Id attached",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   "",
+				FileId:      NewId(),
+				DisplayName: "display name",
+				SortOrder:   0,
+				LinkUrl:     "http://somelink",
+				ImageUrl:    "",
+				Emoji:       "",
+				Type:        ChannelBookmarkLink,
+				CreateAt:    0,
+				UpdateAt:    3,
+				DeleteAt:    0,
+			},
+			false,
+		},
+		{
+			"bookmark of type file with a url",
+			&ChannelBookmark{
+				Id:          NewId(),
+				OwnerId:     NewId(),
+				ChannelId:   "",
+				FileId:      NewId(),
+				DisplayName: "display name",
+				SortOrder:   0,
+				LinkUrl:     "http://somelink",
+				ImageUrl:    "",
+				Emoji:       "",
+				Type:        ChannelBookmarkFile,
+				CreateAt:    0,
+				UpdateAt:    3,
+				DeleteAt:    0,
+			},
+			false,
+		},
 	}
 
 	for _, testCase := range testCases {
@@ -484,6 +522,7 @@ func TestChannelBookmarkPreUpdate(t *testing.T) {
 }
 
 func TestChannelBookmarkPatch(t *testing.T) {
+
 	p := &ChannelBookmarkPatch{
 		DisplayName: NewString(NewId()),
 		SortOrder:   NewInt64(1),
@@ -493,7 +532,7 @@ func TestChannelBookmarkPatch(t *testing.T) {
 	b := ChannelBookmark{
 		Id:          NewId(),
 		DisplayName: NewId(),
-		Type:        ChannelBookmarkLink,
+		Type:        ChannelBookmarkLink, // should not update
 		LinkUrl:     NewId(),
 	}
 	b.Patch(p)

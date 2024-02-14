@@ -14,13 +14,13 @@ type ChannelBookmarkStore struct {
 	mock.Mock
 }
 
-// Delete provides a mock function with given fields: bookmarkId
-func (_m *ChannelBookmarkStore) Delete(bookmarkId string) error {
-	ret := _m.Called(bookmarkId)
+// Delete provides a mock function with given fields: bookmarkId, deleteFile
+func (_m *ChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
+	ret := _m.Called(bookmarkId, deleteFile)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(bookmarkId)
+	if rf, ok := ret.Get(0).(func(string, bool) error); ok {
+		r0 = rf(bookmarkId, deleteFile)
 	} else {
 		r0 = ret.Error(0)
 	}

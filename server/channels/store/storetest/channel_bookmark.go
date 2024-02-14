@@ -431,7 +431,7 @@ func testDeleteChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.NoError(t, err)
 		bookmark2 = bookmarkResp.ChannelBookmark.Clone()
 
-		err = ss.ChannelBookmark().Delete(bookmark2.Id)
+		err = ss.ChannelBookmark().Delete(bookmark2.Id, true)
 		assert.NoError(t, err)
 
 		bookmarks, err := ss.ChannelBookmark().GetBookmarksForChannelSince(channelId, now)
@@ -469,7 +469,7 @@ func testGetChannelBookmark(t *testing.T, rctx request.CTX, ss store.Store) {
 		assert.Equal(t, bookmark1.ChannelId, bookmarkResp.ChannelId)
 		assert.Nil(t, bookmarkResp.FileInfo)
 
-		err = ss.ChannelBookmark().Delete(bookmark1.Id)
+		err = ss.ChannelBookmark().Delete(bookmark1.Id, true)
 		assert.NoError(t, err)
 
 		bookmarkResp, err = ss.ChannelBookmark().Get(bookmark1.Id, false)

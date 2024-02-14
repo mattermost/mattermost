@@ -3003,11 +3003,11 @@ func (s *RetryLayerChannelStore) UserBelongsToChannels(userID string, channelIds
 
 }
 
-func (s *RetryLayerChannelBookmarkStore) Delete(bookmarkId string) error {
+func (s *RetryLayerChannelBookmarkStore) Delete(bookmarkId string, deleteFile bool) error {
 
 	tries := 0
 	for {
-		err := s.ChannelBookmarkStore.Delete(bookmarkId)
+		err := s.ChannelBookmarkStore.Delete(bookmarkId, deleteFile)
 		if err == nil {
 			return nil
 		}

@@ -112,6 +112,10 @@ func (o *ChannelBookmark) IsValid() *AppError {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.file_id.missing_or_invalid.app_error", nil, "id="+o.Id, http.StatusBadRequest)
 	}
 
+	if o.ImageUrl != "" && o.FileId != "" {
+		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.link_file.app_error", nil, "id="+o.Id, http.StatusBadRequest)
+	}
+
 	if o.OriginalId != "" && !IsValidId(o.OriginalId) {
 		return NewAppError("ChannelBookmark.IsValid", "model.channel_bookmark.is_valid.original_id.app_error", nil, "", http.StatusBadRequest)
 	}
@@ -169,19 +173,17 @@ func (o *ChannelBookmark) ToBookmarkWithFileInfo(f *FileInfo) *ChannelBookmarkWi
 }
 
 type ChannelBookmarkPatch struct {
-	FileId      *string              `json:"file_id"`
-	DisplayName *string              `json:"display_name"`
-	SortOrder   *int64               `json:"sort_order"`
-	LinkUrl     *string              `json:"link_url,omitempty"`
-	ImageUrl    *string              `json:"image_url,omitempty"`
-	Emoji       *string              `json:"emoji,omitempty"`
-	Type        *ChannelBookmarkType `json:"type"`
+	FileId      *string `json:"file_id"`
+	DisplayName *string `json:"display_name"`
+	SortOrder   *int64  `json:"sort_order"`
+	LinkUrl     *string `json:"link_url,omitempty"`
+	ImageUrl    *string `json:"image_url,omitempty"`
+	Emoji       *string `json:"emoji,omitempty"`
 }
 
 func (o *ChannelBookmarkPatch) Auditable() map[string]interface{} {
 	return map[string]interface{}{
 		"file_id": o.FileId,
-		"type":    o.Type,
 	}
 }
 
@@ -204,9 +206,6 @@ func (o *ChannelBookmark) Patch(patch *ChannelBookmarkPatch) {
 	}
 	if patch.Emoji != nil {
 		o.Emoji = *patch.Emoji
-	}
-	if patch.Type != nil {
-		o.Type = *patch.Type
 	}
 }
 
