@@ -44,6 +44,7 @@ describe('actions/status_actions', () => {
                 config: {
                     EnableCustomEmoji: 'true',
                     EnableCustomUserStatuses: 'true',
+                    EnableUserStatuses: 'true',
                 },
             },
             teams: {

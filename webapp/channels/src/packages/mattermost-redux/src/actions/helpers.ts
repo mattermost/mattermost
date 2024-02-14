@@ -5,7 +5,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {UserTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {GenericAction, DispatchFunc, GetStateFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {DispatchFunc, GetStateFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 
@@ -28,7 +28,7 @@ function dispatcher(type: ActionType, data: any, dispatch: DispatchFunc) {
     }
 }
 
-export function requestData(type: ActionType): GenericAction {
+export function requestData(type: ActionType) {
     return {
         type,
         data: null,
@@ -75,7 +75,7 @@ export function bindClientFunc<Func extends(...args: any[]) => Promise<any>>({
     onSuccess?: ActionType | ActionType[];
     onFailure?: ActionType;
     params?: Parameters<Func>;
-}): NewActionFuncAsync<Awaited<ReturnType<Func>>> {
+}): ActionFuncAsync<Awaited<ReturnType<Func>>> {
     return async (dispatch, getState) => {
         if (onRequest) {
             dispatch(requestData(onRequest));
