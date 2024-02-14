@@ -919,25 +919,25 @@ func (_m *TeamStore) Save(team *model.Team) (*model.Team, error) {
 	return r0, r1
 }
 
-// SaveMember provides a mock function with given fields: member, maxUsersPerTeam
-func (_m *TeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
-	ret := _m.Called(member, maxUsersPerTeam)
+// SaveMember provides a mock function with given fields: rctx, member, maxUsersPerTeam
+func (_m *TeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+	ret := _m.Called(rctx, member, maxUsersPerTeam)
 
 	var r0 *model.TeamMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.TeamMember, int) (*model.TeamMember, error)); ok {
-		return rf(member, maxUsersPerTeam)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.TeamMember, int) (*model.TeamMember, error)); ok {
+		return rf(rctx, member, maxUsersPerTeam)
 	}
-	if rf, ok := ret.Get(0).(func(*model.TeamMember, int) *model.TeamMember); ok {
-		r0 = rf(member, maxUsersPerTeam)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.TeamMember, int) *model.TeamMember); ok {
+		r0 = rf(rctx, member, maxUsersPerTeam)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.TeamMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.TeamMember, int) error); ok {
-		r1 = rf(member, maxUsersPerTeam)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.TeamMember, int) error); ok {
+		r1 = rf(rctx, member, maxUsersPerTeam)
 	} else {
 		r1 = ret.Error(1)
 	}

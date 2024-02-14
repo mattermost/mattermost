@@ -49,7 +49,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		}, 999)
 		require.NoError(t, err2)
 
-		_, err44 := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err44 := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   c.Id,
 			UserId:      u1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),

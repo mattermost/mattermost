@@ -3,7 +3,6 @@
 
 import {
     addMessageIntoHistory,
-    moveHistoryIndexBack,
 } from 'mattermost-redux/actions/posts';
 import {Posts} from 'mattermost-redux/constants';
 
@@ -14,7 +13,6 @@ import {setGlobalItem, actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {
     clearCommentDraftUploads,
     updateCommentDraft,
-    makeOnMoveHistoryIndex,
     submitPost,
     submitCommand,
     makeOnSubmit,
@@ -214,47 +212,6 @@ describe('rhs view actions', () => {
 
             expect(store.getActions()).toEqual(testStore.getActions());
             jest.useRealTimers();
-        });
-    });
-
-    describe('makeOnMoveHistoryIndex', () => {
-        beforeAll(() => {
-            jest.useFakeTimers();
-            jest.setSystemTime(42);
-        });
-
-        afterAll(() => {
-            jest.useRealTimers();
-        });
-
-        test('it moves comment history index back', () => {
-            const onMoveHistoryIndex = makeOnMoveHistoryIndex(rootId, -1);
-
-            store.dispatch(onMoveHistoryIndex());
-
-            const testStore = mockStore(initialState);
-
-            testStore.dispatch(moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT));
-
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-            );
-        });
-
-        test('it stores history message in draft', (done) => {
-            const onMoveHistoryIndex = makeOnMoveHistoryIndex(rootId, -1);
-
-            store.dispatch(onMoveHistoryIndex());
-
-            const testStore = mockStore(initialState);
-
-            testStore.dispatch(updateCommentDraft(rootId, {message: 'test message', channelId, rootId, fileInfos: [], uploadsInProgress: []}));
-
-            expect(store.getActions()).toEqual(
-                expect.arrayContaining(testStore.getActions()),
-            );
-
-            done();
         });
     });
 

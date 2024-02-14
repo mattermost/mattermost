@@ -7,8 +7,6 @@
   "private": true,
   "dependencies": {
     "@floating-ui/react": "0.26.6",
-    "@floating-ui/react-dom": "1.0.0",
-    "@floating-ui/react-dom-interactions": "0.10.3",
     "@giphy/js-fetch-api": "5.1.0",
     "@giphy/react-components": "8.1.0",
     "@guyplusplus/turndown-plugin-gfm": "1.0.7",
@@ -160,6 +158,8 @@
     "html-webpack-plugin": "5.5.0",
     "identity-obj-proxy": "3.0.0",
     "image-webpack-loader": "8.1.0",
+    "imagemin-gifsicle": "7.0.0",
+    "imagemin-mozjpeg": "9.0.0",
     "isomorphic-fetch": "3.0.0",
     "jest": "29.7.0",
     "jest-canvas-mock": "2.5.0",

@@ -165,7 +165,7 @@ describe('components/sidebar', () => {
         };
 
         test('should not render unreads category when disabled by user preference', () => {
-            const testState = mergeObjects(baseState, {
+            const testState = {
                 entities: {
                     channels: {
                         messageCounts: {
@@ -178,7 +178,7 @@ describe('components/sidebar', () => {
                         ]),
                     },
                 },
-            });
+            };
 
             renderWithContext(
                 <Sidebar {...baseProps}/>,
