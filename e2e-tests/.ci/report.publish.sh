@@ -27,9 +27,14 @@ export PULL_REQUEST="${BRANCH##*-}" # NB: assume that BRANCH follows the convent
 
 if [ -n "${TM4J_API_KEY:-}" ]; then
   export TM4J_ENABLE=true
-  export TM4J_ENVIRONMENT_NAME="${TEST}/${BROWSER}/${SERVER_TYPE}"
-  : ${TM4J_FOLDER_ID:?}
-  : ${JIRA_PROJECT_KEY:?}
+  export JIRA_PROJECT_KEY=MM
+  export TM4J_ENVIRONMENT_NAME="${TEST}/${BROWSER}/${SERVER}"
+  case "${SERVER}" in
+    cloud)
+      export TM4J_FOLDER_ID="2014474" ;;
+    *)
+      export TM4J_FOLDER_ID="2014475" ;;
+  esac
   : ${TEST_CYCLE_LINK_PREFIX:?}
   : ${TM4J_CYCLE_KEY:-}
   : ${TM4J_CYCLE_NAME:-}
