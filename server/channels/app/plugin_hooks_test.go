@@ -1887,8 +1887,6 @@ func TestChannelHasBeenCreated(t *testing.T) {
 	})
 
 	t.Run("should call hook when a GM is created", func(t *testing.T) {
-		t.Skip("Currently broken due to MM-56776")
-
 		th := Setup(t).InitBasic()
 		defer th.TearDown()
 
