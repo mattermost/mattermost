@@ -23,6 +23,31 @@ type ServiceInterface struct {
 	mock.Mock
 }
 
+func (_m *ServiceInterface) GenerateHyperlinkForChannels(postMessage, channelName, teamURL string) (string, error) {
+	ret := _m.Called(postMessage, channelName, teamURL)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string) (string, error)); ok {
+		return rf(postMessage, channelName, teamURL)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
+		r0 = rf(postMessage, channelName, teamURL)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(string)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(postMessage, channelName, teamURL)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // AddNotificationEmailToBatch provides a mock function with given fields: user, post, team
 func (_m *ServiceInterface) AddNotificationEmailToBatch(user *model.User, post *model.Post, team *model.Team) *model.AppError {
 	ret := _m.Called(user, post, team)
