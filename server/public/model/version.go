@@ -13,6 +13,7 @@ import (
 // It should be maintained in chronological order with most current
 // release at the front of the list.
 var versions = []string{
+	"8.1.11",
 	"8.1.10",
 	"8.1.9",
 	"8.1.8",
