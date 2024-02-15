@@ -9,8 +9,8 @@ import type {PluginConfiguration} from 'types/plugins/user_settings';
 import PluginAction from './plugin_action';
 import PluginSetting from './plugin_setting';
 
-import SettingDesktopHeader from '../setting_desktop_header';
-import SettingMobileHeader from '../setting_mobile_header';
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 type Props = {
     updateSection: (section: string) => void;

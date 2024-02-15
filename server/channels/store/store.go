@@ -389,7 +389,7 @@ type PostStore interface {
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error)
 	GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error)
-	GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error)
+	GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error)
 	SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)

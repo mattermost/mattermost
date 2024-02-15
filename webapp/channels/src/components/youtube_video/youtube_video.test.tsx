@@ -4,7 +4,8 @@
 import {mount, shallow} from 'enzyme';
 import React from 'react';
 import {Provider} from 'react-redux';
-import type {DeepPartial} from 'redux';
+
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import ExternalImage from 'components/external_image';
 
