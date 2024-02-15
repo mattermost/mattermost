@@ -22,7 +22,6 @@ import DelayedAction from 'utils/delayed_action';
 import {getNewMessageIndex, getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
-import type {PluginComponent} from 'types/store/plugins';
 import type {FakePost} from 'types/store/rhs';
 
 import CreateComment from './create_comment';
@@ -42,7 +41,6 @@ type Props = {
     isMobileView: boolean;
     isThreadView: boolean;
     lastViewedAt: number;
-    newMessagesSeparatorActions: PluginComponent[];
     inputPlaceholder?: string;
     fromSuppressed?: boolean;
 }
@@ -384,7 +382,6 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
                     lastViewedAt={this.props.lastViewedAt}
                     threadId={this.props.selected.id}
-                    newMessagesSeparatorActions={this.props.newMessagesSeparatorActions}
                 />
             </div>
         );

@@ -11,8 +11,6 @@ describe('components/post_view/new_message_separator', () => {
     test('should render new_message_separator', () => {
         renderWithContext(
             <NewMessageSeparator
-                separatorId='1234'
-                newMessagesSeparatorActions={[]}
                 lastViewedAt={0}
             />,
         );

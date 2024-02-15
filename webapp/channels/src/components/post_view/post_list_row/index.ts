@@ -29,11 +29,10 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
     const limitsLoaded = getCloudLimitsLoaded(state);
     const post = getPost(state, ownProps.listId);
     const currentUserId = getCurrentUserId(state);
-    const newMessagesSeparatorActions = state.plugins.components.NewMessagesSeparatorAction;
 
     const props: Pick<
     PostListRowProps,
-    'shortcutReactToLastPostEmittedFrom' | 'usage' | 'limits' | 'limitsLoaded' | 'exceededLimitChannelId' | 'firstInaccessiblePostTime' | 'post' | 'currentUserId' | 'newMessagesSeparatorActions'
+    'shortcutReactToLastPostEmittedFrom' | 'usage' | 'limits' | 'limitsLoaded' | 'exceededLimitChannelId' | 'firstInaccessiblePostTime' | 'post' | 'currentUserId'
     > = {
         shortcutReactToLastPostEmittedFrom,
         usage,
@@ -41,7 +40,6 @@ function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
         limitsLoaded,
         post,
         currentUserId,
-        newMessagesSeparatorActions,
     };
     if ((ownProps.listId === PostListRowListIds.OLDER_MESSAGES_LOADER || ownProps.listId === PostListRowListIds.CHANNEL_INTRO_MESSAGE) && limitsLoaded) {
         const currentChannelId = getCurrentChannelId(state);

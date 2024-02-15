@@ -15,8 +15,6 @@ import type {Props as TimestampProps} from 'components/timestamp/timestamp';
 
 import {Locations} from 'utils/constants';
 
-import type {PluginComponent} from 'types/store/plugins';
-
 import Reply from './reply';
 
 type Props = {
@@ -30,7 +28,6 @@ type Props = {
     timestampProps?: Partial<TimestampProps>;
     lastViewedAt: number;
     threadId: string;
-    newMessagesSeparatorActions: PluginComponent[];
 };
 
 function noop() {}
@@ -45,7 +42,6 @@ function ThreadViewerRow({
     timestampProps,
     lastViewedAt,
     threadId,
-    newMessagesSeparatorActions,
 }: Props) {
     switch (true) {
     case PostListUtils.isDateLine(listId): {
@@ -61,10 +57,8 @@ function ThreadViewerRow({
     case PostListUtils.isStartOfNewMessages(listId):
         return (
             <NewMessageSeparator
-                separatorId={listId}
                 lastViewedAt={lastViewedAt}
                 threadId={threadId}
-                newMessagesSeparatorActions={newMessagesSeparatorActions}
             />
         );
 
