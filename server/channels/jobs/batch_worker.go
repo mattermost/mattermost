@@ -4,7 +4,7 @@
 package jobs
 
 import (
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -18,10 +18,13 @@ type BatchWorker struct {
 	logger    mlog.LoggerIFace
 	store     store.Store
 
-	stop    chan struct{}
-	stopped chan bool
-	closed  atomic.Bool
-	jobs    chan model.Job
+	// stateMut protects stopCh and helps enforce
+	// ordering in case subsequent Run or Stop calls are made.
+	stateMut  sync.Mutex
+	stopCh    chan struct{}
+	stoppedCh chan bool
+	stopped   bool
+	jobs      chan model.Job
 
 	timeBetweenBatches time.Duration
 	doBatch            func(rctx *request.Context, job *model.Job) bool
@@ -38,31 +41,40 @@ func MakeBatchWorker(
 		jobServer:          jobServer,
 		logger:             jobServer.Logger(),
 		store:              store,
-		stop:               make(chan struct{}),
-		stopped:            make(chan bool, 1),
+		stoppedCh:          make(chan bool, 1),
 		jobs:               make(chan model.Job),
 		timeBetweenBatches: timeBetweenBatches,
 		doBatch:            doBatch,
+		stopped:            true,
 	}
 }
 
 // Run starts the worker dedicated to the unique migration batch job it will be given to process.
 func (worker *BatchWorker) Run() {
-	worker.logger.Debug("Worker started")
+	worker.stateMut.Lock()
 	// We have to re-assign the stop channel again, because
 	// it might happen that the job was restarted due to a config change.
-	if worker.closed.CompareAndSwap(true, false) {
-		worker.stop = make(chan struct{})
+	if worker.stopped {
+		worker.stopped = false
+		worker.stopCh = make(chan struct{})
+	} else {
+		worker.stateMut.Unlock()
+		return
 	}
+	// Run is called from a separate goroutine and doesn't return.
+	// So we cannot Unlock in a defer clause.
+	worker.stateMut.Unlock()
+
+	worker.logger.Debug("Worker started")
 
 	defer func() {
 		worker.logger.Debug("Worker finished")
-		worker.stopped <- true
+		worker.stoppedCh <- true
 	}()
 
 	for {
 		select {
-		case <-worker.stop:
+		case <-worker.stopCh:
 			worker.logger.Debug("Worker received stop signal")
 			return
 		case job := <-worker.jobs:
@@ -73,14 +85,18 @@ func (worker *BatchWorker) Run() {
 
 // Stop interrupts the worker even if the migration has not yet completed.
 func (worker *BatchWorker) Stop() {
+	worker.stateMut.Lock()
+	defer worker.stateMut.Unlock()
+
 	// Set to close, and if already closed before, then return.
-	if !worker.closed.CompareAndSwap(false, true) {
+	if worker.stopped {
 		return
 	}
+	worker.stopped = true
 
 	worker.logger.Debug("Worker stopping")
-	close(worker.stop)
-	<-worker.stopped
+	close(worker.stopCh)
+	<-worker.stoppedCh
 }
 
 // JobChannel is the means by which the jobs infrastructure provides the worker the job to execute.
@@ -127,7 +143,7 @@ func (worker *BatchWorker) DoJob(job *model.Job) {
 
 	for {
 		select {
-		case <-worker.stop:
+		case <-worker.stopCh:
 			logger.Info("Worker: Batch has been canceled via Worker Stop. Setting the job back to pending.")
 			if err := worker.jobServer.SetJobPending(job); err != nil {
 				worker.logger.Error("Worker: Failed to mark job as pending", mlog.Err(err))
