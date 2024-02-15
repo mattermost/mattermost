@@ -2252,12 +2252,6 @@ func (s *RetryLayerChannelStore) InvalidatePinnedPostCount(channelID string) {
 
 }
 
-func (s *RetryLayerChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
-
-	return s.ChannelStore.IsUserInChannelUseCache(userID, channelID)
-
-}
-
 func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
 
 	tries := 0

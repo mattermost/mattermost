@@ -3737,25 +3737,6 @@ func testChannelStoreGetChannels(t *testing.T, rctx request.CTX, ss store.Store)
 	require.Equal(t, o1.Id, list[0].Id, "missing channel")
 	require.Equal(t, o3.Id, list[1].Id, "missing channel")
 
-	require.True(
-		t,
-		ss.Channel().IsUserInChannelUseCache(m1.UserId, o1.Id),
-		"missing channel")
-	require.True(
-		t,
-		ss.Channel().IsUserInChannelUseCache(m1.UserId, o2.Id),
-		"missing channel")
-
-	require.False(
-		t,
-		ss.Channel().IsUserInChannelUseCache(m1.UserId, "blahblah"),
-		"missing channel")
-
-	require.False(
-		t,
-		ss.Channel().IsUserInChannelUseCache("blahblah", "blahblah"),
-		"missing channel")
-
 	ss.Channel().InvalidateAllChannelMembersForUser(m1.UserId)
 }
 
