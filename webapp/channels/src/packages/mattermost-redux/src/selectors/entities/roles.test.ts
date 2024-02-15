@@ -65,11 +65,6 @@ describe('Selectors.Roles', () => {
     channels[channel11.id] = channel11;
     channels[channel12.id] = channel12;
 
-    const channelsInTeam: Record<string, Array<Channel['id']>> = {};
-    channelsInTeam[team1.id] = [channel1.id, channel2.id, channel5.id, channel6.id, channel8.id, channel10.id, channel11.id];
-    channelsInTeam[team2.id] = [channel3.id];
-    channelsInTeam[''] = [channel4.id, channel7.id, channel9.id];
-
     const user = TestHelper.fakeUserWithId();
     const profiles: Record<string, UserProfile> = {};
     profiles[user.id] = user;

@@ -6,7 +6,7 @@ import {FormattedMessage} from 'react-intl';
 import {Link, useHistory} from 'react-router-dom';
 
 import type {Bot} from '@mattermost/types/bots';
-import type {Command, IncomingWebhook, OAuthApp, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Command, IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -26,9 +26,10 @@ type Props = {
     incomingHooks: IDMappedObjects<IncomingWebhook>;
     outgoingHooks: IDMappedObjects<OutgoingWebhook>;
     bots: Record<string, Bot>;
+    outgoingOAuthConnections: Record<string, OutgoingOAuthConnection>;
 }
 
-const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks, outgoingHooks, bots}: Props): JSX.Element | null => {
+const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks, outgoingHooks, bots, outgoingOAuthConnections}: Props): JSX.Element | null => {
     const history = useHistory();
 
     const type = (new URLSearchParams(location.search)).get('type') || '';
@@ -56,6 +57,7 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
     const incomingHook = incomingHooks[id];
     const outgoingHook = outgoingHooks[id];
     const oauthApp = oauthApps[id];
+    const outgoingOAuthConnection = outgoingOAuthConnections[id];
     const bot = bots[id];
 
     if (type === Constants.Integrations.COMMAND && command) {
@@ -242,6 +244,95 @@ const ConfirmIntegration = ({team, location, commands, oauthApps, incomingHooks,
                     values={{url: oauthApp.callback_urls.join(', ')}}
                 />
             </p>
+        );
+    } else if (type === Constants.Integrations.OUTGOING_OAUTH_CONNECTIONS && outgoingOAuthConnection) {
+        const clientId = outgoingOAuthConnection.client_id;
+        const clientSecret = outgoingOAuthConnection.client_secret;
+        const username = outgoingOAuthConnection.credentials_username;
+        const password = outgoingOAuthConnection.credentials_password;
+
+        headerText = (
+            <FormattedMessage
+                id='installed_outgoing_oauth_connections.header'
+                defaultMessage='Outgoing OAuth 2.0 Connections'
+            />
+        );
+
+        helpText = [];
+        helpText.push(
+            <p key='add_outgoing_oauth_connection.doneHelp'>
+                <FormattedMessage
+                    id='add_outgoing_oauth_connection.doneHelp'
+                    defaultMessage='Your Outgoing OAuth 2.0 Connection is set up. When a request is sent to one of the following Audience URLs, the Client ID and Client Secret will now be used to retrieve a token from the Token URL, before sending the integration request (details at <link>Outgoing OAuth 2.0 Connections</link>).'
+                    values={{
+                        link: (msg: string) => (
+                            <ExternalLink
+                                href={DeveloperLinks.SETUP_OAUTH2} // TODO: dev docs for outgoing oauth connections feature
+                                location='confirm_integration'
+                            >
+                                {msg}
+                            </ExternalLink>
+                        ),
+                    }}
+                />
+            </p>,
+        );
+        helpText.push(
+            <p key='add_outgoing_oauth_connection.clientId'>
+                <FormattedMarkdownMessage
+                    id='add_outgoing_oauth_connection.clientId'
+                    defaultMessage='**Client ID**: {id}'
+                    values={{id: clientId}}
+                />
+                <br/>
+                <FormattedMarkdownMessage
+                    id='add_outgoing_oauth_connection.clientSecret'
+                    defaultMessage='**Client Secret**: \*\*\*\*\*\*\*\*'
+                    values={{secret: clientSecret}}
+                />
+            </p>,
+        );
+
+        if (outgoingOAuthConnection.grant_type === 'password') {
+            helpText.push(
+                <p key='add_outgoing_oauth_connection.username'>
+                    <FormattedMarkdownMessage
+                        id='add_outgoing_oauth_connection.username'
+                        defaultMessage='**Username**: {username}'
+                        values={{username}}
+                    />
+                    <CopyText
+                        idMessage='integrations.copy_username'
+                        defaultMessage='Copy Username'
+                        value={username || ''}
+                    />
+                    <br/>
+                    <FormattedMarkdownMessage
+                        id='add_outgoing_oauth_connection.password'
+                        defaultMessage='**Password**: {password}'
+                        values={{password}}
+                    />
+                </p>,
+            );
+        }
+
+        tokenText = (
+            <>
+                <p className='word-break--all'>
+                    <FormattedMarkdownMessage
+                        id='add_outgoing_oauth_connection.token_url'
+                        defaultMessage='**Token URL**: `{url}`'
+                        values={{url: outgoingOAuthConnection.oauth_token_url}}
+                    />
+                </p>
+                <p className='word-break--all'>
+                    <FormattedMarkdownMessage
+                        id='add_outgoing_oauth_connection.audience_urls'
+                        defaultMessage='**Audience URL(s)**: `{url}`'
+                        values={{url: outgoingOAuthConnection.audiences.join(', ')}}
+                    />
+                </p>
+            </>
         );
     } else if (type === Constants.Integrations.BOT && bot) {
         const botToken = (new URLSearchParams(location.search)).get('token') || '';

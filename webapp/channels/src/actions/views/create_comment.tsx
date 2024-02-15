@@ -14,7 +14,7 @@ import {
 } from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import {executeCommand} from 'actions/command';
@@ -47,7 +47,7 @@ export function updateCommentDraft(rootId: string, draft?: PostDraft, save = fal
     return updateDraft(key, draft ?? null, rootId, save);
 }
 
-export function submitPost(channelId: string, rootId: string, draft: PostDraft): NewActionFuncAsync {
+export function submitPost(channelId: string, rootId: string, draft: PostDraft): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -78,7 +78,7 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft):
     };
 }
 
-export function submitCommand(channelId: string, rootId: string, draft: PostDraft): NewActionFuncAsync<unknown, GlobalState> {
+export function submitCommand(channelId: string, rootId: string, draft: PostDraft): ActionFuncAsync<unknown, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -116,7 +116,7 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
     };
 }
 
-export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string): (draft: PostDraft, options?: {ignoreSlash?: boolean}) => NewActionFuncAsync<boolean, GlobalState> {
+export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string): (draft: PostDraft, options?: {ignoreSlash?: boolean}) => ActionFuncAsync<boolean, GlobalState> {
     return (draft, options = {}) => async (dispatch, getState) => {
         const {message} = draft;
 
@@ -191,7 +191,7 @@ function makeGetCurrentUsersLatestReply() {
     );
 }
 
-export function makeOnEditLatestPost(rootId: string): () => NewActionFunc<boolean> {
+export function makeOnEditLatestPost(rootId: string): () => ActionFunc<boolean> {
     const getCurrentUsersLatestPost = makeGetCurrentUsersLatestReply();
 
     return () => (dispatch, getState) => {
