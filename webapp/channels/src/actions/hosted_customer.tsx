@@ -5,7 +5,8 @@ import type {Stripe} from '@stripe/stripe-js';
 import {getCode} from 'country-list';
 
 import type {CreateSubscriptionRequest} from '@mattermost/types/cloud';
-import type {SelfHostedExpansionRequest} from '@mattermost/types/hosted_customer';
+import type {ServerError} from '@mattermost/types/errors';
+import type {SelfHostedExpansionRequest, SelfHostedSignupSuccessResponse} from '@mattermost/types/hosted_customer';
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
 import type {ValueOf} from '@mattermost/types/utilities';
 
@@ -13,11 +14,12 @@ import {HostedCustomerTypes} from 'mattermost-redux/action_types';
 import {bindClientFunc} from 'mattermost-redux/actions/helpers';
 import {Client4} from 'mattermost-redux/client';
 import {getSelfHostedErrors} from 'mattermost-redux/selectors/entities/hosted_customer';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getConfirmCardSetup} from 'components/payment_form/stripe';
 
 import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
+import type {GlobalState} from 'types/store';
 
 function selfHostedNeedsConfirmation(progress: ValueOf<typeof SelfHostedSignupProgress>): boolean {
     switch (progress) {
@@ -40,8 +42,8 @@ export function confirmSelfHostedSignup(
     billingDetails: BillingDetails,
     initialProgress: ValueOf<typeof SelfHostedSignupProgress>,
     subscriptionRequest: CreateSubscriptionRequest,
-): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+): ActionFuncAsync<SelfHostedSignupSuccessResponse['license'] | false> {
+    return async (dispatch) => {
         const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
 
@@ -118,8 +120,8 @@ export function confirmSelfHostedSignup(
     };
 }
 
-export function getSelfHostedProducts(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getSelfHostedProducts(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async (dispatch) => {
         try {
             dispatch({
                 type: HostedCustomerTypes.SELF_HOSTED_PRODUCTS_REQUEST,
@@ -141,8 +143,8 @@ export function getSelfHostedProducts(): ActionFunc {
     };
 }
 
-export function getSelfHostedInvoices(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getSelfHostedInvoices(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async (dispatch) => {
         try {
             dispatch({
                 type: HostedCustomerTypes.SELF_HOSTED_INVOICES_REQUEST,
@@ -163,8 +165,8 @@ export function getSelfHostedInvoices(): ActionFunc {
         return true;
     };
 }
-export function retryFailedHostedCustomerFetches() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function retryFailedHostedCustomerFetches(): ActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const errors = getSelfHostedErrors(getState());
         if (Object.keys(errors).length === 0) {
             return {data: true};
@@ -182,7 +184,7 @@ export function retryFailedHostedCustomerFetches() {
     };
 }
 
-export function submitTrueUpReview(): ActionFunc {
+export function submitTrueUpReview() {
     return bindClientFunc({
         clientFunc: Client4.submitTrueUpReview,
         onSuccess: [HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_BUNDLE],
@@ -191,7 +193,7 @@ export function submitTrueUpReview(): ActionFunc {
     });
 }
 
-export function getTrueUpReviewStatus(): ActionFunc {
+export function getTrueUpReviewStatus() {
     return bindClientFunc({
         clientFunc: Client4.getTrueUpReviewStatus,
         onSuccess: [HostedCustomerTypes.RECEIVED_TRUE_UP_REVIEW_STATUS],
@@ -207,8 +209,8 @@ export function confirmSelfHostedExpansion(
     billingDetails: BillingDetails,
     initialProgress: ValueOf<typeof SelfHostedSignupProgress>,
     expansionRequest: SelfHostedExpansionRequest,
-): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+): ActionFuncAsync<SelfHostedSignupSuccessResponse['license'] | false> {
+    return async (dispatch) => {
         const cardSetupFunction = getConfirmCardSetup(cwsMockMode);
         const confirmCardSetup = cardSetupFunction(stripe.confirmCardSetup);
 

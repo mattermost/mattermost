@@ -21,6 +21,7 @@ func TestRemoteClusterStore(t *testing.T, rctx request.CTX, ss store.Store) {
 	t.Run("RemoteClusterSave", func(t *testing.T) { testRemoteClusterSave(t, rctx, ss) })
 	t.Run("RemoteClusterDelete", func(t *testing.T) { testRemoteClusterDelete(t, rctx, ss) })
 	t.Run("RemoteClusterGet", func(t *testing.T) { testRemoteClusterGet(t, rctx, ss) })
+	t.Run("RemoteClusterGetByPluginID", func(t *testing.T) { testRemoteClusterGetByPluginID(t, rctx, ss) })
 	t.Run("RemoteClusterGetAll", func(t *testing.T) { testRemoteClusterGetAll(t, rctx, ss) })
 	t.Run("RemoteClusterGetByTopic", func(t *testing.T) { testRemoteClusterGetByTopic(t, rctx, ss) })
 	t.Run("RemoteClusterUpdateTopics", func(t *testing.T) { testRemoteClusterUpdateTopics(t, rctx, ss) })
@@ -191,6 +192,31 @@ func testRemoteClusterGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	})
 }
 
+func testRemoteClusterGetByPluginID(t *testing.T, rctx request.CTX, ss store.Store) {
+	const pluginID = "com.acme.bogus.plugin"
+
+	t.Run("GetByPluginID", func(t *testing.T) {
+		rc := &model.RemoteCluster{
+			Name:      "shortlived_remote_3",
+			SiteURL:   makeSiteURL(),
+			CreatorId: model.NewId(),
+			PluginID:  pluginID,
+		}
+		rcSaved, err := ss.RemoteCluster().Save(rc)
+		require.NoError(t, err)
+
+		rcGet, err := ss.RemoteCluster().GetByPluginID(pluginID)
+		require.NoError(t, err)
+		require.Equal(t, rcSaved.RemoteId, rcGet.RemoteId)
+		require.Equal(t, pluginID, rcGet.PluginID)
+	})
+
+	t.Run("GetByPluginID not found", func(t *testing.T) {
+		_, err := ss.RemoteCluster().GetByPluginID(model.NewId())
+		require.Error(t, err)
+	})
+}
+
 func testRemoteClusterGetAll(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, clearRemoteClusters(ss))
 
@@ -307,13 +333,13 @@ func testRemoteClusterGetAllInChannel(t *testing.T, rctx request.CTX, ss store.S
 
 	userId := model.NewId()
 
-	channel1, err := createTestChannel(ss, "channel_1")
+	channel1, err := createTestChannel(ss, rctx, "channel_1")
 	require.NoError(t, err)
 
-	channel2, err := createTestChannel(ss, "channel_2")
+	channel2, err := createTestChannel(ss, rctx, "channel_2")
 	require.NoError(t, err)
 
-	channel3, err := createTestChannel(ss, "channel_3")
+	channel3, err := createTestChannel(ss, rctx, "channel_3")
 	require.NoError(t, err)
 
 	// Create shared channels
@@ -416,13 +442,13 @@ func testRemoteClusterGetAllNotInChannel(t *testing.T, rctx request.CTX, ss stor
 
 	userId := model.NewId()
 
-	channel1, err := createTestChannel(ss, "channel_1")
+	channel1, err := createTestChannel(ss, rctx, "channel_1")
 	require.NoError(t, err)
 
-	channel2, err := createTestChannel(ss, "channel_2")
+	channel2, err := createTestChannel(ss, rctx, "channel_2")
 	require.NoError(t, err)
 
-	channel3, err := createTestChannel(ss, "channel_3")
+	channel3, err := createTestChannel(ss, rctx, "channel_3")
 	require.NoError(t, err)
 
 	// Create shared channels

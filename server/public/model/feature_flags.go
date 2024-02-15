@@ -50,9 +50,7 @@ type FeatureFlags struct {
 	ConsumePostHook  bool
 
 	CloudAnnualRenewals bool
-
 	OutgoingOAuthConnections bool
-
 	WebSocketEventScope bool
 }
 

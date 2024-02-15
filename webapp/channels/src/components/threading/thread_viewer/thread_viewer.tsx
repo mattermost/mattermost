@@ -9,7 +9,7 @@ import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserThread} from '@mattermost/types/threads';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import deferComponentRender from 'components/deferComponentRender';
 import FileUploadOverlay from 'components/file_upload_overlay';
@@ -38,9 +38,9 @@ export type Props = Attrs & {
     socketConnectionStatus: boolean;
     actions: {
         fetchRHSAppsBindings: (channelId: string, rootID: string) => unknown;
-        getNewestPostThread: (rootId: string) => Promise<any>|ActionFunc;
-        getPostThread: (rootId: string, fetchThreads: boolean) => Promise<any>|ActionFunc;
-        getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<any>|ActionFunc;
+        getNewestPostThread: (rootId: string) => Promise<ActionResult>;
+        getPostThread: (rootId: string, fetchThreads: boolean) => Promise<ActionResult>;
+        getThread: (userId: string, teamId: string, threadId: string, extended: boolean) => Promise<ActionResult>;
         selectPostCard: (post: Post) => void;
         updateThreadLastOpened: (threadId: string, lastViewedAt: number) => unknown;
         updateThreadRead: (userId: string, teamId: string, threadId: string, timestamp: number) => unknown;

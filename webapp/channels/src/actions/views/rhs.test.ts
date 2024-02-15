@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {cloneDeep, set} from 'lodash';
+import type {Dispatch} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 import type {MockStoreEnhanced} from 'redux-mock-store';
 
@@ -11,7 +12,6 @@ import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import * as SearchActions from 'mattermost-redux/actions/search';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {
@@ -131,7 +131,7 @@ describe('rhs view actions', () => {
         },
     } as GlobalState;
 
-    let store: MockStoreEnhanced<GlobalState, DispatchFunc>;
+    let store: MockStoreEnhanced<GlobalState>;
 
     beforeEach(() => {
         store = mockStore(initialState);
@@ -267,7 +267,7 @@ describe('rhs view actions', () => {
 
     describe('showFlaggedPosts', () => {
         test('it dispatches the right actions', async () => {
-            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: DispatchFunc) => {
+            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
                 dispatch({type: 'MOCK_GET_FLAGGED_POSTS'});
 
                 return {data: 'data'};
@@ -311,7 +311,7 @@ describe('rhs view actions', () => {
 
     describe('showPinnedPosts', () => {
         test('it dispatches the right actions for the current channel', async () => {
-            (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: DispatchFunc) => {
+            (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
                 dispatch({type: 'MOCK_GET_PINNED_POSTS'});
 
                 return {data: 'data'};
@@ -357,7 +357,7 @@ describe('rhs view actions', () => {
         test('it dispatches the right actions for a specific channel', async () => {
             const channelId = 'channel1';
 
-            (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: DispatchFunc) => {
+            (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
                 dispatch({type: 'MOCK_GET_PINNED_POSTS'});
 
                 return {data: 'data'};
@@ -731,7 +731,7 @@ describe('rhs view actions', () => {
         });
 
         it('opens pinned posts', async () => {
-            (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: DispatchFunc) => {
+            (SearchActions.getPinnedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
                 dispatch({type: 'MOCK_GET_PINNED_POSTS'});
                 return {data: 'data'};
             });
@@ -755,7 +755,7 @@ describe('rhs view actions', () => {
         });
 
         it('opens flagged posts', async () => {
-            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: DispatchFunc) => {
+            (SearchActions.getFlaggedPosts as jest.Mock).mockReturnValue((dispatch: Dispatch) => {
                 dispatch({type: 'MOCK_GET_FLAGGED_POSTS'});
 
                 return {data: 'data'};

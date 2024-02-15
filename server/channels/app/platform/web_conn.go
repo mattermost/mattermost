@@ -470,6 +470,10 @@ func (wc *WebConn) readPump() {
 			continue
 		}
 
+		if session := wc.GetSession(); session != nil {
+			clonedReq.Session.Id = session.Id
+		}
+
 		wc.pluginPosted <- pluginWSPostedHook{wc.GetConnectionID(), wc.UserId, clonedReq}
 	}
 }

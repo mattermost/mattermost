@@ -5,6 +5,7 @@ import fs from 'fs';
 
 import nock from 'nock';
 
+import type {AdminConfig} from '@mattermost/types/config';
 import type {CreateDataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 
 import * as Actions from 'mattermost-redux/actions/admin';
@@ -567,7 +568,7 @@ describe('Actions.Admin', () => {
             post('/elasticsearch/test').
             reply(200, OK_RESPONSE);
 
-        await store.dispatch(Actions.testElasticsearch({}));
+        await store.dispatch(Actions.testElasticsearch({} as AdminConfig));
 
         expect(nock.isDone()).toBe(true);
     });
@@ -1017,9 +1018,9 @@ describe('Actions.Admin', () => {
         const state = store.getState();
         const metadataResponse = state.entities.admin.samlMetadataResponse;
         expect(metadataResponse).toBeTruthy();
-        expect(metadataResponse.idp_url === samlIdpURL).toBeTruthy();
-        expect(metadataResponse.idp_descriptor_url === samlIdpDescriptorURL).toBeTruthy();
-        expect(metadataResponse.idp_public_certificate === samlIdpPublicCertificateText).toBeTruthy();
+        expect(metadataResponse!.idp_url === samlIdpURL).toBeTruthy();
+        expect(metadataResponse!.idp_descriptor_url === samlIdpDescriptorURL).toBeTruthy();
+        expect(metadataResponse!.idp_public_certificate === samlIdpPublicCertificateText).toBeTruthy();
     });
 
     it('setSamlIdpCertificateFromMetadata', async () => {

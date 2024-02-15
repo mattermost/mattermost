@@ -1305,46 +1305,6 @@ describe('Actions.Posts', () => {
         expect(!reactions[TestHelper.basicUser!.id + '-' + emojiName]).toBeTruthy();
     });
 
-    it('getReactionsForPost', async () => {
-        const {dispatch, getState} = store;
-
-        TestHelper.mockLogin();
-        store.dispatch({
-            type: UserTypes.LOGIN_SUCCESS,
-        });
-        await store.dispatch(loadMe());
-
-        nock(Client4.getBaseRoute()).
-            post('/posts').
-            reply(201, TestHelper.fakePostWithId(TestHelper.basicChannel!.id));
-        const post1 = await Client4.createPost(
-            TestHelper.fakePost(TestHelper.basicChannel!.id),
-        );
-
-        const emojiName = '+1';
-
-        nock(Client4.getBaseRoute()).
-            post('/reactions').
-            reply(201, {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721});
-        await dispatch(Actions.addReaction(post1.id, emojiName));
-
-        dispatch({
-            type: PostTypes.REACTION_DELETED,
-            data: {user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName},
-        });
-
-        nock(Client4.getBaseRoute()).
-            get(`/posts/${post1.id}/reactions`).
-            reply(200, [{user_id: TestHelper.basicUser!.id, post_id: post1.id, emoji_name: emojiName, create_at: 1508168444721}]);
-        await dispatch(Actions.getReactionsForPost(post1.id));
-
-        const state = getState();
-        const reactions = state.entities.posts.reactions[post1.id];
-
-        expect(reactions).toBeTruthy();
-        expect(reactions[TestHelper.basicUser!.id + '-' + emojiName]).toBeTruthy();
-    });
-
     it('getCustomEmojiForReaction', async () => {
         const testImageData = fs.createReadStream('src/packages/mattermost-redux/test/assets/images/test.png');
         const {dispatch, getState} = store;

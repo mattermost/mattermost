@@ -421,7 +421,7 @@ func (th *SearchTestHelper) deleteUserFileInfos(userID string) error {
 
 func (th *SearchTestHelper) addUserToTeams(user *model.User, teamIDS []string) error {
 	for _, teamID := range teamIDS {
-		_, err := th.Store.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, -1)
+		_, err := th.Store.Team().SaveMember(th.Context, &model.TeamMember{TeamId: teamID, UserId: user.Id}, -1)
 		if err != nil {
 			return errors.New(err.Error())
 		}
@@ -432,7 +432,7 @@ func (th *SearchTestHelper) addUserToTeams(user *model.User, teamIDS []string) e
 
 func (th *SearchTestHelper) addUserToChannels(user *model.User, channelIDS []string) error {
 	for _, channelID := range channelIDS {
-		_, err := th.Store.Channel().SaveMember(&model.ChannelMember{
+		_, err := th.Store.Channel().SaveMember(th.Context, &model.ChannelMember{
 			ChannelId:   channelID,
 			UserId:      user.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),

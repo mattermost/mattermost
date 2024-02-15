@@ -586,25 +586,25 @@ func (_m *ChannelStore) GetAllChannelsForExportAfter(limit int, afterID string) 
 	return r0, r1
 }
 
-// GetAllDirectChannelsForExportAfter provides a mock function with given fields: limit, afterID
-func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
-	ret := _m.Called(limit, afterID)
+// GetAllDirectChannelsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
+func (_m *ChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
+	ret := _m.Called(limit, afterID, includeArchivedChannels)
 
 	var r0 []*model.DirectChannelForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string) ([]*model.DirectChannelForExport, error)); ok {
-		return rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) ([]*model.DirectChannelForExport, error)); ok {
+		return rf(limit, afterID, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(int, string) []*model.DirectChannelForExport); ok {
-		r0 = rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) []*model.DirectChannelForExport); ok {
+		r0 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.DirectChannelForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string) error); ok {
-		r1 = rf(limit, afterID)
+	if rf, ok := ret.Get(1).(func(int, string, bool) error); ok {
+		r1 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -2147,25 +2147,25 @@ func (_m *ChannelStore) SaveDirectChannel(ctx request.CTX, channel *model.Channe
 	return r0, r1
 }
 
-// SaveMember provides a mock function with given fields: member
-func (_m *ChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
-	ret := _m.Called(member)
+// SaveMember provides a mock function with given fields: rctx, member
+func (_m *ChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
+	ret := _m.Called(rctx, member)
 
 	var r0 *model.ChannelMember
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.ChannelMember) (*model.ChannelMember, error)); ok {
-		return rf(member)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelMember) (*model.ChannelMember, error)); ok {
+		return rf(rctx, member)
 	}
-	if rf, ok := ret.Get(0).(func(*model.ChannelMember) *model.ChannelMember); ok {
-		r0 = rf(member)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.ChannelMember) *model.ChannelMember); ok {
+		r0 = rf(rctx, member)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.ChannelMember)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.ChannelMember) error); ok {
-		r1 = rf(member)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.ChannelMember) error); ok {
+		r1 = rf(rctx, member)
 	} else {
 		r1 = ret.Error(1)
 	}

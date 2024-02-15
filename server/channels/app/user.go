@@ -325,7 +325,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		mlog.Error("Error fetching user limits in createUserOrGuest", mlog.Err(appErr))
 	} else {
 		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-			mlog.Warn("ERROR_USER_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
 		}
 	}
 
@@ -789,6 +789,25 @@ func (a *App) DeactivateMfa(userID string) *model.AppError {
 	return nil
 }
 
+// GetProfileImagePaths returns the paths to the profile images for the given user IDs if such a profile image exists.
+func (a *App) GetProfileImagePath(user *model.User) (string, *model.AppError) {
+	path := getProfileImagePath(user.Id)
+	exist, err := a.ch.srv.FileBackend().FileExists(path)
+	if err != nil {
+		return "", model.NewAppError(
+			"GetProfileImagePath",
+			"api.user.get_profile_image_path.app_error",
+			nil,
+			"",
+			http.StatusInternalServerError,
+		).Wrap(err)
+	}
+	if !exist {
+		return "", nil
+	}
+	return path, nil
+}
+
 func (a *App) GetProfileImage(user *model.User) ([]byte, bool, *model.AppError) {
 	return a.ch.srv.GetProfileImage(user)
 }
@@ -1030,7 +1049,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
 			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-				mlog.Warn("ERROR_USER_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
 			}
 		}
 	}

@@ -16,24 +16,9 @@ on:
         type: string
 
 jobs:
-  choose-runner:
-    runs-on: ubuntu-latest
-    outputs:
-      runner: ${{ steps.determine-runner.outputs.runner }}
-    steps:
-      - name: test/check-if-contributor-pr
-        id: determine-runner
-        run: |
-          if ${{ github.event.pull_request.head.repo.full_name == github.event.pull_request.base.repo.full_name }}
-            then
-              echo "runner=ubuntu-latest-8-cores" >> "$GITHUB_OUTPUT"
-            else
-              echo "runner=ubuntu-22.04" >> "$GITHUB_OUTPUT"
-          fi
   test:
-    needs: choose-runner
     name: ${{ inputs.name }}
-    runs-on: ${{ needs.choose-runner.outputs.runner }}
+    runs-on: ubuntu-22.04
     env:
       COMPOSE_PROJECT_NAME: ghactions
     steps:
