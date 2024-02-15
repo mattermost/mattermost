@@ -40,9 +40,9 @@ describe('Selectors.Channels.getChannelsInCurrentTeam', () => {
         };
 
         const channelsInTeam = {
-            [team1.id]: [channel1.id, channel3.id],
-            [team2.id]: [channel2.id],
-            '': [channel4.id],
+            [team1.id]: new Set([channel1.id, channel3.id]),
+            [team2.id]: new Set([channel2.id]),
+            '': new Set([channel4.id]),
         };
 
         const testState = deepFreezeAndThrowOnMutation({
@@ -97,7 +97,7 @@ describe('Selectors.Channels.getChannelsInCurrentTeam', () => {
         };
 
         const channelsInTeam = {
-            [team1.id]: [channel1.id, channel2.id],
+            [team1.id]: new Set([channel1.id, channel2.id]),
         };
 
         const testStateDe = deepFreezeAndThrowOnMutation({
@@ -188,9 +188,9 @@ describe('Selectors.Channels.getMyChannels', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel3.id],
-        [team2.id]: [channel2.id],
-        '': [channel4.id, channel5.id],
+        [team1.id]: new Set([channel1.id, channel3.id]),
+        [team2.id]: new Set([channel2.id]),
+        '': new Set([channel4.id, channel5.id]),
     };
 
     const myMembers = {
@@ -319,9 +319,9 @@ describe('Selectors.Channels.getOtherChannels', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel3.id, channel5.id, channel6.id],
-        [team2.id]: [channel2.id],
-        '': [channel4.id],
+        [team1.id]: new Set([channel1.id, channel3.id, channel5.id, channel6.id]),
+        [team2.id]: new Set([channel2.id]),
+        '': new Set([channel4.id]),
     };
 
     const myMembers = {
@@ -625,8 +625,8 @@ describe('Selectors.Channels.getChannelsNameMapInCurrentTeam', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel4.id],
-        [team2.id]: [channel2.id, channel3.id],
+        [team1.id]: new Set([channel1.id, channel4.id]),
+        [team2.id]: new Set([channel2.id, channel3.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -741,8 +741,8 @@ describe('Selectors.Channels.getChannelsNameMapInTeam', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel4.id],
-        [team2.id]: [channel2.id, channel3.id],
+        [team1.id]: new Set([channel1.id, channel4.id]),
+        [team2.id]: new Set([channel2.id, channel3.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -796,8 +796,8 @@ describe('Selectors.Channels.getChannelNameToDisplayNameMap', () => {
                     channel4,
                 },
                 channelsInTeam: {
-                    [team1.id]: [channel1.id, channel2.id, channel3.id],
-                    [team2.id]: [channel4.id],
+                    [team1.id]: new Set([channel1.id, channel2.id, channel3.id]),
+                    [team2.id]: new Set([channel4.id]),
                 },
             },
             teams: {
@@ -913,7 +913,7 @@ describe('Selectors.Channels.getChannelNameToDisplayNameMap', () => {
                             newChannel,
                         },
                         channelsInTeam: {
-                            [team1.id]: [channel1.id, channel2.id, channel3.id, newChannel.id],
+                            [team1.id]: new Set([channel1.id, channel2.id, channel3.id, newChannel.id]),
                         },
                     },
                 },
@@ -980,8 +980,8 @@ describe('Selectors.Channels.getGroupChannels', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel2.id],
-        '': [channel3.id, channel4.id, channel5.id],
+        [team1.id]: new Set([channel1.id, channel2.id]),
+        '': new Set([channel3.id, channel4.id, channel5.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -1028,10 +1028,9 @@ describe('Selectors.Channels.getChannelIdsInCurrentTeam', () => {
     const channel5 = TestHelper.fakeChannelWithId('');
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel2.id],
-        [team2.id]: [channel3.id, channel4.id],
-        // eslint-disable-next-line no-useless-computed-key
-        ['']: [channel5.id],
+        [team1.id]: new Set([channel1.id, channel2.id]),
+        [team2.id]: new Set([channel3.id, channel4.id]),
+        '': new Set([channel5.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -1055,10 +1054,10 @@ describe('Selectors.Channels.getChannelIdsInCurrentTeam', () => {
                     ...testState.entities.channels,
                     channelsInTeam: {
                         ...testState.entities.channels.channelsInTeam,
-                        [team2.id]: [
+                        [team2.id]: new Set([
                             ...testState.entities.channels.channelsInTeam[team2.id],
                             newChannel.id,
-                        ],
+                        ]),
                     },
                 },
             },
@@ -1085,10 +1084,9 @@ describe('Selectors.Channels.getChannelIdsForCurrentTeam', () => {
     const channel5 = TestHelper.fakeChannelWithId('');
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel2.id],
-        [team2.id]: [channel3.id, channel4.id],
-        // eslint-disable-next-line no-useless-computed-key
-        ['']: [channel5.id],
+        [team1.id]: new Set([channel1.id, channel2.id]),
+        [team2.id]: new Set([channel3.id, channel4.id]),
+        '': new Set([channel5.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -1112,10 +1110,10 @@ describe('Selectors.Channels.getChannelIdsForCurrentTeam', () => {
                     ...testState.entities.channels,
                     channelsInTeam: {
                         ...testState.entities.channels.channelsInTeam,
-                        [team2.id]: [
+                        [team2.id]: new Set([
                             ...testState.entities.channels.channelsInTeam[team2.id],
                             anotherChannel.id,
-                        ],
+                        ]),
                     },
                 },
             },
@@ -1273,8 +1271,8 @@ describe('Selectors.Channels.getChannelsWithUserProfiles', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id],
-        '': [channel2.id],
+        [team1.id]: new Set([channel1.id]),
+        '': new Set([channel2.id]),
     };
 
     const user1 = TestHelper.fakeUserWithId();
@@ -1333,7 +1331,7 @@ describe('Selectors.Channels.getChannelsWithUserProfiles', () => {
                         [unloadedChannel.id]: unloadedChannel,
                     },
                     channelsInTeam: {
-                        '': [channel2.id, unloadedChannel.id],
+                        '': new Set([channel2.id, unloadedChannel.id]),
                     },
                 },
             },
@@ -2006,7 +2004,7 @@ describe('Selectors.Channels.getUnreadStatusInCurrentTeam', () => {
     };
 
     const channelsInTeam = {
-        [team1.id]: [channel1.id, channel2.id],
+        [team1.id]: new Set([channel1.id, channel2.id]),
     };
 
     const testState = deepFreezeAndThrowOnMutation({
@@ -3078,9 +3076,9 @@ describe('Selectors.Channels.getUnreadChannelIds', () => {
         };
 
         const channelsInTeam = {
-            [team1.id]: [channel1.id, channel3.id],
-            [team2.id]: [channel2.id],
-            '': [channel4.id],
+            [team1.id]: new Set([channel1.id, channel3.id]),
+            [team2.id]: new Set([channel2.id]),
+            '': new Set([channel4.id]),
         };
 
         const messageCounts = {
@@ -3152,9 +3150,9 @@ describe('Selectors.Channels.getUnreadChannelIds', () => {
         };
 
         const channelsInTeam = {
-            [team1.id]: [channel1.id, channel3.id],
-            [team2.id]: [channel2.id],
-            '': [channel4.id],
+            [team1.id]: new Set([channel1.id, channel3.id]),
+            [team2.id]: new Set([channel2.id]),
+            '': new Set([channel4.id]),
         };
 
         const messageCounts = {
