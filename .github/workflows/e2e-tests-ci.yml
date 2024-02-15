@@ -1,5 +1,5 @@
 ---
-  name: E2E Tests - Smoke run
+  name: E2E Tests - Smoketest run
   on:
     # For PRs, this workflow gets triggered from the Argo Events platform.
     # Check the following repo for details: https://github.com/mattermost/delivery-platform
@@ -15,3 +15,14 @@
       with:
         commit_sha: "${{ inputs.commit_sha || github.sha }}"
         status_check_context: "E2E Tests/smoketests"
+        # TODO remove everything below this line after testing
+        workers_number: "2"
+        testcase_failure_fatal: false
+        run_preflight_checks: false
+        REPORT_TYPE: PR
+      secrets:
+        MM_LICENSE: "${{ secrets.MM_E2E_TEST_LICENSE_ONPREM_ENT }}"
+        AUTOMATION_DASHBOARD_URL: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_URL }}"
+        AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
+        PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
+        REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
