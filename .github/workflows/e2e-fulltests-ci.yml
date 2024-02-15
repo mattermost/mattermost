@@ -47,6 +47,7 @@
                 echo "workers_number=20" >> $GITHUB_OUTPUT
                 echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
                 echo "TEST_FILTER=$TEST_FILTER_PR" >> $GITHUB_OUTPUT
+                ;;
               *)
                 # TODO implement other test types, in the future
                 echo "Fatal: unimplemented test type. Aborting."
