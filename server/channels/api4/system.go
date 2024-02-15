@@ -196,11 +196,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
 
 	// Checking if mattermost is running as root
-	rootStatusKey := "root_status"
-	s[rootStatusKey] = "false"
-	if os.Geteuid() == 0 {
-		s[rootStatusKey] = "true"
-	}
+	s["root_status"] = strconv.FormatBool(os.Geteuid() == 0)
 
 	if s[model.STATUS] != model.StatusOk {
 		w.WriteHeader(http.StatusInternalServerError)
