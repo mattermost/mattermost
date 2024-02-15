@@ -6,7 +6,7 @@ import type {RecentEmojiData} from '@mattermost/types/emojis';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
+import {get, getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
 import {Preferences} from 'utils/constants';
@@ -97,12 +97,17 @@ export function isCustomEmojiEnabled(state: GlobalState) {
     return config && config.EnableCustomEmoji === 'true';
 }
 
+export function getOneClickReactionsEnabled(state: GlobalState) {
+    return getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, true);
+}
+
 export const getOneClickReactionEmojis = createSelector(
     'getOneClickReactionEmojis',
+    getOneClickReactionsEnabled,
     getEmojiMap,
     getRecentEmojisNames,
-    (emojiMap, recentEmojis: string[]) => {
-        if (recentEmojis.length === 0) {
+    (enabled, emojiMap, recentEmojis: string[]) => {
+        if (!enabled) {
             return [];
         }
 

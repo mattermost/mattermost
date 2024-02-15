@@ -6,7 +6,6 @@ import React, {useEffect, useRef, useState} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import {Posts} from 'mattermost-redux/constants/index';
@@ -38,7 +37,6 @@ type Props = {
     collapsedThreadsEnabled?: boolean;
     shouldShowActionsMenu?: boolean;
     oneClickReactionsEnabled?: boolean;
-    recentEmojis: Emoji[];
     isExpanded?: boolean;
     hover?: boolean;
     isMobileView: boolean;
@@ -141,7 +139,6 @@ const PostOptions = (props: Props): JSX.Element => {
                 channelId={post.channel_id}
                 postId={post.id}
                 teamId={props.teamId}
-                emojis={props.recentEmojis}
                 size={showMoreReactions ? 3 : 1}
             />
         );

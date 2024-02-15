@@ -6,7 +6,6 @@ import type {ConnectedProps} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {AnyAction, Dispatch} from 'redux';
 
-import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 
 import {setActionsMenuInitialisationState} from 'mattermost-redux/actions/preferences';
@@ -25,7 +24,7 @@ import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/use
 
 import {markPostAsUnread, emitShortcutReactToLastPostFrom} from 'actions/post_actions';
 import {closeRightHandSide, selectPost, setRhsExpanded, selectPostCard, selectPostFromRightHandSideSearch} from 'actions/views/rhs';
-import {getShortcutReactToLastPostEmittedFrom, getOneClickReactionEmojis} from 'selectors/emojis';
+import {getOneClickReactionsEnabled, getShortcutReactToLastPostEmittedFrom} from 'selectors/emojis';
 import {getIsPostBeingEdited, getIsPostBeingEditedInRHS, isEmbedVisible} from 'selectors/posts';
 import {getHighlightedPostId, getRhsState, getSelectedPostCard} from 'selectors/rhs';
 import {getIsMobileView} from 'selectors/views/browser';
@@ -40,7 +39,7 @@ import type {GlobalState} from 'types/store';
 import {removePostCloseRHSDeleteDraft} from './actions';
 import PostComponent from './post_component';
 
-interface OwnProps {
+export interface OwnProps {
     post?: Post | UserActivityPost;
     previousPostId?: string;
     postId?: string;
@@ -114,11 +113,7 @@ function makeMapStateToProps() {
 
         const selectedCard = getSelectedPostCard(state);
 
-        let emojis: Emoji[] = [];
-        const oneClickReactionsEnabled = get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT) === 'true';
-        if (oneClickReactionsEnabled) {
-            emojis = getOneClickReactionEmojis(state);
-        }
+        const oneClickReactionsEnabled = getOneClickReactionsEnabled(state);
 
         let previousPost = null;
         if (ownProps.previousPostId) {
@@ -190,7 +185,6 @@ function makeMapStateToProps() {
             collapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
             shouldHighlight: ownProps.shouldHighlight || highlightedPostId === post.id,
             oneClickReactionsEnabled,
-            recentEmojis: emojis,
             center: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CHANNEL_DISPLAY_MODE, Preferences.CHANNEL_DISPLAY_MODE_DEFAULT) === Preferences.CHANNEL_DISPLAY_MODE_CENTERED,
             isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
             isExpanded: state.views.rhs.isSidebarExpanded,

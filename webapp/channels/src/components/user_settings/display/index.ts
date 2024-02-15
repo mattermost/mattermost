@@ -17,6 +17,8 @@ import {getCurrentTimezoneFull, getCurrentTimezoneLabel} from 'mattermost-redux/
 import {getCurrentUserId, getUser} from 'mattermost-redux/selectors/entities/users';
 import {getUserCurrentTimezone} from 'mattermost-redux/utils/timezone_utils';
 
+import {getOneClickReactionsEnabled} from 'selectors/emojis';
+
 import {Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
@@ -68,7 +70,7 @@ export function makeMapStateToProps() {
             collapsedReplyThreads: getCollapsedThreadsPreference(state),
             clickToReply: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.CLICK_TO_REPLY, Preferences.CLICK_TO_REPLY_DEFAULT),
             linkPreviewDisplay: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.LINK_PREVIEW_DISPLAY, Preferences.LINK_PREVIEW_DISPLAY_DEFAULT),
-            oneClickReactionsOnPosts: get(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.ONE_CLICK_REACTIONS_ENABLED, Preferences.ONE_CLICK_REACTIONS_ENABLED_DEFAULT),
+            oneClickReactionsOnPosts: getOneClickReactionsEnabled(state).toString(),
             emojiPickerEnabled,
             lastActiveDisplay,
             lastActiveTimeEnabled,
