@@ -5569,7 +5569,6 @@
   "user.settings.display.theme.title": "Theme",
   "user.settings.display.timezone": "Timezone",
   "user.settings.display.title": "Display Settings",
-  "user.settings.general.checkEmail": "Check your email at {email} to verify the address. Cannot find the email?",
   "user.settings.general.close": "Close",
   "user.settings.general.confirmEmail": "Confirm Email",
   "user.settings.general.currentEmail": "Current Email",
