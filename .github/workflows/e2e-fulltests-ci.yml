@@ -39,6 +39,7 @@
       steps:
         - name: ci/generate-test-variables
           id: generate
+          shell: bash
           run: |
             case "${{ inputs.REPORT_TYPE }}" in
               NONE | PR)
