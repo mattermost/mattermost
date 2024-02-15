@@ -312,7 +312,7 @@ jobs:
         uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
         with:
           path: e2e-tests/cypress/
-          pattern: e2e-test-results-*
+          pattern: results/*
           merge-multiple: true
       - name: ci/publish-report
         env:
