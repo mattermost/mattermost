@@ -67,6 +67,7 @@
         workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
         testcase_failure_fatal: false
         run_preflight_checks: false
+        enable_reporting: true
         ENABLED_DOCKER_SERVICES: "${{ needs.generate-test-variables.outputs.ENABLED_DOCKER_SERVICES }}"
         TEST_FILTER: "${{ needs.generate-test-variables.outputs.TEST_FILTER }}"
         REPORT_TYPE: "${{ inputs.REPORT_TYPE }}"

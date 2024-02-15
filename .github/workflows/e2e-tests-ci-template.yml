@@ -17,12 +17,16 @@ on:
         type: boolean
         required: false
         default: true
-      # NB: this will skip individual preflight steps, rather than the whole jobs,
-      #     to let the dependent jobs run anyaway in case this is false
+      # NB: the following toggles will skip individual steps, rather than the whole jobs,
+      #     to let the dependent jobs run even if these are false
       run_preflight_checks:
         type: boolean
         required: false
         default: true
+      enable_reporting:
+        type: boolean
+        required: false
+        default: false
       ENABLED_DOCKER_SERVICES:
         type: string
         required: false
@@ -297,13 +301,13 @@ jobs:
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
-        if: "${{ inputs.REPORT_TYPE == '' }}"
+        if: "${{ inputs.enable_reporting }}"
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
         with:
           ref: ${{ inputs.commit_sha }}
           fetch-depth: 0
       - name: ci/setup-node
-        if: "${{ inputs.REPORT_TYPE == '' }}"
+        if: "${{ inputs.enable_reporting }}"
         uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
         id: setup_node
         with:
@@ -311,14 +315,14 @@ jobs:
           cache: npm
           cache-dependency-path: "e2e-tests/cypress/package-lock.json"
       - name: ci/download-artifacts
-        if: "${{ inputs.REPORT_TYPE == '' }}"
+        if: "${{ inputs.enable_reporting }}"
         uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           path: e2e-tests/cypress/
           #pattern: results/*
           merge-multiple: true
       - name: ci/publish-report
-        if: "${{ inputs.REPORT_TYPE == '' }}"
+        if: "${{ inputs.enable_reporting }}"
         env:
           TYPE: "${{ inputs.REPORT_TYPE }}"
           WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
