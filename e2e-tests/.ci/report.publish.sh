@@ -23,7 +23,9 @@ export BUILD_TAG="${SERVER_IMAGE##*/}"
 export MM_DOCKER_IMAGE="${BUILD_TAG%%:*}" # NB: the 'mattermostdevelopment/' prefix is assumed
 export MM_DOCKER_TAG="${BUILD_TAG##*:}"
 export SERVER_TYPE="${SERVER}"
-export PULL_REQUEST="${BRANCH##*-}" # NB: assume that BRANCH follows the convention 'server-pr-${PR_NUMBER}'. If multiple PRs match, use the last one. Only needed if TYPE=PR.
+# NB: assume that BRANCH follows the convention 'server-pr-${PR_NUMBER}'. If multiple PRs match, the last one is used to generate the link
+# Only needed if TYPE=PR
+export PULL_REQUEST="https://github.com/mattermost/mattermost/pull/${BRANCH##*-}"
 
 if [ -n "${TM4J_API_KEY:-}" ]; then
   export TM4J_ENABLE=true

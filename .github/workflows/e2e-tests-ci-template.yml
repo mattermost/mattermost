@@ -324,8 +324,6 @@ jobs:
           TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
           TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
         run: |
-          find cypress/logs/ # TODO remove before merging
-          find cypress/results/ # TODO remove before merging
           make publish-report
 
   update-failure-final-status:
