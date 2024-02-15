@@ -90,8 +90,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -164,8 +164,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -237,8 +237,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -303,8 +303,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     users: {
@@ -344,8 +344,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -440,8 +440,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
@@ -532,8 +532,8 @@ describe('actions/global_actions', () => {
                             team2: {id: 'team2', display_name: 'Team 2', name: 'team2', delete_at: 0},
                         },
                         myMembers: {
-                            team1: {id: 'team1'},
-                            team2: {id: 'team2'},
+                            team1: {team_id: 'team1'},
+                            team2: {team_id: 'team2'},
                         },
                     },
                     channels: {
