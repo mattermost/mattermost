@@ -84,7 +84,7 @@ describe('component/user_group_popover', () => {
             },
             users: {
                 profiles,
-                profilesInGroup: profilesInGroup as any, // HARRISONTODO The type entities.users.profilesInGroup is incorrectly an array when it should be a Set
+                profilesInGroup,
             },
             preferences: {
                 myPreferences: {},

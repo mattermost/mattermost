@@ -726,7 +726,7 @@ describe('components/SwitchChannelProvider', () => {
                         },
                     },
                     channelsInTeam: {
-                        '': ['other_gm_channel'],
+                        '': new Set(['other_gm_channel']),
                     },
                 },
             },
@@ -793,7 +793,7 @@ describe('components/SwitchChannelProvider', () => {
                         }),
                     },
                     channelsInTeam: {
-                        '': ['other_gm_channel'],
+                        '': new Set(['other_gm_channel']),
                     },
                 },
                 preferences: {
@@ -960,7 +960,7 @@ describe('components/SwitchChannelProvider', () => {
                         },
                     },
                     channelsInTeam: {
-                        '': ['thread_gm_channel'],
+                        '': new Set(['thread_gm_channel']),
                     },
                 },
             },
