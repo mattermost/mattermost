@@ -1885,6 +1885,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 
 		client := th.CreateClient()
 		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		defer th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
 		th.LoginBasic2WithClient(client)
 
 		rteams, _, err := client.GetTeamsForUser(context.Background(), th.BasicUser2.Id, "")
