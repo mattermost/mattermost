@@ -170,20 +170,13 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 	return a.SessionHasPermissionTo(session, permission)
 }
 
-func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
-	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
-		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
-			return true
-		}
+func (a *App) SessionHasPermissionToChannelByPost(c request.CTX, session model.Session, postID string, permission *model.Permission) bool {
+	post, appErr := a.GetSinglePost(postID, true)
+	if appErr != nil {
+		return false
 	}
 
-	if channel, err := a.Srv().Store().Channel().GetForPost(postID); err == nil {
-		if channel.TeamId != "" {
-			return a.SessionHasPermissionToTeam(session, channel.TeamId, permission)
-		}
-	}
-
-	return a.SessionHasPermissionTo(session, permission)
+	return a.SessionHasPermissionToChannel(c, session, post.ChannelId, permission)
 }
 
 func (a *App) SessionHasPermissionToCategory(c request.CTX, session model.Session, userID, teamID, categoryId string) bool {

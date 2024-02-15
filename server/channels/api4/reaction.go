@@ -35,7 +35,7 @@ func saveReaction(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), reaction.PostId, model.PermissionAddReaction) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), reaction.PostId, model.PermissionAddReaction) {
 		c.SetPermissionError(model.PermissionAddReaction)
 		return
 	}
@@ -57,7 +57,7 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId, model.PermissionReadChannelContent) {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -78,22 +78,12 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
+	c.RequireUserId().RequirePostId().RequireEmojiName()
 	if c.Err != nil {
 		return
 	}
 
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	c.RequireEmojiName()
-	if c.Err != nil {
-		return
-	}
-
-	if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), c.Params.PostId, model.PermissionRemoveReaction) {
+	if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), c.Params.PostId, model.PermissionRemoveReaction) {
 		c.SetPermissionError(model.PermissionRemoveReaction)
 		return
 	}
@@ -125,7 +115,7 @@ func getBulkReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	for _, postId := range postIds {
-		if !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), postId, model.PermissionReadChannelContent) {
+		if !c.App.SessionHasPermissionToChannelByPost(c.AppContext, *c.AppContext.Session(), postId, model.PermissionReadChannelContent) {
 			c.SetPermissionError(model.PermissionReadChannelContent)
 			return
 		}
