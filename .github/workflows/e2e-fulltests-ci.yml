@@ -41,8 +41,7 @@
           id: generate
           run: |
             case "${{ inputs.REPORT_TYPE }}" in
-              NONE)
-              PR)
+              NONE | PR)
                 echo "status_check_context=E2E Tests/test" >> $GITHUB_OUTPUT
                 echo "workers_number=20" >> $GITHUB_OUTPUT
                 echo "ENABLED_DOCKER_SERVICES=postgres inbucket minio openldap elasticsearch keycloak" >> $GITHUB_OUTPUT
