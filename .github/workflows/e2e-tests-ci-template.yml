@@ -245,6 +245,7 @@ jobs:
       BRANCH: "${{ needs.generate-build-variables.outputs.BRANCH }}"
       BUILD_ID: "${{ needs.generate-build-variables.outputs.BUILD_ID }}"
       CI_BASE_URL: "http://localhost:8065/?worker_index=${{ matrix.worker_index }}"
+      CYPRESS_pushNotificationServer: "${{ secrets.PUSH_NOTIFICATION_SERVER }}"
     steps:
       - name: ci/checkout-repo
         uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
@@ -285,11 +286,51 @@ jobs:
           echo "Cypress run completed with $CYPRESS_FAILURES failures"
           [ "$CYPRESS_FAILURES" = "0" ]
 
+  publish-report:
+    runs-on: ubuntu-22.04
+    needs:
+      - generate-build-variables
+      - test
+    defaults:
+      run:
+        shell: bash
+        working-directory: e2e-tests
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        with:
+          ref: ${{ inputs.commit_sha }}
+          fetch-depth: 0
+      - name: ci/setup-node
+        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        id: setup_node
+        with:
+          node-version-file: ".nvmrc"
+          cache: npm
+          cache-dependency-path: "e2e-tests/cypress/package-lock.json"
+      - name: ci/download-artifacts
+        uses: actions/download-artifact@6b208ae046db98c579e8a3aa621ab581ff575935 # v4.1.1
+        with:
+          path: e2e-tests/cypress/
+          pattern: e2e-test-results-*
+          merge-multiple: true
+      - name: ci/publish-report
+        env:
+          TYPE: "${{ inputs.REPORT_TYPE }}"
+          WEBHOOK_URL: "${{ secrets.REPORT_WEBHOOK_URL }}"
+          BRANCH: "${{ needs.generate-build-variables.outputs.BRANCH }}"
+          BUILD_ID: "${{ needs.generate-build-variables.outputs.BUILD_ID }}"
+          MM_ENV: "${{ inputs.MM_ENV }}"
+          TM4J_API_KEY: "${{ secrets.REPORT_TM4J_API_KEY }}"
+          TEST_CYCLE_LINK_PREFIX: "${{ secrets.REPORT_TM4J_TEST_CYCLE_LINK_PREFIX }}"
+        run: |
+          make publish-report
+
   update-failure-final-status:
     runs-on: ubuntu-22.04
     if: failure() || cancelled()
     needs:
-      - test
+      - publish-report
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
@@ -305,7 +346,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: success()
     needs:
-      - test
+      - publish-report
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:

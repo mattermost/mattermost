@@ -1,5 +1,5 @@
 ---
-  name: E2E Tests
+  name: E2E Tests - Full run
   on:
     # For PRs, this workflow gets triggered from the Argo Events platform.
     # Check the following repo for details: https://github.com/mattermost/delivery-platform
@@ -30,9 +30,10 @@
         ENABLED_DOCKER_SERVICES: "${{ steps.generate.outputs.ENABLED_DOCKER_SERVICES }}"
         TEST_FILTER: "${{ steps.generate.outputs.TEST_FILTER }}"
       env:
+        # We could exclude the @smoke group for PRs, but then we wouldn't have it in the report
         TEST_FILTER_PR: >-
           --stage="@prod"
-          --excludeGroup="@te_only,@cloud_only,@high_availability,@smoke"
+          --excludeGroup="@te_only,@cloud_only,@high_availability"
           --sortFirst="@compliance_export,@elasticsearch,@ldap_group,@ldap"
           --sortLast="@saml,@keycloak,@plugin,@plugins_uninstall,@mfa,@license_removal"
       steps:
@@ -75,5 +76,6 @@
         AUTOMATION_DASHBOARD_TOKEN: "${{ secrets.MM_E2E_AUTOMATION_DASHBOARD_TOKEN }}"
         PUSH_NOTIFICATION_SERVER: "${{ secrets.MM_E2E_PUSH_NOTIFICATION_SERVER }}"
         REPORT_WEBHOOK_URL: "${{ secrets.MM_E2E_REPORT_WEBHOOK_URL }}"
+        ### These are disabled until release tests are implemented
         #REPORT_TM4J_API_KEY: "${{ secrets.MM_E2E_TM4J_API_KEY }}"
         #REPORT_TEST_CYCLE_LINK_PREFIX: "${{ secrets.MM_E2E_TEST_CYCLE_LINK_PREFIX }}"

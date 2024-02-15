@@ -1,5 +1,5 @@
 ---
-  name: E2E Smoketests
+  name: E2E Tests - Smoke run
   on:
     # For PRs, this workflow gets triggered from the Argo Events platform.
     # Check the following repo for details: https://github.com/mattermost/delivery-platform
