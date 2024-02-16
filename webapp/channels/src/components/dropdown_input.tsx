@@ -47,6 +47,14 @@ const baseStyles = {
         ...provided,
         display: 'none',
     }),
+    menu: (provided: CSSProperties) => ({
+        ...provided,
+        zIndex: 100,
+    }),
+    menuPortal: (provided: CSSProperties) => ({
+        ...provided,
+        zIndex: 100,
+    }),
 };
 
 const IndicatorsContainer = (props: any) => {

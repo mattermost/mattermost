@@ -24,7 +24,7 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getCurrentUserMentionKeys} from 'mattermost-redux/selectors/entities/users';
-import type {NewActionFunc, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 import {getSearchTerms, getRhsState, getPluggableId, getFilesSearchExtFilter, getPreviousRhsState} from 'selectors/rhs';
@@ -37,7 +37,7 @@ import {getBrowserUtcOffset, getUtcOffsetForTimeZone} from 'utils/timezone';
 import type {GlobalState} from 'types/store';
 import type {RhsState} from 'types/store/rhs';
 
-function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): NewActionFuncAsync<boolean, GlobalState> {
+function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const postRootId = post.root_id || post.id;
         await dispatch(PostActions.getPostThread(postRootId));
@@ -55,7 +55,7 @@ function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previous
     };
 }
 
-function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): NewActionFuncAsync<boolean, GlobalState> {
+function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -70,7 +70,7 @@ function selectPostCardFromRightHandSideSearchWithPreviousState(post: Post, prev
     };
 }
 
-export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState): NewActionFunc<boolean> {
+export function updateRhsState(rhsState: string, channelId?: string, previousRhsState?: RhsState): ActionFunc<boolean> {
     return (dispatch, getState) => {
         const action: AnyAction = {
             type: ActionTypes.UPDATE_RHS_STATE,
@@ -105,7 +105,7 @@ export function openShowEditHistory(post: Post) {
     };
 }
 
-export function goBack(): NewActionFuncAsync<boolean, GlobalState> {
+export function goBack(): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const prevState = getPreviousRhsState(getState());
         const defaultTab = 'channel-info';
@@ -123,11 +123,7 @@ export function selectPostFromRightHandSideSearch(post: Post) {
     return selectPostFromRightHandSideSearchWithPreviousState(post);
 }
 
-export function selectPostCardFromRightHandSideSearch(post: Post) { // HARRISONTODO unused
-    return selectPostCardFromRightHandSideSearchWithPreviousState(post);
-}
-
-export function selectPostFromRightHandSideSearchByPostId(postId: string): NewActionFuncAsync<boolean, GlobalState> {
+export function selectPostFromRightHandSideSearchByPostId(postId: string): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const post = getPost(getState(), postId);
         return dispatch(selectPostFromRightHandSideSearch(post));
@@ -262,7 +258,7 @@ export function showRHSPlugin(pluggableId: string) {
     };
 }
 
-export function showChannelMembers(channelId: string, inEditingMode = false): NewActionFuncAsync<boolean, GlobalState> {
+export function showChannelMembers(channelId: string, inEditingMode = false): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
 
@@ -285,7 +281,7 @@ export function showChannelMembers(channelId: string, inEditingMode = false): Ne
     };
 }
 
-export function hideRHSPlugin(pluggableId: string): NewActionFunc<boolean, GlobalState> {
+export function hideRHSPlugin(pluggableId: string): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState() as GlobalState;
 
@@ -297,7 +293,7 @@ export function hideRHSPlugin(pluggableId: string): NewActionFunc<boolean, Globa
     };
 }
 
-export function toggleRHSPlugin(pluggableId: string): NewActionFunc<boolean, GlobalState> {
+export function toggleRHSPlugin(pluggableId: string): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const state = getState();
 
@@ -311,7 +307,7 @@ export function toggleRHSPlugin(pluggableId: string): NewActionFunc<boolean, Glo
     };
 }
 
-export function showFlaggedPosts(): NewActionFuncAsync {
+export function showFlaggedPosts(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
@@ -346,7 +342,7 @@ export function showFlaggedPosts(): NewActionFuncAsync {
     };
 }
 
-export function showPinnedPosts(channelId?: string): NewActionFuncAsync<boolean, GlobalState> {
+export function showPinnedPosts(channelId?: string): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentChannelId = getCurrentChannelId(state);
@@ -389,7 +385,7 @@ export function showPinnedPosts(channelId?: string): NewActionFuncAsync<boolean,
     };
 }
 
-export function showChannelFiles(channelId: string): NewActionFuncAsync<boolean, GlobalState> {
+export function showChannelFiles(channelId: string): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const state = getState();
         const teamId = getCurrentTeamId(state);
@@ -447,7 +443,7 @@ export function showChannelFiles(channelId: string): NewActionFuncAsync<boolean,
     };
 }
 
-export function showMentions(): NewActionFunc<boolean, GlobalState> {
+export function showMentions(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
         const termKeys = getCurrentUserMentionKeys(getState()).filter(({key}) => {
             return key !== '@channel' && key !== '@all' && key !== '@here';
@@ -481,7 +477,7 @@ export function showChannelInfo(channelId: string) {
     };
 }
 
-export function closeRightHandSide(): NewActionFunc {
+export function closeRightHandSide(): ActionFunc {
     return (dispatch) => {
         const actionsBatch: AnyAction[] = [
             {
@@ -526,17 +522,6 @@ export function toggleRhsExpanded() {
     };
 }
 
-export function selectPostAndParentChannel(post: Post): NewActionFuncAsync { // HARRISONTODO unused
-    return async (dispatch, getState) => {
-        const channel = getChannelSelector(getState(), post.channel_id);
-        if (!channel) {
-            await dispatch(getChannel(post.channel_id));
-        }
-        dispatch(selectPost(post));
-        return {data: true};
-    };
-}
-
 export function selectPost(post: Post) {
     return {
         type: ActionTypes.SELECT_POST,
@@ -546,7 +531,7 @@ export function selectPost(post: Post) {
     };
 }
 
-export function selectPostById(postId: string): NewActionFuncAsync {
+export function selectPostById(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const post = getPost(state, postId) ?? (await dispatch(fetchPost(postId))).data;
@@ -577,7 +562,7 @@ export const debouncedClearHighlightReply = debounce((dispatch) => {
     return dispatch(clearHighlightReply);
 }, Constants.PERMALINK_FADEOUT);
 
-export function selectPostAndHighlight(post: Post): NewActionFunc {
+export function selectPostAndHighlight(post: Post): ActionFunc {
     return (dispatch) => {
         dispatch(batchActions([
             selectPost(post),
@@ -594,7 +579,7 @@ export function selectPostCard(post: Post) {
     return {type: ActionTypes.SELECT_POST_CARD, postId: post.id, channelId: post.channel_id};
 }
 
-export function openRHSSearch(): NewActionFunc {
+export function openRHSSearch(): ActionFunc {
     return (dispatch) => {
         dispatch(clearSearch());
         dispatch(updateSearchTerms(''));

@@ -13,7 +13,7 @@ import type {PluginRedux} from '@mattermost/types/plugins';
 import AdminSidebarCategory from 'components/admin_console/admin_sidebar/admin_sidebar_category';
 import AdminSidebarSection from 'components/admin_console/admin_sidebar/admin_sidebar_section';
 import AdminSidebarHeader from 'components/admin_console/admin_sidebar_header';
-import Highlight from 'components/admin_console/highlight';
+import SearchKeywordMarking from 'components/admin_console/search_keyword_marking';
 import QuickInput from 'components/quick_input';
 import SearchIcon from 'components/widgets/icons/search_icon';
 
@@ -27,7 +27,7 @@ import type {PropsFromRedux} from './index';
 
 export interface Props extends PropsFromRedux {
     intl: IntlShape;
-    onFilterChange: (term: string) => void;
+    onSearchChange: (term: string) => void;
 }
 
 type State = {
@@ -94,11 +94,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         }
     }
 
-    onFilterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const filter = e.target.value;
         if (filter === '') {
             this.setState({sections: null, filter});
-            this.props.onFilterChange(filter);
+            this.props.onSearchChange(filter);
             return;
         }
 
@@ -115,7 +115,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
         }
         const sections = this.idx.search(query);
         this.setState({sections, filter});
-        this.props.onFilterChange(filter);
+        this.props.onSearchChange(filter);
 
         if (this.props.navigationBlocked) {
             return;
@@ -286,7 +286,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
 
     handleClearFilter = () => {
         this.setState({sections: null, filter: ''});
-        this.props.onFilterChange('');
+        this.props.onSearchChange('');
     };
 
     render() {
@@ -302,7 +302,7 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     <QuickInput
                         className={'filter ' + (this.state.filter ? 'active' : '')}
                         type='text'
-                        onChange={this.onFilterChange}
+                        onChange={this.handleSearchChange}
                         value={this.state.filter}
                         placeholder={this.props.intl.formatMessage({id: 'admin.sidebar.filter', defaultMessage: 'Find settings'})}
                         ref={this.searchRef}
@@ -320,11 +320,11 @@ class AdminSidebar extends React.PureComponent<Props, State> {
                     renderView={renderScrollView}
                 >
                     <div className='nav-pills__container'>
-                        <Highlight filter={this.state.filter}>
+                        <SearchKeywordMarking keyword={this.state.filter}>
                             <ul className={classNames('nav nav-pills nav-stacked', {'task-list-shown': showTaskList})}>
                                 {this.renderRootMenu(this.props.adminDefinition)}
                             </ul>
-                        </Highlight>
+                        </SearchKeywordMarking>
                     </div>
                 </Scrollbars>
             </div>
