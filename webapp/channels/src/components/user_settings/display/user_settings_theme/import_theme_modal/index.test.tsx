@@ -7,7 +7,7 @@ import {setThemeDefaults} from 'mattermost-redux/utils/theme_utils';
 
 import {mountWithIntl, shallowWithIntl} from 'tests/helpers/intl-test-helper';
 
-import ImportThemeModal from './import_theme_modal';
+import ImportThemeModal from './index';
 
 describe('components/user_settings/ImportThemeModal', () => {
     const props = {

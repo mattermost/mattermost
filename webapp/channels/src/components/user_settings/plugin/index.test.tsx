@@ -8,7 +8,7 @@ import React from 'react';
 
 import {renderWithContext} from 'tests/react_testing_utils';
 
-import PluginTab from './plugin';
+import PluginTab from './index';
 
 type Props = ComponentProps<typeof PluginTab>;
 
