@@ -12,8 +12,6 @@ import * as Actions from 'actions/status_actions';
 
 import mockStore from 'tests/test_store';
 
-import type {GlobalState} from 'types/store';
-
 jest.mock('mattermost-redux/actions/users', () => ({
     getStatusesByIds: jest.fn(() => {
         return {type: ''};
@@ -38,12 +36,13 @@ describe('actions/status_actions', () => {
                 currentChannelId: 'channel_id1',
                 channels: {channel_id1: {id: 'channel_id1', name: 'channel1', team_id: 'team_id1'}, channel_id2: {id: 'channel_id2', name: 'channel2', team_id: 'team_id1'}},
                 myMembers: {channel_id1: {channel_id: 'channel_id1', user_id: 'current_user_id'}},
-                channelsInTeam: {team_id1: ['channel_id1']},
+                channelsInTeam: {team_id1: new Set(['channel_id1'])},
             },
             general: {
                 config: {
                     EnableCustomEmoji: 'true',
                     EnableCustomUserStatuses: 'true',
+                    EnableUserStatuses: 'true',
                 },
             },
             teams: {
@@ -75,7 +74,7 @@ describe('actions/status_actions', () => {
                 },
             },
         },
-    } as unknown as GlobalState;
+    };
 
     describe('loadStatusesForChannelAndSidebar', () => {
         test('load statuses with posts in channel and user in sidebar', () => {
