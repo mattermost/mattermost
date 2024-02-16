@@ -1,4 +1,4 @@
-package memorystore
+package pluginapi
 
 import (
 	"bytes"
@@ -10,17 +10,14 @@ import (
 	"unicode/utf8"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/pluginapi"
+
 	"github.com/pkg/errors"
 )
 
-// numRetries is the number of times setAtomicWithRetries will retry before returning an error.
-const numRetries = 5
-
-// Store is a implementation of the plugin KV store API for testing.
+// MemoryStore is a implementation of the plugin KV store API for testing.
 // It's not meant for production use.
 // It is safe for concurrent use by multiple goroutine.
-type Store struct {
+type MemoryStore struct {
 	mux   sync.RWMutex
 	elems map[string]elem
 }
@@ -40,20 +37,20 @@ func (e elem) isExpired() bool {
 // Returns (false, err) if DB error occurred
 // Returns (false, nil) if the value was not set
 // Returns (true, nil) if the value was set
-func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bool, error) {
+func (s *MemoryStore) Set(key string, value any, options ...KVSetOption) (bool, error) {
 	if key == "" {
 		return false, errors.New("key must not be empty")
 	}
 
-	if strings.HasPrefix(key, pluginapi.InternalKeyPrefix) {
-		return false, errors.Errorf("'%s' prefix is not allowed for keys", pluginapi.InternalKeyPrefix)
+	if strings.HasPrefix(key, internalKeyPrefix) {
+		return false, errors.Errorf("'%s' prefix is not allowed for keys", internalKeyPrefix)
 	}
 
 	if utf8.RuneCountInString(key) > model.KeyValueKeyMaxRunes {
 		return false, errors.Errorf("key must not be longer then %d", model.KeyValueKeyMaxRunes)
 	}
 
-	opts := pluginapi.KVSetOptions{}
+	opts := KVSetOptions{}
 	for _, o := range options {
 		if o != nil {
 			o(&opts)
@@ -79,14 +76,14 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 		ExpireInSeconds: opts.ExpireInSeconds,
 	}
 
-	if opts.OldValue != nil {
-		oldValueBytes, isOldValueInBytes := opts.OldValue.([]byte)
+	if opts.oldValue != nil {
+		oldValueBytes, isOldValueInBytes := opts.oldValue.([]byte)
 		if isOldValueInBytes {
 			downstreamOpts.OldValue = oldValueBytes
 		} else {
-			data, err := json.Marshal(opts.OldValue)
+			data, err := json.Marshal(opts.oldValue)
 			if err != nil {
-				return false, errors.Wrapf(err, "failed to marshal value %v", opts.OldValue)
+				return false, errors.Wrapf(err, "failed to marshal value %v", opts.oldValue)
 			}
 
 			downstreamOpts.OldValue = data
@@ -134,7 +131,7 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 	return true, nil
 }
 
-func (s *Store) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue any, err error)) error {
+func (s *MemoryStore) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue any, err error)) error {
 	if valueFunc == nil {
 		return errors.New("function must not be nil")
 	}
@@ -150,7 +147,7 @@ func (s *Store) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte)
 			return errors.Wrap(err, "valueFunc failed")
 		}
 
-		if saved, err := s.Set(key, newVal, pluginapi.SetAtomic(oldVal)); err != nil {
+		if saved, err := s.Set(key, newVal, SetAtomic(oldVal)); err != nil {
 			return errors.Wrapf(err, "DB failed to set value for key %s", key)
 		} else if saved {
 			return nil
@@ -162,7 +159,7 @@ func (s *Store) SetAtomicWithRetries(key string, valueFunc func(oldValue []byte)
 	return errors.Errorf("failed to set value after %d retries", numRetries)
 }
 
-func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOption) ([]string, error) {
+func (s *MemoryStore) ListKeys(page int, count int, options ...ListKeysOption) ([]string, error) {
 	if page < 0 {
 		return nil, errors.New("page number must not be negative")
 	}
@@ -175,7 +172,7 @@ func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOptio
 		return []string{}, nil
 	}
 
-	opt := pluginapi.ListKeysOptions{}
+	opt := listKeysOptions{}
 	for _, o := range options {
 		if o != nil {
 			o(&opt)
@@ -201,14 +198,14 @@ func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOptio
 
 	pageKeys := paginateSlice(allKeys, page, count)
 
-	if len(opt.Checkers) == 0 {
+	if len(opt.checkers) == 0 {
 		return pageKeys, nil
 	}
 
 	n := 0
 	for _, k := range pageKeys {
 		keep := true
-		for _, c := range opt.Checkers {
+		for _, c := range opt.checkers {
 			ok, err := c(k)
 			if err != nil {
 				return nil, err
@@ -228,7 +225,7 @@ func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOptio
 	return pageKeys[:n], nil
 }
 
-func (s *Store) Get(key string, o any) error {
+func (s *MemoryStore) Get(key string, o any) error {
 	s.mux.RLock()
 	e, ok := s.elems[key]
 	s.mux.RUnlock()
@@ -248,7 +245,7 @@ func (s *Store) Get(key string, o any) error {
 	return nil
 }
 
-func (s *Store) Delete(key string) error {
+func (s *MemoryStore) Delete(key string) error {
 	s.mux.Lock()
 	delete(s.elems, key)
 	s.mux.Unlock()
@@ -257,7 +254,7 @@ func (s *Store) Delete(key string) error {
 }
 
 // DeleteAll removes all key-value pairs.
-func (s *Store) DeleteAll() error {
+func (s *MemoryStore) DeleteAll() error {
 	s.mux.Lock()
 	s.elems = make(map[string]elem)
 	s.mux.Unlock()

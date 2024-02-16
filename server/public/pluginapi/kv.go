@@ -24,7 +24,7 @@ type KVService struct {
 
 type KVSetOptions struct {
 	model.PluginKVSetOptions
-	OldValue interface{}
+	oldValue interface{}
 }
 
 // KVSetOption is an option passed to Set() operation.
@@ -36,7 +36,7 @@ type KVSetOption func(*KVSetOptions)
 func SetAtomic(oldValue interface{}) KVSetOption {
 	return func(o *KVSetOptions) {
 		o.Atomic = true
-		o.OldValue = oldValue
+		o.oldValue = oldValue
 	}
 }
 
@@ -56,8 +56,8 @@ func SetExpiry(ttl time.Duration) KVSetOption {
 //
 // Minimum server version: 5.18
 func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (bool, error) {
-	if strings.HasPrefix(key, InternalKeyPrefix) {
-		return false, errors.Errorf("'%s' prefix is not allowed for keys", InternalKeyPrefix)
+	if strings.HasPrefix(key, internalKeyPrefix) {
+		return false, errors.Errorf("'%s' prefix is not allowed for keys", internalKeyPrefix)
 	}
 
 	opts := KVSetOptions{}
@@ -84,14 +84,14 @@ func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (
 		ExpireInSeconds: opts.ExpireInSeconds,
 	}
 
-	if opts.OldValue != nil {
-		oldValueBytes, isOldValueInBytes := opts.OldValue.([]byte)
+	if opts.oldValue != nil {
+		oldValueBytes, isOldValueInBytes := opts.oldValue.([]byte)
 		if isOldValueInBytes {
 			downstreamOpts.OldValue = oldValueBytes
 		} else {
-			data, err := json.Marshal(opts.OldValue)
+			data, err := json.Marshal(opts.oldValue)
 			if err != nil {
-				return false, errors.Wrapf(err, "failed to marshal value %v", opts.OldValue)
+				return false, errors.Wrapf(err, "failed to marshal value %v", opts.oldValue)
 			}
 
 			downstreamOpts.OldValue = data
@@ -234,15 +234,15 @@ func (k *KVService) DeleteAll() error {
 }
 
 // ListKeysOption used to configure a ListKeys() operation.
-type ListKeysOption func(*ListKeysOptions)
+type ListKeysOption func(*listKeysOptions)
 
-// ListKeysOptions holds configurations of a ListKeys() operation.
-type ListKeysOptions struct {
-	Checkers []func(key string) (keep bool, err error)
+// listKeysOptions holds configurations of a ListKeys() operation.
+type listKeysOptions struct {
+	checkers []func(key string) (keep bool, err error)
 }
 
-func (o *ListKeysOptions) checkAll(key string) (keep bool, err error) {
-	for _, check := range o.Checkers {
+func (o *listKeysOptions) checkAll(key string) (keep bool, err error) {
+	for _, check := range o.checkers {
 		keep, err := check(key)
 		if err != nil {
 			return false, err
@@ -267,8 +267,8 @@ func WithPrefix(prefix string) ListKeysOption {
 // Returning true will keep the key and false will filter it out. Returning an error
 // will halt KVListWithOptions immediately and pass the error up (with no other results).
 func WithChecker(f func(key string) (keep bool, err error)) ListKeysOption {
-	return func(args *ListKeysOptions) {
-		args.Checkers = append(args.Checkers, f)
+	return func(args *listKeysOptions) {
+		args.checkers = append(args.checkers, f)
 	}
 }
 
@@ -277,8 +277,8 @@ func WithChecker(f func(key string) (keep bool, err error)) ListKeysOption {
 // Minimum server version: 5.6
 func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]string, error) {
 	// convert functional options into args struct
-	args := &ListKeysOptions{
-		Checkers: nil,
+	args := &listKeysOptions{
+		checkers: nil,
 	}
 	for _, opt := range options {
 		opt(args)
@@ -292,7 +292,7 @@ func (k *KVService) ListKeys(page, count int, options ...ListKeysOption) ([]stri
 		return nil, normalizeAppErr(appErr)
 	}
 
-	if len(args.Checkers) == 0 {
+	if len(args.checkers) == 0 {
 		// no checkers, just return the keys
 		return keys, nil
 	}

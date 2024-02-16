@@ -1,4 +1,4 @@
-package memorystore
+package pluginapi_test
 
 import (
 	"fmt"
@@ -8,29 +8,44 @@ import (
 	"testing"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/pluginapi"
 	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/mattermost/mattermost/server/public/pluginapi"
 )
 
-func TestSet(t *testing.T) {
+// kvStore is used to check that KVService and MemoryStore implement the same interface.
+// Methods names are sorted alphabetically for easier comparison.
+type kvStore interface {
+	Delete(key string) error
+	DeleteAll() error
+	Get(key string, o any) error
+	ListKeys(page, count int, options ...pluginapi.ListKeysOption) ([]string, error)
+	Set(key string, value any, options ...pluginapi.KVSetOption) (bool, error)
+	SetAtomicWithRetries(key string, valueFunc func(oldValue []byte) (newValue any, err error)) error
+}
+
+var _ kvStore = (*pluginapi.MemoryStore)(nil)
+var _ kvStore = (*pluginapi.KVService)(nil)
+
+func TestMemoryStoreSet(t *testing.T) {
 	t.Run("empty key", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		ok, err := store.Set("", []byte("value"))
 		assert.Error(t, err)
 		assert.False(t, ok)
 	})
 
 	t.Run("key has mmi_ prefix", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		ok, err := store.Set("mmi_foo", []byte("value"))
 		assert.Error(t, err)
 		assert.False(t, ok)
 	})
 
 	t.Run("nil map", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		ok, err := store.Set("key", []byte("value"))
 		assert.NoError(t, err)
 		assert.True(t, ok)
@@ -42,16 +57,16 @@ func TestSet(t *testing.T) {
 	})
 
 	t.Run("atomic with no old value", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		ok, err := store.Set("key", []byte("value"), pluginapi.SetAtomic([]byte("old")))
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		IsNil(t, &store, "key")
+		isNil(t, &store, "key")
 	})
 
 	t.Run("atomic with same old value", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 
 		ok, err := store.Set("key", []byte("old"))
 		assert.NoError(t, err)
@@ -68,7 +83,7 @@ func TestSet(t *testing.T) {
 	})
 
 	t.Run("setting to nil is deleting", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 
 		ok, err := store.Set("key", []byte("value"))
 		assert.NoError(t, err)
@@ -78,11 +93,11 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		IsNil(t, &store, "key")
+		isNil(t, &store, "key")
 	})
 
 	t.Run("atomicly setting to nil is deleting", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 
 		ok, err := store.Set("key", []byte("old"))
 		assert.NoError(t, err)
@@ -92,11 +107,11 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		IsNil(t, &store, "key")
+		isNil(t, &store, "key")
 	})
 
 	t.Run("with long expiry", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 
 		ok, err := store.Set("key", []byte("value"), pluginapi.SetExpiry(time.Minute))
 		assert.NoError(t, err)
@@ -113,11 +128,11 @@ func TestSet(t *testing.T) {
 
 		time.Sleep(time.Second)
 
-		IsNil(t, &store, "key")
+		isNil(t, &store, "key")
 	})
 
 	t.Run("concurrent writes", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		var wg sync.WaitGroup
 		const n = 100
 		for i := 0; i < n; i++ {
@@ -142,17 +157,17 @@ func TestSet(t *testing.T) {
 	})
 }
 
-func TestSetAtomicWithRetries(t *testing.T) {
+func TestMemoryStoreSetAtomicWithRetries(t *testing.T) {
 	t.Run("nil function", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		err := store.SetAtomicWithRetries("key", nil)
 		assert.Error(t, err)
 
-		IsNil(t, &store, "key")
+		isNil(t, &store, "key")
 	})
 
 	t.Run("old value not found", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		err := store.SetAtomicWithRetries("key", func(oldValue []byte) (any, error) { return []byte("new"), nil })
 		require.NoError(t, err)
 
@@ -163,15 +178,15 @@ func TestSetAtomicWithRetries(t *testing.T) {
 	})
 
 	t.Run("old value not found", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		err := store.SetAtomicWithRetries("key", func(oldValue []byte) (any, error) { return nil, errors.New("some error") })
 		require.Error(t, err)
 
-		IsNil(t, &store, "key")
+		isNil(t, &store, "key")
 	})
 
 	t.Run("two goroutines race", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		var wg sync.WaitGroup
 		const n = 10
 		for i := 0; i < n; i++ {
@@ -194,16 +209,16 @@ func TestSetAtomicWithRetries(t *testing.T) {
 	})
 }
 
-func TestListKeys(t *testing.T) {
+func TestMemoryStoreListKeys(t *testing.T) {
 	t.Run("nil map", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		keys, err := store.ListKeys(0, 200)
 		assert.NoError(t, err)
 		assert.Len(t, keys, 0)
 	})
 
 	t.Run("zero count", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		for i := 0; i < 10; i++ {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
@@ -215,7 +230,7 @@ func TestListKeys(t *testing.T) {
 	})
 
 	t.Run("negative count", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		for i := 0; i < 10; i++ {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
@@ -227,7 +242,7 @@ func TestListKeys(t *testing.T) {
 	})
 
 	t.Run("negative page", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		for i := 0; i < 10; i++ {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
@@ -239,7 +254,7 @@ func TestListKeys(t *testing.T) {
 	})
 
 	t.Run("single page", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		for i := 0; i < 10; i++ {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
@@ -251,7 +266,7 @@ func TestListKeys(t *testing.T) {
 	})
 
 	t.Run("multiple pages", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		for i := 0; i < 7; i++ {
 			ok, err := store.Set(fmt.Sprintf("k_%d", i), "foo")
 			require.NoError(t, err)
@@ -275,7 +290,7 @@ func TestListKeys(t *testing.T) {
 	})
 
 	t.Run("with checker", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		odd := func(key string) (bool, error) {
 			s := strings.Split(key, "_")
 			if len(s) != 2 {
@@ -327,7 +342,7 @@ func TestListKeys(t *testing.T) {
 	})
 
 	t.Run("with expired entries", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		for i := 0; i < 7; i++ {
 			var opt pluginapi.KVSetOption
 			if i%2 == 1 {
@@ -346,25 +361,25 @@ func TestListKeys(t *testing.T) {
 	})
 }
 
-func TestGet(t *testing.T) {
+func TestMemoryStoreGet(t *testing.T) {
 	t.Run("nil map", func(t *testing.T) {
-		store := Store{}
-		IsNil(t, &store, "key")
+		store := pluginapi.MemoryStore{}
+		isNil(t, &store, "key")
 	})
 
 	t.Run("set empty byte slice", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		in := []byte("")
 
 		ok, err := store.Set("key", in)
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		IsNil(t, &store, "key")
+		isNil(t, &store, "key")
 	})
 
 	t.Run("set and get byte slice", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		in := []byte("foo")
 
 		ok, err := store.Set("key", in)
@@ -378,7 +393,7 @@ func TestGet(t *testing.T) {
 	})
 
 	t.Run("set and get struct slice", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 
 		type myStruct struct {
 			Int        int
@@ -402,17 +417,17 @@ func TestGet(t *testing.T) {
 	})
 }
 
-func TestDelete(t *testing.T) {
+func TestMemoryStoreDelete(t *testing.T) {
 	t.Run("nil map", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		err := store.Delete("some key")
 		assert.NoError(t, err)
 	})
 }
 
-func TestDeleteAll(t *testing.T) {
+func TestMemoryStoreDeleteAll(t *testing.T) {
 	t.Run("nil map", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		err := store.DeleteAll()
 		assert.NoError(t, err)
 		keys, err := store.ListKeys(0, 200)
@@ -421,7 +436,7 @@ func TestDeleteAll(t *testing.T) {
 	})
 
 	t.Run("nil map", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 
 		ok, err := store.Set("k_1", "foo")
 		require.NoError(t, err)
@@ -435,7 +450,7 @@ func TestDeleteAll(t *testing.T) {
 	})
 
 	t.Run("idempotent", func(t *testing.T) {
-		store := Store{}
+		store := pluginapi.MemoryStore{}
 		err := store.DeleteAll()
 		assert.NoError(t, err)
 		err = store.DeleteAll()
@@ -446,7 +461,7 @@ func TestDeleteAll(t *testing.T) {
 	})
 }
 
-func IsNil(t *testing.T, store *Store, key string) {
+func isNil(t *testing.T, store *pluginapi.MemoryStore, key string) {
 	var out []byte
 	err := store.Get(key, &out)
 	require.NoError(t, err)
