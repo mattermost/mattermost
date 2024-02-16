@@ -205,14 +205,13 @@ export function trackPluginInitialization(plugins) {
 }
 
 function getTopThreeSelectors(selectors) {
-    let topThreeSelectors = [];
+    const topThreeSelectors = [];
     for (const selector of selectors) {
         if (topThreeSelectors.length === 3) {
-            break
+            break;
         }
-        
         if (selector.calls > 5) {
-            topThreeSelectors.push(selector)
+            topThreeSelectors.push(selector);
         }
     }
     return topThreeSelectors;
