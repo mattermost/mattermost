@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/v8/channels/app/platform"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -1519,8 +1518,7 @@ func TestPushNotificationRace(t *testing.T) {
 		Return(&model.Preference{Value: "test"}, nil)
 	mockStore.On("Preference").Return(&mockPreferenceStore)
 	s := &Server{
-		products: make(map[string]product.Product),
-		Router:   mux.NewRouter(),
+		Router: mux.NewRouter(),
 	}
 	var err error
 	s.platform, err = platform.New(
@@ -1531,16 +1529,9 @@ func TestPushNotificationRace(t *testing.T) {
 		platform.SetExportFileStore(&fmocks.FileBackend{}),
 		platform.StoreOverride(mockStore))
 	require.NoError(t, err)
-	serviceMap := map[product.ServiceKey]any{
-		ServerKey:                  s,
-		product.ConfigKey:          s.platform,
-		product.LicenseKey:         &licenseWrapper{s},
-		product.FilestoreKey:       s.FileBackend(),
-		product.ExportFilestoreKey: s.ExportFileBackend(),
-	}
-	ch, err := NewChannels(serviceMap)
+	ch, err := NewChannels(s)
 	require.NoError(t, err)
-	s.products["channels"] = ch
+	s.ch = ch
 
 	app := New(ServerConnector(s.Channels()))
 	require.NotPanics(t, func() {
