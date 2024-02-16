@@ -2776,6 +2776,7 @@ func TestLooksLikeAPermalink(t *testing.T) {
 		expect  bool
 	}{
 		"happy path":                       {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: true},
+		"happy path redirect":              {input: fmt.Sprintf("%s/_redirect/pl/dppezk51jp8afbhwxf1jpag66r", siteURLWithSubpath), siteURL: siteURLWithSubpath, expect: true},
 		"looks nothing like a permalink":   {input: "foobar", siteURL: siteURLWithSubpath, expect: false},
 		"link has no subpath":              {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", "http://localhost:8065"), siteURL: siteURLWithSubpath, expect: false},
 		"without port":                     {input: fmt.Sprintf("%s/private-core/pl/dppezk51jp8afbhwxf1jpag66r", "http://localhost/foo"), siteURL: siteURLWithSubpath, expect: false},

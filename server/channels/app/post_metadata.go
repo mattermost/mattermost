@@ -175,12 +175,17 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 		post.Metadata.Embeds = []*model.PostEmbed{}
 	}
 
-	if unsafeLinksProp := post.GetProp(UnsafeLinksPostProp); unsafeLinksProp != nil && unsafeLinksProp.(string) == "true" {
-		return post
-	}
-
 	// Embeds and image dimensions
 	firstLink, images := a.getFirstLinkAndImages(post.Message)
+
+	if unsafeLinksProp := post.GetProp(UnsafeLinksPostProp); unsafeLinksProp != nil {
+		if prop, ok := unsafeLinksProp.(string); ok && prop == "true" {
+			images = []string{}
+			if !looksLikeAPermalink(firstLink, *a.Config().ServiceSettings.SiteURL) {
+				return post
+			}
+		}
+	}
 
 	if embed, err := a.getEmbedForPost(c, post, firstLink, isNewPost); err != nil {
 		appErr, ok := err.(*model.AppError)
@@ -587,8 +592,12 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 }
 
 func looksLikeAPermalink(url, siteURL string) bool {
-	expression := fmt.Sprintf(`^(%s).*(/pl/)[a-z0-9]{26}$`, siteURL)
-	matched, err := regexp.MatchString(expression, strings.TrimSpace(url))
+	path, hasPrefix := strings.CutPrefix(strings.TrimSpace(url), siteURL)
+	if !hasPrefix {
+		return false
+	}
+	path = strings.TrimPrefix(path, "/")
+	matched, err := regexp.MatchString(`^[0-9a-z_-]{1,64}/pl/[a-z0-9]{26}$`, path)
 	if err != nil {
 		mlog.Warn("error matching regex", mlog.Err(err))
 	}
