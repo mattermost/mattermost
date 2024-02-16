@@ -1683,8 +1683,6 @@
   "discard_changes_modal.leave": "Так, відмовитися",
   "discard_changes_modal.message": "У вас є незбережені зміни, ви впевнені, що хочете відмовитися від них?",
   "discard_changes_modal.title": "Скасувати зміни?",
-  "edit_channel_header.editHeader": "Змінити заголовок каналу...",
-  "edit_channel_header.previewHeader": "Виправлення заголовка",
   "edit_channel_header_modal.cancel": "Відміна",
   "edit_channel_header_modal.description": "Змініть текст, який додасться після назви каналу в заголовку.",
   "edit_channel_header_modal.error": "Назва каналу занадто довга",

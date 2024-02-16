@@ -2735,8 +2735,6 @@
   "dnd_custom_time_picker_modal.time": "Час",
   "edit_category_modal.helpText": "Влачете канали в тази категория, за да организирате страничната си лента.",
   "edit_category_modal.placeholder": "Кръстете категорията си",
-  "edit_channel_header.editHeader": "Редактира се заглавката на канала ...",
-  "edit_channel_header.previewHeader": "Редактирай заглавка",
   "edit_channel_header_modal.cancel": "Откажи",
   "edit_channel_header_modal.description": "Редактирайте текста, който се появява до името на канала в заглавката на канала.",
   "edit_channel_header_modal.error": "Въведеният текст надхвърля ограничението за символи. Заглавието на канала е ограничено до {maxLength} символи.",

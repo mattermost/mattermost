@@ -2299,8 +2299,6 @@
   "discard_changes_modal.leave": "네, 취소합니다.",
   "discard_changes_modal.message": "저장되지 않은 변경사항이 있습니다, 저장하지 않고 취소하겠습니까?",
   "discard_changes_modal.title": "변경을 취소하시겠습니까?",
-  "edit_channel_header.editHeader": ".채널 헤더 변경...",
-  "edit_channel_header.previewHeader": "헤더 편집",
   "edit_channel_header_modal.cancel": "취소",
   "edit_channel_header_modal.description": "상단 채널 이름 옆에 표시될 글자를 편집하세요.",
   "edit_channel_header_modal.error": "채널 헤더가 너무 깁니다. 더 짧은 헤더를 사용하세요.",

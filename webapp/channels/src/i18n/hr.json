@@ -1024,7 +1024,6 @@
   "drafts.draft_title.you": "(ti)",
   "drafts.tutorial_tip.notNow": "Ne sada",
   "edit_category_modal.placeholder": "Odredi ime tvoje kategorije",
-  "edit_channel_header.previewHeader": "Uredi zaglavlje",
   "edit_channel_header_modal.cancel": "Odustani",
   "edit_channel_header_modal.save": "Spremi",
   "edit_channel_header_modal.title": "Uredi zaglavlje za kanal {channel}",

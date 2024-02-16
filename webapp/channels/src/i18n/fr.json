@@ -3055,8 +3055,6 @@
   "drafts.tutorial_tip.viewDrafts": "Afficher les brouillons",
   "edit_category_modal.helpText": "Glissez-déposez les canaux dans cette catégorie pour organiser votre barre latérale.",
   "edit_category_modal.placeholder": "Nommez votre catégorie",
-  "edit_channel_header.editHeader": "Modifier l'entête du canal...",
-  "edit_channel_header.previewHeader": "Modifier l'entête",
   "edit_channel_header_modal.cancel": "Annuler",
   "edit_channel_header_modal.description": "Modifiez le texte affiché à côté du nom du canal dans l'entête du canal.",
   "edit_channel_header_modal.error": "Le texte saisi dépasse la limite de caractères. L'entête du canal est limitée à {maxLength} caractères.",

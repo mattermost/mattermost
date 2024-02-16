@@ -2897,8 +2897,6 @@
   "dnd_custom_time_picker_modal.time": "Час",
   "edit_category_modal.helpText": "Перацягнуць каналы ў гэтую катэгорыю, каб арганізаваць бакавую панэль.",
   "edit_category_modal.placeholder": "Абярыце назву катэгорыі",
-  "edit_channel_header.editHeader": "Змяніць загаловак канала...",
-  "edit_channel_header.previewHeader": "Праўка загалоўка",
   "edit_channel_header_modal.cancel": "Адмяніць",
   "edit_channel_header_modal.description": "Змяніце тэкст, які дадасца пасля назвы канала ў загалоўку.",
   "edit_channel_header_modal.error": "Уведзены тэкст перавышае абмежаванне на колькасць сімвалаў. Загаловак канала абмежаваны {maxLength} сімваламі.",

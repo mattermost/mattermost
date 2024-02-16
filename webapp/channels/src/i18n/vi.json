@@ -3123,8 +3123,6 @@
   "drafts.tutorial_tip.viewDrafts": "Xem bản nháp",
   "edit_category_modal.helpText": "Kéo các kênh vào danh mục này để sắp xếp thanh bên của bạn.",
   "edit_category_modal.placeholder": "Đặt tên cho danh mục của bạn",
-  "edit_channel_header.editHeader": "Chỉnh sửa tiêu đề kênh ...",
-  "edit_channel_header.previewHeader": "Chỉnh sửa tiêu đề",
   "edit_channel_header_modal.cancel": "Hủy",
   "edit_channel_header_modal.description": "Chỉnh sửa văn bản xuất hiện bên cạnh tên kênh trong tiêu đề kênh.",
   "edit_channel_header_modal.error": "Văn bản đã nhập vượt quá giới hạn ký tự. Tiêu đề kênh được giới hạn trong {maxLength} ký tự.",

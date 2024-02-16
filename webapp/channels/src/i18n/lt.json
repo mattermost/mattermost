@@ -3137,8 +3137,6 @@
   "drafts.tutorial_tip.viewDrafts": "Žiūrėti juodraščius",
   "edit_category_modal.helpText": "Vilkite kanalus į šią kategoriją, kad tvarkytumėte šoninę juostą.",
   "edit_category_modal.placeholder": "Pavadinkite savo kategoriją",
-  "edit_channel_header.editHeader": "Redaguoti kanalo antraštę...",
-  "edit_channel_header.previewHeader": "Redaguoti antraštę",
   "edit_channel_header_modal.cancel": "Atšaukti",
   "edit_channel_header_modal.description": "Redaguoti tekstą, rodomą šalia kanalo pavadinimo antraštėje.",
   "edit_channel_header_modal.error": "Įvestas tekstas viršija simbolių limitą. Kanalo antraštė apribota iki {maxLength} simbolių.",

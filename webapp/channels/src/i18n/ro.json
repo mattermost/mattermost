@@ -2579,8 +2579,6 @@
   "discard_changes_modal.title": "Elimin modificările?",
   "edit_category_modal.helpText": "Glisați canalele în această categorie pentru a vă organiza bara laterală.",
   "edit_category_modal.placeholder": "Denumiți categoria dvs",
-  "edit_channel_header.editHeader": "Editează antetul canalului ...",
-  "edit_channel_header.previewHeader": "Editați antetul",
   "edit_channel_header_modal.cancel": "Anulează",
   "edit_channel_header_modal.description": "Editați textul care apare lângă numele canalului în antetul canalului.",
   "edit_channel_header_modal.error": "Acest antet de canal este prea lung, introduceți unul mai scurt.",

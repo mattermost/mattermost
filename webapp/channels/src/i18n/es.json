@@ -2993,8 +2993,6 @@
   "dnd_custom_time_picker_modal.time": "Hora",
   "edit_category_modal.helpText": "Arrastra canales a esta categoría para organizar tu barra lateral.",
   "edit_category_modal.placeholder": "Nombra tu categoría",
-  "edit_channel_header.editHeader": "Editar el Encabezado del Canal...",
-  "edit_channel_header.previewHeader": "Editar Encabezado",
   "edit_channel_header_modal.cancel": "Cancelar",
   "edit_channel_header_modal.description": "Edita el texto que aparece al lado del nombre del canal en el encabezado.",
   "edit_channel_header_modal.error": "El texto introducido supera el límite de caracteres. La cabecera del canal está limitada a {maxLength} caracteres.",

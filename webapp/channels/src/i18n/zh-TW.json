@@ -2222,8 +2222,6 @@
   "discard_changes_modal.title": "放棄變更？",
   "edit_category_modal.helpText": "可以將頻道拖拉進分類以整理側邊欄。",
   "edit_category_modal.placeholder": "選擇分類名稱",
-  "edit_channel_header.editHeader": "修改頻道標題",
-  "edit_channel_header.previewHeader": "修改標題",
   "edit_channel_header_modal.cancel": "取消",
   "edit_channel_header_modal.description": "修改頻道標題上面名字旁邊的文字。",
   "edit_channel_header_modal.error": "頻道標語太長，請長話短說",

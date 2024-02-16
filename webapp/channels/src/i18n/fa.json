@@ -2822,8 +2822,6 @@
   "drafts.tutorial_tip.viewDrafts": "نمایش پیش‌نویس‌ها",
   "edit_category_modal.helpText": "کانال ها را به این دسته بکشید تا نوار کناری خود را سازماندهی کنید.",
   "edit_category_modal.placeholder": "دسته خود را نام ببرید",
-  "edit_channel_header.editHeader": "ویرایش سربرگ کانال...",
-  "edit_channel_header.previewHeader": "ویرایش هدر",
   "edit_channel_header_modal.cancel": "انصراف",
   "edit_channel_header_modal.description": "متنی که در کنار نام کانال در هدر کانال ظاهر می شود را ویرایش کنید.",
   "edit_channel_header_modal.error": "متن وارد شده بیش از حد مجاز کاراکتر است. هدر کانال به نویسه {maxLength} محدود شده است.",

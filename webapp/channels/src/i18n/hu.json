@@ -2975,8 +2975,6 @@
   "dnd_custom_time_picker_modal.time": "Idő",
   "edit_category_modal.helpText": "Húzzon csatornákat ebbe a kategóriába az oldalsávja rendezéséhez.",
   "edit_category_modal.placeholder": "Nevezze el a kategóriát",
-  "edit_channel_header.editHeader": "A csatorna fejlécének szerkesztése...",
-  "edit_channel_header.previewHeader": "Fejléc szerkesztése",
   "edit_channel_header_modal.cancel": "Mégsem",
   "edit_channel_header_modal.description": "Szerkessze a csatorna neve mellett megjelenő szöveget a fejlécben.",
   "edit_channel_header_modal.error": "A beírt szöveg meghaladja a karakterkorlátot. A csatorna fejléc legfeljebb {maxLength} karakter lehet.",

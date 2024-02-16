@@ -1061,7 +1061,6 @@
   "device_icons.apple": "Apple Ikoni",
   "device_icons.linux": "Linux Ikoni",
   "device_icons.windows": "Windows Ikoni",
-  "edit_channel_header.editHeader": "Muokkaa kanavan otsikkoa...",
   "edit_channel_header_modal.description": "Muokkaa kanavan otsikossa nimen vieressä olevaa tekstiä.",
   "edit_channel_header_modal.error": "Tämä kanavan otsikko on liian pitkä, syötä lyhyempi",
   "edit_channel_header_modal.title": "Muokkaa kanavan {channel} otsikkoa",

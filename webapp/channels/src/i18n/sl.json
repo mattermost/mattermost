@@ -728,7 +728,6 @@
   "device_icons.apple": "Apple ikona",
   "device_icons.linux": "Linux ikona",
   "device_icons.windows": "Windows ikona",
-  "edit_channel_header.editHeader": "Uredite glavo kanala ...",
   "edit_channel_header_modal.description": "Uredite besedilo, ki se pojavi poleg imena kanala v glavi kanala.",
   "edit_channel_header_modal.error": "Ta glava kanala je predolga, vnesite krajšo",
   "edit_channel_header_modal.title": "Uredi glavo za {channel}",
