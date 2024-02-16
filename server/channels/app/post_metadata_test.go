@@ -1389,7 +1389,7 @@ func TestGetImagesForPost(t *testing.T) {
 		defer th.TearDown()
 
 		ogURL := "https://example.com/index.html"
-		imageURL := th.App.GetSiteURL() + "/pl/qwertyuiopasdfghjklzxcvbnm"
+		imageURL := th.App.GetSiteURL() + "/team/pl/qwertyuiopasdfghjklzxcvbnm"
 
 		post := &model.Post{
 			Id: "qwertyuiopasdfghjklzxcvbnm",
