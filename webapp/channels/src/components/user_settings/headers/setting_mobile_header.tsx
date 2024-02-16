@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactNode} from 'react';
 import React from 'react';
 import {useIntl} from 'react-intl';
 
 type Props = {
-    text: string;
+    text: ReactNode;
     closeModal: () => void;
     collapseModal: () => void;
 }
