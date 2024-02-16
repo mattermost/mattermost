@@ -596,12 +596,7 @@
     "translation": "@[nazwaużytkownika1],@[nazwaużytkownika2] 'wiadomość'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "Nie można znaleźć użytkowników: {{.Users}}",
-      "many": "Nie można znaleźć użytkowników: {{.Users}}",
-      "one": "Nie można znaleźć użytkownika: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -676,12 +671,7 @@
     "translation": "{{.User}} został dodany do kanału {{.Channel}}."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "few": "{{.User}} są już na kanale.",
-      "many": "{{.User}} są już na kanale.",
-      "one": "{{.User}} jest już na kanale."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -892,8 +882,7 @@
     "translation": "Polecenie wyszukiwania nie jest wspierana na Twoim urządzeniu."
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Otwórz dialog Ustawień"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -980,16 +969,10 @@
     "translation": "Kanał odbierania automatycznych maili jest zapełniony. Proszę zwiększyć EmailBatchingBufferSize."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Masowa wysyłka maili została wyłączona przez administratora systemu."
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
-      "many": "Nowe powiadomienia [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}",
-      "one": "Nowe powiadomienie [{{.SiteName}}] z {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1352,20 +1335,10 @@
     "translation": "Błąd integracji akcji."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "Wysłano {{.Count}} pliki: {{.Filenames}}",
-      "many": "Wysłano {{.Count}} pliki: {{.Filenames}}",
-      "one": "{{.Count}} plik wysłany: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "Wysłano {{.Count}} plików: {{.Filenames}}",
-      "many": "Wysłano {{.Count}} plików: {{.Filenames}}",
-      "one": "{{.Count}} plik wysłany: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1832,8 +1805,7 @@
     "translation": "Weryfikacja wieloetapowa została dodana"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Twoje MFA zostało zaktualizowane"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2512,12 +2484,10 @@
     "translation": "Nieprawidłowa nazwa schematu dla kanału."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Brak wymaganej właściwości kanału: team"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Typ kanału nie jest właściwy."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",

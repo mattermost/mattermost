@@ -884,8 +884,7 @@
     "translation": "شناسه نامعتبر است."
   },
   {
-    "id": "model.compliance.is_valid.end_at.app_error",
-    "translation": "باید یک زمان معتبر باشد."
+    "id": "model.compliance.is_valid.end_at.app_error"
   },
   {
     "id": "model.compliance.is_valid.desc.app_error",
@@ -972,8 +971,7 @@
     "translation": "ایجاد در باید زمان معتبری باشد."
   },
   {
-    "id": "model.command.is_valid.autocomplete_data.app_error",
-    "translation": "تکمیل خودکار داده نامعتبر است"
+    "id": "model.command.is_valid.autocomplete_data.app_error"
   },
   {
     "id": "model.cluster.is_valid.type.app_error",
@@ -1812,8 +1810,7 @@
     "translation": "فیلتر مهمان AD/LDAP نامعتبر است."
   },
   {
-    "id": "ent.ldap.validate_filter.app_error",
-    "translation": "فیلتر AD/LDAP نامعتبر است."
+    "id": "ent.ldap.validate_filter.app_error"
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "سرصفحه کانال خیلی طولانی است."
   },
   {
-    "id": "app.import.validate_channel_import_data.display_name_length.error",
-    "translation": "display_name کانال در محدودیت های مجاز نیست."
+    "id": "app.import.validate_channel_import_data.display_name_length.error"
   },
   {
-    "id": "app.import.process_import_data_file_version_line.invalid_version.error",
-    "translation": "خواندن نسخه پرونده درون ریزی داده امکان پذیر نیست."
+    "id": "app.import.process_import_data_file_version_line.invalid_version.error"
   },
   {
     "id": "app.import.import_user_teams.save_preferences.error",
@@ -6560,18 +6555,10 @@
     "translation": "نمی توان پستی را در کانال حذف شده به روز کرد."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} تصویر ارسالی: {{.Filenames}}",
-      "other": "{{.Count}} تصاویر ارسالی: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} پرونده ارسالی: {{.Filenames}}",
-      "other": "{{.Count}} پرونده های ارسالی: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -7254,11 +7241,7 @@
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] اعلان جدید برای {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] اعلانهای جدید برای {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
@@ -7989,11 +7972,7 @@
     "translation": "پیام های گروهی حداکثر به {{.MaxUsers}} کاربر محدود می شود."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "کاربر یافت نشد: {{.Users}}",
-      "other": "کاربران یافت نشدند: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",

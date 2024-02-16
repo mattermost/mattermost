@@ -884,8 +884,7 @@
     "translation": "Ni mogoče dobiti vseh uporabnikov, ki uporabljajo AD / LDAP"
   },
   {
-    "id": "ent.ldap.do_login.user_not_registered.app_error",
-    "translation": "Uporabnik ni registriran na strežniku AD / LDAP"
+    "id": "ent.ldap.do_login.user_not_registered.app_error"
   },
   {
     "id": "ent.ldap.do_login.user_filtered.app_error",
@@ -972,8 +971,7 @@
     "translation": "Iskanje ni bilo mogoče dokončati"
   },
   {
-    "id": "ent.elasticsearch.search_channels.disabled",
-    "translation": "Elasticsearch iskanje je onemogočeno na tem strežniku"
+    "id": "ent.elasticsearch.search_channels.disabled"
   },
   {
     "id": "ent.elasticsearch.refresh_indexes.refresh_failed",
@@ -1812,8 +1810,7 @@
     "translation": "Ustvarjanje uporabnikov je onemogočeno."
   },
   {
-    "id": "api.user.create_user.accepted_domain.app_error",
-    "translation": "Vneseno e-poštno sporočilo ne pripada sprejeti domeni. Obrnite se na skrbnika ali se prijavite z drugim naslovom e-pošte."
+    "id": "api.user.create_user.accepted_domain.app_error"
   },
   {
     "id": "api.user.create_profile_image.initial.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "e-pošta in geslo"
   },
   {
-    "id": "api.templates.signin_change_email.body.info",
-    "translation": "Svojo metodo za prijavo na {{.SiteName}} ste posodobili na {{.Method}}."
+    "id": "api.templates.signin_change_email.body.info"
   },
   {
-    "id": "api.templates.reset_subject",
-    "translation": "[{{.SiteName}}] Ponastavite geslo"
+    "id": "api.templates.reset_subject"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -2936,22 +2931,10 @@
     "translation": " obvestil kanal."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "",
-      "one": "{{.Count}} poslana slika: {{.Filenames}}",
-      "other": "",
-      "two": "{{.Count}} poslanih slik: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "",
-      "one": "{{.Count}} poslana datoteka: {{.Filenames}}",
-      "other": "",
-      "two": "{{.Count}} poslanih datotek: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
@@ -3590,13 +3573,7 @@
     "translation": "Emoji z istim imenom že obstaja."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "[{{.SiteName}}] Nova obvestila za {{.Month}} {{.Day}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Novo obvezilo za {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "",
-      "two": "[{{.SiteName}}] Novi obvestili za {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -3979,13 +3956,7 @@
     "translation": "Sporočila v skupini so omejena na maksimalno {{.MaxUsers}} uporabnikov."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "Uporabnikov ni bilo mogoče najti: {{.Users}}",
-      "one": "Uporabnika ni bilo mogoče najti: {{.Users}}",
-      "other": "",
-      "two": "Uporabnika ni bilo mogoče najti: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",

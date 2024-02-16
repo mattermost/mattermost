@@ -596,12 +596,7 @@
     "translation": "@[имя_пользователя1],@[имя_пользователя2] 'сообщение'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "Не удалось найти пользователей: {{.Users}}",
-      "many": "Не удалось найти пользователей: {{.Users}}",
-      "one": "Не удалось найти пользователя: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -676,12 +671,7 @@
     "translation": "{{.User}} добавлен в канал {{.Channel}}."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "few": "{{.User}} уже находятся в канале.",
-      "many": "{{.User}} уже находятся в канале.",
-      "one": "{{.User}} уже находится в канале."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -892,8 +882,7 @@
     "translation": "Поиск недоступен на вашем устройстве."
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Открыть диалог настроек"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -980,16 +969,10 @@
     "translation": "Канал-получатель почтового объединения был полон. Пожалуйста, увеличьте значение EmailBatchingBufferSize."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Почтовые объединения отключены системным администратором."
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
-      "many": "[{{.SiteName}}] Новые уведомления за {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Новое уведомление за {{.Day}} {{.Month}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1352,20 +1335,10 @@
     "translation": "Ошибка в интеграции действия."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "{{.Count}} файла отправлено: {{.Filenames}}",
-      "many": "{{.Count}} файлов отправлено: {{.Filenames}}",
-      "one": "{{.Count}} файл отправлен: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} изображения отправлено: {{.Filenames}}",
-      "many": "{{.Count}} изображений отправлено: {{.Filenames}}",
-      "one": "{{.Count}} изображение отправлено: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1832,8 +1805,7 @@
     "translation": "Многофакторная проверка подлинности активирована"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Ваша MFA была обновлена"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2512,12 +2484,10 @@
     "translation": "Недопустимое имя схемы для канала."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Пропущено обязательное свойство channel: team"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Неверный тип канала."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",

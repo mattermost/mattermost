@@ -884,8 +884,7 @@
     "translation": "Hiba történt az interaktív párbeszédpanel JSON kódolásakor."
   },
   {
-    "id": "app.status.get.missing.app_error",
-    "translation": "Nem létezik elem ehhez az állapothoz bejegyzés."
+    "id": "app.status.get.missing.app_error"
   },
   {
     "id": "app.status.get.app_error",
@@ -972,8 +971,7 @@
     "translation": "Nem sikerült elmenteni az új szerepkört."
   },
   {
-    "id": "app.role.permanent_delete_all.app_error",
-    "translation": "Nem sikerült véglegesen törölni az összes szerepkört."
+    "id": "app.role.permanent_delete_all.app_error"
   },
   {
     "id": "app.role.get_by_names.app_error",
@@ -1812,8 +1810,7 @@
     "translation": "A névnek 1–64 kisbetűs alfanumerikus karakterből kell állnia."
   },
   {
-    "id": "model.group.name.invalid_chars.app_error",
-    "translation": "érvénytelen karakterek a név tulajdonságban a csoportnál"
+    "id": "model.group.name.invalid_chars.app_error"
   },
   {
     "id": "model.group.name.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "Nem sikerült közvetlen csatornát létrehozni"
   },
   {
-    "id": "app.import.import_channel.team_not_found.error",
-    "translation": "Hiba a csatorna importálásnál. A \"{{.TeamName}}\" nevű csapat nem található."
+    "id": "app.import.import_channel.team_not_found.error"
   },
   {
-    "id": "app.import.import_channel.scheme_wrong_scope.error",
-    "translation": "A csatornát hozzá kell rendelni egy csatorna hatókörű sémához."
+    "id": "app.import.import_channel.scheme_wrong_scope.error"
   },
   {
     "id": "app.import.import_channel.scheme_deleted.error",
@@ -6568,11 +6563,7 @@
     "translation": "Nem lehet emoji-t létrehozni. Már létezik egy másik azonos nevű emoji."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] Új értesítés {{.Year}}-{{.Month}}-{{.Day}} napon",
-      "other": "[{{.SiteName}}] Új értesítések {{.Year}}-{{.Month}}-{{.Day}} napon"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -7687,18 +7678,10 @@
     "translation": "Nem lehet bejegyzést frissíteni egy törölt csatornában."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} kép elküldve: {{.Filenames}}",
-      "other": "{{.Count}} kép elküldve: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} fájl elküldve: {{.Filenames}}",
-      "other": "{{.Count}} fájl elküldve: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -8261,11 +8244,7 @@
     "translation": "Ehhez a csatornához akkor adhatja hozzá {{.Users}} felhasználókat, miután a **{{.Team}}** csapat tagjai lesznek."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "one": "{{.User}} már a csatornában van.",
-      "other": "{{.User}} már a csatornában vannak."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite.success",
@@ -8340,11 +8319,7 @@
     "translation": "A csoportos üzenetek maximum korlátja {{.MaxUsers}} felhasználó."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Nem található a felhasználó: {{.Users}}",
-      "other": "Nem találhatóak a felhasználók: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",

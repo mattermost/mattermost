@@ -792,11 +792,7 @@
     "translation": "Τα μηνύματα ομάδας περιορίζονται το μέγιστο σε {{.MaxUsers}} χρήστες."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Δεν είναι δυνατή η εύρεση του χρήστη: {{.Users}}",
-      "other": "Δεν είναι δυνατή η εύρεση των χρηστών: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",
@@ -887,8 +883,7 @@
     "translation": "Μετονομασία"
   },
   {
-    "id": "api.command_channel_rename.message.app_error",
-    "translation": "Ένα μήνυμα πρέπει να παρέχεται με την εντολή /rename."
+    "id": "api.command_channel_rename.message.app_error"
   },
   {
     "id": "api.command_channel_rename.hint",
@@ -975,8 +970,7 @@
     "translation": "Ορίσετε την κατάστασή σας ως 'Λείπω'"
   },
   {
-    "id": "api.command.team_mismatch.app_error",
-    "translation": "Δεν είναι δυνατή η ενημέρωση εντολών σε όλες τις ομάδες."
+    "id": "api.command.team_mismatch.app_error"
   },
   {
     "id": "api.command.invite_people.sent",
@@ -1815,8 +1809,7 @@
     "translation": "Προσθήκη/αφαίρεση ασφαλών συνδέσεων. Διαθέσιμες ενέργειες: {{.Actions}}"
   },
   {
-    "id": "api.command_remote.permission_required",
-    "translation": "Για τη διαχείριση ασφαλών συνδέσεων απαιτείται η άδεια `{{.Permission}}`."
+    "id": "api.command_remote.permission_required"
   },
   {
     "id": "api.command_remote.name.hint",
@@ -2495,12 +2488,10 @@
     "translation": "Δεν είναι δυνατή η δημιουργία ενός άμεσου καναλιού μεταξύ αυτών των χρηστών, επειδή δε μοιράζονται μια κοινή ομάδα."
   },
   {
-    "id": "api.error_get_first_admin_visit_marketplace_status",
-    "translation": "Σφάλμα κατά την ανάκτηση της κατάστασης της πρώτης επίσκεψης του διαχειριστή στο marketplace."
+    "id": "api.error_get_first_admin_visit_marketplace_status"
   },
   {
-    "id": "api.emoji.upload.open.app_error",
-    "translation": "Δεν είναι δυνατή η δημιουργία του emoji. Παρουσιάστηκε σφάλμα κατά την προσπάθεια ανοίγματος της συνημμένης εικόνας."
+    "id": "api.emoji.upload.open.app_error"
   },
   {
     "id": "api.emoji.upload.large_image.too_large.app_error",
@@ -2559,22 +2550,14 @@
     "translation": "Δεν είναι δυνατή η δημιουργία emoji. Υπάρχει ήδη ένα άλλο emoji με το ίδιο όνομα."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "{{ .SenderName }} σας έστειλε νέο μήνυμα",
-      "other": "{{ .SenderName }} και {{.Count}} άλλοι σας έστειλαν νέα μηνύματα"
-    }
+    "id": "api.email_batching.send_batched_email_notification.title"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] Νέα ειδοποίηση για {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Νέες ειδοποιήσεις για {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
@@ -3077,18 +3060,10 @@
     "translation": "Δεν είναι δυνατή η ενημέρωση μιας ανάρτησης σε ένα διαγραμμένο κανάλι."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} εικόνα εστάλη: {{.Filenames}}",
-      "other": "{{.Count}} εικόνες εστάλησαν: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} αρχείο εστάλη: {{.Filenames}}",
-      "other": "{{.Count}} αρχεία εστάλησαν: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.error_get_post_id.pending",

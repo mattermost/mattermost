@@ -692,12 +692,7 @@
     "translation": "Ne možeš potvrditi u arhiviranom kanalu."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "few": "{{.User}} već jesu u kanalu.",
-      "one": "{{.User}} već je u kanalu.",
-      "other": "{{.User}} već jesu u kanalu."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite.user_already_in_channel.overflow",
@@ -852,12 +847,7 @@
     "translation": "Windows 10+"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "{{.Count}} poslane datoteke: {{.Filenames}}",
-      "one": "{{.Count}} poslana datoteka: {{.Filenames}}",
-      "other": "{{.Count}} poslanih datoteka: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.command_settings.name",
@@ -868,12 +858,7 @@
     "translation": "Greška"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} poslane slike: {{.Filenames}}",
-      "one": "{{.Count}} poslana slika: {{.Filenames}}",
-      "other": "{{.Count}} poslanih slika: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.command_search.name",
@@ -896,8 +881,7 @@
     "translation": "{{ .ServerURL }}."
   },
   {
-    "id": "api.templates.welcome_body.serverURL",
-    "translation": "{{ .ServerURL }}."
+    "id": "api.templates.welcome_body.serverURL"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -984,8 +968,7 @@
     "translation": "Neispravan opis uloge."
   },
   {
-    "id": "app.import.validate_team_import_data.name_characters.error",
-    "translation": "Ime tima sadrži nevažeće znakove."
+    "id": "app.import.validate_team_import_data.name_characters.error"
   },
   {
     "id": "app.import.validate_user_import_data.nickname_length.error",

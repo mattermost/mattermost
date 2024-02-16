@@ -884,8 +884,7 @@
     "translation": "Невалидна директория на локалното хранилище. Трябва да е непразен низ."
   },
   {
-    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Съхраняването на съобщение трябва да бъде един ден или повече."
+    "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error"
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
@@ -972,8 +971,7 @@
     "translation": "Невалиден id на команда."
   },
   {
-    "id": "model.command_hook.channel_id.app_error",
-    "translation": "Невалиден id на канал."
+    "id": "model.command_hook.channel_id.app_error"
   },
   {
     "id": "model.command.is_valid.user_id.app_error",
@@ -1812,8 +1810,7 @@
     "translation": "грешка при изтриване на членство в екип или канал"
   },
   {
-    "id": "ent.ldap.save_user.username_exists.ldap_app_error",
-    "translation": "Профил с това потребителско име вече съществува. Моля, свържете се с вашия администратор."
+    "id": "ent.ldap.save_user.username_exists.ldap_app_error"
   },
   {
     "id": "ent.ldap.save_user.email_exists.ldap_app_error",
@@ -2492,12 +2489,10 @@
     "translation": "Тази крайна точка на API не е достъпна, тъй като изискваните миграции все още не са приключили."
   },
   {
-    "id": "app.scheme.save.invalid_scheme.app_error",
-    "translation": "Предоставената схема е невалидна."
+    "id": "app.scheme.save.invalid_scheme.app_error"
   },
   {
-    "id": "mfa.activate.bad_token.app_error",
-    "translation": "Невалиден маркер на МФУ."
+    "id": "mfa.activate.bad_token.app_error"
   },
   {
     "id": "mattermost.bulletin.subject",
@@ -4372,18 +4367,10 @@
     "translation": "Не може да се обнови публикация в изтрит канал."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} изпратено изображение: {{.Filenames}}",
-      "other": "{{.Count}} изпратени изображения: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} изпратен файл: {{.Filenames}}",
-      "other": "{{.Count}} изпратени файла: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -5602,11 +5589,7 @@
     "translation": "Не може да се създаде емотикон. Съществува друг със същото име."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] Ново известие към {{.Day}}.{{.Month}}.{{.Year}}",
-      "other": "[{{.SiteName}}] Нови известия към {{.Day}}.{{.Month}}.{{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -6037,11 +6020,7 @@
     "translation": "Груповите съобщения са ограничени до максимум {{.MaxUsers}} потребители."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Не е намерен потребителя: {{.Users}}",
-      "other": "Не са намерени потребителите: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",

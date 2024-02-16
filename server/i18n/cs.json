@@ -884,8 +884,7 @@
     "translation": "Nepodařilo se přečíst dočasný soubor Global Relay exportu."
   },
   {
-    "id": "ent.compliance.global_relay.open_temporary_file.appError",
-    "translation": "Nepodařilo se otevřít dočasný soubor exportu."
+    "id": "ent.compliance.global_relay.open_temporary_file.appError"
   },
   {
     "id": "ent.compliance.global_relay.attachments_removed.appError",
@@ -972,8 +971,7 @@
     "translation": "Vyhledávání uživatele se nezdařilo."
   },
   {
-    "id": "bleveengine.search_users_in_channel.uchan.error",
-    "translation": "Vyhledávání uživatele se nezdařilo."
+    "id": "bleveengine.search_users_in_channel.uchan.error"
   },
   {
     "id": "bleveengine.search_users_in_channel.nuchan.error",
@@ -1812,8 +1810,7 @@
     "translation": "Neplatná sekvence zprávy pro websocket."
   },
   {
-    "id": "api.web_socket_router.bad_action.app_error",
-    "translation": "Neznámá akce websocketu."
+    "id": "api.web_socket_router.bad_action.app_error"
   },
   {
     "id": "api.web_socket.connect.upgrade.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "Přihlášení SAML bylo neúspěšné, protože šifrování není povoleno. Obraťte se na správce systému."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Při kódování požadavku na poskytovatele totožnosti došlo k chybě. Obraťte se na správce systému."
+    "id": "ent.saml.build_request.encoding.app_error"
   },
   {
-    "id": "ent.saml.build_request.app_error",
-    "translation": "Při iniciování žádosti na Identity Providera došlo k chybě.. Obraťte se na správce systému."
+    "id": "ent.saml.build_request.app_error"
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -3420,20 +3415,10 @@
     "translation": "Nepodařilo se upravit zprávu ve smazaném kanálu."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} obrázek odeslán: {{.Filenames}}",
-      "one": "{{.Count}} obrázků odesláno: {{.Filenames}}",
-      "other": "{{.Count}} obrázků odesláno: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "{{.Count}} souborů odeslán: {{.Filenames}}",
-      "one": "{{.Count}} soubor odeslán: {{.Filenames}}",
-      "other": "{{.Count}} souborů odesláno: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
@@ -4016,12 +4001,7 @@
     "translation": "Nemohu vytvořit emotikon. Stejně pojmenovaný emotikon již existuje."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "[{{.SiteName}}] Nová upozornění k datu {{.Day}}. {{.Month}} {{.Year}}",
-      "one": "[{{.SiteName}}] Nové upozornění k datu {{.Day}}. {{.Month}} {{.Year}}",
-      "other": "[{{.SiteName}}] Nová upozornění k datu {{.Day}}. {{.Month}} {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -4340,12 +4320,7 @@
     "translation": "Můžete přidat {{.Users}} do toho kanálu jakmile bude členem týmu **{{.Team}}**."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "few": "{{.User}} již jsou v kanálu.",
-      "one": "{{.User}} již je v kanálu.",
-      "other": ""
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite.success",
@@ -4420,12 +4395,7 @@
     "translation": "Hromadné zprávy jsou omezeny na maximum {{.MaxUsers}} uživatelů."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "Nelze najít uživatele: {{.Users}}",
-      "one": "Nelze najít uživatele: {{.Users}}",
-      "other": "Nelze najít uživatele: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",

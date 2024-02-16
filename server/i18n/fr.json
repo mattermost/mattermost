@@ -596,12 +596,7 @@
     "translation": "@[nom utilisateur 1],@[nom utilisateur 2] 'message'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "many": "Impossible de trouver les utilisateurs : {{.Users}}",
-      "one": "Impossible de trouver l'utilisateur : {{.Users}}",
-      "other": ""
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -676,12 +671,7 @@
     "translation": "{{.User}} a été ajouté dans {{.Channel}}."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "many": "{{.User}} sont déjà membres de ce canal.",
-      "one": "{{.User}} est déjà membre de ce canal.",
-      "other": ""
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -892,8 +882,7 @@
     "translation": "La commande de recherche n'est pas supportée sur votre périphérique"
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Ouvre la page des paramètres"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -980,16 +969,10 @@
     "translation": "Le canal recevant les e-mails envoyés par lot est plein. Veuillez augmenter le paramètre EmailBatchingBufferSize."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "L'envoi d'e-mails par lot a été désactivé par l'administrateur système."
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "many": "[{{.SiteName}}] New Notifications for {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] New Notification for {{.Day}} {{.Month}}, {{.Year}}",
-      "other": ""
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1352,20 +1335,10 @@
     "translation": "Une erreur s'est produite lors de l'action de l'intégration"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "many": "{{.Count}} fichiers envoyés : {{.Filenames}}",
-      "one": "{{.Count}} fichier envoyé : {{.Filenames}}",
-      "other": ""
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "many": "{{.Count}} images envoyées : {{.Filenames}}",
-      "one": "{{.Count}} image envoyée : {{.Filenames}}",
-      "other": ""
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1832,8 +1805,7 @@
     "translation": "L'authentification multi-facteurs a été activée"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Votre authentification multi-facteurs (MFA) a été modifiée"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2512,12 +2484,10 @@
     "translation": "Nom de schéma de permissions invalide pour le canal."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "La propriété de canal requise est manquante : team"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Type de canal invalide."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -8132,12 +8102,7 @@
     "translation": "Une erreur s'est produite lors de la récupération du statut de place de marché indiquant la première visite de l'administrateur dans le magasin."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "many": "Vous avez des nouveaux messages",
-      "one": "Vous avez un nouveau message",
-      "other": ""
-    }
+    "id": "api.email_batching.send_batched_email_notification.title"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",

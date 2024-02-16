@@ -596,10 +596,7 @@
     "translation": "@[第一個使用者名稱],@[第二個使用者名稱] '訊息'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "other": "找不到使用者：{{.Users}}找不到使用者：{{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -886,8 +883,7 @@
     "translation": "當前裝置不支援搜尋命令"
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "開啟帳號設定對話框"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -974,14 +970,10 @@
     "translation": "批次郵件的接收頻道已滿。請增加 EmailBatchingBufferSize。"
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "批次郵件已被系統管理員停用"
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "other": "[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知[{{.SiteName}}] {{.Year}} {{.Month}} {{.Day}} 的新通知"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1344,16 +1336,10 @@
     "translation": "操作整合錯誤"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "other": "已送出 {{.Count}} 個檔案：{{.Filenames}}已送出 {{.Count}} 個檔案：{{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "other": "已送出 {{.Count}} 個圖片：{{.Filenames}}已送出 {{.Count}} 個圖片：{{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1820,8 +1806,7 @@
     "translation": "已新增多重要素驗證"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] 多重要素驗證已更新"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2500,12 +2485,10 @@
     "translation": "無效的頻道配置名稱"
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "缺少必要的頻道屬性：團隊。"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "無效的頻道類型。"
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",

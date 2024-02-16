@@ -884,8 +884,7 @@
     "translation": "[{{ .SiteName }}] आपकी साइन-इन विधि अपडेट कर दी गई है"
   },
   {
-    "id": "api.templates.signin_change_email.body.title",
-    "translation": "आपने अपना साइन-इन तरीका अपडेट किया"
+    "id": "api.templates.signin_change_email.body.title"
   },
   {
     "id": "api.templates.signin_change_email.body.method_email",
@@ -972,8 +971,7 @@
     "translation": "[{{ .SiteName }}] {{ .SenderName }} ने आपको {{ .TeamDisplayName }} टीम में शामिल होने के लिए आमंत्रित किया है"
   },
   {
-    "id": "api.templates.invite_guest_subject",
-    "translation": "[{{ .SiteName }}] {{ .SenderName }} ने आपको अतिथि के रूप में {{ .TeamDisplayName }} टीम में शामिल होने के लिए आमंत्रित किया"
+    "id": "api.templates.invite_guest_subject"
   },
   {
     "id": "api.templates.invite_body_guest.subTitle",
@@ -1812,8 +1810,7 @@
     "translation": "Type के लिए अमान्य मान"
   },
   {
-    "id": "model.upload_session.is_valid.path.app_error",
-    "translation": "Path के लिए अमान्य मान"
+    "id": "model.upload_session.is_valid.path.app_error"
   },
   {
     "id": "model.upload_session.is_valid.id.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "प्रोफ़ाइल इमेज को डिकोड नहीं किया जा सका."
   },
   {
-    "id": "api.user.upload_profile_user.check_image_limits.app_error",
-    "translation": "इमेज सीमा जांच विफल। संकल्प बहुत अधिक है।"
+    "id": "api.user.upload_profile_user.check_image_limits.app_error"
   },
   {
-    "id": "api.user.update_user.login_provider_attribute_set.app_error",
-    "translation": "फ़ील्ड '{{.Field}}' को उपयोगकर्ता के लॉगिन प्रदाता के माध्यम से सेट किया जाना चाहिए।"
+    "id": "api.user.update_user.login_provider_attribute_set.app_error"
   },
   {
     "id": "api.user.update_user.accepted_guest_domain.app_error",
@@ -3604,11 +3599,7 @@
     "translation": "S3 से कनेक्ट करने में असमर्थ। अपने Amazon S3 कनेक्शन प्राधिकरण मापदंडों और प्रमाणीकरण सेटिंग्स को सत्यापित करें।"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} के लिए नया नोटिफिकेशन",
-      "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} के लिए नए नोटिफिकेशनस"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.context.json_encoding.app_error",
@@ -3835,11 +3826,7 @@
     "translation": " एक मैसेज पोस्ट किया।"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} फ़ाइल भेजी गई: {{.Filenames}}",
-      "other": "{{.Count}} फ़ाइलें भेजी गईं: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.deduplicate_create_post.pending",
@@ -4166,11 +4153,7 @@
     "translation": "ग्रूप मैसेज अधिकतम {{.MaxUsers}} उपयोगकर्ताओं तक सीमित हैं।"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "उपयोगकर्ता ढूंढने में असमर्थ: {{.Users}}",
-      "other": "उपयोगकर्ताओं को ढूंढने में असमर्थ: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",
@@ -7477,11 +7460,7 @@
     "translation": "परियोजनाओं में अक्सर संगठन के अंदर और बाहर दोनों जगह के लोग शामिल होते हैं। अतिथि खातों के साथ, आप बाहरी भागीदारों को अपने मैटरमोस्ट सिस्टम में ला सकते हैं और निर्दिष्ट कर सकते हैं कि वे किसके साथ काम कर सकते हैं और वे क्या देख सकते हैं।\n\n[अतिथि खातों को सक्षम करने के बारे में अधिक जानें](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)।\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} छवि भेजी गई: {{.Filenames}}",
-      "other": "{{.Count}} छवियां भेजी गईं: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.error_get_first_admin_complete_setup",

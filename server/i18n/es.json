@@ -596,12 +596,7 @@
     "translation": "@[nombre de usuario 1], @[nombre de usuario 2] 'mensaje'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "many": "No se puede encontrar los usuarios: {{.Users}}",
-      "one": "No se puede encontrar el usuario: {{.Users}}",
-      "other": ""
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -888,8 +883,7 @@
     "translation": "El comando de búsqueda no es compatible con tu dispositivo."
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Abrir el cuadro de diálogo Configuración"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -976,16 +970,10 @@
     "translation": "El trabajo de correos electrónicos por lotes del canal de recepción estaba lleno. Por favor, aumenta el EmailBatchingBufferSize."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Los correos electrónicos por lotes han sido inhabilitados por el administrador de sistema."
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "many": "[{{.SiteName}}] Nuevas Notificaciones {{.Day}} {{.Month}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Nueva Notificación {{.Day}} {{.Month}}, {{.Year}}",
-      "other": ""
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1348,20 +1336,10 @@
     "translation": "Error en la acción de la integración."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "many": "{{.Count}} archivos enviados: {{.Filenames}}",
-      "one": "{{.Count}} archivo enviado: {{.Filenames}}",
-      "other": ""
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "many": "{{.Count}} imágenes enviadas: {{.Filenames}}",
-      "one": "{{.Count}} imagen enviada: {{.Filenames}}",
-      "other": ""
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1828,8 +1806,7 @@
     "translation": "Autenticación de múltiples factores ha sido añadida"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Tu MFA ha sido actualizado"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2508,12 +2485,10 @@
     "translation": "Nombre de esquema para canal inválido."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Falta la propiedad obligatoria del canal: team"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Tipo de canal no es válido."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",

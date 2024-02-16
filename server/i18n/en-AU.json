@@ -884,8 +884,7 @@
     "translation": "Invalid connection maximum idle time for SQL settings. Must be a non-negative number."
   },
   {
-    "id": "model.config.is_valid.sitename_length.app_error",
-    "translation": "Site name must be less than or equal to {{.MaxLength}} characters."
+    "id": "model.config.is_valid.sitename_length.app_error"
   },
   {
     "id": "model.config.is_valid.site_url_email_batching.app_error",
@@ -972,8 +971,7 @@
     "translation": "Message export job GlobalRelaySettings.SmtpUsername must be set."
   },
   {
-    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error",
-    "translation": "Message export job GlobalRelaySettings.SmtpPassword must be set."
+    "id": "model.config.is_valid.message_export.global_relay.smtp_password.app_error"
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.email_address.app_error",
@@ -1812,8 +1810,7 @@
     "translation": "Invalid original ID."
   },
   {
-    "id": "model.post.is_valid.msg.app_error",
-    "translation": "Invalid message."
+    "id": "model.post.is_valid.msg.app_error"
   },
   {
     "id": "model.post.is_valid.id.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "Import data line has type 'user' but the user object is null."
   },
   {
-    "id": "app.import.import_line.null_team.error",
-    "translation": "Import data line has type 'team' but the team object is null."
+    "id": "app.import.import_line.null_team.error"
   },
   {
-    "id": "app.import.import_line.null_scheme.error",
-    "translation": "Import data line has type 'scheme' but the scheme object is null."
+    "id": "app.import.import_line.null_scheme.error"
   },
   {
     "id": "app.import.import_line.null_post.error",
@@ -6472,22 +6467,14 @@
     "translation": "Unable to create emoji. Another emoji with the same name already exists."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "You have new messages",
-      "other": "You have new messages"
-    }
+    "id": "api.email_batching.send_batched_email_notification.title"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",
     "translation": "{{.Hour}}:{{.Minute}} {{.TimeZone}}"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] New Notification for {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] New Notifications for {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",
@@ -7114,11 +7101,7 @@
     "translation": "Group messages are limited to a maximum of {{.MaxUsers}} users."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Unable to find the user: {{.Users}}",
-      "other": "Unable to find the users: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",
@@ -7809,18 +7792,10 @@
     "translation": "Can not update a post in a deleted channel."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} image sent: {{.Filenames}}",
-      "other": "{{.Count}} images sent: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} file sent: {{.Filenames}}",
-      "other": "{{.Count}} files sent: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.error_get_post_id.pending",

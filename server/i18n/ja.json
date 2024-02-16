@@ -596,10 +596,7 @@
     "translation": "@[ユーザー名1],@[ユーザー名2] 'メッセージ'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "other": "ユーザーが見付かりませんでした: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -674,10 +671,7 @@
     "translation": "{{.User}} がチャンネル {{.Channel}} に追加されました。"
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "other": "{{.User}} は既にチャンネルに追加されています。"
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -888,8 +882,7 @@
     "translation": "このデバイスでは検索コマンドはサポートされていません。"
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "設定ダイアログを開く"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -976,14 +969,10 @@
     "translation": "電子メールバッチ処理のジョブを受け取るチャンネルがいっぱいです。EmailBatchingBufferSizeを増やしてください。"
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "電子メールバッチ処理はシステム管理者によって無効にされています。"
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} の新着通知"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1346,16 +1335,10 @@
     "translation": "アクション統合エラー。"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "other": "{{.Count}} ファイル送信: {{.Filenames}}{{.Count}} ファイル送信: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "other": "{{.Count}} 画像送信: {{.Filenames}}{{.Count}} 画像送信: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1822,8 +1805,7 @@
     "translation": "多要素認証が追加されました"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] あなたの多要素認証が更新されました"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2502,12 +2484,10 @@
     "translation": "チャンネル向けのスキーム名が不正です。"
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "必須のチャンネル設定値 team が存在しません"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "チャンネル種別が不正です。"
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",

@@ -596,11 +596,7 @@
     "translation": "@[username1],@[username2] 'ileti'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Kullanıcı bulunamadı: {{.Users}}",
-      "other": "Kullanıcılar bulunamadı: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -675,11 +671,7 @@
     "translation": "{{.User}} kullanıcısı {{.Channel}} kanalına eklendi."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "one": "{{.User}} zaten kanalda.",
-      "other": "{{.User}} zaten kanalda."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -890,8 +882,7 @@
     "translation": "Arama komutu aygıtınız için desteklenmiyor."
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Ayarlar penceresini aç"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -978,15 +969,10 @@
     "translation": "Toplu e-posta görevinin alım kanalı doldu. Lütfen EmailBatchingBufferSize değerini arttırın."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Toplu e-posta gönderimi sistem yöneticisi tarafından devre dışı bırakılmış."
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} için yeni bir bildirim var",
-      "other": "[{{.SiteName}}] {{.Month}} {{.Day}}, {{.Year}} için yeni bildirimler var"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1349,18 +1335,10 @@
     "translation": "İşlem bütünleştirme sorunu."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} dosya gönderildi: {{.Filenames}}",
-      "other": "{{.Count}} dosya gönderildi: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} görsel gönderildi: {{.Filenames}}",
-      "other": "{{.Count}} görsel gönderildi: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1827,8 +1805,7 @@
     "translation": "Çok aşamalı kimlik doğrulaması eklendi"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] çok aşamalı kimlik doğrulama ayarlarınız güncellendi"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2507,12 +2484,10 @@
     "translation": "Kanalın şema adı geçersiz."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Zorunlu kanal özelliği eksik: takım"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Kanal türü geçersiz."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -8679,11 +8654,7 @@
     "translation": "Siz uzaktayken, {{.SenderName}} size doğrudan ileti göndermiş."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "Yeni bir iletiniz var",
-      "other": "Yeni iletileriniz var"
-    }
+    "id": "api.email_batching.send_batched_email_notification.title"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",

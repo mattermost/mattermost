@@ -596,12 +596,7 @@
     "translation": "@ [ім'я користувача1], @ [ім'я користувача2] \"повідомлення\""
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "",
-      "many": "",
-      "one": "Не вдалося знайти користувача: {{.Users}}Не вдалося знайти користувачів: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -888,8 +883,7 @@
     "translation": "Команда пошуку не підтримується на вашому пристрої"
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Відкрийте діалогове вікно налаштування профілю"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -976,16 +970,10 @@
     "translation": "Канали прийому електронної пошти для завантаження були повними. Будь ласка, збільшіть розмір буфера для дозування електронної пошти."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Поштові об'єднання відключені системним адміністратором"
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "[{{.SiteName}}] Нові сповіщення для {{.Month}} {{.Day}}, {{.Year}}",
-      "many": "",
-      "one": "[{{.SiteName}}] Нове повідомлення для {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1348,20 +1336,10 @@
     "translation": "Помилка інтеграції дій"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}",
-      "many": "",
-      "one": "Файл {{.Count}} відправлений: {{.Filenames}}Файли {{.Count}} відправлені: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}",
-      "many": "",
-      "one": "{{.Count}} зображення надіслано: {{.Filenames}}{{.Count}} відправлені зображення: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1828,8 +1806,7 @@
     "translation": "Багатофакторна автентифікація була додана"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{.SiteName}}] Ваше MFA було оновлено"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2508,12 +2485,10 @@
     "translation": "Неприпустиме ім'я схеми для каналу."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Відсутній необхідний ресурс каналу: команда"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Тип каналу недійсний."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",

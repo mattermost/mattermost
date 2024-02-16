@@ -884,8 +884,7 @@
     "translation": "{{ .ServerURL }}."
   },
   {
-    "id": "api.templates.signin_change_email.body.method_email",
-    "translation": "электронная пошта і пароль"
+    "id": "api.templates.signin_change_email.body.method_email"
   },
   {
     "id": "api.templates.reset_body.title",
@@ -972,8 +971,7 @@
     "translation": "Няправiльны ідэнтыфікатар канала."
   },
   {
-    "id": "model.channel.is_valid.display_name.app_error",
-    "translation": "Недапушчальнае імя для адлюстравання."
+    "id": "model.channel.is_valid.display_name.app_error"
   },
   {
     "id": "model.channel.is_valid.creator_id.app_error",
@@ -1812,8 +1810,7 @@
     "translation": "Недапушчальны тэрмін дзеяння токена"
   },
   {
-    "id": "model.team_member.is_valid.team_id.app_error",
-    "translation": "Недапушчальны ідэнтыфікатар каманды."
+    "id": "model.team_member.is_valid.team_id.app_error"
   },
   {
     "id": "model.team.is_valid.url.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "Тэрмін захоўвання файла павінен быць адзін дзень ці даўжэй."
   },
   {
-    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
-    "translation": "Час пачатку захавання даных павінен быць 24-гадзіннай адзнакай у фармаце ЧЧ:ММ."
+    "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error"
   },
   {
-    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error",
-    "translation": "Для ўключэння CollapsedThreads павінна быць усталявана значэнне ThreadAutoFollow"
+    "id": "model.config.is_valid.collapsed_threads.autofollow.app_error"
   },
   {
     "id": "model.config.is_valid.collapsed_threads.app_error",
@@ -6644,20 +6639,10 @@
     "translation": "Нельга абнавіць паведамленне ў выдаленым канале."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} выявы адпраўлена: {{.Filenames}}",
-      "many": "{{.Count}} выяў адпраўлена: {{.Filenames}}",
-      "one": "{{.Count}} выява адпраўлена: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "",
-      "many": "",
-      "one": "{{.Count}} файл адпраўлены: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -7372,12 +7357,7 @@
     "translation": "У вас ёсць новыя паведамленні"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "",
-      "many": "",
-      "one": "[{{.SiteName}}] Новае апавяшчэнне за {{.Day}} {{.Month}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.command_join.fail.app_error",
@@ -7456,12 +7436,7 @@
     "translation": "Максімальная колькасць атрымальнікаў групавых паведамленняў абмежавана {{.MaxUsers}} карыстальнікамі."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "",
-      "many": "",
-      "one": "Не ўдалося знайсці карыстальніка: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.group_fail.app_error",

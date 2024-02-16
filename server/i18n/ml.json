@@ -788,11 +788,7 @@
     "translation": "ഗ്രൂപ്പ് സന്ദേശങ്ങൾ പരമാവധി {{.MaxUsers}} ഉപയോക്താക്കൾക്ക് മാത്രമായി പരിമിതപ്പെടുത്തിയിരിക്കുന്നു."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "ഉപയോക്താവിനെ കണ്ടെത്താനായില്ല: {{.Users}}",
-      "other": "ഉപയോക്താക്കളെ കണ്ടെത്താനായില്ല: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.group_fail.app_error",
@@ -887,8 +883,7 @@
     "translation": "നിലവിലെ ചാനൽ അപ്ഡേറ്റ് ചെയ്യുന്നതിൽ തെറ്റ്."
   },
   {
-    "id": "api.command_channel_rename.too_short.app_error",
-    "translation": "ചാനലിന്റെ പേര് {{.Length}} അല്ലെങ്കിൽ കൂടുതൽ പ്രതീകങ്ങൾ ആയിരിക്കണം."
+    "id": "api.command_channel_rename.too_short.app_error"
   },
   {
     "id": "api.command_channel_rename.too_long.app_error",
@@ -975,8 +970,7 @@
     "translation": "നിങ്ങളുടെ സ്റ്റാറ്റസ് ഓൺലൈനിൽ സജ്ജമാക്കുക"
   },
   {
-    "id": "api.command_offline.success",
-    "translation": "നിങ്ങൾ ഇപ്പോൾ ഓഫ്‌ലൈനാണ്"
+    "id": "api.command_offline.success"
   },
   {
     "id": "api.command_offline.name",

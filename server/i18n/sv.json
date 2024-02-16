@@ -884,8 +884,7 @@
     "translation": "Kanalnamnet kan inte vara i hexadecimal-format. Ange ett annat kanalnamn."
   },
   {
-    "id": "model.channel.is_valid.id.app_error",
-    "translation": "Ogiltigt id."
+    "id": "model.channel.is_valid.id.app_error"
   },
   {
     "id": "model.channel.is_valid.header.app_error",
@@ -972,8 +971,7 @@
     "translation": "Ogiltigt refresh-token."
   },
   {
-    "id": "model.access.is_valid.redirect_uri.app_error",
-    "translation": "Felaktig omdirigerings-uri."
+    "id": "model.access.is_valid.redirect_uri.app_error"
   },
   {
     "id": "model.access.is_valid.client_id.app_error",
@@ -1812,8 +1810,7 @@
     "translation": "Ikon URL måste vara en giltig URL och börja med http:// eller https://."
   },
   {
-    "id": "model.oauth.is_valid.homepage.app_error",
-    "translation": "Hemsida måste vara en giltig URL och börja med http:// eller https://."
+    "id": "model.oauth.is_valid.homepage.app_error"
   },
   {
     "id": "model.oauth.is_valid.description.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "Marketplace har avaktiverats.Se detaljer i loggarna."
   },
   {
-    "id": "app.plugin.marketplace_client.failed_to_fetch",
-    "translation": "Misslyckades att hämta plugins från marketplace-servern."
+    "id": "app.plugin.marketplace_client.failed_to_fetch"
   },
   {
-    "id": "app.plugin.marketplace_client.app_error",
-    "translation": "Misslyckades att starta marketplace-klienten."
+    "id": "app.plugin.marketplace_client.app_error"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -6340,11 +6335,7 @@
     "translation": "Det går inte att skapa emoji. En annan emoji med samma namn redan finns."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] Ny notis den {{.Day}} {{.Month}} {{.Year}}",
-      "other": "[{{.SiteName}}] Nya notiser den {{.Day}} {{.Month}} {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -6699,11 +6690,7 @@
     "translation": "Du kan lägga till {{.Users}} till kanalen när de är medlemmar i teamet **{{.Team}}**."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "one": "{{.User}} finns redan i kanalen.",
-      "other": "{{.User}} finns redan i kanalen."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite.success",
@@ -6778,11 +6765,7 @@
     "translation": "Gruppmeddelanden är begränsade till max {{.MaxUsers}} användare."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Hittar ej användare: {{.Users}}",
-      "other": "Hittar ej användarna: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",
@@ -7249,18 +7232,10 @@
     "translation": "Går ej att uppdatera ett meddelande i en raderad kanal."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} bild skickad: {{.Filenames}}",
-      "other": "{{.Count}} bilder skickade: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} fil skickad: {{.Filenames}}",
-      "other": "{{.Count}} filer skickade: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.error_get_post_id.pending",
@@ -8639,11 +8614,7 @@
     "translation": "Angiven text överskrider max tillåtna tecken. Kanalhuvudet är begränsat till {{.MaxLength}} tecken."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "Du har ett nytt meddelande",
-      "other": "Du har nya meddelanden"
-    }
+    "id": "api.email_batching.send_batched_email_notification.title"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.time",

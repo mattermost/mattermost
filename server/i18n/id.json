@@ -884,8 +884,7 @@
     "translation": "Tidak dapat memperoleh kanal"
   },
   {
-    "id": "ent.elasticsearch.delete_user.error",
-    "translation": "Tidak dapat memuat kiriman"
+    "id": "ent.elasticsearch.delete_user.error"
   },
   {
     "id": "ent.elasticsearch.delete_post.error",
@@ -972,8 +971,7 @@
     "translation": "Terjadi kesalahan saat meninggalkan kanal"
   },
   {
-    "id": "app.plugin.deactivate.app_error",
-    "translation": "Tidak dapat memuat kiriman"
+    "id": "app.plugin.deactivate.app_error"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -1796,10 +1794,7 @@
     "translation": "Tidak dapat membuat emoji. Sudah ada emoji lain dengan nama yang sama."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "other": "[{{.SiteName}}] Notifikasi baru untuk {{.Month}} {{.Day}}, {{.Year}}[{{.SiteName}}] Notifikasi baru untuk {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -1814,8 +1809,7 @@
     "translation": "Sesi bukan OAuth tapi token diberikan dalam string kueri"
   },
   {
-    "id": "api.context.session_expired.app_error",
-    "translation": "Sesi tidak valid atau kadaluwarsa. Mohon masuk kembali."
+    "id": "api.context.session_expired.app_error"
   },
   {
     "id": "api.context.permissions.app_error",
@@ -2494,12 +2488,10 @@
     "translation": "menggunakan tautan penyetelan-ulang kata sandi"
   },
   {
-    "id": "api.user.reset_password.link_expired.app_error",
-    "translation": "Tautan penyetelan-ulang kata sandi telah kedaluwarsa"
+    "id": "api.user.reset_password.link_expired.app_error"
   },
   {
-    "id": "api.user.reset_password.invalid_link.app_error",
-    "translation": "Tautan penyetelan-ulang kata sandi tidak valid"
+    "id": "api.user.reset_password.invalid_link.app_error"
   },
   {
     "id": "api.user.reset_password.broken_token.app_error",
@@ -3022,10 +3014,7 @@
     "translation": "Anda tidak memiliki izin yang cukup untuk menjalankan perintah ini."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "other": "Tidak dapat menemukan pengguna: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -3260,10 +3249,7 @@
     "translation": "{{.FirstUser}} dan {{.Others}} ditambahkan ke saluran {{.Channel}}."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "other": "{{.User}} sudah ada di dalam saluran."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite.user_already_in_channel.overflow",

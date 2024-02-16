@@ -884,8 +884,7 @@
     "translation": "Грешка при чистење на статусот."
   },
   {
-    "id": "api.command_custom_status.app_error",
-    "translation": "Грешка при подесување на статусот."
+    "id": "api.command_custom_status.app_error"
   },
   {
     "id": "api.command_collapse.success",

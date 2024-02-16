@@ -884,8 +884,7 @@
     "translation": "No es poden obtenir els estats dels connectors"
   },
   {
-    "id": "app.plugin.get_plugins.app_error",
-    "translation": "No es pot obtenir els connectors actius"
+    "id": "app.plugin.get_plugins.app_error"
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
@@ -972,8 +971,7 @@
     "translation": "La propietat de notificació mòbil de l'usuari no és vàlida."
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error",
-    "translation": "La propietat de notificació de correu de l'usuari no és vàlida."
+    "id": "app.import.validate_user_import_data.notify_props_email_invalid.error"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
@@ -1812,8 +1810,7 @@
     "translation": "S'ha produït un error en actualitzar la icona de l'equip"
   },
   {
-    "id": "api.team.set_team_icon.write_file.app_error",
-    "translation": "No s'ha pogut desar la icona de l'equip"
+    "id": "api.team.set_team_icon.write_file.app_error"
   },
   {
     "id": "api.team.set_team_icon.too_large.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "No s'ha pogut cercar al servidor AD/LDAP"
   },
   {
-    "id": "ent.ldap.do_login.matched_to_many_users.app_error",
-    "translation": "El nom d'usuari assignat coincideix amb diversos usuaris"
+    "id": "ent.ldap.do_login.matched_to_many_users.app_error"
   },
   {
-    "id": "ent.ldap.do_login.licence_disable.app_error",
-    "translation": "La funció d'AD/LDAP està desactivada per la llicència actual. Contacta amb l'administrador del sistema per actualitzar la teva llicència empresarial."
+    "id": "ent.ldap.do_login.licence_disable.app_error"
   },
   {
     "id": "ent.ldap.do_login.invalid_password.app_error",
@@ -2764,18 +2759,10 @@
     "translation": "No es pot actualitzar una publicació en un canal suprimit."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} imatge enviada: {{.Filenames}}",
-      "other": "{{.Count}} imatges enviades: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} fitxer enviat: {{.Filenames}}",
-      "other": "{{.Count}} fitxers enviats: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
@@ -3158,11 +3145,7 @@
     "translation": "No es pot crear l'emoji. Ja existeix un altre amb el mateix nom."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "Nova notificació de [{{.SiteName}}] a {{.Day}} {{.Month}}, {{.Year}}",
-      "other": "Noves notificacions de [{{.SiteName}}] a {{.Day}} {{.Month}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -3913,11 +3896,7 @@
     "translation": "Els missatges grupals estan limitats a un màxim de {{.MaxUsers}} usuaris."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "No es pot trobar l'usuari: {{.Users}}",
-      "other": "No es poden trobar els usuaris: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",

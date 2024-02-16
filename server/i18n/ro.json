@@ -596,12 +596,7 @@
     "translation": "@[username1],@[username2] 'mesaj'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "few": "În imposibilitatea de a găsi utilizatorii: {{.Users}}",
-      "one": "În imposibilitatea de a găsi utilizatorul: {{.Users}}",
-      "other": "În imposibilitatea de a găsi utilizatori: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -888,8 +883,7 @@
     "translation": "Comanda de căutare nu este acceptat pe aparatul dvs."
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Deschide caseta de dialog Setări cont"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -976,16 +970,10 @@
     "translation": "Email job pe receptor canal de dozare a fost complet. Vă rugăm să crească EmailBatchingBufferSize."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "Administrarea de sistem a dezactivat lotul prin e-mail."
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "[{{.SiteName}}] Notificări noi pentru {{.Month}} {{.Day}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Notificare nouă pentru {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Notificări noi pentru {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1348,20 +1336,10 @@
     "translation": "Eroare de integrare acţiune."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "{{.Count}} fișiere trimise: {{.Filenames}}",
-      "one": "{{.Count}} fișier trimis: {{.Filenames}}",
-      "other": "{{.Count}} fișiere trimise: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} imagini trimise: {{.Filenames}}",
-      "one": "{{.Count}} imagine trimisă: {{.Filenames}}",
-      "other": "{{.Count}} imagini trimise: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1828,8 +1806,7 @@
     "translation": "Multi-factor de autentificare a fost adăugat"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] MFA a fost actualizat"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2508,12 +2485,10 @@
     "translation": "Nume schemă invalidă pentru canal."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Lipsesc necesare canal proprietate: echipa"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Rigola tip nu este validă."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",

@@ -884,8 +884,7 @@
     "translation": "Ei voitu hakea kaikkia käyttäjiä AD/LDAP:ia käyttäen"
   },
   {
-    "id": "ent.ldap.syncronize.delete_group_constained_memberships",
-    "translation": "virhe poistettaessa tiimiä tai kanavan jäsenyyksiä"
+    "id": "ent.ldap.syncronize.delete_group_constained_memberships"
   },
   {
     "id": "ent.ldap.do_login.user_not_registered.app_error",
@@ -972,8 +971,7 @@
     "translation": "Virheellinen Email Notify Prop arvo käyttäjälle."
   },
   {
-    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error",
-    "translation": "Virheellinen Desktop Sound Notify Prop arvo käyttäjälle."
+    "id": "app.import.validate_user_import_data.notify_props_desktop_sound_invalid.error"
   },
   {
     "id": "app.import.validate_user_import_data.notify_props_desktop_invalid.error",
@@ -1812,8 +1810,7 @@
     "translation": "virheellinen käyttäjä-id ryhmän jäsenellä"
   },
   {
-    "id": "model.group_member.group_id.app_error",
-    "translation": "virheellinen ryhmä-id ryhmän jäsenellä"
+    "id": "model.group_member.group_id.app_error"
   },
   {
     "id": "model.group.update_at.app_error",
@@ -2492,12 +2489,10 @@
     "translation": "Jos et tehnyt tätä muutosta, ota yhteys järjestelmänvalvojaan."
   },
   {
-    "id": "api.templates.email_organization",
-    "translation": "Lähettänyt "
+    "id": "api.templates.email_organization"
   },
   {
-    "id": "api.templates.email_info3",
-    "translation": "{{.SiteName}} tiimi"
+    "id": "api.templates.email_info3"
   },
   {
     "id": "api.templates.email_info2",
@@ -3396,18 +3391,10 @@
     "translation": "Viestiä ei voida päivittää poistetulla kanavalla."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} kuva lähetetty: {{.Filenames}}",
-      "other": "{{.Count}} kuvaa lähetetty: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} kuva lähetetty: {{.Filenames}}",
-      "other": "{{.Count}} kuvaa lähetetty: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.do_action.action_integration.app_error",
@@ -3774,11 +3761,7 @@
     "translation": "Ei voitu luoda emojia. Emoji samalla nimellä on jo olemassa."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] uusi ilmoitus {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] uusia ilmoituksia {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
@@ -4421,11 +4404,7 @@
     "translation": "Ryhmäviesti on rajoitettu enintään {{.MaxUsers}} käyttäjälle."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Käyttäjää ei löydy: {{.Users}}",
-      "other": "Käyttäjiä ei löydy: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.hint",

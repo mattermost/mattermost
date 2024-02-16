@@ -212,10 +212,7 @@
     "translation": "Không thể phân tích form với định dạng multipart"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "other": "{{.Count}} tệp tin đã gửi: {{.Filenames}}{{.Count}} các tệp tin đã gử: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "model.command.is_valid.url_http.app_error",
@@ -838,10 +835,7 @@
     "translation": "Xóa thành viên khỏi kênh"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "other": "[{{.SiteName}}] Thông báo mới cho ngày {{.Month}} {{.Day}}, {{.Year}}[{{.SiteName}}] Các thông báo mới cho ngày {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "model.config.is_valid.tls_overwrite_cipher.app_error",
@@ -888,8 +882,7 @@
     "translation": "Thiếu thuộc tính bài đăng trực tiếp yêu cầu: tin nhắn"
   },
   {
-    "id": "api.emoji.create.other_user.app_error",
-    "translation": "User id không hợp lệ"
+    "id": "api.emoji.create.other_user.app_error"
   },
   {
     "id": "api.team.leave.left",
@@ -976,8 +969,7 @@
     "translation": "Kênh không hợp lệ"
   },
   {
-    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error",
-    "translation": "Cài đặt khoảng thời gian xử lý email không hợp lệ cho Người dùng"
+    "id": "app.import.validate_user_import_data.advanced_props_email_interval.error"
   },
   {
     "id": "api.command_offline.desc",
@@ -1816,8 +1808,7 @@
     "translation": "Đăng ký người dùng bị vô hiệu hóa."
   },
   {
-    "id": "app.import.import_line.null_direct_post.error",
-    "translation": "Dòng dữ liệu nhập có loại \"direct_post\" nhưng đối tượng post_channel không hợp lệ."
+    "id": "app.import.import_line.null_direct_post.error"
   },
   {
     "id": "app.plugin.manifest.app_error",
@@ -2228,10 +2219,7 @@
     "translation": "phím tắt"
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "other": "{{.User}} đã có trong kênh."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_settings.name",
@@ -2498,12 +2486,10 @@
     "translation": "Tháng Tám"
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
-    "translation": "Email trộn công việc của nhận được kênh đã được đầy đủ. Xin tăng EmailBatchingBufferSize."
+    "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error"
   },
   {
-    "id": "api.plugin.upload.file.app_error",
-    "translation": "Không thể mở tệp trong yêu cầu nhiều phần / biểu mẫu"
+    "id": "api.plugin.upload.file.app_error"
   },
   {
     "id": "model.channel_member.is_valid.ignore_channel_mentions_value.app_error",
@@ -4598,10 +4584,7 @@
     "translation": "Không thể tạo dữ liệu tệp eml."
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "other": "Không thể tìm thấy thành viên: {{.Users}}Không thể tìm thấy các thành viên: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.channel.move_channel.type.invalid",
@@ -4832,10 +4815,7 @@
     "translation": "Trường Updated_at phải là thời gian hợp lệ"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "other": "{{.Count}} hình ảnh đã gửi: {{.Filenames}}{{.Count}} các hình ảnh đã gửi: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "model.oauth.is_valid.description.app_error",

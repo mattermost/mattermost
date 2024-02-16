@@ -596,12 +596,7 @@
     "translation": "@[nomeutente1],@[nomeutente2]'messaggio'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "many": "Impossibile trovare gli utenti: {{.Users}}",
-      "one": "Impossibile trovare l'utente: {{.Users}}",
-      "other": ""
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -888,8 +883,7 @@
     "translation": "Il comando di ricerca non è disponibile sul tuo dispositivo."
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Apri la finestra delle Impostazioni Account"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -976,16 +970,10 @@
     "translation": "Il canale che riceve i job batch di email era pieno. Per favore incrementa EmailBatchingBufferSize."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "La spedizione di email programmata è stata disabilitata dall aministratore di sistema."
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "many": "[{{.SiteName}}] Nuove notifiche per {{.Day}} {{.Month}} {{.Year}}",
-      "one": "[{{.SiteName}}] Nuova notifica per {{.Day}} {{.Month}} {{.Year}}",
-      "other": ""
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1348,20 +1336,10 @@
     "translation": "Errore azione d'integrazione."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "many": "{{.Count}} file inviati: {{.Filenames}}",
-      "one": "{{.Count}} file inviato: {{.Filenames}}",
-      "other": ""
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "many": "{{.Count}} immagini inviate: {{.Filenames}}",
-      "one": "{{.Count}} immagine inviata: {{.Filenames}}",
-      "other": ""
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1828,8 +1806,7 @@
     "translation": "E' stata aggiunta l'autenticazione multi-fattore"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] il tuo MFA è stato aggiornato"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2508,12 +2485,10 @@
     "translation": "Nome dello schema di canale non valido."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Manca una proprietà richiesta del canale: gruppo"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Il tipo del canale non è valido."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",

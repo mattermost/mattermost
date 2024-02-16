@@ -596,11 +596,7 @@
     "translation": "@[Benutzername1],@[Benutzername2] 'Nachricht'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "one": "Konnte den Benutzer nicht finden: {{.Users}}",
-      "other": "Konnte die Benutzer nicht finden: {{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -675,11 +671,7 @@
     "translation": "{{.User}} wurde dem Kanal {{.Channel}} hinzugefügt."
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "one": "{{.User}} ist bereits im Kanal.",
-      "other": "{{.User}} sind bereits im Kanal."
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -890,8 +882,7 @@
     "translation": "Der Suchbefehl wird auf deinem Gerät nicht unterstützt."
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "Öffne den Dialog Einstellungen"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -978,15 +969,10 @@
     "translation": "Eingehender Kanal für E-Mail-Stapelverarbeitungs-Job war voll. Bitte erhöhe EmailBatchingBufferSize."
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "E-Mail-Stapelverarbeitung wurde vom Systemadministrator deaktiviert."
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "one": "[{{.SiteName}}] Neue Benachrichtigung für {{.Day}}. {{.Month}} {{.Year}}",
-      "other": "[{{.SiteName}}] Neue Benachrichtigungen für {{.Day}}. {{.Month}} {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1349,18 +1335,10 @@
     "translation": "Fehler bei Aktions-Integration."
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "one": "{{.Count}} Datei versendet: {{.Filenames}}",
-      "other": "{{.Count}} Dateien versendet: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "one": "{{.Count}} Bild versendet: {{.Filenames}}",
-      "other": "{{.Count}} Bilder versendet: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1827,8 +1805,7 @@
     "translation": "Multi-Faktor-Authentifizierung wurde hinzugefügt"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] Deine MFA wurde aktualisiert"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2507,12 +2484,10 @@
     "translation": "Ungültiger Schema-Name für Kanal."
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "Fehlende erforderliche Kanaleigenschaft: team"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "Kanaltyp ist ungültig."
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
@@ -7295,11 +7270,7 @@
     "translation": "Fehler beim Abruf des Status des ersten Administratorbesuchs des Marktplatzes aus dem Store."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.title",
-    "translation": {
-      "one": "Du hast eine neue Nachricht",
-      "other": "Du hast neue Nachrichten"
-    }
+    "id": "api.email_batching.send_batched_email_notification.title"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.subTitle",

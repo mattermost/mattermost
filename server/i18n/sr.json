@@ -340,20 +340,10 @@
     "translation": "Реакција није исправна."
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "few": "{{.Count}} слике послате: {{.Filenames}}",
-      "one": "{{.Count}} слика послата: {{.Filenames}}",
-      "other": "{{.Count}} слика послато: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "few": "{{.Count}} датотеке је послато: {{.Filenames}}",
-      "one": "{{.Count}} датотека је послата: {{.Filenames}}",
-      "other": "{{.Count}} датотека је послато: {{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
     "id": "api.post.disabled_here",
@@ -484,12 +474,7 @@
     "translation": "Нисам успео да направим емоџи. Други емоџи са истим називом већ постоји."
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "few": "[{{.SiteName}}] Нова обавештења за {{.Month}} {{.Day}}, {{.Year}}",
-      "one": "[{{.SiteName}}] Ново обавештење за {{.Month}} {{.Day}}, {{.Year}}",
-      "other": "[{{.SiteName}}] Нова обавештења за {{.Month}} {{.Day}}, {{.Year}}"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
@@ -896,8 +881,7 @@
     "translation": "Корисник %s је изменио приказно име канала из: %s у: %s"
   },
   {
-    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error",
-    "translation": "Нисам успео да добавим корисника приликом ажурирања поља DisplayName на каналу"
+    "id": "api.channel.post_update_channel_displayname_message_and_forget.retrieve_user.error"
   },
   {
     "id": "api.channel.post_update_channel_displayname_message_and_forget.create_post.error",
@@ -984,8 +968,7 @@
     "translation": "S3 Bucket је нужан"
   },
   {
-    "id": "api.admin.test_email.subject",
-    "translation": "Mattermost - испробавам подешавања мејлова"
+    "id": "api.admin.test_email.subject"
   },
   {
     "id": "api.admin.test_email.reenter_password",

@@ -596,10 +596,7 @@
     "translation": "@[用户名1],@[用户名2] '消息'"
   },
   {
-    "id": "api.command_groupmsg.invalid_user.app_error",
-    "translation": {
-      "other": "无法找到用户：{{.Users}}无法找到用户：{{.Users}}"
-    }
+    "id": "api.command_groupmsg.invalid_user.app_error"
   },
   {
     "id": "api.command_groupmsg.max_users.app_error",
@@ -674,10 +671,7 @@
     "translation": "已添加 {{.User}} 到 {{.Channel}} 频道。"
   },
   {
-    "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": {
-      "other": "{{.User}} 已在频道。"
-    }
+    "id": "api.command_invite.user_already_in_channel.app_error"
   },
   {
     "id": "api.command_invite_people.permission.app_error",
@@ -888,8 +882,7 @@
     "translation": "您的设备不支持搜索命令。"
   },
   {
-    "id": "api.command_settings.desc",
-    "translation": "打开设定对话框"
+    "id": "api.command_settings.desc"
   },
   {
     "id": "api.command_settings.name",
@@ -976,14 +969,10 @@
     "translation": "批量电子邮件任务接收频道已满。请提高EmailBatchingBufferSize。"
   },
   {
-    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error",
-    "translation": "系统管理员禁用了批量电子邮件。"
+    "id": "api.email_batching.add_notification_email_to_batch.disabled.app_error"
   },
   {
-    "id": "api.email_batching.send_batched_email_notification.subject",
-    "translation": {
-      "other": "[{{.SiteName}}] {{.Year}} 年 {{.Month}} 月 {{.Day}} 日的新通知"
-    }
+    "id": "api.email_batching.send_batched_email_notification.subject"
   },
   {
     "id": "api.emoji.create.duplicate.app_error",
@@ -1346,16 +1335,10 @@
     "translation": "操作整合错误。"
   },
   {
-    "id": "api.post.get_message_for_notification.files_sent",
-    "translation": {
-      "other": "{{.Count}} 文件已发送：{{.Filenames}}{{.Count}} 文件已发送：{{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.files_sent"
   },
   {
-    "id": "api.post.get_message_for_notification.images_sent",
-    "translation": {
-      "other": "{{.Count}} 图片已发送：{{.Filenames}}{{.Count}} 图片已发送：{{.Filenames}}"
-    }
+    "id": "api.post.get_message_for_notification.images_sent"
   },
   {
     "id": "api.post.patch_post.can_not_update_post_in_deleted.error",
@@ -1822,8 +1805,7 @@
     "translation": "多重验证已添加"
   },
   {
-    "id": "api.templates.mfa_change_subject",
-    "translation": "[{{ .SiteName }}] 您的多重验证已更新"
+    "id": "api.templates.mfa_change_subject"
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
@@ -2502,12 +2484,10 @@
     "translation": "无效的频道方案名。"
   },
   {
-    "id": "app.import.validate_channel_import_data.team_missing.error",
-    "translation": "缺少频道必须属性：team"
+    "id": "app.import.validate_channel_import_data.team_missing.error"
   },
   {
-    "id": "app.import.validate_channel_import_data.type_invalid.error",
-    "translation": "无效频道类型。"
+    "id": "app.import.validate_channel_import_data.type_invalid.error"
   },
   {
     "id": "app.import.validate_channel_import_data.type_missing.error",
