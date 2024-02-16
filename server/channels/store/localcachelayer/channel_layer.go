@@ -48,31 +48,40 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.C
 	}
 }
 
+func (s LocalCacheChannelStore) ClearMembersForUserCache() {
+	s.rootStore.doClearCacheCluster(s.rootStore.reaction.rootStore.channelMembersForUserCache)
+}
+
 func (s LocalCacheChannelStore) ClearCaches() {
 	s.rootStore.doClearCacheCluster(s.rootStore.channelMemberCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelPinnedPostCountsCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelGuestCountCache)
 	s.rootStore.doClearCacheCluster(s.rootStore.channelByIdCache)
-	s.ChannelStore.ClearCaches()
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersNotifyPropsCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelByNameCache)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guest Count - Purge")
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Purge")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberCountsCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelPinnedPostCountsCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelGuestCountCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByIdCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersForUserCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersNotifyPropsCache.Name())
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByNameCache.Name())
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidatePinnedPostCount(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelPinnedPostCountsCache, channelId)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Pinned Post Counts - Remove by ChannelId")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelPinnedPostCountsCache.Name())
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, channelId)
 	if s.rootStore.metrics != nil {
-		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Member Counts - Remove by ChannelId")
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberCountsCache.Name())
 	}
 }
 
@@ -87,6 +96,28 @@ func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
 	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateAllChannelMembersForUser(userId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersForUserCache, userId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersForUserCache, userId+"_deleted")
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersForUserCache.Name())
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersNotifyPropsCache, channelId)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersNotifyPropsCache.Name())
+	}
+}
+
+func (s LocalCacheChannelStore) InvalidateChannelByName(teamId, name string) {
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByNameCache, teamId+name)
+	if s.rootStore.metrics != nil {
+		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByNameCache.Name())
 	}
 }
 
@@ -203,6 +234,137 @@ func (s LocalCacheChannelStore) GetMany(ids []string, allowFromCache bool) (mode
 	}
 
 	return append(foundChannels, channels...), nil
+}
+
+func (s LocalCacheChannelStore) GetAllChannelMembersForUser(userId string, allowFromCache bool, includeDeleted bool) (map[string]string, error) {
+	cache_key := userId
+	if includeDeleted {
+		cache_key += "_deleted"
+	}
+	if allowFromCache {
+		ids := make(map[string]string)
+		if err := s.rootStore.doStandardReadCache(s.rootStore.channelMembersForUserCache, cache_key, &ids); err == nil {
+			return ids, nil
+		}
+	}
+
+	ids, err := s.ChannelStore.GetAllChannelMembersForUser(userId, allowFromCache, includeDeleted)
+	if err != nil {
+		return nil, err
+	}
+
+	if allowFromCache {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelMembersForUserCache, cache_key, ids)
+	}
+
+	return ids, nil
+}
+
+func (s LocalCacheChannelStore) GetAllChannelMembersNotifyPropsForChannel(channelId string, allowFromCache bool) (map[string]model.StringMap, error) {
+	if allowFromCache {
+		var cacheItem map[string]model.StringMap
+		if err := s.rootStore.doStandardReadCache(s.rootStore.channelMembersNotifyPropsCache, channelId, &cacheItem); err == nil {
+			return cacheItem, nil
+		}
+	}
+
+	props, err := s.ChannelStore.GetAllChannelMembersNotifyPropsForChannel(channelId, allowFromCache)
+	if err != nil {
+		return nil, err
+	}
+
+	if allowFromCache {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelMembersNotifyPropsCache, channelId, props)
+	}
+
+	return props, nil
+}
+
+func (s LocalCacheChannelStore) GetByNamesIncludeDeleted(teamId string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	return s.getByNames(teamId, names, allowFromCache, true)
+}
+
+func (s LocalCacheChannelStore) GetByNames(teamId string, names []string, allowFromCache bool) ([]*model.Channel, error) {
+	return s.getByNames(teamId, names, allowFromCache, false)
+}
+
+func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowFromCache, includeArchivedChannels bool) ([]*model.Channel, error) {
+	var channels []*model.Channel
+
+	if allowFromCache {
+		var misses []string
+		visited := make(map[string]struct{})
+		for _, name := range names {
+			if _, ok := visited[name]; ok {
+				continue
+			}
+			visited[name] = struct{}{}
+			var cacheItem *model.Channel
+
+			if err := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name, &cacheItem); err == nil {
+				if includeArchivedChannels || cacheItem.DeleteAt == 0 {
+					channels = append(channels, cacheItem)
+				}
+			} else {
+				misses = append(misses, name)
+			}
+		}
+		names = misses
+	}
+
+	if len(names) > 0 {
+		var dbChannels []*model.Channel
+		var err error
+		if includeArchivedChannels {
+			dbChannels, err = s.ChannelStore.GetByNamesIncludeDeleted(teamId, names, allowFromCache)
+		} else {
+			dbChannels, err = s.ChannelStore.GetByNames(teamId, names, allowFromCache)
+		}
+		if err != nil {
+			return nil, err
+		}
+
+		for _, channel := range dbChannels {
+			s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+channel.Name, channel)
+			channels = append(channels, channel)
+		}
+	}
+
+	return channels, nil
+}
+
+func (s LocalCacheChannelStore) GetByNameIncludeDeleted(teamId string, name string, allowFromCache bool) (*model.Channel, error) {
+	return s.getByName(teamId, name, allowFromCache, true)
+}
+
+func (s LocalCacheChannelStore) GetByName(teamId string, name string, allowFromCache bool) (*model.Channel, error) {
+	return s.getByName(teamId, name, allowFromCache, false)
+}
+
+func (s LocalCacheChannelStore) getByName(teamId string, name string, allowFromCache, includeArchivedChannels bool) (*model.Channel, error) {
+	var channel *model.Channel
+
+	if allowFromCache {
+		if err := s.rootStore.doStandardReadCache(s.rootStore.channelByNameCache, teamId+name, &channel); err == nil {
+			if includeArchivedChannels || channel.DeleteAt == 0 {
+				return channel, nil
+			}
+		}
+	}
+
+	var err error
+	if includeArchivedChannels {
+		channel, err = s.ChannelStore.GetByNameIncludeDeleted(teamId, name, allowFromCache)
+	} else {
+		channel, err = s.ChannelStore.GetByName(teamId, name, allowFromCache)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+name, channel)
+
+	return channel, nil
 }
 
 func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {

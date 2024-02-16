@@ -35,8 +35,15 @@ const (
 	EmojiCacheSize = 5000
 	EmojiCacheSec  = 30 * 60
 
-	ChannelPinnedPostsCountsCacheSize = model.ChannelCacheSize
-	ChannelPinnedPostsCountsCacheSec  = 30 * 60
+	ChannelPinnedPostsCountsCacheSize     = model.ChannelCacheSize
+	ChannelPinnedPostsCountsCacheSec      = 30 * 60
+	AllChannelMembersForUserCacheSize     = model.SessionCacheSize
+	AllChannelMembersForUserCacheDuration = 15 * time.Minute
+
+	AllChannelMembersNotifyPropsForChannelCacheSize     = model.SessionCacheSize
+	AllChannelMembersNotifyPropsForChannelCacheDuration = 30 * time.Minute
+
+	ChannelCacheDuration = 15 * time.Minute
 
 	ChannelMembersCountsCacheSize = model.ChannelCacheSize
 	ChannelMembersCountsCacheSec  = 30 * 60
@@ -87,11 +94,14 @@ type LocalCacheStore struct {
 	emojiCacheById     cache.Cache
 	emojiIdCacheByName cache.Cache
 
-	channel                      LocalCacheChannelStore
-	channelMemberCountsCache     cache.Cache
-	channelGuestCountCache       cache.Cache
-	channelPinnedPostCountsCache cache.Cache
-	channelByIdCache             cache.Cache
+	channel                        LocalCacheChannelStore
+	channelMemberCountsCache       cache.Cache
+	channelGuestCountCache         cache.Cache
+	channelPinnedPostCountsCache   cache.Cache
+	channelByIdCache               cache.Cache
+	channelMembersForUserCache     cache.Cache
+	channelMembersNotifyPropsCache cache.Cache
+	channelByNameCache             cache.Cache
 
 	webhook      LocalCacheWebhookStore
 	webhookCache cache.Cache
@@ -237,6 +247,30 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		Name:                   "channelById",
 		DefaultExpiry:          ChannelCacheSec * time.Second,
 		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannel,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.channelMembersForUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   AllChannelMembersForUserCacheSize,
+		Name:                   "ChannnelMembersForUser",
+		DefaultExpiry:          AllChannelMembersForUserCacheDuration,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForUser,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.channelMembersNotifyPropsCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   AllChannelMembersNotifyPropsForChannelCacheSize,
+		Name:                   "ChannnelMembersNotifyProps",
+		DefaultExpiry:          AllChannelMembersNotifyPropsForChannelCacheDuration,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelMembersNotifyProps,
+	}); err != nil {
+		return
+	}
+	if localCacheStore.channelByNameCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   model.ChannelCacheSize,
+		Name:                   "ChannelByName",
+		DefaultExpiry:          ChannelCacheDuration,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForChannelByName,
 	}); err != nil {
 		return
 	}
@@ -450,6 +484,9 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.channelPinnedPostCountsCache)
 	s.doClearCacheCluster(s.channelGuestCountCache)
 	s.doClearCacheCluster(s.channelByIdCache)
+	s.doClearCacheCluster(s.channelMembersForUserCache)
+	s.doClearCacheCluster(s.channelMembersNotifyPropsCache)
+	s.doClearCacheCluster(s.channelByNameCache)
 	s.doClearCacheCluster(s.postLastPostsCache)
 	s.doClearCacheCluster(s.termsOfServiceCache)
 	s.doClearCacheCluster(s.lastPostTimeCache)
