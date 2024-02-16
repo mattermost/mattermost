@@ -30,7 +30,6 @@ type Props = {
     threadId: string;
 };
 
-function noop() {}
 function ThreadViewerRow({
     a11yIndex,
     currentUserId,
@@ -79,7 +78,6 @@ function ThreadViewerRow({
                 combinedId={listId}
                 previousPostId={previousPostId}
                 isLastPost={isLastPost}
-                togglePostMenu={noop}
             />
         );
     }
