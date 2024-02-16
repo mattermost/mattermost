@@ -66,8 +66,13 @@
 }
 
 @media (min-width: 768px) {
-    .post-menu__item {
-        display: none;
+    // .post-menu__item {
+    //     display: none;
+    // }
+    .post-menu {
+        border-color: rgba(var(--center-channel-color-rgb), 0.2);
+        background-color: v(center-channel-bg);
+        box-shadow: $elevation-1;
     }
 
     .post-menu__item--show {

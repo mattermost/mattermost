@@ -602,7 +602,7 @@
 
 .post {
     position: relative;
-    overflow: hidden;
+    overflow: visible;
     max-width: 100%;
     padding: 8px 0.5em 0 1.5em; // If this needs to be changed then .post-row__padding needs to be adjusted accordingly
     transition: height 200ms, background-color 200ms;
@@ -740,9 +740,9 @@
 
     &.post--hide-controls {
         .post__header {
-            .post-menu {
-                display: none;
-            }
+            // .post-menu {
+            //     display: none;
+            // }
         }
     }
 
