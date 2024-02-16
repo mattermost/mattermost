@@ -64,7 +64,7 @@ describe('components/learn_more_trial_modal/learn_more_trial_modal', () => {
             modals: {
                 modalState: {
                     learn_more_trial_modal: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },
