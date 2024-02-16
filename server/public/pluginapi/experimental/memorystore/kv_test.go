@@ -47,10 +47,7 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.False(t, ok)
 
-		var out []byte
-		err = store.Get("key", &out)
-		assert.NoError(t, err)
-		assert.Nil(t, out)
+		IsNil(t, &store, "key")
 	})
 
 	t.Run("atomic with same old value", func(t *testing.T) {
@@ -81,10 +78,7 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		var out []byte
-		err = store.Get("key", &out)
-		assert.NoError(t, err)
-		assert.Nil(t, out)
+		IsNil(t, &store, "key")
 	})
 
 	t.Run("atomicly setting to nil is deleting", func(t *testing.T) {
@@ -98,10 +92,7 @@ func TestSet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		var out []byte
-		err = store.Get("key", &out)
-		assert.NoError(t, err)
-		assert.Nil(t, out)
+		IsNil(t, &store, "key")
 	})
 
 	t.Run("with long expiry", func(t *testing.T) {
@@ -122,10 +113,7 @@ func TestSet(t *testing.T) {
 
 		time.Sleep(time.Second)
 
-		out = nil
-		err = store.Get("key", &out)
-		assert.NoError(t, err)
-		assert.Nil(t, out)
+		IsNil(t, &store, "key")
 	})
 
 	t.Run("concurrent writes", func(t *testing.T) {
@@ -159,8 +147,51 @@ func TestSetAtomicWithRetries(t *testing.T) {
 		store := Store{}
 		err := store.SetAtomicWithRetries("key", nil)
 		assert.Error(t, err)
+
+		IsNil(t, &store, "key")
 	})
 
+	t.Run("old value not found", func(t *testing.T) {
+		store := Store{}
+		err := store.SetAtomicWithRetries("key", func(oldValue []byte) (any, error) { return []byte("new"), nil })
+		require.NoError(t, err)
+
+		var out []byte
+		err = store.Get("key", &out)
+		require.NoError(t, err)
+		assert.Equal(t, []byte("new"), out)
+	})
+
+	t.Run("old value not found", func(t *testing.T) {
+		store := Store{}
+		err := store.SetAtomicWithRetries("key", func(oldValue []byte) (any, error) { return nil, errors.New("some error") })
+		require.Error(t, err)
+
+		IsNil(t, &store, "key")
+	})
+
+	t.Run("two goroutines race", func(t *testing.T) {
+		store := Store{}
+		var wg sync.WaitGroup
+		const n = 10
+		for i := 0; i < n; i++ {
+			i := i
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				err := store.SetAtomicWithRetries("key", func(oldValue []byte) (any, error) { return fmt.Sprintf("k_%d", i), nil })
+				require.NoError(t, err)
+			}()
+		}
+
+		wg.Wait()
+
+		// It undefinded, which goroutine wins the final write. Just check that any value was written.
+		var out string
+		err := store.Get("key", &out)
+		require.NoError(t, err)
+		assert.True(t, strings.HasPrefix(out, "k_"))
+	})
 }
 
 func TestListKeys(t *testing.T) {
@@ -318,10 +349,7 @@ func TestListKeys(t *testing.T) {
 func TestGet(t *testing.T) {
 	t.Run("nil map", func(t *testing.T) {
 		store := Store{}
-		var o []byte
-		err := store.Get("key", &o)
-		assert.NoError(t, err)
-		assert.Nil(t, o)
+		IsNil(t, &store, "key")
 	})
 
 	t.Run("set empty byte slice", func(t *testing.T) {
@@ -332,10 +360,7 @@ func TestGet(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, ok)
 
-		var out []byte
-		err = store.Get("key", &out)
-		assert.NoError(t, err)
-		assert.Nil(t, out)
+		IsNil(t, &store, "key")
 	})
 
 	t.Run("set and get byte slice", func(t *testing.T) {
@@ -419,4 +444,11 @@ func TestDeleteAll(t *testing.T) {
 		assert.NoError(t, err)
 		assert.Empty(t, keys)
 	})
+}
+
+func IsNil(t *testing.T, store *Store, key string) {
+	var out []byte
+	err := store.Get(key, &out)
+	require.NoError(t, err)
+	assert.Nil(t, out)
 }

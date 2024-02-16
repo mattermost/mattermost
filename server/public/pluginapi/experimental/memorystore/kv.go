@@ -114,7 +114,7 @@ func (s *Store) Set(key string, value any, options ...pluginapi.KVSetOption) (bo
 			}
 		}
 
-		return true, nil // TODO: Double check what to return
+		return true, nil
 	}
 
 	oldElem := s.elems[key]
@@ -217,7 +217,6 @@ func (s *Store) ListKeys(page int, count int, options ...pluginapi.ListKeysOptio
 				keep = false
 				break
 			}
-
 		}
 
 		if keep {
