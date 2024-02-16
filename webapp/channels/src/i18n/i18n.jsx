@@ -50,7 +50,7 @@ const languages = {
     },
     es: {
         value: 'es',
-        name: 'Español',
+        name: 'Español (Beta)',
         order: 3,
         url: es,
     },
@@ -68,7 +68,7 @@ const languages = {
     },
     hu: {
         value: 'hu',
-        name: 'Magyar',
+        name: 'Magyar (Beta)',
         order: 6,
         url: hu,
     },
@@ -146,7 +146,7 @@ const languages = {
     },
     'zh-CN': {
         value: 'zh-CN',
-        name: '中文 (简体) (Alpha)',
+        name: '中文 (简体) (Beta)',
         order: 19,
         url: zhCN,
     },
