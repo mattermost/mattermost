@@ -494,7 +494,8 @@ func ArrayFromJSON(data io.Reader) []string {
 		return make([]string, 0)
 	}
 
-	return objmap
+	// Remove duplicate IDs, but don't sort.
+	return RemoveDuplicateStringsNonSort(objmap)
 }
 
 func ArrayFromInterface(data any) []string {
@@ -512,6 +513,11 @@ func ArrayFromInterface(data any) []string {
 	}
 
 	return stringArray
+}
+
+func StructFromJSON[V any](data io.Reader, obj *V) error {
+	err := json.NewDecoder(data).Decode(&obj)
+	return err
 }
 
 func StringInterfaceToJSON(objmap map[string]any) string {
@@ -794,4 +800,18 @@ func filterBlocklist(r rune) rune {
 
 func IsCloud() bool {
 	return os.Getenv("MM_CLOUD_INSTALLATION_ID") != ""
+}
+
+// RemoveDuplicateStringsNonSort does a removal of duplicate
+// strings using a map.
+func RemoveDuplicateStringsNonSort(in []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range in {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }

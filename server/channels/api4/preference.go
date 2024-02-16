@@ -103,7 +103,7 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
+	if jsonErr := model.StructFromJSON(r.Body, &preferences); jsonErr != nil {
 		c.SetInvalidParamWithErr("preferences", jsonErr)
 		return
 	} else if len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
@@ -154,7 +154,7 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
+	if jsonErr := model.StructFromJSON(r.Body, &preferences); jsonErr != nil {
 		c.SetInvalidParamWithErr("preferences", jsonErr)
 		return
 	} else if len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
