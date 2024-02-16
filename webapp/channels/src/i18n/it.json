@@ -2295,8 +2295,6 @@
   "discard_changes_modal.title": "Scartare le modifiche?",
   "edit_category_modal.helpText": "Puoi trascinare i canali in categorie per organizzare la tua barra laterale.",
   "edit_category_modal.placeholder": "Selezionare una categoria",
-  "edit_channel_header.editHeader": "Modifica il titolo del canale...",
-  "edit_channel_header.previewHeader": "Modifica del titolo",
   "edit_channel_header_modal.cancel": "Annulla",
   "edit_channel_header_modal.description": "Modifica il titolo che compare vicino al nome del canale nel titolo del canale.",
   "edit_channel_header_modal.error": "Il titolo di questo canale è troppo lungo, inseriscine uno più corto",
