@@ -2574,7 +2574,7 @@ func TestGetLinkMetadata(t *testing.T) {
 			*cfg.ServiceSettings.SiteURL = server.URL
 		})
 
-		requestURL := server.URL + "/pl/5rpoy4o3nbgwjm7gs4cm71h6ho"
+		requestURL := server.URL + "/team/pl/5rpoy4o3nbgwjm7gs4cm71h6ho"
 		timestamp := int64(1547510400000)
 
 		_, _, _, err := th.App.getLinkMetadata(th.Context, requestURL, timestamp, true, "")
@@ -2802,6 +2802,10 @@ func TestContainsPermalink(t *testing.T) {
 	defer th.TearDown()
 
 	const siteURLWithSubpath = "http://localhost:8065/foo"
+
+	th.App.UpdateConfig(func(cfg *model.Config) {
+		*cfg.ServiceSettings.SiteURL = siteURLWithSubpath
+	})
 
 	testCases := []struct {
 		Description string
