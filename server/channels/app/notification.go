@@ -126,7 +126,7 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 		// Iterate through all groups that were mentioned and insert group members into the list of mentions or potential mentions
 		for groupID := range mentions.GroupMentions {
 			group := groups[groupID]
-			anyUsersMentionedByGroup, err := a.insertGroupMentions(group, channel, profileMap, mentions)
+			anyUsersMentionedByGroup, err := a.insertGroupMentions(sender.Id, group, channel, profileMap, mentions)
 			if err != nil {
 				return nil, err
 			}
@@ -1248,7 +1248,7 @@ func (a *App) getMentionKeywordsInChannel(profiles map[string]*model.User, allow
 
 // insertGroupMentions adds group members in the channel to Mentions, adds group members not in the channel to OtherPotentialMentions
 // returns false if no group members present in the team that the channel belongs to
-func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *MentionResults) (bool, *model.AppError) {
+func (a *App) insertGroupMentions(senderID string, group *model.Group, channel *model.Channel, profileMap map[string]*model.User, mentions *MentionResults) (bool, *model.AppError) {
 	var err error
 	var groupMembers []*model.User
 	outOfChannelGroupMembers := []*model.User{}
@@ -1269,10 +1269,12 @@ func (a *App) insertGroupMentions(group *model.Group, channel *model.Channel, pr
 	}
 
 	for _, member := range groupMembers {
-		if _, ok := profileMap[member.Id]; ok {
-			mentions.Mentions[member.Id] = GroupMention
-		} else {
-			outOfChannelGroupMembers = append(outOfChannelGroupMembers, member)
+		if member.Id != senderID {
+			if _, ok := profileMap[member.Id]; ok {
+				mentions.Mentions[member.Id] = GroupMention
+			} else {
+				outOfChannelGroupMembers = append(outOfChannelGroupMembers, member)
+			}
 		}
 	}
 
@@ -1365,7 +1367,7 @@ type CRTNotifiers struct {
 func (c *CRTNotifiers) addFollowerToNotify(user *model.User, mentions *MentionResults, channelMemberNotificationProps model.StringMap, channel *model.Channel) {
 	_, userWasMentioned := mentions.Mentions[user.Id]
 	notifyDesktop, notifyPush, notifyEmail := shouldUserNotifyCRT(user, userWasMentioned)
-	notifyChannelDesktop, notifyChannelPush := shouldChannelMemberNotifyCRT(channelMemberNotificationProps, userWasMentioned)
+	notifyChannelDesktop, notifyChannelPush := shouldChannelMemberNotifyCRT(user.NotifyProps, channelMemberNotificationProps, userWasMentioned)
 
 	// respect the user global notify props when there are no channel specific ones (default)
 	// otherwise respect the channel member's notify props
@@ -1420,19 +1422,20 @@ func shouldUserNotifyCRT(user *model.User, isMentioned bool) (notifyDesktop, not
 }
 
 // channel specific settings check for desktop and push notifications
-func shouldChannelMemberNotifyCRT(notifyProps model.StringMap, isMentioned bool) (notifyDesktop, notifyPush bool) {
+func shouldChannelMemberNotifyCRT(userNotifyProps model.StringMap, channelMemberNotifyProps model.StringMap, isMentioned bool) (notifyDesktop, notifyPush bool) {
 	notifyDesktop = false
 	notifyPush = false
 
-	desktop := notifyProps[model.DesktopNotifyProp]
-	push := notifyProps[model.PushNotifyProp]
+	desktop := channelMemberNotifyProps[model.DesktopNotifyProp]
+	push := channelMemberNotifyProps[model.PushNotifyProp]
 
-	desktopThreads := notifyProps[model.DesktopThreadsNotifyProp]
-	pushThreads := notifyProps[model.PushThreadsNotifyProp]
+	desktopThreads := channelMemberNotifyProps[model.DesktopThreadsNotifyProp]
+	userDesktopThreads := userNotifyProps[model.DesktopThreadsNotifyProp]
+	pushThreads := channelMemberNotifyProps[model.PushThreadsNotifyProp]
 
 	// user should be notified via desktop notification in the case the notify prop is not set as no notify or default
 	// and either the user was mentioned or the CRT notify prop for desktop is set to all
-	if desktop != model.ChannelNotifyDefault && desktop != model.ChannelNotifyNone && (isMentioned || desktopThreads == model.ChannelNotifyAll || desktop == model.ChannelNotifyAll) {
+	if desktop != model.ChannelNotifyDefault && desktop != model.ChannelNotifyNone && (isMentioned || (desktopThreads == model.ChannelNotifyAll && userDesktopThreads != model.UserNotifyMention) || desktop == model.ChannelNotifyAll) {
 		notifyDesktop = true
 	}
 

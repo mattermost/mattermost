@@ -4,6 +4,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -1065,5 +1066,455 @@ func (s *MmctlE2ETestSuite) TestMigrateAuthCmd() {
 		updatedUser, appErr := s.th.App.GetUser(samlUser.Id)
 		s.Require().Nil(appErr)
 		s.Require().Equal(model.UserAuthServiceLdap, updatedUser.AuthService)
+	})
+}
+
+func (s *MmctlE2ETestSuite) cleanUpPreferences(userID string) {
+	s.T().Helper()
+
+	// Delete any existing preferences
+	preferences, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), userID)
+	s.NoError(err)
+
+	if len(preferences) == 0 {
+		return
+	}
+
+	_, err = s.th.SystemAdminClient.DeletePreferences(context.Background(), userID, preferences)
+	s.NoError(err)
+}
+
+func (s *MmctlE2ETestSuite) TestPreferenceListCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.cleanUpPreferences(s.th.BasicUser.Id)
+	s.cleanUpPreferences(s.th.BasicUser2.Id)
+
+	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	s.NoError(err)
+	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	s.NoError(err)
+	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	s.NoError(err)
+
+	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	s.NoError(err)
+
+	s.Run("list all preferences for single user", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", "", "")
+
+		err = preferencesListCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 3)
+		s.Require().Equal(preference1, printer.GetLines()[0])
+		s.Require().Equal(preference2, printer.GetLines()[1])
+		s.Require().Equal(preference3, printer.GetLines()[2])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("list filtered preferences for single user", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+
+		err = preferencesListCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(preference1, printer.GetLines()[0])
+		s.Require().Equal(preference2, printer.GetLines()[1])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("list all preferences for multiple users as admin", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", "", "")
+
+		err = preferencesListCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 4)
+		s.Require().Equal(preference1, printer.GetLines()[0])
+		s.Require().Equal(preference2, printer.GetLines()[1])
+		s.Require().Equal(preference3, printer.GetLines()[2])
+		s.Require().Equal(preference4, printer.GetLines()[3])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("list filtered preferences for multiple users as admin", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+
+		err = preferencesListCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 3)
+		s.Require().Equal(preference1, printer.GetLines()[0])
+		s.Require().Equal(preference2, printer.GetLines()[1])
+		s.Require().Equal(preference4, printer.GetLines()[2])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("list preferences for multiple users as non-admin", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+
+		err = preferencesListCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().Error(err)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestPreferenceGetCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.cleanUpPreferences(s.th.BasicUser.Id)
+	s.cleanUpPreferences(s.th.BasicUser2.Id)
+
+	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	s.NoError(err)
+	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	s.NoError(err)
+	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	s.NoError(err)
+
+	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	s.NoError(err)
+
+	s.Run("get preference for single user", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		cmd.Flags().StringP("name", "n", preference1.Name, "")
+
+		err = preferencesGetCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&preference1, printer.GetLines()[0])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("get preferences for multiple users as admin", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		cmd.Flags().StringP("name", "n", preference1.Name, "")
+
+		err = preferencesGetCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(&preference1, printer.GetLines()[0])
+		s.Require().Equal(&preference4, printer.GetLines()[1])
+		s.Require().Len(printer.GetErrorLines(), 0)
+	})
+
+	s.Run("get preferences for multiple users as non-admin", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		cmd.Flags().StringP("name", "n", preference1.Name, "")
+
+		err = preferencesGetCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().Error(err)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestPreferenceUpdateCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
+	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
+
+	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+
+	setup := func() {
+		s.T().Helper()
+
+		s.cleanUpPreferences(s.th.BasicUser.Id)
+		s.cleanUpPreferences(s.th.BasicUser2.Id)
+
+		_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+		s.NoError(err)
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+		s.NoError(err)
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+		s.NoError(err)
+
+		_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+		s.NoError(err)
+	}
+
+	s.Run("add new preference for single user", func() {
+		setup()
+		printer.Clean()
+
+		preferenceNew := model.Preference{UserId: s.th.BasicUser.Id, Category: "zzz_custom", Name: "new", Value: "value"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preferenceNew.Category, "")
+		cmd.Flags().StringP("name", "n", preferenceNew.Name, "")
+		cmd.Flags().StringP("value", "v", preferenceNew.Value, "")
+
+		err := preferencesUpdateCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser1, 4)
+		s.Require().Equal(preference1, actualPreferencesUser1[0])
+		s.Require().Equal(preference2, actualPreferencesUser1[1])
+		s.Require().Equal(preference3, actualPreferencesUser1[2])
+		s.Require().Equal(preferenceNew, actualPreferencesUser1[3])
+
+		// Second user unaffected
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser2, 1)
+		s.Require().Equal(preference4, actualPreferencesUser2[0])
+	})
+
+	s.Run("add new preference for multiple users as admin", func() {
+		setup()
+		printer.Clean()
+
+		preferenceNew := model.Preference{UserId: s.th.BasicUser.Id, Category: "zzz_custom", Name: "new", Value: "value"}
+		preferenceNew2 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "zzz_custom", Name: "new", Value: "value"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preferenceNew.Category, "")
+		cmd.Flags().StringP("name", "n", preferenceNew.Name, "")
+		cmd.Flags().StringP("value", "v", preferenceNew.Value, "")
+
+		err := preferencesUpdateCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser1, 4)
+		s.Require().Equal(preference1, actualPreferencesUser1[0])
+		s.Require().Equal(preference2, actualPreferencesUser1[1])
+		s.Require().Equal(preference3, actualPreferencesUser1[2])
+		s.Require().Equal(preferenceNew, actualPreferencesUser1[3])
+
+		// Second user unaffected
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser2, 2)
+		s.Require().Equal(preference4, actualPreferencesUser2[0])
+		s.Require().Equal(preferenceNew2, actualPreferencesUser2[1])
+	})
+
+	s.Run("add new preference for multiple users as non-admin", func() {
+		setup()
+		printer.Clean()
+
+		preference := model.Preference{Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference.Category, "")
+		cmd.Flags().StringP("name", "n", preference.Name, "")
+		cmd.Flags().StringP("value", "v", preference.Value, "")
+
+		err := preferencesUpdateCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().Error(err)
+	})
+
+	s.Run("update existing preference for single user", func() {
+		setup()
+		printer.Clean()
+
+		preferenceUpdated := model.Preference{UserId: s.th.BasicUser.Id, Category: preference1.Category, Name: preference1.Name, Value: "new_value"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
+		cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
+		cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
+
+		err := preferencesUpdateCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser1, 3)
+		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
+		s.Require().Equal(preference2, actualPreferencesUser1[1])
+		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		// Second user unaffected
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser2, 1)
+		s.Require().Equal(preference4, actualPreferencesUser2[0])
+	})
+
+	s.Run("update existing preference for multiple users as admin", func() {
+		setup()
+		printer.Clean()
+
+		preferenceUpdated := model.Preference{UserId: s.th.BasicUser.Id, Category: preference1.Category, Name: preference1.Name, Value: "new_value"}
+		preferenceUpdated2 := model.Preference{UserId: s.th.BasicUser2.Id, Category: preference1.Category, Name: preference1.Name, Value: "new_value"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
+		cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
+		cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
+
+		err := preferencesUpdateCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser1, 3)
+		s.Require().Equal(preferenceUpdated, actualPreferencesUser1[0])
+		s.Require().Equal(preference2, actualPreferencesUser1[1])
+		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser2, 1)
+		s.Require().Equal(preferenceUpdated2, actualPreferencesUser2[0])
+	})
+
+	s.Run("update existing preference for multiple users as non-admin", func() {
+		setup()
+		printer.Clean()
+
+		preferenceUpdated := model.Preference{Category: preference1.Category, Name: preference1.Name, Value: "new_value"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preferenceUpdated.Category, "")
+		cmd.Flags().StringP("name", "n", preferenceUpdated.Name, "")
+		cmd.Flags().StringP("value", "v", preferenceUpdated.Value, "")
+
+		err := preferencesUpdateCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().Error(err)
+	})
+}
+
+func (s *MmctlE2ETestSuite) TestPreferenceDeleteCmd() {
+	s.SetupTestHelper().InitBasic()
+
+	s.cleanUpPreferences(s.th.BasicUser.Id)
+	s.cleanUpPreferences(s.th.BasicUser2.Id)
+
+	preference1 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+	_, err := s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference1})
+	s.NoError(err)
+	preference2 := model.Preference{UserId: s.th.BasicUser.Id, Category: "display_settings", Name: "colorize_usernames", Value: "threads_view"}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference2})
+	s.NoError(err)
+	preference3 := model.Preference{UserId: s.th.BasicUser.Id, Category: "drafts", Name: "drafts_tour_tip_showed", Value: `{"drafts_tour_tip_showed":true}`}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser.Id, model.Preferences{preference3})
+	s.NoError(err)
+
+	preference4 := model.Preference{UserId: s.th.BasicUser2.Id, Category: "display_settings", Name: "collapsed_reply_threads", Value: "threads_view"}
+	_, err = s.th.SystemAdminClient.UpdatePreferences(context.Background(), s.th.BasicUser2.Id, model.Preferences{preference4})
+	s.NoError(err)
+
+	s.Run("delete non-existing preference for single user", func() {
+		printer.Clean()
+
+		preference := model.Preference{Category: "does", Name: "not"}
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference.Category, "")
+		cmd.Flags().StringP("name", "n", preference.Name, "")
+
+		err := preferencesDeleteCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser1, 3)
+		s.Require().Equal(preference1, actualPreferencesUser1[0])
+		s.Require().Equal(preference2, actualPreferencesUser1[1])
+		s.Require().Equal(preference3, actualPreferencesUser1[2])
+
+		// Second user unaffected
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser2, 1)
+		s.Require().Equal(preference4, actualPreferencesUser2[0])
+	})
+
+	s.Run("delete existing preference for single user", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		cmd.Flags().StringP("name", "n", preference1.Name, "")
+
+		err := preferencesDeleteCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser1, 2)
+		s.Require().Equal(preference2, actualPreferencesUser1[0])
+		s.Require().Equal(preference3, actualPreferencesUser1[1])
+
+		// Second user unaffected
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser2, 1)
+		s.Require().Equal(preference4, actualPreferencesUser2[0])
+	})
+
+	s.Run("delete existing preferences for multiple users as admin", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		cmd.Flags().StringP("name", "n", preference1.Name, "")
+
+		err := preferencesDeleteCmdF(s.th.SystemAdminClient, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+
+		actualPreferencesUser1, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser1, 2)
+		s.Require().Equal(preference2, actualPreferencesUser1[0])
+		s.Require().Equal(preference3, actualPreferencesUser1[1])
+
+		// Second user unaffected
+		actualPreferencesUser2, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), s.th.BasicUser2.Id)
+		s.NoError(err)
+		s.Require().Len(actualPreferencesUser2, 0)
+	})
+
+	s.Run("delete existing preferences for multiple users as non-admin", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		cmd.Flags().StringP("category", "c", preference1.Category, "")
+		cmd.Flags().StringP("name", "n", preference1.Name, "")
+
+		err := preferencesDeleteCmdF(s.th.Client, cmd, []string{s.th.BasicUser.Email, s.th.BasicUser2.Email})
+		s.Require().Error(err)
 	})
 }

@@ -9086,10 +9086,6 @@
     "translation": "Post_id geçersiz"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Gövde verileri işlenirken sorun çıktı."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "İstek gövdesi geçersiz."
   },

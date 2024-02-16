@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {ClusterInfo, AnalyticsRow} from '@mattermost/types/admin';
+import type {ClusterInfo, AnalyticsRow, AnalyticsState, AdminState} from '@mattermost/types/admin';
 import type {Audit} from '@mattermost/types/audits';
 import type {Compliance} from '@mattermost/types/compliance';
 import type {AdminConfig, EnvironmentConfig} from '@mattermost/types/config';
@@ -12,7 +12,6 @@ import type {DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
 import type {MixedUnlinkedGroupRedux} from '@mattermost/types/groups';
 import type {PluginRedux, PluginStatusRedux} from '@mattermost/types/plugins';
 import type {SamlCertificateStatus, SamlMetadataResponse} from '@mattermost/types/saml';
-import type {Team} from '@mattermost/types/teams';
 import type {UserAccessToken, UserProfile} from '@mattermost/types/users';
 import type {RelationOneToOne, IDMappedObjects} from '@mattermost/types/utilities';
 
@@ -161,8 +160,8 @@ function samlCertStatus(state: Partial<SamlCertificateStatus> = {}, action: AnyA
     }
 }
 
-export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string): Record<string, number | AnalyticsRow[]> {
-    const stats: any = {};
+export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string): AnalyticsState {
+    const stats: AnalyticsState = {};
     const clonedData = [...data];
 
     if (name === 'post_counts_day') {
@@ -250,7 +249,7 @@ export function convertAnalyticsRowsToStats(data: AnalyticsRow[], name: string):
     return stats;
 }
 
-function analytics(state: Record<string, number | AnalyticsRow[]> = {}, action: AnyAction) {
+function analytics(state: AdminState['analytics'] = {}, action: AnyAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_SYSTEM_ANALYTICS: {
         const stats = convertAnalyticsRowsToStats(action.data, action.name);
@@ -264,7 +263,7 @@ function analytics(state: Record<string, number | AnalyticsRow[]> = {}, action: 
     }
 }
 
-function teamAnalytics(state: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>> = {}, action: AnyAction) {
+function teamAnalytics(state: AdminState['teamAnalytics'] = {}, action: AnyAction) {
     switch (action.type) {
     case AdminTypes.RECEIVED_TEAM_ANALYTICS: {
         const nextState = {...state};
@@ -287,15 +286,6 @@ function userAccessTokens(state: Record<string, UserAccessToken> = {}, action: A
         return {...state, [action.data.id]: action.data};
     }
     case AdminTypes.RECEIVED_USER_ACCESS_TOKENS_FOR_USER: {
-        const nextState: any = {};
-
-        for (const uat of action.data) {
-            nextState[uat.id] = uat;
-        }
-
-        return {...state, ...nextState};
-    }
-    case AdminTypes.RECEIVED_USER_ACCESS_TOKENS: {
         const nextState: any = {};
 
         for (const uat of action.data) {
@@ -340,16 +330,6 @@ function userAccessTokensByUser(state: RelationOneToOne<UserProfile, Record<stri
         }
 
         return {...state, [action.userId]: nextUserState};
-    }
-    case AdminTypes.RECEIVED_USER_ACCESS_TOKENS: { // UserAccessToken[]
-        const nextUserState: any = {};
-
-        for (const uat of action.data) {
-            nextUserState[uat.user_id] = nextUserState[uat.user_id] || {};
-            nextUserState[uat.user_id][uat.id] = uat;
-        }
-
-        return {...state, ...nextUserState};
     }
     case UserTypes.REVOKED_USER_ACCESS_TOKEN: {
         const userIds = Object.keys(state);

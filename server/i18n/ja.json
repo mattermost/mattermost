@@ -9066,10 +9066,6 @@
     "translation": "{{ .SenderName }} があなたを {{ .TeamDisplayName }} チームの {{ .ChannelName }} チャンネルに招待しました"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Bodyデータを解析中にエラーが発生しました。"
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "リクエストボディが不正です。"
   },
@@ -10088,10 +10084,6 @@
   {
     "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
     "translation": "不正な入力パラメータです。"
-  },
-  {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "この機能はフィーチャーフラグによって制限されています。"
   },
   {
     "id": "api.getUsersForReporting.invalid_active_filter",

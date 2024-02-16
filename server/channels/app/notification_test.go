@@ -2528,6 +2528,12 @@ func TestInsertGroupMentions(t *testing.T) {
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
+	senderGroupChannelMember := th.CreateUser()
+	th.LinkUserToTeam(senderGroupChannelMember, team)
+	th.App.AddUserToChannel(th.Context, senderGroupChannelMember, channel, false)
+	_, err = th.App.UpsertGroupMember(group.Id, senderGroupChannelMember.Id)
+	require.Nil(t, err)
+
 	nonGroupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(nonGroupChannelMember, team)
 	th.App.AddUserToChannel(th.Context, nonGroupChannelMember, channel, false)
@@ -2543,11 +2549,11 @@ func TestInsertGroupMentions(t *testing.T) {
 	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
 	require.Nil(t, err)
 
-	profileMap := map[string]*model.User{groupChannelMember.Id: groupChannelMember, nonGroupChannelMember.Id: nonGroupChannelMember}
+	profileMap := map[string]*model.User{groupChannelMember.Id: groupChannelMember, senderGroupChannelMember.Id: senderGroupChannelMember, nonGroupChannelMember.Id: nonGroupChannelMember}
 
-	t.Run("should add expected mentions for users part of the mentioned group", func(t *testing.T) {
+	t.Run("should add expected mentions for users part of the mentioned group sender in group", func(t *testing.T) {
 		mentions := &MentionResults{}
-		usersMentioned, err := th.App.insertGroupMentions(group, channel, profileMap, mentions)
+		usersMentioned, err := th.App.insertGroupMentions(senderGroupChannelMember.Id, group, channel, profileMap, mentions)
 		require.Nil(t, err)
 		require.Equal(t, usersMentioned, true)
 
@@ -2561,9 +2567,27 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Equal(t, mentions.OtherPotentialMentions[0], nonChannelGroupMember.Username)
 	})
 
+	t.Run("should add expected mentions for users part of the mentioned group sender not in group", func(t *testing.T) {
+		mentions := &MentionResults{}
+		usersMentioned, err := th.App.insertGroupMentions(nonGroupChannelMember.Id, group, channel, profileMap, mentions)
+		require.Nil(t, err)
+		require.Equal(t, usersMentioned, true)
+
+		// Ensure group member that is also a channel member is added to the mentions list.
+		require.Equal(t, 2, len(mentions.Mentions))
+		_, found := mentions.Mentions[groupChannelMember.Id]
+		require.Equal(t, found, true)
+		_, found = mentions.Mentions[senderGroupChannelMember.Id]
+		require.Equal(t, found, true)
+
+		// Ensure group member that is not a channel member is added to the other potential mentions list.
+		require.Equal(t, len(mentions.OtherPotentialMentions), 1)
+		require.Equal(t, mentions.OtherPotentialMentions[0], nonChannelGroupMember.Username)
+	})
+
 	t.Run("should add no expected or potential mentions if the group has no users ", func(t *testing.T) {
 		mentions := &MentionResults{}
-		usersMentioned, err := th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
+		usersMentioned, err := th.App.insertGroupMentions(senderGroupChannelMember.Id, groupWithNoMembers, channel, profileMap, mentions)
 		require.Nil(t, err)
 		require.Equal(t, usersMentioned, false)
 
@@ -2574,8 +2598,8 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	t.Run("should keep existing mentions", func(t *testing.T) {
 		mentions := &MentionResults{}
-		th.App.insertGroupMentions(group, channel, profileMap, mentions)
-		th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
+		th.App.insertGroupMentions(senderGroupChannelMember.Id, group, channel, profileMap, mentions)
+		th.App.insertGroupMentions(senderGroupChannelMember.Id, groupWithNoMembers, channel, profileMap, mentions)
 
 		// Ensure mentions from group are kept after running with groupWithNoMembers
 		require.Equal(t, len(mentions.Mentions), 1)
@@ -2587,13 +2611,13 @@ func TestInsertGroupMentions(t *testing.T) {
 		emptyProfileMap := make(map[string]*model.User)
 
 		groupChannel := &model.Channel{Type: model.ChannelTypeGroup}
-		usersMentioned, _ := th.App.insertGroupMentions(group, groupChannel, emptyProfileMap, mentions)
+		usersMentioned, _ := th.App.insertGroupMentions(senderGroupChannelMember.Id, group, groupChannel, emptyProfileMap, mentions)
 		// Ensure group channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
 		require.Equal(t, len(mentions.Mentions), 0)
 
 		directChannel := &model.Channel{Type: model.ChannelTypeDirect}
-		usersMentioned, _ = th.App.insertGroupMentions(group, directChannel, emptyProfileMap, mentions)
+		usersMentioned, _ = th.App.insertGroupMentions(senderGroupChannelMember.Id, group, directChannel, emptyProfileMap, mentions)
 		// Ensure direct channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
 		require.Equal(t, len(mentions.Mentions), 0)
@@ -2604,7 +2628,7 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Nil(t, err)
 
 		mentions := &MentionResults{}
-		th.App.insertGroupMentions(group, groupChannel, profileMap, mentions)
+		th.App.insertGroupMentions(senderGroupChannelMember.Id, group, groupChannel, profileMap, mentions)
 
 		require.Equal(t, len(mentions.Mentions), 1)
 		_, found := mentions.Mentions[groupChannelMember.Id]

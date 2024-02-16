@@ -82,7 +82,7 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
 		return nil
 	}
-	publicKeys := ch.cfgSvc.Config().PluginSettings.SignaturePublicKeyFiles
+	publicKeys := ch.srv.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
 		pkBytes, appErr := ch.srv.getPublicKey(pk)
 		if appErr != nil {
