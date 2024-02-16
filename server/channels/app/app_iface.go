@@ -1091,7 +1091,7 @@ type AppIface interface {
 	SessionHasPermissionToAny(session model.Session, permissions []*model.Permission) bool
 	SessionHasPermissionToCategory(c request.CTX, session model.Session, userID, teamID, categoryId string) bool
 	SessionHasPermissionToChannel(c request.CTX, session model.Session, channelID string, permission *model.Permission) bool
-	SessionHasPermissionToChannelByPost(c request.CTX, session model.Session, postID string, permission *model.Permission) bool
+	SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool
 	SessionHasPermissionToCreateJob(session model.Session, job *model.Job) (bool, *model.Permission)
 	SessionHasPermissionToGroup(session model.Session, groupID string, permission *model.Permission) bool
 	SessionHasPermissionToReadJob(session model.Session, jobType string) (bool, *model.Permission)
