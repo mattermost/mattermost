@@ -51,8 +51,6 @@ type FeatureFlags struct {
 
 	CloudAnnualRenewals bool
 
-	OutgoingOAuthConnections bool
-
 	ChannelBookmarks bool
 }
 
@@ -73,7 +71,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
-	f.OutgoingOAuthConnections = false
 	f.ChannelBookmarks = false
 }
 

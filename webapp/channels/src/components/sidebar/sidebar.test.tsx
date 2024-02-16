@@ -141,7 +141,7 @@ describe('components/sidebar', () => {
                         channel2,
                     },
                     channelsInTeam: {
-                        [currentTeamId]: [channel1.id, channel2.id],
+                        [currentTeamId]: new Set([channel1.id, channel2.id]),
                     },
                     messageCounts: {
                         channel1: {total: 10},
@@ -165,7 +165,7 @@ describe('components/sidebar', () => {
         };
 
         test('should not render unreads category when disabled by user preference', () => {
-            const testState = mergeObjects(baseState, {
+            const testState = {
                 entities: {
                     channels: {
                         messageCounts: {
@@ -178,7 +178,7 @@ describe('components/sidebar', () => {
                         ]),
                     },
                 },
-            });
+            };
 
             renderWithContext(
                 <Sidebar {...baseProps}/>,

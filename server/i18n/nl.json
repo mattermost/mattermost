@@ -10190,10 +10190,6 @@
     "translation": "Ongeldige invoerparameters."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "Deze functie wordt beperkt door een feature flag."
-  },
-  {
     "id": "api.roles.get_multiple_by_name_too_many.request_error",
     "translation": "Kan niet zoveel rollen op naam krijgen. Alleen {{.MaxNames}} rollen kunnen in één keer worden opgevraagd."
   },
@@ -10372,5 +10368,9 @@
   {
     "id": "app.report.send_report_to_user.missing_user_id",
     "translation": "Geen gebruikersid om het rapport naar toe te sturen"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Ongeldige update teamlid: Een gast kan geen teamlid of teambeheerder worden. Maak van de gast eerst een gebruiker."
   }
 ]

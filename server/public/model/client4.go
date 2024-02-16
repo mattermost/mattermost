@@ -485,7 +485,7 @@ func (c *Client4) outgoingOAuthConnectionsRoute() string {
 }
 
 func (c *Client4) outgoingOAuthConnectionRoute(id string) string {
-	return fmt.Sprintf("/oauth/outgoing_connections/%s", id)
+	return fmt.Sprintf("%s/%s", c.outgoingOAuthConnectionsRoute(), id)
 }
 
 func (c *Client4) jobsRoute() string {
@@ -6031,8 +6031,8 @@ func (c *Client4) GetOAuthAccessToken(ctx context.Context, data url.Values) (*Ac
 // OutgoingOAuthConnection section
 
 // GetOutgoingOAuthConnections retrieves the outgoing OAuth connections.
-func (c *Client4) GetOutgoingOAuthConnections(ctx context.Context, fromID string, limit int) ([]*OutgoingOAuthConnection, *Response, error) {
-	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionsRoute(), "")
+func (c *Client4) GetOutgoingOAuthConnections(ctx context.Context, filters OutgoingOAuthConnectionGetConnectionsFilter) ([]*OutgoingOAuthConnection, *Response, error) {
+	r, err := c.DoAPIGet(ctx, c.outgoingOAuthConnectionsRoute()+"?"+filters.ToURLValues().Encode(), "")
 	if err != nil {
 		return nil, BuildResponse(r), err
 	}
@@ -6056,6 +6056,53 @@ func (c *Client4) GetOutgoingOAuthConnection(ctx context.Context, id string) (*O
 		return nil, nil, NewAppError("GetOutgoingOAuthConnection", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 	return connection, BuildResponse(r), nil
+}
+
+// DeleteOutgoingOAuthConnection deletes the outgoing OAuth connection with the given ID.
+func (c *Client4) DeleteOutgoingOAuthConnection(ctx context.Context, id string) (*Response, error) {
+	r, err := c.DoAPIDelete(ctx, c.outgoingOAuthConnectionRoute(id))
+	if err != nil {
+		return BuildResponse(r), err
+	}
+	defer closeBody(r)
+	return BuildResponse(r), nil
+}
+
+// UpdateOutgoingOAuthConnection updates the outgoing OAuth connection with the given ID.
+func (c *Client4) UpdateOutgoingOAuthConnection(ctx context.Context, connection *OutgoingOAuthConnection) (*OutgoingOAuthConnection, *Response, error) {
+	buf, err := json.Marshal(connection)
+	if err != nil {
+		return nil, nil, NewAppError("UpdateOutgoingOAuthConnection", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPutBytes(ctx, c.outgoingOAuthConnectionRoute(connection.Id), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var resultConnection OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&resultConnection); err != nil {
+		return nil, nil, NewAppError("UpdateOutgoingOAuthConnection", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &resultConnection, BuildResponse(r), nil
+}
+
+// CreateOutgoingOAuthConnection creates a new outgoing OAuth connection.
+func (c *Client4) CreateOutgoingOAuthConnection(ctx context.Context, connection *OutgoingOAuthConnection) (*OutgoingOAuthConnection, *Response, error) {
+	buf, err := json.Marshal(connection)
+	if err != nil {
+		return nil, nil, NewAppError("CreateOutgoingOAuthConnection", "api.marshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	r, err := c.DoAPIPostBytes(ctx, c.outgoingOAuthConnectionsRoute(), buf)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+
+	var resultConnection OutgoingOAuthConnection
+	if err := json.NewDecoder(r.Body).Decode(&resultConnection); err != nil {
+		return nil, nil, NewAppError("CreateOutgoingOAuthConnection", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return &resultConnection, BuildResponse(r), nil
 }
 
 // Elasticsearch Section

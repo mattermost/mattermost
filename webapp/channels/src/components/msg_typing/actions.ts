@@ -5,6 +5,7 @@ import type {GlobalState} from '@mattermost/types/store';
 
 import {getMissingProfilesByIds, getStatusesByIds} from 'mattermost-redux/actions/users';
 import {General, Preferences, WebsocketEvents} from 'mattermost-redux/constants';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selectors/entities/general';
 import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getStatusForUserId} from 'mattermost-redux/selectors/entities/users';
@@ -49,6 +50,7 @@ function fillInMissingInfo(userId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
         if (userId !== currentUserId) {
             const result = await dispatch(getMissingProfilesByIds([userId]));
@@ -59,7 +61,7 @@ function fillInMissingInfo(userId: string): ActionFuncAsync {
         }
 
         const status = getStatusForUserId(state, userId);
-        if (status !== General.ONLINE) {
+        if (status !== General.ONLINE && enabledUserStatuses) {
             dispatch(getStatusesByIds([userId]));
         }
 
