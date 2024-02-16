@@ -2828,6 +2828,8 @@
   "announcement_bar.error.trial_license_expiring_last_day.short": "This is the last day of your free trial.",
   "announcement_bar.error.warn_metric_status.link": "Learn more",
   "announcement_bar.notification.email_verified": "Email verified",
+  "announcement_bar.notification_permission.body": "{siteName} requires permission to show desktop notifications.",
+  "announcement_bar.notification_permission.request": "Request permission",
   "announcement_bar.number_active_users_warn_metric_status.text": "You now have over {limit} users. We strongly recommend using advanced features for large-scale servers.",
   "announcement_bar.number_of_posts_warn_metric_status.text": "You now have over {limit} posts. We strongly advise using advanced features to avoid degraded performance.",
   "announcement_bar.warn_metric_status_ack.text": "Thank you for contacting Mattermost. We will follow up with you soon.",

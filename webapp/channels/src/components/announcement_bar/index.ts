@@ -44,6 +44,7 @@ function mapStateToProps(state: GlobalState) {
         isCloud,
         subscription,
         userIsAdmin,
+        showNotificationBar: state.views.announcementBar.showNotificationBar,
     };
 }
 

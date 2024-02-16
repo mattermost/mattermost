@@ -1,12 +1,14 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {DispatchFunc} from 'mattermost-redux/types/actions';
+
+import {requestNotificationPermission} from 'actions/notification_actions';
+
 import icon50 from 'images/icon50x50.png';
 import iconWS from 'images/icon_WS.png';
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
-
-let lastNotification;
 
 // showNotification displays a platform notification with the configured parameters.
 //
@@ -24,7 +26,7 @@ export interface ShowNotificationParams {
     onClick?: (this: Notification, e: Event) => any | null;
 }
 
-export async function showNotification(
+export function showNotification(
     {
         title,
         body,
@@ -33,55 +35,61 @@ export async function showNotification(
         onClick,
     }: ShowNotificationParams,
 ) {
-    let icon = icon50;
-    if (UserAgent.isEdge()) {
-        icon = iconWS;
-    }
+    return async (dispatch: DispatchFunc) => {
+        let icon = icon50;
+        if (UserAgent.isEdge()) {
+            icon = iconWS;
+        }
 
-    if (!('Notification' in window)) {
-        throw new Error('Notification not supported');
-    }
+        let permission = Notification.permission;
+        console.log('NOTIFCIATION', 'initial permission', permission);
+        if (Notification.permission === 'default' && window.isActive) {
+            console.log('NOTIFCIATION', 'prompting for permission');
+            permission = await Notification.requestPermission();
+            console.log('NOTIFCIATION', 'request returned', permission);
+        }
 
-    if (typeof Notification.requestPermission !== 'function') {
-        throw new Error('Notification.requestPermission not supported');
-    }
+        if (permission === 'denied') {
+            // User didn't allow notifications
+            console.log('NOTIFCIATION', 'permissions denied');
+            return () => {};
+        } else if (permission === 'default') {
+            console.log('NOTIFCIATION', 'showing notification bar');
 
-    if (Notification.permission === 'default') {
-        const permission = await Notification.requestPermission();
+            // Firefox and Edge doesn't let us prompt to allow notifications except in response to user interaction,
+            // so ask for permission the next time they click into the app
+            dispatch(requestNotificationPermission());
 
-        if (permission !== 'granted') {
-            // User has denied notification for the site
             return () => {};
         }
-    } else if (Notification.permission === 'denied') {
-        // User didn't allow notifications
-        return () => {};
-    }
 
-    const notification = new Notification(title, {
-        body,
-        tag: body,
-        icon,
-        requireInteraction,
-        silent,
-    });
+        console.log('NOTIFCIATION', 'sending notification');
 
-    if (onClick) {
-        notification.onclick = onClick;
-    }
+        const notification = new Notification(title, {
+            body,
+            tag: body,
+            icon,
+            requireInteraction,
+            silent,
+        });
 
-    notification.onerror = () => {
-        throw new Error('Notification failed to show.');
-    };
+        if (onClick) {
+            notification.onclick = onClick;
+        }
 
-    // Mac desktop app notification dismissal is handled by the OS
-    if (!requireInteraction && !UserAgent.isMacApp()) {
-        setTimeout(() => {
+        notification.onerror = () => {
+            throw new Error('Notification failed to show.');
+        };
+
+        // Mac desktop app notification dismissal is handled by the OS
+        if (!requireInteraction && !UserAgent.isMacApp()) {
+            setTimeout(() => {
+                notification.close();
+            }, Constants.DEFAULT_NOTIFICATION_DURATION);
+        }
+
+        return () => {
             notification.close();
-        }, Constants.DEFAULT_NOTIFICATION_DURATION);
-    }
-
-    return () => {
-        notification.close();
+        };
     };
 }

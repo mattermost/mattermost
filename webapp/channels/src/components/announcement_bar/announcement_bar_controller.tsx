@@ -14,6 +14,7 @@ import CloudTrialAnnouncementBar from './cloud_trial_announcement_bar';
 import CloudTrialEndAnnouncementBar from './cloud_trial_ended_announcement_bar';
 import ConfigurationAnnouncementBar from './configuration_bar';
 import AnnouncementBar from './default_announcement_bar';
+import NotificationPermissionBar from './notification_permission_bar';
 import OverageUsersBanner from './overage_users_banner';
 import PaymentAnnouncementBar from './payment_announcement_bar';
 import AutoStartTrialModal from './show_start_trial_modal/show_start_trial_modal';
@@ -31,6 +32,7 @@ type Props = {
         error: any;
     };
     warnMetricsStatus?: Record<string, WarnMetricStatus>;
+    showNotificationBar: boolean;
     actions: {
         dismissError: (index: number) => void;
         getCloudSubscription: () => void;
@@ -98,6 +100,11 @@ class AnnouncementBarController extends React.PureComponent<Props> {
             );
         }
 
+        let notificationBar = null;
+        if (this.props.showNotificationBar) {
+            notificationBar = <NotificationPermissionBar/>;
+        }
+
         return (
             <>
                 {adminConfiguredAnnouncementBar}
@@ -117,6 +124,7 @@ class AnnouncementBarController extends React.PureComponent<Props> {
                 {this.props.license?.Cloud !== 'true' && <OverageUsersBanner/>}
                 {autoStartTrialModal}
                 <ShowThreeDaysLeftTrialModal/>
+                {notificationBar}
                 <VersionBar/>
                 <ConfigurationAnnouncementBar
                     config={this.props.config}

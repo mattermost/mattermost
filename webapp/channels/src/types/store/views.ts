@@ -52,6 +52,7 @@ export type ViewsState = {
         announcementBarState: {
             announcementBarCount: number;
         };
+        showNotificationBar: boolean;
     };
 
     browser: {

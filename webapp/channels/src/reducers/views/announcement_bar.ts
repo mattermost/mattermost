@@ -31,6 +31,21 @@ function announcementBarState(state = {announcementBarCount: 0}, action: AnyActi
     }
 }
 
+function showNotificationBar(state = false, action: GenericAction) {
+    switch (action.type) {
+    case ActionTypes.NOTIFICATION_PERMISSION_REQUESTED:
+        return true;
+    case ActionTypes.NOTIFICATION_PERMISSION_RECEIVED:
+        return false;
+
+    case UserTypes.LOGOUT_SUCCESS:
+        return false;
+    default:
+        return state;
+    }
+}
+
 export default combineReducers({
     announcementBarState,
+    showNotificationBar,
 });

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useEffect, useMemo} from 'react';
-import {useIntl} from 'react-intl';
+import {defineMessage} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
@@ -29,24 +29,23 @@ export const useExpandOverageUsersCheck = ({
     banner,
     canSelfHostedExpand,
 }: UseExpandOverageUsersCheckArgs) => {
-    const {formatMessage} = useIntl();
     const dispatch = useDispatch();
     const {getRequestState, is_expandable: isExpandable}: LicenseSelfServeStatusReducer = useSelector((state: GlobalState) => state.entities.cloud.subscriptionStats || {is_expandable: false, getRequestState: 'IDLE'});
     const expandableLink = useSelector(getExpandSeatsLink);
 
     const cta = useMemo(() => {
         if (isExpandable && !canSelfHostedExpand) {
-            return formatMessage({
+            return defineMessage({
                 id: 'licensingPage.overageUsersBanner.ctaExpandSeats',
                 defaultMessage: 'Purchase additional seats',
             });
         } else if (isExpandable && canSelfHostedExpand) {
-            return formatMessage({
+            return defineMessage({
                 id: 'licensingPage.overageUsersBanner.ctaUpdateSeats',
                 defaultMessage: 'Update seat count',
             });
         }
-        return formatMessage({
+        return defineMessage({
             id: 'licensingPage.overageUsersBanner.cta',
             defaultMessage: 'Contact Sales',
         });

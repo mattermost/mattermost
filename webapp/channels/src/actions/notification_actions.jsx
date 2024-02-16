@@ -318,17 +318,40 @@ export const notifyMe = (title, body, channel, teamId, silent, soundName, url) =
     if (isDesktopApp()) {
         DesktopApp.dispatchNotification(title, body, channel.id, teamId, silent, soundName, url);
     } else {
-        showNotification({
-            title,
-            body,
-            requireInteraction: false,
-            silent,
-            onClick: () => {
-                window.focus();
-                getHistory().push(url);
-            },
-        }).catch((error) => {
+        try {
+            dispatch(showNotification({
+                title,
+                body,
+                requireInteraction: false,
+                silent,
+                onClick: () => {
+                    window.focus();
+                    getHistory().push(url);
+                },
+            }));
+        } catch (error) {
             dispatch(logError(error));
-        });
+        }
     }
 };
+
+export function requestNotificationPermission() {
+    return {
+        type: Constants.ActionTypes.NOTIFICATION_PERMISSION_REQUESTED,
+    };
+}
+
+export function notificationPermissionRequested() {
+    return async (dispatch) => {
+        const permission = await Notification.requestPermission();
+
+        dispatch({
+            type: Constants.ActionTypes.NOTIFICATION_PERMISSION_RECEIVED,
+            permission,
+        });
+
+        return {
+            data: permission === 'granted',
+        };
+    };
+}
