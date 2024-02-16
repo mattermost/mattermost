@@ -13,7 +13,6 @@ import type {GlobalState} from 'types/store';
 
 type Props = {
     combinedId: string;
-    shouldHighlight?: boolean;
     shouldShowDotMenu?: boolean;
 }
 
@@ -27,7 +26,6 @@ function makeMapStateToProps() {
         return {
             post,
             postId: ownProps.combinedId,
-            shouldHighlight: ownProps.shouldHighlight,
             shouldShowDotMenu: shouldShowDotMenu(state, post, channel),
         };
     };

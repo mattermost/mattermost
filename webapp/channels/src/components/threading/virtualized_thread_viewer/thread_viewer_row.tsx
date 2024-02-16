@@ -79,7 +79,6 @@ function ThreadViewerRow({
                 combinedId={listId}
                 previousPostId={previousPostId}
                 isLastPost={isLastPost}
-                shouldHighlight={false}
                 togglePostMenu={noop}
             />
         );
