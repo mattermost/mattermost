@@ -1139,3 +1139,33 @@ func TestRemoveDuplicateStrings(t *testing.T) {
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
 }
+
+func TestArrayFromJson(t *testing.T) {
+	t.Run("base case", func(t *testing.T) {
+		expectedArray := []string{"foo", "bar", "baz"}
+		jsonData := ArrayToJSON(expectedArray)
+		convertedArray := ArrayFromJSON(strings.NewReader(jsonData))
+		require.Equal(t, expectedArray, convertedArray)
+	})
+
+	t.Run("array with duplicate data should be deduplicated", func(t *testing.T) {
+		originalArray := []string{"foo", "bar", "bar", "baz", "baz", "foo", "bar"}
+		jsonData := ArrayToJSON(originalArray)
+		convertedArray := ArrayFromJSON(strings.NewReader(jsonData))
+		require.Equal(t, []string{"foo", "bar", "baz"}, convertedArray)
+	})
+
+	t.Run("empty array", func(t *testing.T) {
+		expectedArray := []string{}
+		jsonData := ArrayToJSON(expectedArray)
+		convertedArray := ArrayFromJSON(strings.NewReader(jsonData))
+		require.Equal(t, expectedArray, convertedArray)
+	})
+
+	t.Run("duplicate data with empty strings", func(t *testing.T) {
+		expectedArray := []string{"", "", "", ""}
+		jsonData := ArrayToJSON(expectedArray)
+		convertedArray := ArrayFromJSON(strings.NewReader(jsonData))
+		require.Equal(t, []string{""}, convertedArray)
+	})
+}
