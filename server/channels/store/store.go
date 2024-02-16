@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
 type StoreResult[T any] struct {
@@ -74,7 +73,7 @@ type Store interface {
 	GetAppliedMigrations() ([]model.AppliedMigration, error)
 	GetDbVersion(numerical bool) (string, error)
 	// GetInternalMasterDB allows access to the raw master DB
-	// handle for the multi-product architecture.
+	// handle for plugins.
 	GetInternalMasterDB() *sql.DB
 	GetInternalReplicaDB() *sql.DB
 	TotalMasterDbConnections() int
@@ -233,7 +232,6 @@ type ChannelStore interface {
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
 	InvalidateAllChannelMembersForUser(userID string)
-	IsUserInChannelUseCache(userID string, channelID string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
 	InvalidateCacheForChannelMembersNotifyProps(channelID string)
 	GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error)
@@ -1116,22 +1114,4 @@ type SidebarCategorySearchOpts struct {
 	TeamID      string
 	ExcludeTeam bool
 	Type        model.SidebarCategoryType
-}
-
-// Ensure store service adapter implements `product.StoreService`
-var _ product.StoreService = (*StoreServiceAdapter)(nil)
-
-// StoreServiceAdapter provides a simple Store wrapper for use with products.
-type StoreServiceAdapter struct {
-	store Store
-}
-
-func NewStoreServiceAdapter(store Store) *StoreServiceAdapter {
-	return &StoreServiceAdapter{
-		store: store,
-	}
-}
-
-func (a *StoreServiceAdapter) GetMasterDB() *sql.DB {
-	return a.store.GetInternalMasterDB()
 }
