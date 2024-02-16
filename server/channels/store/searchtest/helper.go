@@ -169,7 +169,7 @@ func (th *SearchTestHelper) makeEmail() string {
 }
 
 func (th *SearchTestHelper) createUser(username, nickname, firstName, lastName string) (*model.User, error) {
-	return th.Store.User().Save(&model.User{
+	return th.Store.User().Save(th.Context, &model.User{
 		Username:  username,
 		Password:  username,
 		Nickname:  nickname,
@@ -180,7 +180,7 @@ func (th *SearchTestHelper) createUser(username, nickname, firstName, lastName s
 }
 
 func (th *SearchTestHelper) createGuest(username, nickname, firstName, lastName string) (*model.User, error) {
-	return th.Store.User().Save(&model.User{
+	return th.Store.User().Save(th.Context, &model.User{
 		Username:  username,
 		Password:  username,
 		Nickname:  nickname,
@@ -225,7 +225,7 @@ func (th *SearchTestHelper) createBot(username, displayName, ownerID string) (*m
 		OwnerId:     ownerID,
 	}
 
-	user, err := th.Store.User().Save(model.UserFromBot(botModel))
+	user, err := th.Store.User().Save(th.Context, model.UserFromBot(botModel))
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
