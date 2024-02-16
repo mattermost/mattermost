@@ -204,6 +204,20 @@ export function trackPluginInitialization(plugins) {
     });
 }
 
+function getTopThreeSelectors(selectors) {
+    let topThreeSelectors = [];
+    for (const selector of selectors) {
+        if (topThreeSelectors.length === 3) {
+            break
+        }
+        
+        if (selector.calls > 5) {
+            topThreeSelectors.push(selector)
+        }
+    }
+    return topThreeSelectors;
+}
+
 export function trackSelectorMetrics() {
     setTimeout(() => {
         if (!shouldTrackPerformance()) {
@@ -211,18 +225,19 @@ export function trackSelectorMetrics() {
         }
 
         const selectors = getSortedTrackedSelectors();
+        const topThreeSelectors = getTopThreeSelectors(selectors);
 
         trackEvent('performance', 'least_effective_selectors', {
             after: 'one_minute',
-            first: selectors[0]?.name || '',
-            first_effectiveness: selectors[0]?.effectiveness,
-            first_recomputations: selectors[0]?.recomputations,
-            second: selectors[1]?.name || '',
-            second_effectiveness: selectors[1]?.effectiveness,
-            second_recomputations: selectors[1]?.recomputations,
-            third: selectors[2]?.name || '',
-            third_effectiveness: selectors[2]?.effectiveness,
-            third_recomputations: selectors[2]?.recomputations,
+            first: topThreeSelectors[0]?.name || '',
+            first_effectiveness: topThreeSelectors[0]?.effectiveness,
+            first_recomputations: topThreeSelectors[0]?.recomputations,
+            second: topThreeSelectors[1]?.name || '',
+            second_effectiveness: topThreeSelectors[1]?.effectiveness,
+            second_recomputations: topThreeSelectors[1]?.recomputations,
+            third: topThreeSelectors[2]?.name || '',
+            third_effectiveness: topThreeSelectors[2]?.effectiveness,
+            third_recomputations: topThreeSelectors[2]?.recomputations,
         });
     }, 60000);
 }
