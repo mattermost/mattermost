@@ -1302,7 +1302,7 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 }
 
 func TestHookRunDataRetention(t *testing.T) {
-	th := Setup(t, SkipProductsInitialization()).InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
