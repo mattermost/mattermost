@@ -144,7 +144,6 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                 <Menu.Group divider={divider}>
                     <ChannelPermissionGate
                         channelId={channel.id}
-                        teamId={channel.team_id}
                         permissions={[channelMembersPermission]}
                     >
                         <Menu.ItemToggleModalRedux
@@ -172,7 +171,6 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     />
                     <ChannelPermissionGate
                         channelId={channel.id}
-                        teamId={channel.team_id}
                         permissions={[channelMembersPermission]}
                     >
                         <Menu.ItemToggleModalRedux
@@ -200,7 +198,6 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     </ChannelPermissionGate>
                     <ChannelPermissionGate
                         channelId={channel.id}
-                        teamId={channel.team_id}
                         permissions={[channelMembersPermission]}
                         invert={true}
                     >
@@ -236,7 +233,6 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                 <Menu.Group divider={divider}>
                     <ChannelPermissionGate
                         channelId={channel.id}
-                        teamId={channel.team_id}
                         permissions={[channelPropertiesPermission]}
                     >
                         <Menu.ItemToggleModalRedux
@@ -266,7 +262,6 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     </ChannelPermissionGate>
                     <ChannelPermissionGate
                         channelId={channel.id}
-                        teamId={channel.team_id}
                         permissions={[Permissions.CONVERT_PUBLIC_CHANNEL_TO_PRIVATE]}
                     >
                         <Menu.ItemToggleModalRedux
@@ -289,7 +284,6 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                     />
                     <ChannelPermissionGate
                         channelId={channel.id}
-                        teamId={channel.team_id}
                         permissions={[channelDeletePermission]}
                     >
                         <Menu.ItemToggleModalRedux
@@ -325,7 +319,6 @@ export default class ChannelHeaderDropdown extends React.PureComponent<Props> {
                 <Menu.Group divider={divider}>
                     <ChannelPermissionGate
                         channelId={channel.id}
-                        teamId={channel.team_id}
                         permissions={[channelUnarchivePermission]}
                     >
                         <Menu.ItemToggleModalRedux

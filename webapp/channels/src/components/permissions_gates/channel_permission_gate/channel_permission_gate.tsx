@@ -11,11 +11,6 @@ type Props = {
     channelId?: string;
 
     /**
-     * Team to check the permission
-     */
-    teamId?: string;
-
-    /**
      * Permissions enough to pass the gate (binary OR)
      */
     permissions: string[];

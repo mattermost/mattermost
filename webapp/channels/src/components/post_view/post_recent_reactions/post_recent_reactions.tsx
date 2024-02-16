@@ -21,7 +21,6 @@ type LocationTypes = 'CENTER' | 'RHS_ROOT' | 'RHS_COMMENT';
 type Props = {
     channelId?: string;
     postId: string;
-    teamId: string;
     location?: LocationTypes;
     locale: string;
     emojis: Emoji[];
@@ -77,7 +76,6 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
     render() {
         const {
             channelId,
-            teamId,
         } = this.props;
 
         let emojis = [...this.props.emojis].slice(0, this.props.size);
@@ -89,7 +87,6 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
             <ChannelPermissionGate
                 key={this.emojiName(emoji, this.props.locale)} // emojis will be unique therefore no duplication expected.
                 channelId={channelId}
-                teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
                 <OverlayTrigger

@@ -69,7 +69,6 @@ exports[`components/ReactionList should render when there are reactions 1`] = `
             "add_reaction",
           ]
         }
-        teamId="teamId"
       >
         <OverlayTrigger
           defaultOverlayShown={false}

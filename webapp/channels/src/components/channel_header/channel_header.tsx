@@ -48,7 +48,6 @@ const headerMarkdownOptions = {singleline: true, mentionHighlight: false, atMent
 const popoverMarkdownOptions = {singleline: false, mentionHighlight: false, atMentions: true};
 
 export type Props = {
-    teamId: string;
     currentUser: UserProfile;
     channel: Channel;
     memberCount?: number;
@@ -248,7 +247,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
     render() {
         const {
-            teamId,
             currentUser,
             gmMembers,
             channel,
@@ -534,7 +532,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     editMessage = (
                         <ChannelPermissionGate
                             channelId={channel.id}
-                            teamId={teamId}
                             permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
                         >
                             <button

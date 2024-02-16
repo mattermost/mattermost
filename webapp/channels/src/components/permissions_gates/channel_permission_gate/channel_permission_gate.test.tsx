@@ -57,7 +57,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
-                    teamId={'team_id'}
                     permissions={['test_channel_permission']}
                 >
                     <p>{'Valid permission (shown)'}</p>
@@ -85,7 +84,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
-                    teamId={'team_id'}
                     permissions={['test_channel_permission']}
                     invert={true}
                 >
@@ -100,7 +98,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
-                    teamId={'team_id'}
                     permissions={['invalid_permission']}
                     invert={true}
                 >
@@ -115,7 +112,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
-                    teamId={'team_id'}
                     permissions={['invalid_permission']}
                 >
                     <p>{'Invalid permission (not shown)'}</p>
@@ -129,7 +125,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'invalid_id'}
-                    teamId={'team_id'}
                     permissions={['test_channel_permission']}
                 >
                     <p>{'Valid permission invalid channel (not shown)'}</p>
@@ -143,7 +138,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
-                    teamId={'team_id'}
                     permissions={['test_team_permission']}
                 >
                     <p>{'Valid permission (shown)'}</p>
@@ -157,7 +151,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'channel_id'}
-                    teamId={'team_id'}
                     permissions={['test_system_permission']}
                 >
                     <p>{'Valid permission (shown)'}</p>
@@ -172,7 +165,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'direct_channel_id'}
-                    teamId={''}
                     permissions={['test_channel_permission']}
                 >
                     <p>{'Valid permission (shown)'}</p>
@@ -187,7 +179,6 @@ describe('components/permissions_gates', () => {
             renderWithContext(
                 <ChannelPermissionGate
                     channelId={'direct_channel_id'}
-                    teamId={''}
                     permissions={['invalid_permission']}
                 >
                     <p>{'Invalid permission (not shown)'}</p>

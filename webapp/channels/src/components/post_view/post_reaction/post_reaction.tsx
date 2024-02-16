@@ -57,7 +57,6 @@ export default class PostReaction extends React.PureComponent<Props, State> {
             location,
             postId,
             showEmojiPicker,
-            teamId,
         } = this.props;
 
         let spaceRequiredAbove;
@@ -70,7 +69,6 @@ export default class PostReaction extends React.PureComponent<Props, State> {
         return (
             <ChannelPermissionGate
                 channelId={channelId}
-                teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
                 <React.Fragment>

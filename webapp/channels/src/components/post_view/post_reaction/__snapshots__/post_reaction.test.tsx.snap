@@ -8,7 +8,6 @@ exports[`components/post_view/PostReaction should match snapshot 1`] = `
       "add_reaction",
     ]
   }
-  teamId="current_team_id"
 >
   <Connect(EmojiPickerOverlay)
     onEmojiClick={[Function]}

@@ -169,7 +169,6 @@ export default class ReactionList extends React.PureComponent<Props, State> {
                     />
                     <ChannelPermissionGate
                         channelId={this.props.post.channel_id}
-                        teamId={this.props.teamId}
                         permissions={[Permissions.ADD_REACTION]}
                     >
                         <OverlayTrigger

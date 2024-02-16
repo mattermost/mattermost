@@ -268,7 +268,6 @@ function createOffTopicIntroMessage(channel: Channel, centeredIntro: string, sta
     if (children) {
         setHeaderButton = (
             <ChannelPermissionGate
-                teamId={channel.team_id}
                 channelId={channel.id}
                 permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
             >
@@ -336,7 +335,6 @@ function createDefaultIntroMessage(
         if (children) {
             setHeaderButton = (
                 <ChannelPermissionGate
-                    teamId={channel.team_id}
                     channelId={channel.id}
                     permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
                 >
@@ -541,7 +539,6 @@ function createStandardIntroMessage(channel: Channel, centeredIntro: string, sta
     if (children) {
         setHeaderButton = (
             <ChannelPermissionGate
-                teamId={channel.team_id}
                 channelId={channel.id}
                 permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_PROPERTIES : Permissions.MANAGE_PUBLIC_CHANNEL_PROPERTIES]}
             >

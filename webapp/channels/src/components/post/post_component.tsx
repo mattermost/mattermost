@@ -6,7 +6,6 @@ import React, {useCallback, useEffect, useRef, useState, useMemo} from 'react';
 import type {MouseEvent} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import type {Emoji} from '@mattermost/types/emojis';
 import type {Post} from '@mattermost/types/posts';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -71,7 +70,6 @@ export type Props = {
     channelIsArchived?: boolean;
     isConsecutivePost?: boolean;
     isLastPost?: boolean;
-    recentEmojis: Emoji[];
     center: boolean;
     handleCardClick?: (post: Post) => void;
     togglePostMenu?: (opened: boolean) => void;
@@ -624,7 +622,6 @@ const PostComponent = (props: Props): JSX.Element => {
                             {!props.isPostBeingEdited &&
                             <PostOptions
                                 {...props}
-                                teamId={teamId}
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}
                                 hover={hover || a11yActive}

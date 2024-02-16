@@ -121,7 +121,6 @@ const MoreThanMaxFreeUsers = ({channel, setHeader, pluginButtons}: {channel: Cha
             <div className='MoreThanMaxFreeUsers'>
                 <ChannelPermissionGate
                     channelId={channel.id}
-                    teamId={channel.team_id}
                     permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS]}
                 >
                     <ToggleModalButton

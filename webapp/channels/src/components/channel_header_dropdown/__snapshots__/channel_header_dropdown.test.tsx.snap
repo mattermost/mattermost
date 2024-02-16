@@ -240,7 +240,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "manage_public_channel_members",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogProps={
@@ -328,7 +327,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "manage_public_channel_members",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogType={
@@ -397,7 +395,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "manage_public_channel_members",
         ]
       }
-      teamId="team_id"
     >
       <Connect(ToggleChannelMembersRHS)
         channel={
@@ -505,7 +502,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "manage_public_channel_properties",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogProps={
@@ -620,7 +616,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "convert_public_channel_to_private",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogProps={
@@ -674,7 +669,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "delete_public_channel",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         className="MenuItem__dangerous"
@@ -790,7 +784,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with no plugin i
           "manage_team",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogProps={
@@ -1072,7 +1065,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "manage_public_channel_members",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogProps={
@@ -1160,7 +1152,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "manage_public_channel_members",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogType={
@@ -1229,7 +1220,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "manage_public_channel_members",
         ]
       }
-      teamId="team_id"
     >
       <Connect(ToggleChannelMembersRHS)
         channel={
@@ -1337,7 +1327,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "manage_public_channel_properties",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogProps={
@@ -1452,7 +1441,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "convert_public_channel_to_private",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogProps={
@@ -1506,7 +1494,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "delete_public_channel",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         className="MenuItem__dangerous"
@@ -1637,7 +1624,6 @@ exports[`components/ChannelHeaderDropdown should match snapshot with plugins 1`]
           "manage_team",
         ]
       }
-      teamId="team_id"
     >
       <MenuItemToggleModalRedux
         dialogProps={

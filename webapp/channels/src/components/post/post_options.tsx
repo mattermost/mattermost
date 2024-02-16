@@ -25,7 +25,6 @@ import type {PluginComponent} from 'types/store/plugins';
 
 type Props = {
     post: Post;
-    teamId: string;
     isFlagged: boolean;
     removePost: (post: Post) => void;
     enableEmojiPicker?: boolean;
@@ -138,7 +137,6 @@ const PostOptions = (props: Props): JSX.Element => {
             <PostRecentReactions
                 channelId={post.channel_id}
                 postId={post.id}
-                teamId={props.teamId}
                 size={showMoreReactions ? 3 : 1}
             />
         );
@@ -152,7 +150,6 @@ const PostOptions = (props: Props): JSX.Element => {
                 channelId={post.channel_id}
                 location={props.location}
                 postId={post.id}
-                teamId={props.teamId}
                 getDotMenuRef={getDotMenuRef}
                 showEmojiPicker={showEmojiPicker}
                 toggleEmojiPicker={toggleEmojiPicker}
