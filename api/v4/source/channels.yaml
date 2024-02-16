@@ -441,7 +441,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: &channel_id The machine-generated, unique, 26-character-long alphanumeric string identifying the channel.
           required: true
           schema:
             type: string
@@ -473,7 +473,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -505,7 +505,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -575,7 +575,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -610,7 +610,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -673,7 +673,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -721,7 +721,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -755,7 +755,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -801,7 +801,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -828,7 +828,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1295,7 +1295,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1381,7 +1381,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1424,7 +1424,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1466,7 +1466,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1502,7 +1502,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1557,7 +1557,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1613,7 +1613,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1873,7 +1873,7 @@
             type: string
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1912,7 +1912,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -1968,7 +1968,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -2018,7 +2018,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -2053,7 +2053,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string
@@ -2095,7 +2095,7 @@
       parameters:
         - name: channel_id
           in: path
-          description: Channel GUID
+          description: *channel_id
           required: true
           schema:
             type: string

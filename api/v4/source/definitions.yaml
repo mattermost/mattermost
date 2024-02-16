@@ -186,6 +186,7 @@ components:
       type: object
       properties:
         id:
+          description: The machine-generated, unique, 26-character-long alphanumeric string identifying the channel.
           type: string
         create_at:
           description: The time in milliseconds a channel was created
