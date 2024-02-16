@@ -584,6 +584,14 @@ func (a *App) createGroupChannel(c request.CTX, userIDs []string) (*model.Channe
 		}
 	}
 
+	a.Srv().Go(func() {
+		pluginContext := pluginContext(c)
+		a.ch.RunMultiHook(func(hooks plugin.Hooks) bool {
+			hooks.ChannelHasBeenCreated(pluginContext, channel)
+			return true
+		}, plugin.ChannelHasBeenCreatedID)
+	})
+
 	return channel, nil
 }
 
