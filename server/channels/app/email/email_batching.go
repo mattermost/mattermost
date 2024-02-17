@@ -281,7 +281,7 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 
 	var useMilitaryTime bool
 	if data, err := es.store.Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
-		useMilitaryTime = true
+		useMilitaryTime = false
 	} else {
 		useMilitaryTime = data.Value == "true"
 	}
