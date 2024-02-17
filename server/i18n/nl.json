@@ -10372,5 +10372,33 @@
   {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Ongeldige update teamlid: Een gast kan geen teamlid of teambeheerder worden. Maak van de gast eerst een gebruiker."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Ongeldige invoerparameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het verwijderen van de uitgaande OAuth-verbinding."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Er is een fout opgetreden tijdens het bijwerken van de uitgaande OAuth-verbinding."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Ongeldige invoerparameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Er is een fout opgetreden tijdens het valideren van de gegevens van de uitgaande OAuth-verbinding."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het maken van de uitgaande OAuth-verbinding."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Uitgaande OAuth verbindingen zijn niet beschikbaar op deze server."
   }
 ]
