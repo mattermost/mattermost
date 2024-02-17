@@ -9,7 +9,7 @@ import type {ServerError} from '@mattermost/types/errors';
 
 import {ErrorTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 export function dismissError(index: number) {
     return {
@@ -28,7 +28,7 @@ export function getLogErrorAction(error: ErrorObject, displayable = false) {
     };
 }
 
-export function logError(error: ServerError, displayable = false, consoleError = false): NewActionFuncAsync<boolean> {
+export function logError(error: ServerError, displayable = false, consoleError = false): ActionFuncAsync<boolean> {
     return async (dispatch, getState) => {
         if (error.server_error_id === 'api.context.session_expired.app_error') {
             return {data: true};

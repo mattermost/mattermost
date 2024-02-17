@@ -3434,7 +3434,7 @@ const AdminDefinition: AdminDefinitionType = {
                                     key: 'LdapSettings.PictureAttribute',
                                     label: defineMessage({id: 'admin.ldap.pictureAttrTitle', defaultMessage: 'Profile Picture Attribute:'}),
                                     placeholder: defineMessage({id: 'admin.ldap.pictureAttrEx', defaultMessage: 'E.g.: "thumbnailPhoto" or "jpegPhoto"'}),
-                                    help_text: defineMessage({id: 'admin.ldap.pictureAttrDesc', defaultMessage: 'The attribute in the AD/LDAP server used to populate the profile picture in Mattermost.'}),
+                                    help_text: defineMessage({id: 'admin.ldap.pictureAttrDesc', defaultMessage: '(Optional) The attribute in the AD/LDAP server used to populate the profile picture in Mattermost.'}),
                                     isDisabled: it.any(
                                         it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.AUTHENTICATION.LDAP)),
                                         it.all(
@@ -3573,6 +3573,10 @@ const AdminDefinition: AdminDefinitionType = {
                                         it.stateIsFalse('LdapSettings.EnableSync'),
                                     ),
                                     render_job: (job: Job) => {
+                                        if (job.status === 'pending') {
+                                            return <span>{'--'}</span>;
+                                        }
+
                                         let ldapUsers = 0;
                                         let deleteCount = 0;
                                         let updateCount = 0;
@@ -5174,6 +5178,19 @@ const AdminDefinition: AdminDefinitionType = {
                                     >
                                         {msg}
                                     </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableOutgoingOAuthConnections',
+                            label: defineMessage({id: 'admin.service.outgoingOAuthConnectionsTitle', defaultMessage: 'Enable Outgoing OAuth Connections: '}),
+                            help_text: defineMessage({id: 'admin.service.outgoingOAuthConnectionsDesc', defaultMessage: 'When true, outgoing webhooks and slash commands will use set up oauth connections to authenticate with third party services. See <link>documentation</link> to learn more.'}),
+                            help_text_values: {
+                                link: (text: string) => (
+                                    <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
                                 ),
                             },
                             help_text_markdown: false,

@@ -39,7 +39,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 			Username: model.NewId(),
 		}
 
-		u, err := ss.User().Save(&u1)
+		u, err := ss.User().Save(rctx, &u1)
 		require.NoError(t, err)
 
 		c, err2 := ss.Channel().Save(&model.Channel{
@@ -49,7 +49,7 @@ func testThreadStorePopulation(t *testing.T, rctx request.CTX, ss store.Store) {
 		}, 999)
 		require.NoError(t, err2)
 
-		_, err44 := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err44 := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   c.Id,
 			UserId:      u1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -806,12 +806,12 @@ func testVarious(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NoError(t, err)
 	}
 
-	user1, err := ss.User().Save(&model.User{
+	user1, err := ss.User().Save(rctx, &model.User{
 		Username: "user1" + model.NewId(),
 		Email:    MakeEmail(),
 	})
 	require.NoError(t, err)
-	user2, err := ss.User().Save(&model.User{
+	user2, err := ss.User().Save(rctx, &model.User{
 		Username: "user2" + model.NewId(),
 		Email:    MakeEmail(),
 	})

@@ -1279,7 +1279,7 @@ func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(rctx request.CTX, user
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckPostReminders() {
+func (a *OpenTracingAppLayer) CheckPostReminders(rctx request.CTX) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckPostReminders")
 
@@ -1291,7 +1291,7 @@ func (a *OpenTracingAppLayer) CheckPostReminders() {
 	}()
 
 	defer span.Finish()
-	a.app.CheckPostReminders()
+	a.app.CheckPostReminders(rctx)
 }
 
 func (a *OpenTracingAppLayer) CheckProviderAttributes(c request.CTX, user *model.User, patch *model.UserPatch) string {
@@ -2495,6 +2495,28 @@ func (a *OpenTracingAppLayer) CreateRole(role *model.Role) (*model.Role, *model.
 
 	defer span.Finish()
 	resultVar0, resultVar1 := a.app.CreateRole(role)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
+func (a *OpenTracingAppLayer) CreateSamlRelayToken(extra string) (*model.Token, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CreateSamlRelayToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.CreateSamlRelayToken(extra)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -4100,7 +4122,7 @@ func (a *OpenTracingAppLayer) EnableUserAccessToken(c request.CTX, token *model.
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) EnsureBot(rctx request.CTX, productID string, bot *model.Bot) (string, error) {
+func (a *OpenTracingAppLayer) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (string, error) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.EnsureBot")
 
@@ -4112,7 +4134,7 @@ func (a *OpenTracingAppLayer) EnsureBot(rctx request.CTX, productID string, bot 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.EnsureBot(rctx, productID, bot)
+	resultVar0, resultVar1 := a.app.EnsureBot(rctx, pluginID, bot)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -9038,6 +9060,28 @@ func (a *OpenTracingAppLayer) GetSamlCertificateStatus() *model.SamlCertificateS
 	return resultVar0
 }
 
+func (a *OpenTracingAppLayer) GetSamlEmailToken(token string) (*model.Token, *model.AppError) {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSamlEmailToken")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0, resultVar1 := a.app.GetSamlEmailToken(token)
+
+	if resultVar1 != nil {
+		span.LogFields(spanlog.Error(resultVar1))
+		ext.Error.Set(span, true)
+	}
+
+	return resultVar0, resultVar1
+}
+
 func (a *OpenTracingAppLayer) GetSamlMetadata(c request.CTX) (string, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSamlMetadata")
@@ -9690,7 +9734,7 @@ func (a *OpenTracingAppLayer) GetSuggestions(c request.CTX, commandArgs *model.C
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetSystemBot() (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSystemBot")
 
@@ -9702,7 +9746,7 @@ func (a *OpenTracingAppLayer) GetSystemBot() (*model.Bot, *model.AppError) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSystemBot()
+	resultVar0, resultVar1 := a.app.GetSystemBot(rctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11347,7 +11391,7 @@ func (a *OpenTracingAppLayer) GetViewUsersRestrictions(c request.CTX, userID str
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) GetWarnMetricsBot(rctx request.CTX) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWarnMetricsBot")
 
@@ -11359,7 +11403,7 @@ func (a *OpenTracingAppLayer) GetWarnMetricsBot() (*model.Bot, *model.AppError) 
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetWarnMetricsBot()
+	resultVar0, resultVar1 := a.app.GetWarnMetricsBot(rctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11964,7 +12008,7 @@ func (a *OpenTracingAppLayer) InviteNewUsersToTeamGracefully(memberInvite *model
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) InviteRemoteToChannel(channelID string, remoteID string, userID string) error {
+func (a *OpenTracingAppLayer) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.InviteRemoteToChannel")
 
@@ -11976,7 +12020,7 @@ func (a *OpenTracingAppLayer) InviteRemoteToChannel(channelID string, remoteID s
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.InviteRemoteToChannel(channelID, remoteID, userID)
+	resultVar0 := a.app.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -14662,28 +14706,6 @@ func (a *OpenTracingAppLayer) RestrictUsersSearchByPermissions(c request.CTX, us
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RetrieveBatchReport(reportID string, format string) (filestore.ReadCloseSeeker, string, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RetrieveBatchReport")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1, resultVar2 := a.app.RetrieveBatchReport(reportID, format)
-
-	if resultVar2 != nil {
-		span.LogFields(spanlog.Error(resultVar2))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1, resultVar2
-}
-
 func (a *OpenTracingAppLayer) ReturnSessionToPool(session *model.Session) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ReturnSessionToPool")
@@ -15960,7 +15982,7 @@ func (a *OpenTracingAppLayer) SendPersistentNotifications() error {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError {
+func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendReportToUser")
 
@@ -15972,7 +15994,7 @@ func (a *OpenTracingAppLayer) SendReportToUser(rctx request.CTX, userID string, 
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.SendReportToUser(rctx, userID, jobId, format)
+	resultVar0 := a.app.SendReportToUser(rctx, job, format)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))
@@ -16923,7 +16945,7 @@ func (a *OpenTracingAppLayer) SoftDeleteTeam(teamID string) *model.AppError {
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64) *model.AppError {
+func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.StartUsersBatchExport")
 
@@ -16935,7 +16957,7 @@ func (a *OpenTracingAppLayer) StartUsersBatchExport(rctx request.CTX, startAt in
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.StartUsersBatchExport(rctx, startAt, endAt)
+	resultVar0 := a.app.StartUsersBatchExport(rctx, dateRange, startAt, endAt)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

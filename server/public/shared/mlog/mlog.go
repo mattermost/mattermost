@@ -28,6 +28,7 @@ const (
 	DefaultMetricsUpdateFreqMillis = 15000
 )
 
+// LoggerIFace should be abbreviated as `logger`.
 type LoggerIFace interface {
 	IsLevelEnabled(Level) bool
 	Trace(string, ...Field)
@@ -169,6 +170,8 @@ func Map[M ~map[K]V, K comparable, V any](key string, val M) Field {
 // so that there are no allocations on the heap each interface method invocation. Normally not
 // something to be concerned about, but logging calls for disabled levels should have as little CPU
 // and memory impact as possible. Most of these wrapper calls will be inlined as well.
+//
+// Logger should be abbreviated as `logger`.
 type Logger struct {
 	log        *logr.Logger
 	lockConfig *int32

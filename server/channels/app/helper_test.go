@@ -50,7 +50,8 @@ type TestHelper struct {
 	tempWorkspace string
 }
 
-func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool, options []Option, tb testing.TB) *TestHelper {
+func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer bool,
+	updateConfig func(*model.Config), options []Option, tb testing.TB) *TestHelper {
 	tempWorkspace, err := os.MkdirTemp("", "apptest")
 	if err != nil {
 		panic(err)
@@ -66,6 +67,9 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 	*memoryConfig.LogSettings.ConsoleLevel = mlog.LvlStdLog.Name
 	*memoryConfig.AnnouncementSettings.AdminNoticesEnabled = false
 	*memoryConfig.AnnouncementSettings.UserNoticesEnabled = false
+	if updateConfig != nil {
+		updateConfig(memoryConfig)
+	}
 	configStore.Set(memoryConfig)
 
 	buffer := &mlog.Buffer{}
@@ -105,6 +109,8 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		ConfigStore:       configStore,
 	}
 
+	th.App.Srv().SetLicense(getLicense(enterprise, memoryConfig))
+
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.TeamSettings.MaxUsersPerTeam = 50 })
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.RateLimitSettings.Enable = false })
 	prevListenAddress := *th.App.Config().ServiceSettings.ListenAddress
@@ -131,17 +137,21 @@ func setupTestHelper(dbStore store.Store, enterprise bool, includeCacheLayer boo
 		*cfg.PasswordSettings.Number = false
 	})
 
-	if enterprise {
-		th.App.Srv().SetLicense(model.NewTestLicense())
-	} else {
-		th.App.Srv().SetLicense(nil)
-	}
-
 	if th.tempWorkspace == "" {
 		th.tempWorkspace = tempWorkspace
 	}
 
 	return th
+}
+
+func getLicense(enterprise bool, cfg *model.Config) *model.License {
+	if *cfg.ExperimentalSettings.EnableRemoteClusterService || *cfg.ExperimentalSettings.EnableSharedChannels {
+		return model.NewTestLicenseSKU(model.LicenseShortSkuProfessional)
+	}
+	if enterprise {
+		return model.NewTestLicense()
+	}
+	return nil
 }
 
 func Setup(tb testing.TB, options ...Option) *TestHelper {
@@ -153,7 +163,19 @@ func Setup(tb testing.TB, options ...Option) *TestHelper {
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, false, true, options, tb)
+	return setupTestHelper(dbStore, false, true, nil, options, tb)
+}
+
+func SetupConfig(tb testing.TB, updateConfig func(cfg *model.Config)) *TestHelper {
+	if testing.Short() {
+		tb.SkipNow()
+	}
+	dbStore := mainHelper.GetStore()
+	dbStore.DropAllTables()
+	dbStore.MarkSystemRanUnitTests()
+	mainHelper.PreloadMigrations()
+
+	return setupTestHelper(dbStore, false, true, updateConfig, nil, tb)
 }
 
 func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
@@ -164,13 +186,12 @@ func SetupWithoutPreloadMigrations(tb testing.TB) *TestHelper {
 	dbStore.DropAllTables()
 	dbStore.MarkSystemRanUnitTests()
 
-	return setupTestHelper(dbStore, false, true, nil, tb)
+	return setupTestHelper(dbStore, false, true, nil, nil, tb)
 }
 
 func SetupWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	setupOptions := []Option{SkipProductsInitialization()}
-	th := setupTestHelper(mockStore, false, false, setupOptions, tb)
+	th := setupTestHelper(mockStore, false, false, nil, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -191,8 +212,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 
 func SetupEnterpriseWithStoreMock(tb testing.TB) *TestHelper {
 	mockStore := testlib.GetMockStoreForSetupFunctions()
-	setupOptions := []Option{SkipProductsInitialization()}
-	th := setupTestHelper(mockStore, true, false, setupOptions, tb)
+	th := setupTestHelper(mockStore, true, false, nil, nil, tb)
 	statusMock := mocks.StatusStore{}
 	statusMock.On("UpdateExpiredDNDStatuses").Return([]*model.Status{}, nil)
 	statusMock.On("Get", "user1").Return(&model.Status{UserId: "user1", Status: model.StatusOnline}, nil)
@@ -214,7 +234,7 @@ func SetupWithClusterMock(tb testing.TB, cluster einterfaces.ClusterInterface) *
 	dbStore.MarkSystemRanUnitTests()
 	mainHelper.PreloadMigrations()
 
-	return setupTestHelper(dbStore, true, true, []Option{SetCluster(cluster)}, tb)
+	return setupTestHelper(dbStore, true, true, nil, []Option{SetCluster(cluster)}, tb)
 }
 
 var initBasicOnce sync.Once

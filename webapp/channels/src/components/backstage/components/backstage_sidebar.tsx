@@ -5,7 +5,6 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {Team} from '@mattermost/types/teams';
-import type {UserProfile} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 
@@ -17,12 +16,12 @@ import BackstageSection from './backstage_section';
 
 type Props = {
     team: Team;
-    user: UserProfile;
     enableCustomEmoji: boolean;
     enableIncomingWebhooks: boolean;
     enableOutgoingWebhooks: boolean;
     enableCommands: boolean;
     enableOAuthServiceProvider: boolean;
+    enableOutgoingOAuthConnections: boolean;
     canCreateOrDeleteCustomEmoji: boolean;
     canManageIntegrations: boolean;
 }
@@ -156,6 +155,28 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
             </SystemPermissionGate>
         );
 
+        let outgoingOAuthConnections: JSX.Element | null = null;
+        if (this.props.enableOutgoingOAuthConnections) {
+            outgoingOAuthConnections = (
+                <TeamPermissionGate
+                    permissions={[Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]}
+                    teamId={this.props.team.id}
+                >
+                    <BackstageSection
+                        name='outgoing-oauth2-connections'
+                        parentLink={'/' + this.props.team.name + '/integrations'}
+                        title={
+                            <FormattedMessage
+                                id='backstage_sidebar.integrations.outgoingOauthConnections'
+                                defaultMessage='Outgoing OAuth 2.0 Connections'
+                            />
+                        }
+                        id='outgoingOauthConnections'
+                    />
+                </TeamPermissionGate>
+            );
+        }
+
         return (
             <BackstageCategory
                 name='integrations'
@@ -173,6 +194,7 @@ export default class BackstageSidebar extends React.PureComponent<Props> {
                 {commands}
                 {oauthApps}
                 {botAccounts}
+                {outgoingOAuthConnections}
             </BackstageCategory>
         );
     }

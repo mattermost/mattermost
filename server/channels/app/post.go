@@ -20,7 +20,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 	"github.com/mattermost/mattermost/server/v8/platform/services/cache"
@@ -33,38 +32,6 @@ const (
 )
 
 var atMentionPattern = regexp.MustCompile(`\B@`)
-
-// Ensure post service wrapper implements `product.PostService`
-var _ product.PostService = (*postServiceWrapper)(nil)
-
-// postServiceWrapper provides an implementation of `product.PostService` for use by products.
-type postServiceWrapper struct {
-	app AppIface
-}
-
-func (s *postServiceWrapper) CreatePost(ctx request.CTX, post *model.Post) (*model.Post, *model.AppError) {
-	return s.app.CreatePostMissingChannel(ctx, post, true, true)
-}
-
-func (s *postServiceWrapper) GetPostsByIds(postIDs []string) ([]*model.Post, int64, *model.AppError) {
-	return s.app.GetPostsByIds(postIDs)
-}
-
-func (s *postServiceWrapper) SendEphemeralPost(ctx request.CTX, userID string, post *model.Post) *model.Post {
-	return s.app.SendEphemeralPost(ctx, userID, post)
-}
-
-func (s *postServiceWrapper) GetPost(postID string) (*model.Post, *model.AppError) {
-	return s.app.GetSinglePost(postID, false)
-}
-
-func (s *postServiceWrapper) DeletePost(ctx request.CTX, postID, productID string) (*model.Post, *model.AppError) {
-	return s.app.DeletePost(ctx, postID, productID)
-}
-
-func (s *postServiceWrapper) UpdatePost(ctx request.CTX, post *model.Post, safeUpdate bool) (*model.Post, *model.AppError) {
-	return s.app.UpdatePost(ctx, post, false)
-}
 
 func (a *App) CreatePostAsUser(c request.CTX, post *model.Post, currentSessionId string, setOnline bool) (*model.Post, *model.AppError) {
 	// Check that channel has not been deleted
@@ -1417,9 +1384,21 @@ func (a *App) DeletePost(c request.CTX, postID, deleteByID string) (*model.Post,
 		}
 	})
 
+	// delete drafts associated with the post when deleting the post
+	a.Srv().Go(func() {
+		a.deleteDraftsAssociatedWithPost(c, channel, post)
+	})
+
 	a.invalidateCacheForChannelPosts(post.ChannelId)
 
 	return post, nil
+}
+
+func (a *App) deleteDraftsAssociatedWithPost(c request.CTX, channel *model.Channel, post *model.Post) {
+	if err := a.Srv().Store().Draft().DeleteDraftsAssociatedWithPost(channel.Id, post.Id); err != nil {
+		c.Logger().Error("Failed to delete drafts associated with post when deleting post", mlog.Err(err))
+		return
+	}
 }
 
 func (a *App) deleteFlaggedPosts(c request.CTX, postID string) {
@@ -2178,8 +2157,8 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 	return nil
 }
 
-func (a *App) CheckPostReminders() {
-	systemBot, appErr := a.GetSystemBot()
+func (a *App) CheckPostReminders(rctx request.CTX) {
+	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
 		mlog.Error("Failed to get system bot", mlog.Err(appErr))
 		return

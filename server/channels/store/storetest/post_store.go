@@ -3041,7 +3041,7 @@ func testPostStoreGetFlaggedPostsForTeam(t *testing.T, rctx request.CTX, ss stor
 	m0.ChannelId = c1.Id
 	m0.UserId = o1.UserId
 	m0.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(m0)
+	_, err = ss.Channel().SaveMember(rctx, m0)
 	require.NoError(t, err)
 
 	teamId := model.NewId()
@@ -3278,7 +3278,7 @@ func testPostStoreGetFlaggedPosts(t *testing.T, rctx request.CTX, ss store.Store
 	m0.ChannelId = o1.ChannelId
 	m0.UserId = o1.UserId
 	m0.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(m0)
+	_, err = ss.Channel().SaveMember(rctx, m0)
 	require.NoError(t, err)
 
 	r1, err := ss.Post().GetFlaggedPosts(o1.UserId, 0, 2)
@@ -3443,14 +3443,14 @@ func testPostStoreGetFlaggedPostsForChannel(t *testing.T, rctx request.CTX, ss s
 	m1.ChannelId = o1.ChannelId
 	m1.UserId = o1.UserId
 	m1.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(m1)
+	_, err = ss.Channel().SaveMember(rctx, m1)
 	require.NoError(t, err)
 
 	m2 := &model.ChannelMember{}
 	m2.ChannelId = o4.ChannelId
 	m2.UserId = o1.UserId
 	m2.NotifyProps = model.GetDefaultChannelNotifyProps()
-	_, err = ss.Channel().SaveMember(m2)
+	_, err = ss.Channel().SaveMember(rctx, m2)
 	require.NoError(t, err)
 
 	r, err := ss.Post().GetFlaggedPostsForChannel(o1.UserId, o1.ChannelId, 0, 10)
@@ -4283,7 +4283,7 @@ func testPostStoreGetParentsForExportAfter(t *testing.T, rctx request.CTX, ss st
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	p1 := &model.Post{}
@@ -4366,7 +4366,7 @@ func testPostStoreGetRepliesForExport(t *testing.T, rctx request.CTX, ss store.S
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	p1 := &model.Post{}
@@ -4424,17 +4424,17 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(u1)
+	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	_, err = ss.User().Save(u2)
+	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{}
@@ -4457,7 +4457,7 @@ func testPostStoreGetDirectPostParentsForExportAfter(t *testing.T, rctx request.
 	p1, nErr = ss.Post().Save(p1)
 	require.NoError(t, nErr)
 
-	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, nErr)
 
 	assert.Equal(t, p1.Message, r1[0].Message)
@@ -4479,18 +4479,18 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	u1.DeleteAt = 1
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(u1)
+	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
-	_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+	_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 	require.NoError(t, nErr)
 
 	u2 := &model.User{}
 	u2.DeleteAt = 1
 	u2.Email = MakeEmail()
 	u2.Nickname = model.NewId()
-	_, err = ss.User().Save(u2)
+	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
-	_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 	require.NoError(t, nErr)
 
 	m1 := model.ChannelMember{}
@@ -4514,19 +4514,16 @@ func testPostStoreGetDirectPostParentsForExportAfterDeleted(t *testing.T, rctx r
 	p1.UserId = u1.Id
 	p1.Message = NewTestId()
 	p1.CreateAt = 1000
-	p1, nErr = ss.Post().Save(p1)
+	_, nErr = ss.Post().Save(p1)
 	require.NoError(t, nErr)
 
-	o1a := p1.Clone()
-	o1a.DeleteAt = 1
-	o1a.Message = p1.Message + "BBBBBBBBBB"
-	_, nErr = ss.Post().Update(rctx, o1a, p1)
-	require.NoError(t, nErr)
-
-	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	r1, nErr := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, nErr)
-
 	assert.Equal(t, 0, len(r1))
+
+	r1, nErr = ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), true)
+	assert.NoError(t, nErr)
+	assert.Equal(t, 1, len(r1))
 
 	// Manually truncate Channels table until testlib can handle cleanups
 	s.GetMasterX().Exec("TRUNCATE Channels")
@@ -4546,17 +4543,17 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 		u1 := &model.User{}
 		u1.Email = MakeEmail()
 		u1.Nickname = model.NewId()
-		_, err := ss.User().Save(u1)
+		_, err := ss.User().Save(rctx, u1)
 		require.NoError(t, err)
-		_, nErr := ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
+		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u1.Id}, -1)
 		require.NoError(t, nErr)
 
 		u2 := &model.User{}
 		u2.Email = MakeEmail()
 		u2.Nickname = model.NewId()
-		_, err = ss.User().Save(u2)
+		_, err = ss.User().Save(rctx, u2)
 		require.NoError(t, err)
-		_, nErr = ss.Team().SaveMember(&model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
+		_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: model.NewId(), UserId: u2.Id}, -1)
 		require.NoError(t, nErr)
 
 		m1 := model.ChannelMember{}
@@ -4583,7 +4580,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	sort.Slice(postIds, func(i, j int) bool { return postIds[i] < postIds[j] })
 
 	// Get all posts
-	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26))
+	r1, err := ss.Post().GetDirectPostParentsForExportAfter(10000, strings.Repeat("0", 26), false)
 	assert.NoError(t, err)
 	assert.Equal(t, len(postIds), len(r1))
 	var exportedPostIds []string
@@ -4594,7 +4591,7 @@ func testPostStoreGetDirectPostParentsForExportAfterBatched(t *testing.T, rctx r
 	assert.ElementsMatch(t, postIds, exportedPostIds)
 
 	// Get 100
-	r1, err = ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26))
+	r1, err = ss.Post().GetDirectPostParentsForExportAfter(100, strings.Repeat("0", 26), false)
 	assert.NoError(t, err)
 	assert.Equal(t, 100, len(r1))
 	exportedPostIds = []string{}
@@ -4985,7 +4982,7 @@ func testGetPostReminderMetadata(t *testing.T, rctx request.CTX, ss store.Store,
 		Locale:   "es",
 	}
 
-	u1, err = ss.User().Save(u1)
+	u1, err = ss.User().Save(rctx, u1)
 	require.NoError(t, err)
 
 	p1 := &model.Post{
