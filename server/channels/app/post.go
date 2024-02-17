@@ -474,7 +474,7 @@ func (a *App) FillInPostProps(c request.CTX, post *model.Post, channel *model.Ch
 			channel = postChannel
 		}
 
-		mentionedChannels, err := a.GetChannelsByNames(c, channelMentions, channel.TeamId)
+		mentionedChannels, err := a.GetChannelsByNames(channelMentions, channel.TeamId)
 		if err != nil {
 			return err
 		}

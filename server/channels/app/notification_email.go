@@ -109,7 +109,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		}
 	}
 
-	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
+	landingURL := a.GetSiteURL() + "/" + team.Name
 
 	var bodyText, err = a.getNotificationEmailBody(c, user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
 	if err != nil {
@@ -234,20 +234,8 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	}
 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
-		postMessage := a.GetMessageForNotification(post, translateFunc)
-		postMessage = html.EscapeString(postMessage)
-		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage, a.GetSiteURL())
-		if mdErr != nil {
-			c.Logger().Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
-			mdPostMessage = postMessage
-		}
-
-		normalizedPostMessage, err := a.generateHyperlinkForChannels(c, mdPostMessage, teamName, landingURL)
-		if err != nil {
-			c.Logger().Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
-			normalizedPostMessage = mdPostMessage
-		}
-		pData.Message = template.HTML(normalizedPostMessage)
+		postMessage := a.GetMessageForNotification(post, teamName, a.GetSiteURL(), translateFunc)
+		pData.Message = template.HTML(postMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
 		pData.MessageAttachments = email.ProcessMessageAttachments(post, a.GetSiteURL())
 	}
@@ -353,7 +341,7 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 	}
 }
 
-func (a *App) generateHyperlinkForChannels(c request.CTX, postMessage, teamName, teamURL string) (string, *model.AppError) {
+func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, *model.AppError) {
 	team, err := a.GetTeamByName(teamName)
 	if err != nil {
 		return "", err
@@ -364,7 +352,7 @@ func (a *App) generateHyperlinkForChannels(c request.CTX, postMessage, teamName,
 		return postMessage, nil
 	}
 
-	channels, err := a.GetChannelsByNames(c, channelNames, team.Id)
+	channels, err := a.GetChannelsByNames(channelNames, team.Id)
 	if err != nil {
 		return "", err
 	}
@@ -381,6 +369,6 @@ func (a *App) generateHyperlinkForChannels(c request.CTX, postMessage, teamName,
 	return postMessage, nil
 }
 
-func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
-	return a.Srv().EmailService.GetMessageForNotification(post, translateFunc)
+func (a *App) GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string {
+	return a.Srv().EmailService.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
 }

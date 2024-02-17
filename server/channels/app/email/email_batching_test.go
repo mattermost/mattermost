@@ -283,22 +283,3 @@ func TestCheckPendingNotificationsCantParseInterval(t *testing.T) {
 
 	require.Nil(t, job.pendingNotifications[th.BasicUser.Id], "should have sent queued post")
 }
-
-func TestGenerateHyperlinkForChannels(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-
-	require.NotNil(t, th.store)
-	require.NotNil(t, th.store.Channel())
-	require.NotNil(t, th.BasicChannel)
-	require.NotNil(t, th.BasicUser)
-
-	siteUrl := "https://test-mattermost.com"
-	channelName := th.BasicChannel.Name
-	normalizedMessage, err := th.service.GenerateHyperlinkForChannels(th.BasicTeam.Id, "Welcome to ~"+channelName, siteUrl)
-	require.Nil(t, err)
-	require.NotEmpty(t, normalizedMessage)
-
-	expectedNormalizedMessage := "Welcome to " + "<a href='https://test-mattermost.com/channels/" + channelName + "'>" + "~" + channelName + "</a>"
-	require.Equal(t, expectedNormalizedMessage, normalizedMessage)
-}

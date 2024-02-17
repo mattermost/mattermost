@@ -5666,7 +5666,7 @@ func (a *OpenTracingAppLayer) GetChannels(c request.CTX, channelIDs []string) ([
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetChannelsByNames(c request.CTX, channelNames []string, teamID string) ([]*model.Channel, *model.AppError) {
+func (a *OpenTracingAppLayer) GetChannelsByNames(channelNames []string, teamID string) ([]*model.Channel, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetChannelsByNames")
 
@@ -5678,7 +5678,7 @@ func (a *OpenTracingAppLayer) GetChannelsByNames(c request.CTX, channelNames []s
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetChannelsByNames(c, channelNames, teamID)
+	resultVar0, resultVar1 := a.app.GetChannelsByNames(channelNames, teamID)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -7401,7 +7401,7 @@ func (a *OpenTracingAppLayer) GetMemberCountsByGroup(rctx request.CTX, channelID
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMessageForNotification")
 
@@ -7413,7 +7413,7 @@ func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, transl
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetMessageForNotification(post, translateFunc)
+	resultVar0 := a.app.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
 
 	return resultVar0
 }

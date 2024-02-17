@@ -1933,7 +1933,7 @@ func (a *App) GetChannelByName(c request.CTX, channelName, teamID string, includ
 	return channel, nil
 }
 
-func (a *App) GetChannelsByNames(c request.CTX, channelNames []string, teamID string) ([]*model.Channel, *model.AppError) {
+func (a *App) GetChannelsByNames(channelNames []string, teamID string) ([]*model.Channel, *model.AppError) {
 	channels, err := a.Srv().Store().Channel().GetByNames(teamID, channelNames, true)
 	if err != nil {
 		return nil, model.NewAppError("GetChannelsByNames", "app.channel.get_by_name.existing.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
@@ -3457,7 +3457,7 @@ func (a *App) FillInChannelsProps(c request.CTX, channelList model.ChannelList) 
 		}
 
 		if len(allChannelMentionNames) > 0 {
-			mentionedChannels, err := a.GetChannelsByNames(c, allChannelMentionNames, teamID)
+			mentionedChannels, err := a.GetChannelsByNames(allChannelMentionNames, teamID)
 			if err != nil {
 				return err
 			}
