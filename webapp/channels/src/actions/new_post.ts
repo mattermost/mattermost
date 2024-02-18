@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type * as Redux from 'redux';
+import type {AnyAction} from 'redux';
 import {batchActions} from 'redux-batched-actions';
 
 import type {Post} from '@mattermost/types/posts';
@@ -48,7 +48,7 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
                 return {error: result.error};
             }
         }
-        const actions: Redux.AnyAction[] = [];
+        const actions: AnyAction[] = [];
 
         if (post.channel_id === getCurrentChannelId(getState())) {
             actions.push({
@@ -85,7 +85,7 @@ export function completePostReceive(post: Post, websocketMessageProps: NewPostMe
 
 // setChannelReadAndViewed returns an array of actions to mark the channel read and viewed, and it dispatches an action
 // to asynchronously mark the channel as read on the server if necessary.
-export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetStateFunc, post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): Redux.AnyAction[] {
+export function setChannelReadAndViewed(dispatch: DispatchFunc, getState: GetStateFunc, post: Post, websocketMessageProps: NewPostMessageProps, fetchedChannelMember?: boolean): AnyAction[] {
     const state = getState();
     const currentUserId = getCurrentUserId(state);
 

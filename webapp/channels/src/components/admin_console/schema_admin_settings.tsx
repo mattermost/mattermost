@@ -94,7 +94,7 @@ function descriptorOrStringToString(text: string | MessageDescriptor | undefined
     return typeof text === 'string' ? text : intl.formatMessage(text, values);
 }
 
-class SchemaAdminSettings extends React.PureComponent<Props, State> {
+export class SchemaAdminSettings extends React.PureComponent<Props, State> {
     private isPlugin: boolean;
     private saveActions: Array<() => Promise<{error?: {message?: string}}>>;
     private buildSettingFunctions: {[x: string]: (setting: any) => JSX.Element};
@@ -329,18 +329,24 @@ class SchemaAdminSettings extends React.PureComponent<Props, State> {
         if (!this.props.schema) {
             return '';
         }
-        if (!('name' in this.props.schema)) {
-            return this.props.schema.id;
+
+        let name: string | MessageDescriptor = this.props.schema.id;
+        if (('name' in this.props.schema)) {
+            name = this.props.schema.name;
         }
 
-        if (typeof this.props.schema.name === 'string') {
-            return this.props.schema.name;
+        if (typeof name === 'string') {
+            return (
+                <AdminHeader>
+                    {name}
+                </AdminHeader>
+            );
         }
 
         return (
             <AdminHeader>
                 <FormattedMessage
-                    {...this.props.schema.name}
+                    {...name}
                 />
             </AdminHeader>
         );

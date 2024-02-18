@@ -706,7 +706,7 @@ func (si *SlackImporter) oldImportUser(rctx request.CTX, team *model.Team, user 
 
 	user.Roles = model.SystemUserRoleId
 
-	ruser, nErr := si.store.User().Save(user)
+	ruser, nErr := si.store.User().Save(rctx, user)
 	if nErr != nil {
 		rctx.Logger().Debug("Error saving user.", mlog.Err(nErr))
 		return nil

@@ -46,4 +46,5 @@ const (
 	MigrationKeyDeleteEmptyDrafts                      = "delete_empty_drafts_migration"
 	MigrationKeyDeleteOrphanDrafts                     = "delete_orphan_drafts_migration"
 	MigrationKeyAddIPFilteringPermissions              = "add_ip_filtering_permissions"
+	MigrationKeyAddOutgoingOAuthConnectionsPermissions = "add_outgoing_oauth_connections_permissions"
 )

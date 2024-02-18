@@ -21,12 +21,7 @@ import (
 
 func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
-	if handler, ok := ch.routerSvc.getHandler(params["plugin_id"]); ok {
-		ch.servePluginRequest(w, r, func(*plugin.Context, http.ResponseWriter, *http.Request) {
-			handler.ServeHTTP(w, r)
-		})
-		return
-	}
+	pluginID := params["plugin_id"]
 
 	pluginsEnvironment := ch.GetPluginsEnvironment()
 	if pluginsEnvironment == nil {
@@ -38,10 +33,10 @@ func (ch *Channels) ServePluginRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	hooks, err := pluginsEnvironment.HooksForPlugin(params["plugin_id"])
+	hooks, err := pluginsEnvironment.HooksForPlugin(pluginID)
 	if err != nil {
 		mlog.Debug("Access to route for non-existent plugin",
-			mlog.String("missing_plugin_id", params["plugin_id"]),
+			mlog.String("missing_plugin_id", pluginID),
 			mlog.String("url", r.URL.String()),
 			mlog.Err(err))
 		http.NotFound(w, r)

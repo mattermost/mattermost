@@ -59,6 +59,34 @@ func (_m *OutgoingOAuthConnectionInterface) GetConnection(rctx request.CTX, id s
 	return r0, r1
 }
 
+// GetConnectionForAudience provides a mock function with given fields: rctx, url
+func (_m *OutgoingOAuthConnectionInterface) GetConnectionForAudience(rctx request.CTX, url string) (*model.OutgoingOAuthConnection, *model.AppError) {
+	ret := _m.Called(rctx, url)
+
+	var r0 *model.OutgoingOAuthConnection
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, string) (*model.OutgoingOAuthConnection, *model.AppError)); ok {
+		return rf(rctx, url)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, string) *model.OutgoingOAuthConnection); ok {
+		r0 = rf(rctx, url)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OutgoingOAuthConnection)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, string) *model.AppError); ok {
+		r1 = rf(rctx, url)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
 // GetConnections provides a mock function with given fields: rctx, filters
 func (_m *OutgoingOAuthConnectionInterface) GetConnections(rctx request.CTX, filters model.OutgoingOAuthConnectionGetConnectionsFilter) ([]*model.OutgoingOAuthConnection, *model.AppError) {
 	ret := _m.Called(rctx, filters)
@@ -78,6 +106,34 @@ func (_m *OutgoingOAuthConnectionInterface) GetConnections(rctx request.CTX, fil
 
 	if rf, ok := ret.Get(1).(func(request.CTX, model.OutgoingOAuthConnectionGetConnectionsFilter) *model.AppError); ok {
 		r1 = rf(rctx, filters)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(*model.AppError)
+		}
+	}
+
+	return r0, r1
+}
+
+// RetrieveTokenForConnection provides a mock function with given fields: rctx, conn
+func (_m *OutgoingOAuthConnectionInterface) RetrieveTokenForConnection(rctx request.CTX, conn *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnectionToken, *model.AppError) {
+	ret := _m.Called(rctx, conn)
+
+	var r0 *model.OutgoingOAuthConnectionToken
+	var r1 *model.AppError
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.OutgoingOAuthConnection) (*model.OutgoingOAuthConnectionToken, *model.AppError)); ok {
+		return rf(rctx, conn)
+	}
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.OutgoingOAuthConnection) *model.OutgoingOAuthConnectionToken); ok {
+		r0 = rf(rctx, conn)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.OutgoingOAuthConnectionToken)
+		}
+	}
+
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.OutgoingOAuthConnection) *model.AppError); ok {
+		r1 = rf(rctx, conn)
 	} else {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(*model.AppError)

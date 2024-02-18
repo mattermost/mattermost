@@ -10086,10 +10086,6 @@
     "translation": "不正な入力パラメータです。"
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "この機能はフィーチャーフラグによって制限されています。"
-  },
-  {
     "id": "api.getUsersForReporting.invalid_active_filter",
     "translation": "アクティブなユーザーと非アクティブなユーザーの両方を非表示にすることはできません。"
   },

@@ -123,7 +123,7 @@ func testUserAccessTokenSearch(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1.Email = MakeEmail()
 	u1.Username = model.NewId()
 
-	_, err := ss.User().Save(&u1)
+	_, err := ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	uat := &model.UserAccessToken{

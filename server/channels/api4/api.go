@@ -277,7 +277,7 @@ func Init(srv *app.Server) (*API, error) {
 	api.BaseRoutes.Limits = api.BaseRoutes.APIRoot.PathPrefix("/limits").Subrouter()
 
 	api.BaseRoutes.OutgoingOAuthConnections = api.BaseRoutes.APIRoot.PathPrefix("/oauth/outgoing_connections").Subrouter()
-	api.BaseRoutes.OutgoingOAuthConnection = api.BaseRoutes.APIRoot.PathPrefix("/oauth/outgoing_connections/{outgoing_oauth_connection_id:[A-Za-z0-9]+}").Subrouter()
+	api.BaseRoutes.OutgoingOAuthConnection = api.BaseRoutes.OutgoingOAuthConnections.PathPrefix("/{outgoing_oauth_connection_id:[A-Za-z0-9]+}").Subrouter()
 
 	api.InitUser()
 	api.InitBot()

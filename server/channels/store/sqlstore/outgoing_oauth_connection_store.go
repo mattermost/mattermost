@@ -5,6 +5,9 @@ package sqlstore
 
 import (
 	"database/sql"
+	"fmt"
+
+	sq "github.com/mattermost/squirrel"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -49,9 +52,33 @@ func (s *SqlOutgoingOAuthConnectionStore) UpdateConnection(c request.CTX, conn *
 		return nil, err
 	}
 
-	if _, err := s.GetMasterX().NamedExec(`UPDATE OutgoingOAuthConnections SET
-	Name=:Name, ClientId=:ClientId, ClientSecret=:ClientSecret, UpdateAt=:UpdateAt, OAuthTokenURL=:OAuthTokenURL, GrantType=:GrantType, Audiences=:Audiences
-	WHERE Id=:Id`, conn); err != nil {
+	query := s.getQueryBuilder().Update("OutgoingOAuthConnections").Where(sq.Eq{"Id": conn.Id}).Set("UpdateAt", conn.UpdateAt)
+	if conn.Name != "" {
+		query = query.Set("Name", conn.Name)
+	}
+	if conn.ClientId != "" {
+		query = query.Set("ClientId", conn.ClientId)
+	}
+	if conn.ClientSecret != "" {
+		query = query.Set("ClientSecret", conn.ClientSecret)
+	}
+	if conn.OAuthTokenURL != "" {
+		query = query.Set("OAuthTokenURL", conn.OAuthTokenURL)
+	}
+	if conn.GrantType != "" {
+		query = query.Set("GrantType", conn.GrantType)
+	}
+	if len(conn.Audiences) > 0 {
+		query = query.Set("Audiences", conn.Audiences)
+	}
+	if conn.CredentialsUsername != nil {
+		query = query.Set("CredentialsUsername", conn.CredentialsUsername)
+	}
+	if conn.CredentialsPassword != nil {
+		query = query.Set("CredentialsPassword", conn.CredentialsPassword)
+	}
+
+	if _, err := s.GetMasterX().ExecBuilder(query); err != nil {
 		return nil, errors.Wrap(err, "failed to update OutgoingOAuthConnection")
 	}
 	return conn, nil
@@ -80,6 +107,10 @@ func (s *SqlOutgoingOAuthConnectionStore) GetConnections(c request.CTX, filters 
 
 	if filters.OffsetId != "" {
 		query = query.Where("Id > ?", filters.OffsetId)
+	}
+
+	if filters.Audience != "" {
+		query = query.Where(sq.Like{"Audiences": fmt.Sprint("%", filters.Audience, "%")})
 	}
 
 	if err := s.GetReplicaX().SelectBuilder(&conns, query); err != nil {

@@ -17,27 +17,28 @@ type SharedChannelServiceIFace interface {
 	NotifyUserProfileChanged(userID string)
 	SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error
 	Active() bool
+	InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error
+	UninviteRemoteFromChannel(channelID, remoteID string) error
+	ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	UpdateSharedChannel(sc *model.SharedChannel) (*model.SharedChannel, error)
+	UnshareChannel(channelID string) (bool, error)
+	CheckChannelNotShared(channelID string) error
+	CheckChannelIsShared(channelID string) error
+	CheckCanInviteToSharedChannel(channelId string) error
 }
 
-type MockOptionSharedChannelService func(service *mockSharedChannelService)
-
-func MockOptionSharedChannelServiceWithActive(active bool) MockOptionSharedChannelService {
-	return func(mrcs *mockSharedChannelService) {
-		mrcs.active = active
-	}
-}
-
-func NewMockSharedChannelService(service SharedChannelServiceIFace, options ...MockOptionSharedChannelService) *mockSharedChannelService {
-	mrcs := &mockSharedChannelService{service, true, []string{}, []string{}, 0}
-	for _, option := range options {
-		option(mrcs)
+func NewMockSharedChannelService(service SharedChannelServiceIFace) *mockSharedChannelService {
+	mrcs := &mockSharedChannelService{
+		SharedChannelServiceIFace: service,
+		channelNotifications:      []string{},
+		userProfileNotifications:  []string{},
+		numInvitations:            0,
 	}
 	return mrcs
 }
 
 type mockSharedChannelService struct {
 	SharedChannelServiceIFace
-	active                   bool
 	channelNotifications     []string
 	userProfileNotifications []string
 	numInvitations           int
@@ -45,26 +46,44 @@ type mockSharedChannelService struct {
 
 func (mrcs *mockSharedChannelService) NotifyChannelChanged(channelId string) {
 	mrcs.channelNotifications = append(mrcs.channelNotifications, channelId)
+	if mrcs.SharedChannelServiceIFace != nil {
+		mrcs.SharedChannelServiceIFace.NotifyChannelChanged(channelId)
+	}
 }
 
 func (mrcs *mockSharedChannelService) NotifyUserProfileChanged(userId string) {
 	mrcs.userProfileNotifications = append(mrcs.userProfileNotifications, userId)
+	if mrcs.SharedChannelServiceIFace != nil {
+		mrcs.SharedChannelServiceIFace.NotifyUserProfileChanged(userId)
+	}
 }
 
 func (mrcs *mockSharedChannelService) Shutdown() error {
+	if mrcs.SharedChannelServiceIFace != nil {
+		return mrcs.SharedChannelServiceIFace.Shutdown()
+	}
 	return nil
 }
 
 func (mrcs *mockSharedChannelService) Start() error {
+	if mrcs.SharedChannelServiceIFace != nil {
+		return mrcs.SharedChannelServiceIFace.Start()
+	}
 	return nil
 }
 
 func (mrcs *mockSharedChannelService) Active() bool {
-	return mrcs.active
+	if mrcs.SharedChannelServiceIFace != nil {
+		return mrcs.SharedChannelServiceIFace.Active()
+	}
+	return false
 }
 
 func (mrcs *mockSharedChannelService) SendChannelInvite(channel *model.Channel, userId string, rc *model.RemoteCluster, options ...sharedchannel.InviteOption) error {
 	mrcs.numInvitations += 1
+	if mrcs.SharedChannelServiceIFace != nil {
+		return mrcs.SharedChannelServiceIFace.SendChannelInvite(channel, userId, rc, options...)
+	}
 	return nil
 }
 

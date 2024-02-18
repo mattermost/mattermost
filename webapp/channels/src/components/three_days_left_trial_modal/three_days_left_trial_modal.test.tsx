@@ -66,7 +66,7 @@ describe('components/three_days_left_trial_modal/three_days_left_trial_modal', (
             modals: {
                 modalState: {
                     three_days_left_trial_modal: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },

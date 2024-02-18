@@ -5,7 +5,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
-import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {AnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import type {ClientLicense} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -52,7 +52,7 @@ type Props = {
 
     license: ClientLicense;
 
-    stats: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>>;
+    stats: RelationOneToOne<Team, AnalyticsState>;
 
     actions: {
 
@@ -129,7 +129,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         }
     }
 
-    private getStatValue(stat: number | AnalyticsRow[]): number | undefined {
+    private getStatValue(stat: number | AnalyticsRow[] | undefined): number | undefined {
         if (typeof stat === 'number') {
             return stat;
         }

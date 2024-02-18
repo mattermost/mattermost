@@ -303,7 +303,7 @@ func TestAddUserToGroupSyncables(t *testing.T) {
 		AuthData:    &id,
 		AuthService: model.UserAuthServiceLdap,
 	}
-	user, err = th.App.Srv().Store().User().Save(user)
+	user, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.NoError(t, err)
 
 	resp, err = th.SystemAdminClient.AddUserToGroupSyncables(context.Background(), user.Id)

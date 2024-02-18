@@ -288,11 +288,6 @@ func (_m *MockAppIface) GetProfileImage(user *model.User) ([]byte, bool, *model.
 	return r0, r1, r2
 }
 
-// InvalidateCacheForUser provides a mock function with given fields: userID
-func (_m *MockAppIface) InvalidateCacheForUser(userID string) {
-	_m.Called(userID)
-}
-
 // MentionsToTeamMembers provides a mock function with given fields: c, message, teamID
 func (_m *MockAppIface) MentionsToTeamMembers(c request.CTX, message string, teamID string) model.UserMentionMap {
 	ret := _m.Called(c, message, teamID)
@@ -408,6 +403,11 @@ func (_m *MockAppIface) PermanentDeleteChannel(c request.CTX, channel *model.Cha
 	}
 
 	return r0
+}
+
+// Publish provides a mock function with given fields: message
+func (_m *MockAppIface) Publish(message *model.WebSocketEvent) {
+	_m.Called(message)
 }
 
 // SaveReactionForPost provides a mock function with given fields: c, reaction

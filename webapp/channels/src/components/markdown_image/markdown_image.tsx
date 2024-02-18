@@ -36,6 +36,7 @@ export type Props = {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
     hideUtilities?: boolean;
+    isUnsafeLinksPost: boolean;
 };
 
 type State = {
@@ -155,6 +156,9 @@ export default class MarkdownImage extends PureComponent<Props, State> {
                     />
                 </div>
             );
+        }
+        if (this.props.isUnsafeLinksPost) {
+            return <>{alt}</>;
         }
         return (
             <ExternalImage

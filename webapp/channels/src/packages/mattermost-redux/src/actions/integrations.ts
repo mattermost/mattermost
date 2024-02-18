@@ -3,7 +3,7 @@
 
 import {batchActions} from 'redux-batched-actions';
 
-import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingWebhook, SubmitDialogResponse} from '@mattermost/types/integrations';
+import type {Command, CommandArgs, DialogSubmission, IncomingWebhook, OAuthApp, OutgoingOAuthConnection, OutgoingWebhook, SubmitDialogResponse} from '@mattermost/types/integrations';
 
 import {IntegrationTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
@@ -297,6 +297,74 @@ export function getOAuthApps(page = 0, perPage: number = General.PAGE_SIZE_DEFAU
     });
 }
 
+export function getOutgoingOAuthConnections(teamId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
+    return bindClientFunc({
+        clientFunc: Client4.getOutgoingOAuthConnections,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS],
+        params: [
+            teamId,
+            page,
+            perPage,
+        ],
+    });
+}
+
+export function getOutgoingOAuthConnectionsForAudience(teamId: string, audience: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
+    return bindClientFunc({
+        clientFunc: Client4.getOutgoingOAuthConnectionsForAudience,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS],
+        params: [
+            teamId,
+            audience,
+            page,
+            perPage,
+        ],
+    });
+}
+
+export function addOutgoingOAuthConnection(teamId: string, connection: OutgoingOAuthConnection) {
+    return bindClientFunc({
+        clientFunc: Client4.createOutgoingOAuthConnection,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
+        params: [
+            teamId,
+            connection,
+        ],
+    });
+}
+
+export function editOutgoingOAuthConnection(teamId: string, connection: OutgoingOAuthConnection) {
+    return bindClientFunc({
+        clientFunc: Client4.editOutgoingOAuthConnection,
+        onSuccess: IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION,
+        params: [
+            teamId,
+            connection,
+        ],
+    });
+}
+
+export function getOutgoingOAuthConnection(teamId: string, connectionId: string) {
+    return bindClientFunc({
+        clientFunc: Client4.getOutgoingOAuthConnection,
+        onSuccess: [IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION],
+        params: [
+            teamId,
+            connectionId,
+        ],
+    });
+}
+
+export function validateOutgoingOAuthConnection(teamId: string, connection: OutgoingOAuthConnection) {
+    return bindClientFunc({
+        clientFunc: Client4.validateOutgoingOAuthConnection,
+        params: [
+            teamId,
+            connection,
+        ],
+    });
+}
+
 export function getAppsOAuthAppIDs() {
     return bindClientFunc({
         clientFunc: Client4.getAppsOAuthAppIDs,
@@ -378,6 +446,26 @@ export function regenOAuthAppSecret(appId: string) {
             appId,
         ],
     });
+}
+
+export function deleteOutgoingOAuthConnection(id: string): ActionFuncAsync<boolean> {
+    return async (dispatch, getState) => {
+        try {
+            await Client4.deleteOutgoingOAuthConnection(id);
+        } catch (error) {
+            forceLogoutIfNecessary(error, dispatch, getState);
+
+            dispatch(logError(error));
+            return {error};
+        }
+
+        dispatch({
+            type: IntegrationTypes.DELETED_OUTGOING_OAUTH_CONNECTION,
+            data: {id},
+        });
+
+        return {data: true};
+    };
 }
 
 export function submitInteractiveDialog(submission: DialogSubmission): ActionFuncAsync<SubmitDialogResponse> {

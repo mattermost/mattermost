@@ -76,7 +76,7 @@ describe('components/dot_menu/DotMenu', () => {
                 },
                 currentUserId: 'current_user_id',
                 profilesInChannel: {
-                    current_user_id: ['user_1'],
+                    current_user_id: new Set(['user_1']),
                 },
             },
             teams: {

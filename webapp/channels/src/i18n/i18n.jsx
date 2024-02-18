@@ -4,7 +4,7 @@
 /* eslint-disable import/order */
 import bg from './bg.json';
 import de from './de.json';
-import enAU from './en_AU.json';
+import enAU from './en-AU.json';
 import es from './es.json';
 import fa from './fa.json';
 import fr from './fr.json';
@@ -50,7 +50,7 @@ const languages = {
     },
     es: {
         value: 'es',
-        name: 'Español',
+        name: 'Español (Beta)',
         order: 3,
         url: es,
     },
@@ -68,7 +68,7 @@ const languages = {
     },
     hu: {
         value: 'hu',
-        name: 'Magyar',
+        name: 'Magyar (Beta)',
         order: 6,
         url: hu,
     },
@@ -146,7 +146,7 @@ const languages = {
     },
     'zh-CN': {
         value: 'zh-CN',
-        name: '中文 (简体) (Alpha)',
+        name: '中文 (简体) (Beta)',
         order: 19,
         url: zhCN,
     },

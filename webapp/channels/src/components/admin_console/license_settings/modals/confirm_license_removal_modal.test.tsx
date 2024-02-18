@@ -24,7 +24,7 @@ describe('components/admin_console/license_settings/modals/confirm_license_remov
             modals: {
                 modalState: {
                     confirm_license_removal: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },

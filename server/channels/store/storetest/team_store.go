@@ -1206,17 +1206,17 @@ func testGetMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 		u5 := &model.User{Username: "e", Email: MakeEmail(), DeleteAt: int64(1)}
 		u6 := &model.User{Username: "d", Email: MakeEmail()}
 
-		u1, err := ss.User().Save(u1)
+		u1, err := ss.User().Save(rctx, u1)
 		require.NoError(t, err)
-		u2, err = ss.User().Save(u2)
+		u2, err = ss.User().Save(rctx, u2)
 		require.NoError(t, err)
-		u3, err = ss.User().Save(u3)
+		u3, err = ss.User().Save(rctx, u3)
 		require.NoError(t, err)
-		u4, err = ss.User().Save(u4)
+		u4, err = ss.User().Save(rctx, u4)
 		require.NoError(t, err)
-		u5, err = ss.User().Save(u5)
+		u5, err = ss.User().Save(rctx, u5)
 		require.NoError(t, err)
-		u6, err = ss.User().Save(u6)
+		u6, err = ss.User().Save(rctx, u6)
 		require.NoError(t, err)
 
 		m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
@@ -1258,17 +1258,17 @@ func testGetMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 		u5 := &model.User{Email: MakeEmail()}
 		u6 := &model.User{Email: MakeEmail(), DeleteAt: int64(5)}
 
-		u1, err := ss.User().Save(u1)
+		u1, err := ss.User().Save(rctx, u1)
 		require.NoError(t, err)
-		u2, err = ss.User().Save(u2)
+		u2, err = ss.User().Save(rctx, u2)
 		require.NoError(t, err)
-		u3, err = ss.User().Save(u3)
+		u3, err = ss.User().Save(rctx, u3)
 		require.NoError(t, err)
-		u4, err = ss.User().Save(u4)
+		u4, err = ss.User().Save(rctx, u4)
 		require.NoError(t, err)
-		u5, err = ss.User().Save(u5)
+		u5, err = ss.User().Save(rctx, u5)
 		require.NoError(t, err)
-		u6, err = ss.User().Save(u6)
+		u6, err = ss.User().Save(rctx, u6)
 		require.NoError(t, err)
 
 		m1 := &model.TeamMember{TeamId: teamId1, UserId: u1.Id}
@@ -1377,9 +1377,9 @@ func testTeamMembers(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("not valid team member", func(t *testing.T) {
@@ -1713,13 +1713,13 @@ func testTeamSaveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("any not valid team member", func(t *testing.T) {
@@ -2092,7 +2092,7 @@ func testTeamSaveMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store)
 }
 
 func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("not valid team member", func(t *testing.T) {
@@ -2398,9 +2398,9 @@ func testTeamUpdateMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 
 	t.Run("any not valid team member", func(t *testing.T) {
@@ -2721,13 +2721,13 @@ func testTeamUpdateMultipleMembers(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	teamID := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
@@ -2767,13 +2767,13 @@ func testTeamRemoveMember(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testTeamRemoveMembers(t *testing.T, rctx request.CTX, ss store.Store) {
-	u1, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u1, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u2, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u2, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u3, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u3, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
-	u4, err := ss.User().Save(&model.User{Username: model.NewId(), Email: MakeEmail()})
+	u4, err := ss.User().Save(rctx, &model.User{Username: model.NewId(), Email: MakeEmail()})
 	require.NoError(t, err)
 	teamID := model.NewId()
 	m1 := &model.TeamMember{TeamId: teamID, UserId: u1.Id}
@@ -2887,7 +2887,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	userIds := make([]string, maxUsersPerTeam)
 
 	for i := 0; i < maxUsersPerTeam; i++ {
-		user, err := ss.User().Save(&model.User{
+		user, err := ss.User().Save(rctx, &model.User{
 			Username: NewTestId(),
 			Email:    MakeEmail(),
 		})
@@ -2913,7 +2913,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, err)
 	require.Equal(t, int(totalMemberCount), maxUsersPerTeam, "should start with 5 team members, had %v instead", totalMemberCount)
 
-	user, nErr := ss.User().Save(&model.User{
+	user, nErr := ss.User().Save(rctx, &model.User{
 		Username: NewTestId(),
 		Email:    MakeEmail(),
 	})
@@ -2961,7 +2961,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	_, nErr = ss.User().Update(rctx, user2, true)
 	require.NoError(t, nErr)
 
-	user, nErr = ss.User().Save(&model.User{
+	user, nErr = ss.User().Save(rctx, &model.User{
 		Username: NewTestId(),
 		Email:    MakeEmail(),
 	})
@@ -3068,13 +3068,13 @@ func testGetTeamMembersByIds(t *testing.T, rctx request.CTX, ss store.Store) {
 func testTeamStoreMemberCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1 := &model.User{}
 	u1.Email = MakeEmail()
-	_, err := ss.User().Save(u1)
+	_, err := ss.User().Save(rctx, u1)
 	require.NoError(t, err)
 
 	u2 := &model.User{}
 	u2.Email = MakeEmail()
 	u2.DeleteAt = 1
-	_, err = ss.User().Save(u2)
+	_, err = ss.User().Save(rctx, u2)
 	require.NoError(t, err)
 
 	teamId1 := model.NewId()
@@ -3558,13 +3558,13 @@ func testTeamStoreGetTeamMembersForExport(t *testing.T, rctx request.CTX, ss sto
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = NewTestId()
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = NewTestId()
-	_, err = ss.User().Save(&u2)
+	_, err = ss.User().Save(rctx, &u2)
 	require.NoError(t, err)
 
 	m1 := &model.TeamMember{TeamId: t1.Id, UserId: u1.Id}
@@ -3655,14 +3655,14 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 	u1 := model.User{}
 	u1.Email = MakeEmail()
 	u1.Nickname = NewTestId()
-	_, err = ss.User().Save(&u1)
+	_, err = ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	// User 2
 	u2 := model.User{}
 	u2.Email = MakeEmail()
 	u2.Nickname = NewTestId()
-	_, err = ss.User().Save(&u2)
+	_, err = ss.User().Save(rctx, &u2)
 	require.NoError(t, err)
 
 	t.Run("multiple common teams exist", func(t *testing.T) {
@@ -3772,14 +3772,14 @@ func testGetCommonTeamIDsForMultipleUsers(t *testing.T, rctx request.CTX, ss sto
 		u3 := model.User{}
 		u3.Email = MakeEmail()
 		u3.Nickname = NewTestId()
-		_, err = ss.User().Save(&u3)
+		_, err = ss.User().Save(rctx, &u3)
 		require.NoError(t, err)
 
 		// User 4
 		u4 := model.User{}
 		u4.Email = MakeEmail()
 		u4.Nickname = NewTestId()
-		_, err = ss.User().Save(&u4)
+		_, err = ss.User().Save(rctx, &u4)
 		require.NoError(t, err)
 
 		// Add user 1 in team 1 and 2

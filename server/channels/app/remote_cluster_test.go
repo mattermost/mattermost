@@ -13,8 +13,14 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 )
 
+func setupRemoteCluster(tb testing.TB) *TestHelper {
+	return SetupConfig(tb, func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.EnableRemoteClusterService = true
+	})
+}
+
 func TestAddRemoteCluster(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupRemoteCluster(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("adding remote cluster with duplicate site url and remote team id", func(t *testing.T) {
@@ -68,7 +74,7 @@ func TestAddRemoteCluster(t *testing.T) {
 }
 
 func TestUpdateRemoteCluster(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupRemoteCluster(t).InitBasic()
 	defer th.TearDown()
 
 	t.Run("update remote cluster with an already existing site url and team id", func(t *testing.T) {

@@ -12,8 +12,15 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 )
 
+func setupSharedChannels(tb testing.TB) *TestHelper {
+	return SetupConfig(tb, func(cfg *model.Config) {
+		*cfg.ExperimentalSettings.EnableRemoteClusterService = true
+		*cfg.ExperimentalSettings.EnableSharedChannels = true
+	})
+}
+
 func TestApp_CheckCanInviteToSharedChannel(t *testing.T) {
-	th := Setup(t).InitBasic()
+	th := setupSharedChannels(t).InitBasic()
 
 	channel1 := th.CreateChannel(th.Context, th.BasicTeam)
 	channel2 := th.CreateChannel(th.Context, th.BasicTeam)

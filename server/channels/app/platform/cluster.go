@@ -10,16 +10,9 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
-
-// ensure cluster service wrapper implements `product.ClusterService`
-var _ product.ClusterService = (*PlatformService)(nil)
-
-// Ensure KV store wrapper implements `product.KVStoreService`
-var _ product.KVStoreService = (*PlatformService)(nil)
 
 func (ps *PlatformService) Cluster() einterfaces.ClusterInterface {
 	return ps.clusterIFace
@@ -57,8 +50,7 @@ func (ps *PlatformService) PublishPluginClusterEvent(productID string, ev model.
 		SendType:         opts.SendType,
 		WaitForAllToSend: false,
 		Props: map[string]string{
-			"ProductID": productID,
-			"EventID":   ev.Id,
+			"EventID": ev.Id,
 		},
 		Data: ev.Data,
 	}

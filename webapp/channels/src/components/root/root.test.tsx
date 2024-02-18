@@ -294,4 +294,44 @@ describe('components/Root', () => {
             wrapper.unmount();
         });
     });
+
+    describe('showLandingPageIfNecessary', () => {
+        const landingProps = {
+            ...baseProps,
+            iosDownloadLink: 'http://iosapp.com',
+            androidDownloadLink: 'http://androidapp.com',
+            appDownloadLink: 'http://desktopapp.com',
+            ...{
+                location: {
+                    pathname: '/',
+                    search: '',
+                },
+            } as RouteComponentProps,
+            history: {
+                push: jest.fn(),
+            } as unknown as RouteComponentProps['history'],
+        };
+
+        test('should show for normal cases', () => {
+            const wrapper = shallow(<Root {...landingProps}/>);
+            (wrapper.instance() as any).onConfigLoaded();
+            expect(landingProps.history.push).toHaveBeenCalledWith('/landing#/');
+            wrapper.unmount();
+        });
+
+        test('should not show for Desktop App login flow', () => {
+            const props = {
+                ...landingProps,
+                ...{
+                    location: {
+                        pathname: '/login/desktop',
+                    },
+                } as RouteComponentProps,
+            };
+            const wrapper = shallow(<Root {...props}/>);
+            (wrapper.instance() as any).onConfigLoaded();
+            expect(props.history.push).not.toHaveBeenCalled();
+            wrapper.unmount();
+        });
+    });
 });

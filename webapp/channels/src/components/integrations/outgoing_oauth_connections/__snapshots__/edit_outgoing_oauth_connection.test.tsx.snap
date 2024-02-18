@@ -1,0 +1,2162 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/EditOutgoingOAuthConnection should match snapshot 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <EditOutgoingOAuthConnection
+        location={
+          Object {
+            "search": "?id=facxd9wpzpbpfp8pad78xj75pr",
+          }
+        }
+        oauthApp={
+          Object {
+            "audiences": Array [
+              "https://test.com/callback",
+              "https://test.com/callback2",
+            ],
+            "client_id": "someclientid",
+            "client_secret": "88cxd9wpzpbpfp8pad78xj75pr",
+            "create_at": 1501365458934,
+            "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+            "grant_type": "client_credentials",
+            "id": "facxd9wpzpbpfp8pad78xj75pr",
+            "name": "testApp",
+            "oauth_token_url": "https://mytoken.url",
+            "update_at": 1501365458934,
+          }
+        }
+        team={
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "name",
+            "email": "",
+            "group_constrained": false,
+            "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+            "invite_id": "",
+            "name": "test",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+      >
+        <AbstractOutgoingOAuthConnection
+          footer={
+            Object {
+              "defaultMessage": "Update",
+              "id": "edit_outgoing_oauth_connection.update",
+            }
+          }
+          header={
+            Object {
+              "defaultMessage": "Edit",
+              "id": "integrations.edit",
+            }
+          }
+          initialConnection={
+            Object {
+              "audiences": Array [
+                "https://mysite.com/api",
+                "https://myothersite.com/api/v2",
+              ],
+              "client_id": "client1",
+              "client_secret": "",
+              "create_at": 1501365458934,
+              "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+              "grant_type": "client_credentials",
+              "id": "facxd9wpzpbpfp8pad78xj75pr",
+              "name": "firstConnection",
+              "oauth_token_url": "https://oauthtoken1.com/oauth/token",
+              "update_at": 1501365458934,
+            }
+          }
+          loading={
+            Object {
+              "defaultMessage": "Updating...",
+              "id": "edit_outgoing_oauth_connection.updating",
+            }
+          }
+          renderExtra={
+            <ConfirmModal
+              confirmButtonClass="btn btn-primary"
+              confirmButtonText={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Update"
+                  id="update_command.update"
+                />
+              }
+              message={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Your changes may break any existing integrations using this connection. Are you sure you would like to update it?"
+                  id="update_outgoing_oauth_connection.question"
+                />
+              }
+              modalClass="integrations-backstage-modal"
+              onCancel={[Function]}
+              onConfirm={[Function]}
+              show={false}
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit Outgoing OAuth Connection"
+                  id="update_outgoing_oauth_connection.confirm"
+                />
+              }
+            />
+          }
+          serverError=""
+          submitAction={[Function]}
+          team={
+            Object {
+              "allow_open_invite": false,
+              "allowed_domains": "",
+              "company_name": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "name",
+              "email": "",
+              "group_constrained": false,
+              "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+              "invite_id": "",
+              "name": "test",
+              "scheme_id": "id",
+              "type": "O",
+              "update_at": 0,
+            }
+          }
+        >
+          <div
+            className="backstage-content"
+          >
+            <BackstageHeader>
+              <div
+                className="backstage-header"
+              >
+                <h1>
+                  <Link
+                    to="/test/integrations/outgoing-oauth2-connections"
+                  >
+                    <LinkAnchor
+                      href="/test/integrations/outgoing-oauth2-connections"
+                      navigate={[Function]}
+                    >
+                      <a
+                        href="/test/integrations/outgoing-oauth2-connections"
+                        onClick={[Function]}
+                      >
+                        <FormattedMessage
+                          defaultMessage="Outgoing OAuth Connections"
+                          id="add_outgoing_oauth_connection.header"
+                        >
+                          <span>
+                            Outgoing OAuth Connections
+                          </span>
+                        </FormattedMessage>
+                      </a>
+                    </LinkAnchor>
+                  </Link>
+                  <span
+                    className="backstage-header__divider"
+                    key="divider1"
+                  >
+                    <i
+                      className="fa fa-angle-right"
+                      title="Breadcrumb Icon"
+                    />
+                  </span>
+                  <FormattedMessage
+                    defaultMessage="Edit"
+                    id="integrations.edit"
+                  >
+                    <span>
+                      Edit
+                    </span>
+                  </FormattedMessage>
+                </h1>
+              </div>
+            </BackstageHeader>
+            <div
+              className="backstage-form"
+            >
+              <form
+                className="form-horizontal"
+              >
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="name"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Name"
+                      id="add_outgoing_oauth_connection.name.label"
+                    >
+                      <span>
+                        Name
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      className="form-control"
+                      id="name"
+                      onChange={[Function]}
+                      type="text"
+                      value="firstConnection"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the name for your OAuth connection."
+                        id="add_outgoing_oauth_connection.name.help"
+                      >
+                        <span>
+                          Specify the name for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="client_id"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Client ID"
+                      id="add_outgoing_oauth_connection.client_id.label"
+                    >
+                      <span>
+                        Client ID
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      autoComplete="off"
+                      className="form-control"
+                      id="client_id"
+                      onChange={[Function]}
+                      type="text"
+                      value="client1"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the Client ID for your OAuth connection."
+                        id="add_outgoing_oauth_connection.client_id.help"
+                      >
+                        <span>
+                          Specify the Client ID for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="client_secret"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Client Secret"
+                      id="add_outgoing_oauth_connection.client_secret.label"
+                    >
+                      <span>
+                        Client Secret
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      autoComplete="off"
+                      className="form-control disabled"
+                      disabled={true}
+                      id="client_secret"
+                      type="text"
+                      value="••••••••••••••••••••••••••••••••••••••••"
+                    />
+                    <span
+                      className="outgoing-oauth-connections-edit-secret"
+                      onClick={[Function]}
+                    >
+                      <i
+                        className="icon icon-pencil-outline"
+                      />
+                    </span>
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the Client Secret for your OAuth connection."
+                        id="add_outgoing_oauth_connection.client_secret.help"
+                      >
+                        <span>
+                          Specify the Client Secret for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="oauth_token_url"
+                  >
+                    <FormattedMessage
+                      defaultMessage="OAuth Token URL"
+                      id="add_outgoing_oauth_connection.oauth_token_url.label"
+                    >
+                      <span>
+                        OAuth Token URL
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      className="form-control"
+                      id="token_url"
+                      onChange={[Function]}
+                      type="text"
+                      value="https://oauthtoken1.com/oauth/token"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the OAuth Token URL for your OAuth connection."
+                        id="add_outgoing_oauth_connection.oauth_token_url.help"
+                      >
+                        <span>
+                          Specify the OAuth Token URL for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="outgoing-oauth-connection-validate-button-container"
+                    >
+                      <ValidateButton
+                        onClick={[Function]}
+                        setUnvalidated={[Function]}
+                        status="initial"
+                      >
+                        <button
+                          className="btn btn-tertiary btn-sm"
+                          id="validateConnection"
+                          onClick={[Function]}
+                          type="button"
+                        >
+                          <FormattedMessage
+                            defaultMessage="Validate Connection"
+                            id="add_outgoing_oauth_connection.validate"
+                          >
+                            <span>
+                              Validate Connection
+                            </span>
+                          </FormattedMessage>
+                        </button>
+                      </ValidateButton>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="audienceUrls"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Audience URLs (One Per Line)"
+                      id="add_outgoing_oauth_connection.audienceUrls.label"
+                    >
+                      <span>
+                        Audience URLs (One Per Line)
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <textarea
+                      className="form-control"
+                      id="audienceUrls"
+                      onChange={[Function]}
+                      rows={3}
+                      value="https://mysite.com/api
+https://myothersite.com/api/v2"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://."
+                        id="add_outgoing_oauth_connection.audienceUrls.help"
+                      >
+                        <span>
+                          The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="backstage-form__footer"
+                >
+                  <FormError
+                    error={null}
+                    errors={
+                      Array [
+                        "",
+                        "",
+                      ]
+                    }
+                    type="backstage"
+                  />
+                  <Link
+                    className="btn btn-tertiary"
+                    to="/test/integrations/outgoing-oauth2-connections"
+                  >
+                    <LinkAnchor
+                      className="btn btn-tertiary"
+                      href="/test/integrations/outgoing-oauth2-connections"
+                      navigate={[Function]}
+                    >
+                      <a
+                        className="btn btn-tertiary"
+                        href="/test/integrations/outgoing-oauth2-connections"
+                        onClick={[Function]}
+                      >
+                        <FormattedMessage
+                          defaultMessage="Cancel"
+                          id="add_outgoing_oauth_connection.cancel"
+                        >
+                          <span>
+                            Cancel
+                          </span>
+                        </FormattedMessage>
+                      </a>
+                    </LinkAnchor>
+                  </Link>
+                  <Memo(SpinnerButton)
+                    className="btn btn-primary"
+                    id="saveConnection"
+                    onClick={[Function]}
+                    spinning={false}
+                    spinningText="Updating..."
+                    type="submit"
+                  >
+                    <button
+                      className="btn btn-primary"
+                      disabled={false}
+                      id="saveConnection"
+                      onClick={[Function]}
+                      type="submit"
+                    >
+                      <Memo(LoadingWrapper)
+                        loading={false}
+                        text="Updating..."
+                      >
+                        <FormattedMessage
+                          defaultMessage="Update"
+                          id="edit_outgoing_oauth_connection.update"
+                        >
+                          <span>
+                            Update
+                          </span>
+                        </FormattedMessage>
+                      </Memo(LoadingWrapper)>
+                    </button>
+                  </Memo(SpinnerButton)>
+                  <ConfirmModal
+                    confirmButtonClass="btn btn-primary"
+                    confirmButtonText={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Update"
+                        id="update_command.update"
+                      />
+                    }
+                    message={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Your changes may break any existing integrations using this connection. Are you sure you would like to update it?"
+                        id="update_outgoing_oauth_connection.question"
+                      />
+                    }
+                    modalClass="integrations-backstage-modal"
+                    onCancel={[Function]}
+                    onConfirm={[Function]}
+                    show={false}
+                    title={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Edit Outgoing OAuth Connection"
+                        id="update_outgoing_oauth_connection.confirm"
+                      />
+                    }
+                  >
+                    <Modal
+                      animation={true}
+                      aria-describedby="confirmModalBody"
+                      aria-labelledby="confirmModalLabel"
+                      aria-modal={true}
+                      autoFocus={true}
+                      backdrop={true}
+                      bsClass="modal"
+                      className="modal-confirm integrations-backstage-modal"
+                      dialogClassName="a11y__modal"
+                      dialogComponentClass={[Function]}
+                      enforceFocus={true}
+                      id="confirmModal"
+                      keyboard={true}
+                      manager={
+                        ModalManager {
+                          "add": [Function],
+                          "containers": Array [],
+                          "data": Array [],
+                          "handleContainerOverflow": true,
+                          "hideSiblingNodes": true,
+                          "isTopModal": [Function],
+                          "modals": Array [],
+                          "remove": [Function],
+                        }
+                      }
+                      onHide={[Function]}
+                      renderBackdrop={[Function]}
+                      restoreFocus={true}
+                      role="dialog"
+                      show={false}
+                    >
+                      <Modal
+                        autoFocus={true}
+                        backdrop={true}
+                        backdropClassName="modal-backdrop"
+                        backdropTransition={[Function]}
+                        containerClassName="modal-open"
+                        enforceFocus={true}
+                        keyboard={true}
+                        manager={
+                          ModalManager {
+                            "add": [Function],
+                            "containers": Array [],
+                            "data": Array [],
+                            "handleContainerOverflow": true,
+                            "hideSiblingNodes": true,
+                            "isTopModal": [Function],
+                            "modals": Array [],
+                            "remove": [Function],
+                          }
+                        }
+                        onEntering={[Function]}
+                        onExited={[Function]}
+                        onHide={[Function]}
+                        renderBackdrop={[Function]}
+                        restoreFocus={true}
+                        show={false}
+                        transition={[Function]}
+                      />
+                    </Modal>
+                  </ConfirmModal>
+                </div>
+              </form>
+            </div>
+            <div
+              className="outgoing-oauth-connections-docs-link"
+            >
+              <FormattedMessage
+                defaultMessage="Get help with <link>configuring outgoing OAuth connections</link>."
+                id="add_outgoing_oauth_connection.documentation_link"
+                values={
+                  Object {
+                    "link": [Function],
+                  }
+                }
+              >
+                <span>
+                  Get help with 
+                  <a
+                    href="https://mattermost.com/pl/outgoing-oauth-connections"
+                    key=".$.1"
+                  >
+                    configuring outgoing OAuth connections
+                  </a>
+                  .
+                </span>
+              </FormattedMessage>
+            </div>
+            <ConfirmModal
+              confirmButtonClass="btn btn-primary"
+              confirmButtonText="Save anyway"
+              message="This connection has not been validated, Do you want to save anyway?"
+              modalClass=""
+              onCancel={[Function]}
+              onConfirm={[Function]}
+              onExited={[Function]}
+              show={false}
+              title="Save Outgoing OAuth Connection"
+            >
+              <Modal
+                animation={true}
+                aria-describedby="confirmModalBody"
+                aria-labelledby="confirmModalLabel"
+                aria-modal={true}
+                autoFocus={true}
+                backdrop={true}
+                bsClass="modal"
+                className="modal-confirm "
+                dialogClassName="a11y__modal"
+                dialogComponentClass={[Function]}
+                enforceFocus={true}
+                id="confirmModal"
+                keyboard={true}
+                manager={
+                  ModalManager {
+                    "add": [Function],
+                    "containers": Array [],
+                    "data": Array [],
+                    "handleContainerOverflow": true,
+                    "hideSiblingNodes": true,
+                    "isTopModal": [Function],
+                    "modals": Array [],
+                    "remove": [Function],
+                  }
+                }
+                onExited={[Function]}
+                onHide={[Function]}
+                renderBackdrop={[Function]}
+                restoreFocus={true}
+                role="dialog"
+                show={false}
+              >
+                <Modal
+                  autoFocus={true}
+                  backdrop={true}
+                  backdropClassName="modal-backdrop"
+                  backdropTransition={[Function]}
+                  containerClassName="modal-open"
+                  enforceFocus={true}
+                  keyboard={true}
+                  manager={
+                    ModalManager {
+                      "add": [Function],
+                      "containers": Array [],
+                      "data": Array [],
+                      "handleContainerOverflow": true,
+                      "hideSiblingNodes": true,
+                      "isTopModal": [Function],
+                      "modals": Array [],
+                      "remove": [Function],
+                    }
+                  }
+                  onEntering={[Function]}
+                  onExited={[Function]}
+                  onHide={[Function]}
+                  renderBackdrop={[Function]}
+                  restoreFocus={true}
+                  show={false}
+                  transition={[Function]}
+                />
+              </Modal>
+            </ConfirmModal>
+          </div>
+        </AbstractOutgoingOAuthConnection>
+      </EditOutgoingOAuthConnection>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
+
+exports[`components/integrations/EditOutgoingOAuthConnection should match snapshot when EnableOAuthServiceProvider is false 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <EditOutgoingOAuthConnection
+        enableOAuthServiceProvider={false}
+        location={
+          Object {
+            "search": "?id=facxd9wpzpbpfp8pad78xj75pr",
+          }
+        }
+        oauthApp={
+          Object {
+            "audiences": Array [
+              "https://test.com/callback",
+              "https://test.com/callback2",
+            ],
+            "client_id": "someclientid",
+            "client_secret": "88cxd9wpzpbpfp8pad78xj75pr",
+            "create_at": 1501365458934,
+            "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+            "grant_type": "client_credentials",
+            "id": "facxd9wpzpbpfp8pad78xj75pr",
+            "name": "testApp",
+            "oauth_token_url": "https://mytoken.url",
+            "update_at": 1501365458934,
+          }
+        }
+        team={
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "name",
+            "email": "",
+            "group_constrained": false,
+            "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+            "invite_id": "",
+            "name": "test",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+      >
+        <AbstractOutgoingOAuthConnection
+          footer={
+            Object {
+              "defaultMessage": "Update",
+              "id": "edit_outgoing_oauth_connection.update",
+            }
+          }
+          header={
+            Object {
+              "defaultMessage": "Edit",
+              "id": "integrations.edit",
+            }
+          }
+          initialConnection={
+            Object {
+              "audiences": Array [
+                "https://mysite.com/api",
+                "https://myothersite.com/api/v2",
+              ],
+              "client_id": "client1",
+              "client_secret": "",
+              "create_at": 1501365458934,
+              "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+              "grant_type": "client_credentials",
+              "id": "facxd9wpzpbpfp8pad78xj75pr",
+              "name": "firstConnection",
+              "oauth_token_url": "https://oauthtoken1.com/oauth/token",
+              "update_at": 1501365458934,
+            }
+          }
+          loading={
+            Object {
+              "defaultMessage": "Updating...",
+              "id": "edit_outgoing_oauth_connection.updating",
+            }
+          }
+          renderExtra={
+            <ConfirmModal
+              confirmButtonClass="btn btn-primary"
+              confirmButtonText={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Update"
+                  id="update_command.update"
+                />
+              }
+              message={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Your changes may break any existing integrations using this connection. Are you sure you would like to update it?"
+                  id="update_outgoing_oauth_connection.question"
+                />
+              }
+              modalClass="integrations-backstage-modal"
+              onCancel={[Function]}
+              onConfirm={[Function]}
+              show={false}
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit Outgoing OAuth Connection"
+                  id="update_outgoing_oauth_connection.confirm"
+                />
+              }
+            />
+          }
+          serverError=""
+          submitAction={[Function]}
+          team={
+            Object {
+              "allow_open_invite": false,
+              "allowed_domains": "",
+              "company_name": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "name",
+              "email": "",
+              "group_constrained": false,
+              "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+              "invite_id": "",
+              "name": "test",
+              "scheme_id": "id",
+              "type": "O",
+              "update_at": 0,
+            }
+          }
+        >
+          <div
+            className="backstage-content"
+          >
+            <BackstageHeader>
+              <div
+                className="backstage-header"
+              >
+                <h1>
+                  <Link
+                    to="/test/integrations/outgoing-oauth2-connections"
+                  >
+                    <LinkAnchor
+                      href="/test/integrations/outgoing-oauth2-connections"
+                      navigate={[Function]}
+                    >
+                      <a
+                        href="/test/integrations/outgoing-oauth2-connections"
+                        onClick={[Function]}
+                      >
+                        <FormattedMessage
+                          defaultMessage="Outgoing OAuth Connections"
+                          id="add_outgoing_oauth_connection.header"
+                        >
+                          <span>
+                            Outgoing OAuth Connections
+                          </span>
+                        </FormattedMessage>
+                      </a>
+                    </LinkAnchor>
+                  </Link>
+                  <span
+                    className="backstage-header__divider"
+                    key="divider1"
+                  >
+                    <i
+                      className="fa fa-angle-right"
+                      title="Breadcrumb Icon"
+                    />
+                  </span>
+                  <FormattedMessage
+                    defaultMessage="Edit"
+                    id="integrations.edit"
+                  >
+                    <span>
+                      Edit
+                    </span>
+                  </FormattedMessage>
+                </h1>
+              </div>
+            </BackstageHeader>
+            <div
+              className="backstage-form"
+            >
+              <form
+                className="form-horizontal"
+              >
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="name"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Name"
+                      id="add_outgoing_oauth_connection.name.label"
+                    >
+                      <span>
+                        Name
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      className="form-control"
+                      id="name"
+                      onChange={[Function]}
+                      type="text"
+                      value="firstConnection"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the name for your OAuth connection."
+                        id="add_outgoing_oauth_connection.name.help"
+                      >
+                        <span>
+                          Specify the name for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="client_id"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Client ID"
+                      id="add_outgoing_oauth_connection.client_id.label"
+                    >
+                      <span>
+                        Client ID
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      autoComplete="off"
+                      className="form-control"
+                      id="client_id"
+                      onChange={[Function]}
+                      type="text"
+                      value="client1"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the Client ID for your OAuth connection."
+                        id="add_outgoing_oauth_connection.client_id.help"
+                      >
+                        <span>
+                          Specify the Client ID for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="client_secret"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Client Secret"
+                      id="add_outgoing_oauth_connection.client_secret.label"
+                    >
+                      <span>
+                        Client Secret
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      autoComplete="off"
+                      className="form-control disabled"
+                      disabled={true}
+                      id="client_secret"
+                      type="text"
+                      value="••••••••••••••••••••••••••••••••••••••••"
+                    />
+                    <span
+                      className="outgoing-oauth-connections-edit-secret"
+                      onClick={[Function]}
+                    >
+                      <i
+                        className="icon icon-pencil-outline"
+                      />
+                    </span>
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the Client Secret for your OAuth connection."
+                        id="add_outgoing_oauth_connection.client_secret.help"
+                      >
+                        <span>
+                          Specify the Client Secret for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="oauth_token_url"
+                  >
+                    <FormattedMessage
+                      defaultMessage="OAuth Token URL"
+                      id="add_outgoing_oauth_connection.oauth_token_url.label"
+                    >
+                      <span>
+                        OAuth Token URL
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      className="form-control"
+                      id="token_url"
+                      onChange={[Function]}
+                      type="text"
+                      value="https://oauthtoken1.com/oauth/token"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the OAuth Token URL for your OAuth connection."
+                        id="add_outgoing_oauth_connection.oauth_token_url.help"
+                      >
+                        <span>
+                          Specify the OAuth Token URL for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="outgoing-oauth-connection-validate-button-container"
+                    >
+                      <ValidateButton
+                        onClick={[Function]}
+                        setUnvalidated={[Function]}
+                        status="initial"
+                      >
+                        <button
+                          className="btn btn-tertiary btn-sm"
+                          id="validateConnection"
+                          onClick={[Function]}
+                          type="button"
+                        >
+                          <FormattedMessage
+                            defaultMessage="Validate Connection"
+                            id="add_outgoing_oauth_connection.validate"
+                          >
+                            <span>
+                              Validate Connection
+                            </span>
+                          </FormattedMessage>
+                        </button>
+                      </ValidateButton>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="audienceUrls"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Audience URLs (One Per Line)"
+                      id="add_outgoing_oauth_connection.audienceUrls.label"
+                    >
+                      <span>
+                        Audience URLs (One Per Line)
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <textarea
+                      className="form-control"
+                      id="audienceUrls"
+                      onChange={[Function]}
+                      rows={3}
+                      value="https://mysite.com/api
+https://myothersite.com/api/v2"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://."
+                        id="add_outgoing_oauth_connection.audienceUrls.help"
+                      >
+                        <span>
+                          The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="backstage-form__footer"
+                >
+                  <FormError
+                    error={null}
+                    errors={
+                      Array [
+                        "",
+                        "",
+                      ]
+                    }
+                    type="backstage"
+                  />
+                  <Link
+                    className="btn btn-tertiary"
+                    to="/test/integrations/outgoing-oauth2-connections"
+                  >
+                    <LinkAnchor
+                      className="btn btn-tertiary"
+                      href="/test/integrations/outgoing-oauth2-connections"
+                      navigate={[Function]}
+                    >
+                      <a
+                        className="btn btn-tertiary"
+                        href="/test/integrations/outgoing-oauth2-connections"
+                        onClick={[Function]}
+                      >
+                        <FormattedMessage
+                          defaultMessage="Cancel"
+                          id="add_outgoing_oauth_connection.cancel"
+                        >
+                          <span>
+                            Cancel
+                          </span>
+                        </FormattedMessage>
+                      </a>
+                    </LinkAnchor>
+                  </Link>
+                  <Memo(SpinnerButton)
+                    className="btn btn-primary"
+                    id="saveConnection"
+                    onClick={[Function]}
+                    spinning={false}
+                    spinningText="Updating..."
+                    type="submit"
+                  >
+                    <button
+                      className="btn btn-primary"
+                      disabled={false}
+                      id="saveConnection"
+                      onClick={[Function]}
+                      type="submit"
+                    >
+                      <Memo(LoadingWrapper)
+                        loading={false}
+                        text="Updating..."
+                      >
+                        <FormattedMessage
+                          defaultMessage="Update"
+                          id="edit_outgoing_oauth_connection.update"
+                        >
+                          <span>
+                            Update
+                          </span>
+                        </FormattedMessage>
+                      </Memo(LoadingWrapper)>
+                    </button>
+                  </Memo(SpinnerButton)>
+                  <ConfirmModal
+                    confirmButtonClass="btn btn-primary"
+                    confirmButtonText={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Update"
+                        id="update_command.update"
+                      />
+                    }
+                    message={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Your changes may break any existing integrations using this connection. Are you sure you would like to update it?"
+                        id="update_outgoing_oauth_connection.question"
+                      />
+                    }
+                    modalClass="integrations-backstage-modal"
+                    onCancel={[Function]}
+                    onConfirm={[Function]}
+                    show={false}
+                    title={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Edit Outgoing OAuth Connection"
+                        id="update_outgoing_oauth_connection.confirm"
+                      />
+                    }
+                  >
+                    <Modal
+                      animation={true}
+                      aria-describedby="confirmModalBody"
+                      aria-labelledby="confirmModalLabel"
+                      aria-modal={true}
+                      autoFocus={true}
+                      backdrop={true}
+                      bsClass="modal"
+                      className="modal-confirm integrations-backstage-modal"
+                      dialogClassName="a11y__modal"
+                      dialogComponentClass={[Function]}
+                      enforceFocus={true}
+                      id="confirmModal"
+                      keyboard={true}
+                      manager={
+                        ModalManager {
+                          "add": [Function],
+                          "containers": Array [],
+                          "data": Array [],
+                          "handleContainerOverflow": true,
+                          "hideSiblingNodes": true,
+                          "isTopModal": [Function],
+                          "modals": Array [],
+                          "remove": [Function],
+                        }
+                      }
+                      onHide={[Function]}
+                      renderBackdrop={[Function]}
+                      restoreFocus={true}
+                      role="dialog"
+                      show={false}
+                    >
+                      <Modal
+                        autoFocus={true}
+                        backdrop={true}
+                        backdropClassName="modal-backdrop"
+                        backdropTransition={[Function]}
+                        containerClassName="modal-open"
+                        enforceFocus={true}
+                        keyboard={true}
+                        manager={
+                          ModalManager {
+                            "add": [Function],
+                            "containers": Array [],
+                            "data": Array [],
+                            "handleContainerOverflow": true,
+                            "hideSiblingNodes": true,
+                            "isTopModal": [Function],
+                            "modals": Array [],
+                            "remove": [Function],
+                          }
+                        }
+                        onEntering={[Function]}
+                        onExited={[Function]}
+                        onHide={[Function]}
+                        renderBackdrop={[Function]}
+                        restoreFocus={true}
+                        show={false}
+                        transition={[Function]}
+                      />
+                    </Modal>
+                  </ConfirmModal>
+                </div>
+              </form>
+            </div>
+            <div
+              className="outgoing-oauth-connections-docs-link"
+            >
+              <FormattedMessage
+                defaultMessage="Get help with <link>configuring outgoing OAuth connections</link>."
+                id="add_outgoing_oauth_connection.documentation_link"
+                values={
+                  Object {
+                    "link": [Function],
+                  }
+                }
+              >
+                <span>
+                  Get help with 
+                  <a
+                    href="https://mattermost.com/pl/outgoing-oauth-connections"
+                    key=".$.1"
+                  >
+                    configuring outgoing OAuth connections
+                  </a>
+                  .
+                </span>
+              </FormattedMessage>
+            </div>
+            <ConfirmModal
+              confirmButtonClass="btn btn-primary"
+              confirmButtonText="Save anyway"
+              message="This connection has not been validated, Do you want to save anyway?"
+              modalClass=""
+              onCancel={[Function]}
+              onConfirm={[Function]}
+              onExited={[Function]}
+              show={false}
+              title="Save Outgoing OAuth Connection"
+            >
+              <Modal
+                animation={true}
+                aria-describedby="confirmModalBody"
+                aria-labelledby="confirmModalLabel"
+                aria-modal={true}
+                autoFocus={true}
+                backdrop={true}
+                bsClass="modal"
+                className="modal-confirm "
+                dialogClassName="a11y__modal"
+                dialogComponentClass={[Function]}
+                enforceFocus={true}
+                id="confirmModal"
+                keyboard={true}
+                manager={
+                  ModalManager {
+                    "add": [Function],
+                    "containers": Array [],
+                    "data": Array [],
+                    "handleContainerOverflow": true,
+                    "hideSiblingNodes": true,
+                    "isTopModal": [Function],
+                    "modals": Array [],
+                    "remove": [Function],
+                  }
+                }
+                onExited={[Function]}
+                onHide={[Function]}
+                renderBackdrop={[Function]}
+                restoreFocus={true}
+                role="dialog"
+                show={false}
+              >
+                <Modal
+                  autoFocus={true}
+                  backdrop={true}
+                  backdropClassName="modal-backdrop"
+                  backdropTransition={[Function]}
+                  containerClassName="modal-open"
+                  enforceFocus={true}
+                  keyboard={true}
+                  manager={
+                    ModalManager {
+                      "add": [Function],
+                      "containers": Array [],
+                      "data": Array [],
+                      "handleContainerOverflow": true,
+                      "hideSiblingNodes": true,
+                      "isTopModal": [Function],
+                      "modals": Array [],
+                      "remove": [Function],
+                    }
+                  }
+                  onEntering={[Function]}
+                  onExited={[Function]}
+                  onHide={[Function]}
+                  renderBackdrop={[Function]}
+                  restoreFocus={true}
+                  show={false}
+                  transition={[Function]}
+                />
+              </Modal>
+            </ConfirmModal>
+          </div>
+        </AbstractOutgoingOAuthConnection>
+      </EditOutgoingOAuthConnection>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;
+
+exports[`components/integrations/EditOutgoingOAuthConnection should match snapshot, loading 1`] = `
+<BrowserRouter>
+  <Router
+    history={
+      Object {
+        "action": "POP",
+        "block": [Function],
+        "createHref": [Function],
+        "go": [Function],
+        "goBack": [Function],
+        "goForward": [Function],
+        "length": 1,
+        "listen": [Function],
+        "location": Object {
+          "hash": "",
+          "pathname": "undefinedundefined",
+          "search": "",
+          "state": undefined,
+        },
+        "push": [Function],
+        "replace": [Function],
+      }
+    }
+  >
+    <Provider
+      store={
+        Object {
+          "clearActions": [Function],
+          "dispatch": [Function],
+          "getActions": [Function],
+          "getState": [Function],
+          "replaceReducer": [Function],
+          "subscribe": [Function],
+        }
+      }
+    >
+      <EditOutgoingOAuthConnection
+        location={
+          Object {
+            "search": "?id=facxd9wpzpbpfp8pad78xj75pr",
+          }
+        }
+        oauthApp={
+          Object {
+            "audiences": Array [
+              "https://test.com/callback",
+              "https://test.com/callback2",
+            ],
+            "client_id": "someclientid",
+            "client_secret": "88cxd9wpzpbpfp8pad78xj75pr",
+            "create_at": 1501365458934,
+            "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+            "grant_type": "client_credentials",
+            "id": "facxd9wpzpbpfp8pad78xj75pr",
+            "name": "testApp",
+            "oauth_token_url": "https://mytoken.url",
+            "update_at": 1501365458934,
+          }
+        }
+        team={
+          Object {
+            "allow_open_invite": false,
+            "allowed_domains": "",
+            "company_name": "",
+            "create_at": 0,
+            "delete_at": 0,
+            "description": "",
+            "display_name": "name",
+            "email": "",
+            "group_constrained": false,
+            "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+            "invite_id": "",
+            "name": "test",
+            "scheme_id": "id",
+            "type": "O",
+            "update_at": 0,
+          }
+        }
+      >
+        <AbstractOutgoingOAuthConnection
+          footer={
+            Object {
+              "defaultMessage": "Update",
+              "id": "edit_outgoing_oauth_connection.update",
+            }
+          }
+          header={
+            Object {
+              "defaultMessage": "Edit",
+              "id": "integrations.edit",
+            }
+          }
+          initialConnection={
+            Object {
+              "audiences": Array [
+                "https://mysite.com/api",
+                "https://myothersite.com/api/v2",
+              ],
+              "client_id": "client1",
+              "client_secret": "",
+              "create_at": 1501365458934,
+              "creator_id": "88oybd1dwfdoxpkpw1h5kpbyco",
+              "grant_type": "client_credentials",
+              "id": "facxd9wpzpbpfp8pad78xj75pr",
+              "name": "firstConnection",
+              "oauth_token_url": "https://oauthtoken1.com/oauth/token",
+              "update_at": 1501365458934,
+            }
+          }
+          loading={
+            Object {
+              "defaultMessage": "Updating...",
+              "id": "edit_outgoing_oauth_connection.updating",
+            }
+          }
+          renderExtra={
+            <ConfirmModal
+              confirmButtonClass="btn btn-primary"
+              confirmButtonText={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Update"
+                  id="update_command.update"
+                />
+              }
+              message={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Your changes may break any existing integrations using this connection. Are you sure you would like to update it?"
+                  id="update_outgoing_oauth_connection.question"
+                />
+              }
+              modalClass="integrations-backstage-modal"
+              onCancel={[Function]}
+              onConfirm={[Function]}
+              show={false}
+              title={
+                <Memo(MemoizedFormattedMessage)
+                  defaultMessage="Edit Outgoing OAuth Connection"
+                  id="update_outgoing_oauth_connection.confirm"
+                />
+              }
+            />
+          }
+          serverError=""
+          submitAction={[Function]}
+          team={
+            Object {
+              "allow_open_invite": false,
+              "allowed_domains": "",
+              "company_name": "",
+              "create_at": 0,
+              "delete_at": 0,
+              "description": "",
+              "display_name": "name",
+              "email": "",
+              "group_constrained": false,
+              "id": "dbcxd9wpzpbpfp8pad78xj12pr",
+              "invite_id": "",
+              "name": "test",
+              "scheme_id": "id",
+              "type": "O",
+              "update_at": 0,
+            }
+          }
+        >
+          <div
+            className="backstage-content"
+          >
+            <BackstageHeader>
+              <div
+                className="backstage-header"
+              >
+                <h1>
+                  <Link
+                    to="/test/integrations/outgoing-oauth2-connections"
+                  >
+                    <LinkAnchor
+                      href="/test/integrations/outgoing-oauth2-connections"
+                      navigate={[Function]}
+                    >
+                      <a
+                        href="/test/integrations/outgoing-oauth2-connections"
+                        onClick={[Function]}
+                      >
+                        <FormattedMessage
+                          defaultMessage="Outgoing OAuth Connections"
+                          id="add_outgoing_oauth_connection.header"
+                        >
+                          <span>
+                            Outgoing OAuth Connections
+                          </span>
+                        </FormattedMessage>
+                      </a>
+                    </LinkAnchor>
+                  </Link>
+                  <span
+                    className="backstage-header__divider"
+                    key="divider1"
+                  >
+                    <i
+                      className="fa fa-angle-right"
+                      title="Breadcrumb Icon"
+                    />
+                  </span>
+                  <FormattedMessage
+                    defaultMessage="Edit"
+                    id="integrations.edit"
+                  >
+                    <span>
+                      Edit
+                    </span>
+                  </FormattedMessage>
+                </h1>
+              </div>
+            </BackstageHeader>
+            <div
+              className="backstage-form"
+            >
+              <form
+                className="form-horizontal"
+              >
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="name"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Name"
+                      id="add_outgoing_oauth_connection.name.label"
+                    >
+                      <span>
+                        Name
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      className="form-control"
+                      id="name"
+                      onChange={[Function]}
+                      type="text"
+                      value="firstConnection"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the name for your OAuth connection."
+                        id="add_outgoing_oauth_connection.name.help"
+                      >
+                        <span>
+                          Specify the name for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="client_id"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Client ID"
+                      id="add_outgoing_oauth_connection.client_id.label"
+                    >
+                      <span>
+                        Client ID
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      autoComplete="off"
+                      className="form-control"
+                      id="client_id"
+                      onChange={[Function]}
+                      type="text"
+                      value="client1"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the Client ID for your OAuth connection."
+                        id="add_outgoing_oauth_connection.client_id.help"
+                      >
+                        <span>
+                          Specify the Client ID for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="client_secret"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Client Secret"
+                      id="add_outgoing_oauth_connection.client_secret.label"
+                    >
+                      <span>
+                        Client Secret
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      autoComplete="off"
+                      className="form-control disabled"
+                      disabled={true}
+                      id="client_secret"
+                      type="text"
+                      value="••••••••••••••••••••••••••••••••••••••••"
+                    />
+                    <span
+                      className="outgoing-oauth-connections-edit-secret"
+                      onClick={[Function]}
+                    >
+                      <i
+                        className="icon icon-pencil-outline"
+                      />
+                    </span>
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the Client Secret for your OAuth connection."
+                        id="add_outgoing_oauth_connection.client_secret.help"
+                      >
+                        <span>
+                          Specify the Client Secret for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="oauth_token_url"
+                  >
+                    <FormattedMessage
+                      defaultMessage="OAuth Token URL"
+                      id="add_outgoing_oauth_connection.oauth_token_url.label"
+                    >
+                      <span>
+                        OAuth Token URL
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <input
+                      className="form-control"
+                      id="token_url"
+                      onChange={[Function]}
+                      type="text"
+                      value="https://oauthtoken1.com/oauth/token"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="Specify the OAuth Token URL for your OAuth connection."
+                        id="add_outgoing_oauth_connection.oauth_token_url.help"
+                      >
+                        <span>
+                          Specify the OAuth Token URL for your OAuth connection.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                    <div
+                      className="outgoing-oauth-connection-validate-button-container"
+                    >
+                      <ValidateButton
+                        onClick={[Function]}
+                        setUnvalidated={[Function]}
+                        status="initial"
+                      >
+                        <button
+                          className="btn btn-tertiary btn-sm"
+                          id="validateConnection"
+                          onClick={[Function]}
+                          type="button"
+                        >
+                          <FormattedMessage
+                            defaultMessage="Validate Connection"
+                            id="add_outgoing_oauth_connection.validate"
+                          >
+                            <span>
+                              Validate Connection
+                            </span>
+                          </FormattedMessage>
+                        </button>
+                      </ValidateButton>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="form-group"
+                >
+                  <label
+                    className="control-label col-sm-4"
+                    htmlFor="audienceUrls"
+                  >
+                    <FormattedMessage
+                      defaultMessage="Audience URLs (One Per Line)"
+                      id="add_outgoing_oauth_connection.audienceUrls.label"
+                    >
+                      <span>
+                        Audience URLs (One Per Line)
+                      </span>
+                    </FormattedMessage>
+                  </label>
+                  <div
+                    className="col-md-5 col-sm-8"
+                  >
+                    <textarea
+                      className="form-control"
+                      id="audienceUrls"
+                      onChange={[Function]}
+                      rows={3}
+                      value="https://mysite.com/api
+https://myothersite.com/api/v2"
+                    />
+                    <div
+                      className="form__help"
+                    >
+                      <FormattedMessage
+                        defaultMessage="The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://."
+                        id="add_outgoing_oauth_connection.audienceUrls.help"
+                      >
+                        <span>
+                          The URLs which will receive requests with the OAuth token, e.g. your custom slash command handler endpoint. Must be a valid URL and start with http:// or https://.
+                        </span>
+                      </FormattedMessage>
+                    </div>
+                  </div>
+                </div>
+                <div
+                  className="backstage-form__footer"
+                >
+                  <FormError
+                    error={null}
+                    errors={
+                      Array [
+                        "",
+                        "",
+                      ]
+                    }
+                    type="backstage"
+                  />
+                  <Link
+                    className="btn btn-tertiary"
+                    to="/test/integrations/outgoing-oauth2-connections"
+                  >
+                    <LinkAnchor
+                      className="btn btn-tertiary"
+                      href="/test/integrations/outgoing-oauth2-connections"
+                      navigate={[Function]}
+                    >
+                      <a
+                        className="btn btn-tertiary"
+                        href="/test/integrations/outgoing-oauth2-connections"
+                        onClick={[Function]}
+                      >
+                        <FormattedMessage
+                          defaultMessage="Cancel"
+                          id="add_outgoing_oauth_connection.cancel"
+                        >
+                          <span>
+                            Cancel
+                          </span>
+                        </FormattedMessage>
+                      </a>
+                    </LinkAnchor>
+                  </Link>
+                  <Memo(SpinnerButton)
+                    className="btn btn-primary"
+                    id="saveConnection"
+                    onClick={[Function]}
+                    spinning={false}
+                    spinningText="Updating..."
+                    type="submit"
+                  >
+                    <button
+                      className="btn btn-primary"
+                      disabled={false}
+                      id="saveConnection"
+                      onClick={[Function]}
+                      type="submit"
+                    >
+                      <Memo(LoadingWrapper)
+                        loading={false}
+                        text="Updating..."
+                      >
+                        <FormattedMessage
+                          defaultMessage="Update"
+                          id="edit_outgoing_oauth_connection.update"
+                        >
+                          <span>
+                            Update
+                          </span>
+                        </FormattedMessage>
+                      </Memo(LoadingWrapper)>
+                    </button>
+                  </Memo(SpinnerButton)>
+                  <ConfirmModal
+                    confirmButtonClass="btn btn-primary"
+                    confirmButtonText={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Update"
+                        id="update_command.update"
+                      />
+                    }
+                    message={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Your changes may break any existing integrations using this connection. Are you sure you would like to update it?"
+                        id="update_outgoing_oauth_connection.question"
+                      />
+                    }
+                    modalClass="integrations-backstage-modal"
+                    onCancel={[Function]}
+                    onConfirm={[Function]}
+                    show={false}
+                    title={
+                      <Memo(MemoizedFormattedMessage)
+                        defaultMessage="Edit Outgoing OAuth Connection"
+                        id="update_outgoing_oauth_connection.confirm"
+                      />
+                    }
+                  >
+                    <Modal
+                      animation={true}
+                      aria-describedby="confirmModalBody"
+                      aria-labelledby="confirmModalLabel"
+                      aria-modal={true}
+                      autoFocus={true}
+                      backdrop={true}
+                      bsClass="modal"
+                      className="modal-confirm integrations-backstage-modal"
+                      dialogClassName="a11y__modal"
+                      dialogComponentClass={[Function]}
+                      enforceFocus={true}
+                      id="confirmModal"
+                      keyboard={true}
+                      manager={
+                        ModalManager {
+                          "add": [Function],
+                          "containers": Array [],
+                          "data": Array [],
+                          "handleContainerOverflow": true,
+                          "hideSiblingNodes": true,
+                          "isTopModal": [Function],
+                          "modals": Array [],
+                          "remove": [Function],
+                        }
+                      }
+                      onHide={[Function]}
+                      renderBackdrop={[Function]}
+                      restoreFocus={true}
+                      role="dialog"
+                      show={false}
+                    >
+                      <Modal
+                        autoFocus={true}
+                        backdrop={true}
+                        backdropClassName="modal-backdrop"
+                        backdropTransition={[Function]}
+                        containerClassName="modal-open"
+                        enforceFocus={true}
+                        keyboard={true}
+                        manager={
+                          ModalManager {
+                            "add": [Function],
+                            "containers": Array [],
+                            "data": Array [],
+                            "handleContainerOverflow": true,
+                            "hideSiblingNodes": true,
+                            "isTopModal": [Function],
+                            "modals": Array [],
+                            "remove": [Function],
+                          }
+                        }
+                        onEntering={[Function]}
+                        onExited={[Function]}
+                        onHide={[Function]}
+                        renderBackdrop={[Function]}
+                        restoreFocus={true}
+                        show={false}
+                        transition={[Function]}
+                      />
+                    </Modal>
+                  </ConfirmModal>
+                </div>
+              </form>
+            </div>
+            <div
+              className="outgoing-oauth-connections-docs-link"
+            >
+              <FormattedMessage
+                defaultMessage="Get help with <link>configuring outgoing OAuth connections</link>."
+                id="add_outgoing_oauth_connection.documentation_link"
+                values={
+                  Object {
+                    "link": [Function],
+                  }
+                }
+              >
+                <span>
+                  Get help with 
+                  <a
+                    href="https://mattermost.com/pl/outgoing-oauth-connections"
+                    key=".$.1"
+                  >
+                    configuring outgoing OAuth connections
+                  </a>
+                  .
+                </span>
+              </FormattedMessage>
+            </div>
+            <ConfirmModal
+              confirmButtonClass="btn btn-primary"
+              confirmButtonText="Save anyway"
+              message="This connection has not been validated, Do you want to save anyway?"
+              modalClass=""
+              onCancel={[Function]}
+              onConfirm={[Function]}
+              onExited={[Function]}
+              show={false}
+              title="Save Outgoing OAuth Connection"
+            >
+              <Modal
+                animation={true}
+                aria-describedby="confirmModalBody"
+                aria-labelledby="confirmModalLabel"
+                aria-modal={true}
+                autoFocus={true}
+                backdrop={true}
+                bsClass="modal"
+                className="modal-confirm "
+                dialogClassName="a11y__modal"
+                dialogComponentClass={[Function]}
+                enforceFocus={true}
+                id="confirmModal"
+                keyboard={true}
+                manager={
+                  ModalManager {
+                    "add": [Function],
+                    "containers": Array [],
+                    "data": Array [],
+                    "handleContainerOverflow": true,
+                    "hideSiblingNodes": true,
+                    "isTopModal": [Function],
+                    "modals": Array [],
+                    "remove": [Function],
+                  }
+                }
+                onExited={[Function]}
+                onHide={[Function]}
+                renderBackdrop={[Function]}
+                restoreFocus={true}
+                role="dialog"
+                show={false}
+              >
+                <Modal
+                  autoFocus={true}
+                  backdrop={true}
+                  backdropClassName="modal-backdrop"
+                  backdropTransition={[Function]}
+                  containerClassName="modal-open"
+                  enforceFocus={true}
+                  keyboard={true}
+                  manager={
+                    ModalManager {
+                      "add": [Function],
+                      "containers": Array [],
+                      "data": Array [],
+                      "handleContainerOverflow": true,
+                      "hideSiblingNodes": true,
+                      "isTopModal": [Function],
+                      "modals": Array [],
+                      "remove": [Function],
+                    }
+                  }
+                  onEntering={[Function]}
+                  onExited={[Function]}
+                  onHide={[Function]}
+                  renderBackdrop={[Function]}
+                  restoreFocus={true}
+                  show={false}
+                  transition={[Function]}
+                />
+              </Modal>
+            </ConfirmModal>
+          </div>
+        </AbstractOutgoingOAuthConnection>
+      </EditOutgoingOAuthConnection>
+    </Provider>
+  </Router>
+</BrowserRouter>
+`;

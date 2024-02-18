@@ -51,7 +51,7 @@ describe('utils.makeAddLastViewAtToProfiles', () => {
         };
 
         const channelsInTeam = {
-            '': [channel1.id, channel2.id, channel3.id],
+            '': new Set([channel1.id, channel2.id, channel3.id]),
         };
 
         const testState = deepFreezeAndThrowOnMutation({

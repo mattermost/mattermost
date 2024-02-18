@@ -312,6 +312,7 @@ type ServiceSettings struct {
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
+	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
 	EnableCommands                      *bool    `access:"integrations_integration_management"`
 	OutgoingIntegrationRequestsTimeout  *int64   `access:"integrations_integration_management"` // In seconds.
 	EnablePostUsernameOverride          *bool    `access:"integrations_integration_management"`
@@ -513,6 +514,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOutgoingWebhooks == nil {
 		s.EnableOutgoingWebhooks = NewBool(true)
+	}
+
+	if s.EnableOutgoingOAuthConnections == nil {
+		s.EnableOutgoingOAuthConnections = NewBool(false)
 	}
 
 	if s.OutgoingIntegrationRequestsTimeout == nil {
@@ -3489,7 +3494,7 @@ type Config struct {
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
-	ProductSettings           ProductSettings
+	ProductSettings           ProductSettings // Deprecated: Remove in next major version:: https://mattermost.atlassian.net/browse/MM-56655
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings

@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -783,7 +784,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.NoError(t, err)
 
 		require.NotNil(t, resp)
@@ -797,7 +798,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.Error(t, err)
 		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
@@ -808,7 +809,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.Error(t, err)
 		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
@@ -819,7 +820,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.Error(t, err)
 		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
@@ -838,7 +839,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
 		})
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.Error(t, err)
 		require.IsType(t, &url.Error{}, err)
 	})
@@ -855,7 +856,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
 		})
 
-		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.NoError(t, err)
 		require.NotNil(t, resp)
 		assert.NotNil(t, resp.Text)
@@ -867,8 +868,22 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.NoError(t, err)
 		require.Nil(t, resp)
+	})
+
+	t.Run("with auth token", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader(fmt.Sprintf(`{"text":"%s"}`, r.Header.Get("Authorization"))))
+		}))
+		defer server.Close()
+
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", &model.OutgoingOAuthConnectionToken{
+			AccessToken: "test",
+			TokenType:   "Bearer",
+		})
+		require.NoError(t, err)
+		require.Equal(t, `Bearer test`, *resp.Text)
 	})
 }

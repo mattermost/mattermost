@@ -114,13 +114,20 @@
       {
         "patterns": [
           {
-            "group": ["react-bootstrap"],
+            "group": ["@mattermost/compass-components/*"],
+            "message": "compass-components is now archived."
+          }
+        ],
+        "paths": [
+          {
+            "name": "react-bootstrap",
             "importNames": ["OverlayTrigger"],
-            "message": "Please use OverlayTrigger from '/components/overlay_trigger' instead."
+            "message": "Use OverlayTrigger from '/components/overlay_trigger' instead."
           },
           {
-            "group": ["@mattermost/compass-components/*"],
-            "message": "compass-components is now archived"
+            "name": "redux",
+            "importNames": ["DeepPartial"],
+            "message": "Use DeepPartial from '@mattermost/types/utilities instead."
           }
         ]
       }

@@ -10130,10 +10130,6 @@
     "translation": "Kan inte bjuda in externa användare eftersom kanalen {{.ChannelID}} inte är delad."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "Denna funktion begränsas av en funktionsflagga."
-  },
-  {
     "id": "api.command_remote.confirm_invitation.error",
     "translation": "Kunde inte bekräfta inbjudan: {{.Error}}"
   },

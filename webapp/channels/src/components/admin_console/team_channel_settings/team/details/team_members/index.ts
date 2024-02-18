@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
-import type {UserProfile, UsersStats} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getTeamStats as loadTeamStats} from 'mattermost-redux/actions/teams';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
@@ -49,10 +49,10 @@ function mapStateToProps(state: GlobalState, props: Props) {
         const stats = getTeamStats(state)[teamId] || {active_member_count: 0};
         totalCount = stats.active_member_count;
     } else {
-        const filteredUserStats: UsersStats = selectFilteredUsersStats(state) || {
+        const filteredUserStats = selectFilteredUsersStats(state) || {
             total_users_count: 0,
         };
-        totalCount = filteredUserStats.total_users_count;
+        totalCount = filteredUserStats.total_users_count ?? 0;
     }
 
     let users = [];

@@ -63,7 +63,7 @@ describe('components/channel_invite_modal/team_warning_banner', () => {
                 profiles: {},
             },
             groups: {
-                myGroups: {},
+                myGroups: [],
                 groups: {},
             },
             emojis: {

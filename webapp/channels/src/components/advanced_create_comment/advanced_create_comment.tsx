@@ -182,6 +182,7 @@ export type Props = {
     searchAssociatedGroupsForReference: (prefix: string, teamId: string, channelId: string | undefined) => Promise<ActionResult>;
     postEditorActions: PluginComponent[];
     placeholder?: string;
+    isPlugin?: boolean;
 }
 
 type State = {

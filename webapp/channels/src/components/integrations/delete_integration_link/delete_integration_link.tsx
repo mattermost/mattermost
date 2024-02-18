@@ -14,6 +14,7 @@ const ModalId = 'delete_integration_confirm';
 type Props = {
     confirmButtonText?: React.ReactNode;
     linkText?: React.ReactNode;
+    subtitleText?: React.ReactNode;
     modalMessage?: React.ReactNode;
     modalTitle?: React.ReactNode;
     onDelete: () => void;
@@ -25,7 +26,7 @@ export default function DeleteIntegrationLink(props: Props) {
         confirmButtonText = (
             <FormattedMessage
                 id='integrations.delete.confirm.button'
-                defaultMessage='Delete'
+                defaultMessage='Yes, delete it'
             />
         ),
         linkText = (
@@ -50,11 +51,22 @@ export default function DeleteIntegrationLink(props: Props) {
             modalId: ModalId,
             dialogProps: {
                 confirmButtonText,
+                confirmButtonClass: 'btn btn-danger',
+                modalClass: 'integrations-backstage-modal',
                 message: (
-                    <div className='alert alert-warning'>
-                        <WarningIcon additionalClassName='mr-1'/>
-                        {props.modalMessage}
-                    </div>
+                    <>
+                        {props.subtitleText && (
+                            <p>
+                                {props.subtitleText}
+                            </p>
+                        )}
+                        <div className='alert alert-danger'>
+                            <WarningIcon additionalClassName='mr-1'/>
+                            <strong>
+                                {props.modalMessage}
+                            </strong>
+                        </div>
+                    </>
                 ),
                 onConfirm: onDelete,
                 title: modalTitle,

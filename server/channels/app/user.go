@@ -235,7 +235,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		return nil, err
 	}
 
-	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
+	ruser, nErr := a.ch.srv.userService.CreateUser(c, user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput

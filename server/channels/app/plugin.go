@@ -17,7 +17,6 @@ import (
 	"sync"
 
 	"github.com/blang/semver/v4"
-	"github.com/gorilla/mux"
 	svg "github.com/h2non/go-is-svg"
 	"github.com/pkg/errors"
 
@@ -25,7 +24,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/utils/fileutils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/marketplace"
 )
@@ -39,31 +37,6 @@ type pluginSignaturePath struct {
 	pluginID      string
 	bundlePath    string
 	signaturePath string
-}
-
-// Ensure routerService implements `product.RouterService`
-var _ product.RouterService = (*routerService)(nil)
-
-type routerService struct {
-	mu        sync.Mutex
-	routerMap map[string]*mux.Router
-}
-
-func newRouterService() *routerService {
-	return &routerService{
-		routerMap: make(map[string]*mux.Router),
-	}
-}
-
-func (rs *routerService) RegisterRouter(productID string, sub *mux.Router) {
-	rs.mu.Lock()
-	defer rs.mu.Unlock()
-	rs.routerMap[productID] = sub
-}
-
-func (rs *routerService) getHandler(productID string) (http.Handler, bool) {
-	handler, ok := rs.routerMap[productID]
-	return handler, ok
 }
 
 // GetPluginsEnvironment returns the plugin environment for use if plugins are enabled and

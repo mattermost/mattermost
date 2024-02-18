@@ -6478,14 +6478,15 @@ type Z_InviteRemoteToChannelArgs struct {
 	A string
 	B string
 	C string
+	D bool
 }
 
 type Z_InviteRemoteToChannelReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) InviteRemoteToChannel(channelID string, remoteID string, userID string) error {
-	_args := &Z_InviteRemoteToChannelArgs{channelID, remoteID, userID}
+func (g *apiRPCClient) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
+	_args := &Z_InviteRemoteToChannelArgs{channelID, remoteID, userID, shareIfNotShared}
 	_returns := &Z_InviteRemoteToChannelReturns{}
 	if err := g.client.Call("Plugin.InviteRemoteToChannel", _args, _returns); err != nil {
 		log.Printf("RPC call to InviteRemoteToChannel API failed: %s", err.Error())
@@ -6495,9 +6496,9 @@ func (g *apiRPCClient) InviteRemoteToChannel(channelID string, remoteID string, 
 
 func (s *apiRPCServer) InviteRemoteToChannel(args *Z_InviteRemoteToChannelArgs, returns *Z_InviteRemoteToChannelReturns) error {
 	if hook, ok := s.impl.(interface {
-		InviteRemoteToChannel(channelID string, remoteID string, userID string) error
+		InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error
 	}); ok {
-		returns.A = hook.InviteRemoteToChannel(args.A, args.B, args.C)
+		returns.A = hook.InviteRemoteToChannel(args.A, args.B, args.C, args.D)
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API InviteRemoteToChannel called but not implemented."))

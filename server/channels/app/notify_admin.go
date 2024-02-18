@@ -98,7 +98,7 @@ func (a *App) SendNotifyAdminPosts(c request.CTX, workspaceName string, currentS
 		return appErr
 	}
 
-	systemBot, appErr := a.GetSystemBot()
+	systemBot, appErr := a.GetSystemBot(c)
 	if appErr != nil {
 		return appErr
 	}

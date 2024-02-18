@@ -1305,7 +1305,7 @@ func (api *PluginAPI) UnregisterPluginForSharedChannels(pluginID string) error {
 
 func (api *PluginAPI) ShareChannel(sc *model.SharedChannel) (*model.SharedChannel, error) {
 	scShared, err := api.app.ShareChannel(api.ctx, sc)
-	if errors.Is(err, ErrChannelAlreadyShared) {
+	if errors.Is(err, model.ErrChannelAlreadyShared) {
 		// sharing an already shared channel is not an error; treat as idempotent and return the existing shared channel
 		return api.app.GetSharedChannel(sc.ChannelId)
 	}
@@ -1328,8 +1328,8 @@ func (api *PluginAPI) SyncSharedChannel(channelID string) error {
 	return api.app.SyncSharedChannel(channelID)
 }
 
-func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string) error {
-	return api.app.InviteRemoteToChannel(channelID, remoteID, userID)
+func (api *PluginAPI) InviteRemoteToChannel(channelID string, remoteID, userID string, shareIfNotShared bool) error {
+	return api.app.InviteRemoteToChannel(channelID, remoteID, userID, shareIfNotShared)
 }
 
 func (api *PluginAPI) UninviteRemoteFromChannel(channelID string, remoteID string) error {

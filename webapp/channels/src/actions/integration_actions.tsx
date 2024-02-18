@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp} from '@mattermost/types/integrations';
+import type {IncomingWebhook, OutgoingWebhook, Command, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
 
 import * as IntegrationActions from 'mattermost-redux/actions/integrations';
 import {getProfilesByIds} from 'mattermost-redux/actions/users';
@@ -123,6 +123,37 @@ export function loadProfilesForOAuthApps(apps: OAuthApp[]): ActionFuncAsync {
         const profilesToLoad: {[key: string]: boolean} = {};
         for (let i = 0; i < apps.length; i++) {
             const app = apps[i];
+            if (!getUser(state, app.creator_id)) {
+                profilesToLoad[app.creator_id] = true;
+            }
+        }
+
+        const list = Object.keys(profilesToLoad);
+        if (list.length === 0) {
+            return {data: null};
+        }
+
+        dispatch(getProfilesByIds(list));
+        return {data: null};
+    };
+}
+
+export function loadOutgoingOAuthConnectionsAndProfiles(teamId: string, page = 0, perPage = DEFAULT_PAGE_SIZE): ActionFuncAsync<null> {
+    return async (dispatch) => {
+        const {data} = await dispatch(IntegrationActions.getOutgoingOAuthConnections(teamId, page, perPage));
+        if (data) {
+            dispatch(loadProfilesForOutgoingOAuthConnections(data));
+        }
+        return {data: null};
+    };
+}
+
+export function loadProfilesForOutgoingOAuthConnections(connections: OutgoingOAuthConnection[]): ActionFuncAsync<null> {
+    return async (dispatch, getState) => {
+        const state = getState();
+        const profilesToLoad: {[key: string]: boolean} = {};
+        for (let i = 0; i < connections.length; i++) {
+            const app = connections[i];
             if (!getUser(state, app.creator_id)) {
                 profilesToLoad[app.creator_id] = true;
             }

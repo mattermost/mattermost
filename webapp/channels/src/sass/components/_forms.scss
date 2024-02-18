@@ -192,7 +192,8 @@
 
 .form-control[disabled],
 .form-control[readonly],
-fieldset[disabled] .form-control {
+fieldset[disabled] .form-control,
+.backstage-form .form-control[disabled] {
     background-color: #f9f9f9;
 }
 

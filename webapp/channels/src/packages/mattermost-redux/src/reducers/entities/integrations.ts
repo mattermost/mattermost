@@ -4,7 +4,7 @@
 import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp} from '@mattermost/types/integrations';
+import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {IntegrationTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
@@ -224,6 +224,33 @@ function appsOAuthAppIDs(state: string[] = [], action: AnyAction) {
     }
 }
 
+function outgoingOAuthConnections(state: IDMappedObjects<OutgoingOAuthConnection> = {}, action: AnyAction) {
+    switch (action.type) {
+    case IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS: {
+        const nextState = {...state};
+        for (const connection of action.data) {
+            nextState[connection.id] = connection;
+        }
+        return nextState;
+    }
+    case IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION:
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    case IntegrationTypes.DELETED_OUTGOING_OAUTH_CONNECTION: {
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, action.data.id);
+        return nextState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+
+    default:
+        return state;
+    }
+}
+
 function appsBotIDs(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_APPS_BOT_IDS: {
@@ -293,6 +320,9 @@ export default combineReducers({
 
     // object to represent the list of ids for bots associated to apps
     appsBotIDs,
+
+    // object to represent registered outgoing oauth connections with connection id as the key
+    outgoingOAuthConnections,
 
     // object to represent built-in slash commands
     systemCommands,

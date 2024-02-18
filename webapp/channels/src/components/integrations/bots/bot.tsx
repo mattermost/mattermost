@@ -522,6 +522,7 @@ export default class Bot extends React.PureComponent<Props, State> {
                             defaultMessage='Delete'
                         />
                     }
+                    modalClass='integrations-backstage-modal'
                     show={this.state.confirmingId !== ''}
                     onConfirm={this.revokeTokenConfirmed}
                     onCancel={this.closeConfirm}

@@ -45,3 +45,4 @@ export function getRandomId(length = 7): string {
 export const defaultTeam = {name: 'ad-1', displayName: 'eligendi', type: 'O'};
 
 export const illegalRe = /[/?<>\\:*|":&();]/g;
+export const simpleEmailRe = /\S+@\S+\.\S+/;

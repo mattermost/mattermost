@@ -34,7 +34,7 @@ describe('components/pricing_modal/downgrade_team_removal_modal', () => {
             modals: {
                 modalState: {
                     success_modal: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },

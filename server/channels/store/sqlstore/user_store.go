@@ -107,7 +107,7 @@ func (us SqlUserStore) InsertUsers(users []*model.User) error {
 	return nil
 }
 
-func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
+func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	if user.Id != "" && !user.IsRemote() {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}

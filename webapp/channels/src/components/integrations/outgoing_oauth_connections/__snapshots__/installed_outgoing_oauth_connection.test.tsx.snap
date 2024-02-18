@@ -1,0 +1,137 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`components/integrations/InstalledOutgoingOAuthConnection should match snapshot 1`] = `
+<div
+  className="backstage-list__item"
+>
+  <div
+    className="item-details"
+  >
+    <div
+      className="item-details__row d-flex flex-column flex-md-row justify-content-between"
+    >
+      <strong
+        className="item-details__name"
+      >
+        My OAuth Connection
+      </strong>
+      <div
+        className="item-actions"
+      >
+        <Link
+          to="/team_name/integrations/outgoing-oauth2-connections/edit?id=someid"
+        >
+          <MemoizedFormattedMessage
+            defaultMessage="Edit"
+            id="installed_integrations.edit"
+          />
+        </Link>
+         - 
+        <Connect(DeleteIntegrationLink)
+          modalMessage={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Deleting this connection will break any integrations using it"
+              id="installed_outgoing_oauth_connections.delete.wanring"
+            />
+          }
+          onDelete={[Function]}
+          subtitleText={
+            <Memo(MemoizedFormattedMessage)
+              defaultMessage="Are you sure you want to delete {connectionName}?"
+              id="installed_outgoing_oauth_connections.delete.confirm"
+              values={
+                Object {
+                  "connectionName": <strong>
+                    My OAuth Connection
+                  </strong>,
+                }
+              }
+            />
+          }
+        />
+      </div>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <FormattedMarkdownMessage
+          defaultMessage="Client ID: **{clientId}**"
+          id="installed_integrations.client_id"
+          values={
+            Object {
+              "clientId": "someid",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__token"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Client Secret: ********"
+          id="installed_outgoing_oauth_connections.client_secret"
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__url word-break--all"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Audience URLs: {urls}"
+          id="installed_integrations.audience_urls"
+          values={
+            Object {
+              "urls": "https://myaudience.com",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__url word-break--all"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Token URL: {url}"
+          id="installed_integrations.token_url"
+          values={
+            Object {
+              "url": "https://tokenurl.com",
+            }
+          }
+        />
+      </span>
+    </div>
+    <div
+      className="item-details__row"
+    >
+      <span
+        className="item-details__creation"
+      >
+        <MemoizedFormattedMessage
+          defaultMessage="Created by {creator} on {createAt, date, full}"
+          id="installed_integrations.creation"
+          values={
+            Object {
+              "createAt": 1501365458934,
+              "creator": "somename",
+            }
+          }
+        />
+      </span>
+    </div>
+  </div>
+</div>
+`;

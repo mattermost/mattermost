@@ -24,7 +24,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'false',
@@ -62,7 +62,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'false',
@@ -101,7 +101,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -140,7 +140,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'true',
@@ -180,7 +180,7 @@ describe('components/widgets/menu/menu_items/menu_start_trial', () => {
                 },
                 general: {
                     config: {
-                        EnableTutorial: true,
+                        EnableTutorial: 'true',
                     },
                     license: {
                         IsLicensed: 'false',

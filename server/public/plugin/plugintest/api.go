@@ -2806,13 +2806,13 @@ func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *mo
 	return r0, r1
 }
 
-// InviteRemoteToChannel provides a mock function with given fields: channelID, remoteID, userID
-func (_m *API) InviteRemoteToChannel(channelID string, remoteID string, userID string) error {
-	ret := _m.Called(channelID, remoteID, userID)
+// InviteRemoteToChannel provides a mock function with given fields: channelID, remoteID, userID, shareIfNotShared
+func (_m *API) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
+	ret := _m.Called(channelID, remoteID, userID, shareIfNotShared)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(channelID, remoteID, userID)
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) error); ok {
+		r0 = rf(channelID, remoteID, userID, shareIfNotShared)
 	} else {
 		r0 = ret.Error(0)
 	}

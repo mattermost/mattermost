@@ -465,7 +465,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	}
 	th1.App.CreatePost(th1.Context, p4, gmChannel, false, true)
 
-	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
 	assert.Equal(t, 4, len(posts))
 
@@ -478,7 +478,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
 	assert.Equal(t, 0, len(posts))
 
@@ -487,7 +487,7 @@ func TestExportDMandGMPost(t *testing.T) {
 	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
-	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
 
 	// Adding some determinism so its possible to assert on slice index
@@ -538,7 +538,7 @@ func TestExportPostWithProps(t *testing.T) {
 	}
 	th1.App.CreatePost(th1.Context, p2, gmChannel, false, true)
 
-	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
 	assert.Len(t, posts, 2)
 	require.NotEmpty(t, posts[0].Props)
@@ -553,7 +553,7 @@ func TestExportPostWithProps(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
 	assert.Len(t, posts, 0)
 
@@ -562,7 +562,7 @@ func TestExportPostWithProps(t *testing.T) {
 	assert.Nil(t, appErr)
 	assert.Equal(t, 0, i)
 
-	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, err = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, err)
 
 	// Adding some determinism so its possible to assert on slice index
@@ -586,7 +586,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	err := th1.App.BulkExport(th1.Context, &b, "somePath", nil, model.BulkExportOpts{})
 	require.Nil(t, err)
 
-	posts, nErr := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, nErr := th1.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 1, len(posts))
 
@@ -595,7 +595,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	th2 := Setup(t)
 	defer th2.TearDown()
 
-	posts, nErr = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, nErr = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 0, len(posts))
 
@@ -604,7 +604,7 @@ func TestExportDMPostWithSelf(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, 0, i)
 
-	posts, nErr = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000")
+	posts, nErr = th2.App.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, "0000000", false)
 	require.NoError(t, nErr)
 	assert.Equal(t, 1, len(posts))
 	assert.Equal(t, 1, len((*posts[0].ChannelMembers)))

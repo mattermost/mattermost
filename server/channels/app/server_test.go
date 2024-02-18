@@ -172,7 +172,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "postgres")
 
-	th := Setup(t, SkipProductsInitialization())
+	th := Setup(t)
 	defer th.TearDown()
 
 	databaseType, mattermostVersion := th.Server.DatabaseTypeAndSchemaVersion()
@@ -181,7 +181,7 @@ func TestDatabaseTypeAndMattermostVersion(t *testing.T) {
 
 	os.Setenv("MM_SQLSETTINGS_DRIVERNAME", "mysql")
 
-	th2 := Setup(t, SkipProductsInitialization())
+	th2 := Setup(t)
 	defer th2.TearDown()
 
 	databaseType, mattermostVersion = th2.Server.DatabaseTypeAndSchemaVersion()

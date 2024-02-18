@@ -125,7 +125,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 	}
 
 	ctx.Logger().Info("Bulk export: exporting direct posts")
-	directAttachments, err := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments)
+	directAttachments, err := a.exportAllDirectPosts(ctx, job, writer, opts.IncludeAttachments, opts.IncludeArchivedChannels)
 	if err != nil {
 		return err
 	}
@@ -729,7 +729,7 @@ func (a *App) buildFavoritedByList(channelID string) ([]string, *model.AppError)
 	return userIDs, nil
 }
 
-func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments bool) ([]imports.AttachmentImportData, *model.AppError) {
+func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Writer, withAttachments, includeArchivedChannels bool) ([]imports.AttachmentImportData, *model.AppError) {
 	var attachments []imports.AttachmentImportData
 	afterId := strings.Repeat("0", 26)
 	var postProcessCount uint64
@@ -742,7 +742,7 @@ func (a *App) exportAllDirectPosts(ctx request.CTX, job *model.Job, writer io.Wr
 			logCheckpoint = time.Now()
 		}
 
-		posts, err := a.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, afterId)
+		posts, err := a.Srv().Store().Post().GetDirectPostParentsForExportAfter(1000, afterId, includeArchivedChannels)
 		if err != nil {
 			return nil, model.NewAppError("exportAllDirectPosts", "app.post.get_direct_posts.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}

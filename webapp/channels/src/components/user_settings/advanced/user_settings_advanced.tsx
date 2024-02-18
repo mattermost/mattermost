@@ -17,7 +17,6 @@ import {emitUserLoggedOutEvent} from 'actions/global_actions';
 import ConfirmModal from 'components/confirm_modal';
 import SettingItem from 'components/setting_item';
 import SettingItemMax from 'components/setting_item_max';
-import BackIcon from 'components/widgets/icons/fa_back_icon';
 
 import Constants, {AdvancedSections, Preferences} from 'utils/constants';
 import {t} from 'utils/i18n';
@@ -26,6 +25,9 @@ import {a11yFocus, localizeMessage} from 'utils/utils';
 
 import JoinLeaveSection from './join_leave_section';
 import PerformanceDebuggingSection from './performance_debugging_section';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const PreReleaseFeatures = Constants.PRE_RELEASE_FEATURES;
 
@@ -898,38 +900,25 @@ export default class AdvancedSettingsDisplay extends React.PureComponent<Props, 
 
         return (
             <div>
-                <div className='modal-header'>
-                    <button
-                        id='closeButton'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label='Close'
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4
-                        className='modal-title'
-                    >
-                        <div className='modal-back'>
-                            <span onClick={this.props.collapseModal}>
-                                <BackIcon/>
-                            </span>
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.advance.title'
                             defaultMessage='Advanced Settings'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3 className='tab-header'>
-                        <FormattedMessage
-                            id='user.settings.advance.title'
-                            defaultMessage='Advanced Settings'
-                        />
-                    </h3>
+                    <SettingDesktopHeader
+                        text={
+                            <FormattedMessage
+                                id='user.settings.advance.title'
+                                defaultMessage='Advanced Settings'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {ctrlSendSection}
                     {formattingSectionDivider}

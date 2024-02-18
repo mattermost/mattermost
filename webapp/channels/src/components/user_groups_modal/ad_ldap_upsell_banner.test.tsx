@@ -38,7 +38,7 @@ describe('component/user_groups_modal/ad_ldap_upsell_banner', () => {
                 license: {
                     Cloud: 'false',
                     SkuShortName: LicenseSkus.Professional,
-                    ExpiresAt: 100000000,
+                    ExpiresAt: '100000000',
                 },
                 config: {},
             },

@@ -37,7 +37,7 @@ func testSaveTermsOfService(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(&u1)
+	_, err := ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}
@@ -56,7 +56,7 @@ func testGetLatestTermsOfService(t *testing.T, rctx request.CTX, ss store.Store)
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(&u1)
+	_, err := ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service 2", UserId: u1.Id}
@@ -76,7 +76,7 @@ func testGetTermsOfService(t *testing.T, rctx request.CTX, ss store.Store) {
 	u1.Username = model.NewId()
 	u1.Email = MakeEmail()
 	u1.Nickname = model.NewId()
-	_, err := ss.User().Save(&u1)
+	_, err := ss.User().Save(rctx, &u1)
 	require.NoError(t, err)
 
 	termsOfService := &model.TermsOfService{Text: "terms of service", UserId: u1.Id}

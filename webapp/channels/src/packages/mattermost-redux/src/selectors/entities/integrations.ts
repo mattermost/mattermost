@@ -26,6 +26,10 @@ export function getOAuthApps(state: GlobalState) {
     return state.entities.integrations.oauthApps;
 }
 
+export function getOutgoingOAuthConnections(state: GlobalState) {
+    return state.entities.integrations.outgoingOAuthConnections;
+}
+
 export const getAppsOAuthAppIDs: (state: GlobalState) => string[] = createSelector(
     'getAppsOAuthAppIDs',
     appsEnabled,

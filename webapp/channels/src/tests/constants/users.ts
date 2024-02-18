@@ -20,6 +20,7 @@ const emptyOtherUsersState: Omit<GlobalState['entities']['users'], 'profiles' | 
     profilesNotInGroup: {},
     statuses: {},
     stats: {},
+    filteredStats: {},
     myUserAccessTokens: {},
     lastActivity: {},
 };

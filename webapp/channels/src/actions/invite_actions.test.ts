@@ -8,6 +8,7 @@ import {sendMembersInvites, sendGuestsInvites} from 'actions/invite_actions';
 
 import mockStore from 'tests/test_store';
 import {ConsolePages} from 'utils/constants';
+import {TestHelper} from 'utils/test_helper';
 
 jest.mock('actions/team_actions', () => ({
     addUsersToTeam: () => ({ // since we are using addUsersToTeamGracefully, this call will always succeed
@@ -76,18 +77,18 @@ describe('actions/invite_actions', () => {
                 },
                 membersInTeam: {
                     correct: {
-                        user1: {id: 'user1'},
-                        user2: {id: 'user2'},
-                        guest1: {id: 'guest1'},
-                        guest2: {id: 'guest2'},
-                        guest3: {id: 'guest3'},
+                        user1: TestHelper.getTeamMembershipMock({user_id: 'user1', team_id: 'correct'}),
+                        user2: TestHelper.getTeamMembershipMock({user_id: 'user2', team_id: 'correct'}),
+                        guest1: TestHelper.getTeamMembershipMock({user_id: 'guest1', team_id: 'correct'}),
+                        guest2: TestHelper.getTeamMembershipMock({user_id: 'guest2', team_id: 'correct'}),
+                        guest3: TestHelper.getTeamMembershipMock({user_id: 'guest3', team_id: 'correct'}),
                     },
                     error: {
-                        user1: {id: 'user1'},
-                        user2: {id: 'user2'},
-                        guest1: {id: 'guest1'},
-                        guest2: {id: 'guest2'},
-                        guest3: {id: 'guest3'},
+                        user1: TestHelper.getTeamMembershipMock({user_id: 'user1', team_id: 'error'}),
+                        user2: TestHelper.getTeamMembershipMock({user_id: 'user2', team_id: 'error'}),
+                        guest1: TestHelper.getTeamMembershipMock({user_id: 'guest1', team_id: 'error'}),
+                        guest2: TestHelper.getTeamMembershipMock({user_id: 'guest2', team_id: 'error'}),
+                        guest3: TestHelper.getTeamMembershipMock({user_id: 'guest3', team_id: 'error'}),
                     },
                 },
                 myMembers: {},
@@ -97,15 +98,15 @@ describe('actions/invite_actions', () => {
                 channels: {},
                 membersInChannel: {
                     correct: {
-                        guest2: {id: 'guest2'},
-                        guest3: {id: 'guest3'},
+                        guest2: TestHelper.getChannelMembershipMock({user_id: 'guest2', channel_id: 'correct'}),
+                        guest3: TestHelper.getChannelMembershipMock({user_id: 'guest3', channel_id: 'correct'}),
                     },
                     correct2: {
-                        guest2: {id: 'guest2'},
+                        guest2: TestHelper.getChannelMembershipMock({user_id: 'guest2', channel_id: 'correct2'}),
                     },
                     error: {
-                        guest2: {id: 'guest2'},
-                        guest3: {id: 'guest3'},
+                        guest2: TestHelper.getChannelMembershipMock({user_id: 'guest2', channel_id: 'error'}),
+                        guest3: TestHelper.getChannelMembershipMock({user_id: 'guest3', channel_id: 'error'}),
                     },
                 },
             },

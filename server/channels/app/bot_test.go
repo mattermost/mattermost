@@ -768,7 +768,7 @@ func TestGetSystemBot(t *testing.T) {
 
 		require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
 
-		_, err := th.App.GetSystemBot()
+		_, err := th.App.GetSystemBot(th.Context)
 		require.NotNil(t, err)
 		require.Equal(t, "app.bot.get_system_bot.empty_admin_list.app_error", err.Id)
 	})
@@ -781,7 +781,7 @@ func TestGetSystemBot(t *testing.T) {
 		_, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.NotNil(t, err)
 
-		bot, err := th.App.GetSystemBot()
+		bot, err := th.App.GetSystemBot(th.Context)
 		require.Nil(t, err)
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 	})
@@ -792,7 +792,7 @@ func TestGetSystemBot(t *testing.T) {
 		require.Nil(t, err)
 		require.True(t, botUser.IsBot)
 
-		bot, err := th.App.GetSystemBot()
+		bot, err := th.App.GetSystemBot(th.Context)
 		require.Nil(t, err)
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)

@@ -98,7 +98,9 @@ type PlatformService struct {
 	goroutineBuffered   chan struct{}
 
 	additionalClusterHandlers map[model.ClusterEvent]einterfaces.ClusterMessageHandler
-	sharedChannelService      SharedChannelServiceIFace
+
+	shareChannelServiceMux sync.RWMutex
+	sharedChannelService   SharedChannelServiceIFace
 
 	pluginEnv HookRunner
 }
@@ -471,7 +473,15 @@ func (ps *PlatformService) SetSqlStore(s *sqlstore.SqlStore) {
 }
 
 func (ps *PlatformService) SetSharedChannelService(s SharedChannelServiceIFace) {
+	ps.shareChannelServiceMux.Lock()
+	defer ps.shareChannelServiceMux.Unlock()
 	ps.sharedChannelService = s
+}
+
+func (ps *PlatformService) GetSharedChannelService() SharedChannelServiceIFace {
+	ps.shareChannelServiceMux.RLock()
+	defer ps.shareChannelServiceMux.RUnlock()
+	return ps.sharedChannelService
 }
 
 func (ps *PlatformService) SetPluginsEnvironment(runner HookRunner) {

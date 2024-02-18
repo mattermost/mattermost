@@ -614,7 +614,7 @@ func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, rctx request.CTX, 
 	defer deleteTeamsAndChannels(rctx, ss, teamIDs, channelIDs)
 	defer cleanupRetentionPolicyTest(s)
 
-	user, userSaveErr := ss.User().Save(&model.User{
+	user, userSaveErr := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	})
