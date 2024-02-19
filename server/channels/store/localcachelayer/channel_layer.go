@@ -48,6 +48,30 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelById(msg *model.C
 	}
 }
 
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelForUser(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.channelMembersForUserCache.Purge()
+	} else {
+		s.rootStore.channelMembersForUserCache.Remove(string(msg.Data))
+	}
+}
+
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelMembersNotifyProps(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.channelMembersNotifyPropsCache.Purge()
+	} else {
+		s.rootStore.channelMembersNotifyPropsCache.Remove(string(msg.Data))
+	}
+}
+
+func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model.ClusterMessage) {
+	if bytes.Equal(msg.Data, clearCacheMessageData) {
+		s.rootStore.channelByNameCache.Purge()
+	} else {
+		s.rootStore.channelByNameCache.Remove(string(msg.Data))
+	}
+}
+
 func (s LocalCacheChannelStore) ClearMembersForUserCache() {
 	s.rootStore.doClearCacheCluster(s.rootStore.reaction.rootStore.channelMembersForUserCache)
 }
