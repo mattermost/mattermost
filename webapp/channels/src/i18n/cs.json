@@ -3636,7 +3636,7 @@
   "invite_modal.invited_members": "Členové",
   "invite_modal.no_permissions.description": "Nemáte oprávnění k přidávání uživatelů nebo hostů. Pokud se vám to zdá jako chyba, obraťte se na správce systému.",
   "invite_modal.no_permissions.title": "Není možné pokračovat",
-  "invite_modal.people": "lidé",
+  "invite_modal.people": "uživatele",
   "invite_modal.restricted_invite_guest.post_trial_description": "Spolupracujte s uživateli mimo vaši organizaci a zároveň přísně kontrolujte jejich přístup ke kanálům a členům týmu. Upgradujte na plán Professional a vytvořte neomezené skupiny uživatelů.",
   "invite_modal.restricted_invite_guest.post_trial_title": "Upgradujte a pozvěte hosta",
   "invite_modal.restricted_invite_guest.pre_trial_description": "Spolupracujte s uživateli mimo vaši organizaci a zároveň přísně kontrolujte jejich přístup ke kanálům a členům týmu. Získejte plné prostředí Enterprise, když spustíte bezplatnou {trialLength}denní zkušební verzi.",
