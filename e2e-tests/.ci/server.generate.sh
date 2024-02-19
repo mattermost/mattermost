@@ -61,7 +61,7 @@ services:
       MM_TEAMSETTINGS_ENABLEOPENSERVER: "true"
       MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
-      MM_EMAILSETTINGS_SMTPSERVER: "inbucket"
+      MM_EMAILSETTINGS_SMTPSERVER: "localhost"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
