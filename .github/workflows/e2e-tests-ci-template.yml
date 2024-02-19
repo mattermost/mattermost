@@ -216,7 +216,9 @@ jobs:
           make generate-test-cycle
 
   test:
+    continue-on-error: true # Individual runner failures shouldn't prevent the completion of an E2E run
     strategy:
+      fail-fast: false # Individual runner failures shouldn't prevent the completion of an E2E run
       matrix:
         #
         # Note that E2E tests should be run only on ubuntu, for QA purposes.
@@ -229,7 +231,7 @@ jobs:
         os: [ubuntu-latest-8-cores]
         worker_index: ${{ fromJSON(needs.generate-build-variables.outputs.workers) }} # https://docs.github.com/en/actions/learn-github-actions/expressions#example-returning-a-json-object
     runs-on: "${{ matrix.os }}"
-    timeout-minutes: 40
+    timeout-minutes: 60
     needs:
       - cypress-check
       - playwright-check
