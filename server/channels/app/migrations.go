@@ -628,6 +628,27 @@ func (s *Server) doDeleteEmptyDraftsMigration(c request.CTX) {
 	}
 }
 
+func (s *Server) doDeleteOrphanDraftsMigration(c request.CTX) {
+	// If the migration is already marked as completed, don't do it again.
+	if _, err := s.Store().System().GetByName(model.MigrationKeyDeleteOrphanDrafts); err == nil {
+		return
+	}
+
+	jobs, err := s.Store().Job().GetAllByTypeAndStatus(c, model.JobTypeDeleteOrphanDraftsMigration, model.JobStatusPending)
+	if err != nil {
+		mlog.Fatal("failed to get jobs by type and status", mlog.Err(err))
+		return
+	}
+	if len(jobs) > 0 {
+		return
+	}
+
+	if _, appErr := s.Jobs.CreateJobOnce(c, model.JobTypeDeleteOrphanDraftsMigration, nil); appErr != nil {
+		mlog.Fatal("failed to start job for deleting orphan drafts", mlog.Err(appErr))
+		return
+	}
+}
+
 func (a *App) DoAppMigrations() {
 	a.Srv().doAppMigrations()
 }
@@ -654,4 +675,5 @@ func (s *Server) doAppMigrations() {
 	s.doElasticsearchFixChannelIndex(c)
 	s.doCloudS3PathMigrations(c)
 	s.doDeleteEmptyDraftsMigration(c)
+	s.doDeleteOrphanDraftsMigration(c)
 }

@@ -17,7 +17,6 @@ import {getExternalBotAccounts} from 'mattermost-redux/selectors/entities/bots';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getAppsBotIDs} from 'mattermost-redux/selectors/entities/integrations';
 import * as UserSelectors from 'mattermost-redux/selectors/entities/users';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 import Bots from './bots';
 
@@ -48,7 +47,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({
             fetchAppsBotIDs,

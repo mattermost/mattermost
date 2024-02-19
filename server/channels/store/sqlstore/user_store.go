@@ -107,7 +107,7 @@ func (us SqlUserStore) InsertUsers(users []*model.User) error {
 	return nil
 }
 
-func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
+func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	if user.Id != "" && !user.IsRemote() {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
@@ -2324,12 +2324,6 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 			"COUNT(ps.Day) AS DaysActive",
 			"SUM(ps.NumPosts) AS TotalPosts",
 		)
-	} else {
-		selectColumns = append(selectColumns,
-			"MAX(p.CreateAt) AS LastPostDate",
-			"COUNT(DATE(FROM_UNIXTIME(p.CreateAt / 1000))) AS DaysActive",
-			"COUNT(p.Id) AS TotalPosts",
-		)
 	}
 
 	sortDirection := "ASC"
@@ -2377,35 +2371,20 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 	}
 
 	if isPostgres {
-		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id")
+		joinSql := sq.And{}
 		if filter.StartAt > 0 {
 			startDate := time.UnixMilli(filter.StartAt)
-			query = query.Where(sq.Or{
-				sq.Expr("ps.UserId IS NULL"),
-				sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")},
-			})
+			joinSql = append(joinSql, sq.GtOrEq{"ps.Day": startDate.Format("2006-01-02")})
 		}
 		if filter.EndAt > 0 {
 			endDate := time.UnixMilli(filter.EndAt)
-			query = query.Where(sq.Or{
-				sq.Expr("ps.UserId IS NULL"),
-				sq.Lt{"ps.Day": endDate.Format("2006-01-02")},
-			})
+			joinSql = append(joinSql, sq.Lt{"ps.Day": endDate.Format("2006-01-02")})
 		}
-	} else {
-		query = query.LeftJoin("Posts p on p.UserId = u.Id")
-		if filter.StartAt > 0 {
-			query = query.Where(sq.Or{
-				sq.Expr("p.UserId IS NULL"),
-				sq.GtOrEq{"p.CreateAt": filter.StartAt},
-			})
+		sql, args, err := joinSql.ToSql()
+		if err != nil {
+			return nil, err
 		}
-		if filter.EndAt > 0 {
-			query = query.Where(sq.Or{
-				sq.Expr("p.UserId IS NULL"),
-				sq.Lt{"p.CreateAt": filter.EndAt},
-			})
-		}
+		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id AND "+sql, args...)
 	}
 
 	query = applyUserReportFilter(query, filter, isPostgres)

@@ -17,7 +17,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -1619,7 +1618,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	return newMembers, nil
 }
 
-func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s SqlChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	newMembers, err := s.SaveMultipleMembers([]*model.ChannelMember{member})
 	if err != nil {
 		return nil, err
@@ -1861,6 +1860,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		sql, args, err2 := s.getQueryBuilder().
 			Update("channelmembers").
 			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
+			Set("LastUpdateAt", model.GetMillis()).
 			Where(sq.Eq{
 				"userid":    userID,
 				"channelid": channelID,
@@ -1884,6 +1884,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		sql, args, err2 := s.getQueryBuilder().
 			Update("ChannelMembers").
 			Set("NotifyProps", jsonExpr).
+			Set("LastUpdateAt", model.GetMillis()).
 			Where(sq.Eq{
 				"UserId":    userID,
 				"ChannelId": channelID,
@@ -1970,8 +1971,6 @@ func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.Channe
 		return nil, errors.Wrap(err, "begin_transaction")
 	}
 	defer finalizeTransactionX(transaction, &err)
-
-	transaction.trace = true
 
 	result, err := transaction.ExecBuilder(builder)
 	if err != nil {
@@ -2162,35 +2161,6 @@ func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Remove by UserId")
 	}
-}
-
-func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
-	var ids map[string]string
-	if err := allChannelMembersForUserCache.Get(userId, &ids); err == nil {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
-		}
-		if _, ok := ids[channelId]; ok {
-			return true
-		}
-		return false
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
-	}
-
-	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
-	if err != nil {
-		mlog.Error("Error getting all channel members for user", mlog.Err(err))
-		return false
-	}
-
-	if _, ok := ids[channelId]; ok {
-		return true
-	}
-
-	return false
 }
 
 func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeArchivedChannels bool) (*model.ChannelMember, error) {
@@ -4194,18 +4164,23 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 	return members, nil
 }
 
-func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, error) {
+func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 	directChannelsForExport := []*model.DirectChannelForExport{}
 	query := s.getQueryBuilder().
 		Select("Channels.*").
 		From("Channels").
 		Where(sq.And{
 			sq.Gt{"Channels.Id": afterId},
-			sq.Eq{"Channels.DeleteAt": int(0)},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 		}).
 		OrderBy("Channels.Id").
 		Limit(uint64(limit))
+
+	if !includeArchivedChannels {
+		query = query.Where(
+			sq.Eq{"Channels.DeleteAt": int(0)},
+		)
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -4224,10 +4199,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, COALESCE(UrgentMentionCount, 0) UrgentMentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 		From("ChannelMembers cm").
 		Join("Users u ON ( u.Id = cm.UserId )").
-		Where(sq.And{
-			sq.Eq{"cm.ChannelId": channelIds},
-			sq.Eq{"u.DeleteAt": int(0)},
-		})
+		Where(sq.Eq{"cm.ChannelId": channelIds})
 
 	queryString, args, err = query.ToSql()
 	if err != nil {

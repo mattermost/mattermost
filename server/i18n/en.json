@@ -1662,6 +1662,18 @@
     "translation": "Multi-factor authentication is required on this server."
   },
   {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "There was an error while creating the outgoing OAuth connection."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "There was an error while deleting the outgoing OAuth connection."
+  },
+  {
     "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
     "translation": "There was an error while listing outgoing OAuth connections."
   },
@@ -1670,8 +1682,24 @@
     "translation": "Invalid input parameters."
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "This feature is restricted by a feature flag."
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Outgoing OAuth connections are not available on this server."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "There was an error while updating the outgoing OAuth connection."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "There was an error while validating the outgoing OAuth connection credentials."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Couldn't retrieve credentials with the specified connection configuration."
   },
   {
     "id": "api.context.permissions.app_error",
@@ -2719,6 +2747,10 @@
     "translation": "One or more of the following permissions that you are trying to add or remove is not allowed"
   },
   {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Invalid email_token"
+  },
+  {
     "id": "api.scheme.create_scheme.license.error",
     "translation": "Your license does not support creating permissions schemes."
   },
@@ -3255,10 +3287,6 @@
     "translation": "Invalid request body."
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error while parsing the body data."
-  },
-  {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
     "translation": "Team creation has been disabled. Please ask your System Administrator for details."
   },
@@ -3367,6 +3395,14 @@
     "translation": "Restricting team to {{ .Domain }} is not allowed by the system config. Please contact your system administrator."
   },
   {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Invalid team member update: A guest cannot be made team member or team admin, please promote as a user first."
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Invalid team member update: A user must cannot be set as a guest and admin at the same time."
+  },
+  {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
   },
@@ -3377,6 +3413,10 @@
   {
     "id": "api.team.update_team_scheme.scheme_scope.error",
     "translation": "Unable to set the scheme to the team because the supplied scheme is not a team scheme."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Unable to find the user."
   },
   {
     "id": "api.templates.cloud_renewal.button",
@@ -4367,6 +4407,10 @@
     "translation": "Error retrieving endpoint from Discovery Document."
   },
   {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Error while checking if a user has a custom profile image."
+  },
+  {
     "id": "api.user.get_uploads_for_user.forbidden.app_error",
     "translation": "Failed to get uploads."
   },
@@ -4843,6 +4887,10 @@
     "translation": "Unable to delete the bot."
   },
   {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Unable to add the user as a member of the channel."
+  },
+  {
     "id": "app.channel.analytics_type_count.app_error",
     "translation": "Unable to get channel type counts."
   },
@@ -5261,6 +5309,14 @@
   {
     "id": "app.command_webhook.try_use.invalid",
     "translation": "Invalid webhook."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Failed to write CSV headers."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Unsupported report format."
   },
   {
     "id": "app.compliance.get.finding.app_error",
@@ -6663,12 +6719,56 @@
     "translation": "Unable to save the token."
   },
   {
+    "id": "app.report.date_range.all_time",
+    "translation": "all time"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "the last 30 days"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "the last 6 months"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "the previous month"
+  },
+  {
     "id": "app.report.get_user_count_for_report.store_error",
     "translation": "Failed to fetch user count."
   },
   {
     "id": "app.report.get_user_report.store_error",
     "translation": "Failed to fetch user report."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Your export is ready. The CSV file contains user data for {{.DateRange}}. Click on the link below to download the report."
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Failed to save file info."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Missing date range"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "No user id to send the report to"
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Job already exists for this user and date range."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Batch reporting export only available to Pro and Enterprise."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "You've started an export of user data for {{.DateRange}}. When the export is complete, a CSV file will be delivered to you in this direct message."
   },
   {
     "id": "app.role.check_roles_exist.role_not_found",
@@ -6709,6 +6809,14 @@
   {
     "id": "app.save_config.plugin_hook_error",
     "translation": "An error occurred running the plugin hook on configuration save."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Failed to write CSV chunk."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Unsupported report format."
   },
   {
     "id": "app.scheme.delete.app_error",
@@ -8223,8 +8331,24 @@
     "translation": "Username already used by another Mattermost user."
   },
   {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "There was an error while authenticating the outgoing oauth connection: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "There is already an outgoing oauth connection for the provided audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "There is no outgoing oauth connection for the provided audience."
+  },
+  {
     "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
     "translation": "There was an error while deleting the outgoing oauth connection."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Outgoing OAuth connections are not available on this server."
   },
   {
     "id": "ent.outgoing_oauth_connections.get_connection.app_error",
@@ -8235,16 +8359,44 @@
     "translation": "The outgoing oauth connection was not found."
   },
   {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "There was an error retrieving the outgoing oauth connection for the audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "The outgoing oauth connection for the provided audience was not found."
+  },
+  {
     "id": "ent.outgoing_oauth_connections.get_connections.app_error",
     "translation": "There was an error retrieving the outgoing oauth connections."
   },
   {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Your license does not support outgoing oauth connections."
+  },
+  {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "There was an error saving the outgoing oauth connection."
+    "translation": "There was an error saving the outgoing oauth connection: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "There is already an outgoing oauth connection for the provided audience: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "The provided audience is invalid: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "There was an error updating the outgoing oauth connection."
+    "translation": "There was an error updating the outgoing oauth connection: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "There is already an outgoing oauth connection for the provided audience: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "The provided audience is invalid: {{ .Error }}"
   },
   {
     "id": "ent.saml.attribute.app_error",
@@ -9588,7 +9740,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "Some audience URL is incorrect."
+    "translation": "Audience URL is invalid: {{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
@@ -10212,11 +10364,11 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 118+"
+    "translation": "Version 120+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 118+"
+    "translation": "Version 120+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",

@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {useEffect, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, defineMessages} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
 import type {GlobalState} from '@mattermost/types/store';
@@ -14,7 +14,6 @@ import {
     getCloudCustomer as selectCloudCustomer,
     getCloudErrors,
 } from 'mattermost-redux/selectors/entities/cloud';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {pageVisited} from 'actions/telemetry_actions';
 
@@ -49,8 +48,16 @@ import PlanDetails from '../plan_details';
 
 import './billing_subscriptions.scss';
 
+const messages = defineMessages({
+    title: {id: 'admin.billing.subscription.title', defaultMessage: 'Subscription'},
+});
+
+export const searchableStrings = [
+    messages.title,
+];
+
 const BillingSubscriptions = () => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const subscription = useSelector(selectCloudSubscription);
     const [cloudLimits] = useGetLimits();
     const errorLoadingData = useSelector((state: GlobalState) => {
@@ -121,10 +128,7 @@ const BillingSubscriptions = () => {
     return (
         <div className='wrapper--fixed BillingSubscriptions'>
             <AdminHeader>
-                <FormattedMessage
-                    id='admin.billing.subscription.title'
-                    defaultMessage='Subscription'
-                />
+                <FormattedMessage {...messages.title}/>
             </AdminHeader>
             <div className='admin-console__wrapper'>
                 <div className='admin-console__content'>

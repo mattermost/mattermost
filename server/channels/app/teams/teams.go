@@ -129,7 +129,7 @@ func (ts *TeamService) PatchTeam(teamID string, patch *model.TeamPatch) (*model.
 // 1. a pointer to the team member, if successful
 // 2. a boolean: true if the user has a non-deleted team member for that team already, otherwise false.
 // 3. a pointer to an AppError if something went wrong.
-func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
+func (ts *TeamService) JoinUserToTeam(rctx request.CTX, team *model.Team, user *model.User) (*model.TeamMember, bool, error) {
 	if !ts.IsTeamEmailAllowed(user, team) {
 		return nil, false, AcceptedDomainError
 	}
@@ -154,10 +154,10 @@ func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *mod
 		tm.SchemeAdmin = true
 	}
 
-	rtm, err := ts.store.GetMember(c, team.Id, user.Id)
+	rtm, err := ts.store.GetMember(rctx, team.Id, user.Id)
 	if err != nil {
 		// Membership appears to be missing. Lets try to add.
-		tmr, nErr := ts.store.SaveMember(tm, *ts.config().TeamSettings.MaxUsersPerTeam)
+		tmr, nErr := ts.store.SaveMember(rctx, tm, *ts.config().TeamSettings.MaxUsersPerTeam)
 		if nErr != nil {
 			return nil, false, nErr
 		}
@@ -179,7 +179,7 @@ func (ts *TeamService) JoinUserToTeam(c request.CTX, team *model.Team, user *mod
 		return nil, false, MaxMemberCountError
 	}
 
-	member, nErr := ts.store.UpdateMember(c, tm)
+	member, nErr := ts.store.UpdateMember(rctx, tm)
 	if nErr != nil {
 		return nil, false, nErr
 	}

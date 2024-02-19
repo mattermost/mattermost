@@ -1073,7 +1073,7 @@ func (s *OpenTracingLayerChannelStore) GetAllChannelsForExportAfter(limit int, a
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string) ([]*model.DirectChannelForExport, error) {
+func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.GetAllDirectChannelsForExportAfter")
 	s.Root.Store.SetContext(newCtx)
@@ -1082,7 +1082,7 @@ func (s *OpenTracingLayerChannelStore) GetAllDirectChannelsForExportAfter(limit 
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID)
+	result, err := s.ChannelStore.GetAllDirectChannelsForExportAfter(limit, afterID, includeArchivedChannels)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -2059,19 +2059,6 @@ func (s *OpenTracingLayerChannelStore) InvalidatePinnedPostCount(channelID strin
 
 }
 
-func (s *OpenTracingLayerChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
-	origCtx := s.Root.Store.Context()
-	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.IsUserInChannelUseCache")
-	s.Root.Store.SetContext(newCtx)
-	defer func() {
-		s.Root.Store.SetContext(origCtx)
-	}()
-
-	defer span.Finish()
-	result := s.ChannelStore.IsUserInChannelUseCache(userID, channelID)
-	return result
-}
-
 func (s *OpenTracingLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.MigrateChannelMembers")
@@ -2306,7 +2293,7 @@ func (s *OpenTracingLayerChannelStore) SaveDirectChannel(ctx request.CTX, channe
 	return result, err
 }
 
-func (s *OpenTracingLayerChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s *OpenTracingLayerChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "ChannelStore.SaveMember")
 	s.Root.Store.SetContext(newCtx)
@@ -2315,7 +2302,7 @@ func (s *OpenTracingLayerChannelStore) SaveMember(member *model.ChannelMember) (
 	}()
 
 	defer span.Finish()
-	result, err := s.ChannelStore.SaveMember(member)
+	result, err := s.ChannelStore.SaveMember(rctx, member)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -3381,6 +3368,24 @@ func (s *OpenTracingLayerDraftStore) Delete(userID string, channelID string, roo
 	return err
 }
 
+func (s *OpenTracingLayerDraftStore) DeleteDraftsAssociatedWithPost(channelID string, rootID string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.DeleteDraftsAssociatedWithPost")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.DraftStore.DeleteDraftsAssociatedWithPost(channelID, rootID)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
 func (s *OpenTracingLayerDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(createAt int64, userId string) error {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.DeleteEmptyDraftsByCreateAtAndUserId")
@@ -3391,6 +3396,24 @@ func (s *OpenTracingLayerDraftStore) DeleteEmptyDraftsByCreateAtAndUserId(create
 
 	defer span.Finish()
 	err := s.DraftStore.DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return err
+}
+
+func (s *OpenTracingLayerDraftStore) DeleteOrphanDraftsByCreateAtAndUserId(createAt int64, userId string) error {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "DraftStore.DeleteOrphanDraftsByCreateAtAndUserId")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	err := s.DraftStore.DeleteOrphanDraftsByCreateAtAndUserId(createAt, userId)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -6156,7 +6179,7 @@ func (s *OpenTracingLayerPostStore) Get(ctx context.Context, id string, opts mod
 	return result, err
 }
 
-func (s *OpenTracingLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error) {
+func (s *OpenTracingLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "PostStore.GetDirectPostParentsForExportAfter")
 	s.Root.Store.SetContext(newCtx)
@@ -6165,7 +6188,7 @@ func (s *OpenTracingLayerPostStore) GetDirectPostParentsForExportAfter(limit int
 	}()
 
 	defer span.Finish()
-	result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterID)
+	result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterID, includeArchivedChannels)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -10171,7 +10194,7 @@ func (s *OpenTracingLayerTeamStore) Save(team *model.Team) (*model.Team, error) 
 	return result, err
 }
 
-func (s *OpenTracingLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+func (s *OpenTracingLayerTeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "TeamStore.SaveMember")
 	s.Root.Store.SetContext(newCtx)
@@ -10180,7 +10203,7 @@ func (s *OpenTracingLayerTeamStore) SaveMember(member *model.TeamMember, maxUser
 	}()
 
 	defer span.Finish()
-	result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+	result, err := s.TeamStore.SaveMember(rctx, member, maxUsersPerTeam)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)
@@ -12183,7 +12206,7 @@ func (s *OpenTracingLayerUserStore) ResetLastPictureUpdate(userID string) error 
 	return err
 }
 
-func (s *OpenTracingLayerUserStore) Save(user *model.User) (*model.User, error) {
+func (s *OpenTracingLayerUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.Save")
 	s.Root.Store.SetContext(newCtx)
@@ -12192,7 +12215,7 @@ func (s *OpenTracingLayerUserStore) Save(user *model.User) (*model.User, error) 
 	}()
 
 	defer span.Finish()
-	result, err := s.UserStore.Save(user)
+	result, err := s.UserStore.Save(rctx, user)
 	if err != nil {
 		span.LogFields(spanlog.Error(err))
 		ext.Error.Set(span, true)

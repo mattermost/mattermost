@@ -70,6 +70,16 @@
             }
         }
 
+        .textarea-wrapper-preview {
+            .custom-textarea.textbox-preview-area {
+                display: block;
+            }
+
+            .textbox-edit-area {
+                display: none;
+            }
+        }
+
         .edit-post-footer {
             position: relative;
             display: inline-block;
@@ -425,7 +435,7 @@
 
             .code-preview {
                 display: flex;
-                height: calc(100vh - 168px);
+                max-height: calc(100vh - 168px);
                 flex-direction: column;
                 border-radius: 8px;
 

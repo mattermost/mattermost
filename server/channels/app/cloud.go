@@ -13,26 +13,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
-
-// Ensure cloud service wrapper implements `product.CloudService`
-var _ product.CloudService = (*cloudWrapper)(nil)
-
-// cloudWrapper provides an implementation of `product.CloudService` for use by products.
-type cloudWrapper struct {
-	cloud einterfaces.CloudInterface
-}
-
-func (c *cloudWrapper) GetCloudLimits() (*model.ProductLimits, error) {
-	if c.cloud != nil {
-		return c.cloud.GetCloudLimits("")
-	}
-
-	return &model.ProductLimits{}, nil
-}
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	userOptions := &model.UserGetOptions{
@@ -285,6 +267,10 @@ func (a *App) DoSubscriptionRenewalCheck() {
 		return
 	}
 
+	if subscription.IsFreeTrial == "true" {
+		return // Don't send renewal emails for free trials
+	}
+
 	sysVar, err := a.Srv().Store().System().GetByName(model.CloudRenewalEmail)
 	if err != nil {
 		// We only care about the error if it wasn't a not found error
@@ -318,13 +304,13 @@ func (a *App) DoSubscriptionRenewalCheck() {
 
 	// Only send the email if within the period and it's not already been sent
 	// This allows the email to send on day 59 if for whatever reason it was unable to on day 60
-	if daysToExpiration <= 60 && daysToExpiration > 30 && prevSentEmail != 60 {
+	if daysToExpiration <= 60 && daysToExpiration > 30 && prevSentEmail != 60 && !(prevSentEmail < 60) {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail60
 		prevSentEmail = 60
-	} else if daysToExpiration <= 30 && daysToExpiration > 7 && prevSentEmail != 30 {
+	} else if daysToExpiration <= 30 && daysToExpiration > 7 && prevSentEmail != 30 && !(prevSentEmail < 30) {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail30
 		prevSentEmail = 30
-	} else if daysToExpiration <= 7 && daysToExpiration > 3 && prevSentEmail != 7 {
+	} else if daysToExpiration <= 7 && daysToExpiration >= 0 && prevSentEmail != 7 {
 		emailFunc = a.Srv().EmailService.SendCloudRenewalEmail7
 		prevSentEmail = 7
 	}

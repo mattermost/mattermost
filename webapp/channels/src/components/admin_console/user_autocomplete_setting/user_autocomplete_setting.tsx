@@ -15,7 +15,7 @@ export type Props = {
     id: string;
     label: string;
     placeholder: string;
-    helpText: string;
+    helpText: React.ReactNode;
     value: string;
     onChange: (id: string, value: string) => void;
     disabled: boolean;
