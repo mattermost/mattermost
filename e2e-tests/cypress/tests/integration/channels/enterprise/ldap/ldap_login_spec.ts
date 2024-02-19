@@ -229,12 +229,14 @@ function disableOnboardingTaskList(ldapLogin) {
 
 function removeUserFromAllTeams(testUser) {
     cy.apiGetUsersByUsernames([testUser.username]).then((users) => {
-        users.forEach((user) => {
-            cy.apiGetTeamsForUser(user.id).then((teams) => {
-                teams.forEach((team) => {
-                    cy.apiDeleteUserFromTeam(team.id, user.id);
+        if (users.length > 0) {
+            users.forEach((user) => {
+                cy.apiGetTeamsForUser(user.id).then((teams) => {
+                    teams.forEach((team) => {
+                        cy.apiDeleteUserFromTeam(team.id, user.id);
+                    });
                 });
             });
-        });
+        }
     });
 }

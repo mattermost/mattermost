@@ -263,13 +263,15 @@ function demoteUserToGuest(user) {
     });
 }
 
-function removeUserFromAllTeams(user) {
+function removeUserFromAllTeams(user: { id: string }) {
     // # Get all teams of a user
     cy.apiGetTeamsForUser(user.id).then((teams) => {
         // # Remove user from all the teams
-        teams.forEach((team) => {
-            cy.apiDeleteUserFromTeam(team.id, user.id);
-        });
+        if (teams.length > 0) {
+            teams.forEach((team: { id: string }) => {
+                cy.apiDeleteUserFromTeam(team.id, user.id);
+            });
+        }
     });
 }
 
