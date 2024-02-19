@@ -1903,20 +1903,6 @@ func (_m *ChannelStore) InvalidatePinnedPostCount(channelID string) {
 	_m.Called(channelID)
 }
 
-// IsUserInChannelUseCache provides a mock function with given fields: userID, channelID
-func (_m *ChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
-	ret := _m.Called(userID, channelID)
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
-		r0 = rf(userID, channelID)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
 // MigrateChannelMembers provides a mock function with given fields: fromChannelID, fromUserID
 func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
 	ret := _m.Called(fromChannelID, fromUserID)

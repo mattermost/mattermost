@@ -11,14 +11,14 @@ import SettingDesktopHeader from './setting_desktop_header';
 
 type Props = ComponentProps<typeof SettingDesktopHeader>;
 
-const baseProps: Props = {
-    text: 'setting header',
-};
+describe('settings_desktop_header', () => {
+    const baseProps: Props = {
+        text: 'setting section header',
+    };
 
-describe('plugin tab', () => {
     it('properly renders the header', () => {
         renderWithContext(<SettingDesktopHeader {...baseProps}/>);
-        const header = screen.queryByText('setting header');
+        const header = screen.queryByText('setting section header');
         expect(header).toBeInTheDocument();
 
         // The className is important for how the modal system work
