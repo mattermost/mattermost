@@ -13354,7 +13354,7 @@ func (a *OpenTracingAppLayer) PermanentDeleteBot(botUserId string) *model.AppErr
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.PermanentDeleteBot(botUserId)
+	resultVar0 := a.app.PermanentDeleteBot(origCtx, botUserId)
 
 	if resultVar0 != nil {
 		span.LogFields(spanlog.Error(resultVar0))

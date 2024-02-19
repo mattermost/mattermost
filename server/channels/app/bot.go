@@ -429,8 +429,8 @@ func (a *App) UpdateBotActive(c request.CTX, botUserId string, active bool) (*mo
 }
 
 // PermanentDeleteBot permanently deletes a bot and its corresponding user.
-func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
-	if err := a.Srv().Store().Bot().PermanentDelete(botUserId); err != nil {
+func (a *App) PermanentDeleteBot(rctx request.CTX, botUserId string) *model.AppError {
+	if err := a.Srv().Store().Bot().PermanentDelete(rctx, botUserId); err != nil {
 		var invErr *store.ErrInvalidInput
 		switch {
 		case errors.As(err, &invErr):
@@ -440,7 +440,7 @@ func (a *App) PermanentDeleteBot(botUserId string) *model.AppError {
 		}
 	}
 
-	if err := a.Srv().Store().User().PermanentDelete(botUserId); err != nil {
+	if err := a.Srv().Store().User().PermanentDelete(rctx, botUserId); err != nil {
 		return model.NewAppError("PermanentDeleteBot", "app.user.permanent_delete.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
