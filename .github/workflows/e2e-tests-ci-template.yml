@@ -232,7 +232,6 @@ jobs:
     timeout-minutes: 40
     needs:
       - cypress-check
-      - playwright-check
       - generate-build-variables
       - generate-test-cycle
     defaults:
@@ -319,7 +318,6 @@ jobs:
         uses: actions/download-artifact@eaceaf801fd36c7dee90939fad912460b18a1ffe # v4.1.2
         with:
           path: e2e-tests/cypress/
-          #pattern: results/*
           merge-multiple: true
       - name: ci/publish-report
         if: "${{ inputs.enable_reporting }}"

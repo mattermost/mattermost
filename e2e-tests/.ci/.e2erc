@@ -69,7 +69,6 @@ mme2e_is_token_in_list() {
 # Call prerequisite utility functions
 mme2e_load_env_file
 
-
 # Utility variables
 # NB: these assume you `source` them from the directory this file is in
 # Set up base docker compose file and export
