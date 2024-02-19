@@ -241,6 +241,19 @@ func TestGetClientConfig(t *testing.T) {
 			},
 		},
 		{
+			"disable EnableUserStatuses",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					EnableUserStatuses: model.NewBool(false),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"EnableUserStatuses": "false",
+			},
+		},
+		{
 			"Shared channels enterprise license",
 			&model.Config{
 				ExperimentalSettings: model.ExperimentalSettings{
@@ -269,6 +282,41 @@ func TestGetClientConfig(t *testing.T) {
 			nil,
 			map[string]string{
 				"DisableAppBar": "true",
+			},
+		},
+		{
+			"default EnableJoinLeaveMessage",
+			&model.Config{},
+			"tag1",
+			nil,
+			map[string]string{
+				"EnableJoinLeaveMessageByDefault": "true",
+			},
+		},
+		{
+			"disable EnableJoinLeaveMessage",
+			&model.Config{
+				TeamSettings: model.TeamSettings{
+					EnableJoinLeaveMessageByDefault: model.NewBool(false),
+				},
+			},
+			"tag1",
+			nil,
+			map[string]string{
+				"EnableJoinLeaveMessageByDefault": "false",
+			},
+		},
+		{
+			"test key for GiphySdkKey",
+			&model.Config{
+				ServiceSettings: model.ServiceSettings{
+					GiphySdkKey: model.NewString(""),
+				},
+			},
+			"",
+			nil,
+			map[string]string{
+				"GiphySdkKey": model.ServiceSettingsDefaultGiphySdkKeyTest,
 			},
 		},
 	}

@@ -3,35 +3,34 @@
 
 import React from 'react';
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getCurrentTeam, getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
-import {getCurrentChannel, getChannelsInCurrentTeam, getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
-import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getProfiles, searchProfiles as reduxSearchProfiles} from 'mattermost-redux/actions/users';
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
+import type {Channel} from '@mattermost/types/channels';
+
 import {searchChannels as reduxSearchChannels} from 'mattermost-redux/actions/channels';
 import {regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
+import {getProfiles, searchProfiles as reduxSearchProfiles} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
-
-import {CloseModalType} from 'actions/views/modals';
-import {Constants} from 'utils/constants';
+import {getCurrentChannel, getChannelsInCurrentTeam, getChannelsNameMapInCurrentTeam} from 'mattermost-redux/selectors/entities/channels';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {haveIChannelPermission, haveICurrentTeamPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeam, getCurrentTeamId, getTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 import {isAdmin} from 'mattermost-redux/utils/user_utils';
+
 import {
     sendMembersInvites,
     sendGuestsInvites,
     sendMembersInvitesToChannels,
 } from 'actions/invite_actions';
+
 import {makeAsyncComponent} from 'components/async_load';
 
-import {Channel} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
+import {Constants} from 'utils/constants';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
-import type {InviteResults} from './result_view';
 const InvitationModal = makeAsyncComponent('InvitationModal', React.lazy(() => import('./invitation_modal')));
 
 const searchProfiles = (term: string, options = {}) => {
@@ -90,18 +89,9 @@ export function mapStateToProps(state: GlobalState, props: OwnProps) {
     };
 }
 
-type Actions = {
-    sendGuestsInvites: (teamId: string, channels: Channel[], users: UserProfile[], emails: string[], message: string) => Promise<{data: InviteResults}>;
-    sendMembersInvites: (teamId: string, users: UserProfile[], emails: string[]) => Promise<{data: InviteResults}>;
-    sendMembersInvitesToChannels: (teamId: string, channels: Channel[], users: UserProfile[], emails: string[], message: string) => Promise<{data: InviteResults}>;
-    regenerateTeamInviteId: (teamId: string) => void;
-    searchProfiles: (term: string, options?: Record<string, string>) => Promise<{data: UserProfile[]}>;
-    searchChannels: (teamId: string, term: string) => ActionFunc;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | CloseModalType>, Actions>({
+        actions: bindActionCreators({
             sendGuestsInvites,
             sendMembersInvites,
             sendMembersInvitesToChannels,

@@ -10,6 +10,7 @@ import {
     deactivateMfa,
     generateMfaSecret,
 } from 'actions/views/mfa';
+
 import configureStore from 'tests/test_store';
 
 describe('actions/views/mfa', () => {

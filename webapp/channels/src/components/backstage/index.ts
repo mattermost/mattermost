@@ -4,13 +4,13 @@
 import {connect} from 'react-redux';
 import {withRouter} from 'react-router-dom';
 
-import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-import {getMyTeams, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {Permissions} from 'mattermost-redux/constants';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveITeamPermission, haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import {Permissions} from 'mattermost-redux/constants';
+import {getMyTeams, getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import BackstageController from './backstage_controller';
 
@@ -26,6 +26,7 @@ function mapStateToProps(state: GlobalState) {
     const enableOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
     const enableCommands = config.EnableCommands === 'true';
     const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
+    const enableOutgoingOAuthConnections = config.EnableOutgoingOAuthConnections === 'true';
 
     let canCreateOrDeleteCustomEmoji = (haveISystemPermission(state, {permission: Permissions.CREATE_EMOJIS}) || haveISystemPermission(state, {permission: Permissions.DELETE_EMOJIS}));
     if (!canCreateOrDeleteCustomEmoji) {
@@ -37,7 +38,7 @@ function mapStateToProps(state: GlobalState) {
         }
     }
 
-    const canManageTeamIntegrations = (haveITeamPermission(state, '', Permissions.MANAGE_SLASH_COMMANDS) || haveITeamPermission(state, '', Permissions.MANAGE_OAUTH) || haveITeamPermission(state, '', Permissions.MANAGE_INCOMING_WEBHOOKS) || haveITeamPermission(state, '', Permissions.MANAGE_OUTGOING_WEBHOOKS));
+    const canManageTeamIntegrations = (haveITeamPermission(state, team.id, Permissions.MANAGE_SLASH_COMMANDS) || haveITeamPermission(state, team.id, Permissions.MANAGE_OAUTH) || haveITeamPermission(state, team.id, Permissions.MANAGE_INCOMING_WEBHOOKS) || haveITeamPermission(state, team.id, Permissions.MANAGE_OUTGOING_WEBHOOKS));
     const canManageSystemBots = (haveISystemPermission(state, {permission: Permissions.MANAGE_BOTS}) || haveISystemPermission(state, {permission: Permissions.MANAGE_OTHERS_BOTS}));
     const canManageIntegrations = canManageTeamIntegrations || canManageSystemBots;
 
@@ -50,6 +51,7 @@ function mapStateToProps(state: GlobalState) {
         enableOutgoingWebhooks,
         enableCommands,
         enableOAuthServiceProvider,
+        enableOutgoingOAuthConnections,
         canCreateOrDeleteCustomEmoji,
         canManageIntegrations,
     };

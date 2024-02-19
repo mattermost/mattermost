@@ -2,24 +2,18 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {createComplianceReport, getComplianceReports} from 'mattermost-redux/actions/admin';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getComplianceReports as selectComplianceReports, getConfig} from 'mattermost-redux/selectors/entities/admin';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 
-import {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
-import {Compliance} from '@mattermost/types/compliance';
-import {GlobalState} from '@mattermost/types/store';
-import {UserProfile} from '@mattermost/types/users';
-
 import ComplianceReports from './compliance_reports';
-
-type Actions = {
-    getComplianceReports: () => Promise<{data: Compliance[]}>;
-    createComplianceReport: (job: Partial<Compliance>) => Promise<{data: Compliance; error?: Error}>;
-}
 
 const getUsersForReports = createSelector(
     'getUsersForReports',
@@ -66,9 +60,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             getComplianceReports,
             createComplianceReport,
         }, dispatch),

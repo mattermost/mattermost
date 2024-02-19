@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {SelfHostedSignupProgress} from '@mattermost/types/hosted_customer';
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {zeroStateLimitedViews} from '../reducers/entities/posts';
 
@@ -10,7 +10,6 @@ const state: GlobalState = {
     entities: {
         general: {
             config: {},
-            dataRetentionPolicy: {},
             license: {},
             serverVersion: '',
             warnMetricsStatus: {},
@@ -32,8 +31,15 @@ const state: GlobalState = {
             profilesNotInGroup: {},
             statuses: {},
             stats: {},
+            filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
+        },
+        limits: {
+            usersLimits: {
+                activeUserCount: 0,
+                maxUsersLimit: 0,
+            },
         },
         teams: {
             currentTeamId: '',
@@ -61,7 +67,6 @@ const state: GlobalState = {
             channelsMemberCount: {},
         },
         posts: {
-            expandedURLs: {},
             posts: {},
             postsReplies: {},
             postsInChannel: {},
@@ -70,7 +75,6 @@ const state: GlobalState = {
             postEditHistory: [],
             reactions: {},
             openGraph: {},
-            selectedPostId: '',
             currentFocusedPostId: '',
             messagesHistory: {
                 messages: [],
@@ -107,6 +111,7 @@ const state: GlobalState = {
             userAccessTokens: {},
             clusterInfo: [],
             analytics: {},
+            teamAnalytics: {},
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
@@ -123,6 +128,7 @@ const state: GlobalState = {
             commands: {},
             appsBotIDs: [],
             appsOAuthAppIDs: [],
+            outgoingOAuthConnections: {},
         },
         files: {
             files: {},
@@ -137,7 +143,6 @@ const state: GlobalState = {
             results: [],
             fileResults: [],
             current: {},
-            recent: {},
             matches: {},
             flagged: [],
             pinned: {},
@@ -149,39 +154,6 @@ const state: GlobalState = {
         roles: {
             roles: {},
             pending: new Set(),
-        },
-        gifs: {
-            app: {
-                appClassName: '',
-                appId: '',
-                appName: '',
-                basePath: '',
-                enableHistory: false,
-                header: {
-                    tabs: [],
-                    displayText: false,
-                },
-                itemTapType: 0,
-                shareEvent: '',
-            },
-            categories: {
-                tagsList: [],
-                tagsDict: {},
-                cursor: '',
-                hasMore: false,
-                isFetching: false,
-            },
-            cache: {
-                gifs: {},
-                updating: false,
-            },
-            search: {
-                searchText: '',
-                searchBarText: '',
-                resultsByTerm: {},
-                scrollPosition: 0,
-                priorLocation: null,
-            },
         },
         schemes: {
             schemes: {},
@@ -273,10 +245,6 @@ const state: GlobalState = {
                 status: 'not_started',
                 error: null,
             },
-            updateChannel: {
-                status: 'not_started',
-                error: null,
-            },
         },
         general: {
             websocket: {
@@ -304,10 +272,6 @@ const state: GlobalState = {
                 error: null,
             },
             getTeams: {
-                status: 'not_started',
-                error: null,
-            },
-            joinTeam: {
                 status: 'not_started',
                 error: null,
             },

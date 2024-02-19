@@ -1,28 +1,30 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {createRef, RefObject} from 'react';
-import {FormattedMessage} from 'react-intl';
+import React, {createRef} from 'react';
+import type {RefObject} from 'react';
+import type {WrappedComponentProps} from 'react-intl';
+import {FormattedMessage, defineMessages, injectIntl} from 'react-intl';
 import ReactSelect from 'react-select';
 
-import {AdminConfig} from '@mattermost/types/config';
-import {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
-import {DeepPartial} from '@mattermost/types/utilities';
-import {JobTypeBase, JobType} from '@mattermost/types/jobs';
+import type {AdminConfig} from '@mattermost/types/config';
+import type {DataRetentionCustomPolicies, DataRetentionCustomPolicy} from '@mattermost/types/data_retention';
+import type {JobTypeBase, JobType} from '@mattermost/types/jobs';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {JobTypes} from 'utils/constants';
-import * as Utils from 'utils/utils';
-import {getHistory} from 'utils/browser_history';
-
-import DataGrid, {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import DataGrid from 'components/admin_console/data_grid/data_grid';
+import type {Row, Column} from 'components/admin_console/data_grid/data_grid';
+import JobsTable from 'components/admin_console/jobs';
 import Card from 'components/card/card';
 import TitleAndButtonCardHeader from 'components/card/title_and_button_card_header/title_and_button_card_header';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
-import JobsTable from 'components/admin_console/jobs';
-import MenuWrapper from 'components/widgets/menu/menu_wrapper';
 import Menu from 'components/widgets/menu/menu';
+import MenuWrapper from 'components/widgets/menu/menu_wrapper';
+
+import {getHistory} from 'utils/browser_history';
+import {JobTypes} from 'utils/constants';
 
 import './data_retention_settings.scss';
 
@@ -35,14 +37,16 @@ type Props = {
     config: DeepPartial<AdminConfig>;
     customPolicies: DataRetentionCustomPolicies;
     customPoliciesCount: number;
+    globalMessageRetentionHours: string | undefined;
+    globalFileRetentionHours: string | undefined;
     actions: {
-        getDataRetentionCustomPolicies: (page: number) => Promise<{ data: DataRetentionCustomPolicies }>;
-        createJob: (job: JobTypeBase) => Promise<{ data: any }>;
-        getJobsByType: (job: JobType) => Promise<{ data: any}>;
+        getDataRetentionCustomPolicies: (page: number) => Promise<ActionResult>;
+        createJob: (job: JobTypeBase) => Promise<ActionResult>;
+        getJobsByType: (job: JobType) => Promise<ActionResult>;
         deleteDataRetentionCustomPolicy: (id: string) => Promise<ActionResult>;
-        updateConfig: (config: Record<string, any>) => Promise<{ data: any}>;
+        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     };
-};
+} & WrappedComponentProps;
 
 type State = {
     customPoliciesLoading: boolean;
@@ -52,7 +56,31 @@ type State = {
 }
 const PAGE_SIZE = 10;
 
-export default class DataRetentionSettings extends React.PureComponent<Props, State> {
+const messages = defineMessages({
+    createJob_title: {id: 'admin.data_retention.createJob.title', defaultMessage: 'Run Deletion Job Now'},
+    settings_title: {id: 'admin.data_retention.settings.title', defaultMessage: 'Data Retention Policies'},
+    globalPolicy_title: {id: 'admin.data_retention.globalPolicy.title', defaultMessage: 'Global retention policy'},
+    globalPolicy_subTitle: {id: 'admin.data_retention.globalPolicy.subTitle', defaultMessage: 'Keep messages and files for a set amount of time.'},
+    customPolicies_title: {id: 'admin.data_retention.customPolicies.title', defaultMessage: 'Custom retention policies'},
+    customPolicies_subTitle: {id: 'admin.data_retention.customPolicies.subTitle', defaultMessage: 'Customize how long specific teams and channels will keep messages.'},
+    jobCreation_title: {id: 'admin.data_retention.jobCreation.title', defaultMessage: 'Policy log'},
+    jobCreation_subTitle: {id: 'admin.data_retention.jobCreation.subTitle', defaultMessage: 'Daily log of messages and files removed based on the policies defined above.'},
+    createJob_instructions: {id: 'admin.data_retention.createJob.instructions', defaultMessage: 'Daily time to check policies and run delete job:'},
+});
+
+export const searchableStrings = [
+    messages.createJob_title,
+    messages.settings_title,
+    messages.globalPolicy_title,
+    messages.globalPolicy_subTitle,
+    messages.customPolicies_title,
+    messages.customPolicies_subTitle,
+    messages.jobCreation_title,
+    messages.jobCreation_subTitle,
+    messages.createJob_instructions,
+];
+
+class DataRetentionSettings extends React.PureComponent<Props, State> {
     inputRef: RefObject<ReactSelect<OptionType>>;
     constructor(props: Props) {
         super(props);
@@ -69,7 +97,6 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         this.loadPage(0);
     };
 
-    includeBoards = this.props.config.PluginSettings?.PluginStates?.focalboard?.Enable && this.props.config.FeatureFlags?.BoardsDataRetention;
     getGlobalPolicyColumns = (): Column[] => {
         const columns: Column[] = [
             {
@@ -100,19 +127,6 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                 field: 'files',
             },
         ];
-        if (this.includeBoards) {
-            columns.push(
-                {
-                    name: (
-                        <FormattedMessage
-                            id='admin.data_retention.globalPoliciesTable.boards'
-                            defaultMessage='Boards'
-                        />
-                    ),
-                    field: 'boards',
-                },
-            );
-        }
         columns.push(
             {
                 name: '',
@@ -159,6 +173,52 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         ];
         return columns;
     };
+
+    getGlobalRetentionSetting = (enabled: boolean | undefined, hours: string | undefined): JSX.Element => {
+        if (!enabled) {
+            return (
+                <FormattedMessage
+                    id='admin.data_retention.form.keepForever'
+                    defaultMessage='Keep forever'
+                />
+            );
+        }
+        const hoursInt = parseInt(hours || '', 10);
+        if (hoursInt && hoursInt % 8760 === 0) {
+            const years = hoursInt / 8760;
+            return (
+                <FormattedMessage
+                    id='admin.data_retention.retention_years'
+                    defaultMessage='{count} {count, plural, one {year} other {years}}'
+                    values={{
+                        count: `${years}`,
+                    }}
+                />
+            );
+        }
+        if (hoursInt && hoursInt % 24 === 0) {
+            const days = hoursInt / 24;
+            return (
+                <FormattedMessage
+                    id='admin.data_retention.retention_days'
+                    defaultMessage='{count} {count, plural, one {day} other {days}}'
+                    values={{
+                        count: `${days}`,
+                    }}
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='admin.data_retention.retention_hours'
+                defaultMessage='{count} {count, plural, one {hour} other {hours}}'
+                values={{
+                    count: `${hours}`,
+                }}
+            />
+        );
+    };
     getMessageRetentionSetting = (enabled: boolean | undefined, days: number | undefined): JSX.Element => {
         if (!enabled) {
             return (
@@ -194,20 +254,15 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         const {DataRetentionSettings} = this.props.config;
         return [{
             cells: {
-                description: Utils.localizeMessage('admin.data_retention.form.text', 'Applies to all teams and channels, but does not apply to custom retention policies.'),
+                description: this.props.intl.formatMessage({id: 'admin.data_retention.form.text', defaultMessage: 'Applies to all teams and channels, but does not apply to custom retention policies.'}),
                 channel_messages: (
                     <div data-testid='global_message_retention_cell'>
-                        {this.getMessageRetentionSetting(DataRetentionSettings?.EnableMessageDeletion, DataRetentionSettings?.MessageRetentionDays)}
+                        {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableMessageDeletion, this.props.globalMessageRetentionHours)}
                     </div>
                 ),
                 files: (
                     <div data-testid='global_file_retention_cell'>
-                        {this.getMessageRetentionSetting(DataRetentionSettings?.EnableFileDeletion, DataRetentionSettings?.FileRetentionDays)}
-                    </div>
-                ),
-                boards: (
-                    <div data-testid='global_boards_retention_cell'>
-                        {this.getMessageRetentionSetting(DataRetentionSettings?.EnableBoardsDeletion, DataRetentionSettings?.BoardsRetentionDays)}
+                        {this.getGlobalRetentionSetting(DataRetentionSettings?.EnableFileDeletion, this.props.globalFileRetentionHours)}
                     </div>
                 ),
                 actions: (
@@ -223,14 +278,14 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                         <Menu
                             openLeft={false}
                             openUp={false}
-                            ariaLabel={Utils.localizeMessage('admin.user_item.menuAriaLabel', 'User Actions Menu')}
+                            ariaLabel={this.props.intl.formatMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
                         >
                             <Menu.ItemAction
                                 show={true}
                                 onClick={() => {
                                     getHistory().push('/admin_console/compliance/data_retention_settings/global_policy');
                                 }}
-                                text={Utils.localizeMessage('admin.data_retention.globalPoliciesTable.edit', 'Edit')}
+                                text={this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.edit', defaultMessage: 'Edit'})}
                                 disabled={false}
                                 buttonClass={'edit_global_policy'}
                             />
@@ -303,14 +358,14 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                             <Menu
                                 openLeft={false}
                                 openUp={false}
-                                ariaLabel={Utils.localizeMessage('admin.user_item.menuAriaLabel', 'User Actions Menu')}
+                                ariaLabel={this.props.intl.formatMessage({id: 'admin.user_item.menuAriaLabel', defaultMessage: 'User Actions Menu'})}
                             >
                                 <Menu.ItemAction
                                     show={true}
                                     onClick={() => {
                                         getHistory().push(`/admin_console/compliance/data_retention_settings/custom_policy/${policy.id}`);
                                     }}
-                                    text={Utils.localizeMessage('admin.data_retention.globalPoliciesTable.edit', 'Edit')}
+                                    text={this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.edit', defaultMessage: 'Edit'})}
                                     disabled={false}
                                 />
                                 <Menu.ItemAction
@@ -318,7 +373,7 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                                     onClick={() => {
                                         this.deleteCustomPolicy(policy.id);
                                     }}
-                                    text={Utils.localizeMessage('admin.data_retention.globalPoliciesTable.delete', 'Delete')}
+                                    text={this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.delete', defaultMessage: 'Delete'})}
                                     disabled={false}
                                 />
                             </Menu>
@@ -457,10 +512,7 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         return (
             <div className='wrapper--fixed DataRetentionSettings'>
                 <AdminHeader>
-                    <FormattedMessage
-                        id='admin.data_retention.settings.title'
-                        defaultMessage='Data Retention Policies'
-                    />
+                    <FormattedMessage {...messages.settings_title}/>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-console__content'>
@@ -470,18 +522,8 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                         >
                             <Card.Header>
                                 <TitleAndButtonCardHeader
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.data_retention.globalPolicy.title'
-                                            defaultMessage='Global retention policy'
-                                        />
-                                    }
-                                    subtitle={
-                                        <FormattedMessage
-                                            id='admin.data_retention.globalPolicy.subTitle'
-                                            defaultMessage='Keep messages and files for a set amount of time.'
-                                        />
-                                    }
+                                    title={<FormattedMessage {...messages.globalPolicy_title}/>}
+                                    subtitle={<FormattedMessage {...messages.globalPolicy_subTitle}/>}
                                 />
                             </Card.Header>
                             <Card.Body
@@ -509,18 +551,8 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                         >
                             <Card.Header>
                                 <TitleAndButtonCardHeader
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.data_retention.customPolicies.title'
-                                            defaultMessage='Custom retention policies'
-                                        />
-                                    }
-                                    subtitle={
-                                        <FormattedMessage
-                                            id='admin.data_retention.customPolicies.subTitle'
-                                            defaultMessage='Customize how long specific teams and channels will keep messages.'
-                                        />
-                                    }
+                                    title={<FormattedMessage {...messages.customPolicies_title}/>}
+                                    subtitle={<FormattedMessage {...messages.customPolicies_subTitle}/>}
                                     buttonText={
                                         <FormattedMessage
                                             id='admin.data_retention.customPolicies.addPolicy'
@@ -557,24 +589,9 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                         >
                             <Card.Header>
                                 <TitleAndButtonCardHeader
-                                    title={
-                                        <FormattedMessage
-                                            id='admin.data_retention.jobCreation.title'
-                                            defaultMessage='Policy log'
-                                        />
-                                    }
-                                    subtitle={
-                                        <FormattedMessage
-                                            id='admin.data_retention.jobCreation.subTitle'
-                                            defaultMessage='Daily log of messages and files removed based on the policies defined above.'
-                                        />
-                                    }
-                                    buttonText={
-                                        <FormattedMessage
-                                            id='admin.data_retention.createJob.title'
-                                            defaultMessage='Run Deletion Job Now'
-                                        />
-                                    }
+                                    title={<FormattedMessage {...messages.jobCreation_title}/>}
+                                    subtitle={<FormattedMessage {...messages.jobCreation_subTitle}/>}
+                                    buttonText={<FormattedMessage {...messages.createJob_title}/>}
                                     isDisabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true' && (this.props.customPoliciesCount === 0)}
                                     onClick={this.handleCreateJob}
                                 />
@@ -587,19 +604,11 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                                     hideJobCreateButton={true}
                                     className={'job-table__data-retention'}
                                     disabled={String(DataRetentionSettings?.EnableMessageDeletion) !== 'true' && String(DataRetentionSettings?.EnableFileDeletion) !== 'true'}
-                                    createJobButtonText={
-                                        <FormattedMessage
-                                            id='admin.data_retention.createJob.title'
-                                            defaultMessage='Run Deletion Job Now'
-                                        />
-                                    }
+                                    createJobButtonText={<FormattedMessage {...messages.createJob_title}/>}
                                     createJobHelpText={
                                         <div>
-                                            <FormattedMessage
-                                                id='admin.data_retention.createJob.instructions'
-                                                defaultMessage='Daily time to check policies and run delete job:'
-                                            />
-                                            {this.state.showEditJobTime ?
+                                            <FormattedMessage {...messages.createJob_instructions}/>
+                                            {this.state.showEditJobTime ? (
                                                 <ReactSelect
                                                     id={'JobSelectTime'}
                                                     className={'JobSelectTime'}
@@ -633,18 +642,19 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
                                                         this.showEditJobTime(true);
                                                     }}
                                                     menuIsOpen={this.state.showEditJobTime}
-                                                /> :
+                                                />
+                                            ) : (
                                                 <span
                                                     className='JobSelectedtime'
                                                 >
                                                     <b>{this.getJobStartTime()}</b>
                                                 </span>
-                                            }
+                                            )}
                                             <a
                                                 className='EditJobTime'
                                                 onClick={() => this.showEditJobTime(true)}
                                             >
-                                                {Utils.localizeMessage('admin.data_retention.globalPoliciesTable.edit', 'Edit')}
+                                                {this.props.intl.formatMessage({id: 'admin.data_retention.globalPoliciesTable.edit', defaultMessage: 'Edit'})}
                                             </a>
                                         </div>
                                     }
@@ -657,3 +667,5 @@ export default class DataRetentionSettings extends React.PureComponent<Props, St
         );
     };
 }
+
+export default injectIntl(DataRetentionSettings);

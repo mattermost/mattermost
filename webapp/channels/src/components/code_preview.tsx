@@ -3,15 +3,15 @@
 
 import React from 'react';
 
+import type {FileInfo} from '@mattermost/types/files';
+
+import FileInfoPreview from 'components/file_info_preview';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
+
 import Constants from 'utils/constants';
 import * as SyntaxHighlighting from 'utils/syntax_highlighting';
 
-import LoadingSpinner from 'components/widgets/loading/loading_spinner';
-import FileInfoPreview from 'components/file_info_preview';
-
-import {FileInfo} from '@mattermost/types/files';
-
-import {LinkInfo} from './file_preview_modal/types';
+import type {LinkInfo} from './file_preview_modal/types';
 
 type Props = {
     fileInfo: FileInfo;

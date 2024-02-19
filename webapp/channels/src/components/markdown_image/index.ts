@@ -2,21 +2,35 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
-import {Action, GenericAction} from 'mattermost-redux/types/actions';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {openModal} from 'actions/views/modals';
 
-import MarkdownImage, {Props} from './markdown_image';
+import type {GlobalState} from 'types/store';
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+import MarkdownImage from './markdown_image';
+import type {Props} from './markdown_image';
+
+function mapStateToProps(state: GlobalState, ownProps: Props) {
+    const post = getPost(state, ownProps.postId);
+    const isUnsafeLinksPost = post?.props?.unsafe_links === 'true';
+
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Props['actions']>({
+        isUnsafeLinksPost,
+    };
+}
+
+function mapDispatchToProps(dispatch: Dispatch) {
+    return {
+        actions: bindActionCreators({
             openModal,
         }, dispatch),
     };
 }
 
-const connector = connect(null, mapDispatchToProps);
+const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export default connector(MarkdownImage);

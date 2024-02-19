@@ -2,16 +2,17 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {KeyboardEvent, MouseEvent} from 'react';
 
-import {Post, PostImage as PostImageMetadata} from '@mattermost/types/posts';
+import type {Post, PostImage as PostImageMetadata} from '@mattermost/types/posts';
 
-import {ModalData} from 'types/actions';
+import ExternalImage from 'components/external_image';
+import FilePreviewModal from 'components/file_preview_modal';
+import SizeAwareImage from 'components/size_aware_image';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import ExternalImage from 'components/external_image';
-import SizeAwareImage from 'components/size_aware_image';
-import FilePreviewModal from 'components/file_preview_modal';
+import type {ModalData} from 'types/actions';
 
 interface Props {
     imageMetadata: PostImageMetadata;
@@ -23,7 +24,7 @@ interface Props {
 }
 
 export default class PostImage extends React.PureComponent<Props> {
-    showModal = (e: React.MouseEvent, link: string) => {
+    showModal = (e: (KeyboardEvent<HTMLImageElement> | MouseEvent<HTMLElement>), link = '') => {
         e.preventDefault();
 
         this.props.actions.openModal({

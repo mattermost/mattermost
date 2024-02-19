@@ -7,18 +7,19 @@ import {FormattedMessage, useIntl} from 'react-intl';
 import {useHistory} from 'react-router-dom';
 import styled from 'styled-components';
 
-import {UserProfile} from '@mattermost/types/users';
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import MoreDirectChannels from 'components/more_direct_channels';
-import ChannelInviteModal from 'components/channel_invite_modal';
-import {ModalData} from 'types/actions';
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {ProfilesInChannelSortBy} from 'mattermost-redux/actions/users';
 
 import AlertBanner from 'components/alert_banner';
-
+import ChannelInviteModal from 'components/channel_invite_modal';
 import ExternalLink from 'components/external_link';
+import MoreDirectChannels from 'components/more_direct_channels';
+
+import Constants, {ModalIdentifiers} from 'utils/constants';
+
+import type {ModalData} from 'types/actions';
 
 import ActionBar from './action_bar';
 import Header from './header';

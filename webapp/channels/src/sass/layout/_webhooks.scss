@@ -4,7 +4,7 @@
     padding: 0 13px 15px;
     border: 1px solid;
     margin-top: 10px;
-    border-radius: 3px;
+    border-radius: 4px;
 
     @include alpha-property(background, $black, 0.1);
 }
@@ -371,19 +371,25 @@
             }
 
             button {
-                height: auto;
-                padding: 6px 12px;
-                border-width: 1px;
-                border-style: solid;
-                margin: 8px 8px 0 0;
-                border-radius: 3px;
+                border: none;
+                margin-top: 8px;
+                background-color: rgba(var(--center-channel-color-rgb), 0.08);
+                color: var(--center-channel-color);
                 font-size: 13px;
-                font-weight: 700;
                 outline: 0;
+
+                &:hover {
+                    background-color: rgba(var(--center-channel-color-rgb), 0.12);
+                    text-decoration: none;
+                }
 
                 &[disabled] {
                     cursor: auto;
                     opacity: 0.5;
+                }
+
+                a {
+                    color: inherit;
                 }
             }
 

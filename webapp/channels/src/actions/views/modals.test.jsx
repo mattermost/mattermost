@@ -5,21 +5,18 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 
 import {openModal, closeModal} from 'actions/views/modals';
-import {ActionTypes, ModalIdentifiers} from 'utils/constants';
 
 import mockStore from 'tests/test_store';
-class TestModal extends React.PureComponent {
-    render() {
-        return (
-            <Modal
-                show={true}
-            >
-                <Modal.Header closeButton={true}/>
-                <Modal.Body/>
-            </Modal>
-        );
-    }
-}
+import {ActionTypes, ModalIdentifiers} from 'utils/constants';
+
+const TestModal = () => (
+    <Modal
+        show={true}
+    >
+        <Modal.Header closeButton={true}/>
+        <Modal.Body/>
+    </Modal>
+);
 
 describe('modals view actions', () => {
     let store;

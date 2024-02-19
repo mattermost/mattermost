@@ -1,6 +1,19 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Channel, ChannelMembership} from '@mattermost/types/channels';
+import type {Group} from '@mattermost/types/groups';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+import type {
+    IDMappedObjects,
+    RelationOneToManyUnique,
+    RelationOneToOne,
+} from '@mattermost/types/utilities';
+
+import {General} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {
     getCurrentChannelId,
@@ -13,7 +26,6 @@ import {
 } from 'mattermost-redux/selectors/entities/common';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDirectShowPreferences, getTeammateNameDisplaySetting} from 'mattermost-redux/selectors/entities/preferences';
-
 import {
     displayUsername,
     filterProfilesStartingWithTerm,
@@ -26,24 +38,9 @@ import {
     applyRolesFilters,
 } from 'mattermost-redux/utils/user_utils';
 
-import {Channel, ChannelMembership} from '@mattermost/types/channels';
-import {GlobalState} from '@mattermost/types/store';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {Group} from '@mattermost/types/groups';
-import {UserProfile} from '@mattermost/types/users';
-import {
-    IDMappedObjects,
-    RelationOneToMany,
-    RelationOneToManyUnique,
-    RelationOneToOne,
-} from '@mattermost/types/utilities';
-import {Reaction} from '@mattermost/types/reactions';
-
-import {General} from 'mattermost-redux/constants';
-
 export {getCurrentUser, getCurrentUserId, getUsers};
 
-type Filters = {
+export type Filters = {
     role?: string;
     inactive?: boolean;
     active?: boolean;
@@ -51,6 +48,7 @@ type Filters = {
     exclude_roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];
+    exclude_bots?: boolean;
 };
 
 export function getUserIdsInChannels(state: GlobalState): RelationOneToManyUnique<Channel, UserProfile> {
@@ -61,11 +59,11 @@ export function getUserIdsNotInChannels(state: GlobalState): RelationOneToManyUn
     return state.entities.users.profilesNotInChannel;
 }
 
-export function getUserIdsInTeams(state: GlobalState): RelationOneToMany<Team, UserProfile> {
+export function getUserIdsInTeams(state: GlobalState): RelationOneToManyUnique<Team, UserProfile> {
     return state.entities.users.profilesInTeam;
 }
 
-export function getUserIdsNotInTeams(state: GlobalState): RelationOneToMany<Team, UserProfile> {
+export function getUserIdsNotInTeams(state: GlobalState): RelationOneToManyUnique<Team, UserProfile> {
     return state.entities.users.profilesNotInTeam;
 }
 
@@ -73,11 +71,11 @@ export function getUserIdsWithoutTeam(state: GlobalState): Set<UserProfile['id']
     return state.entities.users.profilesWithoutTeam;
 }
 
-export function getUserIdsInGroups(state: GlobalState): RelationOneToMany<Group, UserProfile> {
+export function getUserIdsInGroups(state: GlobalState): RelationOneToManyUnique<Group, UserProfile> {
     return state.entities.users.profilesInGroup;
 }
 
-export function getUserIdsNotInGroups(state: GlobalState): RelationOneToMany<Group, UserProfile> {
+export function getUserIdsNotInGroups(state: GlobalState): RelationOneToManyUnique<Group, UserProfile> {
     return state.entities.users.profilesNotInGroup;
 }
 
@@ -163,7 +161,7 @@ export const currentUserHasAnAdminRole: (state: GlobalState) => boolean = create
     },
 );
 
-export const getCurrentUserRoles: (a: GlobalState) => UserProfile['roles'] = createSelector(
+export const getCurrentUserRoles: (_: GlobalState) => UserProfile['roles'] = createSelector(
     'getCurrentUserRoles',
     getMyCurrentChannelMembership,
     (state) => state.entities.teams.myMembers[state.entities.teams.currentTeamId],
@@ -225,6 +223,26 @@ export const getCurrentUserMentionKeys: (state: GlobalState) => UserMentionKey[]
     },
 );
 
+export type HighlightWithoutNotificationKey = {
+    key: string;
+}
+
+export const getHighlightWithoutNotificationKeys: (state: GlobalState) => HighlightWithoutNotificationKey[] = createSelector(
+    'getHighlightWithoutNotificationKeys',
+    getCurrentUser,
+    (user: UserProfile) => {
+        const highlightKeys: HighlightWithoutNotificationKey[] = [];
+
+        if (user?.notify_props?.highlight_keys?.length > 0) {
+            user.notify_props.highlight_keys.split(',').forEach((key) => {
+                highlightKeys.push({key});
+            });
+        }
+
+        return highlightKeys;
+    },
+);
+
 export const getProfileSetInCurrentChannel: (state: GlobalState) => Set<UserProfile['id']> = createSelector(
     'getProfileSetInCurrentChannel',
     getCurrentChannelId,
@@ -243,7 +261,7 @@ export const getProfileSetNotInCurrentChannel: (state: GlobalState) => Set<UserP
     },
 );
 
-export const getProfileSetInCurrentTeam: (state: GlobalState) => Array<UserProfile['id']> = createSelector(
+export const getProfileSetInCurrentTeam: (state: GlobalState) => Set<UserProfile['id']> = createSelector(
     'getProfileSetInCurrentTeam',
     (state) => state.entities.teams.currentTeamId,
     getUserIdsInTeams,
@@ -252,7 +270,7 @@ export const getProfileSetInCurrentTeam: (state: GlobalState) => Array<UserProfi
     },
 );
 
-export const getProfileSetNotInCurrentTeam: (state: GlobalState) => Array<UserProfile['id']> = createSelector(
+export const getProfileSetNotInCurrentTeam: (state: GlobalState) => Set<UserProfile['id']> = createSelector(
     'getProfileSetNotInCurrentTeam',
     (state) => state.entities.teams.currentTeamId,
     getUserIdsNotInTeams,
@@ -262,12 +280,12 @@ export const getProfileSetNotInCurrentTeam: (state: GlobalState) => Array<UserPr
 );
 
 const PROFILE_SET_ALL = 'all';
-function sortAndInjectProfiles(profiles: IDMappedObjects<UserProfile>, profileSet?: 'all' | Array<UserProfile['id']> | Set<UserProfile['id']>): UserProfile[] {
+function sortAndInjectProfiles(profiles: IDMappedObjects<UserProfile>, profileSet?: 'all' | Set<UserProfile['id']>): UserProfile[] {
     const currentProfiles = injectProfiles(profiles, profileSet);
     return currentProfiles.sort(sortByUsername);
 }
 
-function injectProfiles(profiles: IDMappedObjects<UserProfile>, profileSet?: 'all' | Array<UserProfile['id']> | Set<UserProfile['id']>): UserProfile[] {
+function injectProfiles(profiles: IDMappedObjects<UserProfile>, profileSet?: 'all' | Set<UserProfile['id']>): UserProfile[] {
     let currentProfiles: UserProfile[] = [];
 
     if (typeof profileSet === 'undefined') {
@@ -304,6 +322,10 @@ export function filterProfiles(profiles: IDMappedObjects<UserProfile>, filters?:
         users = users.filter((user) => {
             return user.roles.length > 0 && applyRolesFilters(user, filterRoles, excludeRoles, memberships?.[user.id]);
         });
+    }
+
+    if (filters.exclude_bots) {
+        users = users.filter((user) => !user.is_bot);
     }
 
     if (filters.inactive) {
@@ -413,11 +435,11 @@ export function getStatusForUserId(state: GlobalState, userId: UserProfile['id']
     return getUserStatuses(state)[userId];
 }
 
-export function getTotalUsersStats(state: GlobalState): any {
+export function getTotalUsersStats(state: GlobalState) {
     return state.entities.users.stats;
 }
 
-export function getFilteredUsersStats(state: GlobalState): any {
+export function getFilteredUsersStats(state: GlobalState) {
     return state.entities.users.filteredStats;
 }
 

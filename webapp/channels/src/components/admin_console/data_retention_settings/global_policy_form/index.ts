@@ -2,33 +2,39 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-
-import {bindActionCreators, Dispatch, ActionCreatorsMapObject} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
 import {
     updateConfig,
 } from 'mattermost-redux/actions/admin';
-import {GenericAction, ActionFunc} from 'mattermost-redux/types/actions';
+import {getEnvironmentConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
-import {AdminConfig} from '@mattermost/types/config';
-import {ServerError} from '@mattermost/types/errors';
+import type {GlobalState} from 'types/store';
 
 import GlobalPolicyForm from './global_policy_form';
 
-type Actions = {
-    updateConfig: (config: Record<string, any>) => Promise<{ data?: AdminConfig; error?: ServerError }>;
-    setNavigationBlocked: (blocked: boolean) => void;
-};
+function mapStateToProps(state: GlobalState) {
+    const messageRetentionHours = getConfig(state).DataRetentionMessageRetentionHours;
+    const fileRetentionHours = getConfig(state).DataRetentionFileRetentionHours;
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        messageRetentionHours,
+        fileRetentionHours,
+        environmentConfig: getEnvironmentConfig(state),
+    };
+}
+
+function mapDispatchToProps(dispatch: Dispatch) {
+    return {
+        actions: bindActionCreators({
             updateConfig,
             setNavigationBlocked,
         }, dispatch),
     };
 }
 
-export default connect(null, mapDispatchToProps)(GlobalPolicyForm);
+export default connect(mapStateToProps, mapDispatchToProps)(GlobalPolicyForm);

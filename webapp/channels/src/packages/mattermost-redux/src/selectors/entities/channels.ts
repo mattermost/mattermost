@@ -3,10 +3,28 @@
 
 import {max} from 'lodash';
 
+import type {
+    Channel,
+    ChannelMemberCountsByGroup,
+    ChannelMembership,
+    ChannelMessageCount,
+    ChannelModeration,
+    ChannelSearchOpts,
+    ChannelStats,
+} from '@mattermost/types/channels';
+import type {GlobalState} from '@mattermost/types/store';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile, UsersState} from '@mattermost/types/users';
+import type {
+    IDMappedObjects,
+    RelationOneToManyUnique,
+    RelationOneToOne,
+} from '@mattermost/types/utilities';
+
 import {General, Permissions, Preferences} from 'mattermost-redux/constants';
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
+import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getDataRetentionCustomPolicy} from 'mattermost-redux/selectors/entities/admin';
-
 import {getCategoryInTeamByType} from 'mattermost-redux/selectors/entities/channel_categories';
 import {
     getCurrentChannelId,
@@ -32,7 +50,6 @@ import {
     getUserIdsInChannels,
     isCurrentUserSystemAdmin,
 } from 'mattermost-redux/selectors/entities/users';
-
 import {
     calculateUnreadCount,
     completeDirectChannelDisplayName,
@@ -47,31 +64,10 @@ import {
     newCompleteDirectChannelInfo,
     sortChannelsByDisplayName,
 } from 'mattermost-redux/utils/channel_utils';
-
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
 
-import {createSelector} from 'mattermost-redux/selectors/create_selector';
-import {
-    Channel,
-    ChannelMemberCountsByGroup,
-    ChannelMembership,
-    ChannelMessageCount,
-    ChannelModeration,
-    ChannelSearchOpts,
-    ChannelStats,
-} from '@mattermost/types/channels';
-import {GlobalState} from '@mattermost/types/store';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile, UsersState} from '@mattermost/types/users';
-import {
-    IDMappedObjects,
-    RelationOneToMany,
-    RelationOneToManyUnique,
-    RelationOneToOne,
-} from '@mattermost/types/utilities';
-
-import {getThreadCounts, getThreadCountsIncludingDirect} from './threads';
 import {isPostPriorityEnabled} from './posts';
+import {getThreadCounts, getThreadCountsIncludingDirect} from './threads';
 
 export {getCurrentChannelId, getMyChannelMemberships, getMyCurrentChannelMembership};
 export function getAllChannels(state: GlobalState): IDMappedObjects<Channel> {
@@ -102,7 +98,7 @@ export function getChannelsMemberCount(state: GlobalState): Record<string, numbe
     return state.entities.channels.channelsMemberCount;
 }
 
-export function getChannelsInTeam(state: GlobalState): RelationOneToMany<Team, Channel> {
+export function getChannelsInTeam(state: GlobalState): RelationOneToManyUnique<Team, Channel> {
     return state.entities.channels.channelsInTeam;
 }
 
@@ -134,7 +130,7 @@ export function getChannelsInPolicy() {
 export const getDirectChannelsSet: (state: GlobalState) => Set<string> = createSelector(
     'getDirectChannelsSet',
     getChannelsInTeam,
-    (channelsInTeam: RelationOneToMany<Team, Channel>): Set<string> => {
+    (channelsInTeam: RelationOneToManyUnique<Team, Channel>): Set<string> => {
         if (!channelsInTeam) {
             return new Set();
         }
@@ -367,12 +363,12 @@ export function getChannelByTeamIdAndChannelName(state: GlobalState, teamId: str
     );
 }
 
-export const getChannelSetInCurrentTeam: (state: GlobalState) => string[] = createSelector(
+export const getChannelSetInCurrentTeam: (state: GlobalState) => Set<string> = createSelector(
     'getChannelSetInCurrentTeam',
     getCurrentTeamId,
     getChannelsInTeam,
-    (currentTeamId: string, channelsInTeam: RelationOneToMany<Team, Channel>): string[] => {
-        return (channelsInTeam && channelsInTeam[currentTeamId]) || [];
+    (currentTeamId: string, channelsInTeam: RelationOneToManyUnique<Team, Channel>) => {
+        return (channelsInTeam && channelsInTeam[currentTeamId]) || new Set();
     },
 );
 
@@ -390,7 +386,7 @@ export const getChannelSetForAllTeams: (state: GlobalState) => string[] = create
     },
 );
 
-function sortAndInjectChannels(channels: IDMappedObjects<Channel>, channelSet: string[], locale: string): Channel[] {
+function sortAndInjectChannels(channels: IDMappedObjects<Channel>, channelSet: string[] | Set<string>, locale: string): Channel[] {
     const currentChannels: Channel[] = [];
 
     if (typeof channelSet === 'undefined') {
@@ -409,7 +405,7 @@ export const getChannelsInCurrentTeam: (state: GlobalState) => Channel[] = creat
     getAllChannels,
     getChannelSetInCurrentTeam,
     getCurrentUser,
-    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: string[], currentUser: UserProfile): Channel[] => {
+    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: Set<string>, currentUser: UserProfile): Channel[] => {
         let locale = General.DEFAULT_LOCALE;
 
         if (currentUser && currentUser.locale) {
@@ -436,8 +432,8 @@ export const getChannelsNameMapInTeam: (state: GlobalState, teamId: string) => R
     getAllChannels,
     getChannelsInTeam,
     (state: GlobalState, teamId: string): string => teamId,
-    (channels: IDMappedObjects<Channel>, channelsInTeams: RelationOneToMany<Team, Channel>, teamId: string): Record<string, Channel> => {
-        const channelsInTeam = channelsInTeams[teamId] || [];
+    (channels: IDMappedObjects<Channel>, channelsInTeams: RelationOneToManyUnique<Team, Channel>, teamId: string): Record<string, Channel> => {
+        const channelsInTeam = channelsInTeams[teamId] || new Set();
         const channelMap: Record<string, Channel> = {};
         channelsInTeam.forEach((id) => {
             const channel = channels[id];
@@ -451,7 +447,7 @@ export const getChannelsNameMapInCurrentTeam: (state: GlobalState) => Record<str
     'getChannelsNameMapInCurrentTeam',
     getAllChannels,
     getChannelSetInCurrentTeam,
-    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: string[]): Record<string, Channel> => {
+    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: Set<string>): Record<string, Channel> => {
         const channelMap: Record<string, Channel> = {};
         currentTeamChannelSet.forEach((id) => {
             const channel = channels[id];
@@ -465,7 +461,7 @@ export const getChannelNameToDisplayNameMap: (state: GlobalState) => Record<stri
     'getChannelNameToDisplayNameMap',
     getAllChannels,
     getChannelSetInCurrentTeam,
-    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: string[]) => {
+    (channels: IDMappedObjects<Channel>, currentTeamChannelSet: Set<string>) => {
         const channelMap: Record<string, string> = {};
         for (const id of currentTeamChannelSet) {
             const channel = channels[id];
@@ -951,7 +947,7 @@ export const getChannelIdsInCurrentTeam: (state: GlobalState) => string[] = crea
     'getChannelIdsInCurrentTeam',
     getCurrentTeamId,
     getChannelsInTeam,
-    (currentTeamId: string, channelsInTeam: RelationOneToMany<Team, Channel>): string[] => {
+    (currentTeamId: string, channelsInTeam: RelationOneToManyUnique<Team, Channel>): string[] => {
         return Array.from(channelsInTeam[currentTeamId] || []);
     },
 );

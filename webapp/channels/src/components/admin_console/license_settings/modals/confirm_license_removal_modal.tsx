@@ -2,21 +2,19 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {FormattedMessage} from 'react-intl';
+import {GenericModal} from '@mattermost/components';
 
-import {DispatchFunc} from 'mattermost-redux/types/actions';
-import {GlobalState} from 'types/store';
-
+import {closeModal} from 'actions/views/modals';
 import {isModalOpen} from 'selectors/views/modals';
 
-import {GenericModal} from '@mattermost/components';
 import AlertSvg from 'components/common/svg_images_components/alert_svg';
 
 import {ModalIdentifiers} from 'utils/constants';
 
-import {closeModal} from 'actions/views/modals';
+import type {GlobalState} from 'types/store';
 
 import './confirm_license_removal_modal.scss';
 
@@ -27,7 +25,7 @@ type Props = {
 }
 
 const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const show = useSelector((state: GlobalState) => isModalOpen(state, ModalIdentifiers.CONFIRM_LICENSE_REMOVAL));
     if (!show) {
@@ -50,6 +48,7 @@ const ConfirmLicenseRemovalModal: React.FC<Props> = (props: Props): JSX.Element 
 
     return (
         <GenericModal
+            compassDesign={true}
             className={'ConfirmLicenseRemovalModal'}
             show={show}
             id='ConfirmLicenseRemovalModal'

@@ -2,26 +2,27 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
-
 import styled from 'styled-components';
 
-import {getSiteURL} from 'utils/url';
+import type {Channel, ChannelStats} from '@mattermost/types/channels';
+import type {Team} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
+
 import ChannelInviteModal from 'components/channel_invite_modal';
-import {ModalData} from 'types/actions';
-import Constants, {ModalIdentifiers} from 'utils/constants';
-import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
-import EditChannelHeaderModal from 'components/edit_channel_header_modal';
 import ChannelNotificationsModal from 'components/channel_notifications_modal';
+import EditChannelHeaderModal from 'components/edit_channel_header_modal';
+import EditChannelPurposeModal from 'components/edit_channel_purpose_modal';
 import MoreDirectChannels from 'components/more_direct_channels';
 
-import {Channel, ChannelStats} from '@mattermost/types/channels';
-import {UserProfile} from '@mattermost/types/users';
-import {Team} from '@mattermost/types/teams';
+import Constants, {ModalIdentifiers} from 'utils/constants';
+import {getSiteURL} from 'utils/url';
 
-import Menu from './menu';
+import type {ModalData} from 'types/actions';
+
 import AboutArea from './about_area';
-import TopButtons from './top_buttons';
 import Header from './header';
+import Menu from './menu';
+import TopButtons from './top_buttons';
 
 const Divider = styled.div`
     width: 88%;

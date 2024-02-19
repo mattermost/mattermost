@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
+
+import type {GlobalState} from '@mattermost/types/store';
 
 import {createIncomingHook} from 'mattermost-redux/actions/integrations';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-
-import {GlobalState} from '@mattermost/types/store';
-import {Action, GenericAction} from 'mattermost-redux/types/actions';
-import {IncomingWebhook} from '@mattermost/types/integrations';
 
 import AddIncomingWebhook from './add_incoming_webhook';
 
@@ -24,13 +23,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    createIncomingHook: (hook: IncomingWebhook) => Promise<{ data?: IncomingWebhook; error?: Error }>;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             createIncomingHook,
         }, dispatch),
     };

@@ -1,40 +1,35 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useLayoutEffect, useState} from 'react';
-import {Instance} from '@popperjs/core';
-
+import type {Instance} from '@popperjs/core';
 import {debounce} from 'lodash';
+import type React from 'react';
+import {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 
-import {MarkdownMode} from 'utils/markdown/apply_markdown';
+import type {MarkdownMode} from 'utils/markdown/apply_markdown';
 
-type WideMode = 'wide' | 'normal' | 'narrow';
-
-export function useGetLatest<T>(val: T) {
-    const ref = React.useRef<T>(val);
-    ref.current = val;
-    return React.useCallback(() => ref.current, []);
-}
+type WideMode = 'wide' | 'normal' | 'narrow' | 'min';
 
 const useResponsiveFormattingBar = (ref: React.RefObject<HTMLDivElement>): WideMode => {
     const [wideMode, setWideMode] = useState<WideMode>('wide');
-    const handleResize = debounce(() => {
+    const handleResize = useCallback(debounce(() => {
         if (ref.current?.clientWidth === undefined) {
             return;
         }
-
         if (ref.current.clientWidth > 640) {
             setWideMode('wide');
         }
-
         if (ref.current.clientWidth >= 424 && ref.current.clientWidth <= 640) {
             setWideMode('normal');
         }
-
         if (ref.current.clientWidth < 424) {
             setWideMode('narrow');
         }
-    }, 10);
+
+        if (ref.current.clientWidth < 310) {
+            setWideMode('min');
+        }
+    }, 10), []);
 
     useLayoutEffect(() => {
         if (!ref.current) {
@@ -58,7 +53,22 @@ const MAP_WIDE_MODE_TO_CONTROLS_QUANTITY: {[key in WideMode]: number} = {
     wide: 9,
     normal: 5,
     narrow: 3,
+    min: 1,
 };
+
+export function splitFormattingBarControls(wideMode: WideMode) {
+    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
+
+    const controlsLength = MAP_WIDE_MODE_TO_CONTROLS_QUANTITY[wideMode];
+
+    const controls = allControls.slice(0, controlsLength);
+    const hiddenControls = allControls.slice(controlsLength);
+
+    return {
+        controls,
+        hiddenControls,
+    };
+}
 
 export const useFormattingBarControls = (
     formattingBarRef: React.RefObject<HTMLDivElement>,
@@ -69,12 +79,7 @@ export const useFormattingBarControls = (
 } => {
     const wideMode = useResponsiveFormattingBar(formattingBarRef);
 
-    const allControls: MarkdownMode[] = ['bold', 'italic', 'strike', 'heading', 'link', 'code', 'quote', 'ul', 'ol'];
-
-    const controlsLength = MAP_WIDE_MODE_TO_CONTROLS_QUANTITY[wideMode];
-
-    const controls = allControls.slice(0, controlsLength);
-    const hiddenControls = allControls.slice(controlsLength);
+    const {controls, hiddenControls} = splitFormattingBarControls(wideMode);
 
     return {
         controls,

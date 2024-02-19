@@ -6,7 +6,7 @@ import type {MarketplaceApp, MarketplacePlugin} from '@mattermost/types/marketpl
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {isPlugin} from 'mattermost-redux/utils/marketplace';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 export const getPlugins = (state: GlobalState): MarketplacePlugin[] => state.views.marketplace.plugins;
 

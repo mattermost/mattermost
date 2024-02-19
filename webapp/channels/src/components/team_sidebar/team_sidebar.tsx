@@ -1,27 +1,28 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
+import {DragDropContext, Droppable} from 'react-beautiful-dnd';
+import type {DroppableProvided, DropResult} from 'react-beautiful-dnd';
 import Scrollbars from 'react-custom-scrollbars';
 import {FormattedMessage} from 'react-intl';
-import classNames from 'classnames';
-import {DragDropContext, Droppable, DroppableProvided, DropResult} from 'react-beautiful-dnd';
-import {RouteComponentProps} from 'react-router-dom';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
-import {Constants} from 'utils/constants';
-import * as Keyboard from 'utils/keyboard';
-import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
-import * as Utils from 'utils/utils';
-
-import Pluggable from 'plugins/pluggable';
-
-import {getCurrentProduct} from 'utils/products';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamButton from 'components/team_sidebar/components/team_button';
+
+import WebSocketClient from 'client/web_websocket_client';
+import Pluggable from 'plugins/pluggable';
+import {Constants} from 'utils/constants';
+import * as Keyboard from 'utils/keyboard';
+import {getCurrentProduct} from 'utils/products';
+import {filterAndSortTeamsByDisplayName} from 'utils/team_utils';
+import * as Utils from 'utils/utils';
 
 import type {PropsFromRedux} from './index';
 
@@ -145,6 +146,13 @@ export default class TeamSidebar extends React.PureComponent<Props, State> {
             this.setState({showOrder: false});
         }
     };
+
+    componentDidUpdate(prevProps: Props) {
+        // TODO: debounce
+        if (prevProps.currentTeamId !== this.props.currentTeamId) {
+            WebSocketClient.updateActiveTeam(this.props.currentTeamId);
+        }
+    }
 
     componentDidMount() {
         this.props.actions.getTeams(0, 200);

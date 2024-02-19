@@ -217,6 +217,7 @@
     .heading {
         overflow: hidden;
         margin: 0 0 0 2px;
+        color: var(--center-channel-color);
         font-family: Metropolis, sans-serif;
         font-size: 16px;
         font-weight: 600;
@@ -475,6 +476,7 @@
     .header-status__text {
         display: flex;
         overflow: hidden;
+        flex-shrink: 0;
         align-items: center;
         margin-right: 7px;
         line-height: 16px;
@@ -524,6 +526,7 @@
         margin-bottom: 10px;
 
         .fa,
+        svg,
         i {
             margin-right: 5px;
         }
@@ -818,59 +821,9 @@
     }
 }
 
-.app__body {
-    .channel-header__links {
-        display: inline-block;
-        width: 30px;
-        height: 30px;
-        margin-right: 1px;
-        font-family: "Open Sans", sans-serif;
-        font-size: 22px;
-        line-height: 26px;
-        text-align: center;
-
-        th {
-            &:last-child {
-                div {
-                    margin-right: 10px;
-                }
-            }
-        }
-
-        .channel__wrap.move--left & {
-            position: absolute;
-            top: 14px;
-            right: -400px;
-        }
-
-        > a {
-            color: inherit;
-            opacity: 0.6;
-            text-decoration: none;
-            transition: all 0.1s ease-in;
-
-            &:hover {
-                opacity: 0.7;
-            }
-
-            &:focus {
-                color: inherit;
-            }
-
-            &.active {
-                color: $primary-color;
-                opacity: 1;
-
-                .icon {
-                    fill: $primary-color;
-                }
-            }
-        }
-    }
-}
-
 .channel-header-archived-icon {
     position: relative;
     top: 2px;
     margin-right: 5px;
+    fill: var(--center-channel-color);
 }

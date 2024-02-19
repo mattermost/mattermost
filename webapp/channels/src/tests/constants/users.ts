@@ -1,8 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {GlobalState} from '@mattermost/types/store';
+import type {GlobalState} from '@mattermost/types/store';
+
 import {General} from 'mattermost-redux/constants';
+
 import {TestHelper} from 'utils/test_helper';
 
 const emptyOtherUsersState: Omit<GlobalState['entities']['users'], 'profiles' | 'currentUserId'> = {
@@ -18,6 +20,7 @@ const emptyOtherUsersState: Omit<GlobalState['entities']['users'], 'profiles' | 
     profilesNotInGroup: {},
     statuses: {},
     stats: {},
+    filteredStats: {},
     myUserAccessTokens: {},
     lastActivity: {},
 };

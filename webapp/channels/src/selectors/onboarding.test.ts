@@ -3,15 +3,14 @@
 
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
+import {getShowTaskListBool} from 'selectors/onboarding';
 
 import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_tasks';
 
+import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
 
-import {getShowTaskListBool} from 'selectors/onboarding';
-
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 describe('selectors/onboarding', () => {
     describe('getShowTaskListBool', () => {
@@ -33,6 +32,11 @@ describe('selectors/onboarding', () => {
                     users: {
                         currentUserId: user.id,
                         profiles,
+                    },
+                },
+                views: {
+                    browser: {
+                        windowSize: '',
                     },
                 },
             } as unknown as GlobalState;
@@ -65,6 +69,11 @@ describe('selectors/onboarding', () => {
                         profiles,
                     },
                 },
+                views: {
+                    browser: {
+                        windowSize: '',
+                    },
+                },
             } as unknown as GlobalState;
 
             const [showTaskList, firstTimeOnboarding] = getShowTaskListBool(state);
@@ -93,6 +102,11 @@ describe('selectors/onboarding', () => {
                     users: {
                         currentUserId: user.id,
                         profiles,
+                    },
+                },
+                views: {
+                    browser: {
+                        windowSize: '',
                     },
                 },
             } as unknown as GlobalState;
@@ -126,6 +140,11 @@ describe('selectors/onboarding', () => {
                     users: {
                         currentUserId: user.id,
                         profiles,
+                    },
+                },
+                views: {
+                    browser: {
+                        windowSize: '',
                     },
                 },
             } as unknown as GlobalState;
@@ -163,6 +182,11 @@ describe('selectors/onboarding', () => {
                     users: {
                         currentUserId: user.id,
                         profiles,
+                    },
+                },
+                views: {
+                    browser: {
+                        windowSize: '',
                     },
                 },
             } as unknown as GlobalState;

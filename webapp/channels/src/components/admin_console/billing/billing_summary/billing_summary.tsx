@@ -3,25 +3,25 @@
 
 import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber} from 'react-intl';
-
 import {useDispatch} from 'react-redux';
-import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
 
-import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
-
-import BlockableLink from 'components/admin_console/blockable_link';
-import OverlayTrigger from 'components/overlay_trigger';
-import Tooltip from 'components/tooltip';
-import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
-import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
-
-import {trackEvent} from 'actions/telemetry_actions';
+import {CheckCircleOutlineIcon, CheckIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 
 import {Client4} from 'mattermost-redux/client';
-import {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
+
+import {trackEvent} from 'actions/telemetry_actions';
 import {openModal} from 'actions/views/modals';
+
+import BlockableLink from 'components/admin_console/blockable_link';
 import CloudInvoicePreview from 'components/cloud_invoice_preview';
+import EmptyBillingHistorySvg from 'components/common/svg_images_components/empty_billing_history_svg';
+import UpgradeSvg from 'components/common/svg_images_components/upgrade_svg';
 import ExternalLink from 'components/external_link';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+
+import {BillingSchemes, CloudLinks, TrialPeriodDays, ModalIdentifiers} from 'utils/constants';
 
 export const noBillingHistory = (
     <div className='BillingSummary__noBillingHistory'>
@@ -123,36 +123,47 @@ export const freeTrial = (onUpgradeMattermostCloud: (callerInfo: string) => void
     </div>
 );
 
-export const getPaymentStatus = (status: string) => {
+export const getPaymentStatus = (status: string, willRenew?: boolean) => {
+    if (willRenew) {
+        return (
+            <div className='BillingSummary__lastInvoice-headerStatus paid'>
+                <CheckIcon/> {' '}
+                <FormattedMessage
+                    id='admin.billing.subscriptions.billing_summary.lastInvoice.approved'
+                    defaultMessage='Approved'
+                />
+            </div>
+        );
+    }
     switch (status.toLowerCase()) {
     case 'failed':
         return (
             <div className='BillingSummary__lastInvoice-headerStatus failed'>
+                <i className='icon icon-alert-outline'/> {' '}
                 <FormattedMessage
                     id='admin.billing.subscriptions.billing_summary.lastInvoice.failed'
                     defaultMessage='Failed'
                 />
-                <i className='icon icon-alert-outline'/>
             </div>
         );
     case 'paid':
         return (
             <div className='BillingSummary__lastInvoice-headerStatus paid'>
+                <CheckCircleOutlineIcon/> {' '}
                 <FormattedMessage
                     id='admin.billing.subscriptions.billing_summary.lastInvoice.paid'
                     defaultMessage='Paid'
                 />
-                <CheckCircleOutlineIcon/>
             </div>
         );
     default:
         return (
             <div className='BillingSummary__lastInvoice-headerStatus pending'>
+                <ClockOutlineIcon/> {' '}
                 <FormattedMessage
                     id='admin.billing.subscriptions.billing_summary.lastInvoice.pending'
                     defaultMessage='Pending'
                 />
-                <CheckCircleOutlineIcon/>
             </div>
         );
     }
@@ -164,9 +175,10 @@ type InvoiceInfoProps = {
     fullCharges: InvoiceLineItem[];
     partialCharges: InvoiceLineItem[];
     hasMore?: number;
+    willRenew?: boolean;
 }
 
-export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasMore}: InvoiceInfoProps) => {
+export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasMore, willRenew}: InvoiceInfoProps) => {
     const dispatch = useDispatch();
     const isUpcomingInvoice = invoice?.status.toLowerCase() === 'upcoming';
     const openInvoicePreview = () => {
@@ -202,7 +214,7 @@ export const InvoiceInfo = ({invoice, product, fullCharges, partialCharges, hasM
                 <div className='BillingSummary__lastInvoice-headerTitle'>
                     {title()}
                 </div>
-                {getPaymentStatus(invoice.status)}
+                {getPaymentStatus(invoice.status, willRenew)}
             </div>
             <div className='BillingSummary__lastInvoice-date'>
                 <FormattedDate

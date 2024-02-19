@@ -1,11 +1,11 @@
 {
   "root": true,
   "extends": [
-    "plugin:mattermost/react",
+    "plugin:@mattermost/react",
     "plugin:react-hooks/recommended"
   ],
   "plugins": [
-    "mattermost",
+    "@mattermost",
     "import",
     "no-only-tests",
     "@typescript-eslint",
@@ -23,6 +23,7 @@
     }
   },
   "rules": {
+    "@mattermost/use-external-link": 2,
     "header/header": [
       2,
       "line",
@@ -30,26 +31,56 @@
       2
     ],
     "no-duplicate-imports": 0,
-    "mattermost/use-external-link": 2,
     "import/no-duplicates": 2,
     "max-nested-callbacks": ["error", 10],
     "no-unused-expressions": 0,
     "eol-last": ["error", "always"],
     "import/no-unresolved": 2,
     "import/order": [
-      0,
+      2,
       {
-        "newlines-between": "always-and-inside-groups",
+        "newlines-between": "always",
         "groups": [
           "builtin",
           "external",
-          [
-            "internal",
-            "parent"
-          ],
+          "internal",
           "sibling",
+          "parent",
           "index"
-        ]
+        ],
+        "pathGroups": [
+          {
+            "pattern": "@mattermost/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "mattermost-redux/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "@(selectors|actions|stores|store|reducers){,/**}",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "components/**",
+            "group": "external",
+            "position": "after"
+          },
+          {
+            "pattern": "types{,/**}",
+            "group": "internal",
+            "position": "after"
+          }
+        ],
+        "alphabetize": {
+          "order": "asc",
+          "caseInsensitive": true
+        },
+        "distinctGroup": true,
+        "pathGroupsExcludedImportTypes": ["builtin"]
       }
     ],
     "no-undefined": 0,
@@ -83,19 +114,27 @@
       {
         "patterns": [
           {
-            "group": ["react-bootstrap"],
+            "group": ["@mattermost/compass-components/*"],
+            "message": "compass-components is now archived."
+          }
+        ],
+        "paths": [
+          {
+            "name": "react-bootstrap",
             "importNames": ["OverlayTrigger"],
-            "message": "Please use OverlayTrigger from '/components/overlay_trigger' instead."
+            "message": "Use OverlayTrigger from '/components/overlay_trigger' instead."
           },
           {
-            "group": ["@mattermost/compass-components/*"],
-            "message": "compass-components is now archived"
+            "name": "redux",
+            "importNames": ["DeepPartial"],
+            "message": "Use DeepPartial from '@mattermost/types/utilities instead."
           }
         ]
       }
     ],
     "max-lines": ["warn", {"max": 800, "skipBlankLines": true, "skipComments": true}],
-    "formatjs/no-multiple-whitespaces": 2
+    "formatjs/no-multiple-whitespaces": 2,
+    "@typescript-eslint/consistent-type-imports": ["error", {"disallowTypeAnnotations": false}]
   },
   "overrides": [
     {

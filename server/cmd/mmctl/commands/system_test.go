@@ -6,15 +6,19 @@ package commands
 import (
 	"context"
 	"net/http"
+	"os"
 	"strconv"
+	"strings"
+	"testing"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/pkg/errors"
+	"github.com/spf13/cobra"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-
-	"github.com/spf13/cobra"
 )
 
 func (s *MmctlUnitTestSuite) TestGetBusyCmd() {
@@ -208,5 +212,104 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		s.Require().Error(err)
 		s.Require().Len(printer.GetErrorLines(), 0)
 		s.Require().Len(printer.GetLines(), 0)
+	})
+}
+
+func cleanupSupportPacket(t *testing.T) func() {
+	return func() {
+		entries, err := os.ReadDir(".")
+		require.NoError(t, err)
+		for _, e := range entries {
+			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
+				err = os.Remove(e.Name())
+				assert.NoError(t, err)
+			}
+		}
+	}
+}
+
+func (s *MmctlUnitTestSuite) TestSupportPacketCmdF() {
+	printer.SetFormat(printer.FormatPlain)
+	s.T().Cleanup(func() { printer.SetFormat(printer.FormatJSON) })
+
+	s.Run("Download support packet with default filename", func() {
+		printer.Clean()
+
+		s.T().Cleanup(cleanupSupportPacket(s.T()))
+
+		data := []byte("some bytes")
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(data, &model.Response{}, nil).
+			Times(1)
+
+		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+		s.Require().Contains(printer.GetLines()[1], "Downloaded Support Packet to ")
+
+		var found bool
+
+		entries, err := os.ReadDir(".")
+		s.Require().NoError(err)
+		for _, e := range entries {
+			if strings.HasPrefix(e.Name(), "mattermost_support_packet_") && strings.HasSuffix(e.Name(), ".zip") {
+				b, err := os.ReadFile(e.Name())
+				s.NoError(err)
+				s.Equal(b, data)
+
+				found = true
+			}
+		}
+
+		s.True(found)
+	})
+
+	s.Run("Download support packet with custom filename", func() {
+		printer.Clean()
+
+		data := []byte("some bytes")
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(data, &model.Response{}, nil).
+			Times(1)
+
+		err := SystemSupportPacketCmd.ParseFlags([]string{"-o", "foo.zip"})
+		s.Require().NoError(err)
+
+		s.T().Cleanup(func() {
+			s.Require().NoError(os.Remove("foo.zip"))
+		})
+
+		err = systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		s.Require().NoError(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 2)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
+		s.Require().Equal(printer.GetLines()[1], "Downloaded Support Packet to foo.zip")
+
+		b, err := os.ReadFile("foo.zip")
+		s.Require().NoError(err)
+		s.Equal(b, data)
+	})
+
+	s.Run("Request to the server fails", func() {
+		printer.Clean()
+
+		s.client.
+			EXPECT().
+			GenerateSupportPacket(context.TODO()).
+			Return(nil, &model.Response{}, errors.New("mock error")).
+			Times(1)
+
+		err := systemSupportPacketCmdF(s.client, SystemSupportPacketCmd, []string{})
+		s.Require().Error(err)
+		s.Require().Len(printer.GetErrorLines(), 0)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(printer.GetLines()[0], "Downloading Support Packet")
 	})
 }

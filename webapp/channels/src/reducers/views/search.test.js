@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import searchReducer from 'reducers/views/search';
+
 import {SearchTypes} from 'utils/constants';
 
 describe('Reducers.Search', () => {
@@ -10,7 +11,6 @@ describe('Reducers.Search', () => {
         popoverSearch: '',
         channelMembersRhsSearch: '',
         modalFilters: {},
-        systemUsersSearch: {},
         userGridSearch: {},
         teamListSearch: '',
         channelListSearch: {},
@@ -20,7 +20,6 @@ describe('Reducers.Search', () => {
         const nextState = searchReducer(
             {
                 modalSearch: '',
-                systemUsersSearch: {},
             },
             {},
         );

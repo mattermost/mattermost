@@ -1,27 +1,26 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
 import {connect} from 'react-redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
-import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
-import {makeGetProfilesForThread} from 'mattermost-redux/selectors/entities/posts';
+import type {GlobalState} from '@mattermost/types/store';
 
-import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import Permissions from 'mattermost-redux/constants/permissions';
-
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getAssociatedGroupsForReference} from 'mattermost-redux/selectors/entities/groups';
+import {makeGetProfilesForThread} from 'mattermost-redux/selectors/entities/posts';
+import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
+import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 
-import {GlobalState} from '@mattermost/types/store';
-import {Action} from 'mattermost-redux/types/actions';
-
+import {autocompleteChannels} from 'actions/channel_actions';
 import {autocompleteUsersInChannel} from 'actions/views/channel';
 import {searchAssociatedGroupsForReference} from 'actions/views/group';
-import {autocompleteChannels} from 'actions/channel_actions';
 
-import Textbox, {Props as TextboxProps} from './textbox';
+import Textbox from './textbox';
+import TextboxLinks from './textbox_links';
 
 type Props = {
     channelId: string;
@@ -53,7 +52,7 @@ const makeMapStateToProps = () => {
 };
 
 const mapDispatchToProps = (dispatch: Dispatch) => ({
-    actions: bindActionCreators<ActionCreatorsMapObject<Action>, TextboxProps['actions']>({
+    actions: bindActionCreators({
         autocompleteUsersInChannel,
         autocompleteChannels,
         searchAssociatedGroupsForReference,
@@ -63,3 +62,4 @@ const mapDispatchToProps = (dispatch: Dispatch) => ({
 export {Textbox as TextboxClass};
 
 export default connect(makeMapStateToProps, mapDispatchToProps, null, {forwardRef: true})(Textbox);
+export {TextboxLinks};

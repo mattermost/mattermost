@@ -3,21 +3,24 @@
 
 import moment from 'moment-timezone';
 
+import type {UserCustomStatus} from '@mattermost/types/users';
+import {CustomStatusDuration} from '@mattermost/types/users';
+
+import {Preferences} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 import {getCurrentUser, getUser} from 'mattermost-redux/selectors/entities/users';
-import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {get} from 'mattermost-redux/selectors/entities/preferences';
-import {Preferences} from 'mattermost-redux/constants';
-import {CustomStatusDuration, UserCustomStatus} from '@mattermost/types/users';
+import {getEmojiMap} from 'selectors/emojis';
 
+import {getCurrentMomentForTimezone} from 'utils/timezone';
 import {isDateWithinDaysRange, TimeInformation} from 'utils/utils';
 
-import {GlobalState} from 'types/store';
-import {getCurrentMomentForTimezone} from 'utils/timezone';
+import type {GlobalState} from 'types/store';
 
-export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus {
+export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus | undefined {
     return createSelector(
         'makeGetCustomStatus',
         (state: GlobalState, userID?: string) => (userID ? getUser(state, userID) : getCurrentUser(state)),
@@ -43,11 +46,23 @@ export function isCustomStatusExpired(state: GlobalState, customStatus?: UserCus
     return currentTime.isSameOrAfter(expiryTime);
 }
 
-export const getRecentCustomStatuses = createSelector(
+/**
+ * getRecentCustomStatuses returns an array of the current user's recent custom statuses with any statuses using
+ * non-loaded or non-existent emojis filtered out.
+ */
+export const getRecentCustomStatuses: (state: GlobalState) => UserCustomStatus[] = createSelector(
     'getRecentCustomStatuses',
     (state: GlobalState) => get(state, Preferences.CATEGORY_CUSTOM_STATUS, Preferences.NAME_RECENT_CUSTOM_STATUSES),
-    (value) => {
-        return value ? JSON.parse(value) : [];
+    getEmojiMap,
+    (value, emojiMap) => {
+        if (!value) {
+            return [];
+        }
+
+        let recentCustomStatuses: UserCustomStatus[] = JSON.parse(value);
+        recentCustomStatuses = recentCustomStatuses.filter((customStatus) => emojiMap.has(customStatus.emoji));
+
+        return recentCustomStatuses;
     },
 );
 

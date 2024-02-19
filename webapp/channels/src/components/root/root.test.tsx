@@ -1,24 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {RouteComponentProps} from 'react-router-dom';
 import {shallow} from 'enzyme';
+import React from 'react';
+import type {RouteComponentProps} from 'react-router-dom';
 import rudderAnalytics from 'rudder-sdk-js';
 
-import {Theme} from 'mattermost-redux/selectors/entities/preferences';
-
-import {Client4} from 'mattermost-redux/client';
-import {GeneralTypes} from 'mattermost-redux/action_types';
-
-import Root from 'components/root/root';
-import * as GlobalActions from 'actions/global_actions';
-import Constants, {StoragePrefixes, WindowSizes} from 'utils/constants';
-import matchMedia from 'tests/helpers/match_media.mock';
-import {ProductComponent} from 'types/store/plugins';
 import {ServiceEnvironment} from '@mattermost/types/config';
 
-import store from 'stores/redux_store.jsx';
+import {GeneralTypes} from 'mattermost-redux/action_types';
+import {Client4} from 'mattermost-redux/client';
+import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
+
+import * as GlobalActions from 'actions/global_actions';
+import store from 'stores/redux_store';
+
+import Root from 'components/root/root';
+
+import {StoragePrefixes} from 'utils/constants';
+
+import type {ProductComponent} from 'types/store/plugins';
 
 jest.mock('rudder-sdk-js', () => ({
     identify: jest.fn(),
@@ -63,7 +64,6 @@ describe('components/Root', () => {
                     data: false,
                 });
             }),
-            emitBrowserWindowResized: () => {},
             getFirstAdminSetupComplete: jest.fn(() => Promise.resolve({
                 type: GeneralTypes.FIRST_ADMIN_COMPLETE_SETUP_RECEIVED,
                 data: true,
@@ -266,88 +266,6 @@ describe('components/Root', () => {
         });
     });
 
-    describe('window.matchMedia', () => {
-        afterEach(() => {
-            matchMedia.clear();
-        });
-
-        test('should update redux when the desktop media query matches', () => {
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    emitBrowserWindowResized: jest.fn(),
-                },
-            };
-            const wrapper = shallow(<Root {...props}/>);
-
-            matchMedia.useMediaQuery(`(min-width: ${Constants.DESKTOP_SCREEN_WIDTH + 1}px)`);
-
-            expect(props.actions.emitBrowserWindowResized).toBeCalledTimes(1);
-
-            expect(props.actions.emitBrowserWindowResized.mock.calls[0][0]).toBe(WindowSizes.DESKTOP_VIEW);
-
-            wrapper.unmount();
-        });
-
-        test('should update redux when the small desktop media query matches', () => {
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    emitBrowserWindowResized: jest.fn(),
-                },
-            };
-            const wrapper = shallow(<Root {...props}/>);
-
-            matchMedia.useMediaQuery(`(min-width: ${Constants.TABLET_SCREEN_WIDTH + 1}px) and (max-width: ${Constants.DESKTOP_SCREEN_WIDTH}px)`);
-
-            expect(props.actions.emitBrowserWindowResized).toBeCalledTimes(1);
-
-            expect(props.actions.emitBrowserWindowResized.mock.calls[0][0]).toBe(WindowSizes.SMALL_DESKTOP_VIEW);
-
-            wrapper.unmount();
-        });
-
-        test('should update redux when the tablet media query matches', () => {
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    emitBrowserWindowResized: jest.fn(),
-                },
-            };
-            const wrapper = shallow(<Root {...props}/>);
-
-            matchMedia.useMediaQuery(`(min-width: ${Constants.MOBILE_SCREEN_WIDTH + 1}px) and (max-width: ${Constants.TABLET_SCREEN_WIDTH}px)`);
-
-            expect(props.actions.emitBrowserWindowResized).toBeCalledTimes(1);
-
-            expect(props.actions.emitBrowserWindowResized.mock.calls[0][0]).toBe(WindowSizes.TABLET_VIEW);
-
-            wrapper.unmount();
-        });
-
-        test('should update redux when the mobile media query matches', () => {
-            const props = {
-                ...baseProps,
-                actions: {
-                    ...baseProps.actions,
-                    emitBrowserWindowResized: jest.fn(),
-                },
-            };
-            const wrapper = shallow(<Root {...props}/>);
-
-            matchMedia.useMediaQuery(`(max-width: ${Constants.MOBILE_SCREEN_WIDTH}px)`);
-
-            expect(props.actions.emitBrowserWindowResized).toBeCalledTimes(1);
-
-            expect(props.actions.emitBrowserWindowResized.mock.calls[0][0]).toBe(WindowSizes.MOBILE_VIEW);
-
-            wrapper.unmount();
-        });
-    });
-
     describe('Routes', () => {
         test('Should mount public product routes', () => {
             const mainComponent = () => (<p>{'TestMainComponent'}</p>);
@@ -373,6 +291,46 @@ describe('components/Root', () => {
 
             (wrapper.instance() as any).setState({configLoaded: true});
             expect(wrapper).toMatchSnapshot();
+            wrapper.unmount();
+        });
+    });
+
+    describe('showLandingPageIfNecessary', () => {
+        const landingProps = {
+            ...baseProps,
+            iosDownloadLink: 'http://iosapp.com',
+            androidDownloadLink: 'http://androidapp.com',
+            appDownloadLink: 'http://desktopapp.com',
+            ...{
+                location: {
+                    pathname: '/',
+                    search: '',
+                },
+            } as RouteComponentProps,
+            history: {
+                push: jest.fn(),
+            } as unknown as RouteComponentProps['history'],
+        };
+
+        test('should show for normal cases', () => {
+            const wrapper = shallow(<Root {...landingProps}/>);
+            (wrapper.instance() as any).onConfigLoaded();
+            expect(landingProps.history.push).toHaveBeenCalledWith('/landing#/');
+            wrapper.unmount();
+        });
+
+        test('should not show for Desktop App login flow', () => {
+            const props = {
+                ...landingProps,
+                ...{
+                    location: {
+                        pathname: '/login/desktop',
+                    },
+                } as RouteComponentProps,
+            };
+            const wrapper = shallow(<Root {...props}/>);
+            (wrapper.instance() as any).onConfigLoaded();
+            expect(props.history.push).not.toHaveBeenCalled();
             wrapper.unmount();
         });
     });

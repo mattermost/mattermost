@@ -1,27 +1,16 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import nock from 'nock';
-
 import {
-    searchMoreChannels,
     addUsersToChannel,
     openDirectChannelToUserId,
     openGroupChannelToUserIds,
-    loadChannelsForCurrentUser, fetchChannelsAndMembers,
+    loadChannelsForCurrentUser,
 } from 'actions/channel_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
-import {CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE} from 'actions/channel_queries';
 
-import {Channel} from '@mattermost/types/channels';
-import {Team} from '@mattermost/types/teams';
-import {UserProfile} from '@mattermost/types/users';
-import {Role} from '@mattermost/types/roles';
-
-import {Client4} from 'mattermost-redux/client';
-import TestHelper from 'packages/mattermost-redux/test/test_helper';
 import mockStore from 'tests/test_store';
-import configureStore from 'store';
+import {TestHelper} from 'utils/test_helper';
 
 const initialState = {
     entities: {
@@ -37,25 +26,25 @@ const initialState = {
                 },
             },
             channels: {
-                current_channel_id: {
+                current_channel_id: TestHelper.getChannelMock({
                     id: 'current_channel_id',
                     name: 'default-name',
                     display_name: 'Default',
                     delete_at: 0,
                     type: 'O',
                     team_id: 'team_id',
-                },
-                current_user_id__existingId: {
+                }),
+                current_user_id__existingId: TestHelper.getChannelMock({
                     id: 'current_user_id__existingId',
                     name: 'current_user_id__existingId',
                     display_name: 'Default',
                     delete_at: 0,
-                    type: '0',
+                    type: 'O',
                     team_id: 'team_id',
-                },
+                }),
             },
             channelsInTeam: {
-                'team-id': ['current_channel_id'],
+                'team-id': new Set(['asdf']),
             },
             messageCounts: {
                 current_channel_id: {total: 10},
@@ -68,7 +57,7 @@ const initialState = {
                 'team-id': {
                     id: 'team_id',
                     name: 'team-1',
-                    displayName: 'Team 1',
+                    display_name: 'Team 1',
                 },
             },
             myMembers: {
@@ -107,7 +96,7 @@ const initialState = {
         general: {
             license: {IsLicensed: 'false'},
             serverVersion: '5.4.0',
-            config: {PostEditTimeLimit: -1},
+            config: {PostEditTimeLimit: '-1'},
         },
     },
 };
@@ -115,7 +104,7 @@ const initialState = {
 const realDateNow = Date.now;
 
 jest.mock('mattermost-redux/actions/channels', () => ({
-    fetchMyChannelsAndMembersREST: (...args: any) => ({type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS', args}),
+    fetchChannelsAndMembers: (...args: any) => ({type: 'MOCK_FETCH_CHANNELS_AND_MEMBERS', args}),
     searchChannels: () => {
         return {
             type: 'MOCK_SEARCH_CHANNELS',
@@ -151,24 +140,6 @@ describe('Actions.Channel', () => {
         await testStore.dispatch(loadChannelsForCurrentUser());
         expect(testStore.getActions()).toEqual(expectedActions);
         expect(loadProfilesForSidebar).toHaveBeenCalledTimes(1);
-    });
-
-    test('searchMoreChannels', async () => {
-        const testStore = await mockStore(initialState);
-
-        const expectedActions = [{
-            type: 'MOCK_SEARCH_CHANNELS',
-            data: [{
-                id: 'channel-id',
-                name: 'channel-name',
-                display_name: 'Channel',
-                delete_at: 0,
-                type: 'O',
-            }],
-        }];
-
-        await testStore.dispatch(searchMoreChannels('', false, true));
-        expect(testStore.getActions()).toEqual(expectedActions);
     });
 
     test('addUsersToChannel', async () => {
@@ -279,218 +250,6 @@ describe('Actions.Channel', () => {
 
         await testStore.dispatch(openGroupChannelToUserIds(fakeData.userIds));
         expect(testStore.getActions()).toEqual(expectedActions);
-    });
-
-    describe('fetchChannelsAndMembers', () => {
-        let role1: Role;
-        let role2: Role;
-
-        beforeAll(() => {
-            TestHelper.initBasic(Client4);
-
-            role1 = TestHelper.basicRoles?.system_admin as Role;
-            role2 = TestHelper.basicRoles?.system_user as Role;
-        });
-
-        afterEach(() => {
-            nock.cleanAll();
-        });
-
-        afterAll(() => {
-            TestHelper.tearDown();
-        });
-
-        test('should throws error when response errors out', async () => {
-            const store = configureStore();
-
-            nock(Client4.getGraphQLUrl()).
-                post('').reply(200, {
-                    errors: [{message: 'some error'}],
-                });
-
-            const result = await store.dispatch(fetchChannelsAndMembers());
-
-            expect(Object.keys(result)).toEqual(['error']);
-        });
-
-        test('should throws error when response is not correct', async () => {
-            [null, undefined, {}].
-                forEach(async (dataResponse) => {
-                    const store = configureStore();
-
-                    nock(Client4.getGraphQLUrl()).
-                        post('').reply(200, {
-                            data: dataResponse,
-                        });
-
-                    const result = await store.dispatch(fetchChannelsAndMembers());
-
-                    expect(Object.keys(result)).toEqual(['error']);
-                });
-        });
-
-        test('should throws not throw error when responses are empty', async () => {
-            [[[], []], [[fakeGQLChannelWithId('team1')], []], [[], [fakeGQLChannelMember('user1', 'channel2', [role1])]]].
-                forEach(async ([channelResponse, channelMemberResponse]) => {
-                    const store = configureStore();
-
-                    nock(Client4.getGraphQLUrl()).
-                        post('').
-                        reply(200, {
-                            data: {
-                                channels: [...channelResponse],
-                                channelMembers: [...channelMemberResponse],
-                            },
-                        });
-
-                    const result = await store.dispatch(fetchChannelsAndMembers());
-
-                    expect(Object.keys(result)).not.toEqual(['error']);
-                });
-        });
-
-        test('should return correct channels, channel members and roles when under max limit', async () => {
-            const store = configureStore();
-
-            const perPage = Math.floor(CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE / 2);
-
-            const channels = [];
-            for (let i = 1; i <= perPage; i++) {
-                channels.push(fakeGQLChannelWithId(`team${i}`));
-            }
-
-            const channelMembers = [];
-            for (let i = 1; i <= perPage; i++) {
-                channelMembers.push(fakeGQLChannelMember('user1', `channel${i}`, [role1]));
-            }
-
-            nock(Client4.getGraphQLUrl()).
-                post('').
-                reply(200, {
-                    data: {
-                        channels: [...channels],
-                        channelMembers: [...channelMembers],
-                    },
-                });
-
-            const result = await store.dispatch(fetchChannelsAndMembers());
-
-            expect(result.data.channels.length).toEqual(perPage);
-            expect(result.data.channelMembers.length).toEqual(perPage);
-
-            // Since we added a single role to each channel member, we should have as many roles as channel members
-            expect(result.data.roles.length).toEqual(perPage);
-        });
-
-        test('should return correct channels, channel members, roles when responses span across multiple pages', async () => {
-            const store = configureStore();
-
-            const p1Page = CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE;
-            const p2Page = CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE;
-            const p3Page = Math.floor(CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE / 2);
-            const responsesPerPage = [p1Page, p2Page, p3Page];
-            const totalNumOfResponses = p1Page + p2Page + p3Page;
-
-            const channelsResponsePages: any[][] = [];
-            const channelMembersResponsePages: any[][] = [];
-
-            responsesPerPage.forEach((responsePerPage, i) => {
-                const channelResponsePerPage = [];
-                const channelMemberResponsePerPage = [];
-                for (let j = 1; j <= responsePerPage; j++) {
-                    const channel = fakeGQLChannelWithId(`team${i}_${j}`);
-                    channelResponsePerPage.push(channel);
-
-                    const random0or1 = Math.round(Math.random());
-                    channelMemberResponsePerPage.push(fakeGQLChannelMember('user1', `channel${i}_${j}`, random0or1 === 0 ? [role1, role2] : [role2]));
-                }
-
-                channelsResponsePages.push(channelResponsePerPage);
-                channelMembersResponsePages.push(channelMemberResponsePerPage);
-            });
-
-            responsesPerPage.forEach((_, i) => {
-                nock(Client4.getGraphQLUrl()).
-                    post('').
-                    reply(200, {
-                        data: {
-                            channels: [...channelsResponsePages[i]],
-                            channelMembers: [...channelMembersResponsePages[i]],
-                        },
-                    });
-            });
-
-            const result = await store.dispatch(fetchChannelsAndMembers());
-            expect(result.data.channels.length).toEqual(totalNumOfResponses);
-            expect(result.data.channelMembers.length).toEqual(totalNumOfResponses);
-        });
-
-        test('should error out when pagination throws errors', async () => {
-            const store = configureStore();
-
-            const p1Page = CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE;
-            const p2Page = CHANNELS_AND_CHANNEL_MEMBERS_PER_PAGE; // so that page 3 will throw an error
-
-            const responsesPerPage = [p1Page, p2Page];
-
-            const channelsResponsePages: any[][] = [];
-            const channelMembersResponsePages: any[][] = [];
-
-            responsesPerPage.forEach((responsePerPage, i) => {
-                const channelResponsePerPage = [];
-                const channelMemberResponsePerPage = [];
-                for (let j = 1; j <= responsePerPage; j++) {
-                    const channel = fakeGQLChannelWithId(`team${i}_${j}`);
-                    channelResponsePerPage.push(channel);
-
-                    const random0or1 = Math.round(Math.random());
-                    channelMemberResponsePerPage.push(fakeGQLChannelMember('user1', `channel${i}_${j}`, random0or1 === 0 ? [role1, role2] : [role2]));
-                }
-
-                channelsResponsePages.push(channelResponsePerPage);
-                channelMembersResponsePages.push(channelMemberResponsePerPage);
-            });
-
-            responsesPerPage.forEach((_, i) => {
-                nock(Client4.getGraphQLUrl()).
-                    post('').
-                    reply(200, {
-                        data: {
-                            channels: [...channelsResponsePages[i]],
-                            channelMembers: [...channelMembersResponsePages[i]],
-                        },
-                    });
-            });
-
-            // Last page will throw an error
-            nock(Client4.getGraphQLUrl()).
-                post('').
-                reply(200, {
-                    data: {},
-                    errors: [{message: 'some error'}],
-                });
-
-            const result = await store.dispatch(fetchChannelsAndMembers());
-            expect(Object.keys(result)).toEqual(['error']);
-        });
-
-        function fakeGQLChannelWithId(teamId: Team['id']) {
-            return Object.assign(TestHelper.fakeChannelWithId(teamId), {
-                team: {id: teamId},
-            });
-        }
-
-        function fakeGQLChannelMember(userId: UserProfile['id'], channelId: Channel['id'], roles: Role[] = []) {
-            return Object.assign(TestHelper.fakeChannelMember(userId, channelId), {
-                channel: {
-                    id: channelId,
-                },
-                user: {
-                    id: userId,
-                },
-                roles: [...roles],
-            });
-        }
     });
 });
 

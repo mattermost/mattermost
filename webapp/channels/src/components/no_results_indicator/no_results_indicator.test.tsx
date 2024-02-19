@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
+import React from 'react';
 
 import NoResultsIndicator from 'components/no_results_indicator/no_results_indicator';
 
@@ -86,7 +86,7 @@ describe('components/no_results_indicator', () => {
     test('should match snapshot when expanded', () => {
         const wrapper = shallow(
             <NoResultsIndicator
-                variant={NoResultsVariant.ChannelSearch}
+                variant={NoResultsVariant.Search}
                 expanded={true}
             />,
         );

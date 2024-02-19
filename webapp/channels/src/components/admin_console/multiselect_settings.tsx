@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import ReactSelect, {ValueType} from 'react-select';
+import ReactSelect from 'react-select';
+import type {ValueType} from 'react-select';
 
 import FormError from 'components/form_error';
 
@@ -44,9 +45,9 @@ State
     }
 
     handleChange = (newValue: ValueType<Option>) => {
-        const values = (newValue as Option[]).map((n) => {
+        const values = newValue ? (newValue as Option[]).map((n) => {
             return n.value;
-        });
+        }) : [];
 
         this.props.onChange(this.props.id, values);
         this.setState({error: false});

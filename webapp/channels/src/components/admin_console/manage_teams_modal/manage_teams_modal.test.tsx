@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ReactWrapper} from 'enzyme';
+import {mount, shallow} from 'enzyme';
 import React from 'react';
-import {mount, ReactWrapper, shallow} from 'enzyme';
-
-import {IntlProvider} from 'react-intl';
-
 import {act} from 'react-dom/test-utils';
+import {IntlProvider} from 'react-intl';
 
 import {General} from 'mattermost-redux/constants';
 
@@ -19,8 +18,8 @@ import ManageTeamsDropdown from './manage_teams_dropdown';
 describe('ManageTeamsModal', () => {
     const baseProps = {
         locale: General.DEFAULT_LOCALE,
-        onModalDismissed: jest.fn(),
-        show: true,
+        onHide: jest.fn(),
+        onExited: jest.fn(),
         user: TestHelper.getUserMock({
             id: 'currentUserId',
             last_picture_update: 1234,

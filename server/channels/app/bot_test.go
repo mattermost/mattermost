@@ -131,7 +131,7 @@ func TestPatchBot(t *testing.T) {
 			Description: sToP("updated bot"),
 		}
 
-		_, err = th.App.PatchBot(bot.UserId, botPatch)
+		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
 		require.NotNil(t, err)
 		require.Equal(t, "model.user.is_valid.username.app_error", err.Id)
 	})
@@ -154,7 +154,7 @@ func TestPatchBot(t *testing.T) {
 			Description: sToP(strings.Repeat("x", 1025)),
 		}
 
-		_, err = th.App.PatchBot(bot.UserId, botPatch)
+		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
 		require.NotNil(t, err)
 		require.Equal(t, "model.bot.is_valid.description.app_error", err.Id)
 	})
@@ -180,7 +180,7 @@ func TestPatchBot(t *testing.T) {
 			Description: sToP("an updated bot"),
 		}
 
-		patchedBot, err := th.App.PatchBot(createdBot.UserId, botPatch)
+		patchedBot, err := th.App.PatchBot(th.Context, createdBot.UserId, botPatch)
 		require.Nil(t, err)
 
 		// patchedBot should create a new .UpdateAt time
@@ -210,7 +210,7 @@ func TestPatchBot(t *testing.T) {
 			Username: sToP(th.BasicUser2.Username),
 		}
 
-		_, err = th.App.PatchBot(bot.UserId, botPatch)
+		_, err = th.App.PatchBot(th.Context, bot.UserId, botPatch)
 		require.NotNil(t, err)
 		require.Equal(t, "app.user.save.username_exists.app_error", err.Id)
 	})
@@ -768,7 +768,7 @@ func TestGetSystemBot(t *testing.T) {
 
 		require.Nil(t, th.App.PermanentDeleteAllUsers(th.Context))
 
-		_, err := th.App.GetSystemBot()
+		_, err := th.App.GetSystemBot(th.Context)
 		require.NotNil(t, err)
 		require.Equal(t, "app.bot.get_system_bot.empty_admin_list.app_error", err.Id)
 	})
@@ -781,7 +781,7 @@ func TestGetSystemBot(t *testing.T) {
 		_, err := th.App.GetUserByUsername(model.BotSystemBotUsername)
 		require.NotNil(t, err)
 
-		bot, err := th.App.GetSystemBot()
+		bot, err := th.App.GetSystemBot(th.Context)
 		require.Nil(t, err)
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 	})
@@ -792,7 +792,7 @@ func TestGetSystemBot(t *testing.T) {
 		require.Nil(t, err)
 		require.True(t, botUser.IsBot)
 
-		bot, err := th.App.GetSystemBot()
+		bot, err := th.App.GetSystemBot(th.Context)
 		require.Nil(t, err)
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)

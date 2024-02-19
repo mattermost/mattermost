@@ -4,21 +4,24 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {OAuthApp} from '@mattermost/types/integrations';
-import {Team} from '@mattermost/types/teams';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
+import ConfirmModal from 'components/confirm_modal';
+import LoadingScreen from 'components/loading_screen';
 
 import {getHistory} from 'utils/browser_history';
-import LoadingScreen from 'components/loading_screen';
-import ConfirmModal from 'components/confirm_modal';
-import AbstractOAuthApp from '../abstract_oauth_app.jsx';
+
+import AbstractOAuthApp from '../abstract_oauth_app';
 
 const HEADER = {id: 'integrations.edit', defaultMessage: 'Edit'};
 const FOOTER = {id: 'update_incoming_webhook.update', defaultMessage: 'Update'};
 const LOADING = {id: 'update_incoming_webhook.updating', defaultMessage: 'Updating...'};
 
 type Actions = {
-    getOAuthApp: (id: string) => OAuthApp;
+    getOAuthApp: (id: string) => void;
     editOAuthApp: (app: OAuthApp) => Promise<ActionResult>;
 };
 
@@ -124,6 +127,7 @@ export default class EditOAuthApp extends React.PureComponent<Props, State> {
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
+                modalClass='integrations-backstage-modal'
                 show={this.state.showConfirmModal}
                 onConfirm={this.submitOAuthApp}
                 onCancel={this.confirmModalDismissed}

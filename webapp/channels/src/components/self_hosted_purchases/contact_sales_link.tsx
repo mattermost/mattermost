@@ -2,16 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {useIntl} from 'react-intl';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
+import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
+import ExternalLink from 'components/external_link';
+
 import {
     TELEMETRY_CATEGORIES,
 } from 'utils/constants';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
-import ExternalLink from 'components/external_link';
 
 export default function ContactSalesLink() {
     const [, contactSalesLink] = useOpenSalesLink();

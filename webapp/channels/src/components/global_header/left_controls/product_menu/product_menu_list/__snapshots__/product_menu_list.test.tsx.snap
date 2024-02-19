@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
 exports[`components/global/product_switcher_menu should match snapshot with id 1`] = `
-<MenuGroup>
+<Memo(MenuGroup)>
   <div
     onClick={[Function]}
   >
@@ -117,10 +117,13 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       }
       dialogType={
         Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
+          "$$typeof": Symbol(react.forward_ref),
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
+          "render": [Function],
         }
       }
       disabled={false}
@@ -192,11 +195,11 @@ exports[`components/global/product_switcher_menu should match snapshot with id 1
       text="About "
     />
   </div>
-</MenuGroup>
+</Memo(MenuGroup)>
 `;
 
 exports[`components/global/product_switcher_menu should match snapshot with most of the thing enabled 1`] = `
-<MenuGroup>
+<Memo(MenuGroup)>
   <div
     onClick={[Function]}
   >
@@ -312,10 +315,13 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       }
       dialogType={
         Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
+          "$$typeof": Symbol(react.forward_ref),
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
+          "render": [Function],
         }
       }
       disabled={false}
@@ -387,7 +393,7 @@ exports[`components/global/product_switcher_menu should match snapshot with most
       text="About "
     />
   </div>
-</MenuGroup>
+</Memo(MenuGroup)>
 `;
 
 exports[`components/global/product_switcher_menu should match userGroups snapshot with EnableCustomGroups config 1`] = `
@@ -399,10 +405,13 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   dialogType={
     Object {
-      "$$typeof": Symbol(react.memo),
-      "WrappedComponent": [Function],
-      "compare": null,
-      "type": [Function],
+      "$$typeof": Symbol(react.forward_ref),
+      "WrappedComponent": Object {
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": [Function],
+      },
+      "render": [Function],
     }
   }
   disabled={false}
@@ -428,10 +437,13 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   dialogType={
     Object {
-      "$$typeof": Symbol(react.memo),
-      "WrappedComponent": [Function],
-      "compare": null,
-      "type": [Function],
+      "$$typeof": Symbol(react.forward_ref),
+      "WrappedComponent": Object {
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": [Function],
+      },
+      "render": [Function],
     }
   }
   disabled={true}
@@ -470,10 +482,13 @@ exports[`components/global/product_switcher_menu should match userGroups snapsho
   }
   dialogType={
     Object {
-      "$$typeof": Symbol(react.memo),
-      "WrappedComponent": [Function],
-      "compare": null,
-      "type": [Function],
+      "$$typeof": Symbol(react.forward_ref),
+      "WrappedComponent": Object {
+        "$$typeof": Symbol(react.memo),
+        "compare": null,
+        "type": [Function],
+      },
+      "render": [Function],
     }
   }
   disabled={false}
@@ -624,10 +639,13 @@ exports[`components/global/product_switcher_menu should show integrations should
       }
       dialogType={
         Object {
-          "$$typeof": Symbol(react.memo),
-          "WrappedComponent": [Function],
-          "compare": null,
-          "type": [Function],
+          "$$typeof": Symbol(react.forward_ref),
+          "WrappedComponent": Object {
+            "$$typeof": Symbol(react.memo),
+            "compare": null,
+            "type": [Function],
+          },
+          "render": [Function],
         }
       }
       disabled={false}

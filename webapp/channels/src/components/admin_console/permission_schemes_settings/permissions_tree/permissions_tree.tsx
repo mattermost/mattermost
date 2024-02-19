@@ -4,18 +4,18 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {ClientConfig, ClientLicense} from '@mattermost/types/config';
-import {Role} from '@mattermost/types/roles';
+import type {ClientConfig, ClientLicense} from '@mattermost/types/config';
+import type {Role} from '@mattermost/types/roles';
 
 import Permissions from 'mattermost-redux/constants/permissions';
 
 import {isEnterpriseLicense, isNonEnterpriseLicense} from 'utils/license_utils';
 
-import PermissionGroup from '../permission_group';
+import type {AdditionalValues, Group} from './types';
+
 import EditPostTimeLimitButton from '../edit_post_time_limit_button';
 import EditPostTimeLimitModal from '../edit_post_time_limit_modal';
-
-import {AdditionalValues, Group} from './types';
+import PermissionGroup from '../permission_group';
 
 type Props = {
     scope: string;
@@ -222,6 +222,9 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (config.EnableOAuthServiceProvider === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OAUTH)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_OAUTH);
         }
+        if (config.EnableOutgoingOAuthConnections === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS)) {
+            integrationsGroup.permissions.push(Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS);
+        }
         if (config.EnableCommands === 'true' && !integrationsGroup.permissions.includes(Permissions.MANAGE_SLASH_COMMANDS)) {
             integrationsGroup.permissions.push(Permissions.MANAGE_SLASH_COMMANDS);
         }
@@ -234,6 +237,7 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
         if (config.EnableCustomEmoji === 'true' && !integrationsGroup.permissions.includes(Permissions.DELETE_OTHERS_EMOJIS)) {
             integrationsGroup.permissions.push(Permissions.DELETE_OTHERS_EMOJIS);
         }
+
         if (config.EnableGuestAccounts === 'true' && !teamsGroup.permissions.includes(Permissions.INVITE_GUEST)) {
             teamsGroup.permissions.push(Permissions.INVITE_GUEST);
         }

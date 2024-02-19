@@ -39,8 +39,10 @@ export type Props = {
     keyboardEscape?: boolean;
     headerInput?: React.ReactNode;
     bodyPadding?: boolean;
+    bodyDivider?: boolean;
     footerContent?: React.ReactNode;
     footerDivider?: boolean;
+    appendedContent?: React.ReactNode;
     headerButton?: React.ReactNode;
 };
 
@@ -126,7 +128,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                 <button
                     autoFocus={this.props.autoFocusConfirmButton}
                     type='submit'
-                    className={classNames('GenericModal__button', isConfirmOrDeleteClassName, this.props.confirmButtonClassName, {
+                    className={classNames('GenericModal__button btn btn-primary', isConfirmOrDeleteClassName, this.props.confirmButtonClassName, {
                         disabled: this.props.isConfirmDisabled,
                     })}
                     onClick={this.handleConfirm}
@@ -152,7 +154,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
             cancelButton = (
                 <button
                     type='button'
-                    className={classNames('GenericModal__button cancel', this.props.cancelButtonClassName)}
+                    className={classNames('GenericModal__button btn btn-tertiary', this.props.cancelButtonClassName)}
                     onClick={this.handleCancel}
                 >
                     {cancelButtonText}
@@ -162,7 +164,10 @@ export class GenericModal extends React.PureComponent<Props, State> {
 
         const headerText = this.props.modalHeaderText && (
             <div className='GenericModal__header'>
-                <h1 id='genericModalLabel'>
+                <h1
+                    id='genericModalLabel'
+                    className='modal-title'
+                >
                     {this.props.modalHeaderText}
                 </h1>
                 {this.props.headerButton}
@@ -199,7 +204,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             </>
                         )}
                     </Modal.Header>
-                    <Modal.Body>
+                    <Modal.Body className={classNames({divider: this.props.bodyDivider})}>
                         {this.props.compassDesign ? (
                             this.props.errorText && (
                                 <div className='genericModalError'>
@@ -226,6 +231,7 @@ export class GenericModal extends React.PureComponent<Props, State> {
                             )}
                         </Modal.Footer>
                     )}
+                    {Boolean(this.props.appendedContent) && this.props.appendedContent}
                 </div>
             </Modal>
         );

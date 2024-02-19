@@ -187,6 +187,7 @@ func pluginListCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)
 		}
 
+		printer.Print("")
 		printer.Print("Listing disabled plugins")
 		for _, plugin := range pluginsResp.Inactive {
 			printer.PrintT("{{.Manifest.Id}}: {{.Manifest.Name}}, Version: {{.Manifest.Version}}", plugin)

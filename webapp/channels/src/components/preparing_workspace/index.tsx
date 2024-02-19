@@ -2,17 +2,17 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {Action} from 'mattermost-redux/types/actions';
 import {checkIfTeamExists, createTeam, updateTeam} from 'mattermost-redux/actions/teams';
 import {getProfiles} from 'mattermost-redux/actions/users';
 
-import PreparingWorkspace, {Actions} from './preparing_workspace';
+import PreparingWorkspace from './preparing_workspace';
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<Action>, Actions>({
+        actions: bindActionCreators({
             updateTeam,
             createTeam,
             getProfiles,

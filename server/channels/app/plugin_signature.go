@@ -15,6 +15,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	pUtils "github.com/mattermost/mattermost/server/public/utils"
+
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
@@ -46,7 +48,7 @@ func (a *App) AddPublicKey(name string, key io.Reader) *model.AppError {
 	}
 
 	a.UpdateConfig(func(cfg *model.Config) {
-		if !utils.StringInSlice(name, cfg.PluginSettings.SignaturePublicKeyFiles) {
+		if !pUtils.Contains(cfg.PluginSettings.SignaturePublicKeyFiles, name) {
 			cfg.PluginSettings.SignaturePublicKeyFiles = append(cfg.PluginSettings.SignaturePublicKeyFiles, name)
 		}
 	})
@@ -80,7 +82,7 @@ func (ch *Channels) verifyPlugin(plugin, signature io.ReadSeeker) *model.AppErro
 	if err := verifySignature(bytes.NewReader(mattermostPluginPublicKey), plugin, signature); err == nil {
 		return nil
 	}
-	publicKeys := ch.cfgSvc.Config().PluginSettings.SignaturePublicKeyFiles
+	publicKeys := ch.srv.Config().PluginSettings.SignaturePublicKeyFiles
 	for _, pk := range publicKeys {
 		pkBytes, appErr := ch.srv.getPublicKey(pk)
 		if appErr != nil {

@@ -1,0 +1,18 @@
+.air-gapped-contact-sales-modal {
+    width: 512px;
+}
+
+.air-gapped-contact-sales-modal-body {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 26px;
+
+    & > .image {
+        align-self: center;
+
+        & > img {
+            max-width: 300px;
+            height: auto;
+        }
+    }
+}

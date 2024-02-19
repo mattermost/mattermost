@@ -145,13 +145,14 @@ func TestSyncLdap(t *testing.T) {
 	ldapMock := &mocks.LdapInterface{}
 	mockCall := ldapMock.On(
 		"StartSynchronizeJob",
+		mock.AnythingOfType("*request.Context"),
 		mock.AnythingOfType("bool"),
 		mock.AnythingOfType("bool"),
 	).Return(nil, nil)
 	ready := make(chan bool)
 	includeRemovedMembers := false
 	mockCall.RunFn = func(args mock.Arguments) {
-		includeRemovedMembers = args[1].(bool)
+		includeRemovedMembers = args[2].(bool)
 		ready <- true
 	}
 	th.App.Channels().Ldap = ldapMock
@@ -302,7 +303,7 @@ func TestAddUserToGroupSyncables(t *testing.T) {
 		AuthData:    &id,
 		AuthService: model.UserAuthServiceLdap,
 	}
-	user, err = th.App.Srv().Store().User().Save(user)
+	user, err = th.App.Srv().Store().User().Save(th.Context, user)
 	require.NoError(t, err)
 
 	resp, err = th.SystemAdminClient.AddUserToGroupSyncables(context.Background(), user.Id)

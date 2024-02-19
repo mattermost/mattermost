@@ -1,22 +1,25 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Stripe} from '@stripe/stripe-js';
-import {getCode} from 'country-list';
+import type {Stripe} from '@stripe/stripe-js';
 
+import type {Address, CloudCustomerPatch, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
+import type {ServerError} from '@mattermost/types/errors';
+
+import {CloudTypes} from 'mattermost-redux/action_types';
 import {getCloudCustomer, getCloudProducts, getCloudSubscription, getInvoices} from 'mattermost-redux/actions/cloud';
 import {Client4} from 'mattermost-redux/client';
 import {getCloudErrors} from 'mattermost-redux/selectors/entities/cloud';
-import {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {getConfirmCardSetup} from 'components/payment_form/stripe';
+import type {ActionFunc, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
-import {CloudTypes} from 'mattermost-redux/action_types';
+import {getConfirmCardSetup} from 'components/payment_form/stripe';
+
 import {getBlankAddressWithCountry} from 'utils/utils';
-import {Address, Feedback, WorkspaceDeletionRequest} from '@mattermost/types/cloud';
+
+import type {StripeSetupIntent, BillingDetails} from 'types/cloud/sku';
+import type {GlobalState} from 'types/store';
 
 // Returns true for success, and false for any error
 export function completeStripeAddPaymentMethod(
@@ -46,7 +49,7 @@ export function completeStripeAddPaymentMethod(
                             line2: billingDetails.address2,
                             city: billingDetails.city,
                             state: billingDetails.state,
-                            country: getCode(billingDetails.country),
+                            country: billingDetails.country,
                             postal_code: billingDetails.postalCode,
                         },
                     },
@@ -82,11 +85,23 @@ export function completeStripeAddPaymentMethod(
     };
 }
 
+export function getInstallation() {
+    return async () => {
+        try {
+            const installation = await Client4.getInstallation();
+            return {data: installation};
+        } catch (e: any) {
+            return {error: e.message};
+        }
+    };
+}
+
 export function subscribeCloudSubscription(
     productId: string,
     shippingAddress: Address = getBlankAddressWithCountry(),
     seats = 0,
     downgradeFeedback?: Feedback,
+    customerPatch?: CloudCustomerPatch,
 ) {
     return async () => {
         try {
@@ -95,6 +110,7 @@ export function subscribeCloudSubscription(
                 shippingAddress,
                 seats,
                 downgradeFeedback,
+                customerPatch,
             );
 
             return {data: subscription};
@@ -105,9 +121,9 @@ export function subscribeCloudSubscription(
     };
 }
 
-export function requestCloudTrial(page: string, subscriptionId: string, email = ''): ActionFunc {
+export function requestCloudTrial(page: string, subscriptionId: string, email = ''): ThunkActionFunc<Promise<boolean>> {
     trackEvent('api', 'api_request_cloud_trial_license', {from_page: page});
-    return async (dispatch: DispatchFunc): Promise<any> => {
+    return async (dispatch) => {
         try {
             const newSubscription = await Client4.requestCloudTrial(subscriptionId, email);
             dispatch({
@@ -145,8 +161,8 @@ export function validateWorkspaceBusinessEmail() {
     };
 }
 
-export function getCloudLimits(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getCloudLimits(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async (dispatch) => {
         try {
             dispatch({
                 type: CloudTypes.CLOUD_LIMITS_REQUEST,
@@ -168,8 +184,8 @@ export function getCloudLimits(): ActionFunc {
     };
 }
 
-export function getMessagesUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getMessagesUsage(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async (dispatch) => {
         try {
             const result = await Client4.getPostsUsage();
             if (result) {
@@ -185,8 +201,8 @@ export function getMessagesUsage(): ActionFunc {
     };
 }
 
-export function getFilesUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getFilesUsage(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async (dispatch) => {
         try {
             const result = await Client4.getFilesUsage();
 
@@ -205,8 +221,8 @@ export function getFilesUsage(): ActionFunc {
     };
 }
 
-export function getTeamsUsage(): ActionFunc {
-    return async (dispatch: DispatchFunc) => {
+export function getTeamsUsage(): ThunkActionFunc<Promise<boolean | ServerError>> {
+    return async (dispatch) => {
         try {
             const result = await Client4.getTeamsUsage();
             if (result) {
@@ -233,8 +249,8 @@ export function deleteWorkspace(deletionRequest: WorkspaceDeletionRequest) {
     };
 }
 
-export function retryFailedCloudFetches() {
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function retryFailedCloudFetches(): ActionFunc<boolean, GlobalState> {
+    return (dispatch, getState) => {
         const errors = getCloudErrors(getState());
         if (Object.keys(errors).length === 0) {
             return {data: true};
@@ -257,7 +273,7 @@ export function retryFailedCloudFetches() {
         }
 
         if (errors.limits) {
-            getCloudLimits()(dispatch, getState);
+            dispatch(getCloudLimits());
         }
 
         return {data: true};

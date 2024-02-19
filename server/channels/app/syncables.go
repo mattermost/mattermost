@@ -10,7 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 )
 
 // createDefaultChannelMemberships adds users to channels based on their group memberships and how those groups are
@@ -33,7 +33,7 @@ func (a *App) createDefaultChannelMemberships(c request.CTX, params model.Create
 			return err
 		}
 
-		tmem, err := a.GetTeamMember(channel.TeamId, userChannel.UserID)
+		tmem, err := a.GetTeamMember(c, channel.TeamId, userChannel.UserID)
 		if err != nil && err.Id != "app.team.get_member.missing.app_error" {
 			return err
 		}
@@ -121,7 +121,7 @@ func (a *App) createDefaultTeamMemberships(c request.CTX, params model.CreateDef
 // are configured to sync with teams and channels for group members on or after the given timestamp.
 // If includeRemovedMembers is true, then members who left or were removed from a team/channel will
 // be re-added; otherwise, they will not be re-added.
-func (a *App) CreateDefaultMemberships(c *request.Context, params model.CreateDefaultMembershipParams) error {
+func (a *App) CreateDefaultMemberships(c request.CTX, params model.CreateDefaultMembershipParams) error {
 	err := a.createDefaultTeamMemberships(c, params)
 	if err != nil {
 		return err
@@ -137,7 +137,7 @@ func (a *App) CreateDefaultMemberships(c *request.Context, params model.CreateDe
 
 // DeleteGroupConstrainedMemberships deletes team and channel memberships of users who aren't members of the allowed
 // groups of all group-constrained teams and channels.
-func (a *App) DeleteGroupConstrainedMemberships(c *request.Context) error {
+func (a *App) DeleteGroupConstrainedMemberships(c request.CTX) error {
 	err := a.deleteGroupConstrainedChannelMemberships(c, nil)
 	if err != nil {
 		return err
@@ -216,7 +216,7 @@ func (a *App) SyncSyncableRoles(syncableID string, syncableType model.GroupSynca
 	a.Log().Info(
 		fmt.Sprintf("Permitted admins for %s", syncableType),
 		mlog.String(strings.ToLower(fmt.Sprintf("%s_id", syncableType)), syncableID),
-		mlog.Any("permitted_admins", permittedAdmins),
+		mlog.Array("permitted_admins", permittedAdmins),
 	)
 
 	switch syncableType {

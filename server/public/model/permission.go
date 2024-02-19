@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"net/http"
+)
+
 const (
 	PermissionScopeSystem   = "system_scope"
 	PermissionScopeTeam     = "team_scope"
@@ -267,6 +271,9 @@ var PermissionSysconsoleWriteSitePublicLinks *Permission
 var PermissionSysconsoleReadSiteNotices *Permission
 var PermissionSysconsoleWriteSiteNotices *Permission
 
+var PermissionSysconsoleReadIPFilters *Permission
+var PermissionSysconsoleWriteIPFilters *Permission
+
 var PermissionSysconsoleReadAuthentication *Permission
 var PermissionSysconsoleWriteAuthentication *Permission
 
@@ -380,6 +387,8 @@ var ChannelModeratedPermissionsMap map[string]string
 
 var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
+
+var PermissionManageOutgoingOAuthConnections *Permission
 
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
@@ -1646,6 +1655,20 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionSysconsoleReadIPFilters = &Permission{
+		"sysconsole_read_site_ip_filters",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
+	PermissionSysconsoleWriteIPFilters = &Permission{
+		"sysconsole_write_site_ip_filters",
+		"",
+		"",
+		PermissionScopeSystem,
+	}
+
 	// Deprecated
 	PermissionSysconsoleReadAuthentication = &Permission{
 		"sysconsole_read_authentication",
@@ -2104,6 +2127,13 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionManageOutgoingOAuthConnections = &Permission{
+		"manage_outgoing_oauth_connections",
+		"authentication.permissions.manage_outgoing_oauth_connections.name",
+		"authentication.permissions.manage_outgoing_oauth_connections.description",
+		PermissionScopeSystem,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2160,6 +2190,7 @@ func initializePermissions() {
 		PermissionSysconsoleReadExperimentalFeatureFlags,
 		PermissionSysconsoleReadExperimentalBleve,
 		PermissionSysconsoleReadProductsBoards,
+		PermissionSysconsoleReadIPFilters,
 	}
 
 	SysconsoleWritePermissions = []*Permission{
@@ -2218,6 +2249,7 @@ func initializePermissions() {
 		PermissionSysconsoleWriteExperimentalFeatureFlags,
 		PermissionSysconsoleWriteExperimentalBleve,
 		PermissionSysconsoleWriteProductsBoards,
+		PermissionSysconsoleWriteIPFilters,
 	}
 
 	SystemScopedPermissionsMinusSysconsole := []*Permission{
@@ -2294,6 +2326,7 @@ func initializePermissions() {
 		PermissionReadLicenseInformation,
 		PermissionManageLicenseInformation,
 		PermissionCreateCustomGroup,
+		PermissionManageOutgoingOAuthConnections,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -2435,4 +2468,15 @@ func initializePermissions() {
 
 func init() {
 	initializePermissions()
+}
+
+func MakePermissionError(s *Session, permissions []*Permission) *AppError {
+	permissionsStr := "permission="
+	for i, permission := range permissions {
+		permissionsStr += permission.Id
+		if i != len(permissions)-1 {
+			permissionsStr += ","
+		}
+	}
+	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
 }

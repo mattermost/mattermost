@@ -3,24 +3,27 @@
 
 /* eslint-disable max-lines */
 
-import React from 'react';
-import {defineMessages, FormattedDate, FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import React, {PureComponent} from 'react';
+import {defineMessages, FormattedDate, FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {UserProfile} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
-import * as Utils from 'utils/utils';
-import {t} from 'utils/i18n';
-import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
-
-import LocalizedIcon from 'components/localized_icon';
+import SettingItem from 'components/setting_item';
+import SettingItemMax from 'components/setting_item_max';
 import SettingPicture from 'components/setting_picture';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
-import SettingItemMax from 'components/setting_item_max';
-import SettingItem from 'components/setting_item';
+
+import {AnnouncementBarMessages, AnnouncementBarTypes, AcceptedProfileImageTypes, Constants, ValidationErrors} from 'utils/constants';
+import * as Utils from 'utils/utils';
+
+import SettingDesktopHeader from '../headers/setting_desktop_header';
+import SettingMobileHeader from '../headers/setting_mobile_header';
 
 const holders = defineMessages({
     usernameReserved: {
@@ -101,30 +104,15 @@ export type Props = {
     activeSection?: string;
     closeModal: () => void;
     collapseModal: () => void;
+    isMobileView: boolean;
     maxFileSize: number;
     actions: {
         logError: ({message, type}: {message: any; type: string}, status: boolean) => void;
         clearErrors: () => void;
-        updateMe: (user: UserProfile) => Promise<{
-            data: boolean;
-            error?: {
-                server_error_id: string;
-                message: string;
-            };
-        }>;
-        sendVerificationEmail: (email: string) => Promise<{
-            data: boolean;
-            error?: {
-                err: string;
-            };
-        }>;
+        updateMe: (user: UserProfile) => Promise<ActionResult>;
+        sendVerificationEmail: (email: string) => Promise<ActionResult>;
         setDefaultProfileImage: (id: string) => void;
-        uploadProfileImage: (id: string, file: File) => Promise<{
-            data: boolean;
-            error?: {
-                message: string;
-            };
-        }>;
+        uploadProfileImage: (id: string, file: File) => Promise<ActionResult>;
     };
     requireEmailVerification?: boolean;
     ldapFirstNameAttributeSet?: boolean;
@@ -158,7 +146,7 @@ type State = {
     emailError?: string;
 }
 
-export class UserSettingsGeneralTab extends React.Component<Props, State> {
+export class UserSettingsGeneralTab extends PureComponent<Props, State> {
     public submitActive = false;
 
     constructor(props: Props) {
@@ -934,7 +922,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add your full name"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyName'
@@ -984,7 +972,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Nickname'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     nicknameLabel = '';
                 }
 
@@ -1046,7 +1034,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add a nickname"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyNickname'
@@ -1086,7 +1074,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Username'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     usernameLabel = '';
                 }
 
@@ -1187,7 +1175,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                         defaultMessage='Position'
                     />
                 );
-                if (Utils.isMobile()) {
+                if (this.props.isMobileView) {
                     positionLabel = '';
                 }
 
@@ -1250,7 +1238,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
                     defaultMessage="Click 'Edit' to add your job title / position"
                 />
             );
-            if (Utils.isMobile()) {
+            if (this.props.isMobileView) {
                 describe = (
                     <FormattedMessage
                         id='user.settings.general.mobile.emptyPosition'
@@ -1332,7 +1320,7 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
         }
 
         let minMessage: JSX.Element|string = formatMessage(holders.uploadImage);
-        if (Utils.isMobile()) {
+        if (this.props.isMobileView) {
             minMessage = formatMessage(holders.uploadImageMobile);
         }
         if (user.last_picture_update > 0) {
@@ -1367,8 +1355,6 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
     };
 
     render() {
-        const {formatMessage} = this.props.intl;
-
         const nameSection = this.createNameSection();
         const nicknameSection = this.createNicknameSection();
         const usernameSection = this.createUsernameSection();
@@ -1378,41 +1364,26 @@ export class UserSettingsGeneralTab extends React.Component<Props, State> {
 
         return (
             <div id='generalSettings'>
-                <div className='modal-header'>
-                    <button
-                        id='closeUserSettings'
-                        type='button'
-                        className='close'
-                        data-dismiss='modal'
-                        aria-label={formatMessage(holders.close)}
-                        onClick={this.props.closeModal}
-                    >
-                        <span aria-hidden='true'>{'×'}</span>
-                    </button>
-                    <h4 className='modal-title'>
-                        <div className='modal-back'>
-                            <LocalizedIcon
-                                className='fa fa-angle-left'
-                                title={{id: t('generic_icons.collapse'), defaultMessage: 'Collapse Icon'}}
-                                onClick={this.props.collapseModal}
-                            />
-                        </div>
+                <SettingMobileHeader
+                    closeModal={this.props.closeModal}
+                    collapseModal={this.props.collapseModal}
+                    text={
                         <FormattedMessage
                             id='user.settings.modal.profile'
                             defaultMessage='Profile'
                         />
-                    </h4>
-                </div>
+                    }
+                />
                 <div className='user-settings'>
-                    <h3
+                    <SettingDesktopHeader
                         id='generalSettingsTitle'
-                        className='tab-header'
-                    >
-                        <FormattedMessage
-                            id='user.settings.modal.profile'
-                            defaultMessage='Profile'
-                        />
-                    </h3>
+                        text={
+                            <FormattedMessage
+                                id='user.settings.modal.profile'
+                                defaultMessage='Profile'
+                            />
+                        }
+                    />
                     <div className='divider-dark first'/>
                     {nameSection}
                     <div className='divider-light'/>

@@ -1,27 +1,44 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Channel, ChannelMembership, ChannelNotifyProps, ChannelWithTeamData} from '@mattermost/types/channels';
-import {Bot} from '@mattermost/types/bots';
-import {Role} from '@mattermost/types/roles';
-import {UserProfile, UserAccessToken} from '@mattermost/types/users';
-import {Team, TeamMembership} from '@mattermost/types/teams';
-import {Group} from '@mattermost/types/groups';
-import {FileInfo} from '@mattermost/types/files';
-import {Post} from '@mattermost/types/posts';
-import {CategorySorting, ChannelCategory} from '@mattermost/types/channel_categories';
-import {Command, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Bot} from '@mattermost/types/bots';
+import {CategorySorting} from '@mattermost/types/channel_categories';
+import type {ChannelCategory} from '@mattermost/types/channel_categories';
+import type {Channel, ChannelMembership, ChannelNotifyProps, ChannelWithTeamData} from '@mattermost/types/channels';
+import type {Invoice, Product, Subscription, CloudCustomer} from '@mattermost/types/cloud';
+import type {ClientLicense} from '@mattermost/types/config';
+import type {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
+import type {FileInfo} from '@mattermost/types/files';
+import type {Group} from '@mattermost/types/groups';
+import type {Command, IncomingWebhook, OutgoingWebhook} from '@mattermost/types/integrations';
+import type {Post} from '@mattermost/types/posts';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {Reaction} from '@mattermost/types/reactions';
+import type {Role} from '@mattermost/types/roles';
+import type {Session} from '@mattermost/types/sessions';
+import type {Team, TeamMembership} from '@mattermost/types/teams';
+import {CustomStatusDuration} from '@mattermost/types/users';
+import type {UserProfile, UserAccessToken, UserCustomStatus} from '@mattermost/types/users';
+
 import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
-import {SystemEmoji, CustomEmoji} from '@mattermost/types/emojis';
-import {Session} from '@mattermost/types/sessions';
-import {ProductComponent} from 'types/store/plugins';
-import {ClientLicense} from '@mattermost/types/config';
-import {PreferenceType} from '@mattermost/types/preferences';
-import {Reaction} from '@mattermost/types/reactions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
-import {Invoice, Product, Subscription, CloudCustomer} from '@mattermost/types/cloud';
+
+import type {PostDraft} from 'types/store/draft';
+import type {ProductComponent} from 'types/store/plugins';
 
 export class TestHelper {
+    public static getPostDraftMock(override?: Partial<PostDraft>): PostDraft {
+        const defaultPostDraft: PostDraft = {
+            message: 'Test message',
+            fileInfos: [],
+            uploadsInProgress: [],
+            channelId: '',
+            rootId: '',
+            createAt: 0,
+            updateAt: 0,
+        };
+        return Object.assign({}, defaultPostDraft, override);
+    }
     public static getUserMock(override: Partial<UserProfile> = {}): UserProfile {
         const defaultUser: UserProfile = {
             id: 'user_id',
@@ -52,6 +69,7 @@ export class TestHelper {
                 first_name: 'false',
                 mark_unread: 'mention',
                 mention_keys: '',
+                highlight_keys: '',
                 push: 'none',
                 push_status: 'offline',
             },
@@ -62,6 +80,16 @@ export class TestHelper {
             bot_description: '',
         };
         return Object.assign({}, defaultUser, override);
+    }
+
+    public static getCustomStatusMock(override?: Partial<UserCustomStatus>): UserCustomStatus {
+        const defaultCustomStatus: UserCustomStatus = {
+            emoji: 'neutral_face',
+            text: 'text',
+            duration: CustomStatusDuration.DONT_CLEAR,
+        };
+
+        return Object.assign({}, defaultCustomStatus, override);
     }
 
     public static getUserAccessTokenMock(override?: Partial<UserAccessToken>): UserAccessToken {
@@ -542,5 +570,16 @@ export class TestHelper {
             create_at: 0,
             ...override,
         };
+    }
+
+    public static getMockMouseButtonEvent() {
+        return {
+            preventDefault: jest.fn(),
+            stopPropagation: jest.fn(),
+            currentTarget: {
+                click: jest.fn(),
+                value: 'test value',
+            },
+        } as unknown as React.MouseEvent<HTMLButtonElement>;
     }
 }

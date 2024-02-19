@@ -1,33 +1,31 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect, ConnectedProps} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {connect} from 'react-redux';
+import type {ConnectedProps} from 'react-redux';
 import {withRouter} from 'react-router-dom';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {ClientConfig} from '@mattermost/types/config';
-import {Team} from '@mattermost/types/teams';
+import type {ClientConfig} from '@mattermost/types/config';
 
 import {getTeams} from 'mattermost-redux/actions/teams';
+import {getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
+import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {
     getCurrentTeamId,
     getJoinableTeamIds,
     getMyTeams,
 } from 'mattermost-redux/selectors/entities/teams';
-import {get} from 'mattermost-redux/selectors/entities/preferences';
-import {getTeamsUnreadStatuses} from 'mattermost-redux/selectors/entities/channels';
 
-import {GenericAction, GetStateFunc} from 'mattermost-redux/types/actions';
-
-import {GlobalState} from 'types/store';
-
+import {switchTeam, updateTeamsOrderForUser} from 'actions/team_actions';
 import {getCurrentLocale} from 'selectors/i18n';
 import {getIsLhsOpen} from 'selectors/lhs';
 
-import {switchTeam, updateTeamsOrderForUser} from 'actions/team_actions';
-
 import {Preferences} from 'utils/constants';
+
+import type {GlobalState} from 'types/store';
 
 import TeamSidebar from './team_sidebar';
 
@@ -56,15 +54,9 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
-type Actions = {
-    getTeams: (page?: number, perPage?: number, includeTotalCount?: boolean) => void;
-    switchTeam: (url: string, team?: Team) => (dispatch: Dispatch<GenericAction>, getState: GetStateFunc) => void;
-    updateTeamsOrderForUser: (teamIds: string[]) => (dispatch: Dispatch<GenericAction>, getState: GetStateFunc) => Promise<void>;
-}
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject, Actions>({
+        actions: bindActionCreators({
             getTeams,
             switchTeam,
             updateTeamsOrderForUser,

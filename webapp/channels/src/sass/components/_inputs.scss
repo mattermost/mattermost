@@ -66,6 +66,12 @@ fieldset {
     }
 }
 
+.app__body {
+    fieldset[disabled] {
+        color: var(--center-channel-color);
+    }
+}
+
 .admin-textarea {
     resize: none;
 }
@@ -100,4 +106,22 @@ input::-webkit-file-upload-button {
 :-moz-placeholder { /* Firefox 18- */
     color: inherit;
     opacity: 0.5;
+}
+
+.input-group-addon {
+    color: var(--center-channel-color);
+}
+
+// This class is used to make the input field look like a dropdown to be used in menus
+.inputWithMenu {
+    cursor: pointer;
+
+    input.form-control {
+        width: 100px;
+        cursor: pointer;
+
+        &:read-only {
+            background-color: $white;
+        }
+    }
 }

@@ -6,6 +6,7 @@ package app
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -19,7 +20,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/channels/testlib"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
 )
 
 func TestCreateIncomingWebhookForChannel(t *testing.T) {
@@ -382,6 +382,37 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 	})
 }
 
+func TestCreateWebhookPostLinks(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
+
+	hook, err := th.App.CreateIncomingWebhookForChannel(th.BasicUser.Id, th.BasicChannel, &model.IncomingWebhook{ChannelId: th.BasicChannel.Id})
+	require.Nil(t, err)
+	defer th.App.DeleteIncomingWebhook(hook.Id)
+
+	for name, tc := range map[string]struct {
+		input          string
+		expectedOutput string
+	}{
+		"if statement": {
+			input:          "`if(status_int < QUERY_UNKNOWN || status_int >= QUERY_STATUS_MAX)`",
+			expectedOutput: "`if(status_int < QUERY_UNKNOWN || status_int >= QUERY_STATUS_MAX)`",
+		},
+		"angle bracket link": {
+			input:          "<https://mattermost.com|Mattermost>",
+			expectedOutput: "[Mattermost](https://mattermost.com)",
+		},
+	} {
+		t.Run(name, func(t *testing.T) {
+			post, err := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, tc.input, "", "", "", model.StringInterface{}, "", "")
+			require.Nil(t, err)
+			require.Equal(t, tc.expectedOutput, post.Message)
+		})
+	}
+}
+
 func TestSplitWebhookPost(t *testing.T) {
 	type TestCase struct {
 		Post     *model.Post
@@ -584,11 +615,9 @@ func TestCreateOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	assert.Equal(t, createdHook.IconURL, outgoingWebhook.IconURL)
 	assert.Equal(t, createdHook.DisplayName, outgoingWebhook.DisplayName)
 	assert.Equal(t, createdHook.Description, outgoingWebhook.Description)
-
 }
 
 func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
-
 	getPayload := func(hook *model.OutgoingWebhook, th *TestHelper, channel *model.Channel) *model.OutgoingWebhookPayload {
 		return &model.OutgoingWebhookPayload{
 			Token:       hook.Token,
@@ -647,7 +676,6 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 	}
 
 	getTestCases := func() map[string]TestCaseOutgoing {
-
 		webHookResponse := "sample response text from test server"
 		testCasesOutgoing := map[string]TestCaseOutgoing{
 
@@ -682,7 +710,6 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 
 	for name, testCase := range getTestCases() {
 		t.Run(name, func(t *testing.T) {
-
 			th.App.UpdateConfig(func(cfg *model.Config) {
 				*cfg.ServiceSettings.EnableOutgoingWebhooks = true
 				*cfg.ServiceSettings.EnablePostUsernameOverride = testCase.EnablePostUsernameOverride
@@ -726,10 +753,8 @@ func TestTriggerOutGoingWebhookWithUsernameAndIconURL(t *testing.T) {
 			case <-time.After(5 * time.Second):
 				require.Fail(t, "Timeout, webhook response not created as post")
 			}
-
 		})
 	}
-
 }
 
 type InfiniteReader struct {
@@ -759,10 +784,10 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.NoError(t, err)
 
-		assert.NotNil(t, resp)
+		require.NotNil(t, resp)
 		assert.NotNil(t, resp.Text)
 		assert.Equal(t, "Hello, World!", *resp.Text)
 	})
@@ -773,7 +798,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.Error(t, err)
 		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
@@ -784,7 +809,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.Error(t, err)
 		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
@@ -795,7 +820,7 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.Error(t, err)
 		require.Equal(t, "api.unmarshal_error", err.(*model.AppError).Id)
 	})
@@ -810,14 +835,32 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		defer server.Close()
 		defer close(releaseHandler)
 
-		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 500 * time.Millisecond
-		defer func() {
-			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
-		}()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+		})
 
-		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		_, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.Error(t, err)
 		require.IsType(t, &url.Error{}, err)
+	})
+
+	t.Run("with a slow response, long timeout configured", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(1 * time.Second)
+
+			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+		}))
+		defer server.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
+		})
+
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
+		require.NoError(t, err)
+		require.NotNil(t, resp)
+		assert.NotNil(t, resp.Text)
+		assert.Equal(t, "Hello, World!", *resp.Text)
 	})
 
 	t.Run("without response", func(t *testing.T) {
@@ -825,8 +868,22 @@ func TestDoOutgoingWebhookRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json")
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", nil)
 		require.NoError(t, err)
 		require.Nil(t, resp)
+	})
+
+	t.Run("with auth token", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader(fmt.Sprintf(`{"text":"%s"}`, r.Header.Get("Authorization"))))
+		}))
+		defer server.Close()
+
+		resp, err := th.App.doOutgoingWebhookRequest(server.URL, strings.NewReader(""), "application/json", &model.OutgoingOAuthConnectionToken{
+			AccessToken: "test",
+			TokenType:   "Bearer",
+		})
+		require.NoError(t, err)
+		require.Equal(t, `Bearer test`, *resp.Text)
 	})
 }

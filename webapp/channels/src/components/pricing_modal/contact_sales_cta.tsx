@@ -3,10 +3,11 @@
 
 import React from 'react';
 import {useIntl} from 'react-intl';
-import styled from 'styled-components';
 import {useSelector} from 'react-redux';
+import styled from 'styled-components';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
+
 import {trackEvent} from 'actions/telemetry_actions';
 
 import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';

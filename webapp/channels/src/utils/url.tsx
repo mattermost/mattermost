@@ -2,14 +2,14 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, IntlShape} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
 import {getModule} from 'module_registry';
-
-import {latinise} from 'utils/latinise';
-import {t} from 'utils/i18n';
-import * as TextFormatting from 'utils/text_formatting';
 import Constants from 'utils/constants';
+import {t} from 'utils/i18n';
+import {latinise} from 'utils/latinise';
+import * as TextFormatting from 'utils/text_formatting';
 
 type WindowObject = {
     location: {
@@ -166,6 +166,24 @@ export function validateChannelUrl(url: string, intl?: IntlShape): Array<React.R
     }
 
     return errors;
+}
+
+// Returns true when the URL could possibly cause any external requests.
+// Currently returns false only for permalinks
+const permalinkPath = new RegExp('^/[0-9a-z_-]{1,64}/pl/[0-9a-z_-]{26}$');
+export function mightTriggerExternalRequest(url: string, siteURL?: string): boolean {
+    if (siteURL && siteURL !== '') {
+        let standardSiteURL = siteURL;
+        if (standardSiteURL[standardSiteURL.length - 1] === '/') {
+            standardSiteURL = standardSiteURL.substring(0, standardSiteURL.length - 1);
+        }
+        if (!url.startsWith(standardSiteURL)) {
+            return true;
+        }
+        const afterSiteURL = url.substring(standardSiteURL.length);
+        return !permalinkPath.test(afterSiteURL);
+    }
+    return true;
 }
 
 export function isInternalURL(url: string, siteURL?: string): boolean {

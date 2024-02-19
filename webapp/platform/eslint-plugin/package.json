@@ -1,0 +1,28 @@
+{
+  "name": "@mattermost/eslint-plugin",
+  "version": "1.0.0",
+  "description": "ESLint configuration and custom rules used by Mattermost",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mattermost/mattermost.git",
+    "directory": "webapp/platform/eslint-plugin"
+  },
+  "author": "Mattermost, Inc.",
+  "license": "Apache 2.0",
+  "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/eslint-plugin#readme",
+  "main": "index.js",
+  "dependencies": {
+    "eslint-plugin-jsx-a11y": "^6.7.1",
+    "jsx-ast-utils": "^3.3.3"
+  },
+  "peerDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "eslint-plugin-header": "^3.1.1",
+    "eslint-plugin-react": "^7.33.2"
+  },
+  "peerDependenciesMeta": {
+    "eslint-plugin-react": {
+      "optional": true
+    }
+  }
+}

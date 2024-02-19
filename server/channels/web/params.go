@@ -75,6 +75,7 @@ type Params struct {
 	NotAssociatedToChannel    string
 	Paginate                  *bool
 	IncludeMemberCount        bool
+	IncludeMemberIDs          bool
 	NotAssociatedToGroup      string
 	ExcludeDefaultChannels    bool
 	LimitAfter                int
@@ -83,6 +84,7 @@ type Params struct {
 	IncludeTotalCount         bool
 	IncludeDeleted            bool
 	FilterAllowReference      bool
+	FilterArchived            bool
 	FilterParentTeamPermitted bool
 	CategoryId                string
 	WarnMetricId              string
@@ -91,6 +93,7 @@ type Params struct {
 	GroupSource               model.GroupSource
 	FilterHasMember           string
 	IncludeChannelMemberCount string
+	OutgoingOAuthConnectionID string
 
 	// Cloud
 	InvoiceId string
@@ -143,6 +146,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.GroupId = props["group_id"]
 	params.RemoteId = props["remote_id"]
 	params.InvoiceId = props["invoice_id"]
+	params.OutgoingOAuthConnectionID = props["outgoing_oauth_connection_id"]
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
@@ -208,6 +212,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.NotAssociatedToTeam = query.Get("not_associated_to_team")
 	params.NotAssociatedToChannel = query.Get("not_associated_to_channel")
 	params.FilterAllowReference, _ = strconv.ParseBool(query.Get("filter_allow_reference"))
+	params.FilterArchived, _ = strconv.ParseBool(query.Get("filter_archived"))
 	params.FilterParentTeamPermitted, _ = strconv.ParseBool(query.Get("filter_parent_team_permitted"))
 	params.IncludeChannelMemberCount = query.Get("include_channel_member_count")
 
@@ -216,6 +221,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.IncludeMemberCount, _ = strconv.ParseBool(query.Get("include_member_count"))
+	params.IncludeMemberIDs, _ = strconv.ParseBool(query.Get("include_member_ids"))
 	params.NotAssociatedToGroup = query.Get("not_associated_to_group")
 	params.ExcludeDefaultChannels, _ = strconv.ParseBool(query.Get("exclude_default_channels"))
 	params.GroupIDs = query.Get("group_ids")

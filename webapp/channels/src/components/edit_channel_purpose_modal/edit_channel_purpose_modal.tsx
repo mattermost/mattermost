@@ -1,12 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {ChangeEvent} from 'react';
+import React from 'react';
+import type {ChangeEvent} from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage, injectIntl, IntlShape} from 'react-intl';
+import {FormattedMessage, injectIntl} from 'react-intl';
+import type {IntlShape} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-import {ActionResult} from 'mattermost-redux/types/actions';
+import type {Channel} from '@mattermost/types/channels';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import Constants from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
@@ -68,7 +71,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
         // listen for line break key combo and insert new line character
         if (Utils.isUnhandledLineBreakKeyCombo(e)) {
             e.preventDefault();
-            this.setState({purpose: Utils.insertLineBreakFromKeyEvent(e as React.KeyboardEvent<HTMLTextAreaElement>)});
+            this.setState({purpose: Utils.insertLineBreakFromKeyEvent(e.nativeEvent)});
         } else if (ctrlSend && Keyboard.isKeyPressed(e, Constants.KeyCodes.ENTER) && e.ctrlKey) {
             e.preventDefault();
             this.handleSave();
@@ -190,7 +193,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
                 <Modal.Footer>
                     <button
                         type='button'
-                        className='btn btn-link cancel-button'
+                        className='btn btn-tertiary cancel-button'
                         onClick={this.onHide}
                     >
                         <FormattedMessage
@@ -200,7 +203,7 @@ export class EditChannelPurposeModal extends React.PureComponent<Props, State> {
                     </button>
                     <button
                         type='button'
-                        className='btn btn-primary save-button'
+                        className='btn btn-primary'
                         disabled={this.state.requestStarted}
                         onClick={this.handleSave}
                     >

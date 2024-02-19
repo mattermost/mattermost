@@ -42,7 +42,6 @@ export const OnboardingTourStepsForGuestUsers = {
 };
 
 export const ExploreOtherToolsTourSteps = {
-    BOARDS_TOUR: 0,
     PLAYBOOKS_TOUR: 1,
     FINISHED,
 };

@@ -2,36 +2,40 @@
 // See LICENSE.txt for license information.
 
 import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
-import {RouterProps} from 'react-router-dom';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useDispatch, useSelector} from 'react-redux';
+import type {RouterProps} from 'react-router-dom';
+
+import type {Team} from '@mattermost/types/teams';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';
-import {General} from 'mattermost-redux/constants';
-import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
 import {getFirstAdminSetupComplete as getFirstAdminSetupCompleteAction} from 'mattermost-redux/actions/general';
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {Team} from '@mattermost/types/teams';
-import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
-import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
-import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {sendEmailInvitesToTeamGracefully} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
-
-import Constants from 'utils/constants';
-import {getSiteURL, teamNameToUrl} from 'utils/url';
-import {makeNewTeam} from 'utils/team_utils';
+import {General} from 'mattermost-redux/constants';
+import {getFirstAdminSetupComplete, getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTeam, getMyTeams} from 'mattermost-redux/selectors/entities/teams';
+import {isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {pageVisited, trackEvent} from 'actions/telemetry_actions';
 
 import LogoSvg from 'components/common/svg_images_components/logo_dark_blue_svg';
 
+import Constants from 'utils/constants';
+import {makeNewTeam} from 'utils/team_utils';
+import {getSiteURL, teamNameToUrl} from 'utils/url';
+
+import InviteMembers from './invite_members';
+import InviteMembersIllustration from './invite_members_illustration';
+import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace';
+import Organization from './organization';
+import Plugins from './plugins';
+import Progress from './progress';
 import {
     WizardSteps,
-    WizardStep,
     Animations,
-    AnimationReason,
-    Form,
     emptyForm,
     mapStepToNextName,
     mapStepToSkipName,
@@ -40,13 +44,10 @@ import {
     PLUGIN_NAME_TO_ID_MAP,
     mapStepToPrevious,
 } from './steps';
-
-import Organization from './organization';
-import Plugins from './plugins';
-import Progress from './progress';
-import InviteMembers from './invite_members';
-import InviteMembersIllustration from './invite_members_illustration';
-import LaunchingWorkspace, {START_TRANSITIONING_OUT} from './launching_workspace';
+import type {
+    WizardStep,
+    AnimationReason,
+    Form} from './steps';
 
 import './preparing_workspace.scss';
 
@@ -64,14 +65,13 @@ type SubmissionState = typeof SubmissionStates[keyof typeof SubmissionStates];
 const WAIT_FOR_REDIRECT_TIME = 2000 - START_TRANSITIONING_OUT;
 
 export type Actions = {
-    createTeam: (team: Team) => ActionResult;
-    updateTeam: (team: Team) => ActionResult;
-    checkIfTeamExists: (teamName: string) => ActionResult;
-    getProfiles: (page: number, perPage: number, options: Record<string, any>) => ActionResult;
+    createTeam: (team: Team) => Promise<ActionResult>;
+    updateTeam: (team: Team) => Promise<ActionResult>;
+    checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
+    getProfiles: (page: number, perPage: number, options: Record<string, any>) => Promise<ActionResult>;
 }
 
 type Props = RouterProps & {
-    handleForm(form: Form): void;
     background?: JSX.Element | string;
     actions: Actions;
 }
@@ -102,7 +102,11 @@ const onPageViews = {
     [WizardSteps.LaunchingWorkspace]: makeOnPageView(WizardSteps.LaunchingWorkspace),
 };
 
-const PreparingWorkspace = (props: Props) => {
+const PreparingWorkspace = ({
+    actions,
+    history,
+    background,
+}: Props) => {
     const dispatch = useDispatch();
     const intl = useIntl();
     const genericSubmitError = intl.formatMessage({
@@ -167,7 +171,7 @@ const PreparingWorkspace = (props: Props) => {
 
     useEffect(() => {
         showOnMountTimeout.current = setTimeout(() => setShowFirstPage(true), 40);
-        props.actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
+        actions.getProfiles(0, General.PROFILE_CHUNK_SIZE, {roles: General.SYSTEM_ADMIN_ROLE});
         dispatch(getFirstAdminSetupCompleteAction());
         document.body.classList.add('admin-onboarding');
         return () => {
@@ -209,8 +213,8 @@ const PreparingWorkspace = (props: Props) => {
         trackSubmitFail[redirectTo]();
     }, []);
 
-    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | null}> => {
-        const data = await props.actions.createTeam(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
+    const createTeam = async (OrganizationName: string): Promise<{error: string | null; newTeam: Team | undefined | null}> => {
+        const data = await actions.createTeam(makeNewTeam(OrganizationName, teamNameToUrl(OrganizationName || '').url));
         if (data.error) {
             return {error: genericSubmitError, newTeam: null};
         }
@@ -218,7 +222,7 @@ const PreparingWorkspace = (props: Props) => {
     };
 
     const updateTeam = async (teamToUpdate: Team): Promise<{error: string | null; updatedTeam: Team | null}> => {
-        const data = await props.actions.updateTeam(teamToUpdate);
+        const data = await actions.updateTeam(teamToUpdate);
         if (data.error) {
             return {error: genericSubmitError, updatedTeam: null};
         }
@@ -269,7 +273,7 @@ const PreparingWorkspace = (props: Props) => {
 
         const goToChannels = () => {
             dispatch({type: GeneralTypes.SHOW_LAUNCHING_WORKSPACE, open: true});
-            props.history.push(`/${team.name}/channels${Constants.DEFAULT_CHANNEL}`);
+            history.push(`/${team.name}/channels/${Constants.DEFAULT_CHANNEL}`);
             trackEvent('first_admin_setup', 'admin_setup_complete');
         };
 
@@ -295,7 +299,7 @@ const PreparingWorkspace = (props: Props) => {
 
     useEffect(() => {
         if (shouldRedirect) {
-            props.history.push('/');
+            history.push('/');
         }
     }, [shouldRedirect]);
 
@@ -395,7 +399,7 @@ const PreparingWorkspace = (props: Props) => {
                     />
                 </div>
             )}
-            {props.background}
+            {background}
             <div className='PreparingWorkspace__logo'>
                 <LogoSvg/>
             </div>

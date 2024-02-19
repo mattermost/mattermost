@@ -2,10 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {shallow} from 'enzyme';
+
+import type {ChannelWithTeamData} from '@mattermost/types/channels';
 
 import ChannelSelectorModal from 'components/channel_selector_modal/channel_selector_modal';
-import {ChannelWithTeamData} from '@mattermost/types/channels';
+
+import {shallowWithIntl} from 'tests/helpers/intl-test-helper';
 import {TestHelper} from 'utils/test_helper';
 
 describe('components/ChannelSelectorModal', () => {
@@ -34,7 +36,7 @@ describe('components/ChannelSelectorModal', () => {
     };
 
     test('should match snapshot', () => {
-        const wrapper = shallow(<ChannelSelectorModal {...defaultProps}/>);
+        const wrapper = shallowWithIntl(<ChannelSelectorModal {...defaultProps}/>);
         wrapper.setState({channels: [
             channel1,
             channel2,
@@ -44,7 +46,7 @@ describe('components/ChannelSelectorModal', () => {
     });
 
     test('exclude already selected', () => {
-        const wrapper = shallow(
+        const wrapper = shallowWithIntl(
             <ChannelSelectorModal
                 {...defaultProps}
                 excludeTeamIds={['teamid2']}

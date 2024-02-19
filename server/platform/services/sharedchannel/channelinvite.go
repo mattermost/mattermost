@@ -11,7 +11,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 )
 
@@ -87,6 +87,8 @@ func (scs *Service) SendChannelInvite(channel *model.Channel, userId string, rc 
 			RemoteId:          rc.RemoteId,
 			IsInviteAccepted:  true,
 			IsInviteConfirmed: true,
+			LastPostCreateAt:  model.GetMillis(),
+			LastPostUpdateAt:  model.GetMillis(),
 		}
 		if _, err = scs.server.GetStore().SharedChannel().SaveRemote(scr); err != nil {
 			scs.sendEphemeralPost(channel.Id, userId, fmt.Sprintf("Error confirming channel invite for %s: %v", rc.DisplayName, err))
@@ -169,6 +171,8 @@ func (scs *Service) onReceiveChannelInvite(msg model.RemoteClusterMsg, rc *model
 		IsInviteAccepted:  true,
 		IsInviteConfirmed: true,
 		RemoteId:          rc.RemoteId,
+		LastPostCreateAt:  model.GetMillis(),
+		LastPostUpdateAt:  model.GetMillis(),
 	}
 
 	if _, err := scs.server.GetStore().SharedChannel().SaveRemote(sharedChannelRemote); err != nil {

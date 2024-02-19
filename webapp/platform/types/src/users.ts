@@ -20,6 +20,7 @@ export type UserNotifyProps = {
     first_name: 'true' | 'false';
     channel: 'true' | 'false';
     mention_keys: string;
+    highlight_keys: string;
     desktop_notification_sound?: 'Bing' | 'Crackle' | 'Down' | 'Hello' | 'Ripple' | 'Upstairs';
     calls_notification_sound?: 'Dynamic' | 'Calm' | 'Urgent' | 'Cheerful';
     desktop_threads?: 'default' | 'all' | 'mention' | 'none';
@@ -69,16 +70,16 @@ export type UsersState = {
     mySessions: Session[];
     myAudits: Audit[];
     profiles: IDMappedObjects<UserProfile>;
-    profilesInTeam: RelationOneToMany<Team, UserProfile>;
-    profilesNotInTeam: RelationOneToMany<Team, UserProfile>;
+    profilesInTeam: RelationOneToManyUnique<Team, UserProfile>;
+    profilesNotInTeam: RelationOneToManyUnique<Team, UserProfile>;
     profilesWithoutTeam: Set<string>;
     profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesNotInChannel: RelationOneToManyUnique<Channel, UserProfile>;
-    profilesInGroup: RelationOneToMany<Group, UserProfile>;
-    profilesNotInGroup: RelationOneToMany<Group, UserProfile>;
+    profilesInGroup: RelationOneToManyUnique<Group, UserProfile>;
+    profilesNotInGroup: RelationOneToManyUnique<Group, UserProfile>;
     statuses: RelationOneToOne<UserProfile, string>;
-    stats: RelationOneToOne<UserProfile, UsersStats>;
-    filteredStats?: UsersStats;
+    stats: Partial<UsersStats>;
+    filteredStats: Partial<UsersStats>;
     myUserAccessTokens: Record<string, UserAccessToken>;
     lastActivity: RelationOneToOne<UserProfile, number>;
 };
@@ -133,6 +134,7 @@ export type GetFilteredUsersStatsOpts = {
     in_channel?: string;
     include_deleted?: boolean;
     include_bots?: boolean;
+    include_remote_users?: boolean;
     roles?: string[];
     channel_roles?: string[];
     team_roles?: string[];

@@ -1,12 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import {readAccess} from './types';
+import React from 'react';
 
 import SystemRolePermissionDropdown from './system_role_permission_dropdown';
+import {readAccess} from './types';
 
 describe('admin_console/system_role_permission_dropdown', () => {
     const props = {

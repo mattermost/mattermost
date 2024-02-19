@@ -7,9 +7,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"encoding/json"
-	"fmt"
 	"io"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/pkg/errors"
@@ -38,7 +38,7 @@ func (api *API) InitHostedCustomer() {
 	// GET /api/v4/hosted_customer/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf
 	api.BaseRoutes.HostedCustomer.Handle("/invoices/{invoice_id:in_[A-Za-z0-9]+}/pdf", api.APISessionRequired(selfHostedInvoicePDF)).Methods("GET")
 
-	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewsletter)).Methods(http.MethodPost)
+	api.BaseRoutes.HostedCustomer.Handle("/subscribe-newsletter", api.APIHandler(handleSubscribeToNewsletter)).Methods("POST")
 }
 
 func ensureSelfHostedAdmin(c *Context, where string) {
@@ -119,7 +119,7 @@ func selfHostedCustomer(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var form *model.SelfHostedCustomerForm
-	if err = json.Unmarshal(bodyBytes, &form); err != nil {
+	if err = json.Unmarshal(bodyBytes, &form); err != nil || form == nil {
 		c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
@@ -180,7 +180,7 @@ func selfHostedConfirm(c *Context, w http.ResponseWriter, r *http.Request) {
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
 		}
 
-		if err.Error() == fmt.Sprintf("%d", http.StatusUnprocessableEntity) {
+		if err.Error() == strconv.Itoa(http.StatusUnprocessableEntity) {
 			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 			return
 		}
@@ -251,7 +251,7 @@ func selfHostedInvoices(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	invoices, err := c.App.Cloud().GetSelfHostedInvoices()
+	invoices, err := c.App.Cloud().GetSelfHostedInvoices(c.AppContext)
 
 	if err != nil {
 		if err.Error() == "404" {
@@ -365,7 +365,7 @@ func selfHostedConfirmExpand(c *Context, w http.ResponseWriter, r *http.Request)
 			c.App.NotifySelfHostedSignupProgress(confirmResponse.Progress, user.Id)
 		}
 
-		if err.Error() == fmt.Sprintf("%d", http.StatusUnprocessableEntity) {
+		if err.Error() == strconv.Itoa(http.StatusUnprocessableEntity) {
 			c.Err = model.NewAppError(where, "api.cloud.app_error", nil, "", http.StatusUnprocessableEntity).Wrap(err)
 			return
 		}

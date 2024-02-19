@@ -44,12 +44,9 @@ exports[`components/ProfilePicture should match snapshot, profile and src, defau
 <OverlayTrigger
   defaultOverlayShown={false}
   overlay={
-    <Memo(Connect(injectIntl(ProfilePopover)))
+    <Memo(ProfilePopover)
       className="user-profile-popover"
-      hasMention={false}
       hide={[Function]}
-      isBusy={true}
-      isRHS={false}
       src="http://example.com/image.png"
       userId="uid"
     />

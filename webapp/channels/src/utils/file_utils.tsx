@@ -3,9 +3,10 @@
 
 import exif2css from 'exif2css';
 
+import type {ClientConfig} from '@mattermost/types/config';
+
 import Constants from 'utils/constants';
 import * as UserAgent from 'utils/user_agent';
-import {ClientConfig} from '@mattermost/types/config';
 
 export const FileSizes = {
     Bit: 1,

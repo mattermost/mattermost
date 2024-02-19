@@ -1,26 +1,24 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {UserTypes, CloudTypes} from 'mattermost-redux/action_types';
+import {getGroup} from 'mattermost-redux/actions/groups';
 import {
-    getProfilesAndStatusesForPosts,
+    getMentionsAndStatusesForPosts,
     getThreadsForPosts,
     receivedNewPost,
 } from 'mattermost-redux/actions/posts';
-import {ChannelTypes, UserTypes, CloudTypes} from 'mattermost-redux/action_types';
 import {getUser} from 'mattermost-redux/actions/users';
 
 import {handleNewPost} from 'actions/post_actions';
-import {closeRightHandSide} from 'actions/views/rhs';
 import {syncPostsInChannel} from 'actions/views/channel';
-
-import store from 'stores/redux_store.jsx';
-
-import configureStore from 'tests/test_store';
-
-import {getHistory} from 'utils/browser_history';
-import Constants, {SocketEvents, UserStatuses, ActionTypes} from 'utils/constants';
+import {closeRightHandSide} from 'actions/views/rhs';
+import store from 'stores/redux_store';
 
 import mergeObjects from 'packages/mattermost-redux/test/merge_objects';
+import configureStore from 'tests/test_store';
+import {getHistory} from 'utils/browser_history';
+import Constants, {SocketEvents, UserStatuses, ActionTypes} from 'utils/constants';
 
 import {
     handleChannelUpdatedEvent,
@@ -37,12 +35,18 @@ import {
     handleAppsPluginEnabled,
     handleAppsPluginDisabled,
     handleCloudSubscriptionChanged,
+    handleGroupAddedMemberEvent,
 } from './websocket_actions';
 
 jest.mock('mattermost-redux/actions/posts', () => ({
     ...jest.requireActual('mattermost-redux/actions/posts'),
     getThreadsForPosts: jest.fn(() => ({type: 'GET_THREADS_FOR_POSTS'})),
-    getProfilesAndStatusesForPosts: jest.fn(),
+    getMentionsAndStatusesForPosts: jest.fn(),
+}));
+
+jest.mock('mattermost-redux/actions/groups', () => ({
+    ...jest.requireActual('mattermost-redux/actions/groups'),
+    getGroup: jest.fn(() => ({type: 'RECEIVED_GROUP'})),
 }));
 
 jest.mock('mattermost-redux/actions/users', () => ({
@@ -105,6 +109,20 @@ let mockState = {
                 PluginsEnabled: 'true',
             },
         },
+        groups: {
+            syncables: {},
+            groups: {
+                'group-1': {
+                    id: 'group-1',
+                    name: 'group1',
+                    display_name: 'Group 1',
+                    member_count: 1,
+                    allow_reference: true,
+                },
+            },
+            stats: {},
+            myGroups: {},
+        },
         channels: {
             currentChannelId: 'otherChannel',
             channels: {
@@ -114,7 +132,7 @@ let mockState = {
                 },
             },
             channelsInTeam: {
-                team: ['channel1', 'channel2'],
+                team: new Set(['channel1', 'channel2']),
             },
             membersInChannel: {
                 otherChannel: {},
@@ -199,6 +217,42 @@ describe('handlePostEditEvent', () => {
 
         handlePostEditEvent(msg);
         expect(store.dispatch).toHaveBeenCalledWith(expectedAction);
+    });
+});
+
+describe('handleGroupAddedMemberEvent', () => {
+    test('add to group in state', async () => {
+        const testStore = configureStore(mockState);
+        const msg = {
+            data: {
+                group_member: '{"group_id":"group-1","user_id":"currentUserId","create_at":1691178673417,"delete_at":0}',
+            },
+            broadcast: {
+                user_id: 'currentUserId',
+            },
+        };
+
+        testStore.dispatch(handleGroupAddedMemberEvent(msg));
+        expect(store.dispatch).toHaveBeenCalledWith({
+            type: 'ADD_MY_GROUP',
+            id: 'group-1',
+        });
+    });
+
+    test('add to group not in state', async () => {
+        const testStore = configureStore(mockState);
+        const msg = {
+            data: {
+                group_member: '{"group_id":"group-2","user_id":"currentUserId","create_at":1691178673417,"delete_at":0}',
+            },
+            broadcast: {
+                user_id: 'currentUserId',
+            },
+        };
+
+        testStore.dispatch(handleGroupAddedMemberEvent(msg));
+        expect(getGroup).toHaveBeenCalled();
+        expect(testStore.getActions()).toEqual([{type: 'RECEIVED_GROUP'}]);
     });
 });
 
@@ -434,7 +488,7 @@ describe('handleNewPostEvent', () => {
         };
 
         testStore.dispatch(handleNewPostEvent(msg));
-        expect(getProfilesAndStatusesForPosts).toHaveBeenCalledWith([post], expect.anything(), expect.anything());
+        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith([post], expect.anything(), expect.anything());
         expect(handleNewPost).toHaveBeenCalledWith(post, msg);
     });
 
@@ -566,7 +620,7 @@ describe('handleNewPostEvents', () => {
             },
         ]);
         expect(getThreadsForPosts).toHaveBeenCalledWith(posts);
-        expect(getProfilesAndStatusesForPosts).toHaveBeenCalledWith(posts, expect.anything(), expect.anything());
+        expect(getMentionsAndStatusesForPosts).toHaveBeenCalledWith(posts, expect.anything(), expect.anything());
     });
 });
 
@@ -582,6 +636,11 @@ describe('handleChannelUpdatedEvent', () => {
         entities: {
             channels: {
                 currentChannelId: 'channel',
+                channels: {
+                    channel: {
+                        id: 'channel',
+                    },
+                },
             },
             teams: {
                 currentTeamId: 'team',
@@ -595,20 +654,72 @@ describe('handleChannelUpdatedEvent', () => {
     test('when a channel is updated', () => {
         const testStore = configureStore(initialState);
 
-        const channel = {id: 'channel'};
+        const channel = {
+            id: 'channel',
+            team_id: 'team',
+        };
         const msg = {data: {channel: JSON.stringify(channel)}};
 
         testStore.dispatch(handleChannelUpdatedEvent(msg));
+        expect(testStore.getActions()).toEqual([{
+            type: 'BATCHING_REDUCER.BATCH',
+            meta: {batch: true},
+            payload: [
+                {
+                    type: 'RECEIVED_CHANNEL',
+                    data: {
+                        id: 'channel',
+                        team_id: 'team',
+                    },
+                },
+            ],
+        }]);
+    });
 
-        expect(testStore.getActions()).toEqual([
-            {type: ChannelTypes.RECEIVED_CHANNEL, data: channel},
-        ]);
+    test('when GM is converted to private channel', () => {
+        const state = initialState;
+        state.entities.channels.channels.channel.type = Constants.GM_CHANNEL;
+
+        const testStore = configureStore(state);
+        const channel = {
+            id: 'channel',
+            team_id: 'team',
+            type: Constants.PRIVATE_CHANNEL,
+        };
+
+        const msg = {data: {channel: JSON.stringify(channel)}};
+        testStore.dispatch(handleChannelUpdatedEvent(msg));
+        expect(testStore.getActions()).toEqual([{
+            type: 'BATCHING_REDUCER.BATCH',
+            meta: {batch: true},
+            payload: [
+                {
+                    type: 'RECEIVED_CHANNEL',
+                    data: {
+                        id: 'channel',
+                        team_id: 'team',
+                        type: 'P',
+                    },
+                },
+                {
+                    type: 'GM_CONVERTED_TO_CHANNEL',
+                    data: {
+                        id: 'channel',
+                        team_id: 'team',
+                        type: 'P',
+                    },
+                },
+            ],
+        }]);
     });
 
     test('should not change URL when current channel is updated', () => {
         const testStore = configureStore(initialState);
 
-        const channel = {id: 'channel'};
+        const channel = {
+            id: 'channel',
+            team_id: 'team',
+        };
         const msg = {data: {channel: JSON.stringify(channel)}};
 
         testStore.dispatch(handleChannelUpdatedEvent(msg));

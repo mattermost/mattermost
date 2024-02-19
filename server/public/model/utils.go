@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"crypto/rand"
 	"database/sql/driver"
 	"encoding/base32"
@@ -11,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
@@ -29,13 +29,14 @@ import (
 )
 
 const (
-	LowercaseLetters = "abcdefghijklmnopqrstuvwxyz"
-	UppercaseLetters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-	NUMBERS          = "0123456789"
-	SYMBOLS          = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
-	BinaryParamKey   = "MM_BINARY_PARAMETERS"
-	NoTranslation    = "<untranslated>"
-	maxPropSizeBytes = 1024 * 1024
+	LowercaseLetters  = "abcdefghijklmnopqrstuvwxyz"
+	UppercaseLetters  = "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	NUMBERS           = "0123456789"
+	SYMBOLS           = " !\"\\#$%&'()*+,-./:;<=>?@[]^_`|~"
+	BinaryParamKey    = "MM_BINARY_PARAMETERS"
+	NoTranslation     = "<untranslated>"
+	maxPropSizeBytes  = 1024 * 1024
+	PayloadParseError = "api.payload.parse.error"
 )
 
 var ErrMaxPropSizeExceeded = fmt.Errorf("max prop size of %d exceeded", maxPropSizeBytes)
@@ -82,13 +83,11 @@ func (sa StringArray) Contains(input string) bool {
 	return false
 }
 func (sa StringArray) Equals(input StringArray) bool {
-
 	if len(sa) != len(input) {
 		return false
 	}
 
 	for index := range sa {
-
 		if sa[index] != input[index] {
 			return false
 		}
@@ -179,22 +178,8 @@ func (m StringMap) Value() (driver.Value, error) {
 	return string(buf), nil
 }
 
-func (StringMap) ImplementsGraphQLType(name string) bool {
-	return name == "StringMap"
-}
-
 func (m StringMap) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]string)(m))
-}
-
-func (m *StringMap) UnmarshalGraphQL(input any) error {
-	json, ok := input.(map[string]string)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*m = json
-	return nil
 }
 
 func (si *StringInterface) Scan(value any) error {
@@ -230,22 +215,8 @@ func (si StringInterface) Value() (driver.Value, error) {
 	return string(j), err
 }
 
-func (StringInterface) ImplementsGraphQLType(name string) bool {
-	return name == "StringInterface"
-}
-
 func (si StringInterface) MarshalJSON() ([]byte, error) {
 	return json.Marshal((map[string]any)(si))
-}
-
-func (si *StringInterface) UnmarshalGraphQL(input any) error {
-	json, ok := input.(map[string]any)
-	if !ok {
-		return errors.New("wrong type")
-	}
-
-	*si = json
-	return nil
 }
 
 var translateFunc i18n.TranslateFunc
@@ -276,8 +247,11 @@ func (er *AppError) Error() string {
 	var sb strings.Builder
 
 	// render the error information
-	sb.WriteString(er.Where)
-	sb.WriteString(": ")
+	if er.Where != "" {
+		sb.WriteString(er.Where)
+		sb.WriteString(": ")
+	}
+
 	if er.Message != NoTranslation {
 		sb.WriteString(er.Message)
 	}
@@ -362,22 +336,24 @@ func (er *AppError) Wrap(err error) *AppError {
 	return er
 }
 
-// AppErrorFromJSON will decode the input and return an AppError
-func AppErrorFromJSON(data io.Reader) *AppError {
-	str := ""
-	bytes, rerr := io.ReadAll(data)
-	if rerr != nil {
-		str = rerr.Error()
-	} else {
-		str = string(bytes)
+// AppErrorFromJSON will try to decode the input into an AppError.
+func AppErrorFromJSON(r io.Reader) error {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
 	}
 
-	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
-	err := decoder.Decode(&er)
+	err = json.NewDecoder(bytes.NewReader(data)).Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
+		// If the request exceeded FileSettings.MaxFileSize a plain error gets returned. Convert it into an AppError.
+		if string(data) == "http: request body too large\n" {
+			return errors.New("The request was too large. Consider asking your System Admin to raise the FileSettings.MaxFileSize setting.")
+		}
+
+		return errors.Wrapf(err, "failed to decode JSON payload into AppError. Body: %s", string(data))
 	}
+
 	return &er
 }
 
@@ -423,17 +399,17 @@ func NewRandomString(length int) string {
 
 // GetMillis is a convenience method to get milliseconds since epoch.
 func GetMillis() int64 {
-	return time.Now().UnixNano() / int64(time.Millisecond)
+	return GetMillisForTime(time.Now())
 }
 
 // GetMillisForTime is a convenience method to get milliseconds since epoch for provided Time.
 func GetMillisForTime(thisTime time.Time) int64 {
-	return thisTime.UnixNano() / int64(time.Millisecond)
+	return thisTime.UnixMilli()
 }
 
 // GetTimeForMillis is a convenience method to get time.Time for milliseconds since epoch.
 func GetTimeForMillis(millis int64) time.Time {
-	return time.Unix(0, millis*int64(time.Millisecond))
+	return time.UnixMilli(millis)
 }
 
 // PadDateStringZeros is a convenience method to pad 2 digit date parts with zeros to meet ISO 8601 format
@@ -511,15 +487,39 @@ func ArrayToJSON(objmap []string) string {
 	return string(b)
 }
 
+// Deprecated: ArrayFromJSON is deprecated,
+// use SortedArrayFromJSON or NonSortedArrayFromJSON instead
 func ArrayFromJSON(data io.Reader) []string {
 	var objmap []string
-
 	json.NewDecoder(data).Decode(&objmap)
 	if objmap == nil {
 		return make([]string, 0)
 	}
-
 	return objmap
+}
+
+func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+	var obj []string
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
+	if err != nil || obj == nil {
+		return nil, err
+	}
+
+	// Remove duplicate IDs as it can bring a significant load to the database.
+	return RemoveDuplicateStrings(obj), nil
+}
+
+func NonSortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+	var obj []string
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
+	if err != nil || obj == nil {
+		return nil, err
+	}
+
+	// Remove duplicate IDs, but don't sort.
+	return RemoveDuplicateStringsNonSort(obj), nil
 }
 
 func ArrayFromInterface(data any) []string {
@@ -555,6 +555,16 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	return objmap
 }
 
+func StructFromJSONLimited[V any](data io.Reader, maxBytes int64, obj *V) error {
+	lr := io.LimitReader(data, maxBytes)
+	err := json.NewDecoder(lr).Decode(&obj)
+	if err != nil || obj == nil {
+		return err
+	}
+
+	return nil
+}
+
 // ToJSON serializes an arbitrary data type to JSON, discarding the error.
 func ToJSON(v any) []byte {
 	b, _ := json.Marshal(v)
@@ -586,7 +596,6 @@ func GetServerIPAddress(iface string) string {
 	}
 
 	for _, addr := range addrs {
-
 		if ip, ok := addr.(*net.IPNet); ok && !ip.IP.IsLoopback() && !ip.IP.IsLinkLocalUnicast() && !ip.IP.IsLinkLocalMulticast() {
 			if ip.IP.To4() != nil {
 				return ip.IP.String()
@@ -664,7 +673,6 @@ func IsValidAlphaNumHyphenUnderscorePlus(s string) bool {
 }
 
 func Etag(parts ...any) string {
-
 	etag := CurrentVersion
 
 	for _, part := range parts {
@@ -764,6 +772,20 @@ func RemoveDuplicateStrings(in []string) []string {
 		in[j] = in[i]
 	}
 	return in[:j+1]
+}
+
+// RemoveDuplicateStringsNonSort does a removal of duplicate
+// strings using a map.
+func RemoveDuplicateStringsNonSort(in []string) []string {
+	allKeys := make(map[string]bool)
+	list := []string{}
+	for _, item := range in {
+		if _, value := allKeys[item]; !value {
+			allKeys[item] = true
+			list = append(list, item)
+		}
+	}
+	return list
 }
 
 func GetPreferredTimezone(timezone StringMap) string {

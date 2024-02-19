@@ -1,9 +1,10 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {useIntl} from 'react-intl';
 import marked from 'marked';
+import React from 'react';
+import type {MessageDescriptor} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import {shouldOpenInNewTab, getSiteURL} from 'utils/url';
 
@@ -39,7 +40,7 @@ export class CustomRenderer extends marked.Renderer {
 }
 
 type Props = {
-    defaultMessage?: string;
+    defaultMessage?: MessageDescriptor['defaultMessage'];
     disableLinks?: boolean;
     id?: string;
     values?: Record<string, any>;

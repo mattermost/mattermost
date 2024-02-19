@@ -1,9 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import reducer from 'mattermost-redux/reducers/entities/general';
 import {GeneralTypes} from 'mattermost-redux/action_types';
-import {GenericAction} from 'mattermost-redux/types/actions';
+import reducer from 'mattermost-redux/reducers/entities/general';
 
 type ReducerState = ReturnType<typeof reducer>
 
@@ -11,10 +10,10 @@ describe('reducers.entities.general', () => {
     describe('firstAdminVisitMarketplaceStatus', () => {
         it('initial state', () => {
             const state = {};
-            const action = {};
+            const action = {type: undefined};
             const expectedState = {};
 
-            const actualState = reducer({firstAdminVisitMarketplaceStatus: state} as ReducerState, action as GenericAction);
+            const actualState = reducer({firstAdminVisitMarketplaceStatus: state} as ReducerState, action);
             expect(actualState.firstAdminVisitMarketplaceStatus).toEqual(expectedState);
         });
 

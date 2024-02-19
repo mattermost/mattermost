@@ -2,14 +2,15 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
+import type {Popover as BSPopover} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
-
-import Constants from 'utils/constants';
 
 import Popover from 'components/widgets/popover';
 
+import Constants from 'utils/constants';
+
+import type {UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies';
 import SuggestionList from './suggestion_list';
-import {UserProfile} from './command_provider/app_command_parser/app_command_parser_dependencies';
 
 interface Item extends UserProfile {
     type: string;
@@ -46,7 +47,7 @@ interface Props {
 }
 
 export default class SearchSuggestionList extends SuggestionList {
-    popoverRef: React.RefObject<Popover>;
+    popoverRef: React.RefObject<BSPopover>;
     itemsContainerRef: React.RefObject<HTMLDivElement>;
     suggestionReadOut: React.RefObject<HTMLDivElement>;
     currentLabel: string;

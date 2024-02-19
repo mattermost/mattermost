@@ -4,22 +4,21 @@
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Team} from '@mattermost/types/teams';
+import type {Team} from '@mattermost/types/teams';
 
 import {Permissions} from 'mattermost-redux/constants';
 
-import BotAccountsIcon from 'images/bot_default_icon.png';
-
-import * as Utils from 'utils/utils';
-import IncomingWebhookIcon from 'images/incoming_webhook.jpg';
-import OAuthIcon from 'images/oauth_icon.png';
-import OutgoingWebhookIcon from 'images/outgoing_webhook.jpg';
-import SlashCommandIcon from 'images/slash_command_icon.jpg';
-
+import ExternalLink from 'components/external_link';
 import SystemPermissionGate from 'components/permissions_gates/system_permission_gate';
 import TeamPermissionGate from 'components/permissions_gates/team_permission_gate';
 
-import ExternalLink from 'components/external_link';
+import BotAccountsIcon from 'images/bot_default_icon.png';
+import IncomingWebhookIcon from 'images/incoming_webhook.jpg';
+import OAuthIcon from 'images/oauth_icon.png';
+import OutgoingOAuthConnectionsIcon from 'images/outgoing_oauth_connection.png';
+import OutgoingWebhookIcon from 'images/outgoing_webhook.jpg';
+import SlashCommandIcon from 'images/slash_command_icon.jpg';
+import * as Utils from 'utils/utils';
 
 import IntegrationOption from './integration_option';
 
@@ -29,6 +28,7 @@ type Props = {
     enableOutgoingWebhooks: boolean;
     enableCommands: boolean;
     enableOAuthServiceProvider: boolean;
+    enableOutgoingOAuthConnections: boolean;
     team: Team;
 }
 
@@ -153,6 +153,34 @@ export default class Integrations extends React.PureComponent <Props> {
                         link={'/' + this.props.team.name + '/integrations/oauth2-apps'}
                     />
                 </SystemPermissionGate>,
+            );
+        }
+
+        if (this.props.enableOutgoingOAuthConnections) {
+            options.push(
+                <TeamPermissionGate
+                    teamId={this.props.team.id}
+                    permissions={[Permissions.MANAGE_OUTGOING_OAUTH_CONNECTIONS]}
+                    key='outgoingOAuthConnectionsPermission'
+                >
+                    <IntegrationOption
+                        key='outgoingOAuthConnections'
+                        image={OutgoingOAuthConnectionsIcon}
+                        title={
+                            <FormattedMessage
+                                id='integrations.outgoingOAuthConnections.title'
+                                defaultMessage='Outgoing OAuth Connections'
+                            />
+                        }
+                        description={
+                            <FormattedMessage
+                                id='integrations.outgoingOAuthConnections.description'
+                                defaultMessage='Outgoing OAuth Connections allow custom integrations to communicate to external systems'
+                            />
+                        }
+                        link={'/' + this.props.team.name + '/integrations/outgoing-oauth2-connections'}
+                    />
+                </TeamPermissionGate>,
             );
         }
 

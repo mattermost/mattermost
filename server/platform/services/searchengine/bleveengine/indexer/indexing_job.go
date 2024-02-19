@@ -7,11 +7,12 @@ import (
 	"context"
 	"net/http"
 	"strconv"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine/bleveengine"
 )
@@ -26,26 +27,32 @@ const (
 )
 
 type BleveIndexerWorker struct {
-	name      string
-	stop      chan struct{}
-	stopped   chan bool
+	name string
+	// stateMut protects stopCh and helps enforce
+	// ordering in case subsequent Run or Stop calls are made.
+	stateMut  sync.Mutex
+	stopCh    chan struct{}
+	stoppedCh chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
+	logger    mlog.LoggerIFace
 	engine    *bleveengine.BleveEngine
-	closed    int32
+	stopped   bool
 }
 
-func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) model.Worker {
+func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) *BleveIndexerWorker {
 	if engine == nil {
 		return nil
 	}
+	const workerName = "BleveIndexer"
 	return &BleveIndexerWorker{
-		name:      "BleveIndexer",
-		stop:      make(chan struct{}),
-		stopped:   make(chan bool, 1),
+		name:      workerName,
+		stoppedCh: make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
+		logger:    jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		engine:    engine,
+		stopped:   true,
 	}
 }
 
@@ -93,55 +100,71 @@ func (worker *BleveIndexerWorker) IsEnabled(cfg *model.Config) bool {
 }
 
 func (worker *BleveIndexerWorker) Run() {
-	// Set to open if closed before. We are not bothered about multiple opens.
-	if atomic.CompareAndSwapInt32(&worker.closed, 1, 0) {
-		worker.stop = make(chan struct{})
+	worker.stateMut.Lock()
+	// We have to re-assign the stop channel again, because
+	// it might happen that the job was restarted due to a config change.
+	if worker.stopped {
+		worker.stopped = false
+		worker.stopCh = make(chan struct{})
+	} else {
+		worker.stateMut.Unlock()
+		return
 	}
-	mlog.Debug("Worker Started", mlog.String("workername", worker.name))
+	// Run is called from a separate goroutine and doesn't return.
+	// So we cannot Unlock in a defer clause.
+	worker.stateMut.Unlock()
+
+	worker.logger.Debug("Worker Started")
 
 	defer func() {
-		mlog.Debug("Worker: Finished", mlog.String("workername", worker.name))
-		worker.stopped <- true
+		worker.logger.Debug("Worker: Finished")
+		worker.stoppedCh <- true
 	}()
 
 	for {
 		select {
-		case <-worker.stop:
-			mlog.Debug("Worker: Received stop signal", mlog.String("workername", worker.name))
+		case <-worker.stopCh:
+			worker.logger.Debug("Worker: Received stop signal")
 			return
 		case job := <-worker.jobs:
-			mlog.Debug("Worker: Received a new candidate job.", mlog.String("workername", worker.name))
 			worker.DoJob(&job)
 		}
 	}
 }
 
 func (worker *BleveIndexerWorker) Stop() {
+	worker.stateMut.Lock()
+	defer worker.stateMut.Unlock()
+
 	// Set to close, and if already closed before, then return.
-	if !atomic.CompareAndSwapInt32(&worker.closed, 0, 1) {
+	if worker.stopped {
 		return
 	}
-	mlog.Debug("Worker Stopping", mlog.String("workername", worker.name))
-	close(worker.stop)
-	<-worker.stopped
+	worker.stopped = true
+	worker.logger.Debug("Worker Stopping")
+	close(worker.stopCh)
+	<-worker.stoppedCh
 }
 
 func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
+	logger := worker.logger.With(jobs.JobLoggerFields(job)...)
+	logger.Debug("Worker: Received a new candidate job.")
+
 	claimed, err := worker.jobServer.ClaimJob(job)
 	if err != nil {
-		mlog.Warn("Worker: Error occurred while trying to claim job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		logger.Warn("Worker: Error occurred while trying to claim job", mlog.Err(err))
 		return
 	}
 	if !claimed {
 		return
 	}
 
-	mlog.Info("Worker: Indexing job claimed by worker", mlog.String("workername", worker.name), mlog.String("job_id", job.Id))
+	logger.Info("Worker: Indexing job claimed by worker")
 
 	if !worker.engine.IsActive() {
 		appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.engine_inactive", nil, "", http.StatusInternalServerError)
 		if err := worker.jobServer.SetJobError(job, appError); err != nil {
-			mlog.Error("Worker: Failed to run job as ")
+			logger.Error("Worker: Failed to run job as ")
 		}
 		return
 	}
@@ -160,10 +183,10 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	if startString, ok := job.Data["start_time"]; ok {
 		startInt, err := strconv.ParseInt(startString, 10, 64)
 		if err != nil {
-			mlog.Error("Worker: Failed to parse start_time for job", mlog.String("workername", worker.name), mlog.String("start_time", startString), mlog.String("job_id", job.Id), mlog.Err(err))
+			logger.Error("Worker: Failed to parse start_time for job", mlog.String("start_time", startString), mlog.Err(err))
 			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_start_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
-				mlog.Error("Worker: Failed to set job error", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
+				logger.Error("Worker: Failed to set job error", mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
 			return
 		}
@@ -173,10 +196,10 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		// A user or a channel may be created before any post.
 		oldestEntityCreationTime, err := worker.jobServer.Store.Post().GetOldestEntityCreationTime()
 		if err != nil {
-			mlog.Error("Worker: Failed to fetch oldest entity for job.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.String("start_time", startString), mlog.Err(err))
+			logger.Error("Worker: Failed to fetch oldest entity for job.", mlog.String("start_time", startString), mlog.Err(err))
 			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.get_oldest_entity.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
-				mlog.Error("Worker: Failed to set job error", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
+				logger.Error("Worker: Failed to set job error", mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
 			return
 		}
@@ -187,10 +210,10 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	if endString, ok := job.Data["end_time"]; ok {
 		endInt, err := strconv.ParseInt(endString, 10, 64)
 		if err != nil {
-			mlog.Error("Worker: Failed to parse end_time for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.String("end_time", endString), mlog.Err(err))
+			logger.Error("Worker: Failed to parse end_time for job", mlog.String("end_time", endString), mlog.Err(err))
 			appError := model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.do_job.parse_end_time.error", nil, "", http.StatusInternalServerError).Wrap(err)
 			if err := worker.jobServer.SetJobError(job, appError); err != nil {
-				mlog.Error("Worker: Failed to set job errorv", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err), mlog.NamedErr("set_error", appError))
+				logger.Error("Worker: Failed to set job errorv", mlog.Err(err), mlog.NamedErr("set_error", appError))
 			}
 			return
 		}
@@ -213,7 +236,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	// Counting all posts may fail or timeout when the posts table is large. If this happens, log a warning, but carry
 	// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
 	if count, err := worker.jobServer.Store.Post().AnalyticsPostCount(&model.PostCountOptions{}); err != nil {
-		mlog.Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		logger.Warn("Worker: Failed to fetch total post count for job. An estimated value will be used for progress reporting.", mlog.Err(err))
 		progress.TotalPostsCount = estimatedPostCount
 	} else {
 		progress.TotalPostsCount = count
@@ -221,7 +244,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 
 	// Same possible fail as above can happen when counting channels
 	if count, err := worker.jobServer.Store.Channel().AnalyticsTypeCount("", ""); err != nil {
-		mlog.Warn("Worker: Failed to fetch total channel count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		logger.Warn("Worker: Failed to fetch total channel count for job. An estimated value will be used for progress reporting.", mlog.Err(err))
 		progress.TotalChannelsCount = estimatedChannelCount
 	} else {
 		progress.TotalChannelsCount = count
@@ -232,7 +255,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 		IncludeBotAccounts: true, // This actually doesn't join with the bots table
 		// since ExcludeRegularUsers is set to false
 	}); err != nil {
-		mlog.Warn("Worker: Failed to fetch total user count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		logger.Warn("Worker: Failed to fetch total user count for job. An estimated value will be used for progress reporting.", mlog.Err(err))
 		progress.TotalUsersCount = estimatedUserCount
 	} else {
 		progress.TotalUsersCount = count
@@ -241,40 +264,41 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 	// Counting all files may fail or timeout when the file_info table is large. If this happens, log a warning, but carry
 	// on with the indexing job anyway. The only issue is that the progress % reporting will be inaccurate.
 	if count, err := worker.jobServer.Store.FileInfo().CountAll(); err != nil {
-		mlog.Warn("Worker: Failed to fetch total file info count for job. An estimated value will be used for progress reporting.", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+		logger.Warn("Worker: Failed to fetch total file info count for job. An estimated value will be used for progress reporting.", mlog.Err(err))
 		progress.TotalFilesCount = estimatedFilesCount
 	} else {
 		progress.TotalFilesCount = count
 	}
 
+	var cancelContext request.CTX = request.EmptyContext(worker.logger)
 	cancelCtx, cancelCancelWatcher := context.WithCancel(context.Background())
 	cancelWatcherChan := make(chan struct{}, 1)
-	go worker.jobServer.CancellationWatcher(cancelCtx, job.Id, cancelWatcherChan)
-
+	cancelContext = cancelContext.WithContext(cancelCtx)
+	go worker.jobServer.CancellationWatcher(cancelContext, job.Id, cancelWatcherChan)
 	defer cancelCancelWatcher()
 
 	for {
 		select {
 		case <-cancelWatcherChan:
-			mlog.Info("Worker: Indexing job has been canceled via CancellationWatcher", mlog.String("workername", worker.name), mlog.String("job_id", job.Id))
+			logger.Info("Worker: Indexing job has been canceled via CancellationWatcher")
 			if err := worker.jobServer.SetJobCanceled(job); err != nil {
-				mlog.Error("Worker: Failed to mark job as cancelled", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+				logger.Error("Worker: Failed to mark job as cancelled", mlog.Err(err))
 			}
 			return
 
-		case <-worker.stop:
-			mlog.Info("Worker: Indexing has been canceled via Worker Stop", mlog.String("workername", worker.name), mlog.String("job_id", job.Id))
+		case <-worker.stopCh:
+			logger.Info("Worker: Indexing has been canceled via Worker Stop")
 			if err := worker.jobServer.SetJobCanceled(job); err != nil {
-				mlog.Error("Worker: Failed to mark job as canceled", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+				logger.Error("Worker: Failed to mark job as canceled", mlog.Err(err))
 			}
 			return
 
 		case <-time.After(timeBetweenBatches):
 			var err *model.AppError
-			if progress, err = worker.IndexBatch(progress); err != nil {
-				mlog.Error("Worker: Failed to index batch for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+			if progress, err = worker.IndexBatch(logger, progress); err != nil {
+				logger.Error("Worker: Failed to index batch for job", mlog.Err(err))
 				if err2 := worker.jobServer.SetJobError(job, err); err2 != nil {
-					mlog.Error("Worker: Failed to set job error", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err2), mlog.NamedErr("set_error", err))
+					logger.Error("Worker: Failed to set job error", mlog.Err(err2), mlog.NamedErr("set_error", err))
 				}
 				return
 			}
@@ -293,44 +317,44 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 			job.Data["end_time"] = strconv.FormatInt(progress.EndAtTime, 10)
 
 			if err := worker.jobServer.SetJobProgress(job, progress.CurrentProgress()); err != nil {
-				mlog.Error("Worker: Failed to set progress for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+				logger.Error("Worker: Failed to set progress for job", mlog.Err(err))
 				if err2 := worker.jobServer.SetJobError(job, err); err2 != nil {
-					mlog.Error("Worker: Failed to set error for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err2), mlog.NamedErr("set_error", err))
+					logger.Error("Worker: Failed to set error for job", mlog.Err(err2), mlog.NamedErr("set_error", err))
 				}
 				return
 			}
 
 			if progress.IsDone() {
 				if err := worker.jobServer.SetJobSuccess(job); err != nil {
-					mlog.Error("Worker: Failed to set success for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err))
+					logger.Error("Worker: Failed to set success for job", mlog.Err(err))
 					if err2 := worker.jobServer.SetJobError(job, err); err2 != nil {
-						mlog.Error("Worker: Failed to set error for job", mlog.String("workername", worker.name), mlog.String("job_id", job.Id), mlog.Err(err2), mlog.NamedErr("set_error", err))
+						logger.Error("Worker: Failed to set error for job", mlog.Err(err2), mlog.NamedErr("set_error", err))
 					}
 				}
-				mlog.Info("Worker: Indexing job finished successfully", mlog.String("workername", worker.name), mlog.String("job_id", job.Id))
+				logger.Info("Worker: Indexing job finished successfully")
 				return
 			}
 		}
 	}
 }
 
-func (worker *BleveIndexerWorker) IndexBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	if !progress.DonePosts {
-		return worker.IndexPostsBatch(progress)
+		return worker.IndexPostsBatch(logger, progress)
 	}
 	if !progress.DoneChannels {
-		return worker.IndexChannelsBatch(progress)
+		return worker.IndexChannelsBatch(logger, progress)
 	}
 	if !progress.DoneUsers {
-		return worker.IndexUsersBatch(progress)
+		return worker.IndexUsersBatch(logger, progress)
 	}
 	if !progress.DoneFiles {
-		return worker.IndexFilesBatch(progress)
+		return worker.IndexFilesBatch(logger, progress)
 	}
 	return progress, model.NewAppError("BleveIndexerWorker", "bleveengine.indexer.index_batch.nothing_left_to_index.error", nil, "", http.StatusInternalServerError)
 }
 
-func (worker *BleveIndexerWorker) IndexPostsBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexPostsBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	var posts []*model.PostForIndexing
 
 	tries := 0
@@ -341,7 +365,7 @@ func (worker *BleveIndexerWorker) IndexPostsBatch(progress IndexingProgress) (In
 			if tries >= 10 {
 				return progress, model.NewAppError("IndexPostsBatch", "app.post.get_posts_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
-			mlog.Warn("Failed to get posts batch for indexing. Retrying.", mlog.Err(err))
+			logger.Warn("Failed to get posts batch for indexing. Retrying.", mlog.Err(err))
 
 			// Wait a bit before trying again.
 			time.Sleep(15 * time.Second)
@@ -398,7 +422,7 @@ func (worker *BleveIndexerWorker) BulkIndexPosts(posts []*model.PostForIndexing,
 	return &posts[len(posts)-1].Post, nil
 }
 
-func (worker *BleveIndexerWorker) IndexFilesBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexFilesBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	var files []*model.FileForIndexing
 
 	tries := 0
@@ -409,7 +433,7 @@ func (worker *BleveIndexerWorker) IndexFilesBatch(progress IndexingProgress) (In
 			if tries >= 10 {
 				return progress, model.NewAppError("IndexFilesBatch", "app.post.get_files_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
-			mlog.Warn("Failed to get files batch for indexing. Retrying.", mlog.Err(err))
+			logger.Warn("Failed to get files batch for indexing. Retrying.", mlog.Err(err))
 
 			// Wait a bit before trying again.
 			time.Sleep(15 * time.Second)
@@ -465,7 +489,7 @@ func (worker *BleveIndexerWorker) BulkIndexFiles(files []*model.FileForIndexing,
 	return &files[len(files)-1].FileInfo, nil
 }
 
-func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexChannelsBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	var channels []*model.Channel
 
 	tries := 0
@@ -477,7 +501,7 @@ func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) 
 				return progress, model.NewAppError("BleveIndexerWorker.IndexChannelsBatch", "app.channel.get_channels_batch_for_indexing.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 
-			mlog.Warn("Failed to get channels batch for indexing. Retrying.", mlog.Err(nErr))
+			logger.Warn("Failed to get channels batch for indexing. Retrying.", mlog.Err(nErr))
 
 			// Wait a bit before trying again.
 			time.Sleep(15 * time.Second)
@@ -491,7 +515,7 @@ func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) 
 		return progress, nil
 	}
 
-	lastChannel, err := worker.BulkIndexChannels(channels, progress)
+	lastChannel, err := worker.BulkIndexChannels(logger, channels, progress)
 	if err != nil {
 		return progress, err
 	}
@@ -511,7 +535,7 @@ func (worker *BleveIndexerWorker) IndexChannelsBatch(progress IndexingProgress) 
 	return progress, nil
 }
 
-func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, progress IndexingProgress) (*model.Channel, *model.AppError) {
+func (worker *BleveIndexerWorker) BulkIndexChannels(logger mlog.LoggerIFace, channels []*model.Channel, progress IndexingProgress) (*model.Channel, *model.AppError) {
 	batch := worker.engine.ChannelIndex.NewBatch()
 
 	for _, channel := range channels {
@@ -519,7 +543,7 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 			var userIDs []string
 			var err error
 			if channel.Type == model.ChannelTypePrivate {
-				userIDs, err = worker.jobServer.Store.Channel().GetAllChannelMembersById(channel.Id)
+				userIDs, err = worker.jobServer.Store.Channel().GetAllChannelMemberIdsByChannelId(channel.Id)
 				if err != nil {
 					return nil, model.NewAppError("BleveIndexerWorker.BulkIndexChannels", "bleveengine.indexer.do_job.bulk_index_channels.batch_error", nil, "", http.StatusInternalServerError).Wrap(err)
 				}
@@ -547,7 +571,7 @@ func (worker *BleveIndexerWorker) BulkIndexChannels(channels []*model.Channel, p
 	return channels[len(channels)-1], nil
 }
 
-func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (IndexingProgress, *model.AppError) {
+func (worker *BleveIndexerWorker) IndexUsersBatch(logger mlog.LoggerIFace, progress IndexingProgress) (IndexingProgress, *model.AppError) {
 	var users []*model.UserForIndexing
 
 	tries := 0
@@ -556,7 +580,7 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (In
 			if tries >= 10 {
 				return progress, model.NewAppError("IndexUsersBatch", "app.user.get_users_batch_for_indexing.get_users.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 			}
-			mlog.Warn("Failed to get users batch for indexing. Retrying.", mlog.Err(err))
+			logger.Warn("Failed to get users batch for indexing. Retrying.", mlog.Err(err))
 
 			// Wait a bit before trying again.
 			time.Sleep(15 * time.Second)
@@ -573,7 +597,7 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (In
 		return progress, nil
 	}
 
-	lastUser, err := worker.BulkIndexUsers(users, progress)
+	lastUser, err := worker.BulkIndexUsers(logger, users, progress)
 	if err != nil {
 		return progress, err
 	}
@@ -592,7 +616,7 @@ func (worker *BleveIndexerWorker) IndexUsersBatch(progress IndexingProgress) (In
 	return progress, nil
 }
 
-func (worker *BleveIndexerWorker) BulkIndexUsers(users []*model.UserForIndexing, progress IndexingProgress) (*model.UserForIndexing, *model.AppError) {
+func (worker *BleveIndexerWorker) BulkIndexUsers(logger mlog.LoggerIFace, users []*model.UserForIndexing, progress IndexingProgress) (*model.UserForIndexing, *model.AppError) {
 	batch := worker.engine.UserIndex.NewBatch()
 
 	for _, user := range users {

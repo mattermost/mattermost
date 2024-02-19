@@ -3,16 +3,17 @@
 
 import React from 'react';
 
-import {ActionResult} from 'mattermost-redux/types/actions';
-import {UserProfile} from '@mattermost/types/users';
-import {TeamMembership, TeamStats, GetTeamMembersOpts} from '@mattermost/types/teams';
-import {Teams} from 'mattermost-redux/constants';
+import type {TeamMembership, TeamStats, GetTeamMembersOpts} from '@mattermost/types/teams';
+import type {UserProfile} from '@mattermost/types/users';
 
-import Constants from 'utils/constants';
-import * as UserAgent from 'utils/user_agent';
+import {Teams} from 'mattermost-redux/constants';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import SearchableUserList from 'components/searchable_user_list/searchable_user_list_container';
 import TeamMembersDropdown from 'components/team_members_dropdown';
+
+import Constants from 'utils/constants';
+import * as UserAgent from 'utils/user_agent';
 
 const USERS_PER_PAGE = 50;
 
@@ -26,18 +27,12 @@ type Props = {
     totalTeamMembers: number;
     canManageTeamMembers?: boolean;
     actions: {
-        getTeamMembers: (teamId: string, page?: number, perPage?: number, options?: GetTeamMembersOpts) => Promise<{data: TeamMembership}>;
-        searchProfiles: (term: string, options?: {[key: string]: any}) => Promise<{data: UserProfile[]}>;
-        getTeamStats: (teamId: string) => Promise<{data: TeamStats}>;
-        loadProfilesAndTeamMembers: (page: number, perPage: number, teamId?: string, options?: {[key: string]: any}) => Promise<{
-            data: boolean;
-        }>;
-        loadStatusesForProfilesList: (users: UserProfile[]) => Promise<{
-            data: boolean;
-        }>;
-        loadTeamMembersForProfilesList: (profiles: any, teamId: string, reloadAllMembers: boolean) => Promise<{
-            data: boolean;
-        }>;
+        getTeamMembers: (teamId: string, page?: number, perPage?: number, options?: GetTeamMembersOpts) => Promise<ActionResult<TeamMembership[]>>;
+        searchProfiles: (term: string, options?: {[key: string]: any}) => Promise<ActionResult<UserProfile[]>>;
+        getTeamStats: (teamId: string) => Promise<ActionResult<TeamStats>>;
+        loadProfilesAndTeamMembers: (page: number, perPage: number, teamId: string, options?: {[key: string]: any}) => Promise<ActionResult>;
+        loadStatusesForProfilesList: (users: UserProfile[]) => void;
+        loadTeamMembersForProfilesList: (profiles: any, teamId: string, reloadAllMembers: boolean) => Promise<ActionResult>;
         setModalSearchTerm: (term: string) => ActionResult;
     };
 }
@@ -66,7 +61,7 @@ export default class MemberListTeam extends React.PureComponent<Props, State> {
                 {
                     sort: Teams.SORT_USERNAME_OPTION,
                     exclude_deleted_users: true,
-                } as GetTeamMembersOpts,
+                },
             ),
             this.props.actions.getTeamStats(this.props.currentTeamId),
         ]);
@@ -103,7 +98,7 @@ export default class MemberListTeam extends React.PureComponent<Props, State> {
 
                     this.setState({loading: true});
 
-                    loadStatusesForProfilesList(data);
+                    loadStatusesForProfilesList(data!);
                     loadTeamMembersForProfilesList(data, this.props.currentTeamId, true).then(({data: membersLoaded}) => {
                         if (membersLoaded) {
                             this.loadComplete();

@@ -2,12 +2,13 @@
 // See LICENSE.txt for license information.
 
 import {shallow} from 'enzyme';
-import React, {ComponentProps} from 'react';
+import React from 'react';
+import type {ComponentProps} from 'react';
 
 import {TestHelper} from 'utils/test_helper';
 
-import BackstageSidebar from './backstage_sidebar';
 import BackstageCategory from './backstage_category';
+import BackstageSidebar from './backstage_sidebar';
 
 describe('components/backstage/components/BackstageSidebar', () => {
     const defaultProps: ComponentProps<typeof BackstageSidebar> = {
@@ -15,7 +16,6 @@ describe('components/backstage/components/BackstageSidebar', () => {
             id: 'team-id',
             name: 'team_name',
         }),
-        user: TestHelper.getUserMock({}),
         enableCustomEmoji: false,
         enableIncomingWebhooks: false,
         enableOutgoingWebhooks: false,
@@ -23,6 +23,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
         enableOAuthServiceProvider: false,
         canCreateOrDeleteCustomEmoji: false,
         canManageIntegrations: false,
+        enableOutgoingOAuthConnections: false,
     };
 
     describe('custom emoji', () => {
@@ -145,6 +146,30 @@ describe('components/backstage/components/BackstageSidebar', () => {
         });
     });
 
+    describe('outgoing oauth connections', () => {
+        const testCases = [
+            {canManageIntegrations: false, enableOutgoingOAuthConnections: false, expectedResult: false},
+            {canManageIntegrations: false, enableOutgoingOAuthConnections: true, expectedResult: false},
+            {canManageIntegrations: true, enableOutgoingOAuthConnections: false, expectedResult: false},
+            {canManageIntegrations: true, enableOutgoingOAuthConnections: true, expectedResult: true},
+        ];
+
+        testCases.forEach((testCase) => {
+            it(`when outgoing oauth connections is ${testCase.enableOutgoingOAuthConnections} and can manage integrations is ${testCase.canManageIntegrations}`, () => {
+                const props = {
+                    ...defaultProps,
+                    enableOutgoingOAuthConnections: testCase.enableOutgoingOAuthConnections,
+                    canManageIntegrations: testCase.canManageIntegrations,
+                };
+                const wrapper = shallow(
+                    <BackstageSidebar {...props}/>,
+                );
+
+                expect(wrapper.find(BackstageCategory).find({name: 'outgoing-oauth2-connections'}).exists()).toBe(testCase.expectedResult);
+            });
+        });
+    });
+
     describe('bots', () => {
         const testCases = [
             {canManageIntegrations: false, expectedResult: false},
@@ -175,6 +200,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 enableCommands: true,
                 enableOAuthServiceProvider: true,
                 canManageIntegrations: true,
+                enableOutgoingOAuthConnections: true,
             };
             const wrapper = shallow(
                 <BackstageSidebar {...props}/>,
@@ -184,6 +210,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
             expect(wrapper.find(BackstageCategory).find({name: 'outgoing_webhooks'}).exists()).toBe(true);
             expect(wrapper.find(BackstageCategory).find({name: 'commands'}).exists()).toBe(true);
             expect(wrapper.find(BackstageCategory).find({name: 'oauth2-apps'}).exists()).toBe(true);
+            expect(wrapper.find(BackstageCategory).find({name: 'outgoing-oauth2-connections'}).exists()).toBe(true);
             expect(wrapper.find(BackstageCategory).find({name: 'bots'}).exists()).toBe(true);
         });
 
@@ -194,6 +221,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
                 enableOutgoingWebhooks: true,
                 enableCommands: true,
                 enableOAuthServiceProvider: true,
+                enableOutgoingOAuthConnections: true,
                 canManageIntegrations: false,
             };
             const wrapper = shallow(
@@ -204,6 +232,7 @@ describe('components/backstage/components/BackstageSidebar', () => {
             expect(wrapper.find(BackstageCategory).find({name: 'outgoing_webhooks'}).exists()).toBe(false);
             expect(wrapper.find(BackstageCategory).find({name: 'commands'}).exists()).toBe(false);
             expect(wrapper.find(BackstageCategory).find({name: 'oauth2-apps'}).exists()).toBe(false);
+            expect(wrapper.find(BackstageCategory).find({name: 'outgoing-oauth2-connections'}).exists()).toBe(false);
             expect(wrapper.find(BackstageCategory).find({name: 'bots'}).exists()).toBe(false);
         });
     });

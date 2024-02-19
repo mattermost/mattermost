@@ -2,6 +2,8 @@
 // See LICENSE.txt for license information.
 
 export enum NoResultsVariant {
+    Search = 'Search',
+    Files = 'Files',
     ChannelSearch = 'ChannelSearch',
     Mentions = 'Mentions',
     FlaggedPosts = 'FlaggedPosts',
@@ -10,6 +12,7 @@ export enum NoResultsVariant {
     ChannelFilesFiltered = 'ChannelFilesFiltered',
     UserGroups = 'UserGroups',
     UserGroupMembers = 'UserGroupMembers',
+    UserGroupsArchived = 'UserGroupsArchived',
 }
 
 export enum NoResultsLayout {

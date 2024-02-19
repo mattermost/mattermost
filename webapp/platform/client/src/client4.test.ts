@@ -41,15 +41,6 @@ describe('Client4', () => {
             expect(client.serverVersion).toEqual('5.3.0.5.3.0.abc123');
         });
     });
-
-    describe('fetchWithGraphQL', () => {
-        test('Should have correct graphql url', async () => {
-            const client = new Client4();
-            client.setUrl('http://mattermost.example.com');
-
-            expect(client.getGraphQLUrl()).toEqual('http://mattermost.example.com/api/v5/graphql');
-        });
-    });
 });
 
 describe('ClientError', () => {

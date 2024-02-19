@@ -73,15 +73,15 @@
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.firefox",
-    "translation": "Version 102+"
+    "translation": "Version 115+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.edge",
-    "translation": "Version 110+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.min_browser_version.chrome",
-    "translation": "Version 110+"
+    "translation": "Version 118+"
   },
   {
     "id": "web.error.unsupported_browser.learn_more",
@@ -320,10 +320,6 @@
     "translation": "Create_at har ett ogiltigt värde."
   },
   {
-    "id": "model.file_info.get.gif.app_error",
-    "translation": "Kunde inte tolka gif."
-  },
-  {
     "id": "model.emoji.user_id.app_error",
     "translation": "Ogiltigt \"creator id\"."
   },
@@ -437,7 +433,7 @@
   },
   {
     "id": "model.config.is_valid.saml_idp_descriptor_url.app_error",
-    "translation": "Service Provider Issuer URL måste vara en giltig URL, och starta med http:// eller https://."
+    "translation": "Identity Provider Issuer URL kan inte vara en tom sträng."
   },
   {
     "id": "model.config.is_valid.saml_idp_cert.app_error",
@@ -497,7 +493,7 @@
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.customer_type.app_error",
-    "translation": "GlobalRelaySettings.CustomerType för meddelandeexport måste anges till antingen 'A9' eller 'A10'."
+    "translation": "GlobalRelaySettings.CustomerType för meddelandeexport måste anges till antingen 'A9', 'A10' eller 'CUSTOM'."
   },
   {
     "id": "model.config.is_valid.message_export.global_relay.config_missing.app_error",
@@ -673,11 +669,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Meddelandelagring måste vara en dag eller längre."
+    "translation": "Arkiveringstid av meddelanden kan inte vara mindre än 0 dagar."
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Fillagring måste vara en dag eller längre."
+    "translation": "Arkiveringstid av filer kan inte vara mindre än 0 dagar."
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
@@ -1053,7 +1049,7 @@
   },
   {
     "id": "interactive_message.decode_trigger_id.expired",
-    "translation": "Giltighetstiden för Trigger-ID i den interaktiva dialogen är slut. Giltighetestiden för Trigger-ID är {{.Seconds}} sekunder."
+    "translation": "Giltighetstiden för Trigger-ID i den interaktiva dialogen är slut. Giltighetestiden för Trigger-ID är {{.Duration}}."
   },
   {
     "id": "interactive_message.decode_trigger_id.base64_decode_failed_signature",
@@ -2629,15 +2625,15 @@
   },
   {
     "id": "app.notification.subject.notification.full",
-    "translation": "[{{.SiteName}}] Notis i {{ .TeamName}} den {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Notis i {{ .TeamName}} den {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "[{{.SiteName}}] Nytt gruppmeddelande den {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nytt gruppmeddelande den {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.group_message.full",
-    "translation": "[{{.SiteName}}] Nytt gruppmeddelande i {{ .ChannelName}} den {{.Day}} {{.Month}}, {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nytt gruppmeddelande i {{ .ChannelName}} den {{.Day}} {{.Month}}, {{.Year}}"
   },
   {
     "id": "app.notification.subject.direct.full",
@@ -3741,7 +3737,7 @@
   },
   {
     "id": "app.import.import_post.user_not_found.error",
-    "translation": "Fel vid import av post. Kunde inte hitta en användare med användarnamnet \"{{.UserName}}\"."
+    "translation": "Fel vid import av post. Kunde inte hitta en användare med användarnamnet \"{{.Username}}\"."
   },
   {
     "id": "app.import.import_post.save_preferences.error",
@@ -3829,7 +3825,7 @@
   },
   {
     "id": "app.import.emoji.bad_file.error",
-    "translation": "Fel vid inläsning av emoij-bildfilen. Emoij med namnet: \"{{.EmoijName}}\""
+    "translation": "Fel vid inläsning av emoij-bildfilen. Emoij med namnet: \"{{.EmojiName}}\""
   },
   {
     "id": "app.import.bulk_import.unsupported_version.error",
@@ -4929,7 +4925,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Ditt lösenord är uppdaterat"
+    "translation": "[{{ .SiteName }}] Ditt lösenord är uppdaterat"
   },
   {
     "id": "api.templates.password_change_body.title",
@@ -4945,11 +4941,11 @@
   },
   {
     "id": "api.templates.mfa_deactivated_body.info",
-    "translation": "Flerfaktorauthentisering har tagits bort från ditt konto på {{.SiteURL}}."
+    "translation": "Flerfaktorsautentisering har tagits bort från ditt konto på {{ .SiteURL }}."
   },
   {
     "id": "api.templates.mfa_change_subject",
-    "translation": "[{{.SiteName}}] Ditt MFA är uppdaterat"
+    "translation": "[{{ .SiteName }}] Ditt MFA är uppdaterat"
   },
   {
     "id": "api.templates.mfa_activated_body.title",
@@ -4957,7 +4953,7 @@
   },
   {
     "id": "api.templates.mfa_activated_body.info",
-    "translation": "Flerfaktorauthentisering har lagts till på ditt konto på {{.SiteURL}}."
+    "translation": "Flerfaktorsautentisering har lagts till på ditt konto på {{ .SiteURL }}."
   },
   {
     "id": "api.templates.invite_subject",
@@ -5033,7 +5029,7 @@
   },
   {
     "id": "api.templates.deactivate_subject",
-    "translation": "[{{.SiteName}}] Ditt konto på {{.ServerURL}} har stängts av"
+    "translation": "[{{ .SiteName }}] Ditt konto på {{ .ServerURL }} har stängts av"
   },
   {
     "id": "api.templates.deactivate_body.warning",
@@ -5041,11 +5037,11 @@
   },
   {
     "id": "api.templates.deactivate_body.title",
-    "translation": "Ditt konto på {{.ServerURL}} har stängts av"
+    "translation": "Ditt konto på {{ .ServerURL }} har stängts av"
   },
   {
     "id": "api.templates.deactivate_body.info",
-    "translation": "Du har stängt av ditt konto på {{.SiteURL}}."
+    "translation": "Du har stängt av ditt konto på {{ .SiteURL }}."
   },
   {
     "id": "api.templates.copyright",
@@ -5141,7 +5137,7 @@
   },
   {
     "id": "api.team.update_restricted_domains.mismatch.app_error",
-    "translation": "Begränsning av grupp till {{.Domain}} är inte tillåtet av systemkonfigurationen. Kontakta din systemadministratör."
+    "translation": "Begränsning av grupp till {{ .Domain }} är inte tillåtet av systemkonfigurationen. Kontakta din systemadministratör."
   },
   {
     "id": "api.team.update_member_roles.not_a_member",
@@ -5845,7 +5841,7 @@
   },
   {
     "id": "api.license.add_license.unique_users.app_error",
-    "translation": "Denna licens stödjer endast {{.Användare}} användare, när ditt system har {{.Count}} unika användare. En unik användare är samma som en unik e-postadress. Du kan se det totala antalet användare som räknas Sajt Rapporter -> Visa Statistik."
+    "translation": "Denna licens stödjer endast {{.Users}} användare, när ditt system har {{.Count}} unika användare. En unik användare är samma som en unik e-postadress. Du kan se det totala antalet användare som räknas Sajt Rapporter -> Visa Statistik."
   },
   {
     "id": "api.license.add_license.save_active.app_error",
@@ -6073,7 +6069,7 @@
   },
   {
     "id": "api.templates.welcome_subject",
-    "translation": "[{{.SiteName}}] Du anslöt till {{.ServerURL}}"
+    "translation": "[{{ .SiteName }}] Du anslöt till {{ .ServerURL }}"
   },
   {
     "id": "api.templates.welcome_body.title",
@@ -6121,7 +6117,7 @@
   },
   {
     "id": "api.templates.verify_subject",
-    "translation": "[{{.SiteName}}] Verifiera e-postadress"
+    "translation": "[{{ .SiteName }}] Verifiera e-postadress"
   },
   {
     "id": "api.templates.verify_body.title",
@@ -6149,7 +6145,7 @@
   },
   {
     "id": "api.templates.user_access_token_subject",
-    "translation": "[{{.SiteName}}] Personligt access_token lades till i ditt konto"
+    "translation": "[{{ .SiteName }}] Personligt access_token lades till i ditt konto"
   },
   {
     "id": "api.templates.user_access_token_body.title",
@@ -6157,11 +6153,11 @@
   },
   {
     "id": "api.templates.user_access_token_body.info",
-    "translation": "Ett access_token lades till i ditt konto på {{.SiteURL}}. Det kan användas för att nå {{.SiteName}} med ditt konto."
+    "translation": "Ett access_token lades till i ditt konto på {{ .SiteURL }}. Det kan användas för att nå {{.SiteName}} med ditt konto."
   },
   {
     "id": "api.templates.signin_change_email.subject",
-    "translation": "[{{.SiteName}}] Din inloggningsmetod är uppdaterad"
+    "translation": "[{{ .SiteName }}] Din inloggningsmetod är uppdaterad"
   },
   {
     "id": "api.templates.signin_change_email.body.title",
@@ -6173,7 +6169,7 @@
   },
   {
     "id": "api.templates.signin_change_email.body.info",
-    "translation": "Du har bytt inloggningsmetod till {{.Method}} på {{.SiteName}}."
+    "translation": "Du har bytt inloggningsmetod till {{.Method}} på {{ .SiteName }}."
   },
   {
     "id": "api.templates.reset_subject",
@@ -6700,11 +6696,14 @@
   },
   {
     "id": "api.command_invite.user_not_in_team.app_error",
-    "translation": "@{{.Username}} är inte medlem i teamet."
+    "translation": "Du kan lägga till {{.Users}} till kanalen när de är medlemmar i teamet **{{.Team}}**."
   },
   {
     "id": "api.command_invite.user_already_in_channel.app_error",
-    "translation": "{{.User}} finns redan i kanalen."
+    "translation": {
+      "one": "{{.User}} finns redan i kanalen.",
+      "other": "{{.User}} finns redan i kanalen."
+    }
   },
   {
     "id": "api.command_invite.success",
@@ -6733,10 +6732,6 @@
   {
     "id": "api.command_invite.hint",
     "translation": "@[username]... ~[channel]..."
-  },
-  {
-    "id": "api.command_invite.group_constrained_user_denied",
-    "translation": "Den här kanalen hanteras av grupper.    Den här användaren tillhör inte en grupp synkad till den här kanalen."
   },
   {
     "id": "api.command_invite.fail.app_error",
@@ -7254,10 +7249,6 @@
     "translation": "Går ej att uppdatera ett meddelande i en raderad kanal."
   },
   {
-    "id": "api.post.link_preview_disabled.app_error",
-    "translation": "Länköversikten har avaktiverats av systemadministratören."
-  },
-  {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
       "one": "{{.Count}} bild skickad: {{.Filenames}}",
@@ -7429,7 +7420,7 @@
   },
   {
     "id": "api.channel.remove_members.denied",
-    "translation": "Följande användare kunde inte tas bort från kanalen på grund av grupprestriktioner: {{.UserIDs}}"
+    "translation": "Följande användare kunde inte tas bort från kanalen på grund av grupprestriktioner: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.remove_member.removed",
@@ -7601,7 +7592,7 @@
   },
   {
     "id": "api.channel.add_members.user_denied",
-    "translation": "Följande användare kunde inte läggas till i kanalen på grund av grupprestriktioner: {{.UserIDs}}"
+    "translation": "Följande användare kunde inte läggas till i kanalen på grund av grupprestriktioner: {{ .UserIDs }}"
   },
   {
     "id": "api.channel.add_members.error",
@@ -8425,7 +8416,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Fel vid kontroll om den delade kanalen finns: {{.Error}}"
+    "translation": "Fel vid kontroll om den delade kanalen {{.ChannelID}} finns: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -8987,10 +8978,6 @@
     "translation": "fel när antal grupper beräknades"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fel vid tolkning av förfrågan."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Ogiltig förfrågan."
   },
@@ -9095,10 +9082,6 @@
     "translation": "Vi kunde inte behandla begäran på grund av begränsningar för länder med embargo. [Läs mer i vår dokumentation] (https://mattermost.com/pl/limitations-for-embargoed-countries), eller kontakta legal@mattermost.com för frågor om exportbegränsningar."
   },
   {
-    "id": "api.insights.feature_disabled",
-    "translation": "Insights ligger bakom en funktionsflagga som inte är aktiverad."
-  },
-  {
     "id": "api.getThreadsForUser.bad_only_params",
     "translation": "Parametrarna OnlyThreads och OnlyTotals för getThreadsForUser utesluter varandra"
   },
@@ -9121,10 +9104,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Elasticsearch-inställningarna har odefinierade värden."
-  },
-  {
-    "id": "app.recent_searches.app_error",
-    "translation": "Fel när senaste sökningar skulle hämtas"
   },
   {
     "id": "api.file.cloud_upload.app_error",
@@ -9153,18 +9132,6 @@
   {
     "id": "model.config.is_valid.image_decoder_concurrency.app_error",
     "translation": "Ogiltig värde {{.Value}} på antal samtidiga dekoder. Måste vara ett positivt tal eller -1."
-  },
-  {
-    "id": "app.post.get_top_threads_for_user_since.app_error",
-    "translation": "Det går inte att få fram användarens topp-trådar."
-  },
-  {
-    "id": "app.post.get_top_threads_for_team_since.app_error",
-    "translation": "Det går inte att få fram teamets topp-trådar."
-  },
-  {
-    "id": "app.insights.feature_disabled",
-    "translation": "Funktionen Insights är inaktiverad."
   },
   {
     "id": "api.cloud.notify_admin_to_upgrade_error.already_notified",
@@ -9199,10 +9166,6 @@
     "translation": "Fel vid rensning av cache av teammedlemmar"
   },
   {
-    "id": "app.post.get_top_dms_for_user_since.app_error",
-    "translation": "Det går inte att få fram användarens topp-direktmeddelanden."
-  },
-  {
     "id": "api.command_marketplace.unsupported.app_error",
     "translation": "Kommandot Marketplace stöds inte på din enhet."
   },
@@ -9216,7 +9179,7 @@
   },
   {
     "id": "api.command_help.success",
-    "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n**[Boards](/boards)** - Hantera projekt och uppgifter i Kanbantavlor för att hjälpa ditt team att nå viktiga milstolpar.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
+    "translation": "Mattermost är en plattform med öppen källkod för säker kommunikation, samarbete och orkestrering av arbete över verktyg och team.\nMattermost innehåller tre viktiga verktyg:\n\n**Channels** - Håll kontakten med ditt team via 1:1 och gruppmeddelanden.\n**[Playbooks](/playbooks)** - Bygg och konfigurera repeterbara processer för att uppnå specifika och förutsägbara resultat.\n\n[Visa dokumentation och guider]({{.HelpLink}})"
   },
   {
     "id": "api.templates.delinquency_30.bullet.files",
@@ -9467,14 +9430,6 @@
     "translation": "Gäståtkomst har inaktiverats"
   },
   {
-    "id": "app.collection.add_collection.exists.app_error",
-    "translation": "Samlingstypen finns redan."
-  },
-  {
-    "id": "app.collection.add_topic.exists.app_error",
-    "translation": "Ämnestypen finns redan."
-  },
-  {
     "id": "app.draft.delete.app_error",
     "translation": "Kunde inte att radera utkastet."
   },
@@ -9523,10 +9478,6 @@
     "translation": "Du kan inte ta bort en bekräftelse i en arkiverad kanal."
   },
   {
-    "id": "worktemplate.category.product_teams",
-    "translation": "Produkt"
-  },
-  {
     "id": "model.draft.is_valid.user_id.app_error",
     "translation": "Ogiltigt användarid."
   },
@@ -9565,14 +9516,6 @@
   {
     "id": "model.acknowledgement.is_valid.post_id.app_error",
     "translation": "Ogiltigt meddelande-id."
-  },
-  {
-    "id": "app.worktemplates.get_templates.app_error",
-    "translation": "Det går inte att få fram arbetsmallar"
-  },
-  {
-    "id": "app.worktemplates.get_categories.app_error",
-    "translation": "Det går inte att få fram kategorier för arbetsmallar"
   },
   {
     "id": "app.post_prority.get_for_post.app_error",
@@ -9691,72 +9634,8 @@
     "translation": "Det gick inte att skapa en statuspost för true up"
   },
   {
-    "id": "app.worktemplates.execute_work_template.playbooks.find_channel_error",
-    "translation": "Det går inte att hitta kanalen som är associerad med en playbook."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.playbooks.create_error",
-    "translation": "Fel vid skapandet av en playbook."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.channels.create_error",
-    "translation": "Fel vid skapandet av en kanal."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.boards.create_error",
-    "translation": "Fel vid skapandet av en tavla."
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.app_error",
-    "translation": "Fel vid utförandet av en arbetsmall."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_playbook",
-    "translation": "Du har inte behörighet att skapa en publik playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_channel",
-    "translation": "Du har inte behörighet att skapa en publik kanal."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_public_board",
-    "translation": "Du har inte behörighet att skapa en publik tavla."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_playbook",
-    "translation": "Du har inte behörighet att skapa en privat playbook."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_channel",
-    "translation": "Du har inte behörighet att skapa en privat kanal."
-  },
-  {
-    "id": "app.worktemplate.execution_request.cannot_create_private_board",
-    "translation": "Du har inte behörighet att skapa en privat tavla."
-  },
-  {
     "id": "app.group.username_conflict",
     "translation": "Användaren med användarnamn \"{{.Username}}\" finns redan."
-  },
-  {
-    "id": "api.work_templates.disabled",
-    "translation": "Arbetsmallar är inaktiverade."
-  },
-  {
-    "id": "worktemplate.category.leadership",
-    "translation": "Ledarskap"
-  },
-  {
-    "id": "worktemplate.category.devops",
-    "translation": "DevOps"
-  },
-  {
-    "id": "worktemplate.category.companywide",
-    "translation": "Företagsgemensam"
-  },
-  {
-    "id": "app.worktemplate.execution_request.license_cannot_create_private_playbook",
-    "translation": "Din licens stöder inte privata playbooks."
   },
   {
     "id": "app.import.validate_user_teams_import_data.invalid_auth_service.error",
@@ -9769,46 +9648,6 @@
   {
     "id": "api.server.cws.needs_enterprise_edition",
     "translation": "Tjänsten är endast tillgänglig i Mattermost Enterprise-edition"
-  },
-  {
-    "id": "app.worktemplates.execute_work_template.name_too_long",
-    "translation": "Fältet Namn får inte innehålla mer än 64 tecken."
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.product_key_not_found",
-    "translation": "hittade inte produktnyckeln"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.itf_not_of_type",
-    "translation": "gränssnittet är inte av förväntad typ"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_patching_board",
-    "translation": "error när tavlan uppdaterades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_no_board",
-    "translation": "fel, ingen tavla skapades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_getting_templates",
-    "translation": "fel när mallar för tavlor hämtades"
-  },
-  {
-    "id": "app.team.create_onboarding_linked_board.error_duplicating_board",
-    "translation": "fel när tavlan duplicerades"
-  },
-  {
-    "id": "api.command_templates.unsupported.app_error",
-    "translation": "Kommandot för mallar stöds inte på din enhet."
-  },
-  {
-    "id": "api.command_templates.name",
-    "translation": "mallar"
-  },
-  {
-    "id": "api.command_templates.desc",
-    "translation": "Öppna fönstret Skapa från mall"
   },
   {
     "id": "api.system.logs.invalidFilter",
@@ -9827,246 +9666,6 @@
     "translation": "Kunde inte rensa oauth-information."
   },
   {
-    "id": "app.user.run.update_status.title",
-    "translation": "Statusuppdatering"
-  },
-  {
-    "id": "app.user.run.update_status.submit_label",
-    "translation": "Uppdatera status"
-  },
-  {
-    "id": "app.user.run.update_status.reminder_for_next_update",
-    "translation": "Påminnelse om nästa uppdatering"
-  },
-  {
-    "id": "app.user.run.update_status.num_channel",
-    "translation": {
-      "one": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanal.",
-      "other": "Ge en uppdatering till intressenterna. Detta inlägg kommer att publiceras i {{.Count}} kanaler."
-    }
-  },
-  {
-    "id": "app.user.run.update_status.finish_run.placeholder",
-    "translation": "Markera även körningen som avslutad"
-  },
-  {
-    "id": "app.user.run.update_status.finish_run",
-    "translation": "Slutför körningen"
-  },
-  {
-    "id": "app.user.run.update_status.change_since_last_update",
-    "translation": "Förändring sedan den senaste uppdateringen"
-  },
-  {
-    "id": "app.user.run.status_enable",
-    "translation": "@{{.Username}} aktiverade statusuppdateringar för [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.status_disable",
-    "translation": "@{{.Username}} inaktiverade statusuppdateringarna för [{{.RunName}}]({{.RunURL}})"
-  },
-  {
-    "id": "app.user.run.request_update",
-    "translation": "@here - @{{.Name}} begärde en statusuppdatering för [{{.RunName}}]({{.RunURL}}). \n"
-  },
-  {
-    "id": "app.user.run.request_join_channel",
-    "translation": "@{{.Name}} är en deltagare i en körning och vill gå med i den här kanalen. Alla medlemmar i kanalen kan bjuda in dem.\n"
-  },
-  {
-    "id": "app.user.run.confirm_finish.title",
-    "translation": "Bekräfta att avsluta körningen"
-  },
-  {
-    "id": "app.user.run.confirm_finish.submit_label",
-    "translation": "Slutför körningen"
-  },
-  {
-    "id": "app.user.run.confirm_finish.num_outstanding",
-    "translation": {
-      "one": "Det finns **{{.Count}} utestående uppgift**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?",
-      "other": "Det finns **{{.Count}} utestående uppgifter**. Är du säker på att du vill avsluta körningen *{{.RunName}}* för alla deltagare?"
-    }
-  },
-  {
-    "id": "app.user.run.add_to_timeline.title",
-    "translation": "Lägg till i tidslinjen för körning"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.placeholder",
-    "translation": "Kort sammanfattning som visas i tidslinjen"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary.help",
-    "translation": "Max 64 tecken"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.summary",
-    "translation": "Sammanfattning"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.submit_label",
-    "translation": "Lägg till i tidslinjen för körning"
-  },
-  {
-    "id": "app.user.run.add_to_timeline.playbook_run",
-    "translation": "Kör Playbook"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.title",
-    "translation": "Lägg till en ny uppgift"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.submit_label",
-    "translation": "Lägg till en uppgift"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.name",
-    "translation": "Namn"
-  },
-  {
-    "id": "app.user.run.add_checklist_item.description",
-    "translation": "Beskrivning"
-  },
-  {
-    "id": "app.user.new_run.title",
-    "translation": "Kör playbook"
-  },
-  {
-    "id": "app.user.new_run.submit_label",
-    "translation": "Starta körning"
-  },
-  {
-    "id": "app.user.new_run.run_name",
-    "translation": "Namn på körning"
-  },
-  {
-    "id": "app.user.new_run.playbook",
-    "translation": "Playbook"
-  },
-  {
-    "id": "app.user.new_run.intro",
-    "translation": "**Ägare** {{.Username}}"
-  },
-  {
-    "id": "app.user.digest.tasks.zero_assigned",
-    "translation": "Du har 0 tilldelade uppgifter."
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned_due_until_today",
-    "translation": {
-      "one": "Du har {{.Count}} tilldelad uppgift som nu är förfallen:",
-      "other": "Du har {{.Count}} tilldelade uppgifter som nu är förfallna:"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.num_assigned",
-    "translation": {
-      "one": "Du har {{.Count}} tilldelad uppgift:",
-      "other": "Du har {{.Count}} tilldelade uppgifter:"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.heading",
-    "translation": "Dina tilldelade uppgifter"
-  },
-  {
-    "id": "app.user.digest.tasks.due_yesterday",
-    "translation": "Skulle utförts igår"
-  },
-  {
-    "id": "app.user.digest.tasks.due_x_days_ago",
-    "translation": "Försenad {{.Count}} dagar"
-  },
-  {
-    "id": "app.user.digest.tasks.due_in_x_days",
-    "translation": {
-      "one": "Ska utföras inom {{.Count}} dag",
-      "other": "Ska utföras inom {{.Count}} dagar"
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.due_today",
-    "translation": "Ska utföras idag"
-  },
-  {
-    "id": "app.user.digest.tasks.due_after_today",
-    "translation": {
-      "one": "Du har **{{.Count}} tilldelad uppgift som ska utföras idag**.",
-      "other": "Du har **{{.Count}} tilldelade uppgifter som ska utföras idag**."
-    }
-  },
-  {
-    "id": "app.user.digest.tasks.all_tasks_command",
-    "translation": "Använd `/playbook todo` för att se alla dina uppgifter."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.zero_in_progress",
-    "translation": "Du har 0 pågående körningar."
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.num_in_progress",
-    "translation": {
-      "one": "Du har {{.Count}} körning som för närvarande pågår:",
-      "other": "Du har {{.Count}} körningar som för närvarande pågår:"
-    }
-  },
-  {
-    "id": "app.user.digest.runs_in_progress.heading",
-    "translation": "Körningar som pågår"
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.zero_overdue",
-    "translation": "Du har 0 försenade körningar."
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.num_overdue",
-    "translation": {
-      "one": "Du har {{.Count}} körning som borde ha fått en statusuppdatering:",
-      "other": "Du har {{.Count}} körningar som borde ha fått en statusuppdatering:"
-    }
-  },
-  {
-    "id": "app.user.digest.overdue_status_updates.heading",
-    "translation": "Status om förseningar"
-  },
-  {
-    "id": "app.command.execute.error",
-    "translation": "Kunde inte utföra kommandot."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.channel",
-    "translation": "Chatta med ditt team om prioriteringar, lägg till intressenter, ge uppdateringar och arbeta mot en lösning i en och samma kanal."
-  },
-  {
-    "id": "worktemplate.devops.incident_resolution.description.board",
-    "translation": "Använd Incident Resolution tavlan för att stödja upprepbara processer och fördela definierade uppgifter i hela teamet."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.integration",
-    "translation": "Öka produktiviteten i din kanal genom att integrera dina mest använda verktyg, exempelvis Zoom, för att underlätta samarbetet. Dessa kommer att laddas ner åt dig."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.channel",
-    "translation": "Chatta om dina mål och framsteg med ditt team, asynkront eller i realtid, och håll dig uppdaterad om förändringar i en och samma kanal."
-  },
-  {
-    "id": "worktemplate.companywide.goals_and_okrs.board",
-    "translation": "Håll koll på teamets steg mot de organisatoriska målen med OKR-tavlan. Håll möten på rätt spår med hjälp av Mötesagenda-tavlan."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.integration",
-    "translation": "Öka produktiviteten i din kanal genom att integrera dina mest använda verktyg. Dessa kommer att laddas ner åt dig."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.channel",
-    "translation": "Chatta med ditt team om ditt nya projekt och bestäm hur ni ska strukturera det i en samarbetskanal."
-  },
-  {
-    "id": "worktemplate.companywide.create_project.board",
-    "translation": "Använd en Kanban-tavla för att definiera och hålla koll på dina uppgifter och framsteg i projekt."
-  },
-  {
     "id": "model.license_record.is_valid.bytes.app_error",
     "translation": "Felaktigt värde för bytes licensen laddas upp."
   },
@@ -10077,10 +9676,6 @@
   {
     "id": "app.plugin.skip_installation.app_error",
     "translation": "Hoppar över installationen av plugin {{.Id}} eftersom den befintliga versionen är samma eller nyare."
-  },
-  {
-    "id": "app.plugin.blocked.app_error",
-    "translation": "Plugin {{.Id}} finns på blocklistan. Vissa plugins är blockerade eftersom de är inbyggda i den här versionen av Mattermost."
   },
   {
     "id": "api.server.cws.subscribe_to_newsletter.app_error",
@@ -10097,5 +9692,669 @@
   {
     "id": "api.error_no_organization_name_provided_for_self_hosted_onboarding",
     "translation": "Fel: inget organisationsnamn har angetts för egen onboarding."
+  },
+  {
+    "id": "app.file_info.get.gif.app_error",
+    "translation": "Kunde inte avkoda gif."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_parse.error",
+    "translation": "Det går inte att tolka token när lösenordsåterställningstoken är ogiltiga"
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_team.app_error",
+    "translation": "Kunde inte radera persistenta notifieringar per team."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Persistenta notifieringar måste ha prioriteringen Brådskande."
+  },
+  {
+    "id": "app.post.delete_post.get_team.app_error",
+    "translation": "Ett fel uppstod när team skulle hämtas."
+  },
+  {
+    "id": "app.post_persistent_notification.delete_by_channel.app_error",
+    "translation": "Kunde inte radera persistenta notifieringar per kanal."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_recipients.app_error",
+    "translation": "Ogiltigt maximalt antal mottagare för permanenta notifieringar. Måste vara ett positivt tal."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.config.app_error",
+    "translation": "Denna åtgärd kräver användning av specifik lagring av export."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.featureflag.app_error",
+    "translation": "Denna funktion begränsas av en funktionsflagga."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.link.app_error",
+    "translation": "Kan inte generera presigned url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.fileexist.app_error",
+    "translation": "Kunde inte kontrollera om filen finns."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens.error",
+    "translation": "Det går inte att hämta tokens efter typ när lösenordsåterställningstoken är ogiltiga"
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_count.app_error",
+    "translation": "Ogiltigt värde på persistent notifieringar per meddelande. Måste vara ett positivt tal."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Skapa en länk för att hämta en export."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "File store-drivrutinen stöder inte länkgenerering."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "Ingen exportfil har hittats."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[jobb-id|zip filnamn|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "Det gick inte att hitta den fil du efterfrågade."
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Du kan ladda ner din fil här: {{.Link}}.\nDenna länk kommer att upphöra att gälla om {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlänk"
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "Det gick inte att hämta listan med exporter."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "Du har inte tillräckliga behörigheter för att köra kommandot."
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "Kan inte generera presign url."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.existing.app_error",
+    "translation": "Kan inte hitta medlemsantal för givna kanaler."
+  },
+  {
+    "id": "app.channel.get_channels_member_count.find.app_error",
+    "translation": "Kan inte hitta antalet medlemmar."
+  },
+  {
+    "id": "app.channel.update_member.app_error",
+    "translation": "Kan inte uppdatera kanalmedlemmen."
+  },
+  {
+    "id": "app.channel.update_member.notify_props_limit_exceeded.app_error",
+    "translation": "Kan inte uppdatera kanalmedlemmen, storleksgränsen för notify props har överskridits."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.driver.app_error",
+    "translation": "Din drivrutin för lagring av export har inte stöd för generering av presign url."
+  },
+  {
+    "id": "app.eport.generate_presigned_url.notfound.app_error",
+    "translation": "Exportfilen hittades inte."
+  },
+  {
+    "id": "app.post_priority.delete_persistent_notification_post.app_error",
+    "translation": "Kunde inte ta bort persistent notiferingspost"
+  },
+  {
+    "id": "app.save_config.plugin_hook_error",
+    "translation": "Ett fel uppstod när plugin-hooken kördes när konfigurationen sparades."
+  },
+  {
+    "id": "model.channel_member.is_valid.notify_props.app_error",
+    "translation": "Notify props storleksgräns har överskridits."
+  },
+  {
+    "id": "model.config.is_valid.elastic_search.ignored_indexes_dash_prefix.app_error",
+    "translation": "Ignorerade index för rensning ska inte börja med bindestreck."
+  },
+  {
+    "id": "model.config.is_valid.persistent_notifications_interval.app_error",
+    "translation": "Ogiltigt värde på persistent notifiering. Måste vara minst två minuter."
+  },
+  {
+    "id": "api.user.invalidate_password_recovery_tokens_delete.error",
+    "translation": "Det går inte att ta bort token när lösenordsåterställningstoken är ogiltiga"
+  },
+  {
+    "id": "model.channel_member.is_valid.channel_auto_follow_threads_value.app_error",
+    "translation": "Ogiltigt värde för channel-auto-follow-threads."
+  },
+  {
+    "id": "model.config.is_valid.local_mode_socket.app_error",
+    "translation": "Det gick inte att hitta katalogen för lokal socket-fil."
+  },
+  {
+    "id": "api.post.post_priority.max_recipients_persistent_notification_post.request_error",
+    "translation": "Meddelanden med persistenta notifieringar tillåter maximalt {{.MaxRecipients}} mottagare."
+  },
+  {
+    "id": "api.post.post_priority.min_recipients_persistent_notification_post.request_error",
+    "translation": "Meddelanden med persistenta notifieringar måste ha minst 1 mottagare."
+  },
+  {
+    "id": "api.post.post_priority.persistent_notification_validation_error.request_error",
+    "translation": "Validering av persistenta notifieringar misslyckades."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "Användaren får inte skapa prioriterade inlägg eller persistenta notifieringar."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Endast rot-meddelanden tillåts ha prioritering."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "Det är inte tillåtet för en användare att konvertera gruppmeddelanden till en privat kanal"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} skapade kanalen från en gruppkonversation med {{.GMMembers}}."
+  },
+  {
+    "id": "app.desktop_token.generateServerToken.invalid_or_expired",
+    "translation": "Token finns inte eller har gått ut"
+  },
+  {
+    "id": "app.desktop_token.validate.invalid",
+    "translation": "Token är inte giltig eller har gått ut"
+  },
+  {
+    "id": "app.desktop_token.validate.no_user",
+    "translation": "Kan inte hitta en användare för denna token"
+  },
+  {
+    "id": "app.file_info.set_searchable_content.app_error",
+    "translation": "Det gick inte att ange filens sökbara innehåll."
+  },
+  {
+    "id": "app.import.import_channel.deleting.app_error",
+    "translation": "Det gick inte att arkivera importerad kanal."
+  },
+  {
+    "id": "app.reaction.permanent_delete_by_user.app_error",
+    "translation": "Det gick inte att radera reaktioner för användaren."
+  },
+  {
+    "id": "humanize.list_join",
+    "translation": "{{.OtherItems}} och {{.LastItem}}"
+  },
+  {
+    "id": "api.user.login.remote_users.login.error",
+    "translation": "Inloggningen misslyckades eftersom fjärranslutna användare inte är tillåtna att logga in."
+  },
+  {
+    "id": "app.channel.get_common_teams.incorrect_channel_type",
+    "translation": "Kanalen är inte ett gruppmeddelande."
+  },
+  {
+    "id": "app.channel.gm_conversion_set_categories.delete_all.error",
+    "translation": "Det gick inte att radera befintliga kategorier i sidofältet för konverterad GM."
+  },
+  {
+    "id": "model.config.is_valid.link_metadata_timeout.app_error",
+    "translation": "Ogiltigt värde för timeout för länkmetadata. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.config.is_valid.user_status_away_timeout.app_error",
+    "translation": "Ogiltigt värde för användarens \"borta\"-status tidsgräns. Måste vara ett positivt tal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du får inte uppdatera namn, visningsnamn och syfte i direkt- eller gruppmeddelanden."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "Du får inte uppdatera namn, visningsnamn och syfte i direkt- eller gruppmeddelanden."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Den här kanalen hanteras av grupper.    Den här användaren är inte medlem i en grupp synkad med kanalen."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} och {{.Others}} har lagts till i kanalen {{.Channel}}."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} och {{.Others}} andra är redan med i kanalen."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Du kan lägga till andra {{.FirstUser}} och {{.Others}} andra till den här kanalen när de är medlemmar i **{{.Team}}**-teamet."
+  },
+  {
+    "id": "app.channel.get_channels_with_unreads_and_with_mentions.app_error",
+    "translation": "Kunde inte kontrollera olästa meddelanden och omnämnanden"
+  },
+  {
+    "id": "app.thread.mark_all_as_read_by_channels.app_error",
+    "translation": "Kunde inte markera alla trådar som lästa i kanalen"
+  },
+  {
+    "id": "app.channel.get_common_teams.store_get_common_teams_error",
+    "translation": "Kunde inte hämta vanliga team."
+  },
+  {
+    "id": "app.channel.group_message_conversion.channel_member_missing",
+    "translation": "Kan inte hitta användarens kanal-medlemskap"
+  },
+  {
+    "id": "app.channel.group_message_conversion.incorrect_team",
+    "translation": "Angivet team-ID i konversations begäran innehåller inte alla medlemmar i gruppmeddelandet"
+  },
+  {
+    "id": "app.channel.group_message_conversion.original_channel_not_gm",
+    "translation": "Kanalen som konverteras är inte ett gruppmeddelande. Du kan bara konvertera gruppmeddelanden"
+  },
+  {
+    "id": "app.channel.group_message_conversion.post_message.error",
+    "translation": "Misslyckades med att konvertera gruppmeddelande till kanalmeddelande"
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "Det går inte att få så många emojis med namn. Endast {{.MaxNames}} emojis kan fås per gång."
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.json",
+    "translation": "Kunde inte tolka JSON: {{.Error}}"
+  },
+  {
+    "id": "model.config.is_valid.log.advanced_logging.parse",
+    "translation": "Felaktigt format: {{.Error}}"
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Ett fel uppstod när IP-filter skulle appliceras"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Ett fel uppstod när IP-filter skulle hämtas"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Ett fel uppstod när klientens IP-adress skulle hämtas"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "IP-filter är inte tillgängligt på den här servern"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.button",
+    "translation": "Granska ändringarna"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subTitle",
+    "translation": "@{{ .InitiatingUsername }} ändrade IP-filterinställningarna för din arbetsyta på URL: {{ .SiteURL }}"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.subject",
+    "translation": "Förändringarna av IP-filter på din arbetsyta"
+  },
+  {
+    "id": "api.templates.ip_filters_changed.title",
+    "translation": "IP-filterändringarna på din arbetsyta"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.contact_support",
+    "translation": "Kontakta support"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.log_in_to_customer_portal",
+    "translation": "Logga in på kund-portalen för att ändra IP-filter"
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.title",
+    "translation": "Har du problem att nå arbetsytan?"
+  },
+  {
+    "id": "app.login.doLogin.updateLastLogin.error",
+    "translation": "Kunde inte uppdatera tidsstämpeln för senast inloggning"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.error",
+    "translation": "Någon URL för Audience är felaktigt."
+  },
+  {
+    "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
+    "translation": "Skicka mejl till {{ .InitiatingUserEmail }}"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.audience.empty",
+    "translation": "OAuth-attributet Audience kan inte vara tomt."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.update_at.error",
+    "translation": "Update at måste vara en giltig tid."
+  },
+  {
+    "id": "app.plugin.subpath_parse.app_error",
+    "translation": "Misslyckades att tolka SiteURL subpath"
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
+    "translation": "Felaktig Client Id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.client_secret.error",
+    "translation": "Felaktig Client Secret."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.create_at.error",
+    "translation": "Create at måste vara en giltig tid."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.creator_id.error",
+    "translation": "Ogiltig Creator Id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
+    "translation": "Felaktig Grant-typ."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.id.error",
+    "translation": "Felaktigt Id."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.name.error",
+    "translation": "Felaktigt Name."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.oauth_token_url.error",
+    "translation": "Felaktig URL för Oauth token."
+  },
+  {
+    "id": "model.outgoing_oauth_connection.is_valid.password_credentials.error",
+    "translation": "Felaktigt lösenord."
+  },
+  {
+    "id": "app.reaction.save.save.too_many_reactions",
+    "translation": "Gränsen för antal reaktioner på meddelandet har nåtts."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Ogiltigt team-ID har angetts."
+  },
+  {
+    "id": "api.custom_status.set_custom_statuses.emoji_not_found",
+    "translation": "Det gick inte att uppdatera den anpassade statusen. En emoji med det angivna namnet finns inte."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "Kan inte dölja både aktiva och inaktiva användare."
+  },
+  {
+    "id": "model.config.is_valid.message_export.global_relay.customer_type_custom.app_error",
+    "translation": "Om GlobalRelaySettings.CustomerType är 'CUSTOM' måste GlobalRelaySettings.CustomSMTPServerName och GlobalRelaySettings.CustomSMTPPort anges."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "Sidstorleken är ogiltig eller för stor."
+  },
+  {
+    "id": "api.post.move_thread.disabled.app_error",
+    "translation": "Möjligheten att flytta trådar är inaktiverad"
+  },
+  {
+    "id": "api.post.move_thread.no_permission",
+    "translation": "Du har inte behörighet att flytta tråden."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Förnyelse av årsabonnemang inom 60 dagar"
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Det gick inte att skriva CSV-rubriker."
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "Kan inte bjuda in externa användare eftersom kanalen {{.ChannelID}} inte är delad."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Kunde inte bekräfta inbjudan: {{.Error}}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Det uppstod ett fel när utgående OAuth-anslutningar listades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ogiltiga parametrar angavs."
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Ett fel uppstod när innehållet analyserades."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Det går inte att få så många roller via namn. Endast {{.MaxNames}} roller kan efterfrågas per gång."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Förnya nu"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Åtgärd krävs: Årlig prenumerationsförnyelse om 7 dagar"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Du kommer att förlora åtkomsten till din arbetsyta om 7 dagar"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Kunde inte uppdatera notifieringsattribut för medlemmarna i kanalen."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Kunde inte uppdatera så många kanalmedlemmar. Endast {{.Max}} kanalmedlemmar kan uppdateras samtidigt."
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Förnya för att undvika avbrott"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Årlig faktura förfaller inom 30 dagar"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Kunde inte hitta användaren."
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Din årliga faktura förfaller om 30 dagar"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Förnyelse av årsabonnemang inom 60 dagar"
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Kan inte söka till början på filen."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fel vid kontroll av om en användare har en anpassad profilbild."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Rapportformatet stöds inte."
+  },
+  {
+    "id": "app.post.move_thread_command.channel.one_message",
+    "translation": "Ett meddelande har flyttats: {{.Link}}\n"
+  },
+  {
+    "id": "app.post.move_thread.from_another_channel",
+    "translation": "Denna tråd flyttades från en annan kanal"
+  },
+  {
+    "id": "app.post.move_thread_command.error",
+    "translation": "Kunde inte ta ort tråden"
+  },
+  {
+    "id": "app.post.move_thread_command.channel.multiple_messages",
+    "translation": "En tråd med {{.NumMessages}} meddelanden har flyttats: {{.Link}}\n"
+  },
+  {
+    "id": "model.reporting_base_options.is_valid.bad_date_range",
+    "translation": "Det angivna datumintervallet är ogiltigt."
+  },
+  {
+    "id": "model.user_report_options.is_valid.invalid_sort_column",
+    "translation": "Den angivna sorteringskolumnen är inte giltig."
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Misslyckades att hämta antal användare"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.one_message",
+    "translation": "Ett meddelande har flyttats till ett Direkt- eller Gruppmeddelande\n"
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Din export är klar. CSV-filen innehåller användardata för {{.DateRange}}. Klicka på länken nedan för att ladda ner rapporten."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Du har påbörjat en export av användardata för {{.DateRange}}. När exporten är klar kommer en CSV-fil att levereras till dig i detta direktmeddelande."
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Ett jobb finns redan för denna användare och datumintervall."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Batchexport av rapporter är endast tillgängligt för Pro och Enterprise."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Kunde inte spara en bit av CVS-filen."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Rapportformatet stöds inte."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "Den utgående oauth-anslutningen hittades inte."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Det uppstod ett fel när utgående oauth-anslutningar hämtades."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Ogiltig maxstorlek för nyttolast för serviceinställningar. Måste vara ett heltal större än noll."
+  },
+  {
+    "id": "model.config.is_valid.move_thread.domain_invalid.app_error",
+    "translation": "Ogiltig domän för inställningar att flytta tråd"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Misslyckades att hämta antal användare."
+  },
+  {
+    "id": "app.report.get_user_report.store_error",
+    "translation": "Misslyckades att hämta användarrapporten."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen togs bort."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen hämtades."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle uppdateras."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Arkiveringstid av meddelanden kan inte vara större än 0 för både dagar och timmar."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Arkiveringstid av meddelanden kan inte vara mindre än 0 timmar"
+  },
+  {
+    "id": "app.post.move_thread_command.direct_or_group.multiple_messages",
+    "translation": "En tråd med {{.NumMessages}} meddelanden har flyttats till ett Direkt- eller Gruppmeddelande\n"
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "alla tider"
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "senaste 30 dagarna"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "senaste 6 månaderna"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "föregående månad"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Kunde inte spara filinformation."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Datumintervall saknas"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Inget användar-ID att skicka rapporten till"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle sparas."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Arkiveringstid av filer kan inte vara större än 0 för både dagar och timmar."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Arkiveringstid av meddelanden kan inte vara 0 för både dagar och timmar."
+  },
+  {
+    "id": "model.config.is_valid.outgoing_integrations_request_timeout.app_error",
+    "translation": "Felaktigt värde för Outgoing Integrations Request Timeout for service. Måste vara ett positivt tal."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Arkiveringstid av filer kan inte vara 0 för både dagar och timmar."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Arkiveringstid av filer kan inte vara mindre än 0 timmar"
   }
 ]

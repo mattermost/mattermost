@@ -1,18 +1,20 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {MouseEvent} from 'react';
+import React from 'react';
+import type {MouseEvent} from 'react';
 import {useIntl} from 'react-intl';
-
-import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
-import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
 
 import {PencilOutlineIcon} from '@mattermost/compass-icons/components';
 
-import OverlayTrigger from '../../overlay_trigger';
-import Tooltip from '../../tooltip';
+import {getDateForTimezone} from 'mattermost-redux/utils/timezone_utils';
 
-import {Props} from './index';
+import OverlayTrigger from 'components/overlay_trigger';
+import Tooltip from 'components/tooltip';
+
+import {isSameDay, isWithinLastWeek, isYesterday} from 'utils/datetime';
+
+import type {Props} from './index';
 
 const PostEditedIndicator = ({postId, isMilitaryTime, timeZone, editedAt = 0, postOwner, post, canEdit, actions}: Props): JSX.Element | null => {
     const {formatMessage, formatDate, formatTime} = useIntl();

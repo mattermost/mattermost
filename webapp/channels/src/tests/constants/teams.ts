@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {TeamsState} from '@mattermost/types/teams';
+import type {TeamsState} from '@mattermost/types/teams';
+
 import {TestHelper} from 'utils/test_helper';
 
 export const emptyTeams: () => TeamsState = () => ({

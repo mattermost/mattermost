@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {mount} from 'enzyme';
+import React from 'react';
 import {Provider} from 'react-redux';
 
 import AnyTeamPermissionGate from 'components/permissions_gates/any_team_permission_gate';

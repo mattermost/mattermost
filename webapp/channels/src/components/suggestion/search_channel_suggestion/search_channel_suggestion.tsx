@@ -3,16 +3,18 @@
 
 import React from 'react';
 
-import BotTag from 'components/widgets/tag/bot_tag';
+import type {Channel} from '@mattermost/types/channels';
 
 import {getUserIdFromChannelName} from 'mattermost-redux/utils/channel_utils';
-import {imageURLForUser} from 'utils/utils';
-import Constants from 'utils/constants';
+
+import BotTag from 'components/widgets/tag/bot_tag';
 import Avatar from 'components/widgets/users/avatar';
 
-import {SuggestionContainer, SuggestionProps} from '../suggestion';
+import Constants from 'utils/constants';
+import {imageURLForUser} from 'utils/utils';
 
-import {Channel} from '@mattermost/types/channels';
+import {SuggestionContainer} from '../suggestion';
+import type {SuggestionProps} from '../suggestion';
 
 function itemToName(item: Channel, currentUserId: string): {icon: React.ReactElement; name: string; description: string} | null {
     if (item.type === Constants.DM_CHANNEL) {

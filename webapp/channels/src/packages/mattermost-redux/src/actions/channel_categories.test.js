@@ -3,22 +3,19 @@
 
 import nock from 'nock';
 
-import configureStore from 'mattermost-redux/test/test_store';
+import {CategorySorting} from '@mattermost/types/channel_categories';
 
 import {Client4} from 'mattermost-redux/client';
+import {getAllCategoriesByIds, getCategory} from 'mattermost-redux/selectors/entities/channel_categories';
+import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
+import TestHelper, {DEFAULT_SERVER} from 'mattermost-redux/test/test_helper';
+import configureStore from 'mattermost-redux/test/test_store';
+
+import * as Actions from './channel_categories';
 
 import {General} from '../constants';
 import {CategoryTypes} from '../constants/channel_categories';
 import {MarkUnread} from '../constants/channels';
-
-import {getAllCategoriesByIds, getCategory} from 'mattermost-redux/selectors/entities/channel_categories';
-import {isFavoriteChannel} from 'mattermost-redux/selectors/entities/channels';
-
-import TestHelper, {DEFAULT_SERVER} from 'mattermost-redux/test/test_helper';
-
-import {CategorySorting} from '@mattermost/types/channel_categories';
-
-import * as Actions from './channel_categories';
 
 const OK_RESPONSE = {status: 'OK'};
 

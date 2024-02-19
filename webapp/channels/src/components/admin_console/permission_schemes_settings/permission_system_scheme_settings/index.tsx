@@ -2,15 +2,14 @@
 // See LICENSE.txt for license information.
 
 import {connect} from 'react-redux';
-import {ActionCreatorsMapObject, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {Dispatch} from 'redux';
 
-import {GlobalState} from '@mattermost/types/store';
-import {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions.js';
-import {Role} from '@mattermost/types/roles';
+import type {GlobalState} from '@mattermost/types/store';
 
 import {loadRolesIfNeeded, editRole} from 'mattermost-redux/actions/roles';
-import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 import {getLicense, getConfig} from 'mattermost-redux/selectors/entities/general';
+import {getRoles} from 'mattermost-redux/selectors/entities/roles';
 
 import {setNavigationBlocked} from 'actions/admin_actions.jsx';
 
@@ -23,15 +22,10 @@ function mapStateToProps(state: GlobalState) {
         roles: getRoles(state),
     };
 }
-type Actions = {
-    loadRolesIfNeeded: (roles: Iterable<string>) => void;
-    editRole: (role: Partial<Role>) => Promise<ActionResult>;
-    setNavigationBlocked: (blocked: boolean) => void;
-};
 
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             loadRolesIfNeeded,
             editRole,
             setNavigationBlocked,

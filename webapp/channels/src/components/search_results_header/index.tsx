@@ -1,10 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {ConnectedProps} from 'react-redux';
 import {connect} from 'react-redux';
-import {AnyAction, bindActionCreators, Dispatch} from 'redux';
+import {bindActionCreators} from 'redux';
+import type {AnyAction, Dispatch} from 'redux';
 
-import {GlobalState} from 'types/store/index.js';
+import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
 import {
     closeRightHandSide,
@@ -12,9 +14,10 @@ import {
     goBack,
 } from 'actions/views/rhs';
 import {getIsRhsExpanded, getPreviousRhsState} from 'selectors/rhs';
-import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
 import {RHSStates} from 'utils/constants';
+
+import type {GlobalState} from 'types/store/index.js';
 
 import SearchResultsHeader from './search_results_header';
 
@@ -43,4 +46,8 @@ function mapDispatchToProps(dispatch: Dispatch<AnyAction>) {
     };
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(SearchResultsHeader);
+const connector = connect(mapStateToProps, mapDispatchToProps);
+
+export type PropsFromRedux = ConnectedProps<typeof connector>;
+
+export default connector(SearchResultsHeader);

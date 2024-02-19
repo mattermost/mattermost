@@ -4,11 +4,11 @@
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {Channel} from '@mattermost/types/channels';
-
-import Constants from 'utils/constants';
+import type {Channel} from '@mattermost/types/channels';
 
 import ConfirmModal from 'components/confirm_modal';
+
+import Constants from 'utils/constants';
 
 type Props = {
     channel: Channel;

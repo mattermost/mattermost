@@ -1,24 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-
 import {isEmpty} from 'lodash';
-
+import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
-import {PreferenceType} from '@mattermost/types/preferences';
-import {UserProfile} from '@mattermost/types/users';
-import {Subscription} from '@mattermost/types/cloud';
+import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
+import type {Subscription} from '@mattermost/types/cloud';
+import type {PreferenceType} from '@mattermost/types/preferences';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
-import {t} from 'utils/i18n';
 import PricingModal from 'components/pricing_modal';
-
-import {ModalData} from 'types/actions';
-
-import {AlertCircleOutlineIcon, AlertOutlineIcon} from '@mattermost/compass-icons/components';
 
 import {
     Preferences,
@@ -28,7 +22,10 @@ import {
     TELEMETRY_CATEGORIES,
     TrialPeriodDays,
 } from 'utils/constants';
+import {t} from 'utils/i18n';
 import {getLocaleDateFromUTC} from 'utils/utils';
+
+import type {ModalData} from 'types/actions';
 
 import AnnouncementBar from '../default_announcement_bar';
 

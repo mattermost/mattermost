@@ -5,12 +5,15 @@ package app
 
 import (
 	"bytes"
-	"context"
+	_ "embed"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strings"
+	"sync"
 	"testing"
 	"time"
 
@@ -23,7 +26,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/plugin/plugintest"
 	"github.com/mattermost/mattermost/server/public/plugin/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
@@ -427,6 +430,50 @@ func TestHookMessageHasBeenUpdated(t *testing.T) {
 	require.Nil(t, err)
 }
 
+func TestHookMessageHasBeenDeleted(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	var mockAPI plugintest.API
+	mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+	mockAPI.On("LogDebug", "message").Return(nil).Times(1)
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) MessageHasBeenDeleted(c *plugin.Context, post *model.Post) {
+			p.API.LogDebug(post.Message)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+	defer tearDown()
+
+	post := &model.Post{
+		UserId:    th.BasicUser.Id,
+		ChannelId: th.BasicChannel.Id,
+		Message:   "message",
+		CreateAt:  model.GetMillis() - 10000,
+	}
+	_, err := th.App.CreatePost(th.Context, post, th.BasicChannel, false, true)
+	require.Nil(t, err)
+	_, err = th.App.DeletePost(th.Context, post.Id, th.BasicUser.Id)
+	require.Nil(t, err)
+}
+
 func TestHookFileWillBeUploaded(t *testing.T) {
 	t.Run("rejected", func(t *testing.T) {
 		th := Setup(t).InitBasic()
@@ -565,7 +612,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.NotNil(t, response)
 
 		fileID := response.Id
-		fileInfo, err := th.App.GetFileInfo(fileID)
+		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "testhook.txt", fileInfo.Name)
@@ -636,7 +683,7 @@ func TestHookFileWillBeUploaded(t *testing.T) {
 		assert.NotNil(t, response)
 		fileID := response.Id
 
-		fileInfo, err := th.App.GetFileInfo(fileID)
+		fileInfo, err := th.App.GetFileInfo(th.Context, fileID)
 		assert.Nil(t, err)
 		assert.NotNil(t, fileInfo)
 		assert.Equal(t, "modifiedinfo", fileInfo.Name)
@@ -653,7 +700,7 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 	assert.Nil(t, err, "Error updating user password: %s", err)
 	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
 		[]string{
@@ -681,16 +728,17 @@ func TestUserWillLogIn_Blocked(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Contains(t, err.Id, "Login rejected by plugin", "Expected Login rejected by plugin, got %s", err.Id)
+	assert.Nil(t, session)
 }
 
 func TestUserWillLogInIn_Passed(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
 	assert.Nil(t, err, "Error updating user password: %s", err)
 
@@ -720,17 +768,18 @@ func TestUserWillLogInIn_Passed(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
-	assert.Equal(t, th.Context.Session().UserId, th.BasicUser.Id)
+	require.NotNil(t, session)
+	assert.Equal(t, session.UserId, th.BasicUser.Id)
 }
 
 func TestUserHasLoggedIn(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
-	err := th.App.UpdatePassword(th.BasicUser, "hunter2")
+	err := th.App.UpdatePassword(th.Context, th.BasicUser, "hunter2")
 
 	assert.Nil(t, err, "Error updating user password: %s", err)
 
@@ -761,15 +810,65 @@ func TestUserHasLoggedIn(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	err = th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+	session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 
 	assert.Nil(t, err, "Expected nil, got %s", err)
+	assert.NotNil(t, session)
 
 	time.Sleep(2 * time.Second)
 
 	user, _ := th.App.GetUser(th.BasicUser.Id)
 
 	assert.Equal(t, user.FirstName, "plugin-callback-success", "Expected firstname overwrite, got default")
+}
+
+func TestUserHasBeenDeactivated(t *testing.T) {
+	th := Setup(t)
+	defer th.TearDown()
+
+	tearDown, _, _ := SetAppEnvironmentWithPlugins(t,
+		[]string{
+			`
+		package main
+
+		import (
+			"github.com/mattermost/mattermost/server/public/plugin"
+			"github.com/mattermost/mattermost/server/public/model"
+		)
+
+		type MyPlugin struct {
+			plugin.MattermostPlugin
+		}
+
+		func (p *MyPlugin) UserHasBeenDeactivated(c *plugin.Context, user *model.User) {
+			user.Nickname = "plugin-callback-success"
+			p.API.UpdateUser(user)
+		}
+
+		func main() {
+			plugin.ClientMain(&MyPlugin{})
+		}
+	`}, th.App, th.NewPluginAPI)
+	defer tearDown()
+
+	user := &model.User{
+		Email:    "success+test@example.com",
+		Nickname: "testnickname",
+		Username: "testusername",
+		Password: "testpassword",
+	}
+
+	_, err := th.App.CreateUser(th.Context, user)
+	require.Nil(t, err)
+
+	_, err = th.App.UpdateActive(th.Context, user, false)
+	require.Nil(t, err)
+
+	time.Sleep(1 * time.Second)
+	user, err = th.App.GetUser(user.Id)
+
+	require.Nil(t, err)
+	require.Equal(t, "plugin-callback-success", user.Nickname)
 }
 
 func TestUserHasBeenCreated(t *testing.T) {
@@ -802,11 +901,10 @@ func TestUserHasBeenCreated(t *testing.T) {
 	defer tearDown()
 
 	user := &model.User{
-		Email:       model.NewId() + "success+test@example.com",
-		Nickname:    "Darth Vader",
-		Username:    "vader" + model.NewId(),
-		Password:    "passwd1",
-		AuthService: "",
+		Email:    "success+test@example.com",
+		Nickname: "testnickname",
+		Username: "testusername",
+		Password: "testpassword",
 	}
 	_, err := th.App.CreateUser(th.Context, user)
 	require.Nil(t, err)
@@ -893,10 +991,9 @@ func TestErrorString(t *testing.T) {
 func TestHookContext(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	ctx := request.EmptyContext(th.TestLogger)
 
 	// We don't actually have a session, we are faking it so just set something arbitrarily
-	ctx := request.NewContext(context.Background(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.NewId(), model.Session{}, nil)
-	ctx.SetLogger(th.TestLogger)
 	ctx.Session().Id = model.NewId()
 
 	var mockAPI plugintest.API
@@ -988,11 +1085,10 @@ func TestActiveHooks(t *testing.T) {
 
 		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 		user1 := &model.User{
-			Email:       model.NewId() + "success+test@example.com",
-			Nickname:    "Darth Vader1",
-			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
-			AuthService: "",
+			Email:    "success+test@example.com",
+			Nickname: "testnickname",
+			Username: "testusername",
+			Password: "testpassword",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
 		require.Nil(t, appErr)
@@ -1094,10 +1190,10 @@ func TestHookMetrics(t *testing.T) {
 		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
 
 		user1 := &model.User{
-			Email:       model.NewId() + "success+test@example.com",
-			Nickname:    "Darth Vader1",
-			Username:    "vader" + model.NewId(),
-			Password:    "passwd1",
+			Email:       "success+test@example.com",
+			Nickname:    "testnickname",
+			Username:    "testusername",
+			Password:    "testpassword",
 			AuthService: "",
 		}
 		_, appErr := th.App.CreateUser(th.Context, user1)
@@ -1199,10 +1295,14 @@ func TestHookReactionHasBeenRemoved(t *testing.T) {
 	err := th.App.DeleteReactionForPost(th.Context, reaction)
 
 	require.Nil(t, err)
+
+	time.Sleep(1 * time.Second)
+
+	mockAPI.AssertCalled(t, "LogDebug", "star")
 }
 
 func TestHookRunDataRetention(t *testing.T) {
-	th := Setup(t, SkipProductsInitialization()).InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t,
@@ -1330,4 +1430,698 @@ func TestHookOnCloudLimitsUpdated(t *testing.T) {
 	}, plugin.OnCloudLimitsUpdatedID)
 
 	require.True(t, hookCalled)
+}
+
+//go:embed test_templates/hook_notification_will_be_pushed.tmpl
+var hookNotificationWillBePushedTmpl string
+
+func TestHookNotificationWillBePushed(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping TestHookNotificationWillBePushed test in short mode")
+	}
+
+	tests := []struct {
+		name                        string
+		testCode                    string
+		expectedNotifications       int
+		expectedNotificationMessage string
+	}{
+		{
+			name:                  "successfully pushed",
+			testCode:              `return nil, ""`,
+			expectedNotifications: 6,
+		},
+		{
+			name:                  "push notification rejected",
+			testCode:              `return nil, "rejected"`,
+			expectedNotifications: 0,
+		},
+		{
+			name: "push notification modified",
+			testCode: `notification.Message = "brand new message"
+	return notification, ""`,
+			expectedNotifications:       6,
+			expectedNotificationMessage: "brand new message",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			th := Setup(t).InitBasic()
+			defer th.TearDown()
+
+			templatedPlugin := fmt.Sprintf(hookNotificationWillBePushedTmpl, tt.testCode)
+			tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{templatedPlugin}, th.App, th.NewPluginAPI)
+			defer tearDown()
+
+			// Create 3 users, each having 2 sessions.
+			type userSession struct {
+				user    *model.User
+				session *model.Session
+			}
+			var userSessions []userSession
+			for i := 0; i < 3; i++ {
+				u := th.CreateUser()
+				sess, err := th.App.CreateSession(th.Context, &model.Session{
+					UserId:    u.Id,
+					DeviceId:  "deviceID" + u.Id,
+					ExpiresAt: model.GetMillis() + 100000,
+				})
+				require.Nil(t, err)
+				// We don't need to track the 2nd session.
+				_, err = th.App.CreateSession(th.Context, &model.Session{
+					UserId:    u.Id,
+					DeviceId:  "deviceID" + u.Id,
+					ExpiresAt: model.GetMillis() + 100000,
+				})
+				require.Nil(t, err)
+				_, err = th.App.AddTeamMember(th.Context, th.BasicTeam.Id, u.Id)
+				require.Nil(t, err)
+				th.AddUserToChannel(u, th.BasicChannel)
+				userSessions = append(userSessions, userSession{
+					user:    u,
+					session: sess,
+				})
+			}
+
+			handler := &testPushNotificationHandler{
+				t:        t,
+				behavior: "simple",
+			}
+			pushServer := httptest.NewServer(
+				http.HandlerFunc(handler.handleReq),
+			)
+			defer pushServer.Close()
+
+			th.App.UpdateConfig(func(cfg *model.Config) {
+				*cfg.EmailSettings.PushNotificationContents = model.GenericNotification
+				*cfg.EmailSettings.PushNotificationServer = pushServer.URL
+			})
+
+			var wg sync.WaitGroup
+			for _, data := range userSessions {
+				wg.Add(1)
+				go func(user model.User) {
+					defer wg.Done()
+					notification := &PostNotification{
+						Post:    th.CreatePost(th.BasicChannel),
+						Channel: th.BasicChannel,
+						ProfileMap: map[string]*model.User{
+							user.Id: &user,
+						},
+						Sender: &user,
+					}
+					th.App.sendPushNotification(notification, &user, true, false, model.CommentsNotifyAny)
+				}(*data.user)
+			}
+			wg.Wait()
+
+			// Hack to let the worker goroutines complete.
+			time.Sleep(1 * time.Second)
+			// Server side verification.
+			assert.Equal(t, tt.expectedNotifications, handler.numReqs())
+			var numMessages int
+			for _, n := range handler.notifications() {
+				switch n.Type {
+				case model.PushTypeMessage:
+					numMessages++
+					assert.Equal(t, th.BasicChannel.Id, n.ChannelId)
+					if tt.expectedNotificationMessage != "" {
+						assert.Equal(t, tt.expectedNotificationMessage, n.Message)
+					} else {
+						assert.Contains(t, n.Message, "mentioned you")
+					}
+				default:
+					assert.Fail(t, "should not receive any other push notification types")
+				}
+			}
+			assert.Equal(t, tt.expectedNotifications, numMessages)
+		})
+	}
+}
+
+func TestHookMessagesWillBeConsumed(t *testing.T) {
+	setupPlugin := func(t *testing.T, th *TestHelper) {
+		var mockAPI plugintest.API
+		mockAPI.On("LoadPluginConfiguration", mock.Anything).Return(nil)
+		mockAPI.On("LogDebug", "message").Return(nil)
+
+		tearDown, _, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) MessagesWillBeConsumed(posts []*model.Post) []*model.Post {
+				for _, post := range posts {
+					post.Message = "mwbc_plugin:" + post.Message
+				}
+				return posts
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		t.Cleanup(tearDown)
+	}
+
+	t.Run("feature flag disabled", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "false")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
+
+		th := Setup(t).InitBasic()
+		t.Cleanup(th.TearDown)
+
+		setupPlugin(t, th)
+
+		newPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		post, err := th.App.GetSinglePost(newPost.Id, true)
+		require.Nil(t, err)
+		assert.Equal(t, "message", post.Message)
+	})
+
+	t.Run("feature flag enabled", func(t *testing.T) {
+		os.Setenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK", "true")
+		defer os.Unsetenv("MM_FEATUREFLAGS_CONSUMEPOSTHOOK")
+
+		th := Setup(t).InitBasic()
+		t.Cleanup(th.TearDown)
+
+		setupPlugin(t, th)
+
+		newPost := &model.Post{
+			UserId:    th.BasicUser.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   "message",
+			CreateAt:  model.GetMillis() - 10000,
+		}
+		_, err := th.App.CreatePost(th.Context, newPost, th.BasicChannel, false, true)
+		require.Nil(t, err)
+
+		post, err := th.App.GetSinglePost(newPost.Id, true)
+		require.Nil(t, err)
+		assert.Equal(t, "mwbc_plugin:message", post.Message)
+	})
+}
+
+func TestHookPreferencesHaveChanged(t *testing.T) {
+	t.Run("should be called when preferences are changed by non-plugin code", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		var mockAPI plugintest.API
+
+		tearDown, pluginIDs, _ := SetAppEnvironmentWithPlugins(t, []string{`
+			package main
+
+			import (
+				"fmt"
+
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
+				for _, preference := range preferences {
+					p.API.LogDebug(fmt.Sprintf("category=%s name=%s value=%s", preference.Category, preference.Name, preference.Value))
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`}, th.App, func(*model.Manifest) plugin.API { return &mockAPI })
+		defer tearDown()
+
+		// Confirm plugin is actually running
+		require.Len(t, pluginIDs, 1)
+		pluginID := pluginIDs[0]
+
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		// Setup test
+		preferences := model.Preferences{
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_name_1",
+				Value:    "test_value_1",
+			},
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_name_2",
+				Value:    "test_value_2",
+			},
+		}
+
+		mockAPI.On("LogDebug", "category=test_category name=test_name_1 value=test_value_1")
+		mockAPI.On("LogDebug", "category=test_category name=test_name_2 value=test_value_2")
+		defer mockAPI.AssertExpectations(t)
+
+		// Run test
+		err := th.App.UpdatePreferences(th.Context, th.BasicUser.Id, preferences)
+
+		require.Nil(t, err)
+
+		// Hooks are run in a goroutine, so wait for those to complete
+		time.Sleep(1 * time.Second)
+
+		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_1 value=test_value_1")
+		mockAPI.AssertCalled(t, "LogDebug", "category=test_category name=test_name_2 value=test_value_2")
+	})
+
+	t.Run("should be called when preferences are changed by plugin code", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		pluginCode := `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			const (
+				userID = "` + th.BasicUser.Id + `"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) PreferencesHaveChanged(c *plugin.Context, preferences []model.Preference) {
+				// Note that plugin hooks can trigger themselves, and this test sets a preference to trigger that
+				// it has run, so be careful not to introduce an infinite loop here
+
+				if len(preferences) == 1 && preferences[0].Category == "test_category" && preferences[0].Name == "test_name" {
+					if preferences[0].Value == "test_value_first" {
+						appErr := p.API.UpdatePreferencesForUser(userID, []model.Preference{
+							{
+								UserId:   userID,
+								Category: "test_category",
+								Name:     "test_name",
+								Value:    "test_value_second",
+							},
+						})
+						if appErr != nil {
+							panic("error setting preference to second value")
+						}
+					} else if preferences[0].Value == "test_value_second" {
+						appErr := p.API.UpdatePreferencesForUser(userID, []model.Preference{
+							{
+								UserId:   userID,
+								Category: "test_category",
+								Name:     "test_name",
+								Value:    "test_value_third",
+							},
+						})
+						if appErr != nil {
+							panic("error setting preference to third value")
+						}
+					}
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`
+		pluginID := "testplugin"
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		// Confirm plugin is actually running
+		require.True(t, th.App.GetPluginsEnvironment().IsActive(pluginID))
+
+		appErr := th.App.UpdatePreferences(th.Context, th.BasicUser.Id, model.Preferences{
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_name",
+				Value:    "test_value_first",
+			},
+		})
+		require.Nil(t, appErr)
+
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			preference, appErr := th.App.GetPreferenceByCategoryAndNameForUser(th.Context, th.BasicUser.Id, "test_category", "test_name")
+
+			require.Nil(t, appErr)
+			assert.Equal(t, "test_value_third", preference.Value)
+		}, 1*time.Second, 10*time.Millisecond)
+	})
+}
+
+func TestChannelHasBeenCreated(t *testing.T) {
+	getPluginCode := func(th *TestHelper) string {
+		return `
+			package main
+
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			const (
+				adminUserID = "` + th.SystemAdminUser.Id + `"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) ChannelHasBeenCreated(c *plugin.Context, channel *model.Channel) {
+				_, appErr := p.API.CreatePost(&model.Post{
+					UserId: adminUserID,
+					ChannelId: channel.Id,
+					Message: "ChannelHasBeenCreated has been called for " + channel.Id,
+				})
+				if appErr != nil {
+					panic(appErr)
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`
+	}
+	pluginID := "testplugin"
+	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+	t.Run("should call hook when a regular channel is created", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+
+		user1 := th.CreateUser()
+
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			CreatorId: user1.Id,
+			TeamId:    th.BasicTeam.Id,
+			Name:      "test_channel",
+			Type:      model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
+			require.Nil(t, appErr)
+
+			post := posts.Posts[posts.Order[0]]
+			assert.Equal(t, channel.Id, post.ChannelId)
+			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+		}, 1*time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("should call hook when a DM is created", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
+			require.Nil(t, appErr)
+
+			post := posts.Posts[posts.Order[0]]
+			assert.Equal(t, channel.Id, post.ChannelId)
+			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+		}, 1*time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("should call hook when a GM is created", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		user3 := th.CreateUser()
+
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
+			require.Nil(t, appErr)
+
+			post := posts.Posts[posts.Order[0]]
+			assert.Equal(t, channel.Id, post.ChannelId)
+			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
+		}, 1*time.Second, 10*time.Millisecond)
+	})
+}
+
+func TestUserHasJoinedChannel(t *testing.T) {
+	getPluginCode := func(th *TestHelper) string {
+		return `
+			package main
+
+			import (
+				"fmt"
+
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			const (
+				adminUserID = "` + th.SystemAdminUser.Id + `"
+			)
+
+			type MyPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *MyPlugin) UserHasJoinedChannel(c *plugin.Context, channelMember *model.ChannelMember, actor *model.User) {
+				message := fmt.Sprintf("Test: User %s joined %s", channelMember.UserId, channelMember.ChannelId)
+				if actor != nil && actor.Id != channelMember.UserId {
+					message = fmt.Sprintf("Test: User %s added to %s by %s", channelMember.UserId, channelMember.ChannelId, actor.Id)
+				}
+
+				_, appErr := p.API.CreatePost(&model.Post{
+					UserId: adminUserID,
+					ChannelId: channelMember.ChannelId,
+					Message: message,
+				})
+				if appErr != nil {
+					panic(appErr)
+				}
+			}
+
+			func main() {
+				plugin.ClientMain(&MyPlugin{})
+			}
+		`
+	}
+	pluginID := "testplugin"
+	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+	t.Run("should call hook when a user joins an existing channel", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.CreateUser()
+		th.LinkUserToTeam(user1, th.BasicTeam)
+		user2 := th.CreateUser()
+		th.LinkUserToTeam(user2, th.BasicTeam)
+
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			CreatorId: user1.Id,
+			TeamId:    th.BasicTeam.Id,
+			Name:      "test_channel",
+			Type:      model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		// Setup plugin after creating the channel
+		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+
+		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
+			UserRequestorID: user2.Id,
+		})
+		require.Nil(t, appErr)
+
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
+			require.Nil(t, appErr)
+
+			assert.Equal(t, fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id), posts.Posts[posts.Order[0]].Message)
+		}, 1*time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		user1 := th.CreateUser()
+		th.LinkUserToTeam(user1, th.BasicTeam)
+		user2 := th.CreateUser()
+		th.LinkUserToTeam(user2, th.BasicTeam)
+
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			CreatorId: user1.Id,
+			TeamId:    th.BasicTeam.Id,
+			Name:      "test_channel",
+			Type:      model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		// Setup plugin after creating the channel
+		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+
+		_, appErr = th.App.AddChannelMember(th.Context, user2.Id, channel, ChannelMemberOpts{
+			UserRequestorID: user1.Id,
+		})
+		require.Nil(t, appErr)
+
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
+			require.Nil(t, appErr)
+
+			assert.Equal(t, fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id), posts.Posts[posts.Order[0]].Message)
+		}, 1*time.Second, 10*time.Millisecond)
+	})
+
+	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+
+		user1 := th.CreateUser()
+
+		channel, appErr := th.App.CreateChannel(th.Context, &model.Channel{
+			CreatorId: user1.Id,
+			TeamId:    th.BasicTeam.Id,
+			Name:      "test_channel",
+			Type:      model.ChannelTypeOpen,
+		}, false)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		// Wait for async plugin hooks to be run
+		time.Sleep(time.Second / 2)
+
+		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
+
+		require.Nil(t, appErr)
+
+		for _, postID := range posts.Order {
+			post := posts.Posts[postID]
+
+			if strings.HasPrefix(post.Message, "Test: ") {
+				t.Log("Plugin message found:", post.Message)
+				t.FailNow()
+			}
+		}
+	})
+
+	t.Run("should not call hook when a DM is created", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+
+		channel, appErr := th.App.GetOrCreateDirectChannel(th.Context, user1.Id, user2.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		// Wait for async plugin hooks to be run
+		time.Sleep(time.Second / 2)
+
+		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
+
+		require.Nil(t, appErr)
+
+		for _, postID := range posts.Order {
+			post := posts.Posts[postID]
+
+			if strings.HasPrefix(post.Message, "Test: ") {
+				t.Log("Plugin message found:", post.Message)
+				t.FailNow()
+			}
+		}
+	})
+
+	t.Run("should not call hook when a GM is created", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		// Setup plugin
+		setupPluginAPITest(t, getPluginCode(th), pluginManifest, pluginID, th.App, th.Context)
+
+		user1 := th.CreateUser()
+		user2 := th.CreateUser()
+		user3 := th.CreateUser()
+
+		channel, appErr := th.App.CreateGroupChannel(th.Context, []string{user1.Id, user2.Id, user3.Id}, user1.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, channel)
+
+		// Wait for async plugin hooks to be run
+		time.Sleep(time.Second / 2)
+
+		posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
+
+		require.Nil(t, appErr)
+
+		for _, postID := range posts.Order {
+			post := posts.Posts[postID]
+
+			if strings.HasPrefix(post.Message, "Test: ") {
+				t.Log("Plugin message found:", post.Message)
+				t.FailNow()
+			}
+		}
+	})
 }

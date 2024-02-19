@@ -1,20 +1,21 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
 import {shallow} from 'enzyme';
-
-import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+import React from 'react';
 
 import deepFreeze from 'mattermost-redux/utils/deep_freeze';
 
-import GuestTag from 'components/widgets/tag/guest_tag';
-import BotTag from 'components/widgets/tag/bot_tag';
-import EmailIcon from 'components/widgets/icons/mail_icon';
 import AlertIcon from 'components/widgets/icons/alert_icon';
+import EmailIcon from 'components/widgets/icons/mail_icon';
+import BotTag from 'components/widgets/tag/bot_tag';
+import GuestTag from 'components/widgets/tag/guest_tag';
 import Avatar from 'components/widgets/users/avatar';
 
-import ResultTable, {Props} from './result_table';
+import {mountWithIntl} from 'tests/helpers/intl-test-helper';
+
+import ResultTable from './result_table';
+import type {Props} from './result_table';
 
 let props: Props = {
     sent: true,

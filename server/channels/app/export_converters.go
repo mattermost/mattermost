@@ -35,6 +35,7 @@ func ImportLineFromChannel(channel *model.ChannelForExport) *imports.LineImportD
 			Header:      &channel.Header,
 			Purpose:     &channel.Purpose,
 			Scheme:      channel.SchemeName,
+			DeletedAt:   &channel.DeleteAt,
 		},
 	}
 }

@@ -2,38 +2,30 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-
 import {FormattedMessage} from 'react-intl';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
+import type {AdminConfig} from '@mattermost/types/config';
 
-import {AdminConfig} from '@mattermost/types/config';
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
-import {BaseProps} from 'components/admin_console/admin_settings';
-
-import {getHistory} from 'utils/browser_history';
-import {Constants} from 'utils/constants';
-
+import type {BaseProps} from 'components/admin_console/admin_settings';
+import ExternalLink from 'components/external_link';
 import FormError from 'components/form_error';
 
 import imagePath from 'images/openid-convert/emoticon-outline.svg';
+import {getHistory} from 'utils/browser_history';
+import {Constants} from 'utils/constants';
 
 import './openid_convert.scss';
-import ExternalLink from 'components/external_link';
 
 type Props = BaseProps & {
     disabled?: boolean;
     actions: {
-        updateConfig: (config: AdminConfig) => ActionFunc & Partial<{error?: ClientErrorPlaceholder}>;
+        updateConfig: (config: AdminConfig) => Promise<ActionResult>;
     };
 };
 type State = {
     serverError?: string;
-}
-
-type ClientErrorPlaceholder = {
-    message: string;
-    server_error_id: string;
 }
 
 export default class OpenIdConvert extends React.PureComponent<Props, State> {

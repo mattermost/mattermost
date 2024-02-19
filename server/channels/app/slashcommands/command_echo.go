@@ -11,8 +11,8 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app"
-	"github.com/mattermost/mattermost/server/v8/channels/app/request"
 )
 
 var echoSem chan bool
@@ -90,7 +90,7 @@ func (*EchoProvider) DoCommand(a *app.App, c request.CTX, args *model.CommandArg
 		time.Sleep(time.Duration(delay) * time.Second)
 
 		if _, err := a.CreatePostMissingChannel(c, post, true, true); err != nil {
-			mlog.Error("Unable to create /echo post.", mlog.Err(err))
+			c.Logger().Error("Unable to create /echo post.", mlog.Err(err))
 		}
 	})
 

@@ -81,7 +81,7 @@
 
             .upsell-confirm-foreground {
                 height: 148px;
-                padding: 16px 24px;
+                padding: 16px 32px;
                 background: var(--button-color);
             }
 
@@ -133,46 +133,23 @@
             h1#createGroupsModalTitleWithBack,
             h1#updateGroupsModalTitle,
             h1#addUsersToGroupsModalLabel {
-                margin-left: 44px;
-            }
-
-            button.user-groups-create {
-                box-sizing: border-box;
-                border: 1px solid var(--button-bg);
-                margin: auto;
-                margin-right: 46px;
-                background-color: var(--center-channel-bg);
-                border-radius: 4px;
-                color: var(--button-bg);
-
-                &:hover {
-                    background-color: rgba(var(--button-bg-rgb), 0.08);
-                }
-
-                &:active {
-                    background-color: rgba(var(--button-bg-rgb), 0.16);
-                }
-
-                &:focus {
-                    box-shadow: inset 0 0 0 2px var(--sidebar-text-active-border);
-                    outline: none;
-                }
+                margin-left: 16px;
             }
         }
     }
 
     .modal-body {
-        overflow: hidden;
         max-height: 100%;
         padding: 0;
 
         .no-results__wrapper {
+            max-width: 350px;
             padding-bottom: 60px;
         }
 
         .user-groups-search {
             position: relative;
-            margin: 6px 24px 8px;
+            margin: 6px 32px 8px;
 
             .Input_container {
                 .Input_wrapper {
@@ -198,7 +175,7 @@
 
         .more-modal__dropdown {
             width: 100%;
-            padding: 0 24px 24px;
+            padding: 0 32px 24px;
             border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
 
             #groupsFilterDropdown {
@@ -242,7 +219,7 @@
 
             &.user-groups-list {
                 position: relative;
-                max-height: 450px;
+                max-height: 460px;
                 padding-top: 24px;
                 padding-bottom: 16px;
                 overflow-y: scroll; // for Firefox and browsers that doesn't support overflow-y:overlay property
@@ -284,6 +261,11 @@
                         max-width: 200px;
                         text-overflow: ellipsis;
                         white-space: nowrap;
+
+                        i {
+                            color: rgba(var(--center-channel-color-rgb), 0.56);
+                            font-size: 16px;
+                        }
                     }
 
                     .group-name {
@@ -305,6 +287,13 @@
                         .MenuWrapper {
                             width: 24px;
                             margin-left: auto;
+
+                            .Menu {
+                                position: absolute;
+                                border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+                                margin-top: 8px;
+                                border-radius: 4px;
+                            }
                         }
 
                         .group-actions-menu {
@@ -376,7 +365,7 @@
 
             .group-mention-input-wrapper,
             .group-name-input-wrapper {
-                padding: 6px 24px 12px;
+                padding: 6px 32px 12px;
 
                 .Input_container {
                     :focus {
@@ -398,11 +387,11 @@
             }
 
             .group-mention-input-wrapper {
-                padding: 12px 24px 24px;
+                padding: 12px 32px 24px;
             }
 
             h2 {
-                padding: 0 24px;
+                padding: 0 32px;
                 color: inherit;
                 font-size: 18px;
                 font-weight: 600;
@@ -412,31 +401,6 @@
             .group-add-user {
                 .multi-select__wrapper {
                     margin-top: 0;
-                }
-
-                .multi-select__footer {
-                    padding-top: 24px;
-
-                    button {
-                        height: 40px;
-                        padding: 0 20px;
-                        border-radius: 4px;
-                        font-size: 14px;
-                        font-weight: 600;
-                    }
-
-                    button[disabled] {
-                        background-color: rgba(var(--center-channel-color-rgb), 0.08);
-                        color: rgba(var(--center-channel-color-rgb), 0.32);
-                    }
-
-                    button.multiselect-back {
-                        padding: 13px 20px;
-                        margin-right: 8px;
-                        background: rgba(var(--button-bg-rgb), 0.08);
-                        color: rgb(var(--button-bg-rgb));
-                        line-height: 14px;
-                    }
                 }
             }
         }

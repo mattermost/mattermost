@@ -5,7 +5,7 @@ import {connect} from 'react-redux';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
-import {GlobalState} from 'types/store';
+import type {GlobalState} from 'types/store';
 
 import Integrations from './integrations';
 
@@ -16,6 +16,7 @@ function mapStateToProps(state: GlobalState) {
     const enableOutgoingWebhooks = config.EnableOutgoingWebhooks === 'true';
     const enableCommands = config.EnableCommands === 'true';
     const enableOAuthServiceProvider = config.EnableOAuthServiceProvider === 'true';
+    const enableOutgoingOAuthConnections = config.EnableOutgoingOAuthConnections === 'true';
 
     return {
         siteName,
@@ -23,6 +24,7 @@ function mapStateToProps(state: GlobalState) {
         enableOutgoingWebhooks,
         enableCommands,
         enableOAuthServiceProvider,
+        enableOutgoingOAuthConnections,
     };
 }
 

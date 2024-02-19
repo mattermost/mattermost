@@ -1,31 +1,29 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {
-    ReactElement,
-    ReactNode,
-    Children,
-    KeyboardEvent,
-    MouseEvent,
-    useContext,
-    useRef,
-    useEffect,
-} from 'react';
-import {styled} from '@mui/material/styles';
-import {useSelector} from 'react-redux';
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
+import {styled} from '@mui/material/styles';
 import {cloneDeep} from 'lodash';
+import React, {
+    Children,
+    useContext,
+} from 'react';
+import type {
+    ReactElement,
+    ReactNode,
+    KeyboardEvent,
+    MouseEvent,
+    AriaRole,
+} from 'react';
+import {useSelector} from 'react-redux';
 
 import {getIsMobileView} from 'selectors/views/browser';
 
 import Constants, {EventTypes} from 'utils/constants';
 import {isKeyPressed} from 'utils/keyboard';
 
-import {MENU_CLOSE_ANIMATION_DURATION} from './menu';
 import {MenuContext, SubMenuContext} from './menu_context';
-
-const DELAY_CLICK_EVENT_EXECUTION_MODIFIER = 1.2;
 
 export interface Props extends MuiMenuItemProps {
 
@@ -83,6 +81,8 @@ export interface Props extends MuiMenuItemProps {
 
     onClick?: (event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) => void;
 
+    role?: AriaRole;
+
     /**
      * ONLY to support submenus. Avoid passing children to this component. Support for children is only added to support submenus.
      */
@@ -93,10 +93,19 @@ export interface Props extends MuiMenuItemProps {
  * To be used as a child of Menu component.
  * Checkout Compass's Menu Item(compass.mattermost.com) for terminology, styling and usage guidelines.
  *
- * @example
+ * @example <caption>Using a menu in a component</caption>
  * <Menu.Container>
- *    <Menu.Item/>
+ *     <Menu.Item/>
  * </Menu.Container>
+ * @example <caption>Wrapping a menu item in another component</caption>
+ * // Remember to pass all unused props into the Menu.Item to ensure MUI props for a11y are passed properly
+ * const ConsoleLogItem = ({message, ...otherProps}) => ({
+ *     <Menu.Item
+ *         onClick={() => console.log(message)}
+ *         {...otherProps}
+ *     />
+ * });
+ *
  */
 export function MenuItem(props: Props) {
     const {
@@ -107,7 +116,8 @@ export function MenuItem(props: Props) {
         isLabelsRowLayout,
         children,
         onClick,
-        ...restProps
+        role = 'menuitem',
+        ...otherProps
     } = props;
 
     const menuContext = useContext(MenuContext);
@@ -115,59 +125,40 @@ export function MenuItem(props: Props) {
 
     const isMobileView = useSelector(getIsMobileView);
 
-    const onClickEventRef = useRef<MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>>();
-
     function handleClick(event: MouseEvent<HTMLLIElement> | KeyboardEvent<HTMLLIElement>) {
         if (isCorrectKeyPressedOnMenuItem(event)) {
-            // close submenu first if it is open
-            if (subMenuContext.close) {
-                subMenuContext.close();
-            }
+            // If the menu item is a checkbox or radio button, we don't want to close the menu when it is clicked.
+            // see https://www.w3.org/WAI/ARIA/apg/patterns/menubar/
+            if (isRoleCheckboxOrRadio(role)) {
+                event.stopPropagation();
+            } else {
+                // close submenu first if it is open
+                if (subMenuContext.close) {
+                    subMenuContext.close();
+                }
 
-            // And then close the menu
-            if (menuContext.close) {
-                menuContext.close();
+                // And then close the menu
+                if (menuContext.close) {
+                    menuContext.close();
+                }
             }
 
             if (onClick) {
-                if (isMobileView) {
-                    // If the menu is in mobile view, we execute the click event immediately.
+                // If the menu is in mobile view, we execute the click event immediately.
+                // If the menu item is a checkbox or radio button, we execute the click event immediately.
+                if (isMobileView || isRoleCheckboxOrRadio(role)) {
                     onClick(event);
                 } else {
-                    // We set the ref of event here, see the `useEffect` hook below for more details.
-                    onClickEventRef.current = cloneDeep(event);
+                    // Clone the event since we delay the click handler until after the menu has closed.
+                    const clonedEvent = cloneDeep(event);
+
+                    menuContext.addOnClosedListener(() => {
+                        onClick(clonedEvent);
+                    });
                 }
             }
         }
     }
-
-    // This `useEffect` hook is responsible for executing a click event (`onClick`).
-    // 1. If MenuItem was part of submenu then both menu and submenu should be closed before executing the click event.
-    // 2. If MenuItem was part of only Menu then only should be closed before executing the click event.
-    // After the conditions are met the delay is introduced to allow the menu to animate out properly before executing the click event.
-    // This delay also improves percieved UX as it gives the user a chance to see the menu close before the click event is executed. (eg in case of opening a modal)
-    useEffect(() => {
-        let shouldExecuteClick = false;
-
-        if (subMenuContext.close) {
-            // This means that the menu item is a submenu item and both menu and submenu are closed.
-            shouldExecuteClick = subMenuContext.isOpen === false && menuContext.isOpen === false && Boolean(onClickEventRef.current);
-        } else {
-            shouldExecuteClick = menuContext.isOpen === false && Boolean(onClickEventRef.current);
-        }
-
-        if (shouldExecuteClick) {
-            const delayExecutionTimeout = MENU_CLOSE_ANIMATION_DURATION * DELAY_CLICK_EVENT_EXECUTION_MODIFIER;
-
-            setTimeout(() => {
-                if (onClick && onClickEventRef.current) {
-                    onClick(onClickEventRef.current);
-                }
-
-                onClickEventRef.current = undefined;
-            }, delayExecutionTimeout);
-        }
-    }, [menuContext.isOpen, subMenuContext.isOpen, subMenuContext.close, onClick]);
 
     // When both primary and secondary labels are passed, we need to apply minor changes to the styling. Check below in styled component for more details.
     const hasSecondaryLabel = labels && labels.props && labels.props.children && Children.count(labels.props.children) === 2;
@@ -179,9 +170,10 @@ export function MenuItem(props: Props) {
             isDestructive={isDestructive}
             hasSecondaryLabel={hasSecondaryLabel}
             isLabelsRowLayout={isLabelsRowLayout}
+            onClick={handleClick}
             onKeyDown={handleClick}
-            onMouseDown={handleClick}
-            {...restProps}
+            role={role}
+            {...otherProps}
         >
             {leadingElement && <div className='leading-element'>{leadingElement}</div>}
             <div className='label-elements'>{labels}</div>
@@ -197,7 +189,7 @@ interface MenuItemStyledProps extends MuiMenuItemProps {
     isLabelsRowLayout?: boolean;
 }
 
-const MenuItemStyled = styled(MuiMenuItem, {
+export const MenuItemStyled = styled(MuiMenuItem, {
     shouldForwardProp: (prop) => prop !== 'isDestructive' &&
         prop !== 'hasSecondaryLabel' && prop !== 'isLabelsRowLayout',
 })<MenuItemStyledProps>(
@@ -240,7 +232,7 @@ const MenuItemStyled = styled(MuiMenuItem, {
                 '&.Mui-focusVisible .label-elements>:last-child, &.Mui-focusVisible .label-elements>:first-child, &.Mui-focusVisible .label-elements>:only-child': {
                     color: isDestructive && 'var(--button-color)',
                 },
-                '&.Mui-focusVisible .leading-element': {
+                '&.Mui-focusVisible .leading-element, &.Mui-focusVisible .trailing-elements': {
                     color: isDestructive && 'var(--button-color)',
                 },
 
@@ -317,7 +309,7 @@ function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | Keyboa
         }
 
         return false;
-    } else if (event.type === EventTypes.MOUSE_DOWN) {
+    } else if (event.type === EventTypes.CLICK) {
         const mouseEvent = event as MouseEvent<HTMLLIElement>;
         if (mouseEvent.button === 0) {
             return true;
@@ -328,3 +320,8 @@ function isCorrectKeyPressedOnMenuItem(event: MouseEvent<HTMLLIElement> | Keyboa
 
     return false;
 }
+
+function isRoleCheckboxOrRadio(role: AriaRole) {
+    return role === 'menuitemcheckbox' || role === 'menuitemradio';
+}
+

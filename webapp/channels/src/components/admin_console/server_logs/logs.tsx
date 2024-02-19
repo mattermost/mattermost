@@ -1,13 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
-import {FormattedMessage} from 'react-intl';
 import {debounce} from 'lodash';
+import React from 'react';
+import {FormattedMessage, defineMessages} from 'react-intl';
 
-import {ActionFunc} from 'mattermost-redux/types/actions';
-
-import {
+import type {
     LogFilter,
     LogLevels,
     LogObject,
@@ -24,11 +22,11 @@ type Props = {
     plainLogs: string[];
     isPlainLogs: boolean;
     actions: {
-        getLogs: (logFilter: LogFilter) => ActionFunc;
+        getLogs: (logFilter: LogFilter) => Promise<unknown>;
         getPlainLogs: (
             page?: number | undefined,
             perPage?: number | undefined
-        ) => ActionFunc;
+        ) => Promise<unknown>;
     };
 };
 
@@ -44,6 +42,16 @@ type State = {
     perPage: number;
     loadingPlain: boolean;
 };
+
+const messages = defineMessages({
+    title: {id: 'admin.logs.title', defaultMessage: 'Server Logs'},
+    bannerDesc: {id: 'admin.logs.bannerDesc', defaultMessage: 'To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.'},
+});
+
+export const searchableStrings = [
+    messages.title,
+    messages.bannerDesc,
+];
 
 export default class Logs extends React.PureComponent<Props, State> {
     constructor(props: Props) {
@@ -133,10 +141,7 @@ export default class Logs extends React.PureComponent<Props, State> {
             <>
                 <div className='banner'>
                     <div className='banner__content'>
-                        <FormattedMessage
-                            id='admin.logs.bannerDesc'
-                            defaultMessage='To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.'
-                        />
+                        <FormattedMessage {...messages.bannerDesc}/>
                     </div>
                 </div>
                 <button
@@ -162,10 +167,7 @@ export default class Logs extends React.PureComponent<Props, State> {
                 <div className='logs-banner'>
                     <div className='banner'>
                         <div className='banner__content'>
-                            <FormattedMessage
-                                id='admin.logs.bannerDesc'
-                                defaultMessage='To look up users by User ID or Token ID, go to User Management > Users and paste the ID into the search filter.'
-                            />
+                            <FormattedMessage {...messages.bannerDesc}/>
                         </div>
                     </div>
                     <button
@@ -197,10 +199,7 @@ export default class Logs extends React.PureComponent<Props, State> {
         return (
             <div className='wrapper--admin'>
                 <AdminHeader>
-                    <FormattedMessage
-                        id='admin.logs.title'
-                        defaultMessage='Server Logs'
-                    />
+                    <FormattedMessage {...messages.title}/>
                 </AdminHeader>
                 <div className='admin-console__wrapper'>
                     <div className='admin-logs-content admin-console__content'>

@@ -28,13 +28,14 @@
     "8.0.1": "grafana/grafana:8.0.1@sha256:1c3e2fc7896adf9e33be5d062c08066087cb556f63b0a95f8aefe92bd37a6f38"
   },
   "cypress-browsers-public": {
-    "node16.14.2-slim-chrome100-ff99-edge": "cypress/browsers:node16.14.2-slim-chrome100-ff99-edge@sha256:f8459ee677ce356eff64698095fbdf48eb9ab018fc5eb0d30c07ba23884edace"
-  },
-  "golang": {
-    "1.19.5": "golang:1.19.5@sha256:bb9811fad43a7d6fd2173248d8331b2dcf5ac9af20976b1937ecd214c5b8c383"
+    "node16.14.2-slim-chrome100-ff99-edge": "cypress/browsers:node16.14.2-slim-chrome100-ff99-edge@sha256:f8459ee677ce356eff64698095fbdf48eb9ab018fc5eb0d30c07ba23884edace",
+    "node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1": "cypress/browsers:node-18.16.1-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1@sha256:f798d6cc25d724210be3660e95f63ae75d052ef392e3fc5ae728d02da7e52df8"
   },
   "node": {
     "16.10.0": "node:16.10.0",
-    "16.17.0": "node:16.17.0"
+    "16.17.0": "node:16.17.0",
+    "18": "node:18@sha256:11e9c297fc51f6f65f7d0c7c8a8581e5721f2f16de43ceff1a199fd3ef609f95",
+    "18.17": "node:18.17@sha256:11e9c297fc51f6f65f7d0c7c8a8581e5721f2f16de43ceff1a199fd3ef609f95",
+    "18.17.1": "node:18.17.1@sha256:11e9c297fc51f6f65f7d0c7c8a8581e5721f2f16de43ceff1a199fd3ef609f95"
   }
 }

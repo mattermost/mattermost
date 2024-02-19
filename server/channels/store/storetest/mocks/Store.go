@@ -7,8 +7,10 @@ package mocks
 import (
 	context "context"
 
-	model "github.com/mattermost/mattermost/server/public/model"
+	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
 	mock "github.com/stretchr/testify/mock"
+
+	model "github.com/mattermost/mattermost/server/public/model"
 
 	sql "database/sql"
 
@@ -187,6 +189,22 @@ func (_m *Store) Context() context.Context {
 	return r0
 }
 
+// DesktopTokens provides a mock function with given fields:
+func (_m *Store) DesktopTokens() store.DesktopTokensStore {
+	ret := _m.Called()
+
+	var r0 store.DesktopTokensStore
+	if rf, ok := ret.Get(0).(func() store.DesktopTokensStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.DesktopTokensStore)
+		}
+	}
+
+	return r0
+}
+
 // Draft provides a mock function with given fields:
 func (_m *Store) Draft() store.DraftStore {
 	ret := _m.Called()
@@ -346,6 +364,30 @@ func (_m *Store) GetInternalReplicaDB() *sql.DB {
 	return r0
 }
 
+// GetLocalSchemaVersion provides a mock function with given fields:
+func (_m *Store) GetLocalSchemaVersion() (int, error) {
+	ret := _m.Called()
+
+	var r0 int
+	var r1 error
+	if rf, ok := ret.Get(0).(func() (int, error)); ok {
+		return rf()
+	}
+	if rf, ok := ret.Get(0).(func() int); ok {
+		r0 = rf()
+	} else {
+		r0 = ret.Get(0).(int)
+	}
+
+	if rf, ok := ret.Get(1).(func() error); ok {
+		r1 = rf()
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // Group provides a mock function with given fields:
 func (_m *Store) Group() store.GroupStore {
 	ret := _m.Called()
@@ -415,6 +457,22 @@ func (_m *Store) LockToMaster() {
 	_m.Called()
 }
 
+// Logger provides a mock function with given fields:
+func (_m *Store) Logger() mlog.LoggerIFace {
+	ret := _m.Called()
+
+	var r0 mlog.LoggerIFace
+	if rf, ok := ret.Get(0).(func() mlog.LoggerIFace); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(mlog.LoggerIFace)
+		}
+	}
+
+	return r0
+}
+
 // MarkSystemRanUnitTests provides a mock function with given fields:
 func (_m *Store) MarkSystemRanUnitTests() {
 	_m.Called()
@@ -446,6 +504,22 @@ func (_m *Store) OAuth() store.OAuthStore {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(store.OAuthStore)
+		}
+	}
+
+	return r0
+}
+
+// OutgoingOAuthConnection provides a mock function with given fields:
+func (_m *Store) OutgoingOAuthConnection() store.OutgoingOAuthConnectionStore {
+	ret := _m.Called()
+
+	var r0 store.OutgoingOAuthConnectionStore
+	if rf, ok := ret.Get(0).(func() store.OutgoingOAuthConnectionStore); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(store.OutgoingOAuthConnectionStore)
 		}
 	}
 
