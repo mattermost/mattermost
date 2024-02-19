@@ -58,7 +58,7 @@ func (l *LicenseValidatorImpl) ValidateLicense(signed []byte) (string, error) {
 
 	_, err := base64.StdEncoding.Decode(decoded, signed)
 	if err != nil {
-		return "", fmt.Errorf("Encountered error decoding license: %w", err)
+		return "", fmt.Errorf("encountered error decoding license: %w", err)
 	}
 
 	// remove null terminator
