@@ -21,7 +21,7 @@ func cleanupStoreState(t *testing.T, rctx request.CTX, ss store.Store) {
 	allUsers, err := ss.User().GetAll()
 	require.NoError(t, err, "error cleaning all test users", err)
 	for _, u := range allUsers {
-		err = ss.User().PermanentDelete(u.Id)
+		err = ss.User().PermanentDelete(rctx, u.Id)
 		require.NoError(t, err, "failed cleaning up test user %s", u.Username)
 
 		//remove all posts by this user

@@ -2895,7 +2895,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 		userIds[i] = user.Id
 
 		defer func(userId string) {
-			ss.User().PermanentDelete(userId)
+			ss.User().PermanentDelete(rctx, userId)
 		}(userIds[i])
 
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{
@@ -2920,7 +2920,7 @@ func testSaveTeamMemberMaxMembers(t *testing.T, rctx request.CTX, ss store.Store
 	require.NoError(t, nErr)
 	newUserId := user.Id
 	defer func() {
-		ss.User().PermanentDelete(newUserId)
+		ss.User().PermanentDelete(rctx, newUserId)
 	}()
 
 	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{

@@ -56,7 +56,7 @@ func TestFirstUserPromoted(t *testing.T) {
 
 	require.Equal(t, model.SystemUserRoleId, user2.Roles)
 
-	th.dbStore.User().PermanentDelete(user.Id)
+	th.dbStore.User().PermanentDelete(th.Context, user.Id)
 
 	b := &model.Bot{
 		UserId:   user2.Id,

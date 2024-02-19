@@ -2182,7 +2182,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("should correctly remove an empty category", func(t *testing.T) {
 		userId, teamId := setupInitialSidebarCategories(t, rctx, ss)
-		defer ss.User().PermanentDelete(userId)
+		defer ss.User().PermanentDelete(rctx, userId)
 
 		newCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{})
 		require.NoError(t, err)
@@ -2204,7 +2204,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 
 	t.Run("should correctly remove a category and its channels", func(t *testing.T) {
 		userId, teamId := setupInitialSidebarCategories(t, rctx, ss)
-		defer ss.User().PermanentDelete(userId)
+		defer ss.User().PermanentDelete(rctx, userId)
 
 		user := &model.User{
 			Id: userId,
@@ -2272,7 +2272,7 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 
 	t.Run("should not allow you to remove non-custom categories", func(t *testing.T) {
 		userId, teamId := setupInitialSidebarCategories(t, rctx, ss)
-		defer ss.User().PermanentDelete(userId)
+		defer ss.User().PermanentDelete(rctx, userId)
 		res, err := ss.Channel().GetSidebarCategoriesForTeamForUser(userId, teamId)
 		require.NoError(t, err)
 		require.Len(t, res.Categories, 3)
