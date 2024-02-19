@@ -13,26 +13,8 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
-	"github.com/mattermost/mattermost/server/v8/einterfaces"
 )
-
-// Ensure cloud service wrapper implements `product.CloudService`
-var _ product.CloudService = (*cloudWrapper)(nil)
-
-// cloudWrapper provides an implementation of `product.CloudService` for use by products.
-type cloudWrapper struct {
-	cloud einterfaces.CloudInterface
-}
-
-func (c *cloudWrapper) GetCloudLimits() (*model.ProductLimits, error) {
-	if c.cloud != nil {
-		return c.cloud.GetCloudLimits("")
-	}
-
-	return &model.ProductLimits{}, nil
-}
 
 func (a *App) getSysAdminsEmailRecipients() ([]*model.User, *model.AppError) {
 	userOptions := &model.UserGetOptions{
