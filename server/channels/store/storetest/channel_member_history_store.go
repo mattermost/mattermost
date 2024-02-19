@@ -43,7 +43,7 @@ func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, err := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
 	user = *userPtr
 
@@ -69,7 +69,7 @@ func testLogLeaveEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, err := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
 	user = *userPtr
 
@@ -98,7 +98,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, err := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
 	user = *userPtr
 
@@ -194,7 +194,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, err := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
 	user = *userPtr
 
@@ -306,7 +306,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	userPtr, err := ss.User().Save(&user)
+	userPtr, err := ss.User().Save(rctx, &user)
 	require.NoError(t, err)
 	user = *userPtr
 
@@ -315,7 +315,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 		Nickname: model.NewId(),
 		Username: model.NewId(),
 	}
-	user2Ptr, err := ss.User().Save(&user2)
+	user2Ptr, err := ss.User().Save(rctx, &user2)
 	require.NoError(t, err)
 	user2 = *user2Ptr
 

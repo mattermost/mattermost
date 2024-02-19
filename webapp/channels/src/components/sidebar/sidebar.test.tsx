@@ -141,7 +141,7 @@ describe('components/sidebar', () => {
                         channel2,
                     },
                     channelsInTeam: {
-                        [currentTeamId]: [channel1.id, channel2.id],
+                        [currentTeamId]: new Set([channel1.id, channel2.id]),
                     },
                     messageCounts: {
                         channel1: {total: 10},
