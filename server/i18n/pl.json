@@ -10370,5 +10370,85 @@
   {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "Nie można dodać użytkownika jako członka kanału."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Nieprawidłowe parametry wejściowe."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Wystąpił błąd podczas usuwania wychodzącego połączenia OAuth."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Wychodzące połączenia OAuth nie są dostępne na tym serwerze."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Nieprawidłowe parametry wejściowe."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Wystąpił błąd podczas walidacji poświadczeń wychodzącego połączenia OAuth."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Nieprawidłowy email_token"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Nie ma wychodzącego połączenia oauth dla podanych odbiorców."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Wystąpił błąd podczas pobierania wychodzącego połączenia oauth dla odbiorców."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Nie znaleziono wychodzącego połączenia oauth dla podanej grupy odbiorców."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Podana grupa odbiorców jest nieprawidłowa: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Istnieje już wychodzące połączenie oauth dla podanej grupy odbiorców: {{ .Audience }}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Nie można pobrać poświadczeń z określoną konfiguracją połączenia."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Istnieje już wychodzące połączenie oauth dla podanej grupy odbiorców: {{ .Audience }}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Wystąpił błąd podczas tworzenia wychodzącego połączenia OAuth."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Wystąpił błąd podczas aktualizacji wychodzącego połączenia OAuth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Wystąpił błąd podczas uwierzytelniania wychodzącego połączenia oauth: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Istnieje już wychodzące połączenie oauth dla podanej grupy odbiorców."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Wychodzące połączenia OAuth nie są dostępne na tym serwerze."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Twoja licencja nie obsługuje połączeń wychodzących oauth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Podana grupa odbiorców jest nieprawidłowa: {{ .Error }}"
   }
 ]
