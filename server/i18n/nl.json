@@ -10400,5 +10400,65 @@
   {
     "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
     "translation": "Uitgaande OAuth verbindingen zijn niet beschikbaar op deze server."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Kon geen gegevens ophalen met de opgegeven verbindingsconfiguratie."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Uitgaande OAuth verbindingen zijn niet beschikbaar op deze server."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Jouw licentie ondersteunt geen uitgaande oauth-verbindingen."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Het opgeven \"audience\" is ongeldig: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Er is al een uitgaande oauth-verbinding voor het opgegeven \"audience\": {{ .Audience }}"
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Ongeldig email_token"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
+    "translation": "Ongeldige update van teamlid: Een gebruiker kan niet tegelijkertijd als gast en als admin ingesteld zijn."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Er is een fout opgetreden bij het verifiëren van de uitgaande oauth-verbinding: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Er is al een uitgaande oauth-verbinding voor het opgegeven \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Er is geen uitgaande oauth verbinding voor de opgegeven \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Er is een fout opgetreden bij het ohalen van de uitgaande oath verbinding voor de \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "De uitgaande oauth-verbinding voor het opgegeven \"audience\" werd niet gevonden."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Er is al een uitgaande oauth-verbinding voor het opgegeven publiek: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Het opgegeven \"audience\" is ongeldig: {{ .Error }}"
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Kan de gebruiker niet toevoegen als lid van het kanaal."
   }
 ]
