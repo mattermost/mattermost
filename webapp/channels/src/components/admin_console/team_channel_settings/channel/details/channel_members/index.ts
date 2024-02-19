@@ -6,7 +6,7 @@ import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
 import type {ChannelStats} from '@mattermost/types/channels';
-import type {UserProfile, UsersStats} from '@mattermost/types/users';
+import type {UserProfile} from '@mattermost/types/users';
 
 import {getChannelStats} from 'mattermost-redux/actions/channels';
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
@@ -69,10 +69,10 @@ function makeMapStateToProps() {
             };
             totalCount = stats.member_count;
         } else {
-            const filteredUserStats: UsersStats = selectFilteredUsersStats(state) || {
+            const filteredUserStats = selectFilteredUsersStats(state) || {
                 total_users_count: 0,
             };
-            totalCount = filteredUserStats.total_users_count;
+            totalCount = filteredUserStats.total_users_count ?? 0;
         }
 
         let users = [];

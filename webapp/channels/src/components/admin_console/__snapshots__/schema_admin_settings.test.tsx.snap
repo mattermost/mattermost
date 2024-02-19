@@ -328,7 +328,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 3,
-                  "text": "Español",
+                  "text": "Español (Beta)",
                   "value": "es",
                 },
                 Object {
@@ -343,7 +343,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 6,
-                  "text": "Magyar",
+                  "text": "Magyar (Beta)",
                   "value": "hu",
                 },
                 Object {
@@ -408,7 +408,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 19,
-                  "text": "中文 (简体) (Alpha)",
+                  "text": "中文 (简体) (Beta)",
                   "value": "zh-CN",
                 },
                 Object {
@@ -457,7 +457,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 3,
-                  "text": "Español",
+                  "text": "Español (Beta)",
                   "value": "es",
                 },
                 Object {
@@ -472,7 +472,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 6,
-                  "text": "Magyar",
+                  "text": "Magyar (Beta)",
                   "value": "hu",
                 },
                 Object {
@@ -537,7 +537,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
                 },
                 Object {
                   "order": 19,
-                  "text": "中文 (简体) (Alpha)",
+                  "text": "中文 (简体) (Beta)",
                   "value": "zh-CN",
                 },
                 Object {
