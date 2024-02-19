@@ -58,7 +58,7 @@ type AdminDefinitionSettingRole = AdminDefinitionSettingBase & {
     no_result?: string | MessageDescriptor;
 }
 
-type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
+export type AdminDefinitionSettingInput = AdminDefinitionSettingBase & {
     type: 'text' | 'bool' | 'longtext' | 'number' | 'color';
     placeholder?: string | MessageDescriptor;
     placeholder_values?: {[key: string]: any};

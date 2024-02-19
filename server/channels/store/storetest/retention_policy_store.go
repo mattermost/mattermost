@@ -614,7 +614,7 @@ func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, rctx request.CTX, 
 	defer deleteTeamsAndChannels(rctx, ss, teamIDs, channelIDs)
 	defer cleanupRetentionPolicyTest(s)
 
-	user, userSaveErr := ss.User().Save(&model.User{
+	user, userSaveErr := ss.User().Save(rctx, &model.User{
 		Email:    MakeEmail(),
 		Username: model.NewId(),
 	})
@@ -639,11 +639,11 @@ func testRetentionPolicyStoreGetPoliciesForUser(t *testing.T, rctx request.CTX, 
 
 	t.Run("user has relevant policies", func(t *testing.T) {
 		for _, teamID := range teamIDs {
-			_, err := ss.Team().SaveMember(&model.TeamMember{TeamId: teamID, UserId: user.Id}, -1)
+			_, err := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamID, UserId: user.Id}, -1)
 			require.NoError(t, err)
 		}
 		for _, channelID := range channelIDs {
-			_, err := ss.Channel().SaveMember(&model.ChannelMember{ChannelId: channelID, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
+			_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{ChannelId: channelID, UserId: user.Id, NotifyProps: model.GetDefaultChannelNotifyProps()})
 			require.NoError(t, err)
 		}
 		// Teams

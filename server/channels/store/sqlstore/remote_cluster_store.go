@@ -157,7 +157,7 @@ func (s sqlRemoteClusterStore) GetByPluginID(pluginID string) (*model.RemoteClus
 
 	var rc model.RemoteCluster
 	if err := s.GetReplicaX().Get(&rc, queryString, args...); err != nil {
-		return nil, errors.Wrapf(err, "failed to find RemoteCluster by plugin_id")
+		return nil, errors.Wrap(err, "failed to find RemoteCluster by plugin_id")
 	}
 	return &rc, nil
 }

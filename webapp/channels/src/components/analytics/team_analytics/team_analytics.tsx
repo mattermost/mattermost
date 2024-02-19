@@ -5,7 +5,7 @@ import React from 'react';
 import type {MessageDescriptor} from 'react-intl';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
-import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {AnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import type {ClientLicense} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -16,7 +16,8 @@ import {General} from 'mattermost-redux/constants';
 import * as AdminActions from 'actions/admin_actions';
 
 import Banner from 'components/admin_console/banner';
-import {ActivatedUserCard, messages as activatedUsersCardsMessages} from 'components/analytics/activated_users_card';
+import ActivatedUserCard from 'components/analytics/activated_users_card';
+import {messages as activatedUsersCardsMessages} from 'components/analytics/activated_users_card/title';
 import LineChart from 'components/analytics/line_chart';
 import StatisticCount from 'components/analytics/statistic_count';
 import TableChart from 'components/analytics/table_chart';
@@ -51,7 +52,7 @@ type Props = {
 
     license: ClientLicense;
 
-    stats: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>>;
+    stats: RelationOneToOne<Team, AnalyticsState>;
 
     actions: {
 
@@ -128,7 +129,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         }
     }
 
-    private getStatValue(stat: number | AnalyticsRow[]): number | undefined {
+    private getStatValue(stat: number | AnalyticsRow[] | undefined): number | undefined {
         if (typeof stat === 'number') {
             return stat;
         }

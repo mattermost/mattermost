@@ -44,6 +44,11 @@ type ServerIface interface {
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
 }
 
+type PlatformIface interface {
+	InvalidateCacheForUser(userID string)
+	InvalidateCacheForChannel(channel *model.Channel)
+}
+
 type AppIface interface {
 	SendEphemeralPost(c request.CTX, userId string, post *model.Post) *model.Post
 	CreateChannelWithUser(c request.CTX, channel *model.Channel, userId string) (*model.Channel, *model.AppError)
@@ -61,9 +66,11 @@ type AppIface interface {
 	FileReader(path string) (filestore.ReadCloseSeeker, *model.AppError)
 	MentionsToTeamMembers(c request.CTX, message, teamID string) model.UserMentionMap
 	GetProfileImage(user *model.User) ([]byte, bool, *model.AppError)
-	InvalidateCacheForUser(userID string)
 	NotifySharedChannelUserUpdate(user *model.User)
 	OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluster) (model.SyncResponse, error)
+	OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
+	Publish(message *model.WebSocketEvent)
 }
 
 // errNotFound allows checking against Store.ErrNotFound errors without making Store a dependency.
@@ -74,6 +81,7 @@ type errNotFound interface {
 // Service provides shared channel synchronization.
 type Service struct {
 	server       ServerIface
+	platform     PlatformIface
 	app          AppIface
 	changeSignal chan struct{}
 
@@ -91,9 +99,10 @@ type Service struct {
 }
 
 // NewSharedChannelService creates a RemoteClusterService instance.
-func NewSharedChannelService(server ServerIface, app AppIface) (*Service, error) {
+func NewSharedChannelService(server ServerIface, platform PlatformIface, app AppIface) (*Service, error) {
 	service := &Service{
 		server:       server,
+		platform:     platform,
 		app:          app,
 		changeSignal: make(chan struct{}, 1),
 		tasks:        make(map[string]syncTask),
@@ -242,4 +251,18 @@ func (scs *Service) onConnectionStateChange(rc *model.RemoteCluster, online bool
 		mlog.String("remoteId", rc.RemoteId),
 		mlog.Bool("online", online),
 	)
+}
+
+func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channel) {
+	scs.platform.InvalidateCacheForChannel(channel)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, channel.TeamId, "", "", nil, "")
+	messageWs.Add("channel_id", channel.Id)
+	scs.app.Publish(messageWs)
+}
+
+func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) {
+	scs.platform.InvalidateCacheForChannel(channel)
+	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
+	messageWs.Add("channel_id", channel.Id)
+	scs.app.Publish(messageWs)
 }

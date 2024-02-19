@@ -1052,6 +1052,79 @@ func (s *hooksRPCServer) PreferencesHaveChanged(args *Z_PreferencesHaveChangedAr
 	return nil
 }
 
+func init() {
+	hookNameToId["OnSharedChannelsAttachmentSyncMsg"] = OnSharedChannelsAttachmentSyncMsgID
+}
+
+type Z_OnSharedChannelsAttachmentSyncMsgArgs struct {
+	A *model.FileInfo
+	B *model.Post
+	C *model.RemoteCluster
+}
+
+type Z_OnSharedChannelsAttachmentSyncMsgReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error {
+	_args := &Z_OnSharedChannelsAttachmentSyncMsgArgs{fi, post, rc}
+	_returns := &Z_OnSharedChannelsAttachmentSyncMsgReturns{}
+	if g.implemented[OnSharedChannelsAttachmentSyncMsgID] {
+		if err := g.client.Call("Plugin.OnSharedChannelsAttachmentSyncMsg", _args, _returns); err != nil {
+			g.log.Error("RPC call OnSharedChannelsAttachmentSyncMsg to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnSharedChannelsAttachmentSyncMsg(args *Z_OnSharedChannelsAttachmentSyncMsgArgs, returns *Z_OnSharedChannelsAttachmentSyncMsgReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnSharedChannelsAttachmentSyncMsg(fi *model.FileInfo, post *model.Post, rc *model.RemoteCluster) error
+	}); ok {
+		returns.A = hook.OnSharedChannelsAttachmentSyncMsg(args.A, args.B, args.C)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnSharedChannelsAttachmentSyncMsg called but not implemented."))
+	}
+	return nil
+}
+
+func init() {
+	hookNameToId["OnSharedChannelsProfileImageSyncMsg"] = OnSharedChannelsProfileImageSyncMsgID
+}
+
+type Z_OnSharedChannelsProfileImageSyncMsgArgs struct {
+	A *model.User
+	B *model.RemoteCluster
+}
+
+type Z_OnSharedChannelsProfileImageSyncMsgReturns struct {
+	A error
+}
+
+func (g *hooksRPCClient) OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error {
+	_args := &Z_OnSharedChannelsProfileImageSyncMsgArgs{user, rc}
+	_returns := &Z_OnSharedChannelsProfileImageSyncMsgReturns{}
+	if g.implemented[OnSharedChannelsProfileImageSyncMsgID] {
+		if err := g.client.Call("Plugin.OnSharedChannelsProfileImageSyncMsg", _args, _returns); err != nil {
+			g.log.Error("RPC call OnSharedChannelsProfileImageSyncMsg to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A
+}
+
+func (s *hooksRPCServer) OnSharedChannelsProfileImageSyncMsg(args *Z_OnSharedChannelsProfileImageSyncMsgArgs, returns *Z_OnSharedChannelsProfileImageSyncMsgReturns) error {
+	if hook, ok := s.impl.(interface {
+		OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
+	}); ok {
+		returns.A = hook.OnSharedChannelsProfileImageSyncMsg(args.A, args.B)
+		returns.A = encodableError(returns.A)
+	} else {
+		return encodableError(fmt.Errorf("Hook OnSharedChannelsProfileImageSyncMsg called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
@@ -6405,14 +6478,15 @@ type Z_InviteRemoteToChannelArgs struct {
 	A string
 	B string
 	C string
+	D bool
 }
 
 type Z_InviteRemoteToChannelReturns struct {
 	A error
 }
 
-func (g *apiRPCClient) InviteRemoteToChannel(channelID string, remoteID string, userID string) error {
-	_args := &Z_InviteRemoteToChannelArgs{channelID, remoteID, userID}
+func (g *apiRPCClient) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
+	_args := &Z_InviteRemoteToChannelArgs{channelID, remoteID, userID, shareIfNotShared}
 	_returns := &Z_InviteRemoteToChannelReturns{}
 	if err := g.client.Call("Plugin.InviteRemoteToChannel", _args, _returns); err != nil {
 		log.Printf("RPC call to InviteRemoteToChannel API failed: %s", err.Error())
@@ -6422,9 +6496,9 @@ func (g *apiRPCClient) InviteRemoteToChannel(channelID string, remoteID string, 
 
 func (s *apiRPCServer) InviteRemoteToChannel(args *Z_InviteRemoteToChannelArgs, returns *Z_InviteRemoteToChannelReturns) error {
 	if hook, ok := s.impl.(interface {
-		InviteRemoteToChannel(channelID string, remoteID string, userID string) error
+		InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error
 	}); ok {
-		returns.A = hook.InviteRemoteToChannel(args.A, args.B, args.C)
+		returns.A = hook.InviteRemoteToChannel(args.A, args.B, args.C, args.D)
 		returns.A = encodableError(returns.A)
 	} else {
 		return encodableError(fmt.Errorf("API InviteRemoteToChannel called but not implemented."))

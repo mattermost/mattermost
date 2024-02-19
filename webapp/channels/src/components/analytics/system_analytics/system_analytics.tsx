@@ -4,12 +4,12 @@
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 
-import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow} from '@mattermost/types/admin';
+import type {AnalyticsRow, PluginAnalyticsRow, IndexedPluginAnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import type {ClientLicense} from '@mattermost/types/config';
 
 import * as AdminActions from 'actions/admin_actions.jsx';
 
-import {ActivatedUserCard} from 'components/analytics/activated_users_card';
+import ActivatedUserCard from 'components/analytics/activated_users_card';
 import TrueUpReview from 'components/analytics/true_up_review';
 import ExternalLink from 'components/external_link';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
@@ -33,7 +33,7 @@ const StatTypes = Constants.StatTypes;
 
 type Props = {
     isLicensed: boolean;
-    stats?: Record<string, number | AnalyticsRow[]>;
+    stats?: AnalyticsState;
     license: ClientLicense;
     pluginStatHandlers: GlobalState['plugins']['siteStatsHandlers'];
 }
@@ -119,7 +119,7 @@ export default class SystemAnalytics extends React.PureComponent<Props, State> {
         this.setState({pluginSiteStats: allStatsIndexed});
     }
 
-    private getStatValue(stat: number | AnalyticsRow[]): number | undefined {
+    private getStatValue(stat: number | AnalyticsRow[] | undefined): number | undefined {
         if (typeof stat === 'number') {
             return stat;
         }

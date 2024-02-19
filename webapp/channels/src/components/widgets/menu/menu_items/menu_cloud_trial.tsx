@@ -10,7 +10,6 @@ import {getCloudSubscription, getSubscriptionProduct} from 'mattermost-redux/sel
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {deprecateCloudFree} from 'mattermost-redux/selectors/entities/preferences';
 import {isCurrentUserSystemAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
@@ -33,7 +32,7 @@ const MenuCloudTrial = ({id}: Props): JSX.Element | null => {
     const subscriptionProduct = useSelector(getSubscriptionProduct);
     const license = useSelector(getLicense);
     const cloudFreeDeprecated = useSelector(deprecateCloudFree);
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const isCloud = license?.Cloud === 'true';
     const isFreeTrial = subscription?.is_free_trial === 'true';

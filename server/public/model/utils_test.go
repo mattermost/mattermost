@@ -74,25 +74,6 @@ func TestPadDateStringZeros(t *testing.T) {
 	}
 }
 
-func TestAppError(t *testing.T) {
-	appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
-	json := appErr.ToJSON()
-	rerr := AppErrorFromJSON(strings.NewReader(json))
-	require.Equal(t, appErr.Message, rerr.Message)
-
-	t.Log(appErr.Error())
-}
-
-func TestAppErrorNoTranslation(t *testing.T) {
-	appErr := NewAppError("TestAppError", NoTranslation, nil, "test error", http.StatusBadRequest)
-	require.Equal(t, "TestAppError: test error", appErr.Error())
-}
-
-func TestAppErrorJunk(t *testing.T) {
-	rerr := AppErrorFromJSON(strings.NewReader("<html><body>This is a broken test</body></html>"))
-	require.Equal(t, "body: <html><body>This is a broken test</body></html>", rerr.DetailedError)
-}
-
 func TestAppErrorRender(t *testing.T) {
 	t.Run("Minimal", func(t *testing.T) {
 		aerr := NewAppError("here", "message", nil, "", http.StatusTeapot)
@@ -130,13 +111,26 @@ func TestAppErrorRender(t *testing.T) {
 		aerr := NewAppError("id", msg, nil, str, http.StatusTeapot).Wrap(errors.New(str))
 		assert.Len(t, aerr.Error(), maxErrorLength+len(msg))
 	})
+
+	t.Run("No Translation", func(t *testing.T) {
+		appErr := NewAppError("TestAppError", NoTranslation, nil, "test error", http.StatusBadRequest)
+		require.Equal(t, "TestAppError: test error", appErr.Error())
+	})
 }
 
 func TestAppErrorSerialize(t *testing.T) {
+	t.Run("Junk", func(t *testing.T) {
+		rerr := AppErrorFromJSON(strings.NewReader("<html><body>This is a broken test</body></html>"))
+		require.ErrorContains(t, rerr, "failed to decode JSON payload into AppError")
+		require.ErrorContains(t, rerr, "<html><body>This is a broken test</body></html>")
+	})
+
 	t.Run("Normal", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "", http.StatusTeapot)
 		js := aerr.ToJSON()
-		berr := AppErrorFromJSON(strings.NewReader(js))
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
 		require.Equal(t, "message", berr.Id)
 		require.Empty(t, berr.DetailedError)
 		require.Equal(t, http.StatusTeapot, berr.StatusCode)
@@ -147,7 +141,9 @@ func TestAppErrorSerialize(t *testing.T) {
 	t.Run("Detailed", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot)
 		js := aerr.ToJSON()
-		berr := AppErrorFromJSON(strings.NewReader(js))
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
 		require.Equal(t, "message", berr.Id)
 		require.Equal(t, "detail", berr.DetailedError)
 		require.Equal(t, http.StatusTeapot, berr.StatusCode)
@@ -158,7 +154,9 @@ func TestAppErrorSerialize(t *testing.T) {
 	t.Run("Wrapped", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "", http.StatusTeapot).Wrap(errors.New("wrapped"))
 		js := aerr.ToJSON()
-		berr := AppErrorFromJSON(strings.NewReader(js))
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
 		require.Equal(t, "message", berr.Id)
 		require.Equal(t, "wrapped", berr.DetailedError)
 		require.Equal(t, http.StatusTeapot, berr.StatusCode)
@@ -169,12 +167,30 @@ func TestAppErrorSerialize(t *testing.T) {
 	t.Run("Detailed + Wrapped", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
 		js := aerr.ToJSON()
-		berr := AppErrorFromJSON(strings.NewReader(js))
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
 		require.Equal(t, "message", berr.Id)
 		require.Equal(t, "detail, wrapped", berr.DetailedError)
 		require.Equal(t, http.StatusTeapot, berr.StatusCode)
 
 		require.EqualError(t, berr, aerr.Error())
+	})
+
+	t.Run("Where", func(t *testing.T) {
+		appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
+		json := appErr.ToJSON()
+		err := AppErrorFromJSON(strings.NewReader(json))
+		rerr, ok := err.(*AppError)
+		require.True(t, ok)
+		require.Equal(t, appErr.Message, rerr.Message)
+	})
+
+	t.Run("Returned http.MaxBytesError", func(t *testing.T) {
+		aerr := (&http.MaxBytesError{}).Error() + "\n"
+
+		err := AppErrorFromJSON(strings.NewReader(aerr))
+		require.EqualError(t, err, "The request was too large. Consider asking your System Admin to raise the FileSettings.MaxFileSize setting.")
 	})
 }
 
@@ -1206,4 +1222,165 @@ func TestRemoveDuplicateStrings(t *testing.T) {
 		actual := RemoveDuplicateStrings(tc.Input)
 		require.Equalf(t, actual, tc.Result, "case: %v\tshould returned: %#v", tc, tc.Result)
 	}
+}
+
+func TestStructFromJSONLimited(t *testing.T) {
+	t.Run("successfully parses basic struct", func(t *testing.T) {
+		type TestStruct struct {
+			StringField string
+			IntField    int
+			FloatField  float32
+			BoolField   bool
+		}
+
+		testStruct := TestStruct{
+			StringField: "string",
+			IntField:    2,
+			FloatField:  3.1415,
+			BoolField:   true,
+		}
+		testStructBytes, err := json.Marshal(testStruct)
+		require.NoError(t, err)
+
+		b := &TestStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 1000, b)
+		require.NoError(t, err)
+
+		require.Equal(t, b.StringField, "string")
+		require.Equal(t, b.IntField, 2)
+		require.Equal(t, b.FloatField, float32(3.1415))
+		require.Equal(t, b.BoolField, true)
+	})
+
+	t.Run("error too big", func(t *testing.T) {
+		type TestStruct struct {
+			StringField string
+			IntField    int
+			FloatField  float32
+			BoolField   bool
+		}
+
+		testStruct := TestStruct{
+			StringField: "string",
+			IntField:    2,
+			FloatField:  3.1415,
+			BoolField:   true,
+		}
+		testStructBytes, err := json.Marshal(testStruct)
+		require.NoError(t, err)
+
+		b := &TestStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 10, b)
+		require.Error(t, err)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	})
+
+	t.Run("successfully parses nested struct", func(t *testing.T) {
+		type TestStruct struct {
+			StringField string
+			IntField    int
+			FloatField  float32
+			BoolField   bool
+		}
+
+		type NestedStruct struct {
+			FieldA TestStruct
+			FieldB TestStruct
+			FieldC []int
+		}
+
+		testStructA := TestStruct{
+			StringField: "string A",
+			IntField:    2,
+			FloatField:  3.1415,
+			BoolField:   true,
+		}
+
+		testStructB := TestStruct{
+			StringField: "string B",
+			IntField:    3,
+			FloatField:  100,
+			BoolField:   false,
+		}
+
+		nestedStruct := NestedStruct{
+			FieldA: testStructA,
+			FieldB: testStructB,
+			FieldC: []int{5, 9, 1, 5, 7},
+		}
+
+		nestedStructBytes, err := json.Marshal(nestedStruct)
+		require.NoError(t, err)
+
+		b := &NestedStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(nestedStructBytes), 1000, b)
+		require.NoError(t, err)
+
+		require.Equal(t, b.FieldA.StringField, "string A")
+		require.Equal(t, b.FieldA.IntField, 2)
+		require.Equal(t, b.FieldA.FloatField, float32(3.1415))
+		require.Equal(t, b.FieldA.BoolField, true)
+
+		require.Equal(t, b.FieldB.StringField, "string B")
+		require.Equal(t, b.FieldB.IntField, 3)
+		require.Equal(t, b.FieldB.FloatField, float32(100))
+		require.Equal(t, b.FieldB.BoolField, false)
+
+		require.Equal(t, b.FieldC, []int{5, 9, 1, 5, 7})
+	})
+
+	t.Run("errors on too big nested struct", func(t *testing.T) {
+		type TestStruct struct {
+			StringField string
+			IntField    int
+			FloatField  float32
+			BoolField   bool
+		}
+
+		type NestedStruct struct {
+			FieldA TestStruct
+			FieldB TestStruct
+			FieldC []int
+		}
+
+		testStructA := TestStruct{
+			StringField: "string A",
+			IntField:    2,
+			FloatField:  3.1415,
+			BoolField:   true,
+		}
+
+		testStructB := TestStruct{
+			StringField: "string B",
+			IntField:    3,
+			FloatField:  100,
+			BoolField:   false,
+		}
+
+		nestedStruct := NestedStruct{
+			FieldA: testStructA,
+			FieldB: testStructB,
+			FieldC: []int{5, 9, 1, 5, 7},
+		}
+
+		nestedStructBytes, err := json.Marshal(nestedStruct)
+		require.NoError(t, err)
+
+		b := &NestedStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(nestedStructBytes), 50, b)
+		require.Error(t, err)
+		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
+	})
+
+	t.Run("handles empty structs", func(t *testing.T) {
+		type TestStruct struct{}
+
+		testStruct := TestStruct{}
+		testStructBytes, err := json.Marshal(testStruct)
+		require.NoError(t, err)
+
+		b := &TestStruct{}
+		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 1000, b)
+		require.NoError(t, err)
+	})
 }
