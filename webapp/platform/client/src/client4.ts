@@ -2456,8 +2456,8 @@ export default class Client4 {
             database_status: string;
             filestore_status: string;
         }>(
-            `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId})}`,
-            {method: 'get', ignoreStatus: true},
+            `${this.getBaseRoute()}/system/ping${buildQueryString({get_server_status: getServerStatus, device_id: deviceId, use_rest_semantics: true})}`,
+            {method: 'get'},
         );
     };
 
