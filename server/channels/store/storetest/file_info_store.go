@@ -282,7 +282,7 @@ func testFileInfoGetWithOptions(t *testing.T, rctx request.CTX, ss store.Store) 
 		post := model.Post{}
 		post.ChannelId = chId
 		post.UserId = user
-		_, err := ss.Post().Save(&post)
+		_, err := ss.Post().Save(rctx, &post)
 		require.NoError(t, err)
 		return &post
 	}
@@ -696,7 +696,7 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, rctx request.CTX, s
 	o1.ChannelId = c1.Id
 	o1.UserId = model.NewId()
 	o1.Message = "zz" + model.NewId() + "AAAAAAAAAAA"
-	o1, err := ss.Post().Save(o1)
+	o1, err := ss.Post().Save(rctx, o1)
 	require.NoError(t, err)
 	f1, err := ss.FileInfo().Save(rctx, &model.FileInfo{
 		PostId:    o1.Id,
@@ -714,7 +714,7 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, rctx request.CTX, s
 	o2.ChannelId = c2.Id
 	o2.UserId = model.NewId()
 	o2.Message = "zz" + model.NewId() + "CCCCCCCCC"
-	o2, err = ss.Post().Save(o2)
+	o2, err = ss.Post().Save(rctx, o2)
 	require.NoError(t, err)
 
 	f2, err := ss.FileInfo().Save(rctx, &model.FileInfo{
@@ -734,7 +734,7 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, rctx request.CTX, s
 	o3.UserId = model.NewId()
 	o3.RootId = o1.Id
 	o3.Message = "zz" + model.NewId() + "QQQQQQQQQQ"
-	o3, err = ss.Post().Save(o3)
+	o3, err = ss.Post().Save(rctx, o3)
 	require.NoError(t, err)
 
 	f3, err := ss.FileInfo().Save(rctx, &model.FileInfo{

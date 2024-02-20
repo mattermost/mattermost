@@ -962,7 +962,7 @@ export function updateUserPassword(userId: string, currentPassword: string, newP
 
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_password_update_at: new Date().getTime()}});
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_password_update: new Date().getTime()}});
         }
 
         return {data: true};
