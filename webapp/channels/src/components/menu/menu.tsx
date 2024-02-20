@@ -11,7 +11,6 @@ import type {
     ReactNode,
     MouseEvent,
     KeyboardEvent,
-    SyntheticEvent,
 } from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -42,6 +41,7 @@ type MenuButtonProps = {
     'aria-label'?: string;
     disabled?: boolean;
     class?: string;
+    as?: keyof JSX.IntrinsicElements;
     children: ReactNode;
 }
 
@@ -151,7 +151,7 @@ export function Menu(props: Props) {
         }
     }
 
-    function handleMenuButtonClick(event: SyntheticEvent<HTMLButtonElement>) {
+    function handleMenuButtonClick(event: MouseEvent) {
         event.preventDefault();
         event.stopPropagation();
 
@@ -171,7 +171,7 @@ export function Menu(props: Props) {
                 }),
             );
         } else {
-            setAnchorElement(event.currentTarget);
+            setAnchorElement(event.currentTarget as HTMLElement);
         }
     }
 
@@ -182,8 +182,10 @@ export function Menu(props: Props) {
 
     // We construct the menu button so we can set onClick correctly here to support both web and mobile view
     function renderMenuButton() {
+        const MenuButtonComponent = props.menuButton?.as ?? 'button';
+
         const triggerElement = (
-            <button
+            <MenuButtonComponent
                 id={props.menuButton.id}
                 data-testid={props.menuButton.dateTestId}
                 aria-controls={props.menu.id}
@@ -196,7 +198,7 @@ export function Menu(props: Props) {
                 onMouseDown={handleMenuButtonMouseDown}
             >
                 {props.menuButton.children}
-            </button>
+            </MenuButtonComponent>
         );
 
         if (props.menuButtonTooltip && props.menuButtonTooltip.text && !isMobileView) {

@@ -29,7 +29,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/platform/services/docextractor"
@@ -48,18 +47,6 @@ const (
 	maxUploadInitialBufferSize = 1024 * 1024 // 1MB
 	maxContentExtractionSize   = 1024 * 1024 // 1MB
 )
-
-// Ensure fileInfo service wrapper implements `product.FileInfoStoreService`
-var _ product.FileInfoStoreService = (*fileInfoWrapper)(nil)
-
-// fileInfoWrapper implements `product.FileInfoStoreService` for use by products.
-type fileInfoWrapper struct {
-	srv *Server
-}
-
-func (f *fileInfoWrapper) GetFileInfo(fileID string) (*model.FileInfo, *model.AppError) {
-	return f.srv.getFileInfo(fileID)
-}
 
 func (a *App) FileBackend() filestore.FileBackend {
 	return a.ch.filestore

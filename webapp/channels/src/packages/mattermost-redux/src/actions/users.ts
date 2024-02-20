@@ -18,6 +18,7 @@ import {loadRolesIfNeeded} from 'mattermost-redux/actions/roles';
 import {getMyTeams, getMyTeamMembers, getMyTeamUnreads} from 'mattermost-redux/actions/teams';
 import {Client4} from 'mattermost-redux/client';
 import {General} from 'mattermost-redux/constants';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getServerVersion} from 'mattermost-redux/selectors/entities/general';
 import {isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsers} from 'mattermost-redux/selectors/entities/users';
@@ -153,7 +154,9 @@ export function getProfiles(page = 0, perPage: number = General.PROFILE_CHUNK_SI
 
 export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<UserProfile[]> {
     return async (dispatch, getState) => {
-        const {profiles} = getState().entities.users;
+        const state = getState();
+        const {profiles} = state.entities.users;
+        const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
         const missingIds: string[] = [];
         userIds.forEach((id) => {
             if (!profiles[id]) {
@@ -162,7 +165,9 @@ export function getMissingProfilesByIds(userIds: string[]): ActionFuncAsync<User
         });
 
         if (missingIds.length > 0) {
-            dispatch(getStatusesByIds(missingIds));
+            if (enabledUserStatuses) {
+                dispatch(getStatusesByIds(missingIds));
+            }
             return dispatch(getProfilesByIds(missingIds));
         }
 
@@ -957,7 +962,7 @@ export function updateUserPassword(userId: string, currentPassword: string, newP
 
         const profile = getState().entities.users.profiles[userId];
         if (profile) {
-            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_password_update_at: new Date().getTime()}});
+            dispatch({type: UserTypes.RECEIVED_PROFILE, data: {...profile, last_password_update: new Date().getTime()}});
         }
 
         return {data: true};

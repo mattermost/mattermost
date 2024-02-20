@@ -11,28 +11,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
-
-// Ensure preferences service wrapper implements `product.PreferencesService`
-var _ product.PreferencesService = (*preferencesServiceWrapper)(nil)
-
-// preferencesServiceWrapper provides an implementation of `product.PreferencesService` for use by products.
-type preferencesServiceWrapper struct {
-	app AppIface
-}
-
-func (w *preferencesServiceWrapper) GetPreferencesForUser(c request.CTX, userID string) (model.Preferences, *model.AppError) {
-	return w.app.GetPreferencesForUser(c, userID)
-}
-
-func (w *preferencesServiceWrapper) UpdatePreferencesForUser(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
-	return w.app.UpdatePreferences(c, userID, preferences)
-}
-
-func (w *preferencesServiceWrapper) DeletePreferencesForUser(c request.CTX, userID string, preferences model.Preferences) *model.AppError {
-	return w.app.DeletePreferences(c, userID, preferences)
-}
 
 func (a *App) GetPreferencesForUser(c request.CTX, userID string) (model.Preferences, *model.AppError) {
 	preferences, err := a.Srv().Store().Preference().GetAll(userID)

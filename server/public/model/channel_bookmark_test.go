@@ -522,7 +522,6 @@ func TestChannelBookmarkPreUpdate(t *testing.T) {
 }
 
 func TestChannelBookmarkPatch(t *testing.T) {
-
 	p := &ChannelBookmarkPatch{
 		DisplayName: NewString(NewId()),
 		SortOrder:   NewInt64(1),

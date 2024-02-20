@@ -31,6 +31,7 @@ const state: GlobalState = {
             profilesNotInGroup: {},
             statuses: {},
             stats: {},
+            filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
         },
@@ -113,6 +114,7 @@ const state: GlobalState = {
             userAccessTokens: {},
             clusterInfo: [],
             analytics: {},
+            teamAnalytics: {},
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
@@ -129,6 +131,7 @@ const state: GlobalState = {
             commands: {},
             appsBotIDs: [],
             appsOAuthAppIDs: [],
+            outgoingOAuthConnections: {},
         },
         files: {
             files: {},

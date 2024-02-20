@@ -122,6 +122,7 @@ const EmojiPicker = ({
 
         const [updatedCategoryOrEmojisRows, updatedEmojiPositions] = createCategoryAndEmojiRows(allEmojis, categories, filter, userSkinTone);
 
+        selectFirstEmoji(updatedEmojiPositions);
         setCategoryOrEmojisRows(updatedCategoryOrEmojisRows);
         setEmojiPositionsArray(updatedEmojiPositions);
         throttledSearchCustomEmoji.current(filter, customEmojisEnabled);
@@ -159,6 +160,22 @@ const EmojiPicker = ({
         }
         const emoji = allEmojis[emojiId] || allEmojis[emojiId.toUpperCase()] || allEmojis[emojiId.toLowerCase()];
         return emoji;
+    };
+
+    const selectFirstEmoji = (emojiPositions: EmojiPosition[]) => {
+        if (!emojiPositions[0]) {
+            return;
+        }
+
+        const {rowIndex, emojiId} = emojiPositions[0];
+        const cursorEmoji = getEmojiById(emojiId);
+        if (cursorEmoji) {
+            setCursor({
+                rowIndex,
+                emojiId,
+                emoji: cursorEmoji,
+            });
+        }
     };
 
     const handleCategoryClick = useCallback((categoryRowIndex: CategoryOrEmojiRow['index'], categoryName: EmojiCategory, emojiId: string) => {

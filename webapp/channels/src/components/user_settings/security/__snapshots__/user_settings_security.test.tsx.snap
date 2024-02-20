@@ -2,51 +2,27 @@
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable gitlab 1`] = `
 <div>
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <i
-          className="fa fa-angle-left"
-          onClick={[MockFunction]}
-          title="Collapse Icon"
-        />
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    </h3>
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
@@ -163,51 +139,27 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable google 1`] = `
 <div>
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <i
-          className="fa fa-angle-left"
-          onClick={[MockFunction]}
-          title="Collapse Icon"
-        />
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    </h3>
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
@@ -324,51 +276,27 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable office365 1`] = `
 <div>
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <i
-          className="fa fa-angle-left"
-          onClick={[MockFunction]}
-          title="Collapse Icon"
-        />
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    </h3>
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />
@@ -485,51 +413,27 @@ exports[`components/user_settings/display/UserSettingsDisplay should match snaps
 
 exports[`components/user_settings/display/UserSettingsDisplay should match snapshot, enable openID 1`] = `
 <div>
-  <div
-    className="modal-header"
-  >
-    <button
-      aria-label="Close"
-      className="close"
-      data-dismiss="modal"
-      onClick={[MockFunction]}
-      type="button"
-    >
-      <span
-        aria-hidden="true"
-      >
-        ×
-      </span>
-    </button>
-    <h4
-      className="modal-title"
-    >
-      <div
-        className="modal-back"
-      >
-        <i
-          className="fa fa-angle-left"
-          onClick={[MockFunction]}
-          title="Collapse Icon"
-        />
-      </div>
-      <MemoizedFormattedMessage
+  <SettingMobileHeader
+    closeModal={[MockFunction]}
+    collapseModal={[MockFunction]}
+    text={
+      <Memo(MemoizedFormattedMessage)
         defaultMessage="Security Settings"
         id="user.settings.security.title"
       />
-    </h4>
-  </div>
+    }
+  />
   <div
     className="user-settings"
   >
-    <h3
-      className="tab-header"
-    >
-      <MemoizedFormattedMessage
-        defaultMessage="Security Settings"
-        id="user.settings.security.title"
-      />
-    </h3>
+    <SettingDesktopHeader
+      text={
+        <Memo(MemoizedFormattedMessage)
+          defaultMessage="Security Settings"
+          id="user.settings.security.title"
+        />
+      }
+    />
     <div
       className="divider-dark first"
     />

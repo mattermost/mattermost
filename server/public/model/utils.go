@@ -4,6 +4,7 @@
 package model
 
 import (
+	"bytes"
 	"crypto/rand"
 	"database/sql/driver"
 	"encoding/base32"
@@ -11,7 +12,6 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"net/http"
 	"net/mail"
 	"net/url"
 	"os"
@@ -336,22 +336,24 @@ func (er *AppError) Wrap(err error) *AppError {
 	return er
 }
 
-// AppErrorFromJSON will decode the input and return an AppError
-func AppErrorFromJSON(data io.Reader) *AppError {
-	str := ""
-	bytes, rerr := io.ReadAll(data)
-	if rerr != nil {
-		str = rerr.Error()
-	} else {
-		str = string(bytes)
+// AppErrorFromJSON will try to decode the input into an AppError.
+func AppErrorFromJSON(r io.Reader) error {
+	data, err := io.ReadAll(r)
+	if err != nil {
+		return err
 	}
 
-	decoder := json.NewDecoder(strings.NewReader(str))
 	var er AppError
-	err := decoder.Decode(&er)
+	err = json.NewDecoder(bytes.NewReader(data)).Decode(&er)
 	if err != nil {
-		return NewAppError("AppErrorFromJSON", "model.utils.decode_json.app_error", nil, "body: "+str, http.StatusInternalServerError).Wrap(err)
+		// If the request exceeded FileSettings.MaxFileSize a plain error gets returned. Convert it into an AppError.
+		if string(data) == "http: request body too large\n" {
+			return errors.New("The request was too large. Consider asking your System Admin to raise the FileSettings.MaxFileSize setting.")
+		}
+
+		return errors.Wrapf(err, "failed to decode JSON payload into AppError. Body: %s", string(data))
 	}
+
 	return &er
 }
 

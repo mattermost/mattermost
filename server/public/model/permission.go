@@ -396,6 +396,7 @@ var ChannelModeratedPermissionsMap map[string]string
 var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
 
+var PermissionManageOutgoingOAuthConnections *Permission
 var ModeratedBookmarkPermissions []*Permission
 
 func initializePermissions() {
@@ -2186,6 +2187,13 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionManageOutgoingOAuthConnections = &Permission{
+		"manage_outgoing_oauth_connections",
+		"authentication.permissions.manage_outgoing_oauth_connections.name",
+		"authentication.permissions.manage_outgoing_oauth_connections.description",
+		PermissionScopeSystem,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2378,6 +2386,7 @@ func initializePermissions() {
 		PermissionReadLicenseInformation,
 		PermissionManageLicenseInformation,
 		PermissionCreateCustomGroup,
+		PermissionManageOutgoingOAuthConnections,
 	}
 
 	TeamScopedPermissions := []*Permission{
