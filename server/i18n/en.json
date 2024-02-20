@@ -2425,6 +2425,10 @@
     "translation": "Missing file in multipart/form request."
   },
   {
+    "id": "api.plugin.upload.file_too_large.app_error",
+    "translation": "Uploaded plugin size exceeds limit."
+  },
+  {
     "id": "api.plugin.verify_plugin.app_error",
     "translation": "Unable to verify plugin signature."
   },
