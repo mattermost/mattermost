@@ -58,6 +58,10 @@ func uploadPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := r.ParseMultipartForm(MaximumPluginFileSize); err != nil {
+		if err.Error() == "http: request body too large" {
+			c.Err = model.NewAppError("uploadPlugin", "api.plugin.upload.file_too_large.app_error", nil, "", http.StatusRequestEntityTooLarge)
+			return
+		}
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
