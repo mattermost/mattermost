@@ -10041,7 +10041,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "URL-адрес некоторой аудитории указан неверно."
+    "translation": "URL-адрес некоторой аудитории указан неверно: {{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.grant_type.error",
@@ -10205,11 +10205,11 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "Произошла ошибка при сохранении исходящего oauth-соединения."
+    "translation": "Произошла ошибка при сохранении исходящего oauth-соединения: {{ .Error }}"
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "Произошла ошибка при обновлении исходящего oauth-соединения."
+    "translation": "Произошла ошибка при обновлении исходящего oauth-соединения: {{ .Error }}"
   },
   {
     "id": "api.templates.cloud_renewal_60.subject",
@@ -10366,5 +10366,89 @@
   {
     "id": "app.save_report_chunk.unsupported_format",
     "translation": "Неподдерживаемый формат отчета."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Исходящие соединения OAuth недоступны на этом сервере."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Произошла ошибка при обновлении исходящего OAuth-соединения."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Произошла ошибка при проверке учетных данных исходящего соединения OAuth."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Для указанной аудитории уже существует исходящее oauth-соединение."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Исходящие соединения OAuth недоступны на этом сервере."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Исходящее oauth-соединение для указанной аудитории не найдено."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Ваша лицензия не поддерживает исходящие oauth-соединения."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Для указанной аудитории уже существует исходящее oauth-соединение: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Для указанной аудитории уже существует исходящее oauth-соединение: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Указанная аудитория недействительна: {{ .Error }}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "При создании исходящего OAuth-соединения произошла ошибка."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Недопустимые входные параметры."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Произошла ошибка при удалении исходящего OAuth-соединения."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Недопустимые входные параметры."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Не удалось получить учетные данные с указанной конфигурацией соединения."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Неверный email_token"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Произошла ошибка при аутентификации исходящего oauth-соединения: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Для указанной аудитории нет исходящего oauth-соединения."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Указанная аудитория недействительна: {{ .Error }}"
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Невозможно добавить пользователя в качестве участника канала."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Возникла ошибка при получении исходящего oauth-соединения для аудитории."
   }
 ]
