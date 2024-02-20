@@ -186,15 +186,14 @@ jobs:
             -H "Authorization: Bearer ${{ github.token }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
             "${{ github.api_url }}/repos/${{ github.repository }}/commits/${{ needs.resolve-ref.outputs.commit_sha }}/pulls" 2>/dev/null || echo -n "")
-          if [ -n "$PR_LIST" ]; then
+          PR_NAMES_LIST=$(echo -n "$PR_LIST" | jq -r 'map(.number) | join("-")')
+          if [ -n "$PR_NAMES_LIST" ]; then
             # This commit belongs to one or more PRs.
             # Prefer displaying the PR names in the Automation Dashboard, instead of the branch name
-            PR_NAMES_LIST=$(echo -n "$PR_LIST" | jq -r 'map(.number) | join("-")')
             BRANCH="server-pr-${PR_NAMES_LIST}"
           else
-            # This commit does not belong to a PR.
-            # We want to display preferrably a tag/branch name on that commit, or at worst the short SHA
-            BRANCH="$(git describe --all --always --exclude='*/HEAD' HEAD | rev | cut -d/ -f1 | rev)"
+            # This commit does not belong to a PR. Use the given input ref as-is
+            BRANCH="${{ inputs.ref }}"
           fi
           echo "Generated branch identifier for E2E run: ${BRANCH}"
           echo "BRANCH=${BRANCH}" >> "$GITHUB_OUTPUT"
