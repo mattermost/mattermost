@@ -7,7 +7,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 #TeamSidebar {
     z-index: 13;
     display: flex;
-    width: 65px;
+    width: 64px;
     height: 100%;
     flex-direction: column;
     background-color: var(--sidebar-header-bg);
@@ -33,12 +33,11 @@ $sidebarOpacityAnimationDuration: 0.15s;
     max-width: 240px;
     height: 100%;
     flex-direction: column;
-    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-    background-color: var(--sidebar-bg);
 
     @media screen and (min-width: 769px) {
         min-width: 200px;
         max-width: 264px;
+        background: none;
     }
 
     @media screen and (min-width: 1201px) {

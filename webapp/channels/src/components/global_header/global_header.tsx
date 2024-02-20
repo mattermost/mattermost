@@ -23,9 +23,8 @@ const GlobalHeaderContainer = styled.header`
     align-items: center;
     justify-content: space-between;
     height: 40px;
-    background: var(--global-header-background);
-    border-bottom: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
-    color: rgba(var(--global-header-text-rgb), 0.64);
+    background: var(--sidebar-header-bg);
+    color: rgba(var(--sidebar-text-rgb), 0.64);
     padding: 0 12px;
     z-index: 99;
 

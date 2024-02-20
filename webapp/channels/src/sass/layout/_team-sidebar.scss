@@ -4,7 +4,6 @@
     width: 65px;
     height: 100%;
     flex-direction: column;
-    background: var(--sidebar-teambar-bg);
     text-align: center;
 
     .fa {
@@ -21,7 +20,6 @@
         width: 100%;
         flex: 0 0 auto;
         padding: 16px 0 6px;
-        background-color: var(--sidebar-teambar-bg);
     }
 
     .team-wrapper {
@@ -29,7 +27,6 @@
         overflow: hidden;
         height: 100%;
         flex: 1 1 auto;
-        background-color: var(--sidebar-teambar-bg);
         -webkit-overflow-scrolling: touch;
 
         .draggable-team-container {
@@ -145,6 +142,5 @@
         --sidebar-teambar-bg-rgb: var(--sidebar-header-bg-rgb);
         --sidebar-header-text-color-rgb: var(--sidebar-text-rgb);
 
-        border-right: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
     }
 }
