@@ -349,7 +349,9 @@ func (s LocalCacheChannelStore) getByNames(teamId string, names []string, allowF
 		}
 
 		for _, channel := range dbChannels {
-			s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+channel.Name, channel)
+			if allowFromCache {
+				s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+channel.Name, channel)
+			}
 			channels = append(channels, channel)
 		}
 	}
@@ -386,7 +388,9 @@ func (s LocalCacheChannelStore) getByName(teamId string, name string, allowFromC
 		return nil, err
 	}
 
-	s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+name, channel)
+	if allowFromCache {
+		s.rootStore.doStandardAddToCache(s.rootStore.channelByNameCache, teamId+name, channel)
+	}
 
 	return channel, nil
 }
