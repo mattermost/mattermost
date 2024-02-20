@@ -17,7 +17,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -2162,35 +2161,6 @@ func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	if s.metrics != nil {
 		s.metrics.IncrementMemCacheInvalidationCounter("All Channel Members for User - Remove by UserId")
 	}
-}
-
-func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
-	var ids map[string]string
-	if err := allChannelMembersForUserCache.Get(userId, &ids); err == nil {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
-		}
-		if _, ok := ids[channelId]; ok {
-			return true
-		}
-		return false
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
-	}
-
-	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
-	if err != nil {
-		mlog.Error("Error getting all channel members for user", mlog.Err(err))
-		return false
-	}
-
-	if _, ok := ids[channelId]; ok {
-		return true
-	}
-
-	return false
 }
 
 func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeArchivedChannels bool) (*model.ChannelMember, error) {

@@ -3573,6 +3573,10 @@ const AdminDefinition: AdminDefinitionType = {
                                         it.stateIsFalse('LdapSettings.EnableSync'),
                                     ),
                                     render_job: (job: Job) => {
+                                        if (job.status === 'pending') {
+                                            return <span>{'--'}</span>;
+                                        }
+
                                         let ldapUsers = 0;
                                         let deleteCount = 0;
                                         let updateCount = 0;
