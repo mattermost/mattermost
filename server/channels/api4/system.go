@@ -967,7 +967,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	ids, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	ids, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("updateViewedProductNotices", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return

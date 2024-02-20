@@ -644,7 +644,7 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	userIDs, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("getTeamMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
@@ -1376,7 +1376,7 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	memberInvite := &model.MemberInvite{}
-	err := model.StructFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes, memberInvite)
+	err := model.StructFromJSONLimited(r.Body, memberInvite)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
