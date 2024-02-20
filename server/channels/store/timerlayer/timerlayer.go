@@ -6275,10 +6275,10 @@ func (s *TimerLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID str
 	return err
 }
 
-func (s *TimerLayerPostStore) Save(post *model.Post) (*model.Post, error) {
+func (s *TimerLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 	start := time.Now()
 
-	result, err := s.PostStore.Save(post)
+	result, err := s.PostStore.Save(rctx, post)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {
@@ -11116,10 +11116,10 @@ func (s *TimerLayerUserStore) ResetLastPictureUpdate(userID string) error {
 	return err
 }
 
-func (s *TimerLayerUserStore) Save(user *model.User) (*model.User, error) {
+func (s *TimerLayerUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	start := time.Now()
 
-	result, err := s.UserStore.Save(user)
+	result, err := s.UserStore.Save(rctx, user)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

@@ -351,7 +351,7 @@ type ThreadStore interface {
 
 type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
-	Save(post *model.Post) (*model.Post, error)
+	Save(rctx request.CTX, post *model.Post) (*model.Post, error)
 	Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(id string, inclDeleted bool) (*model.Post, error)
@@ -402,7 +402,7 @@ type PostStore interface {
 }
 
 type UserStore interface {
-	Save(user *model.User) (*model.User, error)
+	Save(rctx request.CTX, user *model.User) (*model.User, error)
 	Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error)
 	UpdateNotifyProps(userID string, props map[string]string) error
 	UpdateLastPictureUpdate(userID string) error

@@ -2685,7 +2685,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 
 	mockPostStore := mocks.PostStore{}
 	mockStore.On("Post").Return(&mockPostStore)
-	mockPostStore.On("Save", mock.AnythingOfType("*model.Post")).Return(&model.Post{}, nil)
+	mockPostStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Post")).Return(&model.Post{}, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelidchannelidchanneli")
 
 	mockSystemStore := mocks.SystemStore{}
