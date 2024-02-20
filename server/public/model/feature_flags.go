@@ -71,7 +71,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
-	f.ChannelBookmarks = false
+	f.ChannelBookmarks = true
 }
 
 // ToMap returns the feature flags as a map[string]string
