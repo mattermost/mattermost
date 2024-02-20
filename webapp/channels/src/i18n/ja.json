@@ -5187,7 +5187,7 @@
   "status_dropdown.profile_button_label.ooo": "現在のステータス: 外出中。選択するとプロフィールとステータスのメニューを表示します。",
   "status_dropdown.set_away": "離席中",
   "status_dropdown.set_custom": "カスタムステータスを設定する",
-  "status_dropdown.set_custom_text": "カスタムステータステキストを設定する...",
+  "status_dropdown.set_custom_text": "ステータスを設定する...",
   "status_dropdown.set_dnd": "取り込み中",
   "status_dropdown.set_dnd.extra": "デスクトップ通知とプッシュ通知を無効化する",
   "status_dropdown.set_offline": "オフライン",
