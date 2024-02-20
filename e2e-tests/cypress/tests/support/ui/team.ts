@@ -1,14 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-Cypress.Commands.add('uiInviteMemberToCurrentTeam', (username) => {
+/**
+ * Invites a member to the current team
+ * @param {string} username - the username
+ */
+function uiInviteMemberToCurrentTeam(username: string) {
     // # Open member invite screen
     cy.uiOpenTeamMenu('Invite People');
 
     // # Open members section if licensed for guest accounts
     cy.findByTestId('invitationModal').
         then((container) => container.find('[data-testid="inviteMembersLink"]')).
-        then((link) => link && link.click());
+        then((link) => link?.click());
 
     // # Enter bot username and submit
     cy.get('.users-emails-input__control input').typeWithForce(username).as('input');
@@ -23,4 +27,16 @@ Cypress.Commands.add('uiInviteMemberToCurrentTeam', (username) => {
 
     // # Close, return
     cy.findByTestId('confirm-done').click();
-});
+}
+Cypress.Commands.add('uiInviteMemberToCurrentTeam', uiInviteMemberToCurrentTeam);
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Cypress {
+        interface Chainable {
+            uiInviteMemberToCurrentTeam: typeof uiInviteMemberToCurrentTeam;
+        }
+    }
+}
+
+export {};
