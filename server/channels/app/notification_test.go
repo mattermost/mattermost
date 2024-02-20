@@ -655,7 +655,6 @@ func TestSendOutOfChannelMentions(t *testing.T) {
 		assert.NoError(t, err)
 		assert.True(t, sent)
 	})
-
 }
 
 func TestFilterOutOfChannelMentions(t *testing.T) {
