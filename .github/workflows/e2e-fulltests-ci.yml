@@ -5,7 +5,7 @@
     # Check the following repo for details: https://github.com/mattermost/delivery-platform
     workflow_dispatch:
       inputs:
-        commit_sha:
+        ref:
           type: string
           required: false
         REPORT_TYPE:
@@ -63,7 +63,7 @@
           type:
           - name: PR
       with:
-        commit_sha: "${{ inputs.commit_sha || github.sha }}"
+        ref: "${{ inputs.ref || github.sha }}"
         status_check_context: "${{ needs.generate-test-variables.outputs.status_check_context }}"
         workers_number: "${{ needs.generate-test-variables.outputs.workers_number }}"
         testcase_failure_fatal: false

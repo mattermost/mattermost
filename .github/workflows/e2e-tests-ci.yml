@@ -13,5 +13,5 @@
     e2e-smoketest:
       uses: ./.github/workflows/e2e-tests-ci-template.yml
       with:
-        commit_sha: "${{ inputs.commit_sha || github.sha }}"
+        ref: "${{ inputs.commit_sha || github.sha }}"
         status_check_context: "E2E Tests/smoketests"

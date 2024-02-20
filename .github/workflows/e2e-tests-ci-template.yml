@@ -3,7 +3,10 @@ name: E2E Tests Template
 on:
   workflow_call:
     inputs:
-      commit_sha:
+      # NB: this does not support using branch names that belong to forks.
+      #     In those cases, you should specify directly the commit SHA that you want to test, or
+      #     some wrapper workflow that does it for you (e.g. the slash command for initiating a PR test)
+      ref:
         type: string
         required: true
       status_check_context:
@@ -56,15 +59,32 @@ on:
         required: false
 
 jobs:
+  resolve-ref:
+    runs-on: ubuntu-22.04
+    outputs:
+      commit_sha: "${{ steps.resolve-ref.outputs.commit_sha }}"
+    steps:
+      - name: ci/checkout-repo
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+      - name: ci/resolve-ref
+        id: resolve-ref
+        run: |
+          echo "commit_sha=$(git rev-parse --verify HEAD)" >> $GITHUB_OUTPUT
+
   update-initial-status:
     runs-on: ubuntu-22.04
+    needs:
+      - resolve-ref
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
+          commit_sha: ${{ needs.resolve-ref.outputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: E2E tests for mattermost server app
           status: pending
@@ -81,7 +101,7 @@ jobs:
         if: "${{ inputs.run_preflight_checks }}"
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.run_preflight_checks }}"
@@ -112,7 +132,7 @@ jobs:
         if: "${{ inputs.run_preflight_checks }}"
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.run_preflight_checks }}"
@@ -140,6 +160,7 @@ jobs:
   generate-build-variables:
     runs-on: ubuntu-22.04
     needs:
+      - resolve-ref
       - update-initial-status
     outputs:
       workers: "${{ steps.workers.outputs.workers }}"
@@ -149,7 +170,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
       - name: ci/generate-workers
         id: workers
@@ -164,7 +185,7 @@ jobs:
           PR_LIST=$(curl -L -H "Accept: application/vnd.github+json" \
             -H "Authorization: Bearer ${{ github.token }}" \
             -H "X-GitHub-Api-Version: 2022-11-28" \
-            "${{ github.api_url }}/repos/${{ github.repository }}/commits/${{ inputs.commit_sha }}/pulls" 2>/dev/null || echo -n "")
+            "${{ github.api_url }}/repos/${{ github.repository }}/commits/${{ needs.resolve-ref.outputs.commit_sha }}/pulls" 2>/dev/null || echo -n "")
           if [ -n "$PR_LIST" ]; then
             # This commit belongs to one or more PRs.
             # Prefer displaying the PR names in the Automation Dashboard, instead of the branch name
@@ -196,7 +217,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
       - name: ci/setup-node
         uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
@@ -256,7 +277,7 @@ jobs:
       - name: ci/checkout-repo
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
       - name: ci/setup-macos-docker
         if: runner.os == 'macos'
@@ -306,7 +327,7 @@ jobs:
         if: "${{ inputs.enable_reporting }}"
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
-          ref: ${{ inputs.commit_sha }}
+          ref: ${{ inputs.ref }}
           fetch-depth: 0
       - name: ci/setup-node
         if: "${{ inputs.enable_reporting }}"
@@ -339,6 +360,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: failure() || cancelled()
     needs:
+      - resolve-ref
       - publish-report
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
@@ -346,7 +368,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha }}
+          commit_sha: ${{ needs.resolve-ref.outputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: E2E tests for mattermost server app
           status: failure
@@ -355,6 +377,7 @@ jobs:
     runs-on: ubuntu-22.04
     if: success()
     needs:
+      - resolve-ref
       - publish-report
     steps:
       - uses: mattermost/actions/delivery/update-commit-status@main
@@ -362,7 +385,7 @@ jobs:
           GITHUB_TOKEN: ${{ github.token }}
         with:
           repository_full_name: ${{ github.repository }}
-          commit_sha: ${{ inputs.commit_sha || github.sha }}
+          commit_sha: ${{ needs.resolve-ref.outputs.commit_sha }}
           context: ${{ inputs.status_check_context }}
           description: E2E tests for mattermost server app
           status: success
