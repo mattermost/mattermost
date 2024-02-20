@@ -248,8 +248,8 @@ func (a *App) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
 		// plugin was likely uninstalled. Issue a warning once per hour, with instructions how to clean up if this is
 		// intentional.
 		if time.Now().Minute() == 0 {
-			msg := "Cannot find plugin for shared channels ping; if the plugin was intentionally uninstalled, stop this warning using "
-			msg = msg + "`/secure-connection remove --connectionID %s`"
+			msg := "Cannot find plugin for shared channels ping; if the plugin was intentionally uninstalled, "
+			msg = msg + "stop this warning using  `/secure-connection remove --connectionID %s`"
 			a.Log().Warn(fmt.Sprintf(msg, rc.RemoteId),
 				mlog.String("plugin_id", rc.PluginID),
 				mlog.Err(err),
