@@ -85,7 +85,7 @@ func (a *App) elasticsearchChannelIndexCheck() {
 	}
 
 	// notify all system admins
-	systemBot, appErr := a.GetSystemBot()
+	systemBot, appErr := a.GetSystemBot(request.EmptyContext(a.Log()))
 	if appErr != nil {
 		a.Log().Error("elasticsearchChannelIndexCheck: couldn't get system bot", mlog.Err(appErr))
 		return
