@@ -85,7 +85,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
               id="installed_outgoing_oauth_connections.help"
               values={
                 Object {
-                  "outgoingOauthConnections": <ExternalLink
+                  "outgoingOauthConnections": <ForwardRef
                     href="https://mattermost.com/pl/setup-oauth-2.0"
                     location="installed_outgoing_oauth_connections"
                   >
@@ -93,7 +93,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                       defaultMessage="Outgoing OAuth Connections"
                       id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />
@@ -180,7 +180,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                 id="installed_outgoing_oauth_connections.help"
                 values={
                   Object {
-                    "outgoingOauthConnections": <ExternalLink
+                    "outgoingOauthConnections": <ForwardRef
                       href="https://mattermost.com/pl/setup-oauth-2.0"
                       location="installed_outgoing_oauth_connections"
                     >
@@ -188,13 +188,13 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                         defaultMessage="Outgoing OAuth Connections"
                         id="installed_outgoing_oauth_connections.help.outgoingOauthConnections"
                       />
-                    </ExternalLink>,
+                    </ForwardRef>,
                   }
                 }
               >
                 <span>
                   Create 
-                  <ExternalLink
+                  <ForwardRef
                     href="https://mattermost.com/pl/setup-oauth-2.0"
                     key=".$.1"
                     location="installed_outgoing_oauth_connections"
@@ -215,7 +215,7 @@ exports[`components/integrations/InstalledOutgoingOAuthConnections should match 
                         </span>
                       </FormattedMessage>
                     </a>
-                  </ExternalLink>
+                  </ForwardRef>
                    to securely integrate bots and third-party apps with Mattermost.
                 </span>
               </FormattedMessage>
