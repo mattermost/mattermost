@@ -153,18 +153,6 @@ const GlobalThreads = () => {
             id='app-content'
             className={classNames('GlobalThreads app__content', {'thread-selected': Boolean(selectedThread)})}
         >
-            <Header
-                level={2}
-                className={'GlobalThreads___header'}
-                heading={formatMessage({
-                    id: 'globalThreads.heading',
-                    defaultMessage: 'Followed threads',
-                })}
-                subtitle={formatMessage({
-                    id: 'globalThreads.subtitle',
-                    defaultMessage: 'Threads you’re participating in will automatically show here',
-                })}
-            />
 
             {isLoading || isEmptyList ? (
                 <div className='no-results__holder'>

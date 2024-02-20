@@ -6,6 +6,10 @@
         'header'
         'pane';
     grid-template-rows: 56px 1fr;
+    border-radius: 12px;
+    outline: solid 1px rgba(var(--center-channel-color-rgb),0.08);
+    overflow: hidden;
+    box-shadow: var(--elevation-2);
 
     .Header {
         display: flex;
