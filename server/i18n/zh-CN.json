@@ -10360,5 +10360,85 @@
   {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "无法添加此用户为频道成员。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "在删除传出 OAuth 连接时出现了错误。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "在更新传出 OAuth 连接时发生了错误。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "无效的输入参数。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "在验证传出 OAuth 连接凭据时发生了错误。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "无法使用指定的连接配置取得凭据。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "提供的 Audience 已经存在一个传出的 OAuth 连接。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "提供的 Audience 没有传出的 OAuth 连接。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "在这个服务器上不支持传出 OAuth 连接。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "未找到提供的 Audience 的传出 OAuth 连接。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "提供的 Audience 已经存在一个传出的 OAuth 连接: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "提供的 Audience 无效: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "提供的 Audience 无效: {{ .Error }}"
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "不正确的 email_token"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "您的许可证不支持传出 OAuth 连接。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "无效的输入参数。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "此服务器上的传出 OAuth 连接不可用。"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "在创建传出 OAuth 连接时出现了错误。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "取得 Audience 的传出 OAuth 连接时出现错误。"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "提供的 Audience 已经存在一个用于传出的 OAuth连接: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "在验证传出 OAuth 连接时发生了错误: {{ .Error }}"
   }
 ]
