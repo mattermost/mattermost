@@ -638,16 +638,6 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
-		if err != nil {
-			// Log the error only, then continue to fetch notification message
-			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
-				mlog.String("ackId", ack.Id),
-				mlog.String("type", ack.NotificationType),
-				mlog.String("postId", ack.PostId),
-				mlog.String("status", err.Error()),
-			)
-		}
-
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
 			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {

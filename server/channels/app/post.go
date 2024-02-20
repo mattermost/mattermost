@@ -480,6 +480,12 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	if channel.TeamId != "" {
 		t, err := a.Srv().Store().Team().Get(channel.TeamId)
 		if err != nil {
+			a.NotificationsLog().Error("Missing team",
+				mlog.String("post_id", post.Id),
+				mlog.String("status", StatusServerError),
+				mlog.String("reason", ReasonFetchError),
+				mlog.Err(err),
+			)
 			return err
 		}
 		team = t
@@ -761,10 +767,23 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	if val, ok := post.GetProp(model.PostPropsPreviewedPost).(string); ok {
 		previewedPostID = val
 	} else {
+		a.NotificationsLog().Warn("Failed to get permalink post prop",
+			mlog.String("type", TypeWebsocket),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", StatusServerError),
+			mlog.String("reason", ReasonServerError),
+		)
 		return false, nil
 	}
 
 	if !model.IsValidId(previewedPostID) {
+		a.NotificationsLog().Warn("Invalid post prop id for permalink post",
+			mlog.String("type", TypeWebsocket),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", StatusServerError),
+			mlog.String("reason", ReasonServerError),
+			mlog.String("prop_value", previewedPostID),
+		)
 		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
 		return false, nil
 	}
@@ -772,6 +791,13 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	previewedPost, err := a.GetSinglePost(previewedPostID, false)
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
+			a.NotificationsLog().Warn("permalink post not found",
+				mlog.String("type", TypeWebsocket),
+				mlog.String("post_id", post.Id),
+				mlog.String("status", StatusServerError),
+				mlog.String("reason", ReasonServerError),
+				mlog.String("referenced_post_id", previewedPostID),
+			)
 			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))
 			return false, nil
 		}

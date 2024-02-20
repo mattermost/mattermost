@@ -27,6 +27,8 @@ import (
 )
 
 func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
 	tt := []struct {
 		name                 string
 		userNotifySetting    string
@@ -425,12 +427,15 @@ func TestDoesNotifyPropsAllowPushNotification(t *testing.T) {
 			if tc.isMuted {
 				channelNotifyProps[model.MarkUnreadNotifyProp] = model.ChannelMarkUnreadMention
 			}
-			assert.Equal(t, tc.expected, DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, tc.wasMentioned, tc.isGM))
+			assert.Equal(t, tc.expected, th.App.DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, tc.wasMentioned, tc.isGM))
 		})
 	}
 }
 
 func TestDoesStatusAllowPushNotification(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
 	userID := model.NewId()
 	channelID := model.NewId()
 
@@ -620,7 +625,7 @@ func TestDoesStatusAllowPushNotification(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			userNotifyProps := make(map[string]string)
 			userNotifyProps["push_status"] = tc.userNotifySetting
-			assert.Equal(t, tc.expected, DoesStatusAllowPushNotification(userNotifyProps, tc.status, tc.channelID))
+			assert.Equal(t, tc.expected, th.App.DoesStatusAllowPushNotification(&model.User{NotifyProps: userNotifyProps}, tc.status, &model.Post{ChannelId: tc.channelID}))
 		})
 	}
 }

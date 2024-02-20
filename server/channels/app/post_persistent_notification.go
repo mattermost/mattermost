@@ -35,6 +35,13 @@ func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, log
 			// Either the notification post is already deleted or was never a notification post
 			return nil
 		default:
+			a.NotificationsLog().Error("Cannot fetch persistent notification",
+				mlog.String("sender_id", loggedInUserID),
+				mlog.String("post_id", post.Id),
+				mlog.String("status", StatusServerError),
+				mlog.String("reason", ReasonFetchError),
+				mlog.Err(err),
+			)
 			return model.NewAppError("ResolvePersistentNotification", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
@@ -45,8 +52,22 @@ func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, log
 			var nfErr *store.ErrNotFound
 			switch {
 			case errors.As(nErr, &nfErr):
+				a.NotificationsLog().Error("Cannot get sending user",
+					mlog.String("sender_id", loggedInUserID),
+					mlog.String("post_id", post.Id),
+					mlog.String("status", StatusServerError),
+					mlog.String("reason", ReasonFetchError),
+					mlog.Err(nErr),
+				)
 				return model.NewAppError("ResolvePersistentNotification", MissingAccountError, nil, "", http.StatusNotFound).Wrap(nErr)
 			default:
+				a.NotificationsLog().Error("Fetch error getting user",
+					mlog.String("sender_id", loggedInUserID),
+					mlog.String("post_id", post.Id),
+					mlog.String("status", StatusServerError),
+					mlog.String("reason", ReasonFetchError),
+					mlog.Err(nErr),
+				)
 				return model.NewAppError("ResolvePersistentNotification", "app.user.get.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
 			}
 		}
@@ -62,6 +83,13 @@ func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, log
 		}
 		return nil
 	}); err != nil {
+		a.NotificationsLog().Error("Error resolving persistent notification",
+			mlog.String("sender_id", loggedInUserID),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", StatusServerError),
+			mlog.String("reason", ReasonFetchError),
+			mlog.Err(err),
+		)
 		return model.NewAppError("ResolvePersistentNotification", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -71,6 +99,13 @@ func (a *App) ResolvePersistentNotification(c request.CTX, post *model.Post, log
 	}
 
 	if err := a.Srv().Store().PostPersistentNotification().Delete([]string{post.Id}); err != nil {
+		a.NotificationsLog().Error("Error deleting persistent notification",
+			mlog.String("sender_id", loggedInUserID),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", StatusServerError),
+			mlog.String("reason", ReasonFetchError),
+			mlog.Err(err),
+		)
 		return model.NewAppError("ResolvePersistentNotification", "app.post_priority.delete_persistent_notification_post.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
@@ -311,22 +346,13 @@ func (a *App) sendPersistentNotifications(post *model.Post, channel *model.Chann
 			}
 
 			isGM := channel.Type == model.ChannelTypeGroup
-			if ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
+			if a.ShouldSendPushNotification(profileMap[userID], channelNotifyProps[channel.Id][userID], true, status, post, isGM) {
 				a.sendPushNotification(
 					notification,
 					user,
 					true,
 					false,
 					"",
-				)
-			} else {
-				// register that a notification was not sent
-				a.NotificationsLog().Debug("Persistent Notification not sent",
-					mlog.String("ackId", ""),
-					mlog.String("type", model.PushTypeMessage),
-					mlog.String("userId", userID),
-					mlog.String("postId", post.Id),
-					mlog.String("status", model.PushNotSent),
 				)
 			}
 		}
