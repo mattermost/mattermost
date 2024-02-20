@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/plugin"
@@ -244,7 +245,16 @@ func (a *App) OnSharedChannelsSyncMsg(msg *model.SyncMsg, rc *model.RemoteCluste
 func (a *App) OnSharedChannelsPing(rc *model.RemoteCluster) bool {
 	pluginHooks, err := getPluginHooks(a.GetPluginsEnvironment(), rc.PluginID)
 	if err != nil {
-		a.Log().Error("Ping for shared channels cannot get plugin hooks", mlog.String("plugin_id", rc.PluginID), mlog.Err(err))
+		// plugin was likely uninstalled. Issue a warning once per hour, with instructions how to clean up if this is
+		// intentional.
+		if time.Now().Minute() == 0 {
+			msg := "Cannot find plugin for shared channels ping; if the plugin was intentionally uninstalled, stop this warning using "
+			msg = msg + "`/secure-connection remove --connectionID %s`"
+			a.Log().Warn(fmt.Sprintf(msg, rc.RemoteId),
+				mlog.String("plugin_id", rc.PluginID),
+				mlog.Err(err),
+			)
+		}
 		return false
 	}
 
