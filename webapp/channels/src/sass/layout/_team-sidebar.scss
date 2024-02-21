@@ -4,6 +4,7 @@
     width: 65px;
     height: 100%;
     flex-direction: column;
+    background-color: var(--sidebar-header-bg);
     text-align: center;
 
     .fa {
@@ -136,6 +137,8 @@
 @media screen and (min-width: 769px) {
     // global header style adjustments
     .team-sidebar {
+        background-color: none;
+
         // use sidebar header variables for team sidebar
         --sidebar-teambar-bg: var(--sidebar-header-bg);
         --sidebar-header-text-color: var(--sidebar-text);

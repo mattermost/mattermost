@@ -33,6 +33,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     max-width: 240px;
     height: 100%;
     flex-direction: column;
+    background-color: var(--sidebar-bg);
 
     @media screen and (min-width: 769px) {
         min-width: 200px;
