@@ -135,3 +135,17 @@ func TestOpenGraphDecodeHTMLEntities(t *testing.T) {
 	assert.Equal(t, og.Title, "Test's are the best.©")
 	assert.Equal(t, og.Description, "Test's are the worst.©")
 }
+
+func TestParseLinkFavicon(t *testing.T) {
+	HTML := `
+		<html>
+			<head>
+			<link rel="shortcut icon" href="images.example.com/favicon.ico">
+			</head>
+		</html>
+	`
+
+	fav, _ := parseLinkFavicon([]byte(HTML))
+
+	assert.Equal(t, fav, "images.example.com/favicon.ico")
+}

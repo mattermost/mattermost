@@ -291,7 +291,7 @@ callbackUrl2.com
               id="add_outgoing_webhook.callbackUrls.help"
               values={
                 Object {
-                  "link": <ExternalLink
+                  "link": <ForwardRef
                     href="https://mattermost.com/pl/configure-session-lengths"
                     location="abstract_outgoing_webhook"
                   >
@@ -299,7 +299,7 @@ callbackUrl2.com
                       defaultMessage="trusted internal connection"
                       id="add_outgoing_webhook.callbackUrls.helpLinkText"
                     />
-                  </ExternalLink>,
+                  </ForwardRef>,
                 }
               }
             />

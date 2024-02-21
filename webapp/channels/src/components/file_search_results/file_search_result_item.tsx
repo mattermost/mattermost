@@ -145,43 +145,45 @@ export default class FileSearchResultItem extends React.PureComponent<Props, Sta
                             />
                         </div>
                     </div>
-                    <OverlayTrigger
-                        delayShow={1000}
-                        placement='top'
-                        overlay={
-                            <Tooltip id='file-name__tooltip'>
-                                {localizeMessage('file_search_result_item.more_actions', 'More Actions')}
-                            </Tooltip>
-                        }
-                    >
-                        <MenuWrapper
-                            onToggle={this.keepOpen}
-                            stopPropagationOnToggle={true}
+                    {this.props.fileInfo.post_id && (
+                        <OverlayTrigger
+                            delayShow={1000}
+                            placement='top'
+                            overlay={
+                                <Tooltip id='file-name__tooltip'>
+                                    {localizeMessage('file_search_result_item.more_actions', 'More Actions')}
+                                </Tooltip>
+                            }
                         >
-                            <a
-                                href='#'
-                                className='action-icon dots-icon'
+                            <MenuWrapper
+                                onToggle={this.keepOpen}
+                                stopPropagationOnToggle={true}
                             >
-                                <i className='icon icon-dots-vertical'/>
-                            </a>
-                            <Menu
-                                ariaLabel={'file menu'}
-                                openLeft={true}
-                            >
-                                <Menu.ItemAction
-                                    onClick={this.jumpToConv}
-                                    ariaLabel={localizeMessage('file_search_result_item.open_in_channel', 'Open in channel')}
-                                    text={localizeMessage('file_search_result_item.open_in_channel', 'Open in channel')}
-                                />
-                                <Menu.ItemAction
-                                    onClick={this.copyLink}
-                                    ariaLabel={localizeMessage('file_search_result_item.copy_link', 'Copy link')}
-                                    text={localizeMessage('file_search_result_item.copy_link', 'Copy link')}
-                                />
-                                {this.renderPluginItems()}
-                            </Menu>
-                        </MenuWrapper>
-                    </OverlayTrigger>
+                                <a
+                                    href='#'
+                                    className='action-icon dots-icon'
+                                >
+                                    <i className='icon icon-dots-vertical'/>
+                                </a>
+                                <Menu
+                                    ariaLabel={'file menu'}
+                                    openLeft={true}
+                                >
+                                    <Menu.ItemAction
+                                        onClick={this.jumpToConv}
+                                        ariaLabel={localizeMessage('file_search_result_item.open_in_channel', 'Open in channel')}
+                                        text={localizeMessage('file_search_result_item.open_in_channel', 'Open in channel')}
+                                    />
+                                    <Menu.ItemAction
+                                        onClick={this.copyLink}
+                                        ariaLabel={localizeMessage('file_search_result_item.copy_link', 'Copy link')}
+                                        text={localizeMessage('file_search_result_item.copy_link', 'Copy link')}
+                                    />
+                                    {this.renderPluginItems()}
+                                </Menu>
+                            </MenuWrapper>
+                        </OverlayTrigger>
+                    )}
                     <OverlayTrigger
                         delayShow={1000}
                         placement='top'

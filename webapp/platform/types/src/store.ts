@@ -30,6 +30,7 @@ import {Typing} from './typing';
 import {UsersState} from './users';
 import {AppsState} from './apps';
 import {LimitsState} from './limits';
+import {ChannelBookmarksState} from './channel_bookmarks';
 
 export type GlobalState = {
     entities: {
@@ -38,6 +39,7 @@ export type GlobalState = {
         limits: LimitsState;
         teams: TeamsState;
         channels: ChannelsState;
+        channelBookmarks: ChannelBookmarksState;
         posts: PostsState;
         threads: ThreadsState;
         bots: {

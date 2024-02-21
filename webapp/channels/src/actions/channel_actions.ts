@@ -158,3 +158,4 @@ export function muteChannel(userId: UserProfile['id'], channelId: Channel['id'])
         mark_unread: NotificationLevels.MENTION,
     });
 }
+

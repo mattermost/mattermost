@@ -94,6 +94,7 @@ type Params struct {
 	FilterHasMember           string
 	IncludeChannelMemberCount string
 	OutgoingOAuthConnectionID string
+	Url                       string
 
 	//Bookmarks
 	ChannelBookmarkId string
@@ -246,6 +247,8 @@ func ParamsFromRequest(r *http.Request) *Params {
 	}
 
 	params.FilterHasMember = query.Get("filter_has_member")
+
+	params.Url = query.Get("url")
 
 	if val, err := strconv.ParseInt(query.Get("bookmarks_since"), 10, 64); err != nil || val < 0 {
 		params.BookmarksSince = 0

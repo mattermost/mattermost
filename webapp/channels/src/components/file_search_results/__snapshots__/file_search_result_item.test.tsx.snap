@@ -82,57 +82,6 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         <Tooltip
           id="file-name__tooltip"
         >
-          More Actions
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
-    >
-      <MenuWrapper
-        animationComponent={[Function]}
-        className=""
-        onToggle={[Function]}
-        stopPropagationOnToggle={true}
-      >
-        <a
-          className="action-icon dots-icon"
-          href="#"
-        >
-          <i
-            className="icon icon-dots-vertical"
-          />
-        </a>
-        <Menu
-          ariaLabel="file menu"
-          openLeft={true}
-        >
-          <MenuItemAction
-            ariaLabel="Open in channel"
-            onClick={[Function]}
-            show={true}
-            text="Open in channel"
-          />
-          <MenuItemAction
-            ariaLabel="Copy link"
-            onClick={[Function]}
-            show={true}
-            text="Copy link"
-          />
-        </Menu>
-      </MenuWrapper>
-    </OverlayTrigger>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
           Download
         </Tooltip>
       }
@@ -242,57 +191,6 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          More Actions
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
-    >
-      <MenuWrapper
-        animationComponent={[Function]}
-        className=""
-        onToggle={[Function]}
-        stopPropagationOnToggle={true}
-      >
-        <a
-          className="action-icon dots-icon"
-          href="#"
-        >
-          <i
-            className="icon icon-dots-vertical"
-          />
-        </a>
-        <Menu
-          ariaLabel="file menu"
-          openLeft={true}
-        >
-          <MenuItemAction
-            ariaLabel="Open in channel"
-            onClick={[Function]}
-            show={true}
-            text="Open in channel"
-          />
-          <MenuItemAction
-            ariaLabel="Copy link"
-            onClick={[Function]}
-            show={true}
-            text="Copy link"
-          />
-        </Menu>
-      </MenuWrapper>
-    </OverlayTrigger>
     <OverlayTrigger
       defaultOverlayShown={false}
       delayShow={1000}
@@ -416,57 +314,6 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         <Tooltip
           id="file-name__tooltip"
         >
-          More Actions
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
-    >
-      <MenuWrapper
-        animationComponent={[Function]}
-        className=""
-        onToggle={[Function]}
-        stopPropagationOnToggle={true}
-      >
-        <a
-          className="action-icon dots-icon"
-          href="#"
-        >
-          <i
-            className="icon icon-dots-vertical"
-          />
-        </a>
-        <Menu
-          ariaLabel="file menu"
-          openLeft={true}
-        >
-          <MenuItemAction
-            ariaLabel="Open in channel"
-            onClick={[Function]}
-            show={true}
-            text="Open in channel"
-          />
-          <MenuItemAction
-            ariaLabel="Copy link"
-            onClick={[Function]}
-            show={true}
-            text="Copy link"
-          />
-        </Menu>
-      </MenuWrapper>
-    </OverlayTrigger>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
           Download
         </Tooltip>
       }
@@ -571,57 +418,6 @@ exports[`components/file_search_result/FileSearchResultItem should match snapsho
         />
       </div>
     </div>
-    <OverlayTrigger
-      defaultOverlayShown={false}
-      delayShow={1000}
-      overlay={
-        <Tooltip
-          id="file-name__tooltip"
-        >
-          More Actions
-        </Tooltip>
-      }
-      placement="top"
-      trigger={
-        Array [
-          "hover",
-          "focus",
-        ]
-      }
-    >
-      <MenuWrapper
-        animationComponent={[Function]}
-        className=""
-        onToggle={[Function]}
-        stopPropagationOnToggle={true}
-      >
-        <a
-          className="action-icon dots-icon"
-          href="#"
-        >
-          <i
-            className="icon icon-dots-vertical"
-          />
-        </a>
-        <Menu
-          ariaLabel="file menu"
-          openLeft={true}
-        >
-          <MenuItemAction
-            ariaLabel="Open in channel"
-            onClick={[Function]}
-            show={true}
-            text="Open in channel"
-          />
-          <MenuItemAction
-            ariaLabel="Copy link"
-            onClick={[Function]}
-            show={true}
-            text="Copy link"
-          />
-        </Menu>
-      </MenuWrapper>
-    </OverlayTrigger>
     <OverlayTrigger
       defaultOverlayShown={false}
       delayShow={1000}

@@ -408,6 +408,17 @@ func (c *Context) RequireChannelId() *Context {
 	return c
 }
 
+func (c *Context) RequireUrl() *Context {
+	if c.Err != nil {
+		return c
+	}
+
+	if !model.IsValidHTTPURL(c.Params.Url) {
+		c.SetInvalidURLParam("url")
+	}
+	return c
+}
+
 func (c *Context) RequireUsername() *Context {
 	if c.Err != nil {
 		return c

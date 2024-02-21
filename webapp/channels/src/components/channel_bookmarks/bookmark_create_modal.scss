@@ -1,0 +1,20 @@
+.app__body .modal .GenericModal.channel-bookmarks-create-modal .modal-body .form-control {
+    height: 40px;
+    border: unset;
+}
+
+.channel-bookmarks-create-modal {
+    .linkInput {
+        margin-bottom: 3rem;
+        color: rgba(var(--center-channel-color-rgb), 0.72);
+    }
+
+    .Input___customMessage {
+        line-height: 14px;
+    }
+
+    .LoadingSpinner {
+        padding: 10px 12px;
+        font-size: 16px;
+    }
+}

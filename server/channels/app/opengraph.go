@@ -4,14 +4,19 @@
 package app
 
 import (
+	"bytes"
 	"html"
 	"io"
+	"net/http"
 	"net/url"
 	"time"
 
+	"github.com/adampresley/gofavigrab/parser"
 	"github.com/dyatlov/go-opengraph/opengraph"
+	"github.com/dyatlov/go-opengraph/opengraph/types/image"
 	"golang.org/x/net/html/charset"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 )
 
@@ -21,6 +26,14 @@ const (
 )
 
 func (a *App) GetOpenGraphMetadata(requestURL string) ([]byte, error) {
+	if !*a.Config().ServiceSettings.EnableLinkPreviews {
+		return nil, model.NewAppError("GetOpenGraphMetadata", "app.channel.opengraph.link_previews_disabled.error", nil, "", http.StatusForbidden)
+	}
+
+	if !a.isLinkAllowedForPreview(requestURL) {
+		return nil, model.NewAppError("GetOpenGraphMetadata", "app.channel.opengraph.link_not_allowed.error", nil, "", http.StatusBadRequest)
+	}
+
 	var ogJSONGeneric []byte
 	err := a.Srv().openGraphDataCache.Get(requestURL, &ogJSONGeneric)
 	if err == nil {
@@ -51,8 +64,25 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	og := opengraph.NewOpenGraph()
 	body = forceHTMLEncodingToUTF8(io.LimitReader(body, MaxOpenGraphResponseSize), contentType)
 
-	if err := og.ProcessHTML(body); err != nil {
+	html, err := io.ReadAll(body)
+	if err != nil {
+		mlog.Warn("Problem reading HTTP body content")
+		return nil
+	}
+	if err := og.ProcessHTML(bytes.NewReader(html)); err != nil {
 		mlog.Warn("parseOpenGraphMetadata processing failed", mlog.String("requestURL", requestURL), mlog.Err(err))
+	}
+
+	fav, _ := parseLinkFavicon(html)
+
+	if fav != "" {
+		og.Images = append(og.Images, &image.Image{
+			URL:       fav,
+			SecureURL: "",
+			Type:      "image/x-mm-icon",
+			Width:     0,
+			Height:    0,
+		})
 	}
 
 	makeOpenGraphURLsAbsolute(og, requestURL)
@@ -70,6 +100,18 @@ func (a *App) parseOpenGraphMetadata(requestURL string, body io.Reader, contentT
 	}
 
 	return og
+}
+
+func parseLinkFavicon(html []byte) (string, error) {
+	htmlParser := parser.NewHTMLParser(string(html))
+
+	url, err := htmlParser.GetFaviconURL()
+	if err != nil {
+		mlog.Warn("Problem reading the HTTP body content: favicon")
+		return "", err
+	}
+
+	return url, nil
 }
 
 func forceHTMLEncodingToUTF8(body io.Reader, contentType string) io.Reader {
