@@ -23,7 +23,6 @@ const GlobalHeaderContainer = styled.header`
     align-items: center;
     justify-content: space-between;
     height: 40px;
-    background: var(--sidebar-header-bg);
     color: rgba(var(--sidebar-text-rgb), 0.64);
     padding: 0 12px;
     z-index: 99;

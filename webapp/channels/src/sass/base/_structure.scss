@@ -142,9 +142,8 @@ body.app__body #root {
     .content-container {
         position: relative;
         display: grid;
-        padding: 8px 8px 8px 0;
         background-color: var(--sidebar-bg);
-        border: solid 1px rgba(var(--center-channel-color-rgb),0.04);
+        border: solid 1px rgba(var(--center-channel-color-rgb),0.08);
         border-radius: 16px;
         grid-area: main;
         grid-template:
@@ -179,7 +178,6 @@ body.app__body #root {
     #sidebar-right {
         top: 0px;
         right: 0px;
-        margin: 8px 8px 16px 0px;
         @media screen and (min-width: 768px) {
             position: absolute;
         }
@@ -240,7 +238,9 @@ body.app__body #root {
             }
             #sidebar-right {
                 position: absolute;
-                width: calc(100% - 16px);
+                width: 100%;
+                grid-area: center;
+                transition: width .25s ease-in-out;
             }
             --columns: min-content min-content 0 1fr min-content;
         }
@@ -260,7 +260,8 @@ body.app__body #root {
     box-shadow: var(--elevation-1);
 }
 
-.rhs-open #channel_view.channel-view {
+.rhs-open #channel_view.channel-view,
+.rhs-open-expanded #channel_view.channel.view {
     @media screen and (min-width: 1200px) {
         padding-right: 18px;
         margin-right: -18px;

@@ -137,7 +137,7 @@
 @media screen and (min-width: 769px) {
     // global header style adjustments
     .team-sidebar {
-        background-color: none;
+        background: none;
 
         // use sidebar header variables for team sidebar
         --sidebar-teambar-bg: var(--sidebar-header-bg);
