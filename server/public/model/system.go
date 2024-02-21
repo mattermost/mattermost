@@ -162,3 +162,14 @@ type LogEntry struct {
 	Timestamp string
 	Level     string
 }
+
+// SystemPingOptions is the options for setting contents of the system ping
+// response.
+type SystemPingOptions struct {
+	// FullStatus allows server to set the detailed information about
+	// the system status.
+	FullStatus bool
+	// RestSemantics allows server to return 200 code even if the server
+	// status is unhealthy.
+	RESTSemantics bool
+}

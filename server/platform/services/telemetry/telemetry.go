@@ -78,7 +78,6 @@ const (
 	TrackConfigExport            = "config_export"
 	TrackConfigWrangler          = "config_wrangler"
 	TrackFeatureFlags            = "config_feature_flags"
-	TrackConfigProducts          = "products"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
