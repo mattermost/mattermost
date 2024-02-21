@@ -414,7 +414,11 @@ func restoreChannel(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createDirectChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
+	userIds, jsonErr := model.NonSortedArrayFromJSON(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("createDirectChannel", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	}
 	allowed := false
 
 	if len(userIds) != 2 {
@@ -500,9 +504,11 @@ func searchGroupChannels(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func createGroupChannel(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
-
-	if len(userIds) == 0 {
+	userIds, jsonErr := model.SortedArrayFromJSON(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("createGroupChannel", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	} else if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -857,8 +863,11 @@ func getPublicChannelsByIdsForTeam(c *Context, w http.ResponseWriter, r *http.Re
 		return
 	}
 
-	channelIds := model.ArrayFromJSON(r.Body)
-	if len(channelIds) == 0 {
+	channelIds, jsonErr := model.SortedArrayFromJSON(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getPublicChannelsByIdsForTeam", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	} else if len(channelIds) == 0 {
 		c.SetInvalidParam("channel_ids")
 		return
 	}
@@ -1397,8 +1406,11 @@ func getChannelMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	userIds := model.ArrayFromJSON(r.Body)
-	if len(userIds) == 0 {
+	userIds, jsonErr := model.SortedArrayFromJSON(r.Body)
+	if jsonErr != nil {
+		c.Err = model.NewAppError("getChannelMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(jsonErr)
+		return
+	} else if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}

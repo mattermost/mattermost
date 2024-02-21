@@ -8,7 +8,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"reflect"
 	"strings"
@@ -232,6 +231,66 @@ func TestMapJson(t *testing.T) {
 
 	rm2 := MapFromJSON(strings.NewReader(""))
 	require.LessOrEqual(t, len(rm2), 0, "make should be invalid")
+}
+
+func TestSortedArrayFromJSON(t *testing.T) {
+	t.Run("Successful parse", func(t *testing.T) {
+		ids := []string{NewId(), NewId(), NewId()}
+		b, _ := json.Marshal(ids)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b))
+		require.NoError(t, err)
+		require.ElementsMatch(t, ids, a)
+	})
+
+	t.Run("Empty Array", func(t *testing.T) {
+		ids := []string{}
+		b, _ := json.Marshal(ids)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b))
+		require.NoError(t, err)
+		require.Empty(t, a)
+	})
+
+	t.Run("Duplicate keys, returns one", func(t *testing.T) {
+		var ids []string
+		id := NewId()
+		for i := 0; i < 10; i++ {
+			ids = append(ids, id)
+		}
+		b, _ := json.Marshal(ids)
+		a, err := SortedArrayFromJSON(bytes.NewReader(b))
+		require.NoError(t, err)
+		require.Len(t, a, 1)
+	})
+}
+
+func TestNonSortedArrayFromJSON(t *testing.T) {
+	t.Run("Successful parse", func(t *testing.T) {
+		ids := []string{NewId(), NewId(), NewId()}
+		b, _ := json.Marshal(ids)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b))
+		require.NoError(t, err)
+		require.Equal(t, ids, a)
+	})
+
+	t.Run("Empty Array", func(t *testing.T) {
+		ids := []string{}
+		b, _ := json.Marshal(ids)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b))
+		require.NoError(t, err)
+		require.Empty(t, a)
+	})
+
+	t.Run("Duplicate keys, returns one", func(t *testing.T) {
+		var ids []string
+		id := NewId()
+		for i := 0; i <= 10; i++ {
+			ids = append(ids, id)
+		}
+		b, _ := json.Marshal(ids)
+		a, err := NonSortedArrayFromJSON(bytes.NewReader(b))
+		require.NoError(t, err)
+		require.Len(t, a, 1)
+	})
 }
 
 func TestIsValidEmail(t *testing.T) {
@@ -1177,36 +1236,13 @@ func TestStructFromJSONLimited(t *testing.T) {
 		require.NoError(t, err)
 
 		b := &TestStruct{}
-		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 1000, b)
+		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), b)
 		require.NoError(t, err)
 
 		require.Equal(t, b.StringField, "string")
 		require.Equal(t, b.IntField, 2)
 		require.Equal(t, b.FloatField, float32(3.1415))
 		require.Equal(t, b.BoolField, true)
-	})
-
-	t.Run("error too big", func(t *testing.T) {
-		type TestStruct struct {
-			StringField string
-			IntField    int
-			FloatField  float32
-			BoolField   bool
-		}
-
-		testStruct := TestStruct{
-			StringField: "string",
-			IntField:    2,
-			FloatField:  3.1415,
-			BoolField:   true,
-		}
-		testStructBytes, err := json.Marshal(testStruct)
-		require.NoError(t, err)
-
-		b := &TestStruct{}
-		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 10, b)
-		require.Error(t, err)
-		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
 	})
 
 	t.Run("successfully parses nested struct", func(t *testing.T) {
@@ -1247,7 +1283,7 @@ func TestStructFromJSONLimited(t *testing.T) {
 		require.NoError(t, err)
 
 		b := &NestedStruct{}
-		err = StructFromJSONLimited(bytes.NewReader(nestedStructBytes), 1000, b)
+		err = StructFromJSONLimited(bytes.NewReader(nestedStructBytes), b)
 		require.NoError(t, err)
 
 		require.Equal(t, b.FieldA.StringField, "string A")
@@ -1263,49 +1299,6 @@ func TestStructFromJSONLimited(t *testing.T) {
 		require.Equal(t, b.FieldC, []int{5, 9, 1, 5, 7})
 	})
 
-	t.Run("errors on too big nested struct", func(t *testing.T) {
-		type TestStruct struct {
-			StringField string
-			IntField    int
-			FloatField  float32
-			BoolField   bool
-		}
-
-		type NestedStruct struct {
-			FieldA TestStruct
-			FieldB TestStruct
-			FieldC []int
-		}
-
-		testStructA := TestStruct{
-			StringField: "string A",
-			IntField:    2,
-			FloatField:  3.1415,
-			BoolField:   true,
-		}
-
-		testStructB := TestStruct{
-			StringField: "string B",
-			IntField:    3,
-			FloatField:  100,
-			BoolField:   false,
-		}
-
-		nestedStruct := NestedStruct{
-			FieldA: testStructA,
-			FieldB: testStructB,
-			FieldC: []int{5, 9, 1, 5, 7},
-		}
-
-		nestedStructBytes, err := json.Marshal(nestedStruct)
-		require.NoError(t, err)
-
-		b := &NestedStruct{}
-		err = StructFromJSONLimited(bytes.NewReader(nestedStructBytes), 50, b)
-		require.Error(t, err)
-		require.ErrorIs(t, err, io.ErrUnexpectedEOF)
-	})
-
 	t.Run("handles empty structs", func(t *testing.T) {
 		type TestStruct struct{}
 
@@ -1314,7 +1307,7 @@ func TestStructFromJSONLimited(t *testing.T) {
 		require.NoError(t, err)
 
 		b := &TestStruct{}
-		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), 1000, b)
+		err = StructFromJSONLimited(bytes.NewReader(testStructBytes), b)
 		require.NoError(t, err)
 	})
 }
