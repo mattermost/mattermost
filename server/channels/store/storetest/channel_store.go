@@ -705,7 +705,7 @@ func testChannelStoreGetForPost(t *testing.T, rctx request.CTX, ss store.Store) 
 	o1, nErr := ss.Channel().Save(ch, -1)
 	require.NoError(t, nErr)
 
-	p1, err := ss.Post().Save(&model.Post{
+	p1, err := ss.Post().Save(rctx, &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -4611,28 +4611,28 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		channelId := model.NewId()
 
-		p1, err := ss.Post().Save(&model.Post{
+		p1, err := ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1000,
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1001,
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId2,
 			ChannelId: channelId,
 			CreateAt:  1002,
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId3,
 			ChannelId: channelId,
 			CreateAt:  1003,
@@ -4661,14 +4661,14 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		channelId := model.NewId()
 
-		p1, err := ss.Post().Save(&model.Post{
+		p1, err := ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1000,
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1001,
@@ -4690,14 +4690,14 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		channelId := model.NewId()
 
-		p1, err := ss.Post().Save(&model.Post{
+		p1, err := ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1000,
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1001,
@@ -4705,7 +4705,7 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1002,
@@ -4713,7 +4713,7 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1003,
@@ -4721,7 +4721,7 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		p5, err := ss.Post().Save(&model.Post{
+		p5, err := ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1004,
@@ -4729,7 +4729,7 @@ func testCountPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1005,
@@ -4763,7 +4763,7 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 
 		channelId := model.NewId()
 
-		p1, err := ss.Post().Save(&model.Post{
+		p1, err := ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1000,
@@ -4777,7 +4777,7 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId1,
 			ChannelId: channelId,
 			CreateAt:  1001,
@@ -4791,14 +4791,14 @@ func testCountUrgentPostsAfter(t *testing.T, rctx request.CTX, ss store.Store) {
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId2,
 			ChannelId: channelId,
 			CreateAt:  1002,
 		})
 		require.NoError(t, err)
 
-		_, err = ss.Post().Save(&model.Post{
+		_, err = ss.Post().Save(rctx, &model.Post{
 			UserId:    userId3,
 			ChannelId: channelId,
 			CreateAt:  1003,
@@ -5089,7 +5089,7 @@ func testChannelStoreGetMemberForPost(t *testing.T, rctx request.CTX, ss store.S
 	})
 	require.NoError(t, err)
 
-	p1, nErr := ss.Post().Save(&model.Post{
+	p1, nErr := ss.Post().Save(rctx, &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -6947,7 +6947,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, rctx request.CTX, ss store.Sto
 	o1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
 
-	p1, err := ss.Post().Save(&model.Post{
+	p1, err := ss.Post().Save(rctx, &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -6969,7 +6969,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, rctx request.CTX, ss store.Sto
 	o2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(rctx, &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o2.Id,
 		Message:   "test",
@@ -6992,7 +6992,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, rctx request.CTX, ss store.Sto
 
 		userId := model.NewId()
 
-		post1, err := ss.Post().Save(&model.Post{
+		post1, err := ss.Post().Save(rctx, &model.Post{
 			ChannelId: channel.Id,
 			UserId:    userId,
 			Message:   "message",
@@ -7001,7 +7001,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-		post2, err := ss.Post().Save(&model.Post{
+		post2, err := ss.Post().Save(rctx, &model.Post{
 			ChannelId: channel.Id,
 			UserId:    userId,
 			Message:   "message",
@@ -7010,7 +7010,7 @@ func testChannelStoreGetPinnedPosts(t *testing.T, rctx request.CTX, ss store.Sto
 		require.NoError(t, err)
 		time.Sleep(time.Millisecond)
 
-		post3, err := ss.Post().Save(&model.Post{
+		post3, err := ss.Post().Save(rctx, &model.Post{
 			ChannelId: channel.Id,
 			UserId:    userId,
 			RootId:    post1.Id,
@@ -7040,7 +7040,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, rctx request.CTX, ss store
 	o1, nErr := ss.Channel().Save(ch1, -1)
 	require.NoError(t, nErr)
 
-	_, err := ss.Post().Save(&model.Post{
+	_, err := ss.Post().Save(rctx, &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -7048,7 +7048,7 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, rctx request.CTX, ss store
 	})
 	require.NoError(t, err)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(rctx, &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o1.Id,
 		Message:   "test",
@@ -7070,14 +7070,14 @@ func testChannelStoreGetPinnedPostCount(t *testing.T, rctx request.CTX, ss store
 	o2, nErr := ss.Channel().Save(ch2, -1)
 	require.NoError(t, nErr)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(rctx, &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o2.Id,
 		Message:   "test",
 	})
 	require.NoError(t, err)
 
-	_, err = ss.Post().Save(&model.Post{
+	_, err = ss.Post().Save(rctx, &model.Post{
 		UserId:    model.NewId(),
 		ChannelId: o2.Id,
 		Message:   "test",
