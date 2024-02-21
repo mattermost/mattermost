@@ -1,8 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {AnyAction, Action as ReduxAction} from 'redux';
-import type {ThunkAction} from 'redux-thunk';
+import type {AnyAction} from 'redux';
 
 import type {AppCallResponse, AppForm, AppCallRequest, AppContext, AppBinding} from '@mattermost/types/apps';
 import type {CommandArgs} from '@mattermost/types/integrations';
@@ -10,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 
 import {Client4} from 'mattermost-redux/client';
 import {AppCallResponseTypes} from 'mattermost-redux/constants/apps';
-import type {ActionFunc, NewActionFuncAsync} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {cleanForm} from 'mattermost-redux/utils/apps';
 
 import {openModal} from 'actions/views/modals';
@@ -23,13 +22,10 @@ import {ModalIdentifiers} from 'utils/constants';
 import {getSiteURL, shouldOpenInNewTab} from 'utils/url';
 
 import type {DoAppCallResult} from 'types/apps';
-import type {GlobalState} from 'types/store';
 
 import {sendEphemeralPost} from './global_actions';
 
-export type AppsActionFunc<Res = unknown> = ThunkAction<Promise<Res>, GlobalState, unknown, ReduxAction>;
-
-export function handleBindingClick<Res=unknown>(binding: AppBinding, context: AppContext, intl: any): AppsActionFunc<DoAppCallResult<Res>> {
+export function handleBindingClick<Res=unknown>(binding: AppBinding, context: AppContext, intl: any): ThunkActionFunc<Promise<DoAppCallResult<Res>>> {
     return async (dispatch) => {
         // Fetch form
         let form = binding.form;
@@ -80,7 +76,7 @@ export function handleBindingClick<Res=unknown>(binding: AppBinding, context: Ap
     };
 }
 
-export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): ThunkAction<Promise<DoAppCallResult<Res>>, GlobalState, unknown, ReduxAction> {
+export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): ThunkActionFunc<Promise<DoAppCallResult<Res>>> {
     return async () => {
         try {
             const call: AppCallRequest = {
@@ -144,7 +140,7 @@ export function doAppSubmit<Res=unknown>(inCall: AppCallRequest, intl: any): Thu
     };
 }
 
-export function doAppFetchForm<Res=unknown>(call: AppCallRequest, intl: any): ThunkAction<Promise<DoAppCallResult<Res>>, GlobalState, unknown, ReduxAction> {
+export function doAppFetchForm<Res=unknown>(call: AppCallRequest, intl: any): ThunkActionFunc<Promise<DoAppCallResult<Res>>> {
     return async () => {
         try {
             const res = await Client4.executeAppCall(call, false) as AppCallResponse<Res>;
@@ -181,7 +177,7 @@ export function doAppFetchForm<Res=unknown>(call: AppCallRequest, intl: any): Th
     };
 }
 
-export function doAppLookup<Res=unknown>(call: AppCallRequest, intl: any): ThunkAction<Promise<DoAppCallResult<Res>>, GlobalState, unknown, ReduxAction> {
+export function doAppLookup<Res=unknown>(call: AppCallRequest, intl: any): ThunkActionFunc<Promise<DoAppCallResult<Res>>> {
     return async () => {
         try {
             const res = await Client4.executeAppCall(call, false) as AppCallResponse<Res>;
@@ -211,8 +207,8 @@ export function doAppLookup<Res=unknown>(call: AppCallRequest, intl: any): Thunk
     };
 }
 
-export function makeFetchBindings(location: string): (channelId: string, teamId: string) => NewActionFuncAsync<AppBinding[]> {
-    return (channelId: string, teamId: string): NewActionFuncAsync<AppBinding[]> => {
+export function makeFetchBindings(location: string): (channelId: string, teamId: string) => ActionFuncAsync<AppBinding[]> {
+    return (channelId: string, teamId: string): ActionFuncAsync<AppBinding[]> => {
         return async () => {
             try {
                 const allBindings = await Client4.getAppsBindings(channelId, teamId);
@@ -237,7 +233,7 @@ export function openAppsModal(form: AppForm, context: AppContext): AnyAction {
     });
 }
 
-export function postEphemeralCallResponseForPost(response: AppCallResponse, message: string, post: Post): ActionFunc {
+export function postEphemeralCallResponseForPost(response: AppCallResponse, message: string, post: Post) {
     return sendEphemeralPost(
         message,
         post.channel_id,
@@ -246,7 +242,7 @@ export function postEphemeralCallResponseForPost(response: AppCallResponse, mess
     );
 }
 
-export function postEphemeralCallResponseForChannel(response: AppCallResponse, message: string, channelID: string): ActionFunc {
+export function postEphemeralCallResponseForChannel(response: AppCallResponse, message: string, channelID: string) {
     return sendEphemeralPost(
         message,
         channelID,
@@ -255,7 +251,7 @@ export function postEphemeralCallResponseForChannel(response: AppCallResponse, m
     );
 }
 
-export function postEphemeralCallResponseForContext(response: AppCallResponse, message: string, context: AppContext): ActionFunc {
+export function postEphemeralCallResponseForContext(response: AppCallResponse, message: string, context: AppContext) {
     return sendEphemeralPost(
         message,
         context.channel_id,
@@ -264,7 +260,7 @@ export function postEphemeralCallResponseForContext(response: AppCallResponse, m
     );
 }
 
-export function postEphemeralCallResponseForCommandArgs(response: AppCallResponse, message: string, args: CommandArgs): ActionFunc {
+export function postEphemeralCallResponseForCommandArgs(response: AppCallResponse, message: string, args: CommandArgs) {
     return sendEphemeralPost(
         message,
         args.channel_id,

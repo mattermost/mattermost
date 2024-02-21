@@ -4,7 +4,7 @@
 import {getClientConfig, getLicenseConfig} from 'mattermost-redux/actions/general';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 
 import {getCurrentLocale, getTranslations} from 'selectors/i18n';
 
@@ -18,8 +18,8 @@ const pluginTranslationSources: Record<string, TranslationPluginFunction> = {};
 
 export type TranslationPluginFunction = (locale: string) => Translations
 
-export function loadConfigAndMe() {
-    return async (dispatch: DispatchFunc) => {
+export function loadConfigAndMe(): ActionFuncAsync<boolean> {
+    return async (dispatch) => {
         await Promise.all([
             dispatch(getClientConfig()),
             dispatch(getLicenseConfig()),
@@ -35,10 +35,10 @@ export function loadConfigAndMe() {
     };
 }
 
-export function registerPluginTranslationsSource(pluginId: string, sourceFunction: TranslationPluginFunction) {
+export function registerPluginTranslationsSource(pluginId: string, sourceFunction: TranslationPluginFunction): ThunkActionFunc<void, GlobalState> {
     pluginTranslationSources[pluginId] = sourceFunction;
-    return (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState() as GlobalState;
+    return (dispatch, getState) => {
+        const state = getState();
         const locale = getCurrentLocale(state);
         const immutableTranslations = getTranslations(state, locale);
         const translations = {};
@@ -60,8 +60,8 @@ export function unregisterPluginTranslationsSource(pluginId: string) {
     Reflect.deleteProperty(pluginTranslationSources, pluginId);
 }
 
-export function loadTranslations(locale: string, url: string) {
-    return async (dispatch: DispatchFunc) => {
+export function loadTranslations(locale: string, url: string): ActionFuncAsync {
+    return async (dispatch) => {
         const translations = {...en};
         Object.values(pluginTranslationSources).forEach((pluginFunc) => {
             Object.assign(translations, pluginFunc(locale));
@@ -87,8 +87,8 @@ export function loadTranslations(locale: string, url: string) {
     };
 }
 
-export function registerCustomPostRenderer(type: string, component: any, id: string) {
-    return async (dispatch: DispatchFunc) => {
+export function registerCustomPostRenderer(type: string, component: any, id: string): ActionFuncAsync {
+    return async (dispatch) => {
         // piggyback on plugins state to register a custom post renderer
         dispatch({
             type: ActionTypes.RECEIVED_PLUGIN_POST_COMPONENT,

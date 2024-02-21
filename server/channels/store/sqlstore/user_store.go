@@ -107,7 +107,7 @@ func (us SqlUserStore) InsertUsers(users []*model.User) error {
 	return nil
 }
 
-func (us SqlUserStore) Save(user *model.User) (*model.User, error) {
+func (us SqlUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 	if user.Id != "" && !user.IsRemote() {
 		return nil, store.NewErrInvalidInput("User", "id", user.Id)
 	}
@@ -2324,12 +2324,6 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 			"COUNT(ps.Day) AS DaysActive",
 			"SUM(ps.NumPosts) AS TotalPosts",
 		)
-	} else {
-		selectColumns = append(selectColumns,
-			"MAX(p.CreateAt) AS LastPostDate",
-			"COUNT(DATE(FROM_UNIXTIME(p.CreateAt / 1000))) AS DaysActive",
-			"COUNT(p.Id) AS TotalPosts",
-		)
 	}
 
 	sortDirection := "ASC"
@@ -2391,19 +2385,6 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 			return nil, err
 		}
 		query = query.LeftJoin("PostStats ps ON ps.UserId = u.Id AND "+sql, args...)
-	} else {
-		joinSql := sq.And{}
-		if filter.StartAt > 0 {
-			joinSql = append(joinSql, sq.GtOrEq{"p.CreateAt": filter.StartAt})
-		}
-		if filter.EndAt > 0 {
-			joinSql = append(joinSql, sq.Lt{"p.CreateAt": filter.EndAt})
-		}
-		sql, args, err := joinSql.ToSql()
-		if err != nil {
-			return nil, err
-		}
-		query = query.LeftJoin("Posts p ON p.UserId = u.Id AND "+sql, args...)
 	}
 
 	query = applyUserReportFilter(query, filter, isPostgres)

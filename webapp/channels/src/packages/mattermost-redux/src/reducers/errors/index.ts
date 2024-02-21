@@ -1,9 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import {ErrorTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
-export default ((state: Array<{error: any;displayable?: boolean;date: string}> = [], action: GenericAction) => {
+
+export default ((state: Array<{error: any;displayable?: boolean;date: string}> = [], action: AnyAction) => {
     switch (action.type) {
     case ErrorTypes.DISMISS_ERROR: {
         const nextState = [...state];

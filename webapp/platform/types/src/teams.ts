@@ -39,6 +39,7 @@ export type Team = {
     scheme_id: string;
     group_constrained: boolean;
     policy_id?: string | null;
+    last_team_icon_update?: number;
 };
 
 export type TeamsState = {
@@ -109,5 +110,10 @@ export type NotPagedTeamSearchOpts = {
 
 export type TeamInviteWithError = {
     email: string;
-    error: ServerError;
+
+    // Unlike ServerError, error uses field names directly from model.AppError on the server
+    error: {
+        id: string;
+        message: string;
+    };
 };

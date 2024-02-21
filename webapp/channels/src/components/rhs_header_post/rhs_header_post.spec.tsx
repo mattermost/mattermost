@@ -4,6 +4,8 @@
 import {mount} from 'enzyme';
 import React from 'react';
 
+import {CollapsedThreads} from '@mattermost/types/config';
+
 import {Preferences} from 'mattermost-redux/constants';
 
 import FollowButton from 'components/threading/common/follow_button';
@@ -46,7 +48,7 @@ describe('rhs_header_post', () => {
             general: {
                 config: {
                     FeatureFlagCollapsedThreads: 'true',
-                    CollapsedThreads: 'default_off',
+                    CollapsedThreads: CollapsedThreads.DEFAULT_OFF,
                 },
             },
             preferences: {
@@ -58,27 +60,27 @@ describe('rhs_header_post', () => {
             },
             posts: {
                 posts: {
-                    42: {
-                        id: 42,
+                    42: TestHelper.getPostMock({
+                        id: '42',
                         message: 'where is @jessica.hyde?',
-                    },
-                    43: {
-                        id: 43,
+                    }),
+                    43: TestHelper.getPostMock({
+                        id: '43',
                         message: 'not a mention',
-                    },
+                    }),
                 },
             },
             threads: {
                 threads: {
                     42: {
-                        id: 42,
+                        id: '42',
                         reply_count: 0,
-                        is_following: null,
+                        is_following: null as any, // This is supposed to be boolean based on the type definitions, but this relies on this being null in some cases
                     },
                     43: {
-                        id: 43,
+                        id: '43',
                         reply_count: 0,
-                        is_following: null,
+                        is_following: null as any, // This is supposed to be boolean based on the type definitions, but this relies on this being null in some cases
                     },
                 },
             },
@@ -89,9 +91,6 @@ describe('rhs_header_post', () => {
             },
             browser: {
                 windowSize: WindowSizes.DESKTOP_VIEW,
-            },
-            channelSidebar: {
-                firstChannelName: 'town-square',
             },
         },
     };

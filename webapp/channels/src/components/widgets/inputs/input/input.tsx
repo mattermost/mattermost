@@ -21,7 +21,7 @@ export enum SIZE {
 
 export type CustomMessageInputType = {type: 'info' | 'error' | 'warning' | 'success'; value: React.ReactNode} | null;
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface InputProps extends React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> {
     required?: boolean;
     hasError?: boolean;
     addon?: React.ReactElement;
@@ -71,7 +71,7 @@ const Input = React.forwardRef((
         onClear,
         ...otherProps
     }: InputProps,
-    ref?: React.Ref<HTMLInputElement>,
+    ref?: React.Ref<HTMLInputElement | HTMLTextAreaElement>,
 ) => {
     const {formatMessage} = useIntl();
 
@@ -94,7 +94,7 @@ const Input = React.forwardRef((
         }
     }, [customMessage]);
 
-    const handleOnFocus = (event: React.FocusEvent<HTMLInputElement>) => {
+    const handleOnFocus = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFocused(true);
 
         if (onFocus) {
@@ -102,7 +102,7 @@ const Input = React.forwardRef((
         }
     };
 
-    const handleOnBlur = (event: React.FocusEvent<HTMLInputElement>) => {
+    const handleOnBlur = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setFocused(false);
         validateInput();
 
@@ -111,7 +111,7 @@ const Input = React.forwardRef((
         }
     };
 
-    const handleOnChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         setCustomInputLabel(null);
 
         if (onChange) {
@@ -157,6 +157,45 @@ const Input = React.forwardRef((
         </div>
     ) : null;
 
+    const generateInput = () => {
+        if (otherProps.type === 'textarea') {
+            return (
+                <textarea
+                    ref={ref as React.RefObject<HTMLTextAreaElement>}
+                    id={`input_${name || ''}`}
+                    className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
+                    value={value}
+                    placeholder={focused ? (label && placeholder) || label : label || placeholder}
+                    aria-label={label || placeholder}
+                    rows={3}
+                    name={name}
+                    disabled={disabled}
+                    {...otherProps}
+                    maxLength={limit ? undefined : maxLength}
+                    onFocus={handleOnFocus}
+                    onBlur={handleOnBlur}
+                    onChange={handleOnChange}
+                />);
+        }
+        return (
+            <input
+                ref={ref as React.RefObject<HTMLInputElement>}
+                id={`input_${name || ''}`}
+                className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
+                value={value}
+                placeholder={focused ? (label && placeholder) || label : label || placeholder}
+                aria-label={label || placeholder}
+                name={name}
+                disabled={disabled}
+                {...otherProps}
+                maxLength={limit ? undefined : maxLength}
+                onFocus={handleOnFocus}
+                onBlur={handleOnBlur}
+                onChange={handleOnChange}
+            />
+        );
+    };
+
     return (
         <div className={classNames('Input_container', containerClassName, {disabled})}>
             <fieldset
@@ -173,21 +212,7 @@ const Input = React.forwardRef((
                 <div className={classNames('Input_wrapper', wrapperClassName)}>
                     {inputPrefix}
                     {textPrefix && <span>{textPrefix}</span>}
-                    <input
-                        ref={ref}
-                        id={`input_${name || ''}`}
-                        className={classNames('Input form-control', inputSize, inputClassName, {Input__focus: showLegend})}
-                        value={value}
-                        placeholder={focused ? (label && placeholder) || label : label || placeholder}
-                        aria-label={label || placeholder}
-                        name={name}
-                        disabled={disabled}
-                        {...otherProps}
-                        maxLength={limit ? undefined : maxLength}
-                        onFocus={handleOnFocus}
-                        onBlur={handleOnBlur}
-                        onChange={handleOnChange}
-                    />
+                    {generateInput()}
                     {limitExceeded > 0 && (
                         <span className='Input_limit-exceeded'>
                             {'-'}{limitExceeded}

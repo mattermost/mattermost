@@ -3715,11 +3715,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "ファイル保持期間は１日以上でなくてはなりません。"
+    "translation": "ファイル保持日数は0より小さくできません。"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "メッセージ保持期間は１日以上でなくてはなりません。"
+    "translation": "メッセージ保持日数は0より小さくできません。"
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -9066,10 +9066,6 @@
     "translation": "{{ .SenderName }} があなたを {{ .TeamDisplayName }} チームの {{ .ChannelName }} チャンネルに招待しました"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Bodyデータを解析中にエラーが発生しました。"
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "リクエストボディが不正です。"
   },
@@ -10090,10 +10086,6 @@
     "translation": "不正な入力パラメータです。"
   },
   {
-    "id": "api.context.outgoing_oauth_connection.not_available.feature_flag",
-    "translation": "この機能はフィーチャーフラグによって制限されています。"
-  },
-  {
     "id": "api.getUsersForReporting.invalid_active_filter",
     "translation": "アクティブなユーザーと非アクティブなユーザーの両方を非表示にすることはできません。"
   },
@@ -10208,5 +10200,93 @@
   {
     "id": "model.reporting_base_options.is_valid.bad_date_range",
     "translation": "指定された日付範囲が不正です。"
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "招待を確認できなせんでした: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "ペイロードの解析中にエラーが発生しました。"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "混乱を避けるため更新してください"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "チャンネルメンバーの通知設定を更新できませんでした。"
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "多数のチャンネルメンバーを更新できませんでした。一度に{{.Max}}人まで更新できます。"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "ユーザー数を取得できませんでした。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "ファイル保持日数とファイル保持時間の両方を0にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "ファイル保持時間は0より小さくできません"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "メッセージ保持日数とメッセージ保持時間の両方を0にすることはできません。"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "メッセージ保持時間は0より小さくできません"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "メッセージ保持日数とメッセージ保持時間の両方を0より大きくすることはできません。"
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "ユーザーが見つかりませんでした。"
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "更新する"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "年間請求の期限まで30日です"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "年間請求の期限まで30日です"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "年間サブスクリプションの更新日が60日後に迫っています"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "7日後にワークスペースへのアクセスできなくなってしまいます"
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "ユーザーがカスタムプロフィール画像を設定しているかチェックする際にエラーが発生しました。"
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "サービス設定の最大ペイロードサイズが不正です。0より大きい整数にしてください。"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "年間サブスクリプションの更新日が60日後に迫っています"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "アクションが必要です: 年間サブスクリプションの更新日が7日後に迫っています"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "ファイル保持日数とファイル保持時間の両方を0より大きくすることはできません。"
   }
 ]

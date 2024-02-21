@@ -6896,7 +6896,7 @@
   },
   {
     "id": "api.command_share.check_channel_exist.error",
-    "translation": "Hiba történt a megosztott csatorna létezésének ellenőrzése során: {{.Error}}"
+    "translation": "Hiba történt a {{.ChannelID}} megosztott csatorna létezésének ellenőrzése során: {{.Error}}"
   },
   {
     "id": "api.command_share.channel_status_id",
@@ -9033,10 +9033,6 @@
   {
     "id": "api.templates.invite_team_and_channel_body.title",
     "translation": "{{ .SenderName }} meghívta Önt, hogy csatlakozzon a {{ .ChannelName }} csatornához a {{ .TeamDisplayName }} csapatban"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Hiba a törzs adatának értelmezése közben."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",

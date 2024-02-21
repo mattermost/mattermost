@@ -1848,7 +1848,7 @@
   },
   {
     "id": "api.templates.password_change_subject",
-    "translation": "[{{.SiteName}}] Jouw wachtwoord is bijgewerkt"
+    "translation": "{{ .SiteName }} Jouw wachtwoord werd bijgewerkt"
   },
   {
     "id": "api.templates.post_body.button",
@@ -1904,7 +1904,7 @@
   },
   {
     "id": "api.templates.username_change_subject",
-    "translation": "[{{.SiteName }}] Je gebruikersnaam werd gewijzigd"
+    "translation": "{{ .SiteName }} Je gebruikersnaam werd gewijzigd"
   },
   {
     "id": "api.templates.verify_body.button",
@@ -2856,7 +2856,7 @@
   },
   {
     "id": "app.notification.subject.group_message.generic",
-    "translation": "{{ .SiteName }}[{{.SiteName}}] Nieuw groepsbericht op  {{.Day}} {{.Month}} {{.Year}}"
+    "translation": "[{{ .SiteName }}] Nieuw groepsbericht op {{.Day}} {{.Month}} {{.Year}}"
   },
   {
     "id": "app.notification.subject.notification.full",
@@ -3720,11 +3720,11 @@
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_days_too_low.app_error",
-    "translation": "Het bewaren van bestanden moet een dag of langer zijn."
+    "translation": "Het aantal dagen dat bestanden bewaard wordt mag niet kleiner zijn dan 0."
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_days_too_low.app_error",
-    "translation": "Het bewaren van berichten moet een dag of langer zijn."
+    "translation": "Het aantal dagen dat berichten bewaard wordt mag niet kleiner zijn dan 0."
   },
   {
     "id": "model.config.is_valid.display.custom_url_schemes.app_error",
@@ -4552,7 +4552,7 @@
   },
   {
     "id": "model.utils.decode_json.app_error",
-    "translation": "kan niet decoderen"
+    "translation": "kan niet decoderen."
   },
   {
     "id": "model.websocket_client.connect_fail.app_error",
@@ -4568,7 +4568,7 @@
   },
   {
     "id": "plugin_api.get_file_link.disabled.app_error",
-    "translation": "Publieke links zijn uitgeschakeld"
+    "translation": "Openbare links zijn uitgeschakeld."
   },
   {
     "id": "plugin_api.get_file_link.no_post.app_error",
@@ -4588,27 +4588,27 @@
   },
   {
     "id": "store.sql_bot.get.missing.app_error",
-    "translation": "Bot does not exist"
+    "translation": "Bot bestaat niet"
   },
   {
     "id": "store.sql_channel.get.existing.app_error",
-    "translation": "Het kanaal kon niet gevonden worden"
+    "translation": "Het kanaal kon niet gevonden worden."
   },
   {
     "id": "store.sql_channel.save.archived_channel.app_error",
-    "translation": "You can not modify an archived channel"
+    "translation": "Je kan een gearchiveerd kanaal niet wijzigen."
   },
   {
     "id": "store.sql_channel.save.direct_channel.app_error",
-    "translation": "Gebruik 'SaveDirectChannel' om een direct kanaal aan te maken"
+    "translation": "Gebruik 'SaveDirectChannel' om een direct kanaal aan te maken."
   },
   {
     "id": "store.sql_channel.save_channel.existing.app_error",
-    "translation": "Moet bijwerken aanroepen voor het bestaande kanaal"
+    "translation": "Moet bijwerken aanroepen voor het bestaande kanaal."
   },
   {
     "id": "store.sql_channel.save_channel.exists.app_error",
-    "translation": "A channel with that name already exists on the same team"
+    "translation": "Er bestaat al een kanaal met die naam in hetzelfde team."
   },
   {
     "id": "store.sql_channel.save_channel.limit.app_error",
@@ -4616,11 +4616,11 @@
   },
   {
     "id": "store.sql_channel.save_direct_channel.not_direct.app_error",
-    "translation": "Geen poging om een direkt kanaal te maken met 'SaveDirectChannel'"
+    "translation": "Poging om geen direct kanaal te maken met 'SaveDirectChannel'."
   },
   {
     "id": "store.sql_command.save.get.app_error",
-    "translation": "Bericht kan niet opgehaald worden"
+    "translation": "Kan de opdracht niet ophalen."
   },
   {
     "id": "store.sql_post.search.disabled",
@@ -4628,7 +4628,7 @@
   },
   {
     "id": "store.sql_team.save_member.exists.app_error",
-    "translation": "Een team lid met de opgegeven id bestaat al"
+    "translation": "Een teamlid met het opgegeven id bestaat reeds."
   },
   {
     "id": "store.sql_user.get_for_login.app_error",
@@ -4640,23 +4640,23 @@
   },
   {
     "id": "web.command_webhook.command.app_error",
-    "translation": "Het kanaal kan niet gevonden worden"
+    "translation": "Kon de opdracht niet vinden."
   },
   {
     "id": "web.command_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken"
+    "translation": "Kan binnenkomende data niet verwerken."
   },
   {
     "id": "web.get_access_token.internal_saving.app_error",
-    "translation": "Het wachtwoord van de gebruiker kan niet bijgewerkt worden"
+    "translation": "Het wachtwoord van de gebruiker kan niet bijgewerkt worden."
   },
   {
     "id": "web.incoming_webhook.channel.app_error",
-    "translation": "Het kanaal kan niet gevonden worden"
+    "translation": "Het kanaal kan niet gevonden worden."
   },
   {
     "id": "web.incoming_webhook.channel_locked.app_error",
-    "translation": "This webhook is not permitted to post to the requested channel"
+    "translation": "Deze webhook is niet toegestaan om te posten naar het aangevraagde kanaal."
   },
   {
     "id": "web.incoming_webhook.disabled.app_error",
@@ -4664,11 +4664,11 @@
   },
   {
     "id": "web.incoming_webhook.invalid.app_error",
-    "translation": "Ongeldige webhook"
+    "translation": "Ongeldige webhook."
   },
   {
     "id": "web.incoming_webhook.parse.app_error",
-    "translation": "Kan binnenkomende data niet verwerken"
+    "translation": "Kan binnenkomende data niet verwerken."
   },
   {
     "id": "web.incoming_webhook.permissions.app_error",
@@ -6676,7 +6676,7 @@
   },
   {
     "id": "app.email.rate_limit_exceeded.app_error",
-    "translation": "Uitnodigingse-mail limiet is overschreden. De timer zal worden gereset na {{.RetryAfter}} seconden. Probeer opnieuw over {{.RetryAfter}} seconden."
+    "translation": "Uitnodigingse-mail limiet is overschreden. De timer zal worden gereset na {{.ResetAfter}} seconden. Probeer opnieuw over {{.RetryAfter}} seconden."
   },
   {
     "id": "app.email.no_rate_limiter.app_error",
@@ -9067,23 +9067,19 @@
   },
   {
     "id": "api.templates.invite_team_and_channels_subject",
-    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SiteName }} {{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelsLen }}kanalen in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channels_body.title",
-    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelsLen }} kanalen in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelsLen }} kanalen in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channel_subject",
-    "translation": "[{{ .SiteName }}] {{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
+    "translation": "{{ .SiteName }} {{ .SenderName }} heeft je uitgenodigd om lid te worden van {{ .ChannelName }} in het {{ .TeamDisplayName }} team"
   },
   {
     "id": "api.templates.invite_team_and_channel_body.title",
-    "translation": "{{.SenderName }} heeft je uitgenodigd om lid te worden van {{.ChannelName }} in het {{.TeamDisplayName }} team"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Fout bij het parsen van de body data."
+    "translation": "{{ .SenderName }} nodigt je om deel te nemen aan het {{ .ChannelName }} kanaal op het {{ .TeamDisplayName }} team."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -10019,7 +10015,7 @@
   },
   {
     "id": "api.templates.ip_filters_changed.subTitle",
-    "translation": "@{ .InitiatingUsername }} heeft de IP-filterinstellingen voor jouw werkruimte gewijzigd op de URL: {{ .SiteURL }}"
+    "translation": "@{{ .InitiatingUsername }} heeft de IP-filterinstellingen voor jouw werkruimte gewijzigd op de URL: {{ .SiteURL }}"
   },
   {
     "id": "api.templates.ip_filters_changed.subject",
@@ -10184,5 +10180,197 @@
   {
     "id": "api.command_share.channel_not_shared.error",
     "translation": "Kan externe niet uitnodigen omdat kanaal {{.ChannelID}} niet wordt gedeeld."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.app_error",
+    "translation": "Er is een fout opgetreden bij het weergeven van uitgaande OAuth-verbindingen."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.list_connections.input_error",
+    "translation": "Ongeldige invoerparameters."
+  },
+  {
+    "id": "api.roles.get_multiple_by_name_too_many.request_error",
+    "translation": "Kan niet zoveel rollen op naam krijgen. Alleen {{.MaxNames}} rollen kunnen in één keer worden opgevraagd."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.delete_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het verwijderen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection.not_found.app_error",
+    "translation": "De uitgaande oauth-verbinding werd niet gevonden."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "Kon uitnodiging niet bevestigen: {{.Error}}"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Er is een fout opgetreden tijdens het parsen van de payload."
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.title",
+    "translation": "Jaarlijkse abonnementsverlenging binnen 60 dagen"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connections.app_error",
+    "translation": "Er is een fout opgetreden bij het ophalen van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
+    "translation": "Het aantal uren dat bestanden bewaard wordt mag niet kleiner zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
+    "translation": "Het aantal dagen en uren dat bestanden bewaard kunnen niet allebei groter zijn dan 0."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_both_zero.app_error",
+    "translation": "Het aantal dagen en uren dat bestanden bewaard kunnen niet beiden 0 zijn."
+  },
+  {
+    "id": "api.team.user.missing_account",
+    "translation": "Kan de gebruiker niet vinden."
+  },
+  {
+    "id": "api.templates.cloud_renewal.button",
+    "translation": "Nu vernieuwen"
+  },
+  {
+    "id": "api.templates.cloud_renewal.subtitle",
+    "translation": "Vernieuw om onderbrekingen te voorkomen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.subject",
+    "translation": "Jaarlijkse factuur verschuldigd over 30 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_30.title",
+    "translation": "Je jaarlijkse factuur is verschuldigd binnen 30 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_60.subject",
+    "translation": "Jaarlijkse abonnementsverlenging binnen 60 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.subject",
+    "translation": "Actie vereist: Jaarlijkse abonnementsverlenging over 7 dagen"
+  },
+  {
+    "id": "api.templates.cloud_renewal_7.title",
+    "translation": "Je staat op het punt om binnen 7 dagen de toegang tot je werkruimte te verliezen"
+  },
+  {
+    "id": "app.limits.get_user_limits.user_count.store_error",
+    "translation": "Fout bij het ophalen van het aantal gebruikers"
+  },
+  {
+    "id": "app.report.get_user_count_for_report.store_error",
+    "translation": "Gebruikersaantal kon niet worden opgehaald."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_hours_too_low.app_error",
+    "translation": "Het aantal uren dat berichten bewaard wordt mag niet kleiner zijn dan 0"
+  },
+  {
+    "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
+    "translation": "Het aantal dagen en uren dat berichten bewaard kunnen niet allebei groter zijn dan 0."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Ongeldige maximale payloadgrootte voor service-instellingen. Moet een geheel getal groter dan nul zijn."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.app_error",
+    "translation": "Er is een fout opgetreden bij het bewaren van de uitgaande oauth-verbinding."
+  },
+  {
+    "id": "model.config.is_valid.data_retention.file_retention_both_zero.app_error",
+    "translation": "Het aantal dagen en uren om bestanden te bewaren kunnen niet allebei 0 zijn."
+  },
+  {
+    "id": "api.user.get_profile_image_path.app_error",
+    "translation": "Fout bij het controleren of een gebruiker een aangepaste profielafbeelding heeft."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.app_error",
+    "translation": "Kan de meldingsinstellingen van de kanaalleden niet bijwerken."
+  },
+  {
+    "id": "app.channel.patch_channel_members_notify_props.too_many",
+    "translation": "Kan niet zoveel kanaalleden updaten. Slechts {{.Max}} kanaalleden kunnen in één keer worden bijgewerkt."
+  },
+  {
+    "id": "app.compile_csv_chunks.header_error",
+    "translation": "Fout bij het schrijven van CSV-headers."
+  },
+  {
+    "id": "app.report.send_report_to_user.export_finished",
+    "translation": "Jouw export is klaar. Het CSV-bestand bevat gebruikersgegevens voor {{.DateRange}}. Klik op de onderstaande link om het rapport te downloaden."
+  },
+  {
+    "id": "app.report.start_users_batch_export.started_export",
+    "translation": "Je bent begonnen met het exporteren van gebruikersgegevens voor {{.DateRange}}. Wanneer het exporteren is voltooid, ontvang je een CSV-bestand in dit rechtstreekse bericht."
+  },
+  {
+    "id": "app.compile_report_chunks.unsupported_format",
+    "translation": "Niet-ondersteunde rapportindeling."
+  },
+  {
+    "id": "app.report.start_users_batch_export.job_exists",
+    "translation": "Taak bestaat al voor deze gebruiker en datumbereik."
+  },
+  {
+    "id": "app.report.start_users_batch_export.license_error",
+    "translation": "Batch export van rapporten is alleen beschikbaar voor Pro en Enterprise."
+  },
+  {
+    "id": "app.save_csv_chunk.write_error",
+    "translation": "Fout bij het schrijven van CSV data."
+  },
+  {
+    "id": "app.save_report_chunk.unsupported_format",
+    "translation": "Niet-ondersteunde rapportindeling."
+  },
+  {
+    "id": "app.report.date_range.last_30_days",
+    "translation": "de afgelopen 30 dagen"
+  },
+  {
+    "id": "app.report.date_range.last_6_months",
+    "translation": "de laatste 6 maanden"
+  },
+  {
+    "id": "app.report.date_range.all_time",
+    "translation": "alles"
+  },
+  {
+    "id": "app.report.date_range.previous_month",
+    "translation": "de vorige maand"
+  },
+  {
+    "id": "app.report.send_report_to_user.failed_to_save",
+    "translation": "Fout bij het bewaren van de bestandsinformatie."
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_date_range",
+    "translation": "Ontbrekend datumbereik"
+  },
+  {
+    "id": "app.report.send_report_to_user.missing_user_id",
+    "translation": "Geen gebruikersid om het rapport naar toe te sturen"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Ongeldige update teamlid: Een gast kan geen teamlid of teambeheerder worden. Maak van de gast eerst een gebruiker."
   }
 ]

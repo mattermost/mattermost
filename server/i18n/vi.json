@@ -6298,10 +6298,6 @@
     "translation": "Lỗi khi gửi email"
   },
   {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Lỗi khi phân tích cú pháp dữ liệu nội dung."
-  },
-  {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Nội dung yêu cầu không hợp lệ."
   },

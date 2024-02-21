@@ -272,8 +272,8 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	// figure out the initial number of users in town square
 	channel, err := th.App.Srv().Store().Channel().GetByName(th.BasicTeam.Id, "town-square", true)
 	require.NoError(t, err)
-	townSquareChannelId := channel.Id
-	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	townSquareChannelID := channel.Id
+	users, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelID)
 	require.NoError(t, nErr)
 	initialNumTownSquareUsers := len(users)
 
@@ -282,13 +282,13 @@ func TestJoinDefaultChannelsCreatesChannelMemberHistoryRecordTownSquare(t *testi
 	th.App.JoinDefaultChannels(th.Context, th.BasicTeam.Id, user, false, "")
 
 	// there should be a ChannelMemberHistory record for the user
-	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelId)
+	histories, nErr := th.App.Srv().Store().ChannelMemberHistory().GetUsersInChannelDuring(model.GetMillis()-100, model.GetMillis()+100, townSquareChannelID)
 	require.NoError(t, nErr)
 	assert.Len(t, histories, initialNumTownSquareUsers+1)
 
 	found := false
 	for _, history := range histories {
-		if user.Id == history.UserId && townSquareChannelId == history.ChannelId {
+		if user.Id == history.UserId && townSquareChannelID == history.ChannelId {
 			found = true
 			break
 		}
@@ -762,6 +762,22 @@ func TestAddChannelMemberNoUserRequestor(t *testing.T) {
 		assert.Equal(t, user.Id, post.UserId)
 		assert.Equal(t, user.Username, post.GetProp("username"))
 	}
+}
+
+func TestAddChannelMemberDeletedUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+	_, err := th.App.AddTeamMember(th.Context, th.BasicTeam.Id, user.Id)
+	require.Nil(t, err)
+
+	deactivated, err := th.App.UpdateActive(th.Context, user, false)
+	require.Greater(t, deactivated.DeleteAt, int64(0))
+
+	require.Nil(t, err)
+	_, err = th.App.AddChannelMember(th.Context, user.Id, th.BasicChannel, ChannelMemberOpts{})
+	require.NotNil(t, err)
 }
 
 func TestAppUpdateChannelScheme(t *testing.T) {
@@ -2630,7 +2646,7 @@ func TestConvertGroupMessageToChannel(t *testing.T) {
 
 	mockPostStore := mocks.PostStore{}
 	mockStore.On("Post").Return(&mockPostStore)
-	mockPostStore.On("Save", mock.AnythingOfType("*model.Post")).Return(&model.Post{}, nil)
+	mockPostStore.On("Save", mock.AnythingOfType("*request.Context"), mock.AnythingOfType("*model.Post")).Return(&model.Post{}, nil)
 	mockPostStore.On("InvalidateLastPostTimeCache", "channelidchannelidchanneli")
 
 	mockSystemStore := mocks.SystemStore{}
