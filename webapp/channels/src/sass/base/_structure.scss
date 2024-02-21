@@ -83,6 +83,7 @@ body {
     @include clearfix;
 
     position: relative;
+    overflow: auto;
     height: 100%;
 }
 
@@ -91,10 +92,11 @@ body {
 #root,
 body.app__body #root {
     display: grid;
-    overflow: hidden;
+    overflow: auto;
 
     &.channel-view {
         background-color: var(--sidebar-header-bg);
+        padding-bottom: 8px;
         --columns: min-content min-content minmax(385px, 1fr) minmax(0, auto) min-content;
         grid-template:
             'announcement announcement announcement announcement announcement' min-content
@@ -110,6 +112,7 @@ body.app__body #root {
 
     &.console__root {
         background-color: inherit;
+        padding-bottom: 0;
         grid-template:
         'announcement announcement' min-content
         'header header' min-content
