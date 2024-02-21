@@ -5284,7 +5284,6 @@
   "textbox.quote": ">quote",
   "textbox.strike": "strike",
   "threadFromArchivedChannelMessage": "You are viewing a thread from an **archived channel**. New messages cannot be posted.",
-  "threading.filters.allThreads": "All your threads",
   "threading.filters.unreads": "Unreads",
   "threading.following": "Following",
   "threading.footer.lastReplyAt": "Last reply {formatted}",
