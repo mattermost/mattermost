@@ -147,7 +147,7 @@ body.app__body #root {
         display: grid;
         background-color: var(--sidebar-bg);
         border: solid 1px rgba(var(--center-channel-color-rgb),0.08);
-        border-radius: 16px;
+        border-radius: 12px;
         grid-area: main;
         grid-template:
             'lhs center rhs'
