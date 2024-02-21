@@ -10039,7 +10039,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "一些受众 URL 不正确。"
+    "translation": "Audience URL 无效：{{ .Url }}"
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.client_id.error",
@@ -10187,7 +10187,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "保存此对外 oauth 连接时出现错误。"
+    "translation": "保存此对外 oauth 连接时出现错误：{{ .Error }}"
   },
   {
     "id": "api.command_remote.confirm_invitation.error",
@@ -10219,7 +10219,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "更新此对外 oauth 连接时出现错误。"
+    "translation": "更新此对外 oauth 连接时出现错误：{{ .Error }}"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
