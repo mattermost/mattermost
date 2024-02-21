@@ -614,7 +614,7 @@ func TestGetNotificationEmailBodyPublicChannelMention(t *testing.T) {
 
 	senderName := "user1"
 	teamName := "testteam"
-	teamURL := th.App.GetSiteURL() + "/testteam"
+	teamURL := th.App.GetSiteURL() + "/landing#" + "/testteam"
 	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
@@ -682,7 +682,7 @@ func TestGetNotificationEmailBodyMultiPublicChannelMention(t *testing.T) {
 
 	senderName := "user1"
 	teamName := "testteam"
-	teamURL := th.App.GetSiteURL() + "/testteam"
+	teamURL := th.App.GetSiteURL() + "/landing#" + "/testteam"
 	emailNotificationContentsType := model.EmailNotificationContentsFull
 	translateFunc := i18n.GetUserTranslations("en")
 
