@@ -256,8 +256,6 @@ const (
 	OpenidSettingsDefaultScope = "profile openid email"
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
-
-	AlwaysShowTeamSidebar = ""
 )
 
 func GetDefaultAppCustomURLSchemes() []string {
