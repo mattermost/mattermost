@@ -67,23 +67,23 @@ func (_m *ServiceInterface) CreateVerifyEmailToken(userID string, newEmail strin
 	return r0, r1
 }
 
-// GenerateHyperlinkForChannels provides a mock function with given fields: postMessage, channelName, teamURL
-func (_m *ServiceInterface) GenerateHyperlinkForChannels(postMessage string, channelName string, teamURL string) (string, error) {
-	ret := _m.Called(postMessage, channelName, teamURL)
+// GenerateHyperlinkForChannels provides a mock function with given fields: postMessage, teamName, teamURL
+func (_m *ServiceInterface) GenerateHyperlinkForChannels(postMessage string, teamName string, teamURL string) (string, error) {
+	ret := _m.Called(postMessage, teamName, teamURL)
 
 	var r0 string
 	var r1 error
 	if rf, ok := ret.Get(0).(func(string, string, string) (string, error)); ok {
-		return rf(postMessage, channelName, teamURL)
+		return rf(postMessage, teamName, teamURL)
 	}
 	if rf, ok := ret.Get(0).(func(string, string, string) string); ok {
-		r0 = rf(postMessage, channelName, teamURL)
+		r0 = rf(postMessage, teamName, teamURL)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
 	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
-		r1 = rf(postMessage, channelName, teamURL)
+		r1 = rf(postMessage, teamName, teamURL)
 	} else {
 		r1 = ret.Error(1)
 	}

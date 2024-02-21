@@ -145,7 +145,7 @@ func (es *Service) prepareNotificationMessageForEmail(postMessage, teamName, sit
 	}
 
 	landingURL := siteURL + "/landing#/" + teamName
-	normalizedPostMessage, err := es.GenerateHyperlinkForChannels(teamName, mdPostMessage, landingURL)
+	normalizedPostMessage, err := es.GenerateHyperlinkForChannels(mdPostMessage, teamName, landingURL)
 	if err != nil {
 		mlog.Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
 		normalizedPostMessage = mdPostMessage
@@ -153,7 +153,7 @@ func (es *Service) prepareNotificationMessageForEmail(postMessage, teamName, sit
 	return normalizedPostMessage
 }
 
-func (es *Service) GenerateHyperlinkForChannels(teamName, postMessage, landingURL string) (string, error) {
+func (es *Service) GenerateHyperlinkForChannels(postMessage, teamName, landingURL string) (string, error) {
 	channelNames := model.ChannelMentions(postMessage)
 	if len(channelNames) == 0 {
 		return postMessage, nil

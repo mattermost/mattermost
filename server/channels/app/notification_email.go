@@ -10,7 +10,6 @@ import (
 	"html/template"
 	"io"
 	"strconv"
-	"strings"
 	"time"
 
 	"github.com/pkg/errors"
@@ -339,34 +338,6 @@ func getFormattedPostTime(user *model.User, post *model.Post, useMilitaryTime bo
 		Minute:   fmt.Sprintf("%02d"+period, localTime.Minute()),
 		TimeZone: zone,
 	}
-}
-
-func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string) (string, *model.AppError) {
-	team, err := a.GetTeamByName(teamName)
-	if err != nil {
-		return "", err
-	}
-
-	channelNames := model.ChannelMentions(postMessage)
-	if len(channelNames) == 0 {
-		return postMessage, nil
-	}
-
-	channels, err := a.GetChannelsByNames(request.EmptyContext(a.Log()), channelNames, team.Id)
-	if err != nil {
-		return "", err
-	}
-
-	visited := make(map[string]bool)
-	for _, ch := range channels {
-		if !visited[ch.Id] && ch.Type == model.ChannelTypeOpen {
-			channelURL := teamURL + "/channels/" + ch.Name
-			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
-			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
-			visited[ch.Id] = true
-		}
-	}
-	return postMessage, nil
 }
 
 func (a *App) GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string {
