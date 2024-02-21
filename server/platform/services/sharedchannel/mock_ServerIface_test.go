@@ -6,6 +6,8 @@ package sharedchannel
 
 import (
 	mlog "github.com/mattermost/mattermost/server/public/shared/mlog"
+	einterfaces "github.com/mattermost/mattermost/server/v8/einterfaces"
+
 	mock "github.com/stretchr/testify/mock"
 
 	model "github.com/mattermost/mattermost/server/public/model"
@@ -44,6 +46,22 @@ func (_m *MockServerIface) Config() *model.Config {
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Config)
+		}
+	}
+
+	return r0
+}
+
+// GetMetrics provides a mock function with given fields:
+func (_m *MockServerIface) GetMetrics() einterfaces.MetricsInterface {
+	ret := _m.Called()
+
+	var r0 einterfaces.MetricsInterface
+	if rf, ok := ret.Get(0).(func() einterfaces.MetricsInterface); ok {
+		r0 = rf()
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(einterfaces.MetricsInterface)
 		}
 	}
 
