@@ -9,11 +9,11 @@
         padding: 0;
         margin: 0 0 8px;
         color: var(--center-channel-color);
-        font-family: 'Open Sans', sans-serif;
-        font-size: 14px;
+        font-family: 'Metropolis', sans-serif;
+        font-size: 16px;
         font-style: normal;
         font-weight: 600;
-        line-height: 20px;
+        line-height: 24px;
     }
 
     &__description {
@@ -27,6 +27,24 @@
         font-style: normal;
         font-weight: 400;
         line-height: 16px;
+    }
+
+    &__error {
+        display: flex;
+        align-items: center;
+        padding: 0;
+        margin: 12px 0 0 0;
+        color: var(--error-text);
+        font-family: 'Open Sans', sans-serif;
+        font-size: 12px;
+        font-style: normal;
+        font-weight: 400;
+        line-height: 16px;
+
+        svg {
+            flex-shrink: 0;
+            margin-right: 6px;
+        }
     }
 
     &__content {
@@ -45,9 +63,12 @@
         align-items: center;
         cursor: pointer;
         font-size: 14px;
-        font-weight: 400;
         gap: 8px;
         line-height: 20px;
+
+        span {
+            font-weight: 400;
+        }
     }
 
     &__fieldset-radio {
