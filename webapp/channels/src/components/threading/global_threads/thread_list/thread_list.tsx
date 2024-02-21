@@ -205,8 +205,8 @@ const ThreadList = ({
                                 onClick={handleRead}
                             >
                                 <FormattedMessage
-                                    id='threading.filters.allThreads'
-                                    defaultMessage='All your threads'
+                                    id='globalThreads.heading'
+                                    defaultMessage='Followed threads'
                                 />
                             </Button>
                         </div>
