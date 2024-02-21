@@ -9,6 +9,17 @@
     }
 }
 
+.rhs-open #channel_view.channel-view {
+    &:has(.GlobalThreads) {
+        padding-right: 0;
+
+        .ThreadPane,
+        .no-results__holder {
+            padding-right: 18px;
+        }
+    }
+}
+
 .GlobalThreads {
     --border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
 
