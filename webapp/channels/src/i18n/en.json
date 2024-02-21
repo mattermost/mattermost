@@ -3841,7 +3841,6 @@
   "globalThreads.searchGuidance.subtitle": "If you’re looking for older conversations, try searching with {searchShortcut}",
   "globalThreads.searchGuidance.title": "That’s the end of the list",
   "globalThreads.sidebarLink": "Threads",
-  "globalThreads.subtitle": "Threads you’re participating in will automatically show here",
   "globalThreads.threadList.noUnreadThreads": "No unread threads",
   "globalThreads.threadPane.unreadMessageLink": "You have {numUnread, plural, =0 {no unread threads} =1 {<link>{numUnread} thread</link>} other {<link>{numUnread} threads</link>}} {numUnread, plural, =0 {} other {with unread messages}}",
   "globalThreads.threadPane.unselectedTitle": "{numUnread, plural, =0 {Looks like you’re all caught up} other {Catch up on your threads}}",
