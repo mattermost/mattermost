@@ -69,8 +69,14 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.Background(), "", 0, 9999).
+			GetAllTeams(context.Background(), "", 0, 250).
 			Return(mockTeams, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetAllTeams(context.Background(), "", 1, 250).
+			Return([]*model.Team{}, &model.Response{}, nil).
 			Times(1)
 
 		// first call is for the other team, that doesn't have the channel
