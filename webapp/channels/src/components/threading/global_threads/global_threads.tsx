@@ -29,7 +29,6 @@ import LocalStorageStore from 'stores/local_storage_store';
 
 import LoadingScreen from 'components/loading_screen';
 import NoResultsIndicator from 'components/no_results_indicator';
-import Header from 'components/widgets/header';
 
 import {Constants, PreviousViewedTypes} from 'utils/constants';
 

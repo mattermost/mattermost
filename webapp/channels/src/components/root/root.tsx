@@ -621,7 +621,7 @@ export default class Root extends React.PureComponent<Props, State> {
                         <GlobalHeader/>
                         <CloudEffects/>
                         <TeamSidebar/>
-                        <div className="content-container">
+                        <div className='content-container'>
                             <Switch>
                                 {this.props.products?.filter((product) => Boolean(product.publicComponent)).map((product) => (
                                     <Route

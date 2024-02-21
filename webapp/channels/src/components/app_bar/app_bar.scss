@@ -141,13 +141,13 @@ $app-bar-width: 48px;
         .app_bar__marketplace_button {
             @include icon-button;
             @include icon-button-small-compact;
-            color: rgba(var(--sidebar-text-rgb),0.64);
+
+            color: rgba(var(--sidebar-text-rgb), 0.64);
 
             &:hover {
-                color: rgba(var(--sidebar-text-rgb),0.72);
                 background-color: rgba(var(--sidebar-text-rgb), 0.08);
+                color: rgba(var(--sidebar-text-rgb), 0.72);
             }
-
         }
     }
 }

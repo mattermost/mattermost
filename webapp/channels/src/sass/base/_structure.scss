@@ -84,7 +84,6 @@ body {
 
     position: relative;
     height: 100%;
-
 }
 
 /* stylelint-disable -- grid-template indentation */
@@ -254,16 +253,17 @@ body.app__body #root {
 /* stylelint-enable -- grid-template indentation */
 
 #channel_view.channel-view {
+    overflow: hidden;
+    border: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
     background: var(--center-channel-bg);
     border-radius: 12px;
-    border: solid 1px rgba(var(--center-channel-color-rgb),0.08);
     box-shadow: var(--elevation-1);
-    overflow: hidden;
 }
-.rhs-open #channel_view.channel-view{
-    @media screen and (min-width: 1200px){
-        margin-right: -18px;
+
+.rhs-open #channel_view.channel-view {
+    @media screen and (min-width: 1200px) {
         padding-right: 18px;
+        margin-right: -18px;
     }
 }
 
