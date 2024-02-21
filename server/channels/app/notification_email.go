@@ -109,7 +109,7 @@ func (a *App) sendNotificationEmail(c request.CTX, notification *PostNotificatio
 		}
 	}
 
-	landingURL := a.GetSiteURL() + "/" + team.Name
+	landingURL := a.GetSiteURL() + "/landing#/" + team.Name
 
 	var bodyText, err = a.getNotificationEmailBody(c, user, post, channel, channelName, senderName, team.Name, landingURL, emailNotificationContentsType, useMilitaryTime, translateFunc, senderPhoto)
 	if err != nil {

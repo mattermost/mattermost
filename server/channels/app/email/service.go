@@ -172,12 +172,12 @@ type ServiceInterface interface {
 	Stop()
 }
 
-func (s *Service) Store() store.Store {
-	return s.store
+func (es *Service) Store() store.Store {
+	return es.store
 }
 
-func (s *Service) SetStore(st store.Store) {
-	s.store = st
+func (es *Service) SetStore(st store.Store) {
+	es.store = st
 }
 
 func (es *Service) GetPerDayEmailRateLimiter() *throttled.GCRARateLimiter {
