@@ -27,10 +27,14 @@
                     color: rgba(var(--center-channel-color-rgb), 0.75);
                     font-weight: 600;
 
+                    i {
+                        color: rgba(var(--center-channel-color-rgb), 0.64);
+                    }
+
                     &:hover {
                         background-color: rgba(var(--center-channel-color-rgb), 0.04);
                         border-radius: 4px;
-                        color: rgba(var(--center-channel-color-rgb), 0.88);
+                        color: rgba(var(--center-channel-color-rgb), 0.8);
                     }
                 }
 
@@ -38,6 +42,10 @@
                     button {
                         background: rgba(var(--button-bg-rgb), 0.08);
                         color: v(button-bg);
+
+                        i {
+                            color: v(button-bg);
+                        }
                     }
                 }
             }
