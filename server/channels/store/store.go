@@ -13,7 +13,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 )
 
 type StoreResult[T any] struct {
@@ -74,7 +73,7 @@ type Store interface {
 	GetAppliedMigrations() ([]model.AppliedMigration, error)
 	GetDbVersion(numerical bool) (string, error)
 	// GetInternalMasterDB allows access to the raw master DB
-	// handle for the multi-product architecture.
+	// handle for plugins.
 	GetInternalMasterDB() *sql.DB
 	GetInternalReplicaDB() *sql.DB
 	TotalMasterDbConnections() int
@@ -233,7 +232,6 @@ type ChannelStore interface {
 	GetAllChannelMembersForUser(userID string, allowFromCache bool, includeDeleted bool) (map[string]string, error)
 	GetChannelsMemberCount(channelIDs []string) (map[string]int64, error)
 	InvalidateAllChannelMembersForUser(userID string)
-	IsUserInChannelUseCache(userID string, channelID string) bool
 	GetAllChannelMembersNotifyPropsForChannel(channelID string, allowFromCache bool) (map[string]model.StringMap, error)
 	InvalidateCacheForChannelMembersNotifyProps(channelID string)
 	GetMemberForPost(postID string, userID string, includeArchivedChannels bool) (*model.ChannelMember, error)
@@ -352,7 +350,7 @@ type ThreadStore interface {
 
 type PostStore interface {
 	SaveMultiple(posts []*model.Post) ([]*model.Post, int, error)
-	Save(post *model.Post) (*model.Post, error)
+	Save(rctx request.CTX, post *model.Post) (*model.Post, error)
 	Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error)
 	Get(ctx context.Context, id string, opts model.GetPostsOptions, userID string, sanitizeOptions map[string]bool) (*model.PostList, error)
 	GetSingle(id string, inclDeleted bool) (*model.Post, error)
@@ -390,7 +388,7 @@ type PostStore interface {
 	GetMaxPostSize() int
 	GetParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.PostForExport, error)
 	GetRepliesForExport(parentID string) ([]*model.ReplyForExport, error)
-	GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error)
+	GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error)
 	SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID, teamID string, page, perPage int) (*model.PostSearchResults, error)
 	GetOldestEntityCreationTime() (int64, error)
 	HasAutoResponsePostByUserSince(options model.GetPostsSinceOptions, userId string) (bool, error)
@@ -403,7 +401,7 @@ type PostStore interface {
 }
 
 type UserStore interface {
-	Save(user *model.User) (*model.User, error)
+	Save(rctx request.CTX, user *model.User) (*model.User, error)
 	Update(rctx request.CTX, user *model.User, allowRoleUpdate bool) (*model.UserUpdate, error)
 	UpdateNotifyProps(userID string, props map[string]string) error
 	UpdateLastPictureUpdate(userID string) error
@@ -1116,22 +1114,4 @@ type SidebarCategorySearchOpts struct {
 	TeamID      string
 	ExcludeTeam bool
 	Type        model.SidebarCategoryType
-}
-
-// Ensure store service adapter implements `product.StoreService`
-var _ product.StoreService = (*StoreServiceAdapter)(nil)
-
-// StoreServiceAdapter provides a simple Store wrapper for use with products.
-type StoreServiceAdapter struct {
-	store Store
-}
-
-func NewStoreServiceAdapter(store Store) *StoreServiceAdapter {
-	return &StoreServiceAdapter{
-		store: store,
-	}
-}
-
-func (a *StoreServiceAdapter) GetMasterDB() *sql.DB {
-	return a.store.GetInternalMasterDB()
 }

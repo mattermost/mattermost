@@ -143,8 +143,6 @@ type mutex interface {
 	Unlock()
 }
 
-// TODO: this utility function is also used by the product framework. We should move this to mattermost-server and share
-// the code to maintain consistent behavior. Ticket: MM-44953
 func (b *BotService) ensureBot(m mutex, bot *model.Bot, options ...EnsureBotOption) (string, error) {
 	err := ensureServerVersion(b.api, "5.10.0")
 	if err != nil {
