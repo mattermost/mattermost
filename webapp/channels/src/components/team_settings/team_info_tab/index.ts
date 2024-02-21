@@ -8,35 +8,29 @@ import type {Dispatch} from 'redux';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {getTeam, patchTeam, removeTeamIcon, setTeamIcon, regenerateTeamInviteId} from 'mattermost-redux/actions/teams';
-import {Permissions} from 'mattermost-redux/constants';
+import {getTeam, patchTeam, removeTeamIcon, setTeamIcon} from 'mattermost-redux/actions/teams';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
-import {haveITeamPermission} from 'mattermost-redux/selectors/entities/roles';
-
-import {getIsMobileView} from 'selectors/views/browser';
 
 import type {GlobalState} from 'types/store/index';
 
-import TeamGeneralTab from './team_general_tab';
+import TeamInfoTab from './team_info_tab';
 
 export type OwnProps = {
-    updateSection: (section: string) => void;
-    team: Team & { last_team_icon_update?: number };
-    activeSection: string;
+    team: Team;
+    hasChanges: boolean;
+    hasChangeTabError: boolean;
+    setHasChanges: (hasChanges: boolean) => void;
+    setHasChangeTabError: (hasChangesError: boolean) => void;
     closeModal: () => void;
     collapseModal: () => void;
 };
 
-function mapStateToProps(state: GlobalState, ownProps: OwnProps) {
+function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
     const maxFileSize = parseInt(config.MaxFileSize ?? '', 10);
 
-    const canInviteTeamMembers = haveITeamPermission(state, ownProps.team?.id || '', Permissions.INVITE_USER);
-
     return {
         maxFileSize,
-        canInviteTeamMembers,
-        isMobileView: getIsMobileView(state),
     };
 }
 
@@ -45,7 +39,6 @@ function mapDispatchToProps(dispatch: Dispatch) {
         actions: bindActionCreators({
             getTeam,
             patchTeam,
-            regenerateTeamInviteId,
             removeTeamIcon,
             setTeamIcon,
         }, dispatch),
@@ -56,4 +49,4 @@ const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export type PropsFromRedux = ConnectedProps<typeof connector>;
 
-export default connector(TeamGeneralTab);
+export default connector(TeamInfoTab);
