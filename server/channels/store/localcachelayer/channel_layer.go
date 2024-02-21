@@ -96,50 +96,58 @@ func (s LocalCacheChannelStore) ClearCaches() {
 }
 
 func (s LocalCacheChannelStore) InvalidatePinnedPostCount(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelPinnedPostCountsCache, channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelPinnedPostCountsCache, channelId, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelPinnedPostCountsCache.Name())
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateMemberCount(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMemberCountsCache, channelId, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMemberCountsCache.Name())
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateGuestCount(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestCountCache, channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelGuestCountCache, channelId, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel Guests Count - Remove by channelId")
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateChannel(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByIdCache, channelId, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Channel - Remove by ChannelId")
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateAllChannelMembersForUser(userId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersForUserCache, userId)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersForUserCache, userId+"_deleted")
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersForUserCache, userId, nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersForUserCache, userId+"_deleted", nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersForUserCache.Name())
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateCacheForChannelMembersNotifyProps(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersNotifyPropsCache, channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelMembersNotifyPropsCache, channelId, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelMembersNotifyPropsCache.Name())
 	}
 }
 
 func (s LocalCacheChannelStore) InvalidateChannelByName(teamId, name string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByNameCache, teamId+name)
+	props := make(map[string]string)
+	props["name"] = name
+	if teamId == "" {
+		props["id"] = "dm"
+	} else {
+		props["id"] = teamId
+	}
+
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.channelByNameCache, teamId+name, props)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter(s.rootStore.channelByNameCache.Name())
 	}

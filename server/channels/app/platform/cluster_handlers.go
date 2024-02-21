@@ -103,23 +103,6 @@ func (ps *PlatformService) clusterBusyStateChgHandler(msg *model.ClusterMessage)
 	}
 }
 
-func (ps *PlatformService) invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID string) {
-	ps.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelID)
-}
-
-func (ps *PlatformService) invalidateCacheForChannelByNameSkipClusterSend(teamID, name string) {
-	if teamID == "" {
-		teamID = "dm"
-	}
-
-	ps.Store.Channel().InvalidateChannelByName(teamID, name)
-}
-
-func (ps *PlatformService) InvalidateCacheForUserSkipClusterSend(userID string) {
-	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
-}
-
 func (ps *PlatformService) invalidateWebConnSessionCacheForUser(userID string) {
 	hub := ps.GetHubForUserId(userID)
 	if hub != nil {

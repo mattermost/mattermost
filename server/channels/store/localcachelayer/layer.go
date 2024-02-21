@@ -433,13 +433,16 @@ func (s LocalCacheStore) DropAllTables() {
 	s.Store.DropAllTables()
 }
 
-func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string) {
+func (s *LocalCacheStore) doInvalidateCacheCluster(cache cache.Cache, key string, props map[string]string) {
 	cache.Remove(key)
 	if s.cluster != nil {
 		msg := &model.ClusterMessage{
 			Event:    cache.GetInvalidateClusterEvent(),
 			SendType: model.ClusterSendBestEffort,
 			Data:     []byte(key),
+		}
+		if props != nil {
+			msg.Props = props
 		}
 		s.cluster.SendClusterMessage(msg)
 	}
