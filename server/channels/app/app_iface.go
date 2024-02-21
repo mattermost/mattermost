@@ -649,7 +649,7 @@ type AppIface interface {
 	GetChannelPoliciesForUser(userID string, offset, limit int) (*model.RetentionPolicyForChannelList, *model.AppError)
 	GetChannelUnread(c request.CTX, channelID, userID string) (*model.ChannelUnread, *model.AppError)
 	GetChannels(c request.CTX, channelIDs []string) ([]*model.Channel, *model.AppError)
-	GetChannelsByNames(channelNames []string, teamID string) ([]*model.Channel, *model.AppError)
+	GetChannelsByNames(c request.CTX, channelNames []string, teamID string) ([]*model.Channel, *model.AppError)
 	GetChannelsForRetentionPolicy(policyID string, offset, limit int) (*model.ChannelsWithCount, *model.AppError)
 	GetChannelsForScheme(scheme *model.Scheme, offset int, limit int) (model.ChannelList, *model.AppError)
 	GetChannelsForSchemePage(scheme *model.Scheme, page int, perPage int) (model.ChannelList, *model.AppError)

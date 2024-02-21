@@ -352,7 +352,7 @@ func (a *App) generateHyperlinkForChannels(postMessage, teamName, teamURL string
 		return postMessage, nil
 	}
 
-	channels, err := a.GetChannelsByNames(channelNames, team.Id)
+	channels, err := a.GetChannelsByNames(request.EmptyContext(a.Log()), channelNames, team.Id)
 	if err != nil {
 		return "", err
 	}
