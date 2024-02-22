@@ -96,12 +96,12 @@ body.app__body #root {
     &.channel-view {
         background-color: var(--sidebar-header-bg);
         padding-bottom: 8px;
-        --columns: min-content min-content minmax(385px, 1fr) minmax(0, auto) min-content;
+        --columns: min-content auto min-content;
         grid-template:
-            'announcement announcement announcement announcement announcement' min-content
-            'header header header header header' min-content
-            'team-sidebar main main main app-sidebar'
-            'footer footer footer footer footer' min-content
+            'announcement announcement announcement' min-content
+            'header header header' min-content
+            'team-sidebar main app-sidebar'
+            'footer footer footer' min-content
             / var(--columns);
         ;
         &:has(.backstage-body){
@@ -152,7 +152,7 @@ body.app__body #root {
         grid-template:
             'lhs center rhs'
         ;
-        grid-template-columns: min-content auto min-content;
+        grid-template-columns: min-content minmax(385px, 1fr) min-content;
 
         &:has(.backstage-body){
             background: inherit;
@@ -245,7 +245,7 @@ body.app__body #root {
                 grid-area: center;
                 transition: width .25s ease-in-out;
             }
-            --columns: min-content min-content 0 1fr min-content;
+            --columns: min-content auto min-content;
         }
         #sidebar-right {
             transition: none;
