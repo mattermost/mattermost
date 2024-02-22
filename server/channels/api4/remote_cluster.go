@@ -21,7 +21,7 @@ func (api *API) InitRemoteCluster() {
 	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage, handlerParamFileAPI)).Methods("POST")
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
