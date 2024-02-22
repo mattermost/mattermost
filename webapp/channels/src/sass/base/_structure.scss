@@ -83,7 +83,6 @@ body {
     @include clearfix;
 
     position: relative;
-    overflow: auto;
     height: 100%;
 }
 
@@ -92,7 +91,7 @@ body {
 #root,
 body.app__body #root {
     display: grid;
-    overflow: auto;
+    overflow: hidden;
 
     &.channel-view {
         background-color: var(--sidebar-header-bg);
@@ -144,6 +143,7 @@ body.app__body #root {
 
     .content-container {
         position: relative;
+        overflow: hidden;
         display: grid;
         background-color: var(--sidebar-bg);
         border: solid 1px rgba(var(--center-channel-color-rgb),0.08);
