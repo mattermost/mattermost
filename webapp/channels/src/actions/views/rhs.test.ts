@@ -11,6 +11,7 @@ import type {UserProfile} from '@mattermost/types/users';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
+import * as PostActions from 'mattermost-redux/actions/posts';
 import * as SearchActions from 'mattermost-redux/actions/search';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
@@ -170,6 +171,15 @@ describe('rhs view actions', () => {
             root_id: 'root123',
         } as Post;
 
+        test('it dispatches PostActions.getPostThread correctly', () => {
+            store.dispatch(selectPostFromRightHandSideSearch(post));
+
+            const compareStore = mockStore(initialState);
+            compareStore.dispatch(PostActions.getPostThread(post.root_id));
+
+            expect(store.getActions()[0]).toEqual(compareStore.getActions()[0]);
+        });
+
         describe(`it dispatches ${ActionTypes.SELECT_POST} correctly`, () => {
             it('with mocked date', async () => {
                 store = mockStore({
@@ -192,7 +202,7 @@ describe('rhs view actions', () => {
                     timestamp: POST_CREATED_TIME,
                 };
 
-                expect(store.getActions()[0]).toEqual(action);
+                expect(store.getActions()[1]).toEqual(action);
             });
         });
     });
@@ -782,6 +792,7 @@ describe('rhs view actions', () => {
             await store.dispatch(openAtPrevious({selectedPostId: previousSelectedPost.id, previousRhsState: previousState}));
 
             const compareStore = mockStore(initialState);
+            compareStore.dispatch(PostActions.getPostThread(previousSelectedPost.root_id));
             compareStore.dispatch({
                 type: ActionTypes.SELECT_POST,
                 postId: previousSelectedPost.root_id,
