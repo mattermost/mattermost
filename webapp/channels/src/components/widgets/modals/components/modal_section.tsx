@@ -8,7 +8,7 @@ import {useIntl} from 'react-intl';
 import './modal_section.scss';
 
 type Props = {
-    title: MessageDescriptor;
+    title?: MessageDescriptor;
     description?: MessageDescriptor;
     content: JSX.Element;
     titleSuffix?: JSX.Element;
@@ -21,11 +21,11 @@ function ModalSection({
     titleSuffix,
 }: Props): JSX.Element {
     const {formatMessage} = useIntl();
-    const titleContent = (
+    const titleContent = title ? (
         <h4 className='mm-modal-generic-section__title'>
             {formatMessage({id: title.id, defaultMessage: title.defaultMessage})}
         </h4>
-    );
+    ) : undefined;
 
     const descriptionContent = description && (
         <p className='mm-modal-generic-section__description'>
@@ -43,12 +43,21 @@ function ModalSection({
         return titleContent;
     }
 
+    const titleDescriptionSection = () => {
+        if (title || description) {
+            return (
+                <div className='mm-modal-generic-section__title-description-ctr'>
+                    {titleRow()}
+                    {descriptionContent}
+                </div>
+            );
+        }
+        return null;
+    };
+
     return (
         <section className='mm-modal-generic-section'>
-            <div className='mm-modal-generic-section__info-ctr'>
-                {titleRow()}
-                {descriptionContent}
-            </div>
+            {titleDescriptionSection()}
             <div className='mm-modal-generic-section__content'>
                 {content}
             </div>
