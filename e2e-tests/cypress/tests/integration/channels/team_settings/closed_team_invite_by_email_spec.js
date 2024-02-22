@@ -59,13 +59,16 @@ describe('Team Settings', () => {
 
         // * Check that the 'Team Settings' modal was opened
         cy.get('#teamSettingsModal').should('exist').within(() => {
-            cy.get('#open_inviteDesc').should('have.text', 'No');
+            // # Go to Access section
+            cy.get('#accessButton').click();
 
-            // # Click on the 'Allow only users with a specific email domain to join this team' edit button
-            cy.get('#allowed_domainsEdit').should('be.visible').click();
+            cy.get('.access-allowed-domains-section').should('exist').within(() => {
+                // # Click on the 'Allow only users with a specific email domain to join this team' checkbox
+                cy.get('.mm-modal-generic-section-item__input-checkbox').should('not.be.checked').click();
+            });
 
             // * Verify that the '#allowedDomains' input field is empty
-            cy.get('#allowedDomains').should('be.empty');
+            cy.get('#allowedDomains').should('have.text', 'corp.mattermost.com, mattermost.com');
 
             // # Close the modal
             cy.get('#teamSettingsModalLabel').find('button').should('be.visible').click();

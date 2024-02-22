@@ -7712,11 +7712,11 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID str
 
 }
 
-func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, error) {
+func (s *RetryLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Save(post)
+		result, err := s.PostStore.Save(rctx, post)
 		if err == nil {
 			return result, nil
 		}
@@ -13925,11 +13925,11 @@ func (s *RetryLayerUserStore) ResetLastPictureUpdate(userID string) error {
 
 }
 
-func (s *RetryLayerUserStore) Save(user *model.User) (*model.User, error) {
+func (s *RetryLayerUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Save(user)
+		result, err := s.UserStore.Save(rctx, user)
 		if err == nil {
 			return result, nil
 		}
