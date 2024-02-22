@@ -7243,6 +7243,10 @@
     "translation": "Unable to update the webhook."
   },
   {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL is too long"
+  },
+  {
     "id": "bleveengine.already_started.error",
     "translation": "Bleve is already started."
   },
