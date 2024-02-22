@@ -624,13 +624,24 @@ func (a *App) SendNotifications(c request.CTX, post *model.Post, team *model.Tea
 				status = &model.Status{UserId: id, Status: model.StatusOffline, Manual: false, LastActivityAt: 0, ActiveChannel: ""}
 			}
 
-			if a.DoesStatusAllowPushNotification(profileMap[id], status, post) {
+			if statusReason := DoesStatusAllowPushNotification(profileMap[id].NotifyProps, status, post.ChannelId); statusReason == "" {
 				a.sendPushNotification(
 					notification,
 					profileMap[id],
 					false,
 					false,
 					model.CommentsNotifyCRT,
+				)
+			} else {
+				a.NotificationsLog().Debug("Notification not sent - status",
+					mlog.String("type", TypePush),
+					mlog.String("post_id", post.Id),
+					mlog.String("status", StatusNotSent),
+					mlog.String("reason", ReasonUserConfig),
+					mlog.String("status_reason", statusReason),
+					mlog.String("sender_id", post.UserId),
+					mlog.String("receiver_id", id),
+					mlog.String("receiver_status", status.Status),
 				)
 			}
 		}

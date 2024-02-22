@@ -24,12 +24,22 @@ import (
 )
 
 type notificationType string
+type notifyPropsReason string
+type statusReason string
 
 const (
 	notificationTypeClear       notificationType = "clear"
 	notificationTypeMessage     notificationType = "message"
 	notificationTypeUpdateBadge notificationType = "update_badge"
 	notificationTypeDummy       notificationType = "dummy"
+
+	NotifyPropsReasonChannelMuted  notifyPropsReason = "channel_muted"
+	NotifyPropsReasonSystemMessage notifyPropsReason = "system_message"
+	NotifyPropsReasonSetToNone     notifyPropsReason = "notify_props_set_to_note"
+	NotifyPropsReasonSetToMention  notifyPropsReason = "notify_props_set_to_mention_and_was_not_mentioned"
+
+	StatusReasonDNDOrOOO statusReason = "status_is_dnd_or_ooo"
+	StatusReasonIsActive statusReason = "user_is_active_on_channel"
 )
 
 type PushNotificationsHub struct {
@@ -578,11 +588,37 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
-	return a.DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM) &&
-		a.DoesStatusAllowPushNotification(user, status, post)
+	if notifyPropsReason := DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsReason != "" {
+		a.NotificationsLog().Debug("Notification not sent - notify props",
+			mlog.String("type", TypePush),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", StatusNotSent),
+			mlog.String("reason", ReasonUserConfig),
+			mlog.String("notify_props_reason", notifyPropsReason),
+			mlog.String("sender_id", post.UserId),
+			mlog.String("receiver_id", user.Id),
+		)
+		return false
+	}
+
+	if statusReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId); statusReason != "" {
+		a.NotificationsLog().Debug("Notification not sent - status",
+			mlog.String("type", TypePush),
+			mlog.String("post_id", post.Id),
+			mlog.String("status", StatusNotSent),
+			mlog.String("reason", ReasonUserConfig),
+			mlog.String("status_reason", statusReason),
+			mlog.String("sender_id", post.UserId),
+			mlog.String("receiver_id", user.Id),
+			mlog.String("receiver_status", status.Status),
+		)
+		return false
+	}
+
+	return true
 }
 
-func (a *App) DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) bool {
+func DoesNotifyPropsAllowPushNotification(user *model.User, channelNotifyProps model.StringMap, post *model.Post, wasMentioned, isGM bool) notifyPropsReason {
 	userNotifyProps := user.NotifyProps
 	userNotify := userNotifyProps[model.PushNotifyProp]
 	channelNotify, ok := channelNotifyProps[model.PushNotifyProp]
@@ -600,103 +636,49 @@ func (a *App) DoesNotifyPropsAllowPushNotification(user *model.User, channelNoti
 
 	// If the channel is muted do not send push notifications
 	if channelNotifyProps[model.MarkUnreadNotifyProp] == model.ChannelMarkUnreadMention {
-		a.NotificationsLog().Debug("Notification not sent - channel muted",
-			mlog.String("type", TypePush),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusNotSent),
-			mlog.String("reason", ReasonUserConfig),
-			mlog.String("sender_id", post.UserId),
-			mlog.String("receiver_id", user.Id),
-		)
-		return false
+		return NotifyPropsReasonChannelMuted
 	}
 
 	if post.IsSystemMessage() {
-		a.NotificationsLog().Debug("Notification not sent - system message",
-			mlog.String("type", TypePush),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusNotSent),
-			mlog.String("reason", ReasonServerConfig),
-			mlog.String("sender_id", post.UserId),
-			mlog.String("receiver_id", user.Id),
-		)
-		return false
+		return NotifyPropsReasonSystemMessage
 	}
 
 	if notify == model.ChannelNotifyNone {
-		a.NotificationsLog().Debug("Notification not sent - notify props set to none",
-			mlog.String("type", TypePush),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusNotSent),
-			mlog.String("reason", ReasonServerConfig),
-			mlog.String("sender_id", post.UserId),
-			mlog.String("receiver_id", user.Id),
-		)
-		return false
+		return NotifyPropsReasonSetToNone
 	}
 
 	if notify == model.ChannelNotifyMention && !wasMentioned {
-		a.NotificationsLog().Debug("Notification not sent - notify props set to mention only and was not mentioned",
-			mlog.String("type", TypePush),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusNotSent),
-			mlog.String("reason", ReasonServerConfig),
-			mlog.String("sender_id", post.UserId),
-			mlog.String("receiver_id", user.Id),
-		)
-		return false
+		return NotifyPropsReasonSetToMention
 	}
 
 	if (notify == model.ChannelNotifyAll) &&
 		(post.UserId != user.Id || post.GetProp("from_webhook") == "true") {
-		return true
+		return ""
 	}
 
-	return true
+	return ""
 }
 
-func (a *App) DoesStatusAllowPushNotification(user *model.User, status *model.Status, post *model.Post) bool {
+func DoesStatusAllowPushNotification(userNotifyProps model.StringMap, status *model.Status, channelID string) statusReason {
 	// If User status is DND or OOO return false right away
 	if status.Status == model.StatusDnd || status.Status == model.StatusOutOfOffice {
-		a.NotificationsLog().Debug("Notification not sent - status is manually set",
-			mlog.String("type", TypePush),
-			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusNotSent),
-			mlog.String("reason", ReasonUserStatus),
-			mlog.String("sender_id", post.UserId),
-			mlog.String("receiver_id", user.Id),
-			mlog.String("receiver_status", status.Status),
-		)
-		return false
+		return StatusReasonDNDOrOOO
 	}
 
-	pushStatus, ok := user.NotifyProps[model.PushStatusNotifyProp]
-	if (pushStatus == model.StatusOnline || !ok) && (status.ActiveChannel != post.ChannelId || model.GetMillis()-status.LastActivityAt > model.StatusChannelTimeout) {
-		return true
+	pushStatus, ok := userNotifyProps[model.PushStatusNotifyProp]
+	if (pushStatus == model.StatusOnline || !ok) && (status.ActiveChannel != channelID || model.GetMillis()-status.LastActivityAt > model.StatusChannelTimeout) {
+		return ""
 	}
 
 	if pushStatus == model.StatusAway && (status.Status == model.StatusAway || status.Status == model.StatusOffline) {
-		return true
+		return ""
 	}
 
 	if pushStatus == model.StatusOffline && status.Status == model.StatusOffline {
-		return true
+		return ""
 	}
 
-	a.NotificationsLog().Debug("Notification not sent - status shows user as active",
-		mlog.String("type", TypePush),
-		mlog.String("post_id", post.Id),
-		mlog.String("status", StatusNotSent),
-		mlog.String("reason", ReasonUserStatus),
-		mlog.String("sender_id", post.UserId),
-		mlog.String("receiver_id", user.Id),
-		mlog.String("receiver_status", status.Status),
-		mlog.String("receiver_push_status", pushStatus),
-		mlog.String("active_channel", status.ActiveChannel),
-		mlog.String("post_channel_id", post.ChannelId),
-		mlog.Int("last_activity_at", status.LastActivityAt),
-	)
-	return false
+	return StatusReasonIsActive
 }
 
 func (a *App) BuildPushNotificationMessage(c request.CTX, contentsConfig string, post *model.Post, user *model.User, channel *model.Channel, channelName string, senderName string,
