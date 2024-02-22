@@ -60,7 +60,6 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/refresh_post_stats"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/resend_invitation_email"
 	"github.com/mattermost/mattermost/server/v8/channels/jobs/s3_path_migration"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/utils"
 	"github.com/mattermost/mattermost/server/v8/config"
@@ -117,8 +116,6 @@ type Server struct {
 	runEssentialJobs bool
 	Jobs             *jobs.JobServer
 
-	licenseWrapper *licenseWrapper
-
 	timezones *timezones.Timezones
 
 	htmlTemplateWatcher     *templates.Container
@@ -141,8 +138,7 @@ type Server struct {
 
 	Audit *audit.Audit
 
-	joinCluster bool
-	// startSearchEngine bool
+	joinCluster  bool
 	skipPostInit bool
 
 	Cloud                   einterfaces.CloudInterface
@@ -151,10 +147,7 @@ type Server struct {
 
 	tracer *tracing.Tracer
 
-	skipProductsInit bool
-
-	products map[string]product.Product
-	services map[product.ServiceKey]any
+	ch *Channels
 }
 
 func (s *Server) Store() store.Store {
@@ -179,8 +172,6 @@ func NewServer(options ...Option) (*Server, error) {
 		RootRouter:  rootRouter,
 		LocalRouter: localRouter,
 		timezones:   timezones.New(),
-		products:    make(map[string]product.Product),
-		services:    make(map[product.ServiceKey]any),
 	}
 
 	for _, option := range options {
@@ -228,10 +219,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create users service")
 	}
 
-	s.licenseWrapper = &licenseWrapper{
-		srv: s,
-	}
-
 	s.teamService, err = teams.New(teams.ServiceConfig{
 		TeamStore:    s.Store().Team(),
 		ChannelStore: s.Store().Channel(),
@@ -245,29 +232,6 @@ func NewServer(options ...Option) (*Server, error) {
 		return nil, errors.Wrapf(err, "unable to create teams service")
 	}
 
-	// ensure app implements `product.UserService`
-	var _ product.UserService = (*App)(nil)
-
-	app := New(ServerConnector(s.Channels()))
-	serviceMap := map[product.ServiceKey]any{
-		ServerKey:                  s,
-		product.ConfigKey:          s.platform,
-		product.LicenseKey:         s.licenseWrapper,
-		product.FilestoreKey:       s.platform.FileBackend(),
-		product.ExportFilestoreKey: s.platform.ExportFileBackend(),
-		product.FileInfoStoreKey:   &fileInfoWrapper{srv: s},
-		product.ClusterKey:         s.platform,
-		product.UserKey:            app,
-		product.LogKey:             s.platform.Log(),
-		product.CloudKey:           &cloudWrapper{cloud: s.Cloud},
-		product.KVStoreKey:         s.platform,
-		product.StoreKey:           store.NewStoreServiceAdapter(s.Store()),
-		product.SystemKey:          &systemServiceAdapter{server: s},
-		product.SessionKey:         app,
-		product.FrontendKey:        app,
-		product.CommandKey:         app,
-	}
-
 	// It is important to initialize the hub only after the global logger is set
 	// to avoid race conditions while logging from inside the hub.
 	// Step 4: Start platform
@@ -276,21 +240,17 @@ func NewServer(options ...Option) (*Server, error) {
 	// NOTE: There should be no call to App.Srv().Channels() before step 5 is done
 	// otherwise it will throw a panic.
 
-	// Step 5: Initialize products.
+	// Step 5: Initialize channels.
 	// Depends on s.httpService, and depends on the hub to be initialized.
 	// Otherwise we run into race conditions.
-	err = s.initializeProducts(product.GetProducts(), serviceMap)
+	channels, err := NewChannels(s)
 	if err != nil {
-		return nil, errors.Wrap(err, "failed to initialize products")
+		return nil, errors.Wrap(err, "failed to initialize channels")
 	}
-	s.services = serviceMap
+	s.ch = channels
 
 	// After channel is initialized set it to the App object
-	channelsWrapper, ok := serviceMap[product.ChannelKey].(*channelsWrapper)
-	if !ok {
-		return nil, errors.Wrap(err, "channels product is not initialized")
-	}
-	app.ch = channelsWrapper.app.ch
+	app := New(ServerConnector(channels))
 
 	// -------------------------------------------------------------------------
 	// Everything below this is not order sensitive and safe to be moved around.
@@ -400,6 +360,10 @@ func NewServer(options ...Option) (*Server, error) {
 
 	if ipFilteringInterface != nil {
 		s.IPFiltering = ipFilteringInterface(app)
+	}
+
+	if outgoingOauthConnectionInterface != nil {
+		s.OutgoingOAuthConnection = outgoingOauthConnectionInterface(app)
 	}
 
 	s.clusterLeaderListenerId = s.AddClusterLeaderChangedListener(func() {
@@ -592,8 +556,7 @@ func (s *Server) AppOptions() []AppOption {
 }
 
 func (s *Server) Channels() *Channels {
-	ch, _ := s.products["channels"].(*Channels)
-	return ch
+	return s.ch
 }
 
 // Return Database type (postgres or mysql) and current version of the schema
@@ -766,13 +729,11 @@ func (s *Server) Shutdown() {
 		}
 	}
 
-	// Stop products.
-	// This needs to happen last because products are dependent
+	// Stop channels.
+	// This needs to happen last because channels are dependent
 	// on parent services.
-	for name, product := range s.products {
-		if err2 := product.Stop(); err2 != nil {
-			s.Log().Warn("Unable to cleanly stop product", mlog.String("name", name), mlog.Err(err2))
-		}
+	if err = s.Channels().Stop(); err != nil {
+		s.Log().Warn("Unable to cleanly stop channels", mlog.Err(err))
 	}
 
 	if err = s.platform.Shutdown(); err != nil {
@@ -870,20 +831,10 @@ func stripPort(hostport string) string {
 }
 
 func (s *Server) Start() error {
-	// Start products.
-	// This needs to happen before because products are dependent on the HTTP server.
-
-	// make sure channels starts first
-	if err := s.products["channels"].Start(); err != nil {
+	// Start channels.
+	// This needs to happen before because channels is dependent on the HTTP server.
+	if err := s.Channels().Start(); err != nil {
 		return errors.Wrap(err, "Unable to start channels")
-	}
-	for name, product := range s.products {
-		if name == "channels" {
-			continue
-		}
-		if err := product.Start(); err != nil {
-			return errors.Wrapf(err, "Unable to start %s", name)
-		}
 	}
 
 	if s.joinCluster && s.platform.Cluster() != nil {
@@ -1835,15 +1786,19 @@ func runDNDStatusExpireJob(a *App) {
 
 func runPostReminderJob(a *App) {
 	if a.IsLeader() {
+		rctx := request.EmptyContext(a.Log())
 		withMut(&a.ch.postReminderMut, func() {
-			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+			fn := func() { a.CheckPostReminders(rctx) }
+			a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 		})
 	}
 	a.ch.srv.AddClusterLeaderChangedListener(func() {
 		mlog.Info("Cluster leader changed. Determining if post reminder task should be running", mlog.Bool("isLeader", a.IsLeader()))
 		if a.IsLeader() {
+			rctx := request.EmptyContext(a.Log())
 			withMut(&a.ch.postReminderMut, func() {
-				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", a.CheckPostReminders, 5*time.Minute)
+				fn := func() { a.CheckPostReminders(rctx) }
+				a.ch.postReminderTask = model.CreateRecurringTaskFromNextIntervalTime("Check Post reminders", fn, 5*time.Minute)
 			})
 		} else {
 			cancelTask(&a.ch.postReminderMut, &a.ch.postReminderTask)

@@ -24,9 +24,9 @@ type UserCreateOptions struct {
 }
 
 // CreateUser creates a user
-func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*model.User, error) {
+func (us *UserService) CreateUser(rctx request.CTX, user *model.User, opts UserCreateOptions) (*model.User, error) {
 	if opts.FromImport {
-		return us.createUser(user)
+		return us.createUser(rctx, user)
 	}
 
 	user.Roles = model.SystemUserRoleId
@@ -54,17 +54,17 @@ func (us *UserService) CreateUser(user *model.User, opts UserCreateOptions) (*mo
 		user.Locale = *us.config().LocalizationSettings.DefaultClientLocale
 	}
 
-	return us.createUser(user)
+	return us.createUser(rctx, user)
 }
 
-func (us *UserService) createUser(user *model.User) (*model.User, error) {
+func (us *UserService) createUser(rctx request.CTX, user *model.User) (*model.User, error) {
 	user.MakeNonNil()
 
 	if err := us.isPasswordValid(user.Password); user.AuthService == "" && err != nil {
 		return nil, err
 	}
 
-	ruser, err := us.store.Save(user)
+	ruser, err := us.store.Save(rctx, user)
 	if err != nil {
 		return nil, err
 	}

@@ -55,7 +55,7 @@ func SetupWithStoreMock(tb testing.TB) *TestHelper {
 		tb.SkipNow()
 	}
 
-	th := setupTestHelper(tb, false, []app.Option{app.SkipProductsInitialization()})
+	th := setupTestHelper(tb, false, nil)
 	emptyMockStore := mocks.Store{}
 	emptyMockStore.On("Close").Return(nil)
 	th.App.Srv().SetStore(&emptyMockStore)

@@ -78,7 +78,6 @@ const (
 	TrackConfigExport            = "config_export"
 	TrackConfigWrangler          = "config_wrangler"
 	TrackFeatureFlags            = "config_feature_flags"
-	TrackConfigProducts          = "products"
 	TrackPermissionsGeneral      = "permissions_general"
 	TrackPermissionsSystemScheme = "permissions_system_scheme"
 	TrackPermissionsTeamSchemes  = "permissions_team_schemes"
@@ -410,6 +409,7 @@ func (ts *TelemetryService) trackConfig() {
 		"enable_insecure_outgoing_connections":                    *cfg.ServiceSettings.EnableInsecureOutgoingConnections,
 		"enable_incoming_webhooks":                                cfg.ServiceSettings.EnableIncomingWebhooks,
 		"enable_outgoing_webhooks":                                cfg.ServiceSettings.EnableOutgoingWebhooks,
+		"enable_outgoing_oauth_connections":                       cfg.ServiceSettings.EnableOutgoingOAuthConnections,
 		"enable_commands":                                         *cfg.ServiceSettings.EnableCommands,
 		"outgoing_integrations_requests_timeout":                  cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout,
 		"enable_post_username_override":                           cfg.ServiceSettings.EnablePostUsernameOverride,
