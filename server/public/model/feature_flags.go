@@ -51,9 +51,10 @@ type FeatureFlags struct {
 
 	CloudAnnualRenewals bool
 
-	OutgoingOAuthConnections bool
-
 	CloudDedicatedExportUI bool
+
+	WebSocketEventScope bool
+
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -73,8 +74,9 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
-	f.OutgoingOAuthConnections = false
 	f.CloudDedicatedExportUI = false
+	f.WebSocketEventScope = false
+
 }
 
 // ToMap returns the feature flags as a map[string]string
