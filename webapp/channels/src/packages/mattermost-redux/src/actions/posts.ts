@@ -35,6 +35,8 @@ import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsy
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError} from './errors';
+import {useContext} from 'react';
+import {AppContext} from 'utils/app_context';
 
 // receivedPost should be dispatched after a single post from the server. This typically happens when an existing post
 // is updated.
@@ -164,7 +166,11 @@ export function getPost(postId: string): ActionFuncAsync<Post> {
 }
 
 export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
-    return async (dispatch, getState) => {
+    return async (dispatch, getState, extra: any) => {
+        console.log('createPost', 'extra.context', extra?.context);
+        const context = useContext(AppContext);
+        console.log('createPost', 'useContext(AppContext)', context);
+
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
 

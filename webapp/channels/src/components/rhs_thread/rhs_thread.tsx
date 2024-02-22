@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useEffect} from 'react';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
@@ -12,6 +12,8 @@ import {closeRightHandSide} from 'actions/views/rhs';
 
 import RhsHeaderPost from 'components/rhs_header_post';
 import ThreadViewer from 'components/threading/thread_viewer';
+
+import {AppContextBoundary} from 'utils/app_context';
 
 import type {FakePost, RhsState} from 'types/store/rhs';
 
@@ -48,22 +50,24 @@ const RhsThread = ({
     }
 
     return (
-        <div
-            id='rhsContainer'
-            className='sidebar-right__body'
-        >
-            <RhsHeaderPost
-                rootPostId={selected.id}
-                channel={channel}
-                previousRhsState={previousRhsState}
-            />
-            <ThreadViewer
-                rootPostId={selected.id}
-                useRelativeTimestamp={false}
-                isThreadView={false}
-                fromSuppressed={fromSuppressed}
-            />
-        </div>
+        <AppContextBoundary name='RhsThread'>
+            <div
+                id='rhsContainer'
+                className='sidebar-right__body'
+            >
+                <RhsHeaderPost
+                    rootPostId={selected.id}
+                    channel={channel}
+                    previousRhsState={previousRhsState}
+                />
+                <ThreadViewer
+                    rootPostId={selected.id}
+                    useRelativeTimestamp={false}
+                    isThreadView={false}
+                    fromSuppressed={fromSuppressed}
+                />
+            </div>
+        </AppContextBoundary>
     );
 };
 

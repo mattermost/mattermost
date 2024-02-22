@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {matchPath, useHistory} from 'react-router-dom';
 
 import {getPost} from 'mattermost-redux/selectors/entities/posts';

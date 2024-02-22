@@ -3,7 +3,7 @@
 
 import React, {useCallback} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {AccountOutlineIcon, SendIcon} from '@mattermost/compass-icons/components';
 

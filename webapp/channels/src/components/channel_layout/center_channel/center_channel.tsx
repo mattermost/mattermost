@@ -11,6 +11,7 @@ import PlaybookRunner from 'components/channel_layout/playbook_runner';
 import LoadingScreen from 'components/loading_screen';
 import PermalinkView from 'components/permalink_view';
 
+import {AppContextBoundary} from 'utils/app_context';
 import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
 import type {OwnProps, PropsFromRedux} from './index';
@@ -76,56 +77,58 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
         const url = this.props.match.url;
 
         return (
-            <div
-                key='inner-wrap'
-                className={classNames('inner-wrap', 'channel__wrap', {
-                    'move--right': this.props.lhsOpen,
-                    'move--left': this.props.rhsOpen,
-                    'move--left-small': this.props.rhsMenuOpen,
-                })}
-            >
-                {isMobileView && (
-                    <div className='row header'>
-                        <div id='navbar_wrapper'>
-                            <LazyChannelHeaderMobile/>
+            <AppContextBoundary name='CenterChannel'>
+                <div
+                    key='inner-wrap'
+                    className={classNames('inner-wrap', 'channel__wrap', {
+                        'move--right': this.props.lhsOpen,
+                        'move--left': this.props.rhsOpen,
+                        'move--left-small': this.props.rhsMenuOpen,
+                    })}
+                >
+                    {isMobileView && (
+                        <div className='row header'>
+                            <div id='navbar_wrapper'>
+                                <LazyChannelHeaderMobile/>
+                            </div>
                         </div>
-                    </div>
-                )}
-                <div className='row main'>
-                    <Switch>
-                        <Route
-                            path={`${url}/pl/:postid(${ID_PATH_PATTERN})`}
-                            render={(props) => (
-                                <PermalinkView
-                                    {...props}
-                                    returnTo={this.state.returnTo}
-                                />
-                            )}
-                        />
-                        <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
-                            component={ChannelIdentifierRouter}
-                        />
-                        <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
-                        >
-                            <PlaybookRunner/>
-                        </Route>
-                        {isCollapsedThreadsEnabled ? (
+                    )}
+                    <div className='row main'>
+                        <Switch>
                             <Route
-                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
-                                component={LazyGlobalThreads}
+                                path={`${url}/pl/:postid(${ID_PATH_PATTERN})`}
+                                render={(props) => (
+                                    <PermalinkView
+                                        {...props}
+                                        returnTo={this.state.returnTo}
+                                    />
+                                )}
                             />
-                        ) : null}
-                        <Route
-                            path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
-                            component={LazyDrafts}
-                        />
+                            <Route
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/:path(channels|messages)/:identifier(${IDENTIFIER_PATH_PATTERN})/:postid(${ID_PATH_PATTERN})?`}
+                                component={ChannelIdentifierRouter}
+                            />
+                            <Route
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/_playbooks/:playbookId(${ID_PATH_PATTERN})/run`}
+                            >
+                                <PlaybookRunner/>
+                            </Route>
+                            {isCollapsedThreadsEnabled ? (
+                                <Route
+                                    path={`/:team(${TEAM_NAME_PATH_PATTERN})/threads/:threadIdentifier(${ID_PATH_PATTERN})?`}
+                                    component={LazyGlobalThreads}
+                                />
+                            ) : null}
+                            <Route
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
+                                component={LazyDrafts}
+                            />
 
-                        <Redirect to={lastChannelPath}/>
-                    </Switch>
+                            <Redirect to={lastChannelPath}/>
+                        </Switch>
+                    </div>
                 </div>
-            </div>
+            </AppContextBoundary>
         );
     }
 }

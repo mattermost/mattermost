@@ -4,7 +4,8 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {TourTip, useFollowElementDimensions, useMeasurePunchouts} from '@mattermost/components';
 

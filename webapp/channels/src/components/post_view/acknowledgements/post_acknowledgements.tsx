@@ -17,7 +17,7 @@ import {
 import classNames from 'classnames';
 import React, {memo, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Post, PostAcknowledgement} from '@mattermost/types/posts';

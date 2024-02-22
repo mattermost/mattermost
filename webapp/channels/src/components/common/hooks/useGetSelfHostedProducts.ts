@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {useState, useEffect, useMemo} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {Product} from '@mattermost/types/cloud';
 

@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedDate, FormattedMessage, FormattedNumber} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {CheckCircleOutlineIcon, CheckIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';

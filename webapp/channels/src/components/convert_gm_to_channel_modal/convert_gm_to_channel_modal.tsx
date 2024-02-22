@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import type {ComponentProps} from 'react';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import './convert_gm_to_channel_modal.scss';
 

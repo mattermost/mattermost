@@ -6,7 +6,8 @@ import type {Stripe} from '@stripe/stripe-js';
 import {loadStripe} from '@stripe/stripe-js/pure'; // https://github.com/stripe/stripe-js#importing-loadstripe-without-side-effects
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {useHistory} from 'react-router-dom';
 
 import {getCloudCustomer} from 'mattermost-redux/actions/cloud';

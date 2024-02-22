@@ -4,7 +4,7 @@
 import React, {useEffect, useState} from 'react';
 import type {ReactNode} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {requestCloudTrial, validateWorkspaceBusinessEmail, getCloudLimits} from 'actions/cloud';
 import {trackEvent} from 'actions/telemetry_actions';

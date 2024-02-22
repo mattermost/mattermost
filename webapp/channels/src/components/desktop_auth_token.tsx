@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import crypto from 'crypto';
 import React, {useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {useHistory, useLocation} from 'react-router-dom';
 
 import type {UserProfile} from '@mattermost/types/users';

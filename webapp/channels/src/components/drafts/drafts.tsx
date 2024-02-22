@@ -3,7 +3,7 @@
 
 import React, {memo, useEffect} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {UserProfile, UserStatus} from '@mattermost/types/users';
 

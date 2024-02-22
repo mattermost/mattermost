@@ -3,7 +3,7 @@
 
 import React, {memo} from 'react';
 import {FormattedMessage, FormattedDate, FormattedTime, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {ChevronRightIcon, ClockOutlineIcon} from '@mattermost/compass-icons/components';
 import type {Post} from '@mattermost/types/posts';

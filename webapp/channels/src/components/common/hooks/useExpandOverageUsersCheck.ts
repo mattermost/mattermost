@@ -3,7 +3,8 @@
 
 import {useEffect, useMemo} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {LicenseSelfServeStatusReducer} from '@mattermost/types/cloud';
 

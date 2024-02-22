@@ -12,7 +12,8 @@ import type {
     MouseEvent,
     KeyboardEvent,
 } from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {GenericModal} from '@mattermost/components';
 

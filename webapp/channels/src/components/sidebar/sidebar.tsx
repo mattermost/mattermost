@@ -18,6 +18,7 @@ import ResizableLhs from 'components/resizable_sidebar/resizable_lhs';
 import UserSettingsModal from 'components/user_settings/modal';
 
 import Pluggable from 'plugins/pluggable';
+import {AppContextBoundary} from 'utils/app_context';
 import Constants, {ModalIdentifiers, RHSStates} from 'utils/constants';
 import * as Keyboard from 'utils/keyboard';
 import * as Utils from 'utils/utils';
@@ -228,48 +229,50 @@ export default class Sidebar extends React.PureComponent<Props, State> {
         const ariaLabel = Utils.localizeMessage('accessibility.sections.lhsNavigator', 'channel navigator region');
 
         return (
-            <ResizableLhs
-                id='SidebarContainer'
-                className={classNames({
-                    'move--right': this.props.isOpen && this.props.isMobileView,
-                    dragging: this.state.isDragging,
-                })}
-            >
-                {this.props.isMobileView ? <MobileSidebarHeader/> : (
-                    <SidebarHeader
-                        showNewChannelModal={this.showNewChannelModal}
-                        showMoreChannelsModal={this.showMoreChannelsModal}
-                        showCreateUserGroupModal={this.showCreateUserGroupModal}
-                        invitePeopleModal={this.invitePeopleModal}
-                        showCreateCategoryModal={this.showCreateCategoryModal}
-                        canCreateChannel={this.props.canCreatePrivateChannel || this.props.canCreatePublicChannel}
-                        canJoinPublicChannel={this.props.canJoinPublicChannel}
-                        handleOpenDirectMessagesModal={this.handleOpenMoreDirectChannelsModal}
-                        unreadFilterEnabled={this.props.unreadFilterEnabled}
-                        userGroupsEnabled={this.props.userGroupsEnabled}
-                        canCreateCustomGroups={this.props.canCreateCustomGroups}
-                    />
-                )}
-                <div
-                    id='lhsNavigator'
-                    role='application'
-                    aria-label={ariaLabel}
-                    className='a11y__region'
-                    data-a11y-sort-order='6'
+            <AppContextBoundary name='sidebar'>
+                <ResizableLhs
+                    id='SidebarContainer'
+                    className={classNames({
+                        'move--right': this.props.isOpen && this.props.isMobileView,
+                        dragging: this.state.isDragging,
+                    })}
                 >
-                    <ChannelNavigator/>
-                </div>
-                <div className='sidebar--left__icons'>
-                    <Pluggable pluggableName='LeftSidebarHeader'/>
-                </div>
-                <SidebarList
-                    handleOpenMoreDirectChannelsModal={this.handleOpenMoreDirectChannelsModal}
-                    onDragStart={this.onDragStart}
-                    onDragEnd={this.onDragEnd}
-                />
-                <DataPrefetch/>
-                {this.renderModals()}
-            </ResizableLhs>
+                    {this.props.isMobileView ? <MobileSidebarHeader/> : (
+                        <SidebarHeader
+                            showNewChannelModal={this.showNewChannelModal}
+                            showMoreChannelsModal={this.showMoreChannelsModal}
+                            showCreateUserGroupModal={this.showCreateUserGroupModal}
+                            invitePeopleModal={this.invitePeopleModal}
+                            showCreateCategoryModal={this.showCreateCategoryModal}
+                            canCreateChannel={this.props.canCreatePrivateChannel || this.props.canCreatePublicChannel}
+                            canJoinPublicChannel={this.props.canJoinPublicChannel}
+                            handleOpenDirectMessagesModal={this.handleOpenMoreDirectChannelsModal}
+                            unreadFilterEnabled={this.props.unreadFilterEnabled}
+                            userGroupsEnabled={this.props.userGroupsEnabled}
+                            canCreateCustomGroups={this.props.canCreateCustomGroups}
+                        />
+                    )}
+                    <div
+                        id='lhsNavigator'
+                        role='application'
+                        aria-label={ariaLabel}
+                        className='a11y__region'
+                        data-a11y-sort-order='6'
+                    >
+                        <ChannelNavigator/>
+                    </div>
+                    <div className='sidebar--left__icons'>
+                        <Pluggable pluggableName='LeftSidebarHeader'/>
+                    </div>
+                    <SidebarList
+                        handleOpenMoreDirectChannelsModal={this.handleOpenMoreDirectChannelsModal}
+                        onDragStart={this.onDragStart}
+                        onDragEnd={this.onDragEnd}
+                    />
+                    <DataPrefetch/>
+                    {this.renderModals()}
+                </ResizableLhs>
+            </AppContextBoundary>
         );
     }
 }

@@ -3,7 +3,7 @@
 
 import React, {useState, useEffect} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {CSSTransition} from 'react-transition-group';
 
 import {GeneralTypes} from 'mattermost-redux/action_types';

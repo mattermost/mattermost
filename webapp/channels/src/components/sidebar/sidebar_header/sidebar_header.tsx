@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import styled from 'styled-components';
 
 import Heading from '@mattermost/compass-components/components/heading'; // eslint-disable-line no-restricted-imports

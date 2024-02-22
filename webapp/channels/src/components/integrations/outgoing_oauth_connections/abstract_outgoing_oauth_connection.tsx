@@ -5,7 +5,7 @@ import type {ChangeEvent, FormEvent} from 'react';
 import React, {useMemo, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {Link} from 'react-router-dom';
 
 import {AlertOutlineIcon, CheckCircleOutlineIcon} from '@mattermost/compass-icons/components';

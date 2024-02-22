@@ -5,7 +5,8 @@ import isEmpty from 'lodash/isEmpty';
 import moment from 'moment';
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {GlobalState} from '@mattermost/types/store';
 

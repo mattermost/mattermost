@@ -4,7 +4,7 @@
 import type {ChangeEvent} from 'react';
 import React, {useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {setAdminConsoleUsersManagementTableProperties} from 'actions/views/admin';
 

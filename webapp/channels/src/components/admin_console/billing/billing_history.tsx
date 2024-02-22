@@ -3,7 +3,8 @@
 
 import React, {useEffect} from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {getInvoices} from 'mattermost-redux/actions/cloud';
 import {getCloudErrors, getCloudInvoices, isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';

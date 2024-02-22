@@ -8,7 +8,8 @@ import type {ReactNode} from 'react';
 import {Tabs, Tab} from 'react-bootstrap';
 import type {SelectCallback} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {Link} from 'react-router-dom';
 
 import {MagnifyIcon} from '@mattermost/compass-icons/components';

@@ -4,7 +4,8 @@
 import {getName} from 'country-list';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {useHistory} from 'react-router-dom';
 
 import {getCloudCustomer, updateCloudCustomer, updateCloudCustomerAddress} from 'mattermost-redux/actions/cloud';

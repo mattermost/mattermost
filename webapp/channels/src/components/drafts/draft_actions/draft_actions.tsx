@@ -3,7 +3,7 @@
 
 import React, {memo, useCallback} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {openModal} from 'actions/views/modals';
 

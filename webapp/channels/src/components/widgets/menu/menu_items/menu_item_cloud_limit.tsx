@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {getCloudSubscription} from 'mattermost-redux/selectors/entities/cloud';
 import {isCloudLicense} from 'mattermost-redux/selectors/entities/general';

@@ -3,7 +3,7 @@
 
 import React, {useState} from 'react';
 import {defineMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {useHistory} from 'react-router-dom';
 
 import type {OutgoingOAuthConnection} from '@mattermost/types/integrations';

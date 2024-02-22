@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useEffect, useState} from 'react';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {getFilteredUsersStats} from 'mattermost-redux/actions/users';
 

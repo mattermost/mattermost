@@ -2,7 +2,8 @@
 // See LICENSE.txt for license information.
 
 import {useState, useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {MetadataGatherWireTransferKeys} from '@mattermost/types/cloud';
 import {TypePurchases} from '@mattermost/types/cloud';

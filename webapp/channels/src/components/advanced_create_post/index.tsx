@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import React, {useMemo} from 'react';
+import {connect, useStore} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
@@ -50,6 +51,7 @@ import {showPreviewOnCreatePost} from 'selectors/views/textbox';
 
 import {OnboardingTourSteps, TutorialTourName, OnboardingTourStepsForGuestUsers} from 'components/tours';
 
+import useAppDispatch from 'hooks/use_app_dispatch';
 import {AdvancedTextEditor, Constants, Preferences, StoragePrefixes, UserStatuses} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 
@@ -196,4 +198,23 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(makeMapStateToProps, mapDispatchToProps)(AdvancedCreatePost);
+const ConnectedAdvancedCreatePost = connect(makeMapStateToProps, mapDispatchToProps)(AdvancedCreatePost);
+
+function InjectedAdvancedCreatePost(props: any) {
+    const store = useStore();
+    const appDispatch = useAppDispatch();
+
+    const injectedStore = useMemo(() => ({
+        ...store,
+        dispatch: appDispatch,
+    }), [store, appDispatch]);
+
+    return (
+        <ConnectedAdvancedCreatePost
+            {...props}
+            store={injectedStore}
+        />
+    );
+}
+
+export default InjectedAdvancedCreatePost;

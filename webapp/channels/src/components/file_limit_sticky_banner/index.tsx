@@ -3,7 +3,8 @@
 
 import React, {useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import styled from 'styled-components';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';

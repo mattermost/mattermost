@@ -3,7 +3,8 @@
 
 // import React from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {setNeedsLoggedInLimitReachedCheck} from 'actions/views/admin';
 import {closeModal, openModal} from 'actions/views/modals';

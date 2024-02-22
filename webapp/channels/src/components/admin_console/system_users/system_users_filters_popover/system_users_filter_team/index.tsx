@@ -5,7 +5,7 @@ import classNames from 'classnames';
 import type {CSSProperties, ReactElement} from 'react';
 import React, {useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {components} from 'react-select';
 import type {IndicatorContainerProps, ControlProps, OptionProps, OptionsType, ValueType, StylesConfig} from 'react-select';
 import AsyncSelect from 'react-select/async';

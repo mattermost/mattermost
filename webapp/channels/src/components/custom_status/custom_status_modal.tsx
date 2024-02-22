@@ -6,7 +6,8 @@ import type {Moment} from 'moment-timezone';
 import moment from 'moment-timezone';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {useRouteMatch} from 'react-router-dom';
 
 import {GenericModal} from '@mattermost/components';

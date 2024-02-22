@@ -3,7 +3,8 @@
 
 import classNames from 'classnames';
 import React, {useEffect} from 'react';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 

@@ -34,6 +34,7 @@ import PostPriorityPickerOverlay from 'components/post_priority/post_priority_pi
 import ResetStatusModal from 'components/reset_status_modal';
 import type TextboxClass from 'components/textbox/textbox';
 
+import {AppContextBoundary} from 'utils/app_context';
 import Constants, {
     StoragePrefixes,
     ModalIdentifiers,
@@ -1382,97 +1383,99 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         }
 
         return (
-            <form
-                id='create_post'
-                ref={this.topDiv}
-                data-testid='create-post'
-                className={centerClass}
-                onSubmit={this.handleSubmit}
-            >
-                {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
-                    <FileLimitStickyBanner/>
-                )}
-                <AdvancedTextEditor
-                    location={Locations.CENTER}
-                    currentUserId={this.props.currentUserId}
-                    postError={this.state.postError}
-                    message={this.state.message}
-                    showEmojiPicker={this.state.showEmojiPicker}
-                    uploadsProgressPercent={this.state.uploadsProgressPercent}
-                    currentChannel={this.state.currentChannel}
-                    postId={''}
-                    channelId={this.props.currentChannel.id}
-                    errorClass={this.state.errorClass}
-                    serverError={this.state.serverError}
-                    isFormattingBarHidden={this.state.isFormattingBarHidden}
-                    draft={draft}
-                    showSendTutorialTip={this.props.showSendTutorialTip}
-                    handleSubmit={this.handleSubmit}
-                    removePreview={this.removePreview}
-                    setShowPreview={this.setShowPreview}
-                    shouldShowPreview={this.props.shouldShowPreview}
-                    maxPostSize={this.props.maxPostSize}
-                    canPost={canPost}
-                    applyMarkdown={this.applyMarkdown}
-                    useChannelMentions={this.props.useChannelMentions}
-                    badConnection={this.props.badConnection}
-                    canUploadFiles={this.props.canUploadFiles}
-                    enableEmojiPicker={this.props.enableEmojiPicker}
-                    enableGifPicker={this.props.enableGifPicker}
-                    handleBlur={this.handleBlur}
-                    handlePostError={this.handlePostError}
-                    emitTypingEvent={this.emitTypingEvent}
-                    handleMouseUpKeyUp={this.handleMouseUpKeyUp}
-                    postMsgKeyPress={this.postMsgKeyPress}
-                    handleChange={this.handleChange}
-                    toggleEmojiPicker={this.toggleEmojiPicker}
-                    handleGifClick={this.handleGifClick}
-                    handleEmojiClick={this.handleEmojiClick}
-                    hideEmojiPicker={this.hideEmojiPicker}
-                    toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
-                    handleUploadProgress={this.handleUploadProgress}
-                    handleUploadError={this.handleUploadError}
-                    handleFileUploadComplete={this.handleFileUploadComplete}
-                    handleUploadStart={this.handleUploadStart}
-                    handleFileUploadChange={this.handleFileUploadChange}
-                    getFileUploadTarget={this.getFileUploadTarget}
-                    fileUploadRef={this.fileUploadRef}
-                    prefillMessage={this.prefillMessage}
-                    textboxRef={this.textboxRef}
-                    disableSend={!this.isValidPersistentNotifications()}
-                    labels={this.hasPrioritySet() ? (
-                        <PriorityLabels
-                            canRemove={!this.props.shouldShowPreview}
-                            hasError={!this.isValidPersistentNotifications()}
-                            specialMentions={this.getSpecialMentions()}
-                            onRemove={this.handleRemovePriority}
-                            persistentNotifications={draft!.metadata!.priority?.persistent_notifications}
-                            priority={draft!.metadata!.priority?.priority}
-                            requestedAck={draft!.metadata!.priority?.requested_ack}
-                        />
-                    ) : undefined}
-                    additionalControls={[
-                        this.props.isPostPriorityEnabled && (
-                            <PostPriorityPickerOverlay
-                                key='post-priority-picker-key'
-                                settings={draft?.metadata?.priority}
-                                onApply={this.handlePostPriorityApply}
-                                onClose={this.handlePostPriorityHide}
-                                disabled={this.props.shouldShowPreview}
+            <AppContextBoundary name='AdvancedCreatePost'>
+                <form
+                    id='create_post'
+                    ref={this.topDiv}
+                    data-testid='create-post'
+                    className={centerClass}
+                    onSubmit={this.handleSubmit}
+                >
+                    {canPost && (draft.fileInfos.length > 0 || draft.uploadsInProgress.length > 0) && (
+                        <FileLimitStickyBanner/>
+                    )}
+                    <AdvancedTextEditor
+                        location={Locations.CENTER}
+                        currentUserId={this.props.currentUserId}
+                        postError={this.state.postError}
+                        message={this.state.message}
+                        showEmojiPicker={this.state.showEmojiPicker}
+                        uploadsProgressPercent={this.state.uploadsProgressPercent}
+                        currentChannel={this.state.currentChannel}
+                        postId={''}
+                        channelId={this.props.currentChannel.id}
+                        errorClass={this.state.errorClass}
+                        serverError={this.state.serverError}
+                        isFormattingBarHidden={this.state.isFormattingBarHidden}
+                        draft={draft}
+                        showSendTutorialTip={this.props.showSendTutorialTip}
+                        handleSubmit={this.handleSubmit}
+                        removePreview={this.removePreview}
+                        setShowPreview={this.setShowPreview}
+                        shouldShowPreview={this.props.shouldShowPreview}
+                        maxPostSize={this.props.maxPostSize}
+                        canPost={canPost}
+                        applyMarkdown={this.applyMarkdown}
+                        useChannelMentions={this.props.useChannelMentions}
+                        badConnection={this.props.badConnection}
+                        canUploadFiles={this.props.canUploadFiles}
+                        enableEmojiPicker={this.props.enableEmojiPicker}
+                        enableGifPicker={this.props.enableGifPicker}
+                        handleBlur={this.handleBlur}
+                        handlePostError={this.handlePostError}
+                        emitTypingEvent={this.emitTypingEvent}
+                        handleMouseUpKeyUp={this.handleMouseUpKeyUp}
+                        postMsgKeyPress={this.postMsgKeyPress}
+                        handleChange={this.handleChange}
+                        toggleEmojiPicker={this.toggleEmojiPicker}
+                        handleGifClick={this.handleGifClick}
+                        handleEmojiClick={this.handleEmojiClick}
+                        hideEmojiPicker={this.hideEmojiPicker}
+                        toggleAdvanceTextEditor={this.toggleAdvanceTextEditor}
+                        handleUploadProgress={this.handleUploadProgress}
+                        handleUploadError={this.handleUploadError}
+                        handleFileUploadComplete={this.handleFileUploadComplete}
+                        handleUploadStart={this.handleUploadStart}
+                        handleFileUploadChange={this.handleFileUploadChange}
+                        getFileUploadTarget={this.getFileUploadTarget}
+                        fileUploadRef={this.fileUploadRef}
+                        prefillMessage={this.prefillMessage}
+                        textboxRef={this.textboxRef}
+                        disableSend={!this.isValidPersistentNotifications()}
+                        labels={this.hasPrioritySet() ? (
+                            <PriorityLabels
+                                canRemove={!this.props.shouldShowPreview}
+                                hasError={!this.isValidPersistentNotifications()}
+                                specialMentions={this.getSpecialMentions()}
+                                onRemove={this.handleRemovePriority}
+                                persistentNotifications={draft!.metadata!.priority?.persistent_notifications}
+                                priority={draft!.metadata!.priority?.priority}
+                                requestedAck={draft!.metadata!.priority?.requested_ack}
                             />
-                        ),
-                        ...(pluginItems || []),
-                    ].filter(Boolean)}
-                    codeBlockOnCtrlEnter={this.props.codeBlockOnCtrlEnter}
-                    ctrlSend={this.props.ctrlSend}
-                    loadNextMessage={this.loadNextMessage}
-                    loadPrevMessage={this.loadPrevMessage}
-                    onEditLatestPost={this.editLastPost}
-                    onMessageChange={this.onMessageChange}
-                    replyToLastPost={this.replyToLastPost}
-                    caretPosition={this.state.caretPosition}
-                />
-            </form>
+                        ) : undefined}
+                        additionalControls={[
+                            this.props.isPostPriorityEnabled && (
+                                <PostPriorityPickerOverlay
+                                    key='post-priority-picker-key'
+                                    settings={draft?.metadata?.priority}
+                                    onApply={this.handlePostPriorityApply}
+                                    onClose={this.handlePostPriorityHide}
+                                    disabled={this.props.shouldShowPreview}
+                                />
+                            ),
+                            ...(pluginItems || []),
+                        ].filter(Boolean)}
+                        codeBlockOnCtrlEnter={this.props.codeBlockOnCtrlEnter}
+                        ctrlSend={this.props.ctrlSend}
+                        loadNextMessage={this.loadNextMessage}
+                        loadPrevMessage={this.loadPrevMessage}
+                        onEditLatestPost={this.editLastPost}
+                        onMessageChange={this.onMessageChange}
+                        replyToLastPost={this.replyToLastPost}
+                        caretPosition={this.state.caretPosition}
+                    />
+                </form>
+            </AppContextBoundary>
         );
     }
 }

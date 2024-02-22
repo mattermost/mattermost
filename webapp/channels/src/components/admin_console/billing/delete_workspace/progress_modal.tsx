@@ -4,7 +4,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {injectIntl} from 'react-intl';
 import type {WrappedComponentProps} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {closeModal} from 'actions/views/modals';
 

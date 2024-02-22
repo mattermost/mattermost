@@ -3,7 +3,8 @@
 
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {GenericModal} from '@mattermost/components';
 import type {Feedback} from '@mattermost/types/cloud';

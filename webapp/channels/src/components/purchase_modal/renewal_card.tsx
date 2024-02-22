@@ -3,7 +3,7 @@
 
 import React from 'react';
 import {FormattedMessage, FormattedNumber, FormattedDate} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {Invoice, InvoiceLineItem, Product} from '@mattermost/types/cloud';
 

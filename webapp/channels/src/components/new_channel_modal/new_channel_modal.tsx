@@ -5,7 +5,8 @@ import classNames from 'classnames';
 import React, {useCallback, useState} from 'react';
 import {Tooltip} from 'react-bootstrap';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {GenericModal} from '@mattermost/components';
 import type {Board} from '@mattermost/types/boards';

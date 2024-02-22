@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo, useCallback, useMemo, useEffect} from 'react';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';

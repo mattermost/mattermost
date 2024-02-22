@@ -4,7 +4,8 @@
 import React from 'react';
 import {Tooltip} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {AppBinding, AppCallResponse} from '@mattermost/types/apps';
 

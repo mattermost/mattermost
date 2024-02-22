@@ -5,7 +5,8 @@ import debounce from 'lodash/debounce';
 import React, {useState, useEffect, useRef} from 'react';
 import type {ChangeEvent} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {CSSTransition} from 'react-transition-group';
 
 import type {Team} from '@mattermost/types/teams';

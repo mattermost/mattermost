@@ -3,7 +3,8 @@
 
 import React, {useState, useCallback, useEffect, useRef, useMemo} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import type {RouterProps} from 'react-router-dom';
 
 import type {Team} from '@mattermost/types/teams';

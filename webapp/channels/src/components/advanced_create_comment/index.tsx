@@ -1,7 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {connect} from 'react-redux';
+import React, {useMemo} from 'react';
+import {connect, useStore} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
@@ -33,6 +34,7 @@ import {getPostDraft, getIsRhsExpanded, getSelectedPostFocussedAt} from 'selecto
 import {connectionErrorCount} from 'selectors/views/system';
 import {showPreviewOnCreateComment} from 'selectors/views/textbox';
 
+import useAppDispatch from 'hooks/use_app_dispatch';
 import {AdvancedTextEditor, Constants, StoragePrefixes} from 'utils/constants';
 import {canUploadFiles} from 'utils/file_utils';
 
@@ -181,4 +183,23 @@ function makeMapDispatchToProps() {
     };
 }
 
-export default connect(makeMapStateToProps, makeMapDispatchToProps, null, {forwardRef: true})(AdvancedCreateComment);
+const ConnectedAdvancedCreateComment = connect(makeMapStateToProps, makeMapDispatchToProps, null, {forwardRef: true})(AdvancedCreateComment);
+
+function InjectedAdvancedCreateComment(props: any) {
+    const store = useStore();
+    const appDispatch = useAppDispatch();
+
+    const injectedStore = useMemo(() => ({
+        ...store,
+        dispatch: appDispatch,
+    }), [store, appDispatch]);
+
+    return (
+        <ConnectedAdvancedCreateComment
+            {...props}
+            store={injectedStore}
+        />
+    );
+}
+
+export default InjectedAdvancedCreateComment;

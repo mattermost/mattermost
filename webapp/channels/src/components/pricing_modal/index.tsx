@@ -3,7 +3,8 @@
 
 import React, {useState} from 'react';
 import {Modal} from 'react-bootstrap';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
 

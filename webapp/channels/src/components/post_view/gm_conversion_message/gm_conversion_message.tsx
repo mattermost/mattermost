@@ -3,7 +3,8 @@
 
 import React, {useEffect, useRef} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {Post} from '@mattermost/types/posts';
 

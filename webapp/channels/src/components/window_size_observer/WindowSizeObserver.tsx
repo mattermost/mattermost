@@ -3,7 +3,7 @@
 
 import throttle from 'lodash/throttle';
 import {useCallback, useEffect, useRef} from 'react';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {setLhsSize} from 'actions/views/lhs';
 import {setRhsSize} from 'actions/views/rhs';

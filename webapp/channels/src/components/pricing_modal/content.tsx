@@ -4,7 +4,8 @@
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {Feedback} from '@mattermost/types/cloud';
 

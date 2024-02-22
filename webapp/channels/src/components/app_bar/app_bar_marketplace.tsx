@@ -4,7 +4,7 @@
 import React, {useCallback} from 'react';
 import {Tooltip} from 'react-bootstrap';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {ViewGridPlusOutlineIcon} from '@mattermost/compass-icons/components';
 

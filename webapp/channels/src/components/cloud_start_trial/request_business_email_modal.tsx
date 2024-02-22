@@ -4,7 +4,7 @@
 import {debounce} from 'lodash';
 import React, {useCallback, useEffect, useState} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {GenericModal} from '@mattermost/components';
 

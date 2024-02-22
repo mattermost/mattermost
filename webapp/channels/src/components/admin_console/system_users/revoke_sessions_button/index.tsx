@@ -3,7 +3,7 @@
 
 import React, {useState} from 'react';
 import {FormattedMessage} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {revokeSessionsForAllUsers} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';

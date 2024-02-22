@@ -4,7 +4,7 @@
 import classNames from 'classnames';
 import React, {useState, useCallback, useEffect} from 'react';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 import {useLocation, useHistory} from 'react-router-dom';
 
 import {sendVerificationEmail} from 'mattermost-redux/actions/users';

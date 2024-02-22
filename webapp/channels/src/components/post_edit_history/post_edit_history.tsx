@@ -4,7 +4,7 @@
 import React, {memo, useEffect, useRef, useState} from 'react';
 import Scrollbars from 'react-custom-scrollbars';
 import {useIntl} from 'react-intl';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import type {Post} from '@mattermost/types/posts';
 

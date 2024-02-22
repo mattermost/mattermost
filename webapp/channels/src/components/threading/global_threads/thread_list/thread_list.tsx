@@ -5,7 +5,8 @@ import {isEmpty} from 'lodash';
 import React, {memo, useCallback, useEffect} from 'react';
 import type {PropsWithChildren} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
-import {useDispatch, useSelector} from 'react-redux';
+import {useSelector} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {PlaylistCheckIcon} from '@mattermost/compass-icons/components';
 import type {UserThread} from '@mattermost/types/threads';

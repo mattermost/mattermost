@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import {useMemo} from 'react';
-import {useDispatch} from 'react-redux';
+import useDispatch from 'hooks/use_app_dispatch';
 
 import {openModal, closeModal} from 'actions/views/modals';
 
