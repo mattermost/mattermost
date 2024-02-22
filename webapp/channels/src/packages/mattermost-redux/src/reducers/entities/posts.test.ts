@@ -3615,116 +3615,79 @@ describe('reactions', () => {
         PostTypes.RECEIVED_POST,
     ]) {
         describe(`single post received (${actionType})`, () => {
-            it('should not store anything for a post first received without metadata', () => {
-                // This shouldn't occur based on our type definitions, but it is possible
-                const post = TestHelper.getPostMock({
-                    id: 'post',
-                });
-                (post as any).metadata = undefined;
-
+            it('no post metadata', () => {
                 const state = deepFreeze({});
                 const action = {
                     type: actionType,
-                    data: post,
-                };
-
-                const nextState = reducers.reactions(state, action);
-
-                expect(nextState).toBe(state);
-            });
-
-            it('should not change stored state for a post received without metadata', () => {
-                // This shouldn't occur based on our type definitions, but it is possible
-                const post = TestHelper.getPostMock({
-                    id: 'post',
-                });
-                (post as any).metadata = undefined;
-
-                const state = deepFreeze({
-                    post: {
-                        'user-taco': TestHelper.getReactionMock({user_id: 'user', emoji_name: 'taco'}),
+                    data: {
+                        id: 'post',
                     },
-                });
-                const action = {
-                    type: actionType,
-                    data: post,
                 };
 
                 const nextState = reducers.reactions(state, action);
 
-                expect(nextState).toBe(state);
+                expect(nextState).toEqual(state);
             });
 
-            it('should store when a post is first received without reactions', () => {
-                const post = TestHelper.getPostMock({
-                    id: 'post',
-                });
-                post.metadata.reactions = undefined;
-
+            it('no reactions in post metadata', () => {
                 const state = deepFreeze({});
                 const action = {
                     type: actionType,
-                    data: post,
+                    data: {
+                        id: 'post',
+                        metadata: {reactions: []},
+                    },
                 };
 
                 const nextState = reducers.reactions(state, action);
 
-                expect(nextState).not.toBe(state);
+                expect(nextState).not.toEqual(state);
                 expect(nextState).toEqual({
                     post: {},
                 });
             });
 
-            it('should remove existing reactions when a post is received without reactions', () => {
-                const post = TestHelper.getPostMock({
-                    id: 'post',
-                });
-                post.metadata.reactions = undefined;
-
-                const state = deepFreeze({
-                    post: {
-                        'user-taco': TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '+1'}),
-                    },
-                });
+            it('should not clobber reactions when metadata empty', () => {
+                const state = deepFreeze({post: {name: 'smiley', post_id: 'post'}});
                 const action = {
                     type: actionType,
-                    data: post,
+                    data: {
+                        id: 'post',
+                        metadata: {},
+                    },
                 };
 
                 const nextState = reducers.reactions(state, action);
 
-                expect(nextState).not.toBe(state);
                 expect(nextState).toEqual({
-                    post: {},
+                    post: {name: 'smiley', post_id: 'post'},
                 });
             });
 
             it('should save reactions', () => {
-                const reactions = [
-                    TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '+1'}),
-                    TestHelper.getReactionMock({user_id: 'efgh', emoji_name: '+1'}),
-                    TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '-1'}),
-                ];
-
                 const state = deepFreeze({});
                 const action = {
                     type: actionType,
-                    data: TestHelper.getPostMock({
+                    data: {
                         id: 'post',
                         metadata: {
-                            reactions,
+                            reactions: [
+                                {user_id: 'abcd', emoji_name: '+1'},
+                                {user_id: 'efgh', emoji_name: '+1'},
+                                {user_id: 'abcd', emoji_name: '-1'},
+                            ],
                         },
-                    }),
+                    },
                 };
 
                 const nextState = reducers.reactions(state, action);
 
-                expect(nextState).not.toBe(state);
+                expect(nextState).not.toEqual(state);
                 expect(nextState).toEqual({
                     post: {
-                        'abcd-+1': reactions[0],
-                        'efgh-+1': reactions[1],
-                        'abcd--1': reactions[2],
+                        'abcd-+1': {user_id: 'abcd', emoji_name: '+1'},
+                        'efgh-+1': {user_id: 'efgh', emoji_name: '+1'},
+                        'abcd--1': {user_id: 'abcd', emoji_name: '-1'},
                     },
                 });
             });
@@ -3733,10 +3696,10 @@ describe('reactions', () => {
                 const state = deepFreeze({});
                 const action = {
                     type: actionType,
-                    data: TestHelper.getPostMock({
+                    data: {
                         id: 'post',
-                        delete_at: 1571366424287,
-                    }),
+                        delete_at: '1571366424287',
+                    },
                 };
 
                 const nextState = reducers.reactions(state, action);
@@ -3747,218 +3710,150 @@ describe('reactions', () => {
     }
 
     describe('receiving multiple posts', () => {
-        it('should not store anything for a post first received without metadata', () => {
-            // This shouldn't occur based on our type definitions, but it is possible
-            const post = TestHelper.getPostMock({
-                id: 'post',
-            });
-            (post as any).metadata = undefined;
-
+        it('no post metadata', () => {
             const state = deepFreeze({});
             const action = {
                 type: PostTypes.RECEIVED_POSTS,
                 data: {
                     posts: {
-                        post,
+                        post: {
+                            id: 'post',
+                        },
                     },
                 },
             };
 
             const nextState = reducers.reactions(state, action);
 
-            expect(state).toBe(nextState);
+            expect(nextState).toEqual(state);
         });
 
-        it('should not change stored state for a post received without metadata', () => {
-            // This shouldn't occur based on our type definitions, but it is possible
-            const post = TestHelper.getPostMock({
-                id: 'post',
-            });
-            (post as any).metadata = undefined;
-
-            const state = deepFreeze({
-                post: {
-                    'user-taco': TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '+1'}),
-                },
-            });
-            const action = {
-                type: PostTypes.RECEIVED_POSTS,
-                data: {
-                    posts: {
-                        post,
-                    },
-                },
-            };
-
-            const nextState = reducers.reactions(state, action);
-
-            expect(state).toBe(nextState);
-        });
-
-        it('should store when a post is first received without reactions', () => {
-            const post = TestHelper.getPostMock({
-                id: 'post',
-            });
-            post.metadata.reactions = undefined;
-
+        it('no reactions in post metadata', () => {
             const state = deepFreeze({});
             const action = {
                 type: PostTypes.RECEIVED_POSTS,
                 data: {
                     posts: {
-                        post,
+                        post: {
+                            id: 'post',
+                            metadata: {reactions: []},
+                        },
                     },
                 },
             };
 
             const nextState = reducers.reactions(state, action);
 
-            expect(nextState).not.toBe(state);
-            expect(nextState).toEqual({
-                post: {},
-            });
-        });
-
-        it('should remove existing reactions when a post is received without reactions', () => {
-            const post = TestHelper.getPostMock({
-                id: 'post',
-            });
-            post.metadata.reactions = undefined;
-
-            const state = deepFreeze({
-                post: {
-                    'user-taco': TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '+1'}),
-                },
-            });
-            const action = {
-                type: PostTypes.RECEIVED_POSTS,
-                data: {
-                    posts: {
-                        post,
-                    },
-                },
-            };
-
-            const nextState = reducers.reactions(state, action);
-
-            expect(nextState).not.toBe(state);
+            expect(nextState).not.toEqual(state);
             expect(nextState).toEqual({
                 post: {},
             });
         });
 
         it('should save reactions', () => {
-            const reactions = [
-                TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '+1'}),
-                TestHelper.getReactionMock({user_id: 'efgh', emoji_name: '+1'}),
-                TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '-1'}),
-            ];
-
             const state = deepFreeze({});
             const action = {
                 type: PostTypes.RECEIVED_POSTS,
                 data: {
                     posts: {
-                        post: TestHelper.getPostMock({
+                        post: {
                             id: 'post',
                             metadata: {
-                                reactions,
+                                reactions: [
+                                    {user_id: 'abcd', emoji_name: '+1'},
+                                    {user_id: 'efgh', emoji_name: '+1'},
+                                    {user_id: 'abcd', emoji_name: '-1'},
+                                ],
                             },
-                        }),
+                        },
                     },
                 },
             };
 
             const nextState = reducers.reactions(state, action);
 
-            expect(nextState).not.toBe(state);
+            expect(nextState).not.toEqual(state);
             expect(nextState).toEqual({
                 post: {
-                    'abcd-+1': reactions[0],
-                    'efgh-+1': reactions[1],
-                    'abcd--1': reactions[2],
+                    'abcd-+1': {user_id: 'abcd', emoji_name: '+1'},
+                    'efgh-+1': {user_id: 'efgh', emoji_name: '+1'},
+                    'abcd--1': {user_id: 'abcd', emoji_name: '-1'},
                 },
             });
         });
 
         it('should save reactions for multiple posts', () => {
-            const reaction1 = TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '+1'});
-            const reaction2 = TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '-1'});
-
             const state = deepFreeze({});
             const action = {
                 type: PostTypes.RECEIVED_POSTS,
                 data: {
                     posts: {
-                        post1: TestHelper.getPostMock({
+                        post1: {
                             id: 'post1',
                             metadata: {
                                 reactions: [
-                                    reaction1,
+                                    {user_id: 'abcd', emoji_name: '+1'},
                                 ],
                             },
-                        }),
-                        post2: TestHelper.getPostMock({
+                        },
+                        post2: {
                             id: 'post2',
                             metadata: {
                                 reactions: [
-                                    reaction2,
+                                    {user_id: 'abcd', emoji_name: '-1'},
                                 ],
                             },
-                        }),
+                        },
                     },
                 },
             };
 
             const nextState = reducers.reactions(state, action);
 
-            expect(nextState).not.toBe(state);
+            expect(nextState).not.toEqual(state);
             expect(nextState).toEqual({
                 post1: {
-                    'abcd-+1': reaction1,
+                    'abcd-+1': {user_id: 'abcd', emoji_name: '+1'},
                 },
                 post2: {
-                    'abcd--1': reaction2,
+                    'abcd--1': {user_id: 'abcd', emoji_name: '-1'},
                 },
             });
         });
 
         it('should save reactions for multiple posts except deleted posts', () => {
-            const reaction1 = TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '+1'});
-            const reaction2 = TestHelper.getReactionMock({user_id: 'abcd', emoji_name: '-1'});
-
             const state = deepFreeze({});
             const action = {
                 type: PostTypes.RECEIVED_POSTS,
                 data: {
                     posts: {
-                        post1: TestHelper.getPostMock({
+                        post1: {
                             id: 'post1',
                             metadata: {
                                 reactions: [
-                                    reaction1,
+                                    {user_id: 'abcd', emoji_name: '+1'},
                                 ],
                             },
-                        }),
-                        post2: TestHelper.getPostMock({
+                        },
+                        post2: {
                             id: 'post2',
-                            delete_at: 1571366424287,
+                            delete_at: '1571366424287',
                             metadata: {
                                 reactions: [
-                                    reaction2,
+                                    {user_id: 'abcd', emoji_name: '-1'},
                                 ],
                             },
-                        }),
+                        },
                     },
                 },
             };
 
             const nextState = reducers.reactions(state, action);
 
-            expect(nextState).not.toBe(state);
+            expect(nextState).not.toEqual(state);
             expect(nextState).toEqual({
                 post1: {
-                    'abcd-+1': reaction1,
+                    'abcd-+1': {user_id: 'abcd', emoji_name: '+1'},
                 },
             });
         });

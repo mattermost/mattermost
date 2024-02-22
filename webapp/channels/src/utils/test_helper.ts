@@ -319,7 +319,7 @@ export class TestHelper {
         return Object.assign({}, defaultOutgoingWebhook, override);
     }
 
-    public static getPostMock(override: Omit<Partial<Post>, 'metadata'> & {metadata?: Partial<Post['metadata']>} = {}): Post {
+    public static getPostMock(override: Partial<Post> = {}): Post {
         const defaultPost: Post = {
             edit_at: 0,
             original_id: '',
@@ -345,15 +345,7 @@ export class TestHelper {
             update_at: 0,
             user_id: 'user_id',
         };
-
-        return {
-            ...defaultPost,
-            ...override,
-            metadata: {
-                ...defaultPost.metadata,
-                ...override.metadata,
-            },
-        };
+        return Object.assign({}, defaultPost, override);
     }
 
     public static getFileInfoMock(override: Partial<FileInfo> = {}): FileInfo {
