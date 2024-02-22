@@ -35,6 +35,8 @@ type linkMetadataCache struct {
 
 const MaxMetadataImageSize = MaxOpenGraphResponseSize
 
+const UnsafeLinksPostProp = "unsafe_links"
+
 func (s *Server) initPostMetadata() {
 	// Dump any cached links if the proxy settings have changed so image URLs can be updated
 	s.platform.AddConfigListener(func(before, after *model.Config) {
@@ -169,11 +171,20 @@ func (a *App) getEmbedsAndImages(c request.CTX, post *model.Post, isNewPost bool
 		post.Metadata = &model.PostMetadata{}
 	}
 
+	if post.Metadata.Embeds == nil {
+		post.Metadata.Embeds = []*model.PostEmbed{}
+	}
+
 	// Embeds and image dimensions
 	firstLink, images := a.getFirstLinkAndImages(post.Message)
 
-	if post.Metadata.Embeds == nil {
-		post.Metadata.Embeds = []*model.PostEmbed{}
+	if unsafeLinksProp := post.GetProp(UnsafeLinksPostProp); unsafeLinksProp != nil {
+		if prop, ok := unsafeLinksProp.(string); ok && prop == "true" {
+			images = []string{}
+			if !looksLikeAPermalink(firstLink, *a.Config().ServiceSettings.SiteURL) {
+				return post
+			}
+		}
 	}
 
 	if embed, err := a.getEmbedForPost(c, post, firstLink, isNewPost); err != nil {
@@ -577,8 +588,12 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 }
 
 func looksLikeAPermalink(url, siteURL string) bool {
-	expression := fmt.Sprintf(`^(%s).*(/pl/)[a-z0-9]{26}$`, siteURL)
-	matched, err := regexp.MatchString(expression, strings.TrimSpace(url))
+	path, hasPrefix := strings.CutPrefix(strings.TrimSpace(url), siteURL)
+	if !hasPrefix {
+		return false
+	}
+	path = strings.TrimPrefix(path, "/")
+	matched, err := regexp.MatchString(`^[0-9a-z_-]{1,64}/pl/[a-z0-9]{26}$`, path)
 	if err != nil {
 		mlog.Warn("error matching regex", mlog.Err(err))
 	}
