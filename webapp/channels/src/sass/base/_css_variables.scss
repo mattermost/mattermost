@@ -1,6 +1,8 @@
 :root {
     // Default Hex values to be replaced by applyTheme()
     // these are define to prevent flashes of unstyled content
+    --icon-opacity: 0.64;
+    --icon-opacity-hover: 0.8;
     --away-indicator: #ffbc42;
     --away-indicator-dark: #c79e3f;
     --button-bg: #166de0;
