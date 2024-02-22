@@ -1076,6 +1076,10 @@ func (s *MmctlE2ETestSuite) cleanUpPreferences(userID string) {
 	preferences, _, err := s.th.SystemAdminClient.GetPreferences(context.Background(), userID)
 	s.NoError(err)
 
+	if len(preferences) == 0 {
+		return
+	}
+
 	_, err = s.th.SystemAdminClient.DeletePreferences(context.Background(), userID, preferences)
 	s.NoError(err)
 }

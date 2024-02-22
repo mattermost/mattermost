@@ -1,12 +1,12 @@
 .profile__icon {
     &:hover {
-        fill: rgba(255, 0, 0, 0.72);
+        fill: rgba(255, 0, 0, 0.75);
     }
 }
 
 .logout__icon {
     &:hover {
-        fill: rgba(255, 0, 0, 0.72);
+        fill: rgba(255, 0, 0, 0.75);
     }
 }
 
@@ -87,7 +87,7 @@ button.custom_status__row {
         background-color: rgba(var(--center-channel-color-rgb), 0.08);
 
         .custom-status-emoji {
-            fill: rgba(var(--center-channel-color-rgb), 0.72);
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
         }
     }
 
@@ -144,10 +144,10 @@ button.custom_status__row {
 
 .custom-status {
     &-emoji {
-        fill: rgba(var(--center-channel-color-rgb), 0.56);
+        fill: rgba(var(--center-channel-color-rgb), 0.75);
 
         &:hover {
-            fill: rgba(var(--center-channel-color-rgb), 0.72);
+            fill: rgba(var(--center-channel-color-rgb), 0.88);
         }
     }
 
@@ -161,7 +161,7 @@ button.custom_status__row {
     border-radius: 4px;
 
     .icon > i:not(.status-icon) {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-family: "compass-icons";
     }
 
@@ -347,7 +347,7 @@ button.custom_status__row {
 
 .status-dropdpwn-menu .status-dropdown-menu__clear-container .input-clear {
     position: absolute;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     opacity: 1;
 }
 

@@ -31,7 +31,9 @@ exports[`comoponents/rhs_card/RhsCard should match on post when no plugin defini
       <div
         className="info-card"
       >
-        <Connect(Markdown) />
+        <Connect(Markdown)
+          message=""
+        />
       </div>
       <div
         className="d-flex post-card--info"
@@ -135,7 +137,9 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
       <div
         className="info-card"
       >
-        <Connect(Markdown) />
+        <Connect(Markdown)
+          message=""
+        />
       </div>
       <div
         className="d-flex post-card--info"
@@ -239,7 +243,9 @@ exports[`comoponents/rhs_card/RhsCard should match on post when plugin defining 
       <div
         className="info-card"
       >
-        <Connect(Markdown) />
+        <Connect(Markdown)
+          message=""
+        />
       </div>
       <div
         className="d-flex post-card--info"

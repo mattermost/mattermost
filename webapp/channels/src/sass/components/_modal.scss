@@ -70,6 +70,16 @@
             }
         }
 
+        .textarea-wrapper-preview {
+            .custom-textarea.textbox-preview-area {
+                display: block;
+            }
+
+            .textbox-edit-area {
+                display: none;
+            }
+        }
+
         .edit-post-footer {
             position: relative;
             display: inline-block;
@@ -81,7 +91,7 @@
                 margin-bottom: 0;
                 font-size: 0.85em;
                 font-weight: normal;
-                opacity: 0.55;
+                opacity: 0.75;
             }
         }
     }
@@ -173,7 +183,7 @@
         margin-bottom: 3px;
         font-size: 0.9em;
         font-weight: 600;
-        opacity: 0.5;
+        opacity: 0.75;
     }
 
     .info__value {
@@ -268,7 +278,7 @@
             width: 40px;
             height: 40px;
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.56);
+            color: rgba(var(--center-channel-color-rgb), 0.64);
             font-size: 30px;
             font-weight: 400;
             opacity: 1;
@@ -280,7 +290,7 @@
 
             &:hover {
                 background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.8);
             }
 
             &:active {
@@ -761,7 +771,7 @@
             height: 16px;
             margin-top: 0;
             margin-left: 8px;
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.75);
             font-size: 16px;
             line-height: 16px;
 
@@ -782,12 +792,12 @@
 
             .more-modal__name_sub {
                 font-weight: 500;
-                opacity: 0.5;
+                opacity: 0.75;
             }
 
             .more-modal__name_count {
                 font-weight: 400;
-                opacity: 0.6;
+                opacity: 0.75;
             }
 
             svg {
@@ -871,7 +881,7 @@
         }
 
         .more-modal__shared-actions {
-            color: rgba(61, 60, 64, 0.72);
+            color: rgba(61, 60, 64, 0.75);
 
             .shared-user-icon {
                 width: 16px;
@@ -911,7 +921,7 @@
         width: 32px;
         height: 32px;
         line-height: 32px;
-        opacity: 0.5;
+        opacity: 0.75;
         text-align: center;
     }
 
