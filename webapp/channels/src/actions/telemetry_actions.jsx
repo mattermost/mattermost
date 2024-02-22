@@ -204,19 +204,6 @@ export function trackPluginInitialization(plugins) {
     });
 }
 
-function getTopThreeSelectors(selectors) {
-    const topThreeSelectors = [];
-    for (const selector of selectors) {
-        if (topThreeSelectors.length === 3) {
-            break;
-        }
-        if (selector.calls > 5) {
-            topThreeSelectors.push(selector);
-        }
-    }
-    return topThreeSelectors;
-}
-
 export function trackSelectorMetrics() {
     setTimeout(() => {
         if (!shouldTrackPerformance()) {
@@ -224,19 +211,19 @@ export function trackSelectorMetrics() {
         }
 
         const selectors = getSortedTrackedSelectors();
-        const topThreeSelectors = getTopThreeSelectors(selectors);
+        const filteredSelectors = selectors.filter((selector) => selector.calls > 5);
 
         trackEvent('performance', 'least_effective_selectors', {
             after: 'one_minute',
-            first: topThreeSelectors[0]?.name || '',
-            first_effectiveness: topThreeSelectors[0]?.effectiveness,
-            first_recomputations: topThreeSelectors[0]?.recomputations,
-            second: topThreeSelectors[1]?.name || '',
-            second_effectiveness: topThreeSelectors[1]?.effectiveness,
-            second_recomputations: topThreeSelectors[1]?.recomputations,
-            third: topThreeSelectors[2]?.name || '',
-            third_effectiveness: topThreeSelectors[2]?.effectiveness,
-            third_recomputations: topThreeSelectors[2]?.recomputations,
+            first: filteredSelectors[0]?.name || '',
+            first_effectiveness: filteredSelectors[0]?.effectiveness,
+            first_recomputations: filteredSelectors[0]?.recomputations,
+            second: filteredSelectors[1]?.name || '',
+            second_effectiveness: filteredSelectors[1]?.effectiveness,
+            second_recomputations: filteredSelectors[1]?.recomputations,
+            third: filteredSelectors[2]?.name || '',
+            third_effectiveness: filteredSelectors[2]?.effectiveness,
+            third_recomputations: filteredSelectors[2]?.recomputations,
         });
     }, 60000);
 }
