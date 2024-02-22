@@ -188,7 +188,10 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 		expectedStatus := map[string]string{"status": "OK"}
 		s.client.
 			EXPECT().
-			GetPingWithFullServerStatus(context.Background()).
+			GetPingWithOptions(context.Background(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
 			Return(expectedStatus, &model.Response{}, nil).
 			Times(1)
 
@@ -204,7 +207,10 @@ func (s *MmctlUnitTestSuite) TestServerStatusCmd() {
 
 		s.client.
 			EXPECT().
-			GetPingWithFullServerStatus(context.Background()).
+			GetPingWithOptions(context.Background(), model.SystemPingOptions{
+				FullStatus:    true,
+				RESTSemantics: true,
+			}).
 			Return(nil, &model.Response{}, errors.New("mock error")).
 			Times(1)
 
