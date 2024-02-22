@@ -53,7 +53,6 @@ export type Props = Attrs & {
     inputPlaceholder?: string;
     rootPostId: string;
     fromSuppressed?: boolean;
-    enableWebSocketEventScope: boolean;
 };
 
 type State = {
@@ -82,9 +81,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     }
 
     public componentWillUnmount() {
-        if (this.props.enableWebSocketEventScope) {
-            WebSocketClient.updateActiveThread(this.props.isThreadView, '');
-        }
+        WebSocketClient.updateActiveThread(this.props.isThreadView, '');
     }
 
     public componentDidUpdate(prevProps: Props) {
@@ -173,7 +170,11 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
     // scrolls to either bottom or new messages line
     private onInit = async (reconnected = false): Promise<void> => {
         this.setState({isLoading: !reconnected});
-        await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected);
+        if (reconnected || this.morePostsToFetch()) {
+            await this.props.actions.getPostThread(this.props.selected?.id || this.props.rootPostId, !reconnected);
+        } else {
+            await this.props.actions.getNewestPostThread(this.props.selected?.id || this.props.rootPostId);
+        }
 
         if (
             this.props.isCollapsedThreadsEnabled &&
@@ -182,7 +183,7 @@ export default class ThreadViewer extends React.PureComponent<Props, State> {
             await this.fetchThread();
         }
 
-        if (this.props.channel && this.props.enableWebSocketEventScope) {
+        if (this.props.channel) {
             WebSocketClient.updateActiveThread(this.props.isThreadView, this.props.channel?.id);
         }
         this.setState({isLoading: false});
