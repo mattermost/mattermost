@@ -277,7 +277,7 @@
     height: 100%;
     border-radius: 12px;
     box-shadow: var(--elevation-3);
-    outline: solid 1px rgba(var(--center-channel-color-rgb), 0.08);
+    outline: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
 
     &.expanded {
         position: absolute;
@@ -310,8 +310,8 @@
         }
 
         .sidebar--right__header {
-            box-sizing: content-box;
             flex-basis: 63px;
+            box-sizing: content-box;
         }
 
         .sidebar--right__title {
