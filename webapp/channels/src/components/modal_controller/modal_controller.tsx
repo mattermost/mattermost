@@ -36,12 +36,11 @@ const ModalController = ({
     modals,
     actions,
 }: Props) => {
-    const {modalState} = modals;
-
     if (!modals) {
         return null;
     }
 
+    const {modalState} = modals;
     const modalOutput = [];
 
     for (const modalId in modalState) {
@@ -64,7 +63,7 @@ const ModalController = ({
         }
     }
 
-    return modalOutput;
+    return <>{modalOutput}</>;
 };
 
 export default ModalController;
