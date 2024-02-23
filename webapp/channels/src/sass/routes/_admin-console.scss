@@ -61,8 +61,8 @@
     }
 
     mark {
-        background-color: $highlight-color;
         border-radius: 5%;
+        background-color: $highlight-color;
     }
 
     .btn {
@@ -302,8 +302,8 @@
 
         .banner__url {
             padding: 0.7em 1em;
-            background: alpha-color($black, 0.07);
             border-radius: 2px;
+            background: alpha-color($black, 0.07);
             word-break: break-all;
         }
 
@@ -489,8 +489,8 @@
             height: 34px;
             align-items: center;
             justify-content: center;
-            margin: 0 10px 0 0;
             border-radius: $border-rad;
+            margin: 0 10px 0 0;
             text-decoration: none;
             transition: all 0.15s ease;
 
@@ -608,9 +608,9 @@
             width: 204px;
             padding: 5px 36px;
             border: 1px solid #666;
+            border-radius: 20px;
             margin: 8px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
             color: $white;
             font-size: 14px;
             outline: none;
@@ -644,8 +644,8 @@
     }
 
     mark {
-        background-color: $highlight-color;
         border-radius: 5%;
+        background-color: $highlight-color;
     }
 
     body.announcement-bar--fixed & {
@@ -751,9 +751,9 @@
         top: -1px;
         height: 16px;
         padding: 0 4px 0 4px;
+        border-radius: 4px;
         margin-left: 8px;
         background-color: rgba(255, 255, 255, 0.75);
-        border-radius: 4px;
         color: rgba(61, 60, 64, 1);
         font-size: 10px;
         font-weight: 600;

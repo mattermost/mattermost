@@ -22,8 +22,8 @@
             height: 32px;
             box-sizing: border-box;
             border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.2);
-            margin-left: 8px;
             border-radius: 4px;
+            margin-left: 8px;
 
             input {
                 width: 100%;
@@ -215,9 +215,9 @@
                 flex-direction: column;
                 align-items: center;
                 padding: 8px;
+                border-radius: 4px;
                 margin-left: auto;
                 background: transparent;
-                border-radius: 4px;
                 color: rgba(var(--sys-center-channel-color-rgb), 0.75);
                 text-decoration: none;
             }

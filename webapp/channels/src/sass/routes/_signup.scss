@@ -206,8 +206,8 @@ body {
     .block--gray {
         display: inline-block;
         padding: 0.85em 1.2em;
-        background: #f2f2f2;
         border-radius: 3px;
+        background: #f2f2f2;
         font-weight: 600;
     }
 
@@ -280,9 +280,9 @@ body {
         .control-label {
             width: 100%;
             padding: 0.7em 1em;
+            border-radius: 3px;
             margin: 1em 0 0;
             background: #f2f2f2;
-            border-radius: 3px;
             color: #999;
             font-size: 14px;
             font-weight: normal;
@@ -336,9 +336,8 @@ body {
 .signup-team-all {
     max-height: calc(75vh - (108px + 89px));
     border: 1px solid #ddd;
-    margin: 0 0 20px;
-    border-radius: 2px;
     border-radius: 4px;
+    margin: 0 0 20px;
 
     .signup-team-dir {
         @include pie-clearfix;

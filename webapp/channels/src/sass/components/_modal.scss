@@ -45,8 +45,8 @@
 
         .modal-content {
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            background: var(--center-channel-bg);
             border-radius: 12px;
+            background: var(--center-channel-bg);
         }
     }
 
@@ -327,8 +327,8 @@
 
     .modal-content {
         border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
-        background: var(--sys-center-channel-bg);
         border-radius: 12px;
+        background: var(--sys-center-channel-bg);
     }
 
     .modal-chevron-icon {
@@ -461,8 +461,8 @@
                 width: auto;
                 height: auto;
                 max-height: 85vh;
-                margin: 0 auto;
                 border-radius: 8px;
+                margin: 0 auto;
             }
 
             video {
@@ -643,8 +643,8 @@
         flex: 32px 0 0;
         align-items: center;
         justify-content: center;
-        background: rgba(var(--center-channel-color-rgb), 0.2);
         border-radius: 50%;
+        background: rgba(var(--center-channel-color-rgb), 0.2);
     }
 
     .user-list {
@@ -754,8 +754,8 @@
         max-width: none;
         flex-grow: 0;
         flex-shrink: 0;
-        margin-top: 2px;
         border-radius: 60px;
+        margin-top: 2px;
     }
 
     .more-modal__details {

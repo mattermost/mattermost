@@ -21,9 +21,9 @@
         display: inline-block;
         width: 6px;
         height: 6px;
+        border-radius: 6px;
         margin: 5px 0;
         background: $primary-color;
-        border-radius: 6px;
         opacity: 0.2;
 
         &.active {

@@ -147,8 +147,8 @@
         align-items: center;
         justify-content: space-around;
         border: 2px solid $dark-gray;
-        margin-right: 5px;
         border-radius: 3px;
+        margin-right: 5px;
 
         &.checked,
         &.intermediate {
@@ -336,10 +336,10 @@
             align-items: center;
             justify-content: center;
             padding: 0 8px;
+            border-radius: 13px;
             margin-right: 10px;
             margin-bottom: 10px;
             background: rgba(0, 0, 0, 0.05);
-            border-radius: 13px;
             color: alpha-color($black, 0.75);
             font-size: 11px;
         }
