@@ -28,7 +28,6 @@ type Props = {
     onCardClick: (post: Post) => void;
     previousPostId: string;
     timestampProps?: Partial<TimestampProps>;
-    lastViewedAt: number;
     threadId: string;
     newMessagesSeparatorActions: PluginComponent[];
 };
@@ -43,7 +42,6 @@ function ThreadViewerRow({
     onCardClick,
     previousPostId,
     timestampProps,
-    lastViewedAt,
     threadId,
     newMessagesSeparatorActions,
 }: Props) {
@@ -62,7 +60,6 @@ function ThreadViewerRow({
         return (
             <NewMessageSeparator
                 separatorId={listId}
-                lastViewedAt={lastViewedAt}
                 threadId={threadId}
                 newMessagesSeparatorActions={newMessagesSeparatorActions}
             />
