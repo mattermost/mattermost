@@ -735,7 +735,6 @@ func (u *User) ClearCustomStatus() {
 }
 
 func (u *User) ValidateCustomStatus() bool {
-
 	status, exists := u.Props[UserPropsKeyCustomStatus]
 	if exists && status != "" {
 		cs := u.GetCustomStatus()
