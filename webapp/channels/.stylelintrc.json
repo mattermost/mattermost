@@ -15,6 +15,7 @@
                 "ignore": ["comments"]
             }
         ],
-        "scss/load-no-partial-leading-underscore": null
+        "scss/load-no-partial-leading-underscore": null,
+        "scss/at-extend-no-missing-placeholder": null
     }
 }
