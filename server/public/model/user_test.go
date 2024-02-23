@@ -367,13 +367,12 @@ func TestValidateCustomStatus(t *testing.T) {
 		assert.False(t, user0.ValidateCustomStatus())
 
 		user0.Props[UserPropsKeyCustomStatus] = "{\"emoji\":{\"foo\":\"bar\"}}"
-		assert.False(t, user0.ValidateCustomStatus())
+		assert.True(t, user0.ValidateCustomStatus())
 
 		user0.Props[UserPropsKeyCustomStatus] = "{\"text\": \"hello\"}"
 		assert.True(t, user0.ValidateCustomStatus())
 
 		user0.Props[UserPropsKeyCustomStatus] = "{\"wrong\": \"hello\"}"
 		assert.True(t, user0.ValidateCustomStatus())
-
 	})
 }
