@@ -49,7 +49,7 @@
 
         @for $i from 1 through 3 {
             .round-#{$i} {
-                animation-delay: 0.2s*$i;
+                animation-delay: 0.2s * $i;
             }
         }
     }

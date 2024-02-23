@@ -30,7 +30,7 @@ $toggle-default-font-size: 0.75rem;
 // Mixin for Default Switch Styles
 // Variables: $size, $margin, $color, $bg, $active-bg, $font-size
 @mixin toggle-mixin($size: $toggle-default-size, $margin: $toggle-default-margin, $font-size: $toggle-default-font-size) {
-    $handlePosition: calc($size/7);
+    $handlePosition: calc($size / 7);
     $handleSize: calc($size - (2 * $handlePosition));
 
     position: relative;
