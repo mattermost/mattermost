@@ -638,6 +638,20 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	err := c.App.SendAckToPushProxy(&ack)
 	if ack.IsIdLoaded {
+		if err != nil {
+			c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
+				mlog.String("type", model.TypePush),
+				mlog.String("status", model.StatusServerError),
+				mlog.String("reason", model.ReasonServerError),
+				mlog.String("ack_id", ack.Id),
+				mlog.String("push_type", ack.NotificationType),
+				mlog.String("post_id", ack.PostId),
+				mlog.String("ack_type", ack.NotificationType),
+				mlog.String("device_type", ack.ClientPlatform),
+				mlog.Int("received_at", ack.ClientReceivedAt),
+				mlog.Err(err),
+			)
+		}
 		// Return post data only when PostId is passed.
 		if ack.PostId != "" && ack.NotificationType == model.PushTypeMessage {
 			if _, appErr := c.App.GetPostIfAuthorized(c.AppContext, ack.PostId, c.AppContext.Session(), false); appErr != nil {
@@ -664,18 +678,6 @@ func pushNotificationAck(c *Context, w http.ResponseWriter, r *http.Request) {
 
 		return
 	} else if err != nil {
-		c.App.NotificationsLog().Error("Notification ack not sent to push proxy",
-			mlog.String("type", model.TypePush),
-			mlog.String("status", model.StatusServerError),
-			mlog.String("reason", model.ReasonServerError),
-			mlog.String("ack_id", ack.Id),
-			mlog.String("push_type", ack.NotificationType),
-			mlog.String("post_id", ack.PostId),
-			mlog.String("ack_type", ack.NotificationType),
-			mlog.String("device_type", ack.ClientPlatform),
-			mlog.Int("received_at", ack.ClientReceivedAt),
-			mlog.Err(err),
-		)
 		c.Err = model.NewAppError("pushNotificationAck", "api.push_notifications_ack.forward.app_error", nil, err.Error(), http.StatusInternalServerError)
 		return
 	}
