@@ -2252,12 +2252,6 @@ func (s *RetryLayerChannelStore) InvalidatePinnedPostCount(channelID string) {
 
 }
 
-func (s *RetryLayerChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
-
-	return s.ChannelStore.IsUserInChannelUseCache(userID, channelID)
-
-}
-
 func (s *RetryLayerChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
 
 	tries := 0
@@ -7028,11 +7022,11 @@ func (s *RetryLayerPostStore) Get(ctx context.Context, id string, opts model.Get
 
 }
 
-func (s *RetryLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error) {
+func (s *RetryLayerPostStore) GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterID)
+		result, err := s.PostStore.GetDirectPostParentsForExportAfter(limit, afterID, includeArchivedChannels)
 		if err == nil {
 			return result, nil
 		}
@@ -7718,11 +7712,11 @@ func (s *RetryLayerPostStore) PermanentDeleteByUser(rctx request.CTX, userID str
 
 }
 
-func (s *RetryLayerPostStore) Save(post *model.Post) (*model.Post, error) {
+func (s *RetryLayerPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
 
 	tries := 0
 	for {
-		result, err := s.PostStore.Save(post)
+		result, err := s.PostStore.Save(rctx, post)
 		if err == nil {
 			return result, nil
 		}
@@ -11657,11 +11651,11 @@ func (s *RetryLayerTeamStore) Save(team *model.Team) (*model.Team, error) {
 
 }
 
-func (s *RetryLayerTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+func (s *RetryLayerTeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 
 	tries := 0
 	for {
-		result, err := s.TeamStore.SaveMember(member, maxUsersPerTeam)
+		result, err := s.TeamStore.SaveMember(rctx, member, maxUsersPerTeam)
 		if err == nil {
 			return result, nil
 		}
@@ -13931,11 +13925,11 @@ func (s *RetryLayerUserStore) ResetLastPictureUpdate(userID string) error {
 
 }
 
-func (s *RetryLayerUserStore) Save(user *model.User) (*model.User, error) {
+func (s *RetryLayerUserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
 
 	tries := 0
 	for {
-		result, err := s.UserStore.Save(user)
+		result, err := s.UserStore.Save(rctx, user)
 		if err == nil {
 			return result, nil
 		}

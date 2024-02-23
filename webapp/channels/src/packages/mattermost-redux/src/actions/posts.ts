@@ -25,12 +25,13 @@ import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'matter
 import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
 import {General, Preferences, Posts} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
 import {getUnreadScrollPositionPreference, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId, getUsersByUsername} from 'mattermost-redux/selectors/entities/users';
-import type {ActionResult, DispatchFunc, GetStateFunc, NewActionFunc, NewActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionResult, DispatchFunc, GetStateFunc, ActionFunc, ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {isCombinedUserActivityPost} from 'mattermost-redux/utils/post_list';
 
 import {logError} from './errors';
@@ -136,7 +137,16 @@ export function postRemoved(post: Post) {
     };
 }
 
-export function getPost(postId: string): NewActionFuncAsync<Post> {
+export function postPinnedChanged(postId: string, isPinned: boolean, updateAt = Date.now()) {
+    return {
+        type: PostTypes.POST_PINNED_CHANGED,
+        postId,
+        isPinned,
+        updateAt,
+    };
+}
+
+export function getPost(postId: string): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         let post;
         const crtEnabled = isCollapsedThreadsEnabled(getState());
@@ -162,7 +172,7 @@ export function getPost(postId: string): NewActionFuncAsync<Post> {
     };
 }
 
-export function createPost(post: Post, files: any[] = []): NewActionFuncAsync {
+export function createPost(post: Post, files: any[] = []): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -289,7 +299,7 @@ export function createPost(post: Post, files: any[] = []): NewActionFuncAsync {
     };
 }
 
-export function createPostImmediately(post: Post, files: any[] = []): NewActionFuncAsync<Post> {
+export function createPostImmediately(post: Post, files: any[] = []): ActionFuncAsync<Post> {
     return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = state.entities.users.currentUserId;
@@ -390,7 +400,7 @@ export function resetCreatePostRequest() {
     return {type: PostTypes.CREATE_POST_RESET_REQUEST};
 }
 
-export function deletePost(post: ExtendedPost): NewActionFuncAsync {
+export function deletePost(post: ExtendedPost): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const delPost = {...post};
@@ -461,7 +471,7 @@ function getUnreadPostData(unreadChan: ChannelUnread, state: GlobalState) {
     return data;
 }
 
-export function setUnreadPost(userId: string, postId: string): NewActionFuncAsync {
+export function setUnreadPost(userId: string, postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         let state = getState();
         const post = PostSelectors.getPost(state, postId);
@@ -500,7 +510,7 @@ export function setUnreadPost(userId: string, postId: string): NewActionFuncAsyn
     };
 }
 
-export function pinPost(postId: string): NewActionFuncAsync {
+export function pinPost(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({type: PostTypes.EDIT_POST_REQUEST});
         let posts;
@@ -524,11 +534,7 @@ export function pinPost(postId: string): NewActionFuncAsync {
         const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
-                receivedPost({
-                    ...post,
-                    is_pinned: true,
-                    update_at: Date.now(),
-                }, isCollapsedThreadsEnabled(state)),
+                postPinnedChanged(postId, true, Date.now()),
                 {
                     type: ChannelTypes.INCREMENT_PINNED_POST_COUNT,
                     id: post.channel_id,
@@ -552,7 +558,7 @@ export function decrementPinnedPostCount(channelId: Channel['id']) {
     };
 }
 
-export function unpinPost(postId: string): NewActionFuncAsync {
+export function unpinPost(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({type: PostTypes.EDIT_POST_REQUEST});
         let posts;
@@ -576,11 +582,7 @@ export function unpinPost(postId: string): NewActionFuncAsync {
         const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
-                receivedPost({
-                    ...post,
-                    is_pinned: false,
-                    update_at: Date.now(),
-                }, isCollapsedThreadsEnabled(state)),
+                postPinnedChanged(postId, false, Date.now()),
                 decrementPinnedPostCount(post.channel_id),
             );
         }
@@ -591,7 +593,7 @@ export function unpinPost(postId: string): NewActionFuncAsync {
     };
 }
 
-export function addReaction(postId: string, emojiName: string): NewActionFuncAsync {
+export function addReaction(postId: string, emojiName: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -613,7 +615,7 @@ export function addReaction(postId: string, emojiName: string): NewActionFuncAsy
     };
 }
 
-export function removeReaction(postId: string, emojiName: string): NewActionFuncAsync {
+export function removeReaction(postId: string, emojiName: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const currentUserId = getState().entities.users.currentUserId;
 
@@ -634,7 +636,7 @@ export function removeReaction(postId: string, emojiName: string): NewActionFunc
     };
 }
 
-export function getCustomEmojiForReaction(name: string): NewActionFuncAsync {
+export function getCustomEmojiForReaction(name: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const nonExistentEmoji = getState().entities.emojis.nonExistentEmoji;
         const customEmojisByName = selectCustomEmojisByName(getState());
@@ -655,7 +657,7 @@ export function getCustomEmojiForReaction(name: string): NewActionFuncAsync {
     };
 }
 
-export function flagPost(postId: string): NewActionFuncAsync {
+export function flagPost(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const {currentUserId} = getState().entities.users;
         const preference = {
@@ -705,7 +707,7 @@ async function getPaginatedPostThread(rootId: string, options: FetchPaginatedThr
     return list;
 }
 
-export function getPostThread(rootId: string, fetchThreads = true): NewActionFuncAsync<PostList> {
+export function getPostThread(rootId: string, fetchThreads = true): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         dispatch({type: PostTypes.GET_POST_THREAD_REQUEST});
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
@@ -733,7 +735,7 @@ export function getPostThread(rootId: string, fetchThreads = true): NewActionFun
     };
 }
 
-export function getNewestPostThread(rootId: string): NewActionFuncAsync {
+export function getNewestPostThread(rootId: string): ActionFuncAsync {
     const getPostsForThread = PostSelectors.makeGetPostsForThread();
 
     return async (dispatch, getState) => {
@@ -774,7 +776,7 @@ export function getNewestPostThread(rootId: string): NewActionFuncAsync {
     };
 }
 
-export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         let posts;
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
@@ -796,7 +798,7 @@ export function getPosts(channelId: string, page = 0, perPage = Posts.POST_CHUNK
     };
 }
 
-export function getPostsUnread(channelId: string, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+export function getPostsUnread(channelId: string, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         const shouldLoadRecent = getUnreadScrollPositionPreference(getState()) === Preferences.UNREAD_SCROLL_POSITION_START_FROM_NEWEST;
         const collapsedThreadsEnabled = isCollapsedThreadsEnabled(getState());
@@ -837,7 +839,7 @@ export function getPostsUnread(channelId: string, fetchThreads = true, collapsed
     };
 }
 
-export function getPostsSince(channelId: string, since: number, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+export function getPostsSince(channelId: string, since: number, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         let posts;
         try {
@@ -862,7 +864,7 @@ export function getPostsSince(channelId: string, since: number, fetchThreads = t
     };
 }
 
-export function getPostsBefore(channelId: string, postId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+export function getPostsBefore(channelId: string, postId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         let posts;
         try {
@@ -884,7 +886,7 @@ export function getPostsBefore(channelId: string, postId: string, page = 0, perP
     };
 }
 
-export function getPostsAfter(channelId: string, postId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+export function getPostsAfter(channelId: string, postId: string, page = 0, perPage = Posts.POST_CHUNK_SIZE, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         let posts;
         try {
@@ -906,7 +908,7 @@ export function getPostsAfter(channelId: string, postId: string, page = 0, perPa
     };
 }
 
-export function getPostsAround(channelId: string, postId: string, perPage = Posts.POST_CHUNK_SIZE / 2, fetchThreads = true, collapsedThreadsExtended = false): NewActionFuncAsync<PostList> {
+export function getPostsAround(channelId: string, postId: string, perPage = Posts.POST_CHUNK_SIZE / 2, fetchThreads = true, collapsedThreadsExtended = false): ActionFuncAsync<PostList> {
     return async (dispatch, getState) => {
         let after;
         let thread;
@@ -1004,6 +1006,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const state = getState();
     const {currentUserId, profiles, statuses} = state.entities.users;
+    const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
     // Statuses and profiles of the users who made the posts
     const userIdsToLoad = new Set<string>();
@@ -1053,7 +1056,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
         promises.push(dispatch(getProfilesByIds(Array.from(userIdsToLoad))));
     }
 
-    if (statusesToLoad.size > 0) {
+    if (statusesToLoad.size > 0 && enabledUserStatuses) {
         promises.push(dispatch(getStatusesByIds(Array.from(statusesToLoad))));
     }
 
@@ -1085,7 +1088,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
     return Promise.all(promises);
 }
 
-export function getPostsByIds(ids: string[]): NewActionFuncAsync {
+export function getPostsByIds(ids: string[]): ActionFuncAsync {
     return async (dispatch, getState) => {
         let posts;
 
@@ -1176,7 +1179,7 @@ export function getNeededAtMentionedUsernamesAndGroups(state: GlobalState, posts
 
 export type ExtendedPost = Post & { system_post_ids?: string[] };
 
-export function removePost(post: ExtendedPost): NewActionFunc<boolean> {
+export function removePost(post: ExtendedPost): ActionFunc<boolean> {
     return (dispatch, getState) => {
         if (post.type === Posts.POST_TYPES.COMBINED_USER_ACTIVITY && post.system_post_ids) {
             const state = getState();
@@ -1197,7 +1200,7 @@ export function removePost(post: ExtendedPost): NewActionFunc<boolean> {
     };
 }
 
-export function moveThread(postId: string, channelId: string): NewActionFuncAsync {
+export function moveThread(postId: string, channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.moveThread(postId, channelId);
@@ -1221,7 +1224,7 @@ export function selectFocusedPostId(postId: string) {
     };
 }
 
-export function unflagPost(postId: string): NewActionFuncAsync {
+export function unflagPost(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const {currentUserId} = getState().entities.users;
         const preference = {
@@ -1236,7 +1239,7 @@ export function unflagPost(postId: string): NewActionFuncAsync {
     };
 }
 
-export function addPostReminder(userId: string, postId: string, timestamp: number): NewActionFuncAsync {
+export function addPostReminder(userId: string, postId: string, timestamp: number): ActionFuncAsync {
     return async (dispatch, getState) => {
         try {
             await Client4.addPostReminder(userId, postId, timestamp);
@@ -1253,7 +1256,7 @@ export function doPostAction(postId: string, actionId: string, selectedOption = 
     return doPostActionWithCookie(postId, actionId, '', selectedOption);
 }
 
-export function doPostActionWithCookie(postId: string, actionId: string, actionCookie: string, selectedOption = ''): NewActionFuncAsync {
+export function doPostActionWithCookie(postId: string, actionId: string, actionCookie: string, selectedOption = ''): ActionFuncAsync {
     return async (dispatch, getState) => {
         let data;
         try {
@@ -1289,7 +1292,7 @@ export function resetHistoryIndex(index: string) {
     };
 }
 
-export function moveHistoryIndexBack(index: string): NewActionFuncAsync {
+export function moveHistoryIndexBack(index: string): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({
             type: PostTypes.MOVE_HISTORY_INDEX_BACK,
@@ -1300,7 +1303,7 @@ export function moveHistoryIndexBack(index: string): NewActionFuncAsync {
     };
 }
 
-export function moveHistoryIndexForward(index: string): NewActionFuncAsync {
+export function moveHistoryIndexForward(index: string): ActionFuncAsync {
     return async (dispatch) => {
         dispatch({
             type: PostTypes.MOVE_HISTORY_INDEX_FORWARD,
@@ -1314,7 +1317,7 @@ export function moveHistoryIndexForward(index: string): NewActionFuncAsync {
 /**
  * Ensures thread-replies in channels correctly follow CRT:ON/OFF
  */
-export function resetReloadPostsInChannel(): NewActionFuncAsync {
+export function resetReloadPostsInChannel(): ActionFuncAsync {
     return async (dispatch, getState) => {
         dispatch({
             type: PostTypes.RESET_POSTS_IN_CHANNEL,
@@ -1331,7 +1334,7 @@ export function resetReloadPostsInChannel(): NewActionFuncAsync {
     };
 }
 
-export function acknowledgePost(postId: string): NewActionFuncAsync {
+export function acknowledgePost(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const userId = getCurrentUserId(getState());
 
@@ -1353,7 +1356,7 @@ export function acknowledgePost(postId: string): NewActionFuncAsync {
     };
 }
 
-export function unacknowledgePost(postId: string): NewActionFuncAsync {
+export function unacknowledgePost(postId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const userId = getCurrentUserId(getState());
 
