@@ -1,5 +1,7 @@
 @charset 'UTF-8';
 
+@use 'sass:color';
+
 .admin-console__wrapper {
     overflow: auto;
 }
@@ -795,11 +797,11 @@
         }
 
         &:hover {
-            color: lighten($primary-color, 10);
+            color: color.adjust($primary-color, $lightness: 10%);
             text-decoration: none;
 
             i {
-                color: lighten($primary-color, 10);
+                color: color.adjust($primary-color, $lightness: 10%);
             }
         }
 

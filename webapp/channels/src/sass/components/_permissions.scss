@@ -1,3 +1,5 @@
+@use 'sass:color';
+
 @keyframes rowhighlight {
     0% {
         background-color: $transparent;
@@ -254,7 +256,7 @@
 
         &:hover {
             border-left: 2px solid $primary-color;
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust($primary-color, $lightness: 40%);
 
             .permission-description {
                 opacity: 1;
@@ -303,7 +305,7 @@
 
     &:hover {
         border-left: 2px solid $primary-color;
-        background-color: lighten($primary-color, 40%);
+        background-color: color.adjust($primary-color, $lightness: 40%);
     }
 
     .permissions-scheme-summary--header {

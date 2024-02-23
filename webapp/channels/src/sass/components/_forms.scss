@@ -1,5 +1,7 @@
 @charset 'UTF-8';
 
+@use 'sass:color';
+
 .radio,
 .checkbox {
     &.margin-bottom--none {
@@ -45,7 +47,7 @@
     }
 
     &.error {
-        color: darken($red, 20%);
+        color: color.adjust($red, $lightness: -20%);
     }
 }
 

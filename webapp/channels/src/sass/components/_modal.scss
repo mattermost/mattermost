@@ -1,5 +1,7 @@
 @charset "utf-8";
 
+@use 'sass:color';
+
 .browser--ie {
     .modal {
         .modal-dialog {
@@ -1026,7 +1028,7 @@
         }
 
         .more-modal__row--selected {
-            background-color: lighten($primary-color, 40%);
+            background-color: color.adjust($primary-color, $lightness: 40%);
 
             .more-modal__actions--round {
                 display: block;

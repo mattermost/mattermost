@@ -1,5 +1,7 @@
 @charset 'UTF-8';
 
+@use 'sass:color';
+
 body {
     &.announcement-bar--fixed {
         .signup-header {
@@ -80,7 +82,7 @@ body {
             p {
                 width: 100%;
                 margin: 0;
-                color: lighten($black, 50%);
+                color: color.adjust($black, $lightness: 50%);
                 line-height: 1.6em;
                 white-space: pre-wrap;
                 word-break: break-word;
