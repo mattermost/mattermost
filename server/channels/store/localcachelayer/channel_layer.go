@@ -408,6 +408,7 @@ func (s LocalCacheChannelStore) SaveMember(rctx request.CTX, member *model.Chann
 	if err != nil {
 		return nil, err
 	}
+	// For redis, directly increment member count.
 	s.InvalidateMemberCount(member.ChannelId)
 	return member, nil
 }
@@ -477,6 +478,7 @@ func (s LocalCacheChannelStore) RemoveMember(rctx request.CTX, channelId, userId
 	if err != nil {
 		return err
 	}
+	// For redis, directly decrement member count
 	s.InvalidateMemberCount(channelId)
 	return nil
 }
@@ -486,6 +488,7 @@ func (s LocalCacheChannelStore) RemoveMembers(rctx request.CTX, channelId string
 	if err != nil {
 		return err
 	}
+	// For redis, directly decrement member count
 	s.InvalidateMemberCount(channelId)
 	return nil
 }

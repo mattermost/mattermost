@@ -74,6 +74,7 @@ func (s *LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
 }
 
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId string) {
+	// TODO: use scan here
 	keys, err := s.rootStore.profilesInChannelCache.Keys()
 	if err == nil {
 		for _, key := range keys {

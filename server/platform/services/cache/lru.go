@@ -27,17 +27,6 @@ type LRU struct {
 	invalidateClusterEvent model.ClusterEvent
 }
 
-// LRUOptions contains options for initializing LRU cache
-type LRUOptions struct {
-	Name                   string
-	Size                   int
-	DefaultExpiry          time.Duration
-	InvalidateClusterEvent model.ClusterEvent
-	// StripedBuckets is used only by LRUStriped and shouldn't be greater than the number
-	// of CPUs available on the machine running this cache.
-	StripedBuckets int
-}
-
 // entry is used to hold a value in the evictList.
 type entry struct {
 	key        string
@@ -47,7 +36,7 @@ type entry struct {
 }
 
 // NewLRU creates an LRU of the given size.
-func NewLRU(opts LRUOptions) Cache {
+func NewLRU(opts *CacheOptions) Cache {
 	return &LRU{
 		name:                   opts.Name,
 		size:                   opts.Size,

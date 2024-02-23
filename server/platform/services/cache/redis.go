@@ -2,6 +2,8 @@ package cache
 
 import (
 	"context"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -16,16 +18,19 @@ type Redis struct {
 	defaultExpiry time.Duration
 }
 
-type RedisOptions struct {
-	Name          string
-	DefaultExpiry time.Duration
-}
-
-func NewRedis(opts RedisOptions) *Redis {
-	return &Redis{name: opts.Name, defaultExpiry: opts.DefaultExpiry}
+func NewRedis(opts *CacheOptions, client *redis.Client) (*Redis, error) {
+	if opts.Name == "" {
+		return nil, errors.New("no name specified for cache")
+	}
+	return &Redis{
+		name:          opts.Name,
+		defaultExpiry: opts.DefaultExpiry,
+		client:        client,
+	}, nil
 }
 
 func (r *Redis) Purge() error {
+	// TODO: move to scan
 	keys, err := r.Keys()
 	if err != nil {
 		return err
@@ -59,14 +64,21 @@ func (r *Redis) SetWithExpiry(key string, value any, ttl time.Duration) error {
 		return err
 	}
 
-	return r.client.Set(context.Background(), r.name+"_"+key, buf, ttl).Err()
+	return r.client.Set(context.Background(), r.name+":"+key, buf, ttl).Err()
 }
 
 // Get the content stored in the cache for the given key, and decode it into the value interface.
 // Return ErrKeyNotFound if the key is missing from the cache
 func (r *Redis) Get(key string, value any) error {
-	val, err := r.client.Get(context.Background(), r.name+"_"+key).Result()
+	now := time.Now()
+	defer func() {
+		fmt.Printf("[time taken]------- %s %s\n", key, time.Since(now).String())
+	}()
+	val, err := r.client.Get(context.Background(), r.name+":"+key).Result()
 	if err != nil {
+		if errors.Is(err, redis.Nil) {
+			return ErrKeyNotFound
+		}
 		return err
 	}
 
@@ -103,17 +115,19 @@ func (r *Redis) Get(key string, value any) error {
 
 // Remove deletes the value for a given key.
 func (r *Redis) Remove(key string) error {
-	return r.client.Del(context.Background(), r.name+"_"+key).Err()
+	return r.client.Del(context.Background(), r.name+":"+key).Err()
 }
 
 // Keys returns a slice of the keys in the cache.
 func (r *Redis) Keys() ([]string, error) {
-	return r.client.Keys(context.Background(), r.name+"_*").Result()
+	// TODO: migrate to a function that works on a batch of keys.
+	return r.client.Keys(context.Background(), r.name+":*").Result()
 }
 
 // Len returns the number of items in the cache.
 func (r *Redis) Len() (int, error) {
-	keys, err := r.client.Keys(context.Background(), r.name+"_*").Result()
+	// TODO: migrate to scan
+	keys, err := r.client.Keys(context.Background(), r.name+":*").Result()
 	if err != nil {
 		return 0, err
 	}

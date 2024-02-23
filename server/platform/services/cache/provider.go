@@ -4,6 +4,8 @@
 package cache
 
 import (
+	"context"
+	"fmt"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -17,10 +19,9 @@ type CacheOptions struct {
 	Name                   string
 	InvalidateClusterEvent model.ClusterEvent
 	Striped                bool
-	StripedBuckets         int
-	RedisAddr              string
-	RedisPassword          string
-	RedisDB                int
+	// StripedBuckets is used only by LRUStriped and shouldn't be greater than the number
+	// of CPUs available on the machine running this cache.
+	StripedBuckets int
 }
 
 // Provider is a provider for Cache
@@ -28,9 +29,11 @@ type Provider interface {
 	// NewCache creates a new cache with given options.
 	NewCache(opts *CacheOptions) (Cache, error)
 	// Connect opens a new connection to the cache using specific provider parameters.
-	Connect() error
+	Connect() (string, error)
 	// Close releases any resources used by the cache provider.
 	Close() error
+	// Type returns what type of cache it generates.
+	Type() string
 }
 
 type cacheProvider struct {
@@ -44,25 +47,14 @@ func NewProvider() Provider {
 // NewCache creates a new cache with given opts
 func (c *cacheProvider) NewCache(opts *CacheOptions) (Cache, error) {
 	if opts.Striped {
-		return NewLRUStriped(LRUOptions{
-			Name:                   opts.Name,
-			Size:                   opts.Size,
-			DefaultExpiry:          opts.DefaultExpiry,
-			InvalidateClusterEvent: opts.InvalidateClusterEvent,
-			StripedBuckets:         opts.StripedBuckets,
-		})
+		return NewLRUStriped(opts)
 	}
-	return NewLRU(LRUOptions{
-		Name:                   opts.Name,
-		Size:                   opts.Size,
-		DefaultExpiry:          opts.DefaultExpiry,
-		InvalidateClusterEvent: opts.InvalidateClusterEvent,
-	}), nil
+	return NewLRU(opts), nil
 }
 
 // Connect opens a new connection to the cache using specific provider parameters.
-func (c *cacheProvider) Connect() error {
-	return nil
+func (c *cacheProvider) Connect() (string, error) {
+	return "OK", nil
 }
 
 // Close releases any resources used by the cache provider.
@@ -70,40 +62,53 @@ func (c *cacheProvider) Close() error {
 	return nil
 }
 
+func (c *cacheProvider) Type() string {
+	return model.CacheTypeLRU
+}
+
 type redisProvider struct {
 	client *redis.Client
 }
 
+type RedisOptions struct {
+	RedisAddr      string
+	RedisPassword  string
+	RedisDB        int
+	MaxIdleConns   int
+	MaxActiveConns int
+}
+
 // NewProvider creates a new CacheProvider
-func NewRedisProvider(addr string, password string, db int) Provider {
+func NewRedisProvider(opts *RedisOptions) Provider {
 	client := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
+		Addr:           opts.RedisAddr,
+		Password:       opts.RedisPassword,
+		DB:             opts.RedisDB,
+		MaxActiveConns: opts.MaxActiveConns,
+		MaxIdleConns:   opts.MaxIdleConns,
 	})
 	return &redisProvider{client: client}
 }
 
 // NewCache creates a new cache with given opts
-func (c *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
-	cache := NewRedis(RedisOptions{
-		Name:          opts.Name,
-		DefaultExpiry: opts.DefaultExpiry,
-	})
-	if c.client == nil {
-		c.client = cache.client
-	} else {
-		cache.client = c.client
-	}
-	return cache, nil
+func (r *redisProvider) NewCache(opts *CacheOptions) (Cache, error) {
+	return NewRedis(opts, r.client)
 }
 
 // Connect opens a new connection to the cache using specific provider parameters.
-func (c *redisProvider) Connect() error {
-	return nil
+func (r *redisProvider) Connect() (string, error) {
+	res, err := r.client.Ping(context.Background()).Result()
+	if err != nil {
+		return "", fmt.Errorf("unable to establish connection with redis: %v", err)
+	}
+	return res, nil
+}
+
+func (r *redisProvider) Type() string {
+	return model.CacheTypeRedis
 }
 
 // Close releases any resources used by the cache provider.
-func (c *redisProvider) Close() error {
-	return c.client.Close()
+func (r *redisProvider) Close() error {
+	return r.client.Close()
 }

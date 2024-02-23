@@ -136,13 +136,6 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	// Assume the first user account has not been created yet. A call to the DB will later check if this is really the case.
 	ps.isFirstUserAccount.Store(true)
 
-	// Apply options, some of the options overrides the default config actually.
-	for _, option := range options {
-		if err := option(ps); err != nil {
-			return nil, fmt.Errorf("failed to apply option: %w", err)
-		}
-	}
-
 	// the config store is not set, we need to create a new one
 	if ps.configStore == nil {
 		innerStore, err := config.NewFileStore("config.json", true)
@@ -158,34 +151,40 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 		ps.configStore = configStore
 	}
 
+	// Step 1: Cache provider.
 	cacheConfig := ps.configStore.Get().CacheSettings
-	if *cacheConfig.CacheType == "lru" {
-		// Step 1: Cache provider.
-		// At the moment we only have this implementation
-		// in the future the cache provider will be built based on the loaded config
+	if *cacheConfig.CacheType == model.CacheTypeLRU {
 		ps.cacheProvider = cache.NewProvider()
-		if err2 := ps.cacheProvider.Connect(); err2 != nil {
-			return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
-		}
-	} else if *cacheConfig.CacheType == "redis" {
-		// Step 1: Cache provider.
-		// At the moment we only have this implementation
-		// in the future the cache provider will be built based on the loaded config
+	} else if *cacheConfig.CacheType == model.CacheTypeRedis {
 		ps.cacheProvider = cache.NewRedisProvider(
-			*cacheConfig.RedisAddress,
-			*cacheConfig.RedisPassword,
-			*cacheConfig.RedisDB,
+			&cache.RedisOptions{
+				RedisAddr:      *cacheConfig.RedisAddress,
+				RedisPassword:  *cacheConfig.RedisPassword,
+				RedisDB:        *cacheConfig.RedisDB,
+				MaxIdleConns:   *cacheConfig.MaxIdleConns,
+				MaxActiveConns: *cacheConfig.MaxActiveConns,
+			},
 		)
-		if err2 := ps.cacheProvider.Connect(); err2 != nil {
-			return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
-		}
+	}
+	// The value of res is used later, after the logger is initialized.
+	// There's a certain order of steps we need to follow in the server startup phase.
+	res, err2 := ps.cacheProvider.Connect()
+	if err2 != nil {
+		return nil, fmt.Errorf("unable to connect to cache provider: %w", err2)
 	}
 
+	// Apply options, some of the options overrides the default config actually.
+	for _, option := range options {
+		if err := option(ps); err != nil {
+			return nil, fmt.Errorf("failed to apply option: %w", err)
+		}
+	}
 
 	// Step 2: Start logging.
 	if err := ps.initLogging(); err != nil {
 		return nil, fmt.Errorf("failed to initialize logging: %w", err)
 	}
+	mlog.Info("Successfully connected to cache backend", mlog.String("backend", *cacheConfig.CacheType), mlog.String("result", res))
 
 	// This is called after initLogging() to avoid a race condition.
 	mlog.Info("Server is initializing...", mlog.String("go_version", runtime.Version()))
@@ -291,7 +290,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 
 	// Needed before loading license
 	ps.statusCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
-		Name:           "status",
+		Name:           "Status",
 		Size:           model.StatusCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
@@ -301,7 +300,7 @@ func New(sc ServiceConfig, options ...Option) (*PlatformService, error) {
 	}
 
 	ps.sessionCache, err = ps.cacheProvider.NewCache(&cache.CacheOptions{
-		Name:           "session",
+		Name:           "Session",
 		Size:           model.SessionCacheSize,
 		Striped:        true,
 		StripedBuckets: maxInt(runtime.NumCPU()-1, 1),
