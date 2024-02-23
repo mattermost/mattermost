@@ -72,7 +72,7 @@ services:
     restart: 'no'
     container_name: mattermost-saml
     ports:
-      - "8484:8080"
+      - "8080:8080"
     extends:
         file: build/docker-compose.common.yml
         service: keycloak

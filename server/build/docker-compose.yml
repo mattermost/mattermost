@@ -56,7 +56,8 @@ services:
       - inbucket
       - openldap
       - elasticsearch
-    command: postgres:5432 mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200
+      - keycloak
+    command: postgres:5432 mysql:3306 minio:9000 inbucket:9001 openldap:389 elasticsearch:9200 keycloak:8080
 
 networks:
   mm-test:
