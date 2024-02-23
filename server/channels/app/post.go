@@ -357,6 +357,13 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 
 	if rpost.RootId != "" {
 		if appErr := a.ResolvePersistentNotification(c, parentPostList.Posts[post.RootId], rpost.UserId); appErr != nil {
+			a.NotificationsLog().Error("Error resolving persistent notification",
+				mlog.String("sender_id", rpost.UserId),
+				mlog.String("post_id", post.RootId),
+				mlog.String("status", model.StatusServerError),
+				mlog.String("reason", model.ReasonFetchError),
+				mlog.Err(appErr),
+			)
 			return nil, appErr
 		}
 	}
@@ -482,8 +489,8 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 		if err != nil {
 			a.NotificationsLog().Error("Missing team",
 				mlog.String("post_id", post.Id),
-				mlog.String("status", StatusServerError),
-				mlog.String("reason", ReasonFetchError),
+				mlog.String("status", model.StatusServerError),
+				mlog.String("reason", model.ReasonFetchError),
 				mlog.Err(err),
 			)
 			return err
@@ -768,20 +775,20 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 		previewedPostID = val
 	} else {
 		a.NotificationsLog().Warn("Failed to get permalink post prop",
-			mlog.String("type", TypeWebsocket),
+			mlog.String("type", model.TypeWebsocket),
 			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonServerError),
+			mlog.String("status", model.StatusServerError),
+			mlog.String("reason", model.ReasonServerError),
 		)
 		return false, nil
 	}
 
 	if !model.IsValidId(previewedPostID) {
 		a.NotificationsLog().Warn("Invalid post prop id for permalink post",
-			mlog.String("type", TypeWebsocket),
+			mlog.String("type", model.TypeWebsocket),
 			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonServerError),
+			mlog.String("status", model.StatusServerError),
+			mlog.String("reason", model.ReasonServerError),
 			mlog.String("prop_value", previewedPostID),
 		)
 		c.Logger().Warn("invalid post prop value", mlog.String("prop_key", model.PostPropsPreviewedPost), mlog.String("prop_value", previewedPostID))
@@ -792,10 +799,10 @@ func (a *App) publishWebsocketEventForPermalinkPost(c request.CTX, post *model.P
 	if err != nil {
 		if err.StatusCode == http.StatusNotFound {
 			a.NotificationsLog().Warn("permalink post not found",
-				mlog.String("type", TypeWebsocket),
+				mlog.String("type", model.TypeWebsocket),
 				mlog.String("post_id", post.Id),
-				mlog.String("status", StatusServerError),
-				mlog.String("reason", ReasonServerError),
+				mlog.String("status", model.StatusServerError),
+				mlog.String("reason", model.ReasonServerError),
 				mlog.String("referenced_post_id", previewedPostID),
 			)
 			c.Logger().Warn("permalinked post not found", mlog.String("referenced_post_id", previewedPostID))

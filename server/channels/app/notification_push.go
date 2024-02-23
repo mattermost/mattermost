@@ -108,8 +108,8 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 	if rejectionReason != "" {
 		// Notifications rejected by a plugin should not be considered errors
 		a.NotificationsLog().Info("Notification rejected by plugin",
-			mlog.String("type", TypePush),
-			mlog.String("status", StatusNotSent),
+			mlog.String("type", model.TypePush),
+			mlog.String("status", model.StatusNotSent),
 			mlog.String("reason", rejectionReason),
 			mlog.String("user_id", userID),
 		)
@@ -119,9 +119,9 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 	sessions, err := a.getMobileAppSessions(userID)
 	if err != nil {
 		a.NotificationsLog().Error("Failed to send mobile app sessions",
-			mlog.String("type", TypePush),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonFetchError),
+			mlog.String("type", model.TypePush),
+			mlog.String("status", model.StatusServerError),
+			mlog.String("reason", model.ReasonFetchError),
 			mlog.String("user_id", userID),
 			mlog.Err(err),
 		)
@@ -130,9 +130,9 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 
 	if msg == nil {
 		a.NotificationsLog().Error("Failed to parse push notification",
-			mlog.String("type", TypePush),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonServerError),
+			mlog.String("type", model.TypePush),
+			mlog.String("status", model.StatusServerError),
+			mlog.String("reason", model.ReasonServerError),
 			mlog.String("user_id", userID),
 		)
 		return model.NewAppError(
@@ -148,9 +148,9 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		// Don't send notifications to this session if it's expired or we want to skip it
 		if session.IsExpired() || (skipSessionId != "" && skipSessionId == session.Id) {
 			a.NotificationsLog().Debug("Session expired or skipped",
-				mlog.String("type", TypePush),
-				mlog.String("status", StatusNotSent),
-				mlog.String("reason", ReasonUserStatus),
+				mlog.String("type", model.TypePush),
+				mlog.String("status", model.StatusNotSent),
+				mlog.String("reason", model.ReasonUserStatus),
 				mlog.String("user_id", session.UserId),
 				mlog.String("session_id", session.Id),
 			)
@@ -165,9 +165,9 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		err := a.sendToPushProxy(tmpMessage, session)
 		if err != nil {
 			a.NotificationsLog().Error("Failed to send to push proxy",
-				mlog.String("type", TypePush),
-				mlog.String("status", StatusNotSent),
-				mlog.String("reason", ReasonPushProxyError),
+				mlog.String("type", model.TypePush),
+				mlog.String("status", model.StatusNotSent),
+				mlog.String("reason", model.ReasonPushProxyError),
 				mlog.String("ack_id", tmpMessage.AckId),
 				mlog.String("push_type", tmpMessage.Type),
 				mlog.String("user_id", session.UserId),
@@ -178,7 +178,7 @@ func (a *App) sendPushNotificationToAllSessions(msg *model.PushNotification, use
 		}
 
 		a.NotificationsLog().Trace("Notification sent to push proxy",
-			mlog.String("type", TypePush),
+			mlog.String("type", model.TypePush),
 			mlog.String("ack_id", tmpMessage.AckId),
 			mlog.String("push_type", tmpMessage.Type),
 			mlog.String("user_id", session.UserId),
@@ -477,7 +477,7 @@ func (a *App) sendToPushProxy(msg *model.PushNotification, session *model.Sessio
 	msg.ServerId = a.TelemetryId()
 
 	a.NotificationsLog().Trace("Notification will be sent",
-		mlog.String("type", TypePush),
+		mlog.String("type", model.TypePush),
 		mlog.String("ack_id", msg.AckId),
 		mlog.String("push_type", msg.Type),
 		mlog.String("user_id", session.UserId),
@@ -507,7 +507,7 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 	}
 
 	a.NotificationsLog().Trace("Notification successfully received",
-		mlog.String("type", TypePush),
+		mlog.String("type", model.TypePush),
 		mlog.String("ack_id", ack.Id),
 		mlog.String("push_type", ack.NotificationType),
 		mlog.String("post_id", ack.PostId),
@@ -519,18 +519,6 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 
 	ackJSON, err := json.Marshal(ack)
 	if err != nil {
-		a.NotificationsLog().Error("Failed to parse JSON for push proxy ack",
-			mlog.String("type", TypePush),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonServerError),
-			mlog.String("ack_id", ack.Id),
-			mlog.String("push_type", ack.NotificationType),
-			mlog.String("post_id", ack.PostId),
-			mlog.String("ack_type", ack.NotificationType),
-			mlog.String("device_type", ack.ClientPlatform),
-			mlog.Int("received_at", ack.ClientReceivedAt),
-			mlog.Err(err),
-		)
 		return fmt.Errorf("failed to encode to JSON: %w", err)
 	}
 
@@ -540,36 +528,12 @@ func (a *App) SendAckToPushProxy(ack *model.PushNotificationAck) error {
 		bytes.NewReader(ackJSON),
 	)
 	if err != nil {
-		a.NotificationsLog().Error("Failed to create request for push proxy ack",
-			mlog.String("type", TypePush),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonServerError),
-			mlog.String("ack_id", ack.Id),
-			mlog.String("push_type", ack.NotificationType),
-			mlog.String("post_id", ack.PostId),
-			mlog.String("ack_type", ack.NotificationType),
-			mlog.String("device_type", ack.ClientPlatform),
-			mlog.Int("received_at", ack.ClientReceivedAt),
-			mlog.Err(err),
-		)
-		return err
+		return fmt.Errorf("failed to create request: %w", err)
 	}
 
 	resp, err := a.Srv().pushNotificationClient.Do(request)
 	if err != nil {
-		a.NotificationsLog().Error("Failed to send push proxy ack",
-			mlog.String("type", TypePush),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonServerError),
-			mlog.String("ack_id", ack.Id),
-			mlog.String("push_type", ack.NotificationType),
-			mlog.String("post_id", ack.PostId),
-			mlog.String("ack_type", ack.NotificationType),
-			mlog.String("device_type", ack.ClientPlatform),
-			mlog.Int("received_at", ack.ClientReceivedAt),
-			mlog.Err(err),
-		)
-		return err
+		return fmt.Errorf("failed to send: %w", err)
 	}
 	defer resp.Body.Close()
 
@@ -588,26 +552,26 @@ func (a *App) getMobileAppSessions(userID string) ([]*model.Session, *model.AppE
 }
 
 func (a *App) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
-	if notifyPropsReason := DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsReason != "" {
+	if notifyPropsAllowedReason := DoesNotifyPropsAllowPushNotification(user, channelNotifyProps, post, wasMentioned, isGM); notifyPropsAllowedReason != "" {
 		a.NotificationsLog().Debug("Notification not sent - notify props",
-			mlog.String("type", TypePush),
+			mlog.String("type", model.TypePush),
 			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusNotSent),
-			mlog.String("reason", ReasonUserConfig),
-			mlog.String("notify_props_reason", notifyPropsReason),
+			mlog.String("status", model.StatusNotSent),
+			mlog.String("reason", model.ReasonUserConfig),
+			mlog.String("notify_props_reason", notifyPropsAllowedReason),
 			mlog.String("sender_id", post.UserId),
 			mlog.String("receiver_id", user.Id),
 		)
 		return false
 	}
 
-	if statusReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId); statusReason != "" {
+	if statusAllowedReason := DoesStatusAllowPushNotification(user.NotifyProps, status, post.ChannelId); statusAllowedReason != "" {
 		a.NotificationsLog().Debug("Notification not sent - status",
-			mlog.String("type", TypePush),
+			mlog.String("type", model.TypePush),
 			mlog.String("post_id", post.Id),
-			mlog.String("status", StatusNotSent),
-			mlog.String("reason", ReasonUserConfig),
-			mlog.String("status_reason", statusReason),
+			mlog.String("status", model.StatusNotSent),
+			mlog.String("reason", model.ReasonUserConfig),
+			mlog.String("status_reason", statusAllowedReason),
 			mlog.String("sender_id", post.UserId),
 			mlog.String("receiver_id", user.Id),
 			mlog.String("receiver_status", status.Status),
@@ -726,10 +690,10 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 	pushResponse, err := a.rawSendToPushProxy(msg)
 	if err != nil {
 		a.NotificationsLog().Error("Failed to send test notification to push proxy",
-			mlog.String("type", TypePush),
+			mlog.String("type", model.TypePush),
 			mlog.String("push_type", msg.Type),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonPushProxyError),
+			mlog.String("status", model.StatusServerError),
+			mlog.String("reason", model.ReasonPushProxyError),
 			mlog.String("device_id", msg.DeviceId),
 			mlog.Err(err),
 		)
@@ -741,10 +705,10 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 		return "false"
 	case model.PushStatusFail:
 		a.NotificationsLog().Error("Push proxy failed to send test notification",
-			mlog.String("type", TypePush),
+			mlog.String("type", model.TypePush),
 			mlog.String("push_type", msg.Type),
-			mlog.String("status", StatusServerError),
-			mlog.String("reason", ReasonPushProxyError),
+			mlog.String("status", model.StatusServerError),
+			mlog.String("reason", model.ReasonPushProxyError),
 			mlog.String("device_id", msg.DeviceId),
 			mlog.String("push_response", pushResponse[model.PushStatusErrorMsg]),
 		)
