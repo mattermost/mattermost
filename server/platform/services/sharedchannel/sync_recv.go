@@ -181,7 +181,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 
 	var userSaved *model.User
 	if euser == nil {
-		if userSaved, err = scs.insertSyncUser(user, channel, rc); err != nil {
+		if userSaved, err = scs.insertSyncUser(c, user, channel, rc); err != nil {
 			return nil, err
 		}
 	} else {
@@ -219,7 +219,7 @@ func (scs *Service) upsertSyncUser(c request.CTX, user *model.User, channel *mod
 	return userSaved, nil
 }
 
-func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
+func (scs *Service) insertSyncUser(rctx request.CTX, user *model.User, channel *model.Channel, rc *model.RemoteCluster) (*model.User, error) {
 	var err error
 	var userSaved *model.User
 	var suffix string
@@ -247,7 +247,7 @@ func (scs *Service) insertSyncUser(user *model.User, channel *model.Channel, rc 
 		user.Username = mungUsername(user.Username, rc.Name, suffix, model.UserNameMaxLength)
 		user.Email = mungEmail(rc.Name, model.UserEmailMaxLength)
 
-		if userSaved, err = scs.server.GetStore().User().Save(user); err != nil {
+		if userSaved, err = scs.server.GetStore().User().Save(rctx, user); err != nil {
 			field, ok := isConflictError(err)
 			if !ok {
 				break
@@ -317,7 +317,7 @@ func (scs *Service) updateSyncUser(rctx request.CTX, patch *model.UserPatch, use
 				)
 			}
 		} else {
-			scs.app.InvalidateCacheForUser(update.New.Id)
+			scs.platform.InvalidateCacheForUser(update.New.Id)
 			scs.app.NotifySharedChannelUserUpdate(update.New)
 			return update.New, nil
 		}

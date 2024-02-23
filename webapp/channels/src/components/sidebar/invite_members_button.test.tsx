@@ -15,11 +15,6 @@ describe('components/sidebar/invite_members_button', () => {
     // required state to mount using the provider
     const state = {
         entities: {
-            general: {
-                config: {
-                    FeatureFlagInviteMembersButton: 'user_icon',
-                },
-            },
             teams: {
                 teams: {
                     team_id: {id: 'team_id', delete_at: 0},

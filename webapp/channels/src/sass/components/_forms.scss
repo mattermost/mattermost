@@ -65,7 +65,7 @@
             font-size: 1.05em;
             font-style: italic;
             font-weight: normal;
-            opacity: 0.6;
+            opacity: 0.73;
         }
     }
 
@@ -185,14 +185,15 @@
         &::-moz-placeholder,
         &:-moz-placeholder {
             color: inherit !important;
-            opacity: 0.6;
+            opacity: 0.73;
         }
     }
 }
 
 .form-control[disabled],
 .form-control[readonly],
-fieldset[disabled] .form-control {
+fieldset[disabled] .form-control,
+.backstage-form .form-control[disabled] {
     background-color: #f9f9f9;
 }
 

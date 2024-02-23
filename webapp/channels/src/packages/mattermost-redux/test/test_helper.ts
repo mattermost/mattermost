@@ -12,6 +12,7 @@ import type {FileInfo} from '@mattermost/types/files';
 import type {Group} from '@mattermost/types/groups';
 import type {Command, DialogElement, OAuthApp} from '@mattermost/types/integrations';
 import type {Post, PostMetadata} from '@mattermost/types/posts';
+import type {Reaction} from '@mattermost/types/reactions';
 import type {Role} from '@mattermost/types/roles';
 import type {Scheme} from '@mattermost/types/schemes';
 import type {Team, TeamMembership} from '@mattermost/types/teams';
@@ -719,6 +720,16 @@ class TestHelper {
             permissions: [],
             scheme_managed: false,
             built_in: false,
+            ...override,
+        };
+    }
+
+    getReactionMock(override: Partial<Reaction> = {}): Reaction {
+        return {
+            user_id: '',
+            post_id: '',
+            emoji_name: '',
+            create_at: 0,
             ...override,
         };
     }

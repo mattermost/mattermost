@@ -180,6 +180,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		s[filestoreStatusKey] = model.StatusOk
 		appErr := c.App.TestFileStoreConnection()
 		if appErr != nil {
+			c.Logger.Warn("Unable to test filestore connection.", mlog.Err(appErr))
 			s[filestoreStatusKey] = model.StatusUnhealthy
 			s[model.STATUS] = model.StatusUnhealthy
 		}
@@ -195,10 +196,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 
 	s["ActiveSearchBackend"] = c.App.ActiveSearchBackend()
 
-	// Checking if mattermost is running as root
-	s["root_status"] = strconv.FormatBool(os.Geteuid() == 0)
-
-	if s[model.STATUS] != model.StatusOk {
+	if s[model.STATUS] != model.StatusOk && r.FormValue("use_rest_semantics") != "true" {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 	w.Write([]byte(model.MapToJSON(s)))
@@ -971,7 +969,7 @@ func updateViewedProductNotices(c *Context, w http.ResponseWriter, r *http.Reque
 	defer c.LogAuditRec(auditRec)
 	c.LogAudit("attempt")
 
-	ids, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	ids, err := model.SortedArrayFromJSON(r.Body)
 	if err != nil {
 		c.Err = model.NewAppError("updateViewedProductNotices", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return

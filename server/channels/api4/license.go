@@ -351,10 +351,8 @@ func requestTrueUpReview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// True-up is only enabled when telemetry is disabled.
-	// When telemetry is enabled, we already have all the data necessary for true-up reviews to be completed.
-	telemetryEnabled := c.App.Config().LogSettings.EnableDiagnostics
-	if telemetryEnabled != nil && !*telemetryEnabled {
+	// Only report the true up review to CWS if the connection is available.
+	if err := c.App.Cloud().CheckCWSConnection(c.AppContext.Session().UserId); err == nil {
 		err = c.App.Cloud().SubmitTrueUpReview(c.AppContext.Session().UserId, profileMap)
 		if err != nil {
 			c.Err = model.NewAppError("requestTrueUpReview", "api.license.true_up_review.failed_to_submit", nil, err.Error(), http.StatusInternalServerError)
