@@ -243,13 +243,10 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
                         value={getValueOfSendMobileNotificationForSelect(this.props.pushActivity)}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                     />
-                    <hr/>
                 </React.Fragment>
             );
             maxizimedSettingInputs.push(mobileNotificationSection);
         }
-
-        maxizimedSettingInputs.push(<hr key='desktopAndMobileNotificationDivider'/>);
 
         // Thread notifications section for desktop and mobile
         if (this.props.sendPushNotifications && this.props.isCollapsedThreadsEnabled && this.props.desktopActivity === NotificationLevels.MENTION) {
@@ -257,6 +254,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
 
             const threadNotificationSection = (
                 <Fragment key='threadNotificationSection'>
+                    <hr/>
                     <div className='checkbox single-checkbox'>
                         <label>
                             <input
