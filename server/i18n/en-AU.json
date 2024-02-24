@@ -10361,5 +10361,89 @@
   {
     "id": "app.save_report_chunk.unsupported_format",
     "translation": "Unsupported report format."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Outgoing OAuth connections are not available on this server."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "There was an error while updating the outgoing OAuth connection."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Invalid input parameters."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "There is no outgoing OAuth connection for the provided audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Outgoing OAuth connections are not available on this server."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "The outgoing OAuth connection for the provided audience was not found."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Your licence does not support outgoing OAuth connections."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "There is already an outgoing OAuth connection for the provided audience: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "The provided audience is invalid: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "The provided audience is invalid: {{ .Error }}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "An error occurred while creating the outgoing OAuth connection."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "An error occurred while deleting the outgoing OAuth connection."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "An error occurred while validating the outgoing OAuth connection credentials."
+  },
+  {
+    "id": "api.emoji.upload.seek.app_error",
+    "translation": "Unable to seek to file start."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Invalid email_token"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "An error occurred while retrieving the outgoing OAuth connection for the audience."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "There is already an outgoing OAuth connection for the provided audience: {{ .Audience }}"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Couldn't retrieve credentials with the specified connection configuration."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "An error occurred while authenticating the outgoing oauth connection: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "There is already an outgoing OAuth connection for the provided audience."
   }
 ]
