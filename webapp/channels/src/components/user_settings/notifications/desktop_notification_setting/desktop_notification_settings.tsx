@@ -544,14 +544,29 @@ function getValueOfSendMobileNotificationForSelect(pushActivity: UserNotifyProps
 }
 
 function shouldShowSendMobileNotificationsForSelect(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push'], desktopAndMobileSettingsDifferent: boolean): boolean {
+    let shouldShow = true;
+
     if (desktopActivity === NotificationLevels.ALL || desktopActivity === NotificationLevels.MENTION) {
-        if (desktopAndMobileSettingsDifferent === false) {
-            return true;
+        if (desktopAndMobileSettingsDifferent === true) {
+            if (pushActivity === NotificationLevels.ALL || pushActivity === NotificationLevels.MENTION) {
+                shouldShow = true;
+            } else if (pushActivity === NotificationLevels.NONE) {
+                shouldShow = false;
+            }
+        } else {
+            shouldShow = true;
         }
-        if (pushActivity === NotificationLevels.ALL || pushActivity === NotificationLevels.MENTION) {
-            return true;
+    } else if (desktopActivity === NotificationLevels.NONE) {
+        if (desktopAndMobileSettingsDifferent === true) {
+            if (pushActivity === NotificationLevels.ALL || pushActivity === NotificationLevels.MENTION) {
+                shouldShow = true;
+            } else if (pushActivity === NotificationLevels.NONE) {
+                shouldShow = false;
+            }
+        } else {
+            shouldShow = false;
         }
-        return false;
     }
-    return false;
+
+    return shouldShow;
 }
