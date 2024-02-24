@@ -489,7 +489,10 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
-	a.invalidateCacheForChannelPosts(channel.Id)
+	if post.IsPinned {
+		a.Srv().Store().Channel().InvalidatePinnedPostCount(channel.Id)
+	}
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	if _, err := a.SendNotifications(c, post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
