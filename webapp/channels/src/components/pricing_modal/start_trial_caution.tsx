@@ -16,7 +16,7 @@ font-weight: 400;
 font-size: 10px;
 line-height: 14px;
 letter-spacing: 0.02em;
-color: rgba(var(--center-channel-color-rgb), 0.56);
+color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const Span = styled.span`

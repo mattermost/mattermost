@@ -79,7 +79,7 @@ const CreateComment = forwardRef<HTMLDivElement, Props>(({
                 <div className='channel-archived-warning__content'>
                     <ArchiveOutlineIcon
                         size={20}
-                        color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                        color={'rgba(var(--center-channel-color-rgb), 0.75)'}
                     />
                     <FormattedMarkdownMessage
                         id='threadFromArchivedChannelMessage'

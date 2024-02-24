@@ -10,9 +10,13 @@
 // Stage: @prod
 // Group: @channels @enterprise @ldap
 
+import {Channel} from '@mattermost/types/channels';
+import {Team} from '@mattermost/types/teams';
+import {UserProfile} from '@mattermost/types/users';
+import {AdminConfig} from '@mattermost/types/config';
 import * as TIMEOUTS from '../../../../fixtures/timeouts';
 
-function setLDAPTestSettings(config) {
+function setLDAPTestSettings(config: AdminConfig) {
     return {
         siteName: config.TeamSettings.SiteName,
         siteUrl: config.ServiceSettings.SiteURL,
@@ -25,9 +29,9 @@ function setLDAPTestSettings(config) {
 // assumes that E20 license is uploaded
 // for setup with AWS: Follow the instructions mentioned in the mattermost/platform-private/config/ldap-test-setup.txt file
 context('ldap', () => {
-    let testChannel;
-    let testTeam;
-    let testUser;
+    let testChannel: Channel;
+    let testTeam: Team;
+    let testUser: UserProfile;
 
     describe('LDAP Group Sync Automated Tests', () => {
         beforeEach(() => {
@@ -161,7 +165,7 @@ context('ldap', () => {
         });
 
         it('MM-T2621 - Team List Management Column', () => {
-            let testTeam2;
+            let testTeam2: Team;
 
             // # Go to testTeam config page
             cy.visit(`/admin_console/user_management/teams/${testTeam.id}`);

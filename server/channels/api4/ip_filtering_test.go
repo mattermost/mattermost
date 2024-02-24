@@ -233,10 +233,6 @@ func Test_applyIPFilters(t *testing.T) {
 			CloudCustomerInfo: model.CloudCustomerInfo{Email: "test@localhost"},
 		}, nil)
 
-		cloudImpl := th.App.Srv().Cloud
-		defer func() {
-			th.App.Srv().Cloud = cloudImpl
-		}()
 		th.App.Srv().Cloud = cloud
 
 		th.Client.Login(context.Background(), th.SystemAdminUser.Email, th.SystemAdminUser.Password)

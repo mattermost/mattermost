@@ -271,6 +271,8 @@
 
             When left blank, sorting is done by username.
 
+            Note that when "last_activity_at" is specified, an additional "last_activity_at" field will be returned in the response packet.
+
             __Minimum server version__: 4.0
 
             ##### `in_channel`

@@ -6,7 +6,6 @@ package api4
 import (
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -220,8 +219,7 @@ func createOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	var inputConnection model.OutgoingOAuthConnection
-	bodyReader := io.LimitReader(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err := json.NewDecoder(bodyReader).Decode(&inputConnection); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.create_connection.input_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -271,8 +269,7 @@ func updateOutgoingOAuthConnection(c *Context, w http.ResponseWriter, r *http.Re
 	}
 
 	var inputConnection model.OutgoingOAuthConnection
-	bodyReader := io.LimitReader(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err := json.NewDecoder(bodyReader).Decode(&inputConnection); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.update_connection.input_error", nil, err.Error(), http.StatusBadRequest)
 		return
 	}
@@ -376,8 +373,7 @@ func validateOutgoingOAuthConnectionCredentials(c *Context, w http.ResponseWrite
 	// connection url.
 	var inputConnection *model.OutgoingOAuthConnection
 
-	bodyReader := io.LimitReader(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
-	if err := json.NewDecoder(bodyReader).Decode(&inputConnection); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&inputConnection); err != nil {
 		c.Err = model.NewAppError(whereOutgoingOAuthConnection, "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error", nil, err.Error(), http.StatusBadRequest)
 		w.WriteHeader(c.Err.StatusCode)
 		return

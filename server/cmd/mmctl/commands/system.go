@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 
+	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
 )
@@ -150,7 +151,10 @@ func systemVersionCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 func systemStatusCmdF(c client.Client, cmd *cobra.Command, _ []string) error {
 	printer.SetSingle(true)
 
-	status, _, err := c.GetPingWithFullServerStatus(context.TODO())
+	status, _, err := c.GetPingWithOptions(context.TODO(), model.SystemPingOptions{
+		FullStatus:    true,
+		RESTSemantics: true,
+	})
 	if err != nil {
 		return fmt.Errorf("unable to fetch server status: %w", err)
 	}

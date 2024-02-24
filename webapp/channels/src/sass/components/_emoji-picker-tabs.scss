@@ -10,15 +10,15 @@
 
             svg,
             div {
-                color: rgba(var(--center-channel-color-rgb), 0.56);
-                fill: rgba(var(--center-channel-color-rgb), 0.56);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
+                fill: rgba(var(--center-channel-color-rgb), 0.64);
             }
 
             &:hover {
                 svg,
                 div {
-                    color: rgba(var(--center-channel-color-rgb), 0.72);
-                    fill: rgba(var(--center-channel-color-rgb), 0.72);
+                    color: rgba(var(--center-channel-color-rgb), 0.8);
+                    fill: rgba(var(--center-channel-color-rgb), 0.8);
                 }
             }
         }

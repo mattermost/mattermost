@@ -14,6 +14,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
+	"github.com/mattermost/mattermost/server/v8/einterfaces"
 	"github.com/mattermost/mattermost/server/v8/platform/services/remotecluster"
 	"github.com/mattermost/mattermost/server/v8/platform/shared/filestore"
 )
@@ -42,6 +43,7 @@ type ServerIface interface {
 	GetStore() store.Store
 	Log() *mlog.Logger
 	GetRemoteClusterService() remotecluster.RemoteClusterServiceIFace
+	GetMetrics() einterfaces.MetricsInterface
 }
 
 type PlatformIface interface {
@@ -261,7 +263,6 @@ func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channe
 }
 
 func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) {
-	scs.platform.InvalidateCacheForChannel(channel)
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)

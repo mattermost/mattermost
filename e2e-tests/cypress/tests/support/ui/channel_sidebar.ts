@@ -1,9 +1,18 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {ChainableT} from 'tests/types';
 import {getRandomId} from '../../utils';
 
-Cypress.Commands.add('uiCreateSidebarCategory', (categoryName = `category-${getRandomId()}`) => {
+/**
+ * Create a new category
+ *
+ * @param [categoryName] category's name
+ *
+ * @example
+ *   cy.uiCreateSidebarCategory();
+ */
+function uiCreateSidebarCategory(categoryName: string = `category-${getRandomId()}`): ChainableT<any> {
     // # Click the New Category/Channel Dropdown button
     cy.uiGetLHSAddChannelButton().click();
 
@@ -21,9 +30,23 @@ Cypress.Commands.add('uiCreateSidebarCategory', (categoryName = `category-${getR
     cy.contains('.SidebarChannelGroup', categoryName, {matchCase: false});
 
     return cy.wrap({displayName: categoryName});
-});
+}
 
-Cypress.Commands.add('uiMoveChannelToCategory', (channelName, categoryName, newCategory = false, isChannelId = false) => {
+Cypress.Commands.add('uiCreateSidebarCategory', uiCreateSidebarCategory);
+
+/**
+ * Move a channel to a category.
+ * Open the channel menu, select Move to, and click either New Category or on the category.
+ *
+ * @param channelName channel's name
+ * @param categoryName category's name
+ * @param [newCategory=false] create a new category to move into
+ * @param [isChannelId=false] whether channelName is a channel ID
+ *
+ * @example
+ *   cy.uiMoveChannelToCategory('Town Square', 'Favorites');
+ */
+function uiMoveChannelToCategory(channelName: string, categoryName: string, newCategory = false, isChannelId = false): ChainableT<any> {
     // # Open the channel menu, select Move to
     cy.uiGetChannelSidebarMenu(channelName, isChannelId).within(() => {
         cy.findByText('Move to...').should('be.visible').trigger('mouseover');
@@ -48,4 +71,16 @@ Cypress.Commands.add('uiMoveChannelToCategory', (channelName, categoryName, newC
     }
 
     return cy.wrap({displayName: categoryName});
-});
+}
+
+Cypress.Commands.add('uiMoveChannelToCategory', uiMoveChannelToCategory);
+
+declare global {
+    // eslint-disable-next-line @typescript-eslint/no-namespace
+    namespace Cypress {
+        interface Chainable {
+            uiCreateSidebarCategory: typeof uiCreateSidebarCategory;
+            uiMoveChannelToCategory: typeof uiMoveChannelToCategory;
+        }
+    }
+}

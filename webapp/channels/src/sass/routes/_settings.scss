@@ -212,7 +212,7 @@
             .settings-content {
                 overflow: auto;
                 flex: 1;
-                padding: 0 20px 30px;
+                padding: 20px 30px;
 
                 .modal-header {
                     display: none;
@@ -488,8 +488,13 @@
         }
 
         .nav-pills > li button {
-            color: rgba(var(--sidebar-text-rgb), 0.6);
+            color: rgba(var(--sidebar-text-rgb), 0.75);
         }
+    }
+
+    .nav {
+        position: fixed;
+        margin: 0;
     }
 
     .nav-pills {
@@ -570,6 +575,7 @@
 }
 
 .tab-header {
+    margin-top: 0;
     margin-bottom: 1em;
     font-weight: 600;
 }

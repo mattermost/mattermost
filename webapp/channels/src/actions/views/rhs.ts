@@ -9,7 +9,6 @@ import type {Post} from '@mattermost/types/posts';
 
 import {SearchTypes} from 'mattermost-redux/action_types';
 import {getChannel} from 'mattermost-redux/actions/channels';
-import * as PostActions from 'mattermost-redux/actions/posts';
 import {getPostsByIds, getPost as fetchPost} from 'mattermost-redux/actions/posts';
 import {
     clearSearch,
@@ -40,7 +39,6 @@ import type {RhsState} from 'types/store/rhs';
 function selectPostFromRightHandSideSearchWithPreviousState(post: Post, previousRhsState?: RhsState): ActionFuncAsync<boolean, GlobalState> {
     return async (dispatch, getState) => {
         const postRootId = post.root_id || post.id;
-        await dispatch(PostActions.getPostThread(postRootId));
         const state = getState();
 
         dispatch({

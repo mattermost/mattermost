@@ -38,6 +38,7 @@ function mapStateToProps(state: GlobalState) {
     const products = state.plugins.components.Product || [];
 
     const [unreadTeamsSet, mentionsInTeamMap, teamHasUrgentMap] = getTeamsUnreadStatuses(state);
+    const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
 
     return {
         currentTeamId: getCurrentTeamId(state),
@@ -51,6 +52,7 @@ function mapStateToProps(state: GlobalState) {
         unreadTeamsSet,
         mentionsInTeamMap,
         teamHasUrgentMap,
+        enableWebSocketEventScope,
     };
 }
 

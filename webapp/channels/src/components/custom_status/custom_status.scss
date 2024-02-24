@@ -2,7 +2,7 @@
     position: absolute;
     top: 16px;
     right: 20px;
-    color: rgba(var(--center-channel-color-rgb), 0.72);
+    color: rgba(var(--center-channel-color-rgb), 0.64);
     opacity: 1;
 }
 
@@ -53,7 +53,7 @@
 
             button.dateTime__calendar-icon {
                 margin: 0 8px 0 0;
-                color: rgba(var(--center-channel-color-rgb), 0.72);
+                color: rgba(var(--center-channel-color-rgb), 0.64);
             }
 
             input#customStatus__calendar-input {
@@ -107,13 +107,13 @@
         border: none;
         background: transparent;
         border-radius: 4px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
-        fill: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
+        fill: rgba(var(--center-channel-color-rgb), 0.64);
 
         &:hover {
             background: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
-            fill: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), 0.8);
+            fill: rgba(var(--center-channel-color-rgb), 0.8);
         }
 
         &:active,
@@ -150,7 +150,7 @@
 .status-dropdown-menu,
 .StatusModal__input {
     .input-clear-x {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
 
         .icon {
             font-size: 20px;
@@ -249,7 +249,7 @@
 
     &__duration {
         margin-left: 8px;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 14px;
         font-weight: 400;
         line-height: 14px;
@@ -351,7 +351,7 @@ span.emoticon[style]:hover {
             left: 12px;
             padding: 0 4px;
             background: var(--center-channel-bg);
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
             font-size: 10px;
             letter-spacing: 0.03em;
             line-height: 16px;

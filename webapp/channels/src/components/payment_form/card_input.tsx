@@ -144,7 +144,7 @@ class CardInput extends React.PureComponent<Props, State> {
                     fontSmoothing: 'antialiased',
                     color: theme.centerChannelColor,
                     '::placeholder': {
-                        color: `rgba(${toRgbValues(theme.centerChannelColor)}, 0.64)`,
+                        color: `rgba(${toRgbValues(theme.centerChannelColor)}, 0.75)`,
                     },
                 },
                 invalid: {

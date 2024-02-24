@@ -96,11 +96,8 @@ func (s *SearchPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.
 	return post, err
 }
 
-func (s SearchPostStore) Save(post *model.Post) (*model.Post, error) {
-	// TODO: Use the actuall request context from the App layer
-	// https://mattermost.atlassian.net/browse/MM-55735
-	rctx := request.EmptyContext(s.rootStore.Logger())
-	npost, err := s.PostStore.Save(post)
+func (s SearchPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
+	npost, err := s.PostStore.Save(rctx, post)
 
 	if err == nil {
 		s.indexPost(rctx, npost)

@@ -872,7 +872,7 @@ func createSharedTestChannel(ss store.Store, rctx request.CTX, name string, shar
 		CreatorId:   model.NewId(),
 		Shared:      model.NewBool(shared),
 	}
-	channel, err := ss.Channel().Save(channel, 10000)
+	channel, err := ss.Channel().Save(rctx, channel, 10000)
 	if err != nil {
 		return nil, err
 	}

@@ -158,7 +158,7 @@ context('ldap', () => {
         before(() => {
             cy.apiAdminLogin();
 
-            cy.apiGetTeamByName(testSettings.teamName).then(({team}) => {
+            cy.apiGetTeamByName(testSettings.teamName).then((team) => {
                 cy.apiGetChannelByName(testSettings.teamName, 'town-square').then(({channel}) => {
                     cy.apiGetUserByEmail(guest1.email).then(({user}) => {
                         cy.apiAddUserToTeam(team.id, user.id).then(() => {
@@ -220,7 +220,7 @@ function setLDAPTestSettings(config) {
 }
 
 function disableOnboardingTaskList(ldapLogin) {
-    cy.apiLogin(ldapLogin).then(({user}) => {
+    cy.apiLogin(ldapLogin).then((user) => {
         cy.apiSaveOnboardingTaskListPreference(user.id, 'onboarding_task_list_open', 'false');
         cy.apiSaveOnboardingTaskListPreference(user.id, 'onboarding_task_list_show', 'false');
         cy.apiSaveSkipStepsPreference(user.id, 'true');
@@ -228,13 +228,15 @@ function disableOnboardingTaskList(ldapLogin) {
 }
 
 function removeUserFromAllTeams(testUser) {
-    cy.apiGetUsersByUsernames([testUser.username]).then(({users}) => {
-        users.forEach((user) => {
-            cy.apiGetTeamsForUser(user.id).then(({teams}) => {
-                teams.forEach((team) => {
-                    cy.apiDeleteUserFromTeam(team.id, user.id);
+    cy.apiGetUsersByUsernames([testUser.username]).then((users) => {
+        if (users.length > 0) {
+            users.forEach((user) => {
+                cy.apiGetTeamsForUser(user.id).then((teams) => {
+                    teams.forEach((team) => {
+                        cy.apiDeleteUserFromTeam(team.id, user.id);
+                    });
                 });
             });
-        });
+        }
     });
 }

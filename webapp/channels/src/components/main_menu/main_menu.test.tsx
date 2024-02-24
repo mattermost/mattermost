@@ -52,12 +52,7 @@ describe('components/Menu', () => {
         moreTeamsToJoin: false,
         pluginMenuItems: [],
         isMentionSearch: false,
-        isFirstAdmin: false,
         intl: createIntl({locale: 'en', defaultLocale: 'en', timeZone: 'Etc/UTC', textComponent: 'span'}),
-        teamUrl: '/team',
-        location: {
-            pathname: '/team',
-        },
         guestAccessEnabled: true,
         canInviteTeamMember: true,
         actions: {

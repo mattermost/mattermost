@@ -68,6 +68,7 @@ describe('components/threading/ThreadViewer', () => {
         appsEnabled: true,
         rootPostId: post.id,
         isThreadView: true,
+        enableWebSocketEventScope: false,
     };
 
     test('should match snapshot', async () => {

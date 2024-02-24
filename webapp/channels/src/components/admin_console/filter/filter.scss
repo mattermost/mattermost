@@ -106,7 +106,7 @@
                 border: 1px solid rgba(var(--sys-center-channel-color-rgb), 0.16);
                 background: var(--sys-center-channel-bg);
                 border-radius: 4px;
-                color: rgba(var(--sys-center-channel-color-rgb), 0.64);
+                color: rgba(var(--sys-center-channel-color-rgb), 0.75);
                 font-size: 12px;
 
                 &:hover {
@@ -156,7 +156,7 @@
                 position: relative;
                 top: -4px;
                 margin: 0 8px 0 2px;
-                opacity: 0.64;
+                opacity: 0.73;
                 vertical-align: bottom;
 
                 &:checked {

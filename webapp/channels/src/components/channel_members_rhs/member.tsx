@@ -52,7 +52,7 @@ const DisplayName = styled.span`
 
 const Username = styled.span`
     margin-left: 4px;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 18px;
 `;
@@ -72,7 +72,7 @@ const SendMessage = styled.button`
     }
 
     .icon {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.64);
         font-size: 14.4px;
     };
 `;
@@ -247,7 +247,7 @@ export default styled(Member)`
 
     &:hover {
         background: rgba(var(--center-channel-color-rgb), 0.08);
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
 
         ${SendMessage} {
             display: block;

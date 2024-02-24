@@ -29,13 +29,12 @@
             background-color: var(--center-channel-bg);
 
             svg {
-                fill: rgba(var(--center-channel-color-rgb), 0.72);
+                fill: rgba(var(--center-channel-color-rgb), 0.75);
             }
         }
 
         svg {
-            padding-top: 2px; /* Vertical alignment fix */
-            fill: rgba(var(--center-channel-color-rgb), 0.56);
+            fill: rgba(var(--center-channel-color-rgb), 0.75);
             vertical-align: middle;
         }
 
