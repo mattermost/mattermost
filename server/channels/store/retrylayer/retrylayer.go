@@ -13340,6 +13340,27 @@ func (s *RetryLayerUserStore) GetNewUsersForTeam(teamID string, offset int, limi
 
 }
 
+func (s *RetryLayerUserStore) GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userID string, createAt int64) (string, int64, error) {
+
+	tries := 0
+	for {
+		result, resultVar1, err := s.UserStore.GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userID, createAt)
+		if err == nil {
+			return result, resultVar1, nil
+		}
+		if !isRepeatableError(err) {
+			return result, resultVar1, err
+		}
+		tries++
+		if tries >= 3 {
+			err = errors.Wrap(err, "giving up after 3 consecutive repeatable transaction failures")
+			return result, resultVar1, err
+		}
+		timepkg.Sleep(100 * timepkg.Millisecond)
+	}
+
+}
+
 func (s *RetryLayerUserStore) GetProfileByGroupChannelIdsForUser(userID string, channelIds []string) (map[string][]*model.User, error) {
 
 	tries := 0

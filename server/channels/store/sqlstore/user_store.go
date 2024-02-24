@@ -2415,3 +2415,42 @@ func (us SqlUserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.
 
 	return userResults, nil
 }
+
+func (us SqlUserStore) GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userId string, createAt int64) (string, int64, error) {
+	var users []model.User
+
+	query := us.getQueryBuilder().
+		Select("Id", "CreateAt").
+		From("Users").
+		Where(
+			sq.Or{
+				sq.Gt{"CreateAt": createAt},
+				sq.And{
+					sq.Eq{"CreateAt": createAt},
+					sq.Gt{"Id": userId},
+				},
+			},
+		).
+		OrderBy("CreateAt ASC", "Id ASC").
+		Limit(100)
+
+	err := us.GetReplicaX().SelectBuilder(&users, query)
+	if err != nil {
+		return "", 0, errors.Wrap(err, "failed to get next user id and create at for combine desktop mobile user thread setting migration")
+	}
+
+	if len(users) == 0 {
+		return "", 0, nil
+	}
+
+	nextUser := users[len(users)-1]
+	return nextUser.Id, nextUser.CreateAt, nil
+}
+
+func (us SqlUserStore) CombineDesktopMobileUserThreadsSetting(userID string, createAt int64) error {
+	var builder Builder
+
+	if us.DriverName() == model.DatabaseDriverPostgres {
+		builder = us.getQueryBuilder().Update("Users")
+	}
+}

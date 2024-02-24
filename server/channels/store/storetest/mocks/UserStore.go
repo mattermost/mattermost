@@ -767,6 +767,37 @@ func (_m *UserStore) GetNewUsersForTeam(teamID string, offset int, limit int, vi
 	return r0, r1
 }
 
+// GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration provides a mock function with given fields: userID, createAt
+func (_m *UserStore) GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userID string, createAt int64) (string, int64, error) {
+	ret := _m.Called(userID, createAt)
+
+	var r0 string
+	var r1 int64
+	var r2 error
+	if rf, ok := ret.Get(0).(func(string, int64) (string, int64, error)); ok {
+		return rf(userID, createAt)
+	}
+	if rf, ok := ret.Get(0).(func(string, int64) string); ok {
+		r0 = rf(userID, createAt)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, int64) int64); ok {
+		r1 = rf(userID, createAt)
+	} else {
+		r1 = ret.Get(1).(int64)
+	}
+
+	if rf, ok := ret.Get(2).(func(string, int64) error); ok {
+		r2 = rf(userID, createAt)
+	} else {
+		r2 = ret.Error(2)
+	}
+
+	return r0, r1, r2
+}
+
 // GetProfileByGroupChannelIdsForUser provides a mock function with given fields: userID, channelIds
 func (_m *UserStore) GetProfileByGroupChannelIdsForUser(userID string, channelIds []string) (map[string][]*model.User, error) {
 	ret := _m.Called(userID, channelIds)

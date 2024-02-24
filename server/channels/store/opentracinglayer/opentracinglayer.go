@@ -11681,6 +11681,24 @@ func (s *OpenTracingLayerUserStore) GetNewUsersForTeam(teamID string, offset int
 	return result, err
 }
 
+func (s *OpenTracingLayerUserStore) GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userID string, createAt int64) (string, int64, error) {
+	origCtx := s.Root.Store.Context()
+	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration")
+	s.Root.Store.SetContext(newCtx)
+	defer func() {
+		s.Root.Store.SetContext(origCtx)
+	}()
+
+	defer span.Finish()
+	result, resultVar1, err := s.UserStore.GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userID, createAt)
+	if err != nil {
+		span.LogFields(spanlog.Error(err))
+		ext.Error.Set(span, true)
+	}
+
+	return result, resultVar1, err
+}
+
 func (s *OpenTracingLayerUserStore) GetProfileByGroupChannelIdsForUser(userID string, channelIds []string) (map[string][]*model.User, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "UserStore.GetProfileByGroupChannelIdsForUser")

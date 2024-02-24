@@ -482,6 +482,8 @@ type UserStore interface {
 	RefreshPostStatsForUsers() error
 	GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error)
 	GetUserCountForReport(filter *model.UserReportOptions) (int64, error)
+	GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userID string, createAt int64) (string, int64, error)
+	CombineDesktopMobileUserThreadsSetting(userID string, createAt int64) error
 }
 
 type BotStore interface {

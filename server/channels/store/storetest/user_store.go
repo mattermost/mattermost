@@ -99,6 +99,9 @@ func TestUserStore(t *testing.T, rctx request.CTX, ss store.Store, s SqlStore) {
 	t.Run("GetUsersWithInvalidEmails", func(t *testing.T) { testGetUsersWithInvalidEmails(t, rctx, ss) })
 	t.Run("UpdateLastLogin", func(t *testing.T) { testUpdateLastLogin(t, rctx, ss) })
 	t.Run("GetUserReport", func(t *testing.T) { testGetUserReport(t, rctx, ss, s) })
+	t.Run("GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration", func(t *testing.T) {
+		testGetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(t, rctx, ss)
+	})
 }
 
 func testUserStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
@@ -6582,4 +6585,13 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 		require.NoError(t, err)
 		require.Len(t, userReport, 11)
 	})
+}
+
+func testGetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(t *testing.T, rctx request.CTX, ss store.Store) {
+	user1, err := ss.User().Save(rctx, &model.User{
+		Email:    MakeEmail(),
+		Username: "u1" + model.NewId(),
+	})
+	require.NoError(t, err)
+	defer func() { require.NoError(t, ss.User().PermanentDelete(user1.Id)) }()
 }

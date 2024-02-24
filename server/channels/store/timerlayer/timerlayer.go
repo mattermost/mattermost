@@ -10517,6 +10517,22 @@ func (s *TimerLayerUserStore) GetNewUsersForTeam(teamID string, offset int, limi
 	return result, err
 }
 
+func (s *TimerLayerUserStore) GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userID string, createAt int64) (string, int64, error) {
+	start := time.Now()
+
+	result, resultVar1, err := s.UserStore.GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration(userID, createAt)
+
+	elapsed := float64(time.Since(start)) / float64(time.Second)
+	if s.Root.Metrics != nil {
+		success := "false"
+		if err == nil {
+			success = "true"
+		}
+		s.Root.Metrics.ObserveStoreMethodDuration("UserStore.GetNextUserIdAndCreateAtForCombineDesktopMobileUserThreadSettingMigration", success, elapsed)
+	}
+	return result, resultVar1, err
+}
+
 func (s *TimerLayerUserStore) GetProfileByGroupChannelIdsForUser(userID string, channelIds []string) (map[string][]*model.User, error) {
 	start := time.Now()
 
