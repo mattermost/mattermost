@@ -71,7 +71,7 @@ func (a *App) SaveReactionForPost(c request.CTX, reaction *model.Reaction) (*mod
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.invalidateCacheForChannelPosts(post.ChannelId)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
@@ -144,7 +144,7 @@ func (a *App) DeleteReactionForPost(c request.CTX, reaction *model.Reaction) *mo
 	}
 
 	// The post is always modified since the UpdateAt always changes
-	a.invalidateCacheForChannelPosts(post.ChannelId)
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	pluginContext := pluginContext(c)
 	a.Srv().Go(func() {
