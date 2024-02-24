@@ -39,6 +39,7 @@ function mapStateToProps(state: GlobalState) {
     const products = state.plugins.components.Product || [];
 
     const [unreadTeamsSet, mentionsInTeamMap, teamHasUrgentMap] = getTeamsUnreadStatuses(state);
+    const enableWebSocketEventScope = config.FeatureFlagWebSocketEventScope === 'true';
 
     return {
         alwaysShowTeamSidebar,
@@ -53,6 +54,7 @@ function mapStateToProps(state: GlobalState) {
         unreadTeamsSet,
         mentionsInTeamMap,
         teamHasUrgentMap,
+        enableWebSocketEventScope,
     };
 }
 
