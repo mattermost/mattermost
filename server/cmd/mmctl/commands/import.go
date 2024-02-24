@@ -391,7 +391,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 	err := withClient(func(c client.Client, cmd *cobra.Command, args []string) error {
 		users, err := getPages(func(page, numPerPage int, etag string) ([]*model.User, *model.Response, error) {
 			return c.GetUsers(context.TODO(), page, numPerPage, etag)
-		}, 250)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -405,7 +405,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 
 		teams, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
 			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
-		}, 250)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}
@@ -416,14 +416,14 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 
 			publicChannels, err := getPages(func(page, numPerPage int, etag string) ([]*model.Channel, *model.Response, error) {
 				return c.GetPublicChannelsForTeam(context.TODO(), team.Id, page, numPerPage, etag)
-			}, 250)
+			}, DefaultPageSize)
 			if err != nil {
 				return err
 			}
 
 			privateChannels, err := getPages(func(page, numPerPage int, etag string) ([]*model.Channel, *model.Response, error) {
 				return c.GetPrivateChannelsForTeam(context.TODO(), team.Id, page, numPerPage, etag)
-			}, 250)
+			}, DefaultPageSize)
 			if err != nil {
 				return err
 			}

@@ -190,7 +190,7 @@ func listCommandCmdF(c client.Client, cmd *cobra.Command, args []string) error {
 	if len(args) < 1 {
 		teamList, err := getPages(func(page, numPerPage int, etag string) ([]*model.Team, *model.Response, error) {
 			return c.GetAllTeams(context.TODO(), etag, page, numPerPage)
-		}, 250)
+		}, DefaultPageSize)
 		if err != nil {
 			return err
 		}

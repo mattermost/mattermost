@@ -417,8 +417,8 @@ func (s *MmctlUnitTestSuite) TestCommandListCmdF() {
 		}
 
 		cmd := &cobra.Command{}
-		s.client.EXPECT().GetAllTeams(context.Background(), "", 0, 250).Return(teams, &model.Response{}, nil).Times(1)
-		s.client.EXPECT().GetAllTeams(context.Background(), "", 1, 250).Return([]*model.Team{}, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetAllTeams(context.Background(), "", 0, DefaultPageSize).Return(teams, &model.Response{}, nil).Times(1)
+		s.client.EXPECT().GetAllTeams(context.Background(), "", 1, DefaultPageSize).Return([]*model.Team{}, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(context.Background(), team1ID, true).Return(team1Commands, &model.Response{}, nil).Times(1)
 		s.client.EXPECT().ListCommands(context.Background(), team2Id, true).Return(team2Commands, &model.Response{}, nil).Times(1)
 		err := listCommandCmdF(s.client, cmd, []string{})

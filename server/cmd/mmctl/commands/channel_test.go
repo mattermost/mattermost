@@ -69,13 +69,13 @@ func (s *MmctlUnitTestSuite) TestSearchChannelCmdF() {
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.Background(), "", 0, 250).
+			GetAllTeams(context.Background(), "", 0, DefaultPageSize).
 			Return(mockTeams, &model.Response{}, nil).
 			Times(1)
 
 		s.client.
 			EXPECT().
-			GetAllTeams(context.Background(), "", 1, 250).
+			GetAllTeams(context.Background(), "", 1, DefaultPageSize).
 			Return([]*model.Team{}, &model.Response{}, nil).
 			Times(1)
 
