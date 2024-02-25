@@ -898,16 +898,8 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
       <React.Fragment>
         <hr />
         <fieldset>
-          <legend
-            className="form-legend"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Thread reply notifications"
-              id="user.settings.notifications.threads.desktop"
-            />
-          </legend>
           <div
-            className="checkbox"
+            className="checkbox single-checkbox"
           >
             <label>
               <input
@@ -918,19 +910,10 @@ exports[`components/user_settings/notifications/EmailNotificationSetting should 
                 type="checkbox"
               />
               <Memo(MemoizedFormattedMessage)
-                defaultMessage="Notify me about threads I'm following"
-                id="user.settings.notifications.email.threads.allActivity"
+                defaultMessage="Notify me about replies to threads I’m following"
+                id="user.settings.notifications.email.notifyForthreads"
               />
             </label>
-            <br />
-          </div>
-          <div
-            className="mt-5"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="When enabled, any reply to a thread you're following will send an email notification."
-              id="user.settings.notifications.email_threads"
-            />
           </div>
         </fieldset>
       </React.Fragment>,

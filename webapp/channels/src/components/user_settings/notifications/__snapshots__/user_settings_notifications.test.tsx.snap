@@ -108,9 +108,7 @@ Object {
             <div
               class="section-min__describe"
               id="desktopAndMobileDesc"
-            >
-              For all activity, without sound
-            </div>
+            />
           </div>
           <div
             class="divider-light"
@@ -331,9 +329,7 @@ Object {
           <div
             class="section-min__describe"
             id="desktopAndMobileDesc"
-          >
-            For all activity, without sound
-          </div>
+          />
         </div>
         <div
           class="divider-light"
@@ -613,9 +609,7 @@ Object {
             <div
               class="section-min__describe"
               id="desktopAndMobileDesc"
-            >
-              For all activity, without sound
-            </div>
+            />
           </div>
           <div
             class="divider-light"
@@ -839,9 +833,7 @@ Object {
           <div
             class="section-min__describe"
             id="desktopAndMobileDesc"
-          >
-            For all activity, without sound
-          </div>
+          />
         </div>
         <div
           class="divider-light"
@@ -1124,9 +1116,7 @@ Object {
             <div
               class="section-min__describe"
               id="desktopAndMobileDesc"
-            >
-              For all activity, without sound
-            </div>
+            />
           </div>
           <div
             class="divider-light"
@@ -1312,9 +1302,7 @@ Object {
           <div
             class="section-min__describe"
             id="desktopAndMobileDesc"
-          >
-            For all activity, without sound
-          </div>
+          />
         </div>
         <div
           class="divider-light"

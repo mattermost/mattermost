@@ -1,314 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSetting 1`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
-  inputs={
-    Array [
-      <React.Fragment>
-        <fieldset>
-          <legend
-            className="form-legend"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Send notifications for:"
-              id="user.settings.notifications.desktopAndMobile.sendNotificationFor"
-            />
-          </legend>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="all"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="All new messages"
-                id="user.settings.notifications.desktopAndMobile.allActivity"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={true}
-                onChange={[Function]}
-                type="radio"
-                value="mention"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Mentions, direct messages, and group messages"
-                id="user.settings.notifications.desktopAndMobile.onlyMentions"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="none"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Nothing"
-                id="user.settings.notifications.desktopAndMobile.never"
-              />
-            </label>
-          </div>
-        </fieldset>
-      </React.Fragment>,
-      <React.Fragment>
-        <br />
-        <div
-          className="checkbox single-checkbox"
-        >
-          <label>
-            <input
-              checked={false}
-              onChange={[Function]}
-              type="checkbox"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Use different settings for mobile notifications"
-              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
-            />
-          </label>
-        </div>
-      </React.Fragment>,
-      <hr />,
-      <React.Fragment>
-        <hr />
-        <label
-          className="singleSelectLabel"
-          htmlFor="pushNotificationSelectInput"
-          id="pushNotificationLabel"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Send mobile notifications when I am:"
-            id="user.settings.notifications.desktopAndMobile.pushNotification"
-          />
-        </label>
-        <StateManager
-          aria-labelledby="pushNotificationLabel"
-          className="react-select singleSelect"
-          classNamePrefix="react-select"
-          clearable={false}
-          components={
-            Object {
-              "IndicatorSeparator": [Function],
-            }
-          }
-          defaultInputValue=""
-          defaultMenuIsOpen={false}
-          defaultValue={null}
-          inputId="pushNotificationSelectInput"
-          isClearable={false}
-          isSearchable={false}
-          onChange={[Function]}
-          options={
-            Array [
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Online, away or offline"
-                  id="user.settings.push_notification.online"
-                />,
-                "value": "online",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Away or offline"
-                  id="user.settings.push_notification.away"
-                />,
-                "value": "away",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Offline"
-                  id="user.settings.push_notification.offline"
-                />,
-                "value": "offline",
-              },
-            ]
-          }
-          value={
-            Object {
-              "label": <Memo(MemoizedFormattedMessage)
-                defaultMessage="Offline"
-                id="user.settings.push_notification.offline"
-              />,
-              "value": "offline",
-            }
-          }
-        />
-      </React.Fragment>,
-    ]
-  }
-  saving={false}
-  section=""
-  serverError=""
-  submit={[MockFunction]}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Desktop and mobile notifications"
-      id="user.settings.notifications.desktopAndMobile.title"
-    />
-  }
-  updateSection={[Function]}
-/>
-`;
-
-exports[`DesktopNotificationSettings should match snapshot, on buildMaximizedSetting 2`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
-  inputs={
-    Array [
-      <React.Fragment>
-        <fieldset>
-          <legend
-            className="form-legend"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Send notifications for:"
-              id="user.settings.notifications.desktopAndMobile.sendNotificationFor"
-            />
-          </legend>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="all"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="All new messages"
-                id="user.settings.notifications.desktopAndMobile.allActivity"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="mention"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Mentions, direct messages, and group messages"
-                id="user.settings.notifications.desktopAndMobile.onlyMentions"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={true}
-                onChange={[Function]}
-                type="radio"
-                value="none"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Nothing"
-                id="user.settings.notifications.desktopAndMobile.never"
-              />
-            </label>
-          </div>
-        </fieldset>
-      </React.Fragment>,
-      <React.Fragment>
-        <br />
-        <div
-          className="checkbox single-checkbox"
-        >
-          <label>
-            <input
-              checked={false}
-              onChange={[Function]}
-              type="checkbox"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Use different settings for mobile notifications"
-              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
-            />
-          </label>
-        </div>
-      </React.Fragment>,
-      <hr />,
-    ]
-  }
-  saving={false}
-  section=""
-  serverError=""
-  submit={[MockFunction]}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Desktop and mobile notifications"
-      id="user.settings.notifications.desktopAndMobile.title"
-    />
-  }
-  updateSection={[Function]}
-/>
-`;
-
-exports[`DesktopNotificationSettings should match snapshot, on buildMinimizedSetting 1`] = `
-<SettingItemMin
-  describe={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="For mentions and direct messages, without sound"
-      id="user.settings.notifications.desktop.mentionsNoSound"
-    />
-  }
-  section="desktopAndMobile"
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Desktop and mobile notifications"
-      id="user.settings.notifications.desktopAndMobile.title"
-    />
-  }
-  updateSection={[Function]}
-/>
-`;
-
-exports[`DesktopNotificationSettings should match snapshot, on buildMinimizedSetting 2`] = `
-<SettingItemMin
-  describe={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Off"
-      id="user.settings.notifications.off"
-    />
-  }
-  section="desktopAndMobile"
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Desktop and mobile notifications"
-      id="user.settings.notifications.desktopAndMobile.title"
-    />
-  }
-  updateSection={[Function]}
-/>
-`;
-
 exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] = `
 <SettingItemMax
   containerStyle=""
@@ -337,10 +28,9 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="All new messages"
-                id="user.settings.notifications.desktopAndMobile.allActivity"
+                id="user.settings.notifications.desktopAndMobile.allNewMessages"
               />
             </label>
-            <br />
           </div>
           <div
             className="radio"
@@ -357,7 +47,6 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
                 id="user.settings.notifications.desktopAndMobile.onlyMentions"
               />
             </label>
-            <br />
           </div>
           <div
             className="radio"
@@ -371,7 +60,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
               />
               <Memo(MemoizedFormattedMessage)
                 defaultMessage="Nothing"
-                id="user.settings.notifications.desktopAndMobile.never"
+                id="user.settings.notifications.desktopAndMobile.nothing"
               />
             </label>
           </div>
@@ -390,18 +79,17 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             />
             <Memo(MemoizedFormattedMessage)
               defaultMessage="Use different settings for mobile notifications"
-              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
+              id="user.settings.notifications.desktopAndMobile.differentMobileNotificationsTitle"
             />
           </label>
         </div>
       </React.Fragment>,
-      <hr />,
       <React.Fragment>
         <hr />
         <label
           className="singleSelectLabel"
-          htmlFor="pushNotificationSelectInput"
-          id="pushNotificationLabel"
+          htmlFor="pushMobileNotificationSelectInput"
+          id="pushMobileNotificationsLabel"
         >
           <Memo(MemoizedFormattedMessage)
             defaultMessage="Send mobile notifications when I am:"
@@ -409,7 +97,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           />
         </label>
         <StateManager
-          aria-labelledby="pushNotificationLabel"
+          aria-labelledby="pushMobileNotificationsLabel"
           className="react-select singleSelect"
           classNamePrefix="react-select"
           clearable={false}
@@ -421,7 +109,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           defaultInputValue=""
           defaultMenuIsOpen={false}
           defaultValue={null}
-          inputId="pushNotificationSelectInput"
+          inputId="pushMobileNotificationSelectInput"
           isClearable={false}
           isSearchable={false}
           onChange={[Function]}
@@ -430,21 +118,21 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
               Object {
                 "label": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Online, away or offline"
-                  id="user.settings.push_notification.online"
+                  id="user.settings.notifications.desktopAndMobile.online"
                 />,
                 "value": "online",
               },
               Object {
                 "label": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Away or offline"
-                  id="user.settings.push_notification.away"
+                  id="user.settings.notifications.desktopAndMobile.away"
                 />,
                 "value": "away",
               },
               Object {
                 "label": <Memo(MemoizedFormattedMessage)
                   defaultMessage="Offline"
-                  id="user.settings.push_notification.offline"
+                  id="user.settings.notifications.desktopAndMobile.offline"
                 />,
                 "value": "offline",
               },
@@ -454,511 +142,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             Object {
               "label": <Memo(MemoizedFormattedMessage)
                 defaultMessage="Offline"
-                id="user.settings.push_notification.offline"
-              />,
-              "value": "offline",
-            }
-          }
-        />
-      </React.Fragment>,
-    ]
-  }
-  saving={false}
-  section=""
-  serverError=""
-  submit={[MockFunction]}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Desktop and mobile notifications"
-      id="user.settings.notifications.desktopAndMobile.title"
-    />
-  }
-  updateSection={[Function]}
-/>
-`;
-
-exports[`DesktopNotificationSettings should match snapshot, on max setting with Calls enabled 1`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
-  inputs={
-    Array [
-      <React.Fragment>
-        <fieldset>
-          <legend
-            className="form-legend"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Send notifications for:"
-              id="user.settings.notifications.desktopAndMobile.sendNotificationFor"
-            />
-          </legend>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="all"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="All new messages"
-                id="user.settings.notifications.desktopAndMobile.allActivity"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={true}
-                onChange={[Function]}
-                type="radio"
-                value="mention"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Mentions, direct messages, and group messages"
-                id="user.settings.notifications.desktopAndMobile.onlyMentions"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="none"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Nothing"
-                id="user.settings.notifications.desktopAndMobile.never"
-              />
-            </label>
-          </div>
-        </fieldset>
-      </React.Fragment>,
-      <React.Fragment>
-        <br />
-        <div
-          className="checkbox single-checkbox"
-        >
-          <label>
-            <input
-              checked={false}
-              onChange={[Function]}
-              type="checkbox"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Use different settings for mobile notifications"
-              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
-            />
-          </label>
-        </div>
-      </React.Fragment>,
-      <hr />,
-      <React.Fragment>
-        <hr />
-        <label
-          className="singleSelectLabel"
-          htmlFor="pushNotificationSelectInput"
-          id="pushNotificationLabel"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Send mobile notifications when I am:"
-            id="user.settings.notifications.desktopAndMobile.pushNotification"
-          />
-        </label>
-        <StateManager
-          aria-labelledby="pushNotificationLabel"
-          className="react-select singleSelect"
-          classNamePrefix="react-select"
-          clearable={false}
-          components={
-            Object {
-              "IndicatorSeparator": [Function],
-            }
-          }
-          defaultInputValue=""
-          defaultMenuIsOpen={false}
-          defaultValue={null}
-          inputId="pushNotificationSelectInput"
-          isClearable={false}
-          isSearchable={false}
-          onChange={[Function]}
-          options={
-            Array [
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Online, away or offline"
-                  id="user.settings.push_notification.online"
-                />,
-                "value": "online",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Away or offline"
-                  id="user.settings.push_notification.away"
-                />,
-                "value": "away",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Offline"
-                  id="user.settings.push_notification.offline"
-                />,
-                "value": "offline",
-              },
-            ]
-          }
-          value={
-            Object {
-              "label": <Memo(MemoizedFormattedMessage)
-                defaultMessage="Offline"
-                id="user.settings.push_notification.offline"
-              />,
-              "value": "offline",
-            }
-          }
-        />
-      </React.Fragment>,
-    ]
-  }
-  saving={false}
-  section=""
-  serverError=""
-  submit={[MockFunction]}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Desktop and mobile notifications"
-      id="user.settings.notifications.desktopAndMobile.title"
-    />
-  }
-  updateSection={[Function]}
-/>
-`;
-
-exports[`DesktopNotificationSettings should match snapshot, on max setting with Calls enabled, calls sound true 1`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
-  inputs={
-    Array [
-      <React.Fragment>
-        <fieldset>
-          <legend
-            className="form-legend"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Send notifications for:"
-              id="user.settings.notifications.desktopAndMobile.sendNotificationFor"
-            />
-          </legend>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="all"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="All new messages"
-                id="user.settings.notifications.desktopAndMobile.allActivity"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={true}
-                onChange={[Function]}
-                type="radio"
-                value="mention"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Mentions, direct messages, and group messages"
-                id="user.settings.notifications.desktopAndMobile.onlyMentions"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="none"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Nothing"
-                id="user.settings.notifications.desktopAndMobile.never"
-              />
-            </label>
-          </div>
-        </fieldset>
-      </React.Fragment>,
-      <React.Fragment>
-        <br />
-        <div
-          className="checkbox single-checkbox"
-        >
-          <label>
-            <input
-              checked={false}
-              onChange={[Function]}
-              type="checkbox"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Use different settings for mobile notifications"
-              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
-            />
-          </label>
-        </div>
-      </React.Fragment>,
-      <hr />,
-      <React.Fragment>
-        <hr />
-        <label
-          className="singleSelectLabel"
-          htmlFor="pushNotificationSelectInput"
-          id="pushNotificationLabel"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Send mobile notifications when I am:"
-            id="user.settings.notifications.desktopAndMobile.pushNotification"
-          />
-        </label>
-        <StateManager
-          aria-labelledby="pushNotificationLabel"
-          className="react-select singleSelect"
-          classNamePrefix="react-select"
-          clearable={false}
-          components={
-            Object {
-              "IndicatorSeparator": [Function],
-            }
-          }
-          defaultInputValue=""
-          defaultMenuIsOpen={false}
-          defaultValue={null}
-          inputId="pushNotificationSelectInput"
-          isClearable={false}
-          isSearchable={false}
-          onChange={[Function]}
-          options={
-            Array [
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Online, away or offline"
-                  id="user.settings.push_notification.online"
-                />,
-                "value": "online",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Away or offline"
-                  id="user.settings.push_notification.away"
-                />,
-                "value": "away",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Offline"
-                  id="user.settings.push_notification.offline"
-                />,
-                "value": "offline",
-              },
-            ]
-          }
-          value={
-            Object {
-              "label": <Memo(MemoizedFormattedMessage)
-                defaultMessage="Offline"
-                id="user.settings.push_notification.offline"
-              />,
-              "value": "offline",
-            }
-          }
-        />
-      </React.Fragment>,
-    ]
-  }
-  saving={false}
-  section=""
-  serverError=""
-  submit={[MockFunction]}
-  title={
-    <Memo(MemoizedFormattedMessage)
-      defaultMessage="Desktop and mobile notifications"
-      id="user.settings.notifications.desktopAndMobile.title"
-    />
-  }
-  updateSection={[Function]}
-/>
-`;
-
-exports[`DesktopNotificationSettings should match snapshot, on max setting with sound enabled 1`] = `
-<SettingItemMax
-  containerStyle=""
-  infoPosition="bottom"
-  inputs={
-    Array [
-      <React.Fragment>
-        <fieldset>
-          <legend
-            className="form-legend"
-          >
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Send notifications for:"
-              id="user.settings.notifications.desktopAndMobile.sendNotificationFor"
-            />
-          </legend>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="all"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="All new messages"
-                id="user.settings.notifications.desktopAndMobile.allActivity"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={true}
-                onChange={[Function]}
-                type="radio"
-                value="mention"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Mentions, direct messages, and group messages"
-                id="user.settings.notifications.desktopAndMobile.onlyMentions"
-              />
-            </label>
-            <br />
-          </div>
-          <div
-            className="radio"
-          >
-            <label>
-              <input
-                checked={false}
-                onChange={[Function]}
-                type="radio"
-                value="none"
-              />
-              <Memo(MemoizedFormattedMessage)
-                defaultMessage="Nothing"
-                id="user.settings.notifications.desktopAndMobile.never"
-              />
-            </label>
-          </div>
-        </fieldset>
-      </React.Fragment>,
-      <React.Fragment>
-        <br />
-        <div
-          className="checkbox single-checkbox"
-        >
-          <label>
-            <input
-              checked={false}
-              onChange={[Function]}
-              type="checkbox"
-            />
-            <Memo(MemoizedFormattedMessage)
-              defaultMessage="Use different settings for mobile notifications"
-              id="user.settings.notifications.desktopAndMobile.diffentMobileNotification.title"
-            />
-          </label>
-        </div>
-      </React.Fragment>,
-      <hr />,
-      <React.Fragment>
-        <hr />
-        <label
-          className="singleSelectLabel"
-          htmlFor="pushNotificationSelectInput"
-          id="pushNotificationLabel"
-        >
-          <Memo(MemoizedFormattedMessage)
-            defaultMessage="Send mobile notifications when I am:"
-            id="user.settings.notifications.desktopAndMobile.pushNotification"
-          />
-        </label>
-        <StateManager
-          aria-labelledby="pushNotificationLabel"
-          className="react-select singleSelect"
-          classNamePrefix="react-select"
-          clearable={false}
-          components={
-            Object {
-              "IndicatorSeparator": [Function],
-            }
-          }
-          defaultInputValue=""
-          defaultMenuIsOpen={false}
-          defaultValue={null}
-          inputId="pushNotificationSelectInput"
-          isClearable={false}
-          isSearchable={false}
-          onChange={[Function]}
-          options={
-            Array [
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Online, away or offline"
-                  id="user.settings.push_notification.online"
-                />,
-                "value": "online",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Away or offline"
-                  id="user.settings.push_notification.away"
-                />,
-                "value": "away",
-              },
-              Object {
-                "label": <Memo(MemoizedFormattedMessage)
-                  defaultMessage="Offline"
-                  id="user.settings.push_notification.offline"
-                />,
-                "value": "offline",
-              },
-            ]
-          }
-          value={
-            Object {
-              "label": <Memo(MemoizedFormattedMessage)
-                defaultMessage="Offline"
-                id="user.settings.push_notification.offline"
+                id="user.settings.notifications.desktopAndMobile.offline"
               />,
               "value": "offline",
             }
@@ -985,8 +169,8 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
 <SettingItemMin
   describe={
     <Memo(MemoizedFormattedMessage)
-      defaultMessage="For mentions and direct messages, without sound"
-      id="user.settings.notifications.desktop.mentionsNoSound"
+      defaultMessage="Mentions, direct messages, and group messages"
+      id="user.settings.notifications.desktopAndMobile.onlyMentions"
     />
   }
   section="desktopAndMobile"

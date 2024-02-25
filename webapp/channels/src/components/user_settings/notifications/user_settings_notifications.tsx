@@ -11,10 +11,7 @@ import type {Styles as ReactSelectStyles, ValueType} from 'react-select';
 import CreatableReactSelect from 'react-select/creatable';
 
 import {LightbulbOutlineIcon} from '@mattermost/compass-icons/components';
-import type {ServerError} from '@mattermost/types/errors';
 import type {UserNotifyProps, UserProfile} from '@mattermost/types/users';
-
-import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import ExternalLink from 'components/external_link';
 import SettingItem from 'components/setting_item';
@@ -25,7 +22,7 @@ import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSett
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
-import DesktopAndMobileNotificationSettings from './desktop_notification_setting/desktop_notification_settings';
+import DesktopAndMobileNotificationSettings, {areDesktopAndMobileSettingsDifferent} from './desktop_notification_setting/desktop_notification_settings';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 
@@ -251,8 +248,9 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.first_name = this.state.firstNameKey ? 'true' : 'false';
         data.channel = this.state.channelKey ? 'true' : 'false';
 
-        // Override if desktop and mobile settings are not supposed to be different, use desktop settings for mobile as well
-        if (this.state.desktopAndMobileSettingsDifferent === false) {
+        if (this.state.desktopAndMobileSettingsDifferent) {
+            data.push = this.state.pushActivity;
+        } else {
             data.push = this.state.desktopActivity;
         }
 
@@ -285,7 +283,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         this.setState({isSaving: true});
         stopTryNotificationRing();
 
-        const {data: updatedUser, error} = await this.props.updateMe({notify_props: data}) as ActionResult<Partial<UserProfile>, ServerError>; // Fix in MM-46907
+        const {data: updatedUser, error} = await this.props.updateMe({notify_props: data});
         if (updatedUser) {
             this.handleUpdateSection('');
             this.setState(getDefaultStateFromProps(this.props));
@@ -319,11 +317,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
     handleNotifyCommentsRadio = (notifyCommentsLevel: UserNotifyProps['comments'], e?: React.ChangeEvent): void => {
         this.setState({notifyCommentsLevel});
-        a11yFocus(e?.currentTarget as HTMLElement);
-    };
-
-    handlePushRadio = (pushActivity: UserNotifyProps['push'], e?: React.ChangeEvent): void => {
-        this.setState({pushActivity});
         a11yFocus(e?.currentTarget as HTMLElement);
     };
 
@@ -472,182 +465,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
     handleCloseSettingsModal = () => {
         this.props.closeModal();
-    };
-
-    createPushNotificationSection = () => {
-        const active = this.props.activeSection === 'push';
-        const inputs = [];
-        let submit = null;
-        let max = null;
-
-        if (active) {
-            if (this.props.sendPushNotifications) {
-                const pushActivityRadio = [false, false, false];
-                if (this.state.pushActivity === NotificationLevels.ALL) {
-                    pushActivityRadio[0] = true;
-                } else if (this.state.pushActivity === NotificationLevels.NONE) {
-                    pushActivityRadio[2] = true;
-                } else {
-                    pushActivityRadio[1] = true;
-                }
-
-                inputs.push(
-                    <div>
-                        <fieldset key='userNotificationLevelOption'>
-                            <legend className='form-legend'>
-                                <FormattedMessage
-                                    id='user.settings.push_notification.send'
-                                    defaultMessage='Send mobile push notifications'
-                                />
-                            </legend>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='pushNotificationAllActivity'
-                                        type='radio'
-                                        name='pushNotificationLevel'
-                                        checked={pushActivityRadio[0]}
-                                        onChange={this.handlePushRadio.bind(this, NotificationLevels.ALL)}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.notifications.desktopAndMobile.mobilePush.allActivity'
-                                        defaultMessage='All new messages'
-                                    />
-                                </label>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='pushNotificationMentions'
-                                        type='radio'
-                                        name='pushNotificationLevel'
-                                        checked={pushActivityRadio[1]}
-                                        onChange={this.handlePushRadio.bind(this, NotificationLevels.MENTION)}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.notifications.desktopAndMobile.mobilePush.onlyMentions'
-                                        defaultMessage='Mentions, direct messages, and group messages'
-                                    />
-                                </label>
-                            </div>
-                            <div className='radio'>
-                                <label>
-                                    <input
-                                        id='pushNotificationNever'
-                                        type='radio'
-                                        name='pushNotificationLevel'
-                                        checked={pushActivityRadio[2]}
-                                        onChange={this.handlePushRadio.bind(this, NotificationLevels.NONE)}
-                                    />
-                                    <FormattedMessage
-                                        id='user.settings.notifications.desktopAndMobile.mobilePush.never'
-                                        defaultMessage='Nothing'
-                                    />
-                                </label>
-                            </div>
-                        </fieldset>
-                    </div>,
-                );
-
-                submit = this.handleSubmit;
-            } else {
-                inputs.push(
-                    <div
-                        key='oauthEmailInfo'
-                        className='pt-2'
-                    >
-                        <FormattedMessage
-                            id='user.settings.push_notification.disabled_long'
-                            defaultMessage='Push notifications have not been enabled by your System Administrator.'
-                        />
-                    </div>,
-                );
-            }
-            max = (
-                <SettingItemMax
-                    title={this.props.intl.formatMessage({id: 'user.settings.notifications.push', defaultMessage: 'Mobile Push Notifications'})}
-                    inputs={inputs}
-                    submit={submit}
-                    serverError={this.state.serverError}
-                    updateSection={this.handleUpdateSection}
-                />
-            );
-        }
-
-        let describe: JSX.Element;
-        if (this.state.pushActivity === NotificationLevels.ALL) {
-            if (this.state.pushStatus === Constants.UserStatuses.AWAY) {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.allActivityAway'
-                        defaultMessage='For all activity when away or offline'
-                    />
-                );
-            } else if (this.state.pushStatus === Constants.UserStatuses.OFFLINE) {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.allActivityOffline'
-                        defaultMessage='For all activity when offline'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.allActivityOnline'
-                        defaultMessage='For all activity when online, away or offline'
-                    />
-                );
-            }
-        } else if (this.state.pushActivity === NotificationLevels.NONE) {
-            describe = (
-                <FormattedMessage
-                    id='user.settings.notifications.never'
-                    defaultMessage='Never'
-                />
-            );
-        } else if (this.props.sendPushNotifications) {
-            if (this.state.pushStatus === Constants.UserStatuses.AWAY) { //eslint-disable-line no-lonely-if
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.onlyMentionsAway'
-                        defaultMessage='For mentions and direct messages when away or offline'
-                    />
-                );
-            } else if (this.state.pushStatus === Constants.UserStatuses.OFFLINE) {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.onlyMentionsOffline'
-                        defaultMessage='For mentions and direct messages when offline'
-                    />
-                );
-            } else {
-                describe = (
-                    <FormattedMessage
-                        id='user.settings.push_notification.onlyMentionsOnline'
-                        defaultMessage='For mentions and direct messages when online, away or offline'
-                    />
-                );
-            }
-        } else {
-            describe = (
-                <FormattedMessage
-                    id='user.settings.push_notification.disabled'
-                    defaultMessage='Push notifications are not enabled'
-                />
-            );
-        }
-
-        return (
-            <SettingItem
-                title={this.props.intl.formatMessage({id: 'user.settings.notifications.push', defaultMessage: 'Mobile Push Notifications'})}
-                active={active}
-                areAllSectionsInactive={this.props.activeSection === ''}
-                describe={describe}
-                section={'push'}
-                updateSection={this.handleUpdateSection}
-                max={max}
-            />
-        );
     };
 
     createKeywordsWithNotificationSection = () => {
@@ -1195,11 +1012,6 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         desktopThreads={this.state.desktopThreads}
                         pushThreads={this.state.pushThreads}
                         desktopAndMobileSettingsDifferent={this.state.desktopAndMobileSettingsDifferent}
-                        sound={this.state.desktopSound}
-                        callsSound={this.state.callsDesktopSound}
-                        selectedSound={this.state.desktopNotificationSound || 'default'}
-                        callsSelectedSound={this.state.callsNotificationSound || 'default'}
-                        isCallsRingingEnabled={this.props.isCallsRingingEnabled}
                     />
                     <div className='divider-light'/>
                     <EmailNotificationSetting
@@ -1292,17 +1104,5 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
         },
     })),
 };
-
-export function areDesktopAndMobileSettingsDifferent(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']): boolean {
-    const validActivities = [NotificationLevels.DEFAULT, NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.NONE];
-    if (!validActivities.includes(desktopActivity) || !validActivities.includes(pushActivity)) {
-        return false;
-    }
-    if (desktopActivity === pushActivity) {
-        return false;
-    }
-
-    return true;
-}
 
 export default injectIntl(NotificationsTab);
