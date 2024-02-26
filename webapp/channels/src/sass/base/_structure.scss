@@ -92,6 +92,11 @@ body {
 body.app__body #root {
     display: grid;
     overflow: hidden;
+    grid-template:
+        'header' min-content
+        'center'
+        'footer' min-content
+    ;
 
     &.channel-view {
         background-color: var(--sidebar-header-bg);
@@ -189,6 +194,7 @@ body.app__body #root {
 
     &:not(.console__root) {
         @media screen and (max-width: 768px) {
+            z-index: 17;
             grid-template:
                 'announcement' min-content
                 'header' min-content
@@ -259,7 +265,6 @@ body.app__body #root {
     background: var(--center-channel-bg);
     border-radius: 12px;
     box-shadow: var(--elevation-1);
-    z-index: 17;
 }
 
 .rhs-open #channel_view.channel-view,
