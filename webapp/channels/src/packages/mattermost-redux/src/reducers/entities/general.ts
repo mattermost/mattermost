@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
 import type {ClientLicense, ClientConfig} from '@mattermost/types/config';
@@ -59,28 +60,7 @@ function serverVersion(state = '', action: GenericAction) {
     }
 }
 
-function warnMetricsStatus(state: any = {}, action: GenericAction) {
-    switch (action.type) {
-    case GeneralTypes.WARN_METRICS_STATUS_RECEIVED:
-        return action.data;
-    case GeneralTypes.WARN_METRIC_STATUS_RECEIVED: {
-        const nextState = {...state};
-        nextState[action.data.id] = action.data;
-        return nextState;
-    }
-    case GeneralTypes.WARN_METRIC_STATUS_REMOVED: {
-        const nextState = {...state};
-        const newParams = Object.assign({}, nextState[action.data.id]);
-        newParams.acked = true;
-        nextState[action.data.id] = newParams;
-        return nextState;
-    }
-    default:
-        return state;
-    }
-}
-
-function firstAdminVisitMarketplaceStatus(state = false, action: GenericAction) {
+function firstAdminVisitMarketplaceStatus(state = false, action: AnyAction) {
     switch (action.type) {
     case GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED:
         return action.data;
@@ -105,7 +85,6 @@ export default combineReducers({
     dataRetentionPolicy,
     license,
     serverVersion,
-    warnMetricsStatus,
     firstAdminVisitMarketplaceStatus,
     firstAdminCompleteSetup,
 });
