@@ -144,23 +144,26 @@ describe('getValueOfSendMobileNotificationForSelect', () => {
 
 describe('shouldShowDesktopAndMobileThreadNotificationCheckbox', () => {
     test('should return false when collapsed threads are not enabled', () => {
-        expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(false, 'hello' as any)).toBe(false);
+        expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(false, 'hello' as any, 'hello' as any)).toBe(false);
     });
 
-    test('should return false when desktop setting is invalid', () => {
-        expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, 'nothing' as any)).toBe(false);
+    test('should return true when desktop or mobile setting is invalid', () => {
+        expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, 'nothing' as any, 'all')).toBe(true);
+        expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, 'all', 'nothing' as any)).toBe(true);
     });
 
-    test('should return false when setting is anything expect mentions', () => {
+    test('should return true when either desktop or mobile setting is for mentions', () => {
+        expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, NotificationLevels.MENTION, 'none')).toBe(true);
+        expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, 'none', NotificationLevels.MENTION)).toBe(true);
+    });
+
+    test('should return false when either desktop or mobile setting is not for mentions', () => {
         validNotificationLevels.
             filter((level) => level !== NotificationLevels.MENTION).
             forEach((level) => {
-                expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, level)).toBe(false);
+                expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, level, 'none')).toBe(false);
+                expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, 'none', level)).toBe(false);
             });
-    });
-
-    test('should return true when collapsed threads are enabled and setting is mentions', () => {
-        expect(shouldShowDesktopAndMobileThreadNotificationCheckbox(true, NotificationLevels.MENTION)).toBe(true);
     });
 });
 

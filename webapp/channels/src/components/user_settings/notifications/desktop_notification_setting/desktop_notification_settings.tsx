@@ -179,7 +179,7 @@ export default class DesktopNotificationSettings extends React.PureComponent<Pro
             maxizimedSettingInputs.push(mobileNotificationsSection);
         }
 
-        if (shouldShowDesktopAndMobileThreadNotificationCheckbox(this.props.isCollapsedThreadsEnabled, this.props.desktopActivity)) {
+        if (shouldShowDesktopAndMobileThreadNotificationCheckbox(this.props.isCollapsedThreadsEnabled, this.props.desktopActivity, this.props.pushActivity)) {
             const threadNotificationSection = (
                 <Fragment key='threadNotificationSection'>
                     <hr/>
@@ -312,13 +312,14 @@ const optionsOfSendDesktopOrMobileNotifications = [
     },
 ];
 
+const validNotificationLevels = Object.values(NotificationLevels);
+
 export function areDesktopAndMobileSettingsDifferent(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']): boolean {
     if (!desktopActivity || !pushActivity) {
         return true;
     }
 
-    const validActivities = Object.values(NotificationLevels);
-    if (!validActivities.includes(desktopActivity) || !validActivities.includes(pushActivity)) {
+    if (!validNotificationLevels.includes(desktopActivity) || !validNotificationLevels.includes(pushActivity)) {
         return true;
     }
 
@@ -407,15 +408,24 @@ const optionsOfSendMobileNotificationsWhenSelect: OptionsType<SelectOption> = [
     },
 ];
 
-export function shouldShowDesktopAndMobileThreadNotificationCheckbox(isCollapsedThreadsEnabled: boolean, desktopActivity: UserNotifyProps['desktop']) {
+export function shouldShowDesktopAndMobileThreadNotificationCheckbox(isCollapsedThreadsEnabled: boolean, desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']) {
     if (!isCollapsedThreadsEnabled) {
         return false;
     }
 
-    if (desktopActivity === NotificationLevels.MENTION) {
+    if (!desktopActivity || !pushActivity) {
         return true;
     }
-    return false;
+
+    if (desktopActivity === NotificationLevels.MENTION || pushActivity === NotificationLevels.MENTION) {
+        return true;
+    }
+
+    if (validNotificationLevels.includes(desktopActivity) && validNotificationLevels.includes(pushActivity)) {
+        return false;
+    }
+
+    return true;
 }
 
 export function getValueOfSendMobileNotificationWhenSelect(pushStatus?: UserNotifyProps['push_status']): ValueType<SelectOption> {
