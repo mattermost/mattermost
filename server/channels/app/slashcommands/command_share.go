@@ -254,7 +254,7 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 	}
 
 	if err = a.InviteRemoteToChannel(args.ChannelId, remoteID, args.UserId, true); err != nil {
-		return responsef(appErr.Error())
+		return responsef(err.Error())
 	}
 
 	return responsef("##### " + args.T("api.command_share.invitation_sent", map[string]any{"Name": rc.DisplayName, "SiteURL": rc.SiteURL}))
