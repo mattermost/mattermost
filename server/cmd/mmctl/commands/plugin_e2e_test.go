@@ -45,8 +45,10 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 
 		printer.Clean()
 
+		var expected error
+		expected = multierror.Append(expected, errors.New("Unable to install plugin. A plugin with the same ID is already installed."))
 		err = pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 
 		s.Require().Equal(0, len(printer.GetLines()))
 		s.Require().Equal(1, len(printer.GetErrorLines()))
@@ -107,8 +109,10 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 	s.RunForSystemAdminAndLocal("admin and local can't add plugins if the config doesn't allow it", func(c client.Client) {
 		printer.Clean()
 
+		var expected error
+		expected = multierror.Append(expected, errors.New("Plugins and/or plugin uploads have been disabled."))
 		err := pluginAddCmdF(c, &cobra.Command{}, []string{pluginPath})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Equal(1, len(printer.GetErrorLines()))
 		s.Require().Contains(printer.GetErrorLines()[0], "Plugins and/or plugin uploads have been disabled.")
 	})
@@ -155,8 +159,10 @@ func (s *MmctlE2ETestSuite) TestPluginAddCmd() {
 			*cfg.PluginSettings.EnableUploads = false
 		})
 
+		var expected error
+		expected = multierror.Append(expected, errors.New("You do not have the appropriate permissions."))
 		err := pluginAddCmdF(s.th.Client, &cobra.Command{}, []string{pluginPath})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Equal(1, len(printer.GetErrorLines()))
 		s.Require().Contains(printer.GetErrorLines()[0], "You do not have the appropriate permissions")
 	})
@@ -328,8 +334,10 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 	s.RunForSystemAdminAndLocal("Delete Unknown Plugin", func(c client.Client) {
 		printer.Clean()
 
+		var expected error
+		expected = multierror.Append(expected, errors.New("Plugins have been disabled."))
 		err := pluginDeleteCmdF(c, &cobra.Command{}, []string{dummyPluginID})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to delete plugin: %s.", dummyPluginID))
@@ -366,8 +374,10 @@ func (s *MmctlE2ETestSuite) TestPluginDeleteCmd() {
 		s.Require().Len(pluginsAvail.Inactive, 1)
 
 		// Delete Test
+		var expected error
+		expected = multierror.Append(expected, errors.New("You do not have the appropriate permissions."))
 		err := pluginDeleteCmdF(s.th.Client, &cobra.Command{}, []string{jiraPluginID})
-		s.Require().Nil(err)
+		s.Require().EqualError(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to delete plugin: %s.", jiraPluginID))
