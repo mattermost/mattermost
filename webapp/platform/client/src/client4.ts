@@ -2459,20 +2459,6 @@ export default class Client4 {
         );
     };
 
-    getWarnMetricsStatus = async () => {
-        return this.doFetch(
-            `${this.getBaseRoute()}/warn_metrics/status`,
-            {method: 'get'},
-        );
-    };
-
-    sendWarnMetricAck = async (warnMetricId: string, forceAckVal: boolean) => {
-        return this.doFetch(
-            `${this.getBaseRoute()}/warn_metrics/ack/${encodeURI(warnMetricId)}`,
-            {method: 'post', body: JSON.stringify({forceAck: forceAckVal})},
-        );
-    }
-
     setFirstAdminVisitMarketplaceStatus = async () => {
         return this.doFetch<StatusOK>(
             `${this.getPluginsRoute()}/marketplace/first_admin_visit`,
