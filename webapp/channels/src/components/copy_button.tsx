@@ -30,7 +30,6 @@ const CopyButton: React.FC<Props> = (props: Props) => {
 
         if (timerRef.current) {
             clearTimeout(timerRef.current);
-            timerRef.current = null;
         }
 
         timerRef.current = setTimeout(() => {
