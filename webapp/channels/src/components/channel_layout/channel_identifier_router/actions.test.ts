@@ -48,10 +48,10 @@ jest.mock('utils/channel_utils', () => ({
 describe('Actions', () => {
     const channel1 = {id: 'channel_id1', name: 'achannel', team_id: 'team_id1'};
     const channel2 = {id: 'channel_id2', name: 'achannel', team_id: 'team_id2'};
-    const channel3 = {id: 'channel_id3', name: 'achannel3', team_id: 'team_id1', type: 'O'};
-    const channel4 = {id: 'channel_id4', name: 'additional-abilities---community-systems', team_id: 'team_id1', type: 'O'};
-    const channel5 = {id: 'channel_id5', name: 'some-group-channel', team_id: 'team_id1', type: 'G'};
-    const channel6 = {id: 'channel_id6', name: '12345678901234567890123456', team_id: 'team_id1', type: 'O'};
+    const channel3 = {id: 'channel_id3', name: 'achannel3', team_id: 'team_id1', type: 'O' as const};
+    const channel4 = {id: 'channel_id4', name: 'additional-abilities---community-systems', team_id: 'team_id1', type: 'O' as const};
+    const channel5 = {id: 'channel_id5', name: 'some-group-channel', team_id: 'team_id1', type: 'G' as const};
+    const channel6 = {id: 'channel_id6', name: '12345678901234567890123456', team_id: 'team_id1', type: 'O' as const};
 
     const initialState = {
         entities: {
@@ -59,7 +59,7 @@ describe('Actions', () => {
                 currentChannelId: 'channel_id1',
                 channels: {channel_id1: channel1, channel_id2: channel2, channel_id3: channel3, channel_id4: channel4, channel_id5: channel5, channel_id6: channel6},
                 myMembers: {channel_id1: {channel_id: 'channel_id1', user_id: 'current_user_id'}, channel_id2: {channel_id: 'channel_id2', user_id: 'current_user_id'}},
-                channelsInTeam: {team_id1: ['channel_id1'], team_id2: ['channel_id2']},
+                channelsInTeam: {team_id1: new Set(['channel_id1']), team_id2: new Set(['channel_id2'])},
             },
             teams: {
                 currentTeamId: 'team_id1',

@@ -53,7 +53,8 @@ describe('Actions.Users', () => {
             post('/users').
             reply(201, {...userToCreate, id: TestHelper.generateId()});
 
-        const {data: user} = await store.dispatch(Actions.createUser(userToCreate, '', '', ''));
+        const response = await store.dispatch(Actions.createUser(userToCreate, '', '', ''));
+        const user = response.data!;
 
         const state = store.getState();
         const {profiles} = state.entities.users;
@@ -122,10 +123,10 @@ describe('Actions.Users', () => {
 
         await store.dispatch(Actions.updateMyTermsOfServiceStatus('1', false));
 
-        const {currentUserId, myAcceptedTermsOfServiceId} = store.getState().entities.users;
+        const {currentUserId, profiles} = store.getState().entities.users;
 
         expect(currentUserId).toBeTruthy();
-        expect(myAcceptedTermsOfServiceId).not.toEqual('1');
+        expect(profiles[currentUserId]).not.toEqual('1');
     });
 
     it('logout', async () => {
@@ -880,7 +881,7 @@ describe('Actions.Users', () => {
                 mention_keys: '',
                 user_id: currentUser.id,
             },
-        } as UserProfile));
+        } as unknown as UserProfile));
 
         const updateRequest = store.getState().requests.users.updateMe;
         const {currentUserId, profiles} = store.getState().entities.users;
@@ -933,7 +934,7 @@ describe('Actions.Users', () => {
                 mention_keys: '',
                 user_id: currentUser.id,
             },
-        } as UserProfile));
+        } as unknown as UserProfile));
 
         const {profiles} = store.getState().entities.users;
         const updateNotifyProps = profiles[currentUserId].notify_props;
@@ -1006,7 +1007,7 @@ describe('Actions.Users', () => {
         const currentUser = profiles[currentUserId];
 
         expect(currentUser).toBeTruthy();
-        expect(currentUser.last_password_update_at > beforeTime).toBeTruthy();
+        expect(currentUser.last_password_update > beforeTime).toBeTruthy();
     });
 
     it('generateMfaSecret', async () => {
@@ -1026,7 +1027,8 @@ describe('Actions.Users', () => {
             post('/users').
             reply(200, TestHelper.fakeUserWithId());
 
-        const {data: user} = await store.dispatch(Actions.createUser(TestHelper.fakeUser(), '', '', ''));
+        const response = await store.dispatch(Actions.createUser(TestHelper.fakeUser(), '', '', ''));
+        const user = response.data!;
 
         const beforeTime = new Date().getTime();
 
@@ -1186,7 +1188,8 @@ describe('Actions.Users', () => {
                 post(`/users/${currentUserId}/tokens`).
                 reply(201, {id: 'someid', token: 'sometoken', description: 'test token', user_id: currentUserId});
 
-            const {data} = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+            const response = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+            const data = response.data!;
 
             const {myUserAccessTokens} = store.getState().entities.users;
             const {userAccessTokensByUser} = store.getState().entities.admin;
@@ -1195,9 +1198,9 @@ describe('Actions.Users', () => {
             expect(myUserAccessTokens[data.id]).toBeTruthy();
             expect(!myUserAccessTokens[data.id].token).toBeTruthy();
             expect(userAccessTokensByUser).toBeTruthy();
-            expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-            expect(userAccessTokensByUser[currentUserId][data.id]).toBeTruthy();
-            expect(!userAccessTokensByUser[currentUserId][data.id].token).toBeTruthy();
+            expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+            expect(userAccessTokensByUser![currentUserId][data.id]).toBeTruthy();
+            expect(!userAccessTokensByUser![currentUserId][data.id].token).toBeTruthy();
             done();
         }
 
@@ -1217,7 +1220,8 @@ describe('Actions.Users', () => {
             post(`/users/${currentUserId}/tokens`).
             reply(201, {id: 'someid', token: 'sometoken', description: 'test token', user_id: currentUserId});
 
-        const {data} = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const response = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const data = response.data!;
 
         nock(Client4.getBaseRoute()).
             get(`/users/tokens/${data.id}`).
@@ -1232,9 +1236,9 @@ describe('Actions.Users', () => {
         expect(myUserAccessTokens[data.id]).toBeTruthy();
         expect(!myUserAccessTokens[data.id].token).toBeTruthy();
         expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][data.id]).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][data.id].token).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId][data.id]).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][data.id].token).toBeTruthy();
         expect(userAccessTokens).toBeTruthy();
         expect(userAccessTokens[data.id]).toBeTruthy();
         expect(!userAccessTokens[data.id].token).toBeTruthy();
@@ -1253,7 +1257,8 @@ describe('Actions.Users', () => {
             post(`/users/${currentUserId}/tokens`).
             reply(201, {id: 'someid', token: 'sometoken', description: 'test token', user_id: currentUserId});
 
-        const {data} = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const response = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const data = response.data!;
 
         nock(Client4.getBaseRoute()).
             get(`/users/${currentUserId}/tokens`).
@@ -1269,9 +1274,9 @@ describe('Actions.Users', () => {
         expect(myUserAccessTokens[data.id]).toBeTruthy();
         expect(!myUserAccessTokens[data.id].token).toBeTruthy();
         expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][data.id]).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][data.id].token).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId][data.id]).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][data.id].token).toBeTruthy();
         expect(userAccessTokens).toBeTruthy();
         expect(userAccessTokens[data.id]).toBeTruthy();
         expect(!userAccessTokens[data.id].token).toBeTruthy();
@@ -1290,7 +1295,8 @@ describe('Actions.Users', () => {
             post(`/users/${currentUserId}/tokens`).
             reply(201, {id: 'someid', token: 'sometoken', description: 'test token', user_id: currentUserId});
 
-        const {data} = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const response = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const data = response.data!;
 
         let {myUserAccessTokens} = store.getState().entities.users;
         let {userAccessTokensByUser, userAccessTokens} = store.getState().entities.admin;
@@ -1299,9 +1305,9 @@ describe('Actions.Users', () => {
         expect(myUserAccessTokens[data.id]).toBeTruthy();
         expect(!myUserAccessTokens[data.id].token).toBeTruthy();
         expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][data.id]).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][data.id].token).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId][data.id]).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][data.id].token).toBeTruthy();
         expect(userAccessTokens).toBeTruthy();
         expect(userAccessTokens[data.id]).toBeTruthy();
         expect(!userAccessTokens[data.id].token).toBeTruthy();
@@ -1319,8 +1325,8 @@ describe('Actions.Users', () => {
         expect(myUserAccessTokens).toBeTruthy();
         expect(!myUserAccessTokens[data.id]).toBeTruthy();
         expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][data.id]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][data.id]).toBeTruthy();
         expect(userAccessTokens).toBeTruthy();
         expect(!userAccessTokens[data.id]).toBeTruthy();
     });
@@ -1338,7 +1344,8 @@ describe('Actions.Users', () => {
             post(`/users/${currentUserId}/tokens`).
             reply(201, {id: 'someid', token: 'sometoken', description: 'test token', user_id: currentUserId});
 
-        const {data} = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const response = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const data = response.data!;
         const testId = data.id;
 
         let {myUserAccessTokens} = store.getState().entities.users;
@@ -1348,9 +1355,9 @@ describe('Actions.Users', () => {
         expect(myUserAccessTokens[testId]).toBeTruthy();
         expect(!myUserAccessTokens[testId].token).toBeTruthy();
         expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][testId]).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][testId].token).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId][testId]).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][testId].token).toBeTruthy();
         expect(userAccessTokens).toBeTruthy();
         expect(userAccessTokens[data.id]).toBeTruthy();
         expect(!userAccessTokens[data.id].token).toBeTruthy();
@@ -1370,10 +1377,10 @@ describe('Actions.Users', () => {
         expect(!myUserAccessTokens[testId].is_active).toBeTruthy();
         expect(!myUserAccessTokens[testId].token).toBeTruthy();
         expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][testId]).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][testId].is_active).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][testId].token).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId][testId]).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][testId].is_active).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][testId].token).toBeTruthy();
         expect(userAccessTokens).toBeTruthy();
         expect(userAccessTokens[testId]).toBeTruthy();
         expect(!userAccessTokens[testId].is_active).toBeTruthy();
@@ -1393,7 +1400,8 @@ describe('Actions.Users', () => {
             post(`/users/${currentUserId}/tokens`).
             reply(201, {id: 'someid', token: 'sometoken', description: 'test token', user_id: currentUserId});
 
-        const {data} = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const response = await store.dispatch(Actions.createUserAccessToken(currentUserId, 'test token'));
+        const data = response.data!;
         const testId = data.id;
 
         let {myUserAccessTokens} = store.getState().entities.users;
@@ -1403,9 +1411,9 @@ describe('Actions.Users', () => {
         expect(myUserAccessTokens[testId]).toBeTruthy();
         expect(!myUserAccessTokens[testId].token).toBeTruthy();
         expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][testId]).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][testId].token).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId][testId]).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][testId].token).toBeTruthy();
         expect(userAccessTokens).toBeTruthy();
         expect(userAccessTokens[testId]).toBeTruthy();
         expect(!userAccessTokens[testId].token).toBeTruthy();
@@ -1425,10 +1433,10 @@ describe('Actions.Users', () => {
         expect(myUserAccessTokens[testId].is_active).toBeTruthy();
         expect(!myUserAccessTokens[testId].token).toBeTruthy();
         expect(userAccessTokensByUser).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][testId]).toBeTruthy();
-        expect(userAccessTokensByUser[currentUserId][testId].is_active).toBeTruthy();
-        expect(!userAccessTokensByUser[currentUserId][testId].token).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId][testId]).toBeTruthy();
+        expect(userAccessTokensByUser![currentUserId][testId].is_active).toBeTruthy();
+        expect(!userAccessTokensByUser![currentUserId][testId].token).toBeTruthy();
         expect(userAccessTokens).toBeTruthy();
         expect(userAccessTokens[testId]).toBeTruthy();
         expect(userAccessTokens[testId].is_active).toBeTruthy();

@@ -124,11 +124,11 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	if guest {
-		if user, err = th.service.CreateUser(user, UserCreateOptions{Guest: true}); err != nil {
+		if user, err = th.service.CreateUser(th.Context, user, UserCreateOptions{Guest: true}); err != nil {
 			panic(err)
 		}
 	} else {
-		if user, err = th.service.CreateUser(user, UserCreateOptions{}); err != nil {
+		if user, err = th.service.CreateUser(th.Context, user, UserCreateOptions{}); err != nil {
 			panic(err)
 		}
 	}

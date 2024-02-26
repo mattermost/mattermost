@@ -48,6 +48,7 @@ const values = {
     MANAGE_OUTGOING_WEBHOOKS: 'manage_outgoing_webhooks',
     MANAGE_OTHERS_OUTGOING_WEBHOOKS: 'manage_others_outgoing_webhooks',
     MANAGE_OAUTH: 'manage_oauth',
+    MANAGE_OUTGOING_OAUTH_CONNECTIONS: 'manage_outgoing_oauth_connections',
     MANAGE_SYSTEM_WIDE_OAUTH: 'manage_system_wide_oauth',
     CREATE_POST: 'create_post',
     CREATE_POST_PUBLIC: 'create_post_public',
