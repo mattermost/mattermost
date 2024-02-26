@@ -10152,5 +10152,9 @@
   {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
     "translation": "在验证传出 OAuth 连接时发生了错误: {{ .Error }}"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL 过长"
   }
 ]
