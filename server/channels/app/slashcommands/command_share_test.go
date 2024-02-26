@@ -126,6 +126,6 @@ func TestShareProviderDoCommand(t *testing.T) {
 		}
 
 		response := commandProvider.DoCommand(th.App, th.Context, args, "")
-		require.Equal(t, "InviteRemoteToChannel: Cannot invite secure connection to a shared channel originating somewhere else.", response.Text)
+		require.Contains(t, response.Text, args.T("api.command_share.invite_remote_to_channel.error"))
 	})
 }
