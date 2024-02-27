@@ -48,25 +48,6 @@ function serverVersion(state = '', action: AnyAction) {
     }
 }
 
-function warnMetricsStatus(state: any = {}, action: AnyAction) {
-    switch (action.type) {
-    case GeneralTypes.WARN_METRIC_STATUS_RECEIVED: {
-        const nextState = {...state};
-        nextState[action.data.id] = action.data;
-        return nextState;
-    }
-    case GeneralTypes.WARN_METRIC_STATUS_REMOVED: {
-        const nextState = {...state};
-        const newParams = Object.assign({}, nextState[action.data.id]);
-        newParams.acked = true;
-        nextState[action.data.id] = newParams;
-        return nextState;
-    }
-    default:
-        return state;
-    }
-}
-
 function firstAdminVisitMarketplaceStatus(state = false, action: AnyAction) {
     switch (action.type) {
     case GeneralTypes.FIRST_ADMIN_VISIT_MARKETPLACE_STATUS_RECEIVED:
@@ -91,7 +72,6 @@ export default combineReducers({
     config,
     license,
     serverVersion,
-    warnMetricsStatus,
     firstAdminVisitMarketplaceStatus,
     firstAdminCompleteSetup,
 });
