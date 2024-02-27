@@ -783,7 +783,7 @@ func TestGenerateHyperlinkForChannelsPublic(t *testing.T) {
 
 	th.App.Srv().EmailService.SetStore(storeMock)
 	outMessage, err := th.App.Srv().EmailService.GenerateHyperlinkForChannels(message+mention, teamName, teamURL)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	assert.Equal(t, message+"<a href='"+channelURL+"'>"+mention+"</a>", outMessage)
 }
@@ -834,7 +834,7 @@ func TestGenerateHyperlinkForChannelsMultiPublic(t *testing.T) {
 
 	th.App.Srv().EmailService.SetStore(storeMock)
 	outMessage, err := th.App.Srv().EmailService.GenerateHyperlinkForChannels(message, teamName, teamURL)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	channelURL := teamURL + "/channels/" + ch.Name
 	channelURL2 := teamURL + "/channels/" + ch2.Name
 	channelURL3 := teamURL + "/channels/" + ch3.Name
@@ -869,7 +869,7 @@ func TestGenerateHyperlinkForChannelsPrivate(t *testing.T) {
 
 	th.App.Srv().EmailService.SetStore(storeMock)
 	outMessage, err := th.App.Srv().EmailService.GenerateHyperlinkForChannels(message, teamName, teamURL)
-	require.Nil(t, err)
+	require.NoError(t, err)
 	assert.Equal(t, message, outMessage)
 }
 
