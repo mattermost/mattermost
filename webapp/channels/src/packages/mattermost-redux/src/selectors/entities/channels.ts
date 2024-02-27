@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {max} from 'lodash';
+import max from 'lodash/max';
 
 import type {
     Channel,
