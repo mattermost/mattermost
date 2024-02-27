@@ -432,6 +432,10 @@
             button {
                 color: rgba(var(--center-channel-color-rgb), 0.75);
 
+                i {
+                    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
+                }
+
                 .edit-icon {
                     display: none;
                 }
@@ -440,6 +444,10 @@
                 &:hover {
                     color: rgba(var(--center-channel-color-rgb), 0.88);
                     text-decoration: none;
+
+                    i {
+                        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
+                    }
                 }
 
                 &:hover {
