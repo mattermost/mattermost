@@ -1,13 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {Placement} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
-import {Tooltip} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import OverlayTrigger from 'components/overlay_trigger';
-
+import useTooltip from 'components/common/hooks/useTooltip';
 import Constants from 'utils/constants';
 import {t} from 'utils/i18n';
 import {copyToClipboard} from 'utils/utils';
@@ -16,13 +15,18 @@ type Props = {
     content: string;
     beforeCopyText?: string;
     afterCopyText?: string;
-    placement?: string;
+    placement?: Placement;
     className?: string;
 };
 
 const CopyButton: React.FC<Props> = (props: Props) => {
     const [isCopied, setIsCopied] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const { setReference, getReferenceProps, tooltip } = useTooltip({
+        message: <FormattedMessage id={getId()} defaultMessage={getDefaultMessage()} />,
+        placement: props.placement,
+    });
 
     const copyText = (e: React.MouseEvent<HTMLAnchorElement, MouseEvent>): void => {
         e.preventDefault();
@@ -53,27 +57,16 @@ const CopyButton: React.FC<Props> = (props: Props) => {
         return props.beforeCopyText ?? 'Copy code';
     };
 
-    const tooltip = (
-        <Tooltip id='copyButton'>
-            <FormattedMessage
-                id={getId()}
-                defaultMessage={getDefaultMessage()}
-            />
-        </Tooltip>
-    );
-
     const spanClassName = classNames('post-code__clipboard', props.className);
 
     return (
-        <OverlayTrigger
-            shouldUpdatePosition={true}
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement={props.placement}
-            overlay={tooltip}
-        >
+        <>
             <span
-                className={spanClassName}
-                onClick={copyText}
+                {...getReferenceProps({
+                    className: spanClassName,
+                    onClick: copyText,
+                })}
+                ref={setReference}
             >
                 {!isCopied &&
                     <i
@@ -88,7 +81,8 @@ const CopyButton: React.FC<Props> = (props: Props) => {
                     />
                 }
             </span>
-        </OverlayTrigger>
+            {tooltip}
+        </>
     );
 };
 
