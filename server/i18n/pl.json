@@ -10162,5 +10162,9 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
     "translation": "Podana grupa odbiorców jest nieprawidłowa: {{ .Error }}"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "Adres URL jest zbyt długi"
   }
 ]
