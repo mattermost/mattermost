@@ -104,9 +104,9 @@ services:
     networks:
       - mm-test
   keycloak:
-    image: "quay.io/keycloak/keycloak:23.0.0"
+    image: "quay.io/keycloak/keycloak:23.0.7"
     restart: always
-    entrypoint: /opt/keycloak/bin/kc.sh start -Dkeycloak.migration.strategy=IGNORE_EXISTING --import-realm
+    entrypoint: /opt/keycloak/bin/kc.sh start --import-realm
     networks:
       - mm-test
     environment:

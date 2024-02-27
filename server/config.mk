@@ -10,7 +10,7 @@
 # Must be space separated names.
 #
 # Example: mysql postgres elasticsearch
-ENABLED_DOCKER_SERVICES ?= mysql postgres inbucket
+ENABLED_DOCKER_SERVICES ?= mysql postgres keycloak
 
 # Disable entirely the use of docker
 MM_NO_DOCKER ?= false

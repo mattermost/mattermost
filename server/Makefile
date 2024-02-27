@@ -676,14 +676,16 @@ config-ldap: ## Configures LDAP.
 	@sed -i'' -e 's|"GroupIdAttribute": ".*"|"GroupIdAttribute": "entryUUID"|g' ../config/config.json
 
 config-saml: ## Configures SAML.
-	@echo Setting up configuration for local SAML with keycloak, please ensure your keycloak is running on http://localhost:8080
+	@echo Setting up configuration for local SAML with keycloak, please ensure your keycloak is running on http://localhost:8484
+
+	@cp build/docker/keycloak/saml-idp.crt ../config/saml-idp.crt
 
 	@sed -i'' -e 's|"Verify": true|"Verify": false|g' ../config/config.json
 	@sed -i'' -e 's|"Encrypt": true|"Encrypt": false|g' ../config/config.json
 	@sed -i'' -e 's|"SignRequest": true|"SignRequest": false|g' ../config/config.json
-	@sed -i'' -e 's|"IdpURL": ".*"|"Verify": "http://localhost:8080/realms/mattermost/protocol/saml"|g' ../config/config.json
-	@sed -i'' -e 's|"IdpDescriptorURL": ".*"|"IdpDescriptorURL": "http://localhost:8080/realms/mattermost"|g' ../config/config.json
-	@sed -i'' -e 's|"IdpMetadataURL": ".*"|"IdpMetadataURL": "http://localhost:8080/realms/mattermost/protocol/saml/descriptor"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpURL": ".*"|"IdpURL": "http://localhost:8484/realms/mattermost/protocol/saml"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpDescriptorURL": ".*"|"IdpDescriptorURL": "http://localhost:8484/realms/mattermost"|g' ../config/config.json
+	@sed -i'' -e 's|"IdpMetadataURL": ".*"|"IdpMetadataURL": "http://localhost:8484/realms/mattermost/protocol/saml/descriptor"|g' ../config/config.json
 	@sed -i'' -e 's|"ServiceProviderIdentifier": ".*"|"ServiceProviderIdentifier": "mattermost"|g' ../config/config.json
 	@sed -i'' -e 's|"AssertionConsumerServiceURL": ".*"|"AssertionConsumerServiceURL": "http://localhost:8065/login/sso/saml"|g' ../config/config.json
 

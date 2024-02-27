@@ -1,15 +1,15 @@
 To use this keycloak image, we suggest you to use this configuration settings:
 
 - Enable Login With SAML 2.0: `true`
-- Enable Synchronizing SAML Accounts With AD/LDAP: `true`
+- Enable Synchronizing SAML Accounts With AD/LDAP: `false`
 - Override SAML bind data with AD/LDAP information: `false`
-- Identity Provider Metadata URL: empty string
-- SAML SSO URL: `http://localhost:8484/auth/realms/mattermost/protocol/saml`
-- Identity Provider Issuer URL: `http://localhost:8484/auth/realms/mattermost`
-- Identity Provider Public Certificate: The file `keycloak.crt` in this same directory
-- Verify Signature: `true`
+- Identity Provider Metadata URL: `http://localhost:8484/realms/mattermost/protocol/saml/descriptor`
+- SAML SSO URL: `http://localhost:8484/realms/mattermost/protocol/saml`
+- Identity Provider Issuer URL: `http://localhost:8484/realms/mattermost`
+- Identity Provider Public Certificate: The file `saml-idp.crt` in this same directory
+- Verify Signature: `false`
 - Service Provider Login URL: `http://localhost:8065/login/sso/saml`
-- Service Provider Identifier: `http://localhost:8065/login/sso/saml`
+- Service Provider Identifier: `mattermost`
 - Enable Encryption: `false`
 - Sign Request: `false`
 - Email Attribute: `email`
@@ -24,16 +24,16 @@ database configuration) and restart the server:
 ```json
     "SamlSettings": {
         "Enable": true,
-        "EnableSyncWithLdap": true,
+        "EnableSyncWithLdap": false,
         "EnableSyncWithLdapIncludeAuth": false,
         "IgnoreGuestsLdapSync": false,
-        "Verify": true,
+        "Verify": false,
         "Encrypt": false,
         "SignRequest": false,
-        "IdpUrl": "http://localhost:8484/auth/realms/mattermost/protocol/saml",
-        "IdpDescriptorUrl": "http://localhost:8484/auth/realms/mattermost",
-        "IdpMetadataUrl": "",
-        "ServiceProviderIdentifier": "http://localhost:8065/login/sso/saml",
+        "IdpURL": "http://localhost:8484/realms/mattermost/protocol/saml",
+        "IdpDescriptorURL": "http://localhost:8484/realms/mattermost",
+        "IdpMetadataURL": "http://localhost:8484/realms/mattermost/protocol/saml/descriptor",
+        "ServiceProviderIdentifier": "mattermost",
         "AssertionConsumerServiceURL": "http://localhost:8065/login/sso/saml",
         "SignatureAlgorithm": "RSAwithSHA1",
         "CanonicalAlgorithm": "Canonical1.0",
@@ -45,9 +45,9 @@ database configuration) and restart the server:
         "IdAttribute": "id",
         "GuestAttribute": "",
         "EnableAdminAttribute": false,
-        "AdminAttribute": "",
-        "FirstNameAttribute": "firstName",
-        "LastNameAttribute": "lastName",
+        "AdminAttribute": "Role=admin",
+        "FirstNameAttribute": "",
+        "LastNameAttribute": "",
         "EmailAttribute": "email",
         "UsernameAttribute": "username",
         "NicknameAttribute": "",
