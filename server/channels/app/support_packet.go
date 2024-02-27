@@ -27,7 +27,7 @@ const (
 	cpuProfileDuration = 5 * time.Second
 )
 
-func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
+func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketOptions) []model.FileData {
 	// If any errors we come across within this function, we will log it in a warning.txt file so that we know why certain files did not get produced if any
 	var warnings []string
 
@@ -36,14 +36,17 @@ func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
 
 	// A array of the functions that we can iterate through since they all have the same return value
 	functions := map[string]func(c request.CTX) (*model.FileData, error){
-		"support package":  a.generateSupportPacketYaml,
-		"plugins":          a.createPluginsFile,
-		"config":           a.createSanitizedConfigFile,
-		"mattermost log":   a.getMattermostLog,
-		"notification log": a.getNotificationsLog,
-		"cpu profile":      a.createCPUProfile,
-		"heap profile":     a.createHeapProfile,
-		"goroutines":       a.createGoroutineProfile,
+		"support package": a.generateSupportPacketYaml,
+		"plugins":         a.createPluginsFile,
+		"config":          a.createSanitizedConfigFile,
+		"cpu profile":     a.createCPUProfile,
+		"heap profile":    a.createHeapProfile,
+		"goroutines":      a.createGoroutineProfile,
+	}
+
+	if options.IncludeLogs {
+		functions["mattermost log"] = a.getMattermostLog
+		functions["notification log"] = a.getNotificationsLog
 	}
 
 	for name, fn := range functions {
@@ -53,6 +56,25 @@ func (a *App) GenerateSupportPacket(c request.CTX) []model.FileData {
 			warnings = append(warnings, err.Error())
 		} else if fileData != nil {
 			fileDatas = append(fileDatas, *fileData)
+		}
+	}
+
+	if pluginsEnvironment := a.GetPluginsEnvironment(); pluginsEnvironment != nil {
+		pluginContext := pluginContext(c)
+		for _, id := range options.PluginPackets {
+			hooks, err := pluginsEnvironment.HooksForPlugin(id)
+			if err != nil {
+				c.Logger().Error("Failed to call hooks for plugin", mlog.Err(err), mlog.String("plugin", id))
+				warnings = append(warnings, err.Error())
+				continue
+			}
+			fileData, err := hooks.GenerateSupportData(pluginContext)
+			if err != nil {
+				c.Logger().Error("Failed to generate plugin file for support package", mlog.Err(err), mlog.String("plugin", id))
+				warnings = append(warnings, err.Error())
+			} else if fileData != nil {
+				fileDatas = append(fileDatas, *fileData)
+			}
 		}
 	}
 

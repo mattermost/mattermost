@@ -1125,6 +1125,42 @@ func (s *hooksRPCServer) OnSharedChannelsProfileImageSyncMsg(args *Z_OnSharedCha
 	return nil
 }
 
+func init() {
+	hookNameToId["GenerateSupportData"] = GenerateSupportDataID
+}
+
+type Z_GenerateSupportDataArgs struct {
+	A *Context
+}
+
+type Z_GenerateSupportDataReturns struct {
+	A *model.FileData
+	B error
+}
+
+func (g *hooksRPCClient) GenerateSupportData(c *Context) (*model.FileData, error) {
+	_args := &Z_GenerateSupportDataArgs{c}
+	_returns := &Z_GenerateSupportDataReturns{}
+	if g.implemented[GenerateSupportDataID] {
+		if err := g.client.Call("Plugin.GenerateSupportData", _args, _returns); err != nil {
+			g.log.Error("RPC call GenerateSupportData to plugin failed.", mlog.Err(err))
+		}
+	}
+	return _returns.A, _returns.B
+}
+
+func (s *hooksRPCServer) GenerateSupportData(args *Z_GenerateSupportDataArgs, returns *Z_GenerateSupportDataReturns) error {
+	if hook, ok := s.impl.(interface {
+		GenerateSupportData(c *Context) (*model.FileData, error)
+	}); ok {
+		returns.A, returns.B = hook.GenerateSupportData(args.A)
+		returns.B = encodableError(returns.B)
+	} else {
+		return encodableError(fmt.Errorf("Hook GenerateSupportData called but not implemented."))
+	}
+	return nil
+}
+
 type Z_RegisterCommandArgs struct {
 	A *model.Command
 }
