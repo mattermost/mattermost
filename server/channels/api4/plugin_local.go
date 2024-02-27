@@ -3,6 +3,13 @@
 
 package api4
 
+import (
+	"encoding/json"
+	"net/http"
+
+	"github.com/mattermost/mattermost/server/public/model"
+)
+
 func (api *API) InitPluginLocal() {
 	api.BaseRoutes.Plugins.Handle("", api.APILocal(uploadPlugin, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.APILocal(getPlugins)).Methods("GET")
@@ -12,4 +19,27 @@ func (api *API) InitPluginLocal() {
 	api.BaseRoutes.Plugin.Handle("/disable", api.APILocal(disablePlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.APILocal(installMarketplacePlugin)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("/marketplace", api.APILocal(getMarketplacePlugins)).Methods("GET")
+	api.BaseRoutes.Plugins.Handle("/reattach", api.APILocal(reattachPlugin)).Methods("POST")
+}
+
+// reattachPlugin allows the server to bind to an existing plugin instance launched elsewhere.
+//
+// This API is only exposed over a local socket.
+func reattachPlugin(c *Context, w http.ResponseWriter, r *http.Request) {
+	var pluginReattachRequest model.PluginReattachRequest
+	if err := json.NewDecoder(r.Body).Decode(&pluginReattachRequest); err != nil {
+		c.Err = model.NewAppError("reattachPlugin", "api4.plugin.reattachPlugin.invalid_request", nil, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	if !pluginReattachRequest.IsValid() {
+		c.Err = model.NewAppError("reattachPlugin", "api4.plugin.reattachPlugin.invalid_request", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	err := c.App.ReattachPlugin(pluginReattachRequest.Manifest, pluginReattachRequest.PluginReattachConfig)
+	if err != nil {
+		c.Err = err
+		return
+	}
 }

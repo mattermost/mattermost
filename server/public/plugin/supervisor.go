@@ -31,7 +31,49 @@ type supervisor struct {
 	hooksClient *hooksRPCClient
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics metricsInterface) (retSupervisor *supervisor, retErr error) {
+func WithExecutableFromManifest(pluginInfo *model.BundleInfo) func(*plugin.ClientConfig) error {
+	return func(clientConfig *plugin.ClientConfig) error {
+		executable := pluginInfo.Manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH)
+		if executable == "" {
+			return fmt.Errorf("backend executable not found for environment: %s/%s", runtime.GOOS, runtime.GOARCH)
+		}
+
+		executable = filepath.Clean(filepath.Join(".", executable))
+		if strings.HasPrefix(executable, "..") {
+			return fmt.Errorf("invalid backend executable: %s", executable)
+		}
+
+		executable = filepath.Join(pluginInfo.Path, executable)
+
+		cmd := exec.Command(executable)
+
+		// This doesn't add more security than before
+		// but removes the SecureConfig is nil warning.
+		// https://mattermost.atlassian.net/browse/MM-49167
+		pluginChecksum, err := getPluginExecutableChecksum(executable)
+		if err != nil {
+			return errors.Wrapf(err, "unable to generate plugin checksum")
+		}
+
+		clientConfig.Cmd = cmd
+		clientConfig.SecureConfig = &plugin.SecureConfig{
+			Checksum: pluginChecksum,
+			Hash:     sha256.New(),
+		}
+
+		return nil
+	}
+}
+
+func WithReattachConfig(pluginReattachConfig *model.PluginReattachConfig) func(*plugin.ClientConfig) error {
+	return func(clientConfig *plugin.ClientConfig) error {
+		clientConfig.Reattach = pluginReattachConfig.ToHashicorpPluginReattachmentConfig()
+
+		return nil
+	}
+}
+
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics metricsInterface, opts ...func(*plugin.ClientConfig) error) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{}
 	defer func() {
 		if retErr != nil {
@@ -54,48 +96,31 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		},
 	}
 
-	executable := pluginInfo.Manifest.GetExecutableForRuntime(runtime.GOOS, runtime.GOARCH)
-	if executable == "" {
-		return nil, fmt.Errorf("backend executable not found for environment: %s/%s", runtime.GOOS, runtime.GOARCH)
-	}
-
-	executable = filepath.Clean(filepath.Join(".", executable))
-	if strings.HasPrefix(executable, "..") {
-		return nil, fmt.Errorf("invalid backend executable: %s", executable)
-	}
-
-	executable = filepath.Join(pluginInfo.Path, executable)
-
-	cmd := exec.Command(executable)
-
-	// This doesn't add more security than before
-	// but removes the SecureConfig is nil warning.
-	// https://mattermost.atlassian.net/browse/MM-49167
-	pluginChecksum, err := getPluginExecutableChecksum(executable)
-	if err != nil {
-		return nil, errors.Wrapf(err, "unable to generate plugin checksum")
-	}
-
-	sup.client = plugin.NewClient(&plugin.ClientConfig{
+	clientConfig := &plugin.ClientConfig{
 		HandshakeConfig: handshake,
 		Plugins:         pluginMap,
-		Cmd:             cmd,
 		SyncStdout:      wrappedLogger.With(mlog.String("source", "plugin_stdout")).StdLogWriter(),
 		SyncStderr:      wrappedLogger.With(mlog.String("source", "plugin_stderr")).StdLogWriter(),
 		Logger:          hclogAdaptedLogger,
 		StartTimeout:    time.Second * 3,
-		SecureConfig: &plugin.SecureConfig{
-			Checksum: pluginChecksum,
-			Hash:     sha256.New(),
-		},
-	})
+	}
+	for _, opt := range opts {
+		err := opt(clientConfig)
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to apply option")
+		}
+	}
+
+	sup.client = plugin.NewClient(clientConfig)
 
 	rpcClient, err := sup.client.Client()
 	if err != nil {
 		return nil, err
 	}
 
-	sup.pid = cmd.Process.Pid
+	if clientConfig.Cmd != nil {
+		sup.pid = clientConfig.Cmd.Process.Pid
+	}
 
 	raw, err := rpcClient.Dispense("hooks")
 	if err != nil {
