@@ -263,7 +263,6 @@ func (scs *Service) notifyClientsForSharedChannelConverted(channel *model.Channe
 }
 
 func (scs *Service) notifyClientsForSharedChannelUpdate(channel *model.Channel) {
-	scs.platform.InvalidateCacheForChannel(channel)
 	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelUpdated, channel.TeamId, "", "", nil, "")
 	messageWs.Add("channel_id", channel.Id)
 	scs.app.Publish(messageWs)
