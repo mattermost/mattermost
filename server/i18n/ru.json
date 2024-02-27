@@ -10162,5 +10162,9 @@
   {
     "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
     "translation": "Возникла ошибка при получении исходящего oauth-соединения для аудитории."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL слишком длинный"
   }
 ]
