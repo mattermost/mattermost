@@ -22,7 +22,7 @@ import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSett
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
-import DesktopAndMobileNotificationSettings, {areDesktopAndMobileSettingsDifferent} from './desktop_notification_setting/desktop_notification_settings';
+import DesktopAndMobileNotificationSettings, {areDesktopAndMobileSettingsDifferent} from './desktop_and_mobile_notification_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 

@@ -3,11 +3,10 @@
 
 import {shallow} from 'enzyme';
 import React from 'react';
-import type {ComponentProps} from 'react';
 
 import Constants, {NotificationLevels} from 'utils/constants';
 
-import type {SelectOption} from './desktop_notification_settings';
+import type {SelectOption, Props} from './index';
 import DesktopNotificationSettings, {
     areDesktopAndMobileSettingsDifferent,
     getValueOfSendMobileNotificationForSelect,
@@ -15,12 +14,12 @@ import DesktopNotificationSettings, {
     shouldShowSendMobileNotificationsWhenSelect,
     getValueOfSendMobileNotificationWhenSelect,
     getValueOfDesktopAndMobileThreads,
-} from './desktop_notification_settings';
+} from './index';
 
 const validNotificationLevels = Object.values(NotificationLevels);
 
 describe('DesktopNotificationSettings', () => {
-    const baseProps: ComponentProps<typeof DesktopNotificationSettings> = {
+    const baseProps: Props = {
         active: true,
         updateSection: jest.fn(),
         onSubmit: jest.fn(),

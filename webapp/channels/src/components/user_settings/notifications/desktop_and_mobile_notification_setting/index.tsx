@@ -22,7 +22,7 @@ export type SelectOption = {
     value: string;
 };
 
-type Props = {
+export type Props = {
     active: boolean;
     updateSection: (section: string) => void;
     onSubmit: () => void;
@@ -41,7 +41,7 @@ type Props = {
     desktopAndMobileSettingsDifferent: boolean;
 };
 
-export default class DesktopNotificationSettings extends React.PureComponent<Props> {
+export default class DesktopAndMobileNotificationSettings extends React.PureComponent<Props> {
     editButtonRef: RefObject<SettingItemMinComponent>;
 
     constructor(props: Props) {
