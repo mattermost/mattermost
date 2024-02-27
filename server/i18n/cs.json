@@ -7454,5 +7454,9 @@
   {
     "id": "api.command_share.hint",
     "translation": "[akce]"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL adresa je příliš dlouhá"
   }
 ]
