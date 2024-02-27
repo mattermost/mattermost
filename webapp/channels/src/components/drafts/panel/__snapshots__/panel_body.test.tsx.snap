@@ -151,9 +151,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                     </span>
                   </button>
                 </RoundButton>
-                <StatusIcon
-                  button={false}
-                  className=""
+                <Memo(StatusIcon)
                   status="status"
                 >
                   <StatusOfflineIcon
@@ -184,7 +182,7 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
                       </svg>
                     </span>
                   </StatusOfflineIcon>
-                </StatusIcon>
+                </Memo(StatusIcon)>
               </span>
             </OverlayTrigger>
           </OverlayTrigger>
@@ -422,9 +420,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                     </span>
                   </button>
                 </RoundButton>
-                <StatusIcon
-                  button={false}
-                  className=""
+                <Memo(StatusIcon)
                   status="status"
                 >
                   <StatusOfflineIcon
@@ -455,7 +451,7 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
                       </svg>
                     </span>
                   </StatusOfflineIcon>
-                </StatusIcon>
+                </Memo(StatusIcon)>
               </span>
             </OverlayTrigger>
           </OverlayTrigger>
@@ -699,9 +695,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                     </span>
                   </button>
                 </RoundButton>
-                <StatusIcon
-                  button={false}
-                  className=""
+                <Memo(StatusIcon)
                   status="status"
                 >
                   <StatusOfflineIcon
@@ -732,7 +726,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
                       </svg>
                     </span>
                   </StatusOfflineIcon>
-                </StatusIcon>
+                </Memo(StatusIcon)>
               </span>
             </OverlayTrigger>
           </OverlayTrigger>
@@ -1038,9 +1032,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                     </span>
                   </button>
                 </RoundButton>
-                <StatusIcon
-                  button={false}
-                  className=""
+                <Memo(StatusIcon)
                   status="status"
                 >
                   <StatusOfflineIcon
@@ -1071,7 +1063,7 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
                       </svg>
                     </span>
                   </StatusOfflineIcon>
-                </StatusIcon>
+                </Memo(StatusIcon)>
               </span>
             </OverlayTrigger>
           </OverlayTrigger>
