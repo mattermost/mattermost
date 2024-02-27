@@ -194,6 +194,7 @@ body.app__body #root {
 
     &:not(.console__root) {
         @media screen and (max-width: 768px) {
+            padding-bottom: 0;
             z-index: 17;
             grid-template:
                 'announcement' min-content
@@ -216,7 +217,7 @@ body.app__body #root {
             .content-container {
 
                 grid-template:
-                    'center'
+                    'main'
                 ;
                 padding:0;
                 border-radius: 0;
@@ -226,6 +227,7 @@ body.app__body #root {
                 .product-wrapper,
                 #sidebar-right {
                     grid-area: main;
+                    border-radius: 0;
                 }
 
                 .channel-view {
