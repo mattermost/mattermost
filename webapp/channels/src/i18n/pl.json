@@ -3112,7 +3112,7 @@
   "channel_invite.invite_team_members.message": "Będziesz mógł dodać {count, plural, =1 {{firstUser}} other {{users}}} do tego kanału, gdy zostaną członkami zespołu {team}.",
   "channel_invite.invite_team_members.messageOthers": "{count} innych",
   "channel_invite.invite_team_members.messageOverflow": "Będziesz mógł dodać {firstUser} i {others} do tego kanału, gdy zostaną członkami zespołu {team}.",
-  "channel_invite.invite_team_members.title": "{count, plural, =1 {1 użytkownik nie został} other {# użytkowników nie zostało}} wybranych, ponieważ nie należą do tego zespołu",
+  "channel_invite.invite_team_members.title": "{count, plural, =1 {1 użytkownik nie został wybrany, ponieważ nie należy} other {# użytkowników nie zostało wybranych, ponieważ nie należą}} do tego zespołu",
   "channel_invite.no_options_message": "Nie znaleziono dopasowań - <InvitationModalLink>Zaproś ich do zespołu</InvitationModalLink>",
   "channel_loader.posted": "Wysłany",
   "channel_loader.postedImage": " wysłano obraz",
