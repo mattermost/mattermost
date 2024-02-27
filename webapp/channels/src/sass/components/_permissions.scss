@@ -172,7 +172,7 @@
         width: 100%;
         height: 100%;
         align-items: center;
-        opacity: 0.65;
+        opacity: 0.75;
 
         span {
             display: inline-block;
@@ -340,7 +340,7 @@
             margin-bottom: 10px;
             background: rgba(0, 0, 0, 0.05);
             border-radius: 13px;
-            color: alpha-color($black, 0.6);
+            color: alpha-color($black, 0.75);
             font-size: 11px;
         }
     }

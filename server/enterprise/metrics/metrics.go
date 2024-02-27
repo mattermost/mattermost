@@ -38,6 +38,7 @@ const (
 	MetricsSubsystemSearch             = "search"
 	MetricsSubsystemLogging            = "logging"
 	MetricsSubsystemRemoteCluster      = "remote_cluster"
+	MetricsSubsystemSharedChannels     = "shared_channels"
 	MetricsSubsystemSystem             = "system"
 	MetricsSubsystemJobs               = "jobs"
 	MetricsCloudInstallationLabel      = "installationId"
@@ -188,6 +189,14 @@ type MetricsInterfaceImpl struct {
 	RemoteClusterPingTimesHistograms    *prometheus.HistogramVec
 	RemoteClusterClockSkewHistograms    *prometheus.HistogramVec
 	RemoteClusterConnStateChangeCounter *prometheus.CounterVec
+
+	SharedChannelsSyncCount                   *prometheus.CounterVec
+	SharedChannelsTaskInQueueHistogram        prometheus.Histogram
+	SharedChannelsQueueSize                   prometheus.Gauge
+	SharedChannelsSyncCollectionHistogram     *prometheus.HistogramVec
+	SharedChannelsSyncSendHistogram           *prometheus.HistogramVec
+	SharedChannelsSyncCollectionStepHistogram *prometheus.HistogramVec
+	SharedChannelsSyncSendStepHistogram       *prometheus.HistogramVec
 
 	ServerStartTime prometheus.Gauge
 
@@ -853,7 +862,7 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 	)
 	m.Registry.MustRegister(m.LoggerBlockedCounters.counter)
 
-	// Remote Cluster subsystem
+	// Remote Cluster service
 
 	m.RemoteClusterMsgSentCounters = prometheus.NewCounterVec(
 		prometheus.CounterOpts{
@@ -926,6 +935,90 @@ func New(ps *platform.PlatformService, driver, dataSource string) *MetricsInterf
 		[]string{"remote_id", "online"},
 	)
 	m.Registry.MustRegister(m.RemoteClusterConnStateChangeCounter)
+
+	// Shared Channel service
+
+	m.SharedChannelsSyncCount = prometheus.NewCounterVec(
+		prometheus.CounterOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_count",
+			Help:        "Count of sync events processed for each remote",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncCount)
+
+	m.SharedChannelsTaskInQueueHistogram = prometheus.NewHistogram(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "task_in_queue_duration_seconds",
+			Help:        "Duration tasks spend in queue (seconds)",
+			ConstLabels: additionalLabels,
+		},
+	)
+	m.Registry.MustRegister(m.SharedChannelsTaskInQueueHistogram)
+
+	m.SharedChannelsQueueSize = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "task_queue_size",
+			Help:        "Current number of tasks in queue",
+			ConstLabels: additionalLabels,
+		},
+	)
+	m.Registry.MustRegister(m.SharedChannelsQueueSize)
+
+	m.SharedChannelsSyncCollectionHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_collection_duration_seconds",
+			Help:        "Duration tasks spend collecting sync data (seconds)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncCollectionHistogram)
+
+	m.SharedChannelsSyncSendHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_send_duration_seconds",
+			Help:        "Duration tasks spend sending sync data (seconds)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncSendHistogram)
+
+	m.SharedChannelsSyncCollectionStepHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_collection_step_duration_seconds",
+			Help:        "Duration tasks spend in each step collecting data (seconds)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id", "step"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncCollectionStepHistogram)
+
+	m.SharedChannelsSyncSendStepHistogram = prometheus.NewHistogramVec(
+		prometheus.HistogramOpts{
+			Namespace:   MetricsNamespace,
+			Subsystem:   MetricsSubsystemSharedChannels,
+			Name:        "sync_send_step_duration_seconds",
+			Help:        "Duration tasks spend in each step sending data (seconds)",
+			ConstLabels: additionalLabels,
+		},
+		[]string{"remote_id", "step"},
+	)
+	m.Registry.MustRegister(m.SharedChannelsSyncSendStepHistogram)
 
 	m.ServerStartTime = prometheus.NewGauge(prometheus.GaugeOpts{
 		Namespace:   MetricsNamespace,
@@ -1322,6 +1415,46 @@ func (mi *MetricsInterfaceImpl) IncrementRemoteClusterConnStateChangeCounter(rem
 		"remote_id": remoteID,
 		"online":    strconv.FormatBool(online),
 	}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) IncrementSharedChannelsSyncCounter(remoteID string) {
+	mi.SharedChannelsSyncCount.With(prometheus.Labels{
+		"remote_id": remoteID,
+	}).Inc()
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsTaskInQueueDuration(elapsed float64) {
+	mi.SharedChannelsTaskInQueueHistogram.Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsQueueSize(size int64) {
+	mi.SharedChannelsQueueSize.Set(float64(size))
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsSyncCollectionDuration(remoteID string, elapsed float64) {
+	mi.SharedChannelsSyncCollectionHistogram.With(prometheus.Labels{
+		"remote_id": remoteID,
+	}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsSyncSendDuration(remoteID string, elapsed float64) {
+	mi.SharedChannelsSyncSendHistogram.With(prometheus.Labels{
+		"remote_id": remoteID,
+	}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsSyncCollectionStepDuration(remoteID string, step string, elapsed float64) {
+	mi.SharedChannelsSyncCollectionStepHistogram.With(prometheus.Labels{
+		"remote_id": remoteID,
+		"step":      step,
+	}).Observe(elapsed)
+}
+
+func (mi *MetricsInterfaceImpl) ObserveSharedChannelsSyncSendStepDuration(remoteID string, step string, elapsed float64) {
+	mi.SharedChannelsSyncSendStepHistogram.With(prometheus.Labels{
+		"remote_id": remoteID,
+		"step":      step,
+	}).Observe(elapsed)
 }
 
 // SetReplicaLagAbsolute sets the absolute replica lag for a given node.

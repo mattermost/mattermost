@@ -51,11 +51,11 @@ button {
         width: 40px;
         padding: 0;
         background-color: transparent;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 
         &:hover {
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
-            color: rgba(var(--center-channel-color-rgb), 0.72);
+            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
 
         &:focus,
