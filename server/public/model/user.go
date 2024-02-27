@@ -399,11 +399,9 @@ func (u *User) IsValid() *AppError {
 			map[string]any{"Limit": UserRolesMaxLength}, "user_id="+u.Id+" roles_limit="+u.Roles, http.StatusBadRequest)
 	}
 
-	if u.Props != nil {
-		if !u.ValidateCustomStatus() {
-			return NewAppError("User.IsValid", "model.user.is_valid.invalidProperty.app_error",
-				map[string]any{"Props": u.Props}, "user_id="+u.Id, http.StatusBadRequest)
-		}
+	if !u.ValidateCustomStatus() {
+		return NewAppError("User.IsValid", "model.user.is_valid.invalidProperty.app_error",
+			map[string]any{"Props": u.Props}, "user_id="+u.Id, http.StatusBadRequest)
 	}
 
 	return nil

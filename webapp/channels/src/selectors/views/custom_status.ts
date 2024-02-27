@@ -31,8 +31,7 @@ export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => 
                 try {
                     customStatus = JSON.parse(userProps.customStatus);
                 } catch (error) {
-                    // eslint-disable-next-line no-console
-                    console.log('Unable to parse custom status', error);
+                    // do nothing if invalid, return undefined custom status.
                 }
             }
             return customStatus;
