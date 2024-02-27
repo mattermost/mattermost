@@ -170,7 +170,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
   describe={
     <Memo(MemoizedFormattedMessage)
       defaultMessage="Mentions, direct messages, and group messages"
-      id="user.settings.notifications.desktopAndMobile.onlyMentions"
+      id="user.settings.notifications.desktopAndMobile.mentionsForDesktopAndMobile"
     />
   }
   section="desktopAndMobile"

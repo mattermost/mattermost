@@ -462,64 +462,71 @@ export function getValueOfDesktopAndMobileThreads(pushThreads: UserNotifyProps['
 function getCollapsedText(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']) {
     let collapsedText: ReactNode = null;
     if (desktopActivity === NotificationLevels.ALL) {
-        if (areDesktopAndMobileSettingsDifferent(desktopActivity, pushActivity) === false) {
+        if (pushActivity === NotificationLevels.ALL) {
             collapsedText = (
                 <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.allNewMessages'
+                    id='user.settings.notifications.desktopAndMobile.allForDesktopAndMobile'
                     defaultMessage='All new messages'
+                />
+            );
+        } else if (pushActivity === NotificationLevels.MENTION) {
+            collapsedText = (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopAndMobile.allDesktopButMobileMentions'
+                    defaultMessage='All new messages on desktop; Mentions, direct messages, and group messages on mobile'
                 />
             );
         } else if (pushActivity === NotificationLevels.NONE) {
             collapsedText = (
                 <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.allNewMessagesButMobileNone'
-                    defaultMessage='All new messages on desktop, but none on mobile'
-                />
-            );
-        } else {
-            collapsedText = (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.allNewMessagesButMobileDifferent'
-                    defaultMessage='All new messages on desktop, mobile differs'
+                    id='user.settings.notifications.desktopAndMobile.allDesktopButMobileNone'
+                    defaultMessage='All new messages on desktop; Never on mobile'
                 />
             );
         }
     } else if (desktopActivity === NotificationLevels.MENTION) {
-        if (areDesktopAndMobileSettingsDifferent(desktopActivity, pushActivity) === false) {
+        if (pushActivity === NotificationLevels.ALL) {
             collapsedText = (
                 <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.onlyMentions'
+                    id='user.settings.notifications.desktopAndMobile.mentionsDesktopButMobileAll'
+                    defaultMessage='Mentions, direct messages, and group messages on desktop; All new messages on mobile'
+                />
+            );
+        } else if (pushActivity === NotificationLevels.MENTION) {
+            collapsedText = (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopAndMobile.mentionsForDesktopAndMobile'
                     defaultMessage='Mentions, direct messages, and group messages'
                 />
             );
         } else if (pushActivity === NotificationLevels.NONE) {
             collapsedText = (
                 <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.onlyMentionsButMobileNone'
-                    defaultMessage='Mentions, direct and group messages on desktop, but none on mobile'
-                />
-            );
-        } else {
-            collapsedText = (
-                <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.onlyMentionsButMobileDifferent'
-                    defaultMessage='Mentions, direct and group messages on desktop, mobile differs'
+                    id='user.settings.notifications.desktopAndMobile.mentionsForDesktopButMobileNone'
+                    defaultMessage='Mentions, direct messages, and group messages on desktop; Never on mobile'
                 />
             );
         }
     } else if (desktopActivity === NotificationLevels.NONE) {
-        if (areDesktopAndMobileSettingsDifferent(desktopActivity, pushActivity) === false) {
+        if (pushActivity === NotificationLevels.ALL) {
             collapsedText = (
                 <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.never'
-                    defaultMessage='Never'
+                    id='user.settings.notifications.desktopAndMobile.noneDesktopButMobileAll'
+                    defaultMessage='Never on desktop; All new messages on mobile'
                 />
             );
-        } else {
+        } else if (pushActivity === NotificationLevels.MENTION) {
             collapsedText = (
                 <FormattedMessage
-                    id='user.settings.notifications.desktopAndMobile.neverButMobileDifferent'
-                    defaultMessage='Never on desktop, mobile differs'
+                    id='user.settings.notifications.desktopAndMobile.noneDesktopButMobileMentions'
+                    defaultMessage='Never on desktop, Mentions, direct messages, and group messages on mobile'
+                />
+            );
+        } else if (pushActivity === NotificationLevels.NONE) {
+            collapsedText = (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopAndMobile.noneForDesktopAndMobile'
+                    defaultMessage='Never'
                 />
             );
         }
