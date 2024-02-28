@@ -40,6 +40,7 @@ export default class MarkdownImage extends React.PureComponent {
             openModal: PropTypes.func,
         }).isRequired,
         hideUtilities: PropTypes.bool,
+        isUnsafeLinksPost: PropTypes.bool,
     };
 
     constructor(props) {
@@ -144,6 +145,9 @@ export default class MarkdownImage extends React.PureComponent {
                     />
                 </div>
             );
+        }
+        if (this.props.isUnsafeLinksPost) {
+            return <>{alt}</>;
         }
         return (
             <ExternalImage
