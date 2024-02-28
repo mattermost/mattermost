@@ -1600,21 +1600,21 @@ type FileSettings struct {
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
-	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3Region                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportAmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportAmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
+	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3Region                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
