@@ -16,6 +16,7 @@
     "1.4.0": "osixia/openldap:1.4.0@sha256:d5b2f2b816b25a1b57033b34f5d48c91cc3161a7d041811a9032604030bad9db"
   },
   "keycloak": {
+    "10.0.2": "jboss/keycloak:10.0.2@sha256:3720b5ace316b5790a58ce838f46e8cd44cedbdb7e35d3866311ddc5a5e71466",
     "23.0.7": "quay.io/keycloak/keycloak:23.0.7@sha256:14e99d6f5dd0516a5bdc82537b732cb85469ecdb15ad7fe5f11ff67521544db8"
   },
   "dejavu": {
