@@ -275,7 +275,8 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
     return async (dispatch, getState) => {
         let updatedChannel;
         try {
-            updatedChannel = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
+            const response = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
+            updatedChannel = response.data;
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
