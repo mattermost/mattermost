@@ -8,12 +8,9 @@ import {getPost} from 'mattermost-redux/selectors/entities/posts';
 
 import {openModal} from 'actions/views/modals';
 
-import type {GlobalState} from 'types/store';
-
 import MarkdownImage from './markdown_image';
-import type {Props} from './markdown_image';
 
-function mapStateToProps(state: GlobalState, ownProps: Props) {
+function mapStateToProps(state, ownProps) {
     const post = getPost(state, ownProps.postId);
     const isUnsafeLinksPost = post?.props?.unsafe_links === 'true';
 

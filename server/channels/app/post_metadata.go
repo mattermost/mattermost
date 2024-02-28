@@ -587,8 +587,16 @@ func (a *App) getImagesInMessageAttachments(post *model.Post) []string {
 	return images
 }
 
+// Taken from go stdlib strings package to backport
+func CutPrefix(s, prefix string) (after string, found bool) {
+	if !strings.HasPrefix(s, prefix) {
+		return s, false
+	}
+	return s[len(prefix):], true
+}
+
 func looksLikeAPermalink(url, siteURL string) bool {
-	path, hasPrefix := strings.CutPrefix(strings.TrimSpace(url), siteURL)
+	path, hasPrefix := CutPrefix(strings.TrimSpace(url), siteURL)
 	if !hasPrefix {
 		return false
 	}
