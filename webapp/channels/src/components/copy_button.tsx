@@ -7,7 +7,7 @@ import React, {useRef, useState} from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import useTooltip from 'components/common/hooks/useTooltip';
-import Constants from 'utils/constants';
+
 import {t} from 'utils/i18n';
 import {copyToClipboard} from 'utils/utils';
 
@@ -23,8 +23,28 @@ const CopyButton: React.FC<Props> = (props: Props) => {
     const [isCopied, setIsCopied] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
 
-    const { setReference, getReferenceProps, tooltip } = useTooltip({
-        message: <FormattedMessage id={getId()} defaultMessage={getDefaultMessage()} />,
+    const getDefaultMessage = () => {
+        if (isCopied) {
+            return props.afterCopyText;
+        }
+        return props.beforeCopyText ?? 'Copy code';
+    };
+
+    const getId = () => {
+        if (isCopied) {
+            return t('copied.message');
+        }
+        return props.beforeCopyText ? t('copy.text.message') : t('copy.code.message');
+    };
+
+    const {
+        setReference,
+        getReferenceProps,
+        tooltip
+    } = useTooltip({
+        message: <FormattedMessage id={getId()}
+            defaultMessage={getDefaultMessage()}
+        />,
         placement: props.placement,
     });
 
@@ -41,20 +61,6 @@ const CopyButton: React.FC<Props> = (props: Props) => {
         }, 2000);
 
         copyToClipboard(props.content);
-    };
-
-    const getId = () => {
-        if (isCopied) {
-            return t('copied.message');
-        }
-        return props.beforeCopyText ? t('copy.text.message') : t('copy.code.message');
-    };
-
-    const getDefaultMessage = () => {
-        if (isCopied) {
-            return props.afterCopyText;
-        }
-        return props.beforeCopyText ?? 'Copy code';
     };
 
     const spanClassName = classNames('post-code__clipboard', props.className);
