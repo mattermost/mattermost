@@ -1510,6 +1510,7 @@ func TestImportImportUser(t *testing.T) {
 	assert.False(t, channelMember.SchemeGuest)
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
+	// see https://mattermost.atlassian.net/browse/MM-56986
 	// Test importing deleted guest with a valid team & valid channel name in apply mode.
 	// mlog.Debug("TESTING GUEST")
 	// username = model.NewId()
