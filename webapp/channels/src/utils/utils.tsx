@@ -5,7 +5,7 @@ import {getName} from 'country-list';
 import crypto from 'crypto';
 import cssVars from 'css-vars-ponyfill';
 import type {Locale} from 'date-fns';
-import {isNil} from 'lodash';
+import isNil from 'lodash/isNil';
 import moment from 'moment';
 import React from 'react';
 import type {LinkHTMLAttributes} from 'react';
