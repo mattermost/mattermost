@@ -5,9 +5,8 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
-import type {Action, GenericAction} from 'mattermost-redux/types/actions';
-
 import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import type {Action, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
