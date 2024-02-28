@@ -54,7 +54,6 @@ type FeatureFlags struct {
 	CloudDedicatedExportUI bool
 
 	WebSocketEventScope bool
-
 }
 
 func (f *FeatureFlags) SetDefaults() {
