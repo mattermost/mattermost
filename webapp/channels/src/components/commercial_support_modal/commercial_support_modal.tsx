@@ -14,6 +14,8 @@ import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 
 import './commercial_support_modal.scss';
 
+import type {GlobalState} from 'types/store';
+
 type Props = {
 
     /**
@@ -26,6 +28,8 @@ type Props = {
     isCloud: boolean;
 
     currentUser: UserProfile;
+
+    pluginSupportPackets: GlobalState['plugins']['supportPackets'];
 };
 
 type State = {
@@ -86,21 +90,11 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                     <div className='CommercialSupportModal'>
                         <FormattedMarkdownMessage
                             id='commercial_support.description'
-                            defaultMessage={'If you\'re experiencing issues, [submit a support ticket.](!{supportLink})\n \n**Download Support Packet**\n \nWe recommend that you download additional environment details about your Mattermost environment to help with troubleshooting. Once downloaded, attach the packet to your support ticket to share with our Customer Support team.'}
+                            defaultMessage={'If you\'re experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it\'s recommended to download the support packet below that includes more details about your Mattermost environment.'}
                             values={{
                                 supportLink,
                             }}
                         />
-                        <a
-                            className='btn btn-primary DownloadSupportPacket'
-                            href={`${Client4.getBaseRoute()}/system/support_packet`}
-                            rel='noopener noreferrer'
-                        >
-                            <FormattedMessage
-                                id='commercial_support.download_support_packet'
-                                defaultMessage='Download Support Packet'
-                            />
-                        </a>
                         {showBannerWarning &&
                             <AlertBanner
                                 mode='info'
@@ -113,6 +107,68 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 onDismiss={this.hideBannerWarning}
                             />
                         }
+                        <div className='CommercialSupportModal__packet_contents_download'>
+                            <FormattedMarkdownMessage
+                                id='commercial_support.download_contents'
+                                defaultMessage={'**Select your support packet contents to download**'}
+                            />
+                        </div>
+                        <div className='CommercialSupportModal__options'>
+                            <input
+                                className='CommercialSupportModal__options__checkbox'
+                                id='basic'
+                                name='basic'
+                                type='checkbox'
+                                checked={true}
+                                readOnly={true}
+                            />
+                            <FormattedMessage
+                                id='commercial_support.description.contents.basic'
+                                defaultMessage='Basic contents'
+                            >
+                            {(text) => (
+                                <label
+                                    className='CommercialSupportModal__options_checkbox_label'
+                                    htmlFor='basic'
+                                >
+                                    {text}
+                                </label>)
+                            }
+                            </FormattedMessage>
+                        </div>
+                        <div className='CommercialSupportModal__options'>
+                        <input
+                                className='CommercialSupportModal__options__checkbox'
+                                id='logs'
+                                name='logs'
+                                type='checkbox'
+                            />
+                            <FormattedMessage
+                                id='commercial_support.description.contents.logs'
+                                defaultMessage='Server logs'
+                            >
+                            {(text) => (
+                                <label
+                                    className='CommercialSupportModal__options_checkbox_label'
+                                    htmlFor='logs'
+                                >
+                                    {text}
+                                </label>)
+                            }
+                            </FormattedMessage>
+                        </div>
+                        <div className='CommercialSupportModal__download'>
+                        <a
+                            className='btn btn-primary DownloadSupportPacket'
+                            href={`${Client4.getBaseRoute()}/system/support_packet`}
+                            rel='noopener noreferrer'
+                        >
+                        <FormattedMessage
+                            id='commercial_support.download_support_packet'
+                            defaultMessage='Download Support Packet'
+                        />
+                        </a>
+                    </div>
                     </div>
                 </Modal.Body>
             </Modal>

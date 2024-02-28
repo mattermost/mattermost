@@ -498,3 +498,15 @@ export function requestTrialLicense(requestLicenseBody, page) {
         }
     };
 }
+
+export function registerSupportPacket(pluginId, label) {
+    return (storeDispatch) => {
+        storeDispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_SUPPORT_PACKET,
+            data: {
+                pluginId,
+                label,
+            },
+        });
+    };
+}

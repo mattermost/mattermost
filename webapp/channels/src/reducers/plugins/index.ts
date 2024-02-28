@@ -416,6 +416,29 @@ function userSettings(state: PluginsState['userSettings'] = {}, action: AnyActio
     }
 }
 
+function supportPackets(state: PluginsState['supportPackets'] = {}, action: AnyAction) {
+    switch (action.type) {
+        case ActionTypes.RECEIVED_PLUGIN_SUPPORT_PACKET:
+            if (action.data) {
+                const nextState = {...state};
+                nextState[action.data.pluginId] = action.data;
+                return nextState;
+            }
+            return state;
+        case ActionTypes.REMOVED_WEBAPP_PLUGIN:
+            if (action.data) {
+                const nextState = {...state};
+                delete nextState[action.data.id];
+                return nextState;
+            }
+            return state;
+        case UserTypes.LOGOUT_SUCCESS:
+            return {};
+        default:
+            return state;
+        }
+}
+
 export default combineReducers({
 
     // object where every key is a plugin id and values are webapp plugin manifests
@@ -448,4 +471,8 @@ export default combineReducers({
     // objects where every key is a plugin id and the value is configuration schema to show in
     // the user settings modal
     userSettings,
+
+    // objects where every key is a plugin id and the value is a text to be shown in
+    // the commercial support modal
+    supportPackets,
 });

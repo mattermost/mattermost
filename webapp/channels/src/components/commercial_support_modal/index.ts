@@ -21,6 +21,7 @@ function mapStateToProps(state: GlobalState) {
         isCloud,
         currentUser,
         showBannerWarning,
+        pluginSupportPackets: state.plugins.supportPackets,
     };
 }
 
