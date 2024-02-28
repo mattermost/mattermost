@@ -1450,6 +1450,10 @@
     "translation": "Invites an external Mattermost instance to the current shared channel"
   },
   {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Cannot invite remote to channel: {{.Error}}"
+  },
+  {
     "id": "api.command_share.missing_action",
     "translation": "Missing action. Available actions: {{.Actions}}"
   },
