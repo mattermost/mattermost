@@ -898,7 +898,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c1, nErr := ss.Channel().Save(ch1, -1)
+	c1, nErr := ss.Channel().Save(rctx, ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := &model.Channel{
@@ -907,7 +907,7 @@ func testUserStoreGetProfilesInChannel(t *testing.T, rctx request.CTX, ss store.
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	c2, nErr := ss.Channel().Save(ch2, -1)
+	c2, nErr := ss.Channel().Save(rctx, ch2, -1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -1077,7 +1077,7 @@ func testUserStoreGetProfilesInChannelByAdmin(t *testing.T, rctx request.CTX, ss
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c1, nErr := ss.Channel().Save(ch1, -1)
+	c1, nErr := ss.Channel().Save(rctx, ch1, -1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -1172,7 +1172,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c1, nErr := ss.Channel().Save(ch1, -1)
+	c1, nErr := ss.Channel().Save(rctx, ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := &model.Channel{
@@ -1181,7 +1181,7 @@ func testUserStoreGetProfilesInChannelByStatus(t *testing.T, rctx request.CTX, s
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	c2, nErr := ss.Channel().Save(ch2, -1)
+	c2, nErr := ss.Channel().Save(rctx, ch2, -1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -1389,7 +1389,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, rctx request.CTX, ss sto
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c1, nErr := ss.Channel().Save(ch1, -1)
+	c1, nErr := ss.Channel().Save(rctx, ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := &model.Channel{
@@ -1398,7 +1398,7 @@ func testUserStoreGetAllProfilesInChannel(t *testing.T, rctx request.CTX, ss sto
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	c2, nErr := ss.Channel().Save(ch2, -1)
+	c2, nErr := ss.Channel().Save(rctx, ch2, -1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -1515,7 +1515,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c1, nErr := ss.Channel().Save(ch1, -1)
+	c1, nErr := ss.Channel().Save(rctx, ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := &model.Channel{
@@ -1524,7 +1524,7 @@ func testUserStoreGetProfilesNotInChannel(t *testing.T, rctx request.CTX, ss sto
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	c2, nErr := ss.Channel().Save(ch2, -1)
+	c2, nErr := ss.Channel().Save(rctx, ch2, -1)
 	require.NoError(t, nErr)
 
 	t.Run("get team 1, channel 1, offset 0, limit 100", func(t *testing.T) {
@@ -1749,7 +1749,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, rctx request.
 	require.NoError(t, err)
 	defer func() { require.NoError(t, ss.User().PermanentDelete(u4.Id)) }()
 
-	gc1, nErr := ss.Channel().Save(&model.Channel{
+	gc1, nErr := ss.Channel().Save(rctx, &model.Channel{
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypeGroup,
@@ -1765,7 +1765,7 @@ func testUserStoreGetProfileByGroupChannelIdsForUser(t *testing.T, rctx request.
 		require.NoError(t, nErr)
 	}
 
-	gc2, nErr := ss.Channel().Save(&model.Channel{
+	gc2, nErr := ss.Channel().Save(rctx, &model.Channel{
 		DisplayName: "Profiles in private",
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypeGroup,
@@ -2432,7 +2432,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	_, nErr = ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: u3.Id}, -1)
 	require.NoError(t, nErr)
 
-	_, nErr = ss.Channel().Save(&c1, -1)
+	_, nErr = ss.Channel().Save(rctx, &c1, -1)
 	require.NoError(t, nErr, "couldn't save item")
 
 	m1 := model.ChannelMember{}
@@ -2468,7 +2468,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	p1.Message = "this is a message for @" + u2.Username + " and " + "@" + u3.Username
 
 	// Post one message with mention to open channel
-	_, nErr = ss.Post().Save(&p1)
+	_, nErr = ss.Post().Save(rctx, &p1)
 	require.NoError(t, nErr)
 	nErr = ss.Channel().IncrementMentionCount(c1.Id, []string{u2.Id, u3.Id}, false, false)
 	require.NoError(t, nErr)
@@ -2479,7 +2479,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	p2.UserId = u1.Id
 	p2.Message = "first message"
 
-	_, nErr = ss.Post().Save(&p2)
+	_, nErr = ss.Post().Save(rctx, &p2)
 	require.NoError(t, nErr)
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false, false)
 	require.NoError(t, nErr)
@@ -2488,7 +2488,7 @@ func testUserUnreadCount(t *testing.T, rctx request.CTX, ss store.Store) {
 	p3.ChannelId = c2.Id
 	p3.UserId = u1.Id
 	p3.Message = "second message"
-	_, nErr = ss.Post().Save(&p3)
+	_, nErr = ss.Post().Save(rctx, &p3)
 	require.NoError(t, nErr)
 
 	nErr = ss.Channel().IncrementMentionCount(c2.Id, []string{u2.Id}, false, false)
@@ -2937,7 +2937,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.St
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c1, nErr := ss.Channel().Save(&ch1, -1)
+	c1, nErr := ss.Channel().Save(rctx, &ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := model.Channel{
@@ -2946,7 +2946,7 @@ func testUserStoreSearchNotInChannel(t *testing.T, rctx request.CTX, ss store.St
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c2, nErr := ss.Channel().Save(&ch2, -1)
+	c2, nErr := ss.Channel().Save(rctx, &ch2, -1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -3166,7 +3166,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c1, nErr := ss.Channel().Save(&ch1, -1)
+	c1, nErr := ss.Channel().Save(rctx, &ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := model.Channel{
@@ -3175,7 +3175,7 @@ func testUserStoreSearchInChannel(t *testing.T, rctx request.CTX, ss store.Store
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c2, nErr := ss.Channel().Save(&ch2, -1)
+	c2, nErr := ss.Channel().Save(rctx, &ch2, -1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -4883,14 +4883,14 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		Name: model.NewId(),
 		Type: model.ChannelTypeOpen,
 	}
-	cPub1, nErr := ss.Channel().Save(ch1, -1)
+	cPub1, nErr := ss.Channel().Save(rctx, ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := &model.Channel{
 		Name: model.NewId(),
 		Type: model.ChannelTypeOpen,
 	}
-	cPub2, nErr := ss.Channel().Save(ch2, -1)
+	cPub2, nErr := ss.Channel().Save(rctx, ch2, -1)
 	require.NoError(t, nErr)
 
 	ch3 := &model.Channel{
@@ -4898,7 +4898,7 @@ func testUserStoreGetUsersBatchForIndexing(t *testing.T, rctx request.CTX, ss st
 		Type: model.ChannelTypePrivate,
 	}
 
-	cPriv, nErr := ss.Channel().Save(ch3, -1)
+	cPriv, nErr := ss.Channel().Save(rctx, ch3, -1)
 	require.NoError(t, nErr)
 
 	u1, err := ss.User().Save(rctx, &model.User{
@@ -5133,7 +5133,7 @@ func testUserStoreGetTeamGroupUsers(t *testing.T, rctx request.CTX, ss store.Sto
 func testUserStoreGetChannelGroupUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 	// create channel
 	id := model.NewId()
-	channel, nErr := ss.Channel().Save(&model.Channel{
+	channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 		DisplayName: "dn_" + id,
 		Name:        "n-" + id,
 		Type:        model.ChannelTypePrivate,
@@ -5272,7 +5272,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5318,7 +5318,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5414,7 +5414,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5459,7 +5459,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5504,7 +5504,7 @@ func testUserStorePromoteGuestToUser(t *testing.T, rctx request.CTX, ss store.St
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId1,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5587,7 +5587,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5631,7 +5631,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: true, SchemeUser: false}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5721,7 +5721,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5764,7 +5764,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId, UserId: user.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -5807,7 +5807,7 @@ func testUserStoreDemoteUserToGuest(t *testing.T, rctx request.CTX, ss store.Sto
 		_, nErr := ss.Team().SaveMember(rctx, &model.TeamMember{TeamId: teamId1, UserId: user1.Id, SchemeGuest: false, SchemeUser: true}, 999)
 		require.NoError(t, nErr)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      teamId1,
 			DisplayName: "Channel name",
 			Name:        "channel-" + model.NewId(),
@@ -6033,7 +6033,7 @@ func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	c1, nErr := ss.Channel().Save(ch1, -1)
+	c1, nErr := ss.Channel().Save(rctx, ch1, -1)
 	require.NoError(t, nErr)
 
 	ch2 := &model.Channel{
@@ -6042,7 +6042,7 @@ func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	c2, nErr := ss.Channel().Save(ch2, -1)
+	c2, nErr := ss.Channel().Save(rctx, ch2, -1)
 	require.NoError(t, nErr)
 
 	ch3 := &model.Channel{
@@ -6051,7 +6051,7 @@ func testGetKnownUsers(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        "profiles-" + model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	c3, nErr := ss.Channel().Save(ch3, -1)
+	c3, nErr := ss.Channel().Save(rctx, ch3, -1)
 	require.NoError(t, nErr)
 
 	_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
@@ -6231,7 +6231,7 @@ func testGetUserReport(t *testing.T, rctx request.CTX, ss store.Store, s SqlStor
 	for _, user := range users {
 		for i := 0; i < numPostsPerUser; i++ {
 			post := model.Post{UserId: user.Id, ChannelId: model.NewId(), Message: NewTestId(), CreateAt: now.AddDate(0, 0, -i).UnixMilli()}
-			_, err := ss.Post().Save(&post)
+			_, err := ss.Post().Save(rctx, &post)
 			require.NoError(t, err)
 		}
 	}
