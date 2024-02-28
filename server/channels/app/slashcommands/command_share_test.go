@@ -116,7 +116,7 @@ func TestShareProviderDoCommand(t *testing.T) {
 		require.Nil(t, err)
 
 		commandProvider := ShareProvider{}
-		channel := th.CreateChannel(th.BasicTeam, WithShared(true))  // will create with generated remoteID
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true)) // will create with generated remoteID
 		args := &model.CommandArgs{
 			T:         func(s string, args ...any) string { return s },
 			ChannelId: channel.Id,
