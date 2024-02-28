@@ -636,10 +636,6 @@
     "translation": "nije uspio/uspjela dodati korisnika timovima grupe i kanalima grupe"
   },
   {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Neuspjelo slanje administratorske e-mail poruke potvrde"
-  },
-  {
     "id": "api.channel.create_default_channels.town_square",
     "translation": "Gradski trg"
   },
@@ -1048,20 +1044,8 @@
     "translation": "Pritisni dolje za potvrđivanje tvoje e-mail adresu."
   },
   {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Ukupni broj aktivnih korisnika: "
-  },
-  {
     "id": "api.templates.verify_body.title",
     "translation": "Potvrdi tvoju e-mail adresu"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Kontakt: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL stranice: "
   },
   {
     "id": "api.templates.welcome_body.title",

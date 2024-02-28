@@ -140,7 +140,7 @@ func (s *MmctlUnitTestSuite) TestConfigGetCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Get error if the key doesn't exists", func() {
+	s.Run("Get error if the key doesn't exist", func() {
 		printer.Clean()
 		args := []string{"SqlSettings.WrongKey"}
 		outputConfig := &model.Config{}
@@ -443,7 +443,7 @@ func (s *MmctlUnitTestSuite) TestConfigSetCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 	})
 
-	s.Run("Get error if the key doesn't exists", func() {
+	s.Run("Get error if the key doesn't exist", func() {
 		printer.Clean()
 		defaultConfig := &model.Config{}
 		defaultConfig.SetDefaults()
@@ -713,7 +713,7 @@ func (s *MmctlUnitTestSuite) TestConfigResetCmd() {
 		s.Require().Len(printer.GetErrorLines(), 0)
 	})
 
-	s.Run("Should fail if the key doesn't exists", func() {
+	s.Run("Should fail if the key doesn't exist", func() {
 		printer.Clean()
 		args := []string{"WrongKey"}
 		defaultConfig := &model.Config{}
