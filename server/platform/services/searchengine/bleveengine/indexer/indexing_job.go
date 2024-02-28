@@ -7,7 +7,7 @@ import (
 	"context"
 	"net/http"
 	"strconv"
-	"sync/atomic"
+	"sync"
 	"time"
 
 	"github.com/mattermost/mattermost/server/public/model"
@@ -27,14 +27,17 @@ const (
 )
 
 type BleveIndexerWorker struct {
-	name      string
-	stop      chan struct{}
-	stopped   chan bool
+	name string
+	// stateMut protects stopCh and helps enforce
+	// ordering in case subsequent Run or Stop calls are made.
+	stateMut  sync.Mutex
+	stopCh    chan struct{}
+	stoppedCh chan bool
 	jobs      chan model.Job
 	jobServer *jobs.JobServer
 	logger    mlog.LoggerIFace
 	engine    *bleveengine.BleveEngine
-	closed    int32
+	stopped   bool
 }
 
 func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) *BleveIndexerWorker {
@@ -44,12 +47,12 @@ func MakeWorker(jobServer *jobs.JobServer, engine *bleveengine.BleveEngine) *Ble
 	const workerName = "BleveIndexer"
 	return &BleveIndexerWorker{
 		name:      workerName,
-		stop:      make(chan struct{}),
-		stopped:   make(chan bool, 1),
+		stoppedCh: make(chan bool, 1),
 		jobs:      make(chan model.Job),
 		jobServer: jobServer,
 		logger:    jobServer.Logger().With(mlog.String("worker_name", workerName)),
 		engine:    engine,
+		stopped:   true,
 	}
 }
 
@@ -97,20 +100,30 @@ func (worker *BleveIndexerWorker) IsEnabled(cfg *model.Config) bool {
 }
 
 func (worker *BleveIndexerWorker) Run() {
-	// Set to open if closed before. We are not bothered about multiple opens.
-	if atomic.CompareAndSwapInt32(&worker.closed, 1, 0) {
-		worker.stop = make(chan struct{})
+	worker.stateMut.Lock()
+	// We have to re-assign the stop channel again, because
+	// it might happen that the job was restarted due to a config change.
+	if worker.stopped {
+		worker.stopped = false
+		worker.stopCh = make(chan struct{})
+	} else {
+		worker.stateMut.Unlock()
+		return
 	}
+	// Run is called from a separate goroutine and doesn't return.
+	// So we cannot Unlock in a defer clause.
+	worker.stateMut.Unlock()
+
 	worker.logger.Debug("Worker Started")
 
 	defer func() {
 		worker.logger.Debug("Worker: Finished")
-		worker.stopped <- true
+		worker.stoppedCh <- true
 	}()
 
 	for {
 		select {
-		case <-worker.stop:
+		case <-worker.stopCh:
 			worker.logger.Debug("Worker: Received stop signal")
 			return
 		case job := <-worker.jobs:
@@ -120,13 +133,17 @@ func (worker *BleveIndexerWorker) Run() {
 }
 
 func (worker *BleveIndexerWorker) Stop() {
+	worker.stateMut.Lock()
+	defer worker.stateMut.Unlock()
+
 	// Set to close, and if already closed before, then return.
-	if !atomic.CompareAndSwapInt32(&worker.closed, 0, 1) {
+	if worker.stopped {
 		return
 	}
+	worker.stopped = true
 	worker.logger.Debug("Worker Stopping")
-	close(worker.stop)
-	<-worker.stopped
+	close(worker.stopCh)
+	<-worker.stoppedCh
 }
 
 func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
@@ -269,7 +286,7 @@ func (worker *BleveIndexerWorker) DoJob(job *model.Job) {
 			}
 			return
 
-		case <-worker.stop:
+		case <-worker.stopCh:
 			logger.Info("Worker: Indexing has been canceled via Worker Stop")
 			if err := worker.jobServer.SetJobCanceled(job); err != nil {
 				logger.Error("Worker: Failed to mark job as canceled", mlog.Err(err))
