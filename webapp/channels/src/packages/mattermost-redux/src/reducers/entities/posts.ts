@@ -158,7 +158,7 @@ export function nextPostsReplies(state: {[x in Post['id']]: number} = {}, action
     }
 }
 
-export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: AnyAction) {
+export function handlePosts(state: IDMappedObjects<Post> = {}, action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST:
     case PostTypes.RECEIVED_NEW_POST: {
@@ -261,6 +261,23 @@ export function handlePosts(state: RelationOneToOne<Post, Post> = {}, action: An
         }
 
         return nextState;
+    }
+
+    case PostTypes.POST_PINNED_CHANGED: {
+        const {postId, isPinned, updateAt} = action;
+
+        if (!state[postId]) {
+            return state;
+        }
+
+        return {
+            ...state,
+            [postId]: {
+                ...state[postId],
+                is_pinned: isPinned,
+                last_update_at: updateAt,
+            },
+        };
     }
 
     case ChannelTypes.RECEIVED_CHANNEL_DELETED:
@@ -1136,17 +1153,6 @@ export function postsInThread(state: RelationOneToMany<Post, Post> = {}, action:
     }
 }
 
-function selectedPostId(state = '', action: AnyAction) {
-    switch (action.type) {
-    case PostTypes.RECEIVED_POST_SELECTED:
-        return action.data;
-    case UserTypes.LOGOUT_SUCCESS:
-        return '';
-    default:
-        return state;
-    }
-}
-
 export function postEditHistory(state: Post[] = [], action: AnyAction) {
     switch (action.type) {
     case PostTypes.RECEIVED_POST_HISTORY:
@@ -1171,18 +1177,6 @@ function currentFocusedPostId(state = '', action: AnyAction) {
 
 export function reactions(state: RelationOneToOne<Post, Record<string, Reaction>> = {}, action: AnyAction) {
     switch (action.type) {
-    case PostTypes.RECEIVED_REACTIONS: {
-        const reactionsList = action.data;
-        const nextReactions: Record<string, Reaction> = {};
-        reactionsList.forEach((reaction: Reaction) => {
-            nextReactions[reaction.user_id + '-' + reaction.emoji_name] = reaction;
-        });
-
-        return {
-            ...state,
-            [action.postId!]: nextReactions,
-        };
-    }
     case PostTypes.RECEIVED_REACTION: {
         const reaction = action.data as Reaction;
         const nextReactions = {...(state[reaction.post_id] || {})};
@@ -1313,8 +1307,8 @@ export function acknowledgements(state: RelationOneToOne<Post, Record<UserProfil
     }
 }
 
-function storeReactionsForPost(state: any, post: Post) {
-    if (!post.metadata || !post.metadata.reactions || post.delete_at > 0) {
+function storeReactionsForPost(state: RelationOneToOne<Post, Record<string, Reaction>>, post: Post) {
+    if (!post.metadata || post.delete_at > 0) {
         return state;
     }
 
@@ -1588,9 +1582,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: AnyActi
         // with no guaranteed order
         postsInThread: postsInThread(state.postsInThread, action, state.posts!),
 
-        // The current selected post
-        selectedPostId: selectedPostId(state.selectedPostId, action),
-
         // The post history of selected post
         postEditHistory: postEditHistory(state.postEditHistory, action),
 
@@ -1616,7 +1607,6 @@ export default function reducer(state: Partial<PostsState> = {}, action: AnyActi
     if (state.posts === nextState.posts && state.postsInChannel === nextState.postsInChannel &&
         state.postsInThread === nextState.postsInThread &&
         state.pendingPostIds === nextState.pendingPostIds &&
-        state.selectedPostId === nextState.selectedPostId &&
         state.postEditHistory === nextState.postEditHistory &&
         state.currentFocusedPostId === nextState.currentFocusedPostId &&
         state.reactions === nextState.reactions &&

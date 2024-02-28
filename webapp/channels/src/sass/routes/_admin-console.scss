@@ -39,8 +39,18 @@
             flex-direction: column;
         }
 
-        & > .admin-console__container {
-            overflow: auto;
+        .admin-console__filters-rows {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            padding-block-end: 12px;
+            padding-block-start: 24px;
+            padding-inline-end: 24px;
+            padding-inline-start: 24px;
+            row-gap: 12px;
+        }
+
+        .admin-console__container {
             background-color: var(--sys-center-channel-bg);
             box-shadow: 0 2px 3px 0 alpha-color($black, 0.08);
         }
@@ -143,7 +153,9 @@
 
         &:focus:not(.Input) {
             border-color: #66afe9;
-            box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.075), 0 0 8px rgba(102, 175, 233, 0.6);
+            box-shadow:
+                inset 0 1px 1px rgba(0, 0, 0, 0.075),
+                0 0 8px rgba(102, 175, 233, 0.75);
             outline: 0;
         }
 
@@ -588,7 +600,7 @@
             left: 21px;
             width: 16px;
             height: 16px;
-            fill: rgba(var(--sys-sidebar-text-rgb), 0.56);
+            fill: rgba(var(--sys-sidebar-text-rgb), 0.75);
             stroke: #999;
         }
 
@@ -692,7 +704,7 @@
                     font-size: 13px;
                 }
 
-                >svg {
+                > svg {
                     vertical-align: bottom;
                 }
             }
@@ -740,7 +752,7 @@
         height: 16px;
         padding: 0 4px 0 4px;
         margin-left: 8px;
-        background-color: rgba(255, 255, 255, 0.64);
+        background-color: rgba(255, 255, 255, 0.75);
         border-radius: 4px;
         color: rgba(61, 60, 64, 1);
         font-size: 10px;
@@ -875,9 +887,13 @@
 }
 
 .system-users__filter-row {
+    position: sticky;
+    left: 0;
     display: flex;
-    margin-right: 15px;
-    margin-left: 15px;
+    padding-block-end: 12px;
+    padding-block-start: 24px;
+    padding-inline-end: 24px;
+    padding-inline-start: 24px;
 
     .system-users__filter {
         flex: 1 1 140px;
@@ -1023,7 +1039,7 @@
         border-width: 5px 5px 2.5px;
         border-style: solid;
         border-color: #999 transparent transparent;
-        content: '';
+        content: "";
         pointer-events: none;
     }
 }

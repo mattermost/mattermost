@@ -10,10 +10,8 @@ const state: GlobalState = {
     entities: {
         general: {
             config: {},
-            dataRetentionPolicy: {},
             license: {},
             serverVersion: '',
-            warnMetricsStatus: {},
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
         },
@@ -32,6 +30,7 @@ const state: GlobalState = {
             profilesNotInGroup: {},
             statuses: {},
             stats: {},
+            filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
         },
@@ -75,7 +74,6 @@ const state: GlobalState = {
             postEditHistory: [],
             reactions: {},
             openGraph: {},
-            selectedPostId: '',
             currentFocusedPostId: '',
             messagesHistory: {
                 messages: [],
@@ -112,6 +110,7 @@ const state: GlobalState = {
             userAccessTokens: {},
             clusterInfo: [],
             analytics: {},
+            teamAnalytics: {},
             dataRetentionCustomPolicies: {},
             dataRetentionCustomPoliciesCount: 0,
             prevTrialLicense: {},
@@ -128,6 +127,7 @@ const state: GlobalState = {
             commands: {},
             appsBotIDs: [],
             appsOAuthAppIDs: [],
+            outgoingOAuthConnections: {},
         },
         files: {
             files: {},
@@ -142,7 +142,6 @@ const state: GlobalState = {
             results: [],
             fileResults: [],
             current: {},
-            recent: {},
             matches: {},
             flagged: [],
             pinned: {},
@@ -245,10 +244,6 @@ const state: GlobalState = {
                 status: 'not_started',
                 error: null,
             },
-            updateChannel: {
-                status: 'not_started',
-                error: null,
-            },
         },
         general: {
             websocket: {
@@ -276,10 +271,6 @@ const state: GlobalState = {
                 error: null,
             },
             getTeams: {
-                status: 'not_started',
-                error: null,
-            },
-            joinTeam: {
                 status: 'not_started',
                 error: null,
             },
