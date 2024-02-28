@@ -1151,7 +1151,7 @@ func testGroupGetMemberUsersNotInChannel(t *testing.T, rctx request.CTX, ss stor
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen, // Query does not look at type so this shouldn't matter.
 	}
-	channel, nErr := ss.Channel().Save(channel, 9999)
+	channel, nErr := ss.Channel().Save(rctx, channel, 9999)
 	require.NoError(t, nErr)
 
 	// returns no members when channel does not exist
@@ -2045,7 +2045,7 @@ func testChannelMembersToAdd(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen, // Query does not look at type so this shouldn't matter.
 	}
-	channel, nErr = ss.Channel().Save(channel, 9999)
+	channel, nErr = ss.Channel().Save(rctx, channel, 9999)
 	require.NoError(t, nErr)
 
 	// Create GroupChannel
@@ -2243,7 +2243,7 @@ func testChannelMembersToAddSingleChannel(t *testing.T, rctx request.CTX, ss sto
 		Name:        "z-z-" + model.NewId() + "a",
 		Type:        model.ChannelTypeOpen,
 	}
-	channel1, nErr = ss.Channel().Save(channel1, 999)
+	channel1, nErr = ss.Channel().Save(rctx, channel1, 999)
 	require.NoError(t, nErr)
 
 	channel2 := &model.Channel{
@@ -2251,7 +2251,7 @@ func testChannelMembersToAddSingleChannel(t *testing.T, rctx request.CTX, ss sto
 		Name:        "z-z-" + model.NewId() + "a",
 		Type:        model.ChannelTypeOpen,
 	}
-	channel2, nErr = ss.Channel().Save(channel2, 999)
+	channel2, nErr = ss.Channel().Save(rctx, channel2, 999)
 	require.NoError(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(model.NewGroupChannel(group1.Id, channel1.Id, true))
@@ -2528,7 +2528,7 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, rctx request.CTX, ss 
 		Type:             model.ChannelTypeOpen,
 		GroupConstrained: model.NewBool(true),
 	}
-	channel1, nErr := ss.Channel().Save(channel1, 999)
+	channel1, nErr := ss.Channel().Save(rctx, channel1, 999)
 	require.NoError(t, nErr)
 
 	channel2 := &model.Channel{
@@ -2537,7 +2537,7 @@ func testChannelMembersToRemoveSingleChannel(t *testing.T, rctx request.CTX, ss 
 		Type:             model.ChannelTypeOpen,
 		GroupConstrained: model.NewBool(true),
 	}
-	channel2, nErr = ss.Channel().Save(channel2, 999)
+	channel2, nErr = ss.Channel().Save(rctx, channel2, 999)
 	require.NoError(t, nErr)
 
 	for _, user := range []*model.User{user1, user2} {
@@ -2630,7 +2630,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, rctx request.CTX, ss store.Sto
 		Type:             model.ChannelTypePrivate,
 		GroupConstrained: model.NewBool(true),
 	}
-	channelConstrained, nErr = ss.Channel().Save(channelConstrained, 9999)
+	channelConstrained, nErr = ss.Channel().Save(rctx, channelConstrained, 9999)
 	require.NoError(t, nErr)
 
 	channelUnconstrained := &model.Channel{
@@ -2639,7 +2639,7 @@ func pendingMemberRemovalsDataSetup(t *testing.T, rctx request.CTX, ss store.Sto
 		Name:        model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	channelUnconstrained, nErr = ss.Channel().Save(channelUnconstrained, 9999)
+	channelUnconstrained, nErr = ss.Channel().Save(rctx, channelUnconstrained, 9999)
 	require.NoError(t, nErr)
 
 	// create teams
@@ -2741,7 +2741,7 @@ func testGetGroupsByChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel1, err := ss.Channel().Save(channel1, 9999)
+	channel1, err := ss.Channel().Save(rctx, channel1, 9999)
 	require.NoError(t, err)
 
 	// Create Groups 1, 2 and a deleted group
@@ -2791,7 +2791,7 @@ func testGetGroupsByChannel(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel2, nErr := ss.Channel().Save(channel2, 9999)
+	channel2, nErr := ss.Channel().Save(rctx, channel2, 9999)
 	require.NoError(t, nErr)
 
 	// Create Group3
@@ -2989,7 +2989,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, rctx request.CTX, ss 
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel1, err := ss.Channel().Save(channel1, 9999)
+	channel1, err := ss.Channel().Save(rctx, channel1, 9999)
 	require.NoError(t, err)
 
 	// Create Groups 1, 2 and a deleted group
@@ -3039,7 +3039,7 @@ func testGetGroupsAssociatedToChannelsByTeam(t *testing.T, rctx request.CTX, ss 
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel2, err = ss.Channel().Save(channel2, 9999)
+	channel2, err = ss.Channel().Save(rctx, channel2, 9999)
 	require.NoError(t, err)
 
 	// Create Group3
@@ -3481,7 +3481,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	channel1, nErr := ss.Channel().Save(channel1, 9999)
+	channel1, nErr := ss.Channel().Save(rctx, channel1, 9999)
 	require.NoError(t, nErr)
 
 	// Create Groups 1 and 2
@@ -3545,7 +3545,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	channel2, nErr = ss.Channel().Save(channel2, 9999)
+	channel2, nErr = ss.Channel().Save(rctx, channel2, 9999)
 	require.NoError(t, nErr)
 
 	// Create Channel3
@@ -3555,7 +3555,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	channel3, nErr = ss.Channel().Save(channel3, 9999)
+	channel3, nErr = ss.Channel().Save(rctx, channel3, 9999)
 	require.NoError(t, nErr)
 
 	// Create Group3
@@ -3669,7 +3669,7 @@ func testGetGroups(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        model.NewId(),
 		Type:        model.ChannelTypePrivate,
 	}
-	channel4, nErr = ss.Channel().Save(channel4, 9999)
+	channel4, nErr = ss.Channel().Save(rctx, channel4, 9999)
 	require.NoError(t, nErr)
 
 	testCases := []struct {
@@ -4164,7 +4164,7 @@ func testChannelMembersMinusGroupMembers(t *testing.T, rctx request.CTX, ss stor
 		Type:             model.ChannelTypePrivate,
 		GroupConstrained: model.NewBool(true),
 	}
-	channel, err := ss.Channel().Save(channel, 9999)
+	channel, err := ss.Channel().Save(rctx, channel, 9999)
 	require.NoError(t, err)
 
 	for i := 0; i < numberOfUsers; i++ {
@@ -4391,7 +4391,7 @@ func groupTestAdminRoleGroupsForSyncableMemberChannel(t *testing.T, rctx request
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, nErr := ss.Channel().Save(channel, 9999)
+	channel, nErr := ss.Channel().Save(rctx, channel, 9999)
 	require.NoError(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
@@ -4688,7 +4688,7 @@ func groupTestPermittedSyncableAdminsChannel(t *testing.T, rctx request.CTX, ss 
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, nErr := ss.Channel().Save(channel, 9999)
+	channel, nErr := ss.Channel().Save(rctx, channel, 9999)
 	require.NoError(t, nErr)
 
 	_, err = ss.Group().CreateGroupSyncable(&model.GroupSyncable{
@@ -4850,7 +4850,7 @@ func groupTestpUpdateMembersRoleChannel(t *testing.T, rctx request.CTX, ss store
 		Name:        model.NewId(),
 		Type:        model.ChannelTypeOpen, // Query does not look at type so this shouldn't matter.
 	}
-	channel, err := ss.Channel().Save(channel, 9999)
+	channel, err := ss.Channel().Save(rctx, channel, 9999)
 	require.NoError(t, err)
 
 	user1 := &model.User{
@@ -5030,7 +5030,7 @@ func groupTestGroupTeamCount(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func groupTestGroupChannelCount(t *testing.T, rctx request.CTX, ss store.Store) {
-	channel, err := ss.Channel().Save(&model.Channel{
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      model.NewId(),
 		DisplayName: model.NewId(),
 		Name:        model.NewId(),
