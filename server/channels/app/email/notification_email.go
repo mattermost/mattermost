@@ -158,15 +158,14 @@ func (es *Service) GenerateHyperlinkForChannels(postMessage, teamName, landingUR
 	if len(channelNames) == 0 {
 		return postMessage, nil
 	}
-	t := es.Store().Team()
-	team, err := t.GetByName(teamName)
+
+	team, err := es.Store().Team().GetByName(teamName)
 	if err != nil {
 		mlog.Error("Team not found with the name", mlog.String("team_name", teamName), mlog.Err(err))
 		return postMessage, nil
 	}
 
-	ch := es.store.Channel()
-	channels, err := ch.GetByNames(team.Id, channelNames, true)
+	channels, err := es.store.Channel().GetByNames(team.Id, channelNames, true)
 	if err != nil {
 		return "", err
 	}
