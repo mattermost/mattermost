@@ -436,7 +436,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme1.Id,
 	}
-	channel1, nErr := ss.Channel().Save(channel1, -1)
+	channel1, nErr := ss.Channel().Save(rctx, channel1, -1)
 	require.NoError(t, nErr)
 	defer ss.Channel().Delete(channel1.Id, 0)
 
@@ -447,7 +447,7 @@ func testRoleStoreLowerScopedChannelSchemeRoles(t *testing.T, rctx request.CTX, 
 		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme2.Id,
 	}
-	channel2, nErr = ss.Channel().Save(channel2, -1)
+	channel2, nErr = ss.Channel().Save(rctx, channel2, -1)
 	require.NoError(t, nErr)
 	defer ss.Channel().Delete(channel2.Id, 0)
 
@@ -559,7 +559,7 @@ func testRoleStoreChannelHigherScopedPermissionsBlankTeamSchemeChannelGuest(t *t
 		Type:        model.ChannelTypeOpen,
 		SchemeId:    &channelScheme.Id,
 	}
-	channel, nErr := ss.Channel().Save(channel, -1)
+	channel, nErr := ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, nErr)
 	defer ss.Channel().Delete(channel.Id, 0)
 

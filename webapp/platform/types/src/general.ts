@@ -9,7 +9,6 @@ export type GeneralState = {
     firstAdminCompleteSetup: boolean;
     license: ClientLicense;
     serverVersion: string;
-    warnMetricsStatus: Record<string, WarnMetricStatus>;
 };
 
 export type SystemSetting = {

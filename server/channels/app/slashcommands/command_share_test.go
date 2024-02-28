@@ -90,4 +90,42 @@ func TestShareProviderDoCommand(t *testing.T) {
 		})
 		require.Len(t, channelConvertedMessages, 2) // one msg for share creation, one for unshare.
 	})
+
+	t.Run("invite remote to channel shared with us", func(t *testing.T) {
+		th := setupForSharedChannels(t).initBasic()
+		defer th.tearDown()
+
+		th.addPermissionToRole(model.PermissionManageSharedChannels.Id, th.BasicUser.Roles)
+
+		mockSyncService := app.NewMockSharedChannelService(th.Server.GetSharedChannelSyncService())
+		th.Server.SetSharedChannelSyncService(mockSyncService)
+
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Platform().SetCluster(testCluster)
+
+		remoteCluster, err := th.App.AddRemoteCluster(&model.RemoteCluster{
+			RemoteId:   model.NewId(),
+			Name:       "remote",
+			SiteURL:    "example.com",
+			Token:      model.NewId(),
+			Topics:     "topic",
+			CreateAt:   model.GetMillis(),
+			LastPingAt: model.GetMillis(),
+			CreatorId:  model.NewId(),
+		})
+		require.Nil(t, err)
+
+		commandProvider := ShareProvider{}
+		channel := th.CreateChannel(th.BasicTeam, WithShared(true)) // will create with generated remoteID
+		args := &model.CommandArgs{
+			T:         func(s string, args ...any) string { return s },
+			ChannelId: channel.Id,
+			UserId:    th.BasicUser.Id,
+			TeamId:    th.BasicTeam.Id,
+			Command:   "/share-channel invite --connectionID " + remoteCluster.RemoteId,
+		}
+
+		response := commandProvider.DoCommand(th.App, th.Context, args, "")
+		require.Contains(t, response.Text, args.T("api.command_share.invite_remote_to_channel.error"))
+	})
 }
