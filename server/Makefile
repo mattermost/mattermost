@@ -156,7 +156,9 @@ PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
 
-EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
+EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/elasticsearch)
+export MM_ELASTICSEARCHSETTINGS_USERNAME := admin
+export MM_ELASTICSEARCHSETTINGS_PASSWORD := admin
 
 ifeq ($(BUILD_ENTERPRISE_READY),true)
   ALL_PACKAGES=$(TE_PACKAGES) $(EE_PACKAGES)

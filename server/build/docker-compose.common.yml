@@ -87,7 +87,9 @@ services:
       LDAP_DOMAIN: "mm.test.com"
       LDAP_ADMIN_PASSWORD: "mostest"
   elasticsearch:
-    image: "mattermostdevelopment/mattermost-elasticsearch:7.17.10"
+    build:
+      context: .
+      dockerfile: ./Dockerfile.opensearch
     networks:
       - mm-test
     environment:
@@ -99,6 +101,8 @@ services:
       http.cors.allow-credentials: "true"
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
+      discovery.type: single-node
+      plugins.security.disabled: true
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     networks:
