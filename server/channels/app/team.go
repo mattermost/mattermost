@@ -26,39 +26,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/app/imaging"
 	"github.com/mattermost/mattermost/server/v8/channels/app/teams"
 	"github.com/mattermost/mattermost/server/v8/channels/app/users"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
 )
-
-// teamServiceWrapper provides an implementation of `product.TeamService` to be used by products.
-type teamServiceWrapper struct {
-	app AppIface
-}
-
-func (w *teamServiceWrapper) GetMember(c request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return w.app.GetTeamMember(c, teamID, userID)
-}
-
-func (w *teamServiceWrapper) CreateMember(ctx request.CTX, teamID, userID string) (*model.TeamMember, *model.AppError) {
-	return w.app.AddTeamMember(ctx, teamID, userID)
-}
-
-func (w *teamServiceWrapper) GetGroup(groupID string) (*model.Group, *model.AppError) {
-	return w.app.GetGroup(groupID, nil, nil)
-}
-
-func (w *teamServiceWrapper) GetTeam(teamID string) (*model.Team, *model.AppError) {
-	return w.app.GetTeam(teamID)
-}
-
-func (w *teamServiceWrapper) GetGroupMemberUsers(groupID string, page, perPage int) ([]*model.User, *model.AppError) {
-	users, _, err := w.app.GetGroupMemberUsersPage(groupID, page, perPage, nil)
-	return users, err
-}
-
-// Ensure the wrapper implements the product service.
-var _ product.TeamService = (*teamServiceWrapper)(nil)
 
 func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model.AppError {
 	maxActiveTeams := *teamLimits.Active
@@ -134,7 +104,7 @@ func (a *App) AdjustTeamsFromProductLimits(teamLimits *model.TeamsLimits) *model
 }
 
 func (a *App) CreateTeam(c request.CTX, team *model.Team) (*model.Team, *model.AppError) {
-	rteam, err := a.ch.srv.teamService.CreateTeam(team)
+	rteam, err := a.ch.srv.teamService.CreateTeam(c, team)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
 
@@ -1936,19 +1906,22 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 }
 
 func (a *App) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
-	if a.SessionHasPermissionToTeam(session, team.Id, model.PermissionManageTeam) {
+	manageTeamPermission := a.SessionHasPermissionToTeam(session, team.Id, model.PermissionManageTeam)
+	inviteUserPermission := a.SessionHasPermissionToTeam(session, team.Id, model.PermissionInviteUser)
+
+	if manageTeamPermission && inviteUserPermission {
 		return team
 	}
-
-	if a.SessionHasPermissionToTeam(session, team.Id, model.PermissionInviteUser) {
-		inviteId := team.InviteId
-		team.Sanitize()
-		team.InviteId = inviteId
-		return team
-	}
-
+	email := team.Email
+	inviteId := team.InviteId
 	team.Sanitize()
 
+	if manageTeamPermission {
+		team.Email = email
+	}
+	if inviteUserPermission {
+		team.InviteId = inviteId
+	}
 	return team
 }
 

@@ -498,10 +498,9 @@ func ArrayFromJSON(data io.Reader) []string {
 	return objmap
 }
 
-func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+func SortedArrayFromJSON(data io.Reader) ([]string, error) {
 	var obj []string
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
+	err := json.NewDecoder(data).Decode(&obj)
 	if err != nil || obj == nil {
 		return nil, err
 	}
@@ -510,10 +509,9 @@ func SortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
 	return RemoveDuplicateStrings(obj), nil
 }
 
-func NonSortedArrayFromJSON(data io.Reader, maxBytes int64) ([]string, error) {
+func NonSortedArrayFromJSON(data io.Reader) ([]string, error) {
 	var obj []string
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
+	err := json.NewDecoder(data).Decode(&obj)
 	if err != nil || obj == nil {
 		return nil, err
 	}
@@ -555,9 +553,8 @@ func StringInterfaceFromJSON(data io.Reader) map[string]any {
 	return objmap
 }
 
-func StructFromJSONLimited[V any](data io.Reader, maxBytes int64, obj *V) error {
-	lr := io.LimitReader(data, maxBytes)
-	err := json.NewDecoder(lr).Decode(&obj)
+func StructFromJSONLimited[V any](data io.Reader, obj *V) error {
+	err := json.NewDecoder(data).Decode(&obj)
 	if err != nil || obj == nil {
 		return err
 	}

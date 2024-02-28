@@ -112,7 +112,7 @@
                         }
 
                         .SubMenu__icon-right {
-                            color: rgba(255, 255, 255, 0.56);
+                            color: rgba(255, 255, 255, 0.75);
                         }
                     }
 
@@ -234,6 +234,7 @@
                             top: 0;
                             display: flex;
                             width: 100%;
+                            background-color: var(--center-channel-bg);
 
                             .modal-title {
                                 width: 100%;
@@ -295,6 +296,8 @@
                             padding: 0;
 
                             .user-settings {
+                                overflow: auto;
+                                max-height: 100vh;
                                 padding: 100px 20px 30px;
                             }
                         }
