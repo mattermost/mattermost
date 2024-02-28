@@ -102,7 +102,7 @@ services:
       transport.host: "127.0.0.1"
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
       discovery.type: single-node
-      plugins.security.disabled: true
+      plugins.security.disabled: "true"
   dejavu:
     image: "appbaseio/dejavu:3.4.2"
     networks:
