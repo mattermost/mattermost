@@ -5,12 +5,24 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {ActionCreatorsMapObject, Dispatch} from 'redux';
 
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import type {Action, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openModal} from 'actions/views/modals';
 
+import type {GlobalState} from 'types/store';
+
 import MarkdownImage from './markdown_image';
 import type {Props} from './markdown_image';
+
+function mapStateToProps(state: GlobalState, ownProps: Props) {
+    const post = getPost(state, ownProps.postId);
+    const isUnsafeLinksPost = post?.props?.unsafe_links === 'true';
+
+    return {
+        isUnsafeLinksPost,
+    };
+}
 
 function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     return {
@@ -20,6 +32,6 @@ function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
     };
 }
 
-const connector = connect(null, mapDispatchToProps);
+const connector = connect(mapStateToProps, mapDispatchToProps);
 
 export default connector(MarkdownImage);
