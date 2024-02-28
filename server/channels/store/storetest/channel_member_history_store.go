@@ -34,7 +34,7 @@ func testLogJoinEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, err := ss.Channel().Save(&ch, -1)
+	channel, err := ss.Channel().Save(rctx, &ch, -1)
 	require.NoError(t, err)
 
 	// and a test user
@@ -60,7 +60,7 @@ func testLogLeaveEvent(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, err := ss.Channel().Save(&ch, -1)
+	channel, err := ss.Channel().Save(rctx, &ch, -1)
 	require.NoError(t, err)
 
 	// and a test user
@@ -89,7 +89,7 @@ func testGetUsersInChannelAtChannelMemberHistory(t *testing.T, rctx request.CTX,
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, err := ss.Channel().Save(ch, -1)
+	channel, err := ss.Channel().Save(rctx, ch, -1)
 	require.NoError(t, err)
 
 	// and a test user
@@ -185,7 +185,7 @@ func testGetUsersInChannelAtChannelMembers(t *testing.T, rctx request.CTX, ss st
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, err := ss.Channel().Save(channel, -1)
+	channel, err := ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, err)
 
 	// and a test user
@@ -297,7 +297,7 @@ func testPermanentDeleteBatch(t *testing.T, rctx request.CTX, ss store.Store) {
 		Name:        NewTestId(),
 		Type:        model.ChannelTypeOpen,
 	}
-	channel, err := ss.Channel().Save(channel, -1)
+	channel, err := ss.Channel().Save(rctx, channel, -1)
 	require.NoError(t, err)
 
 	// and two test users
@@ -358,7 +358,7 @@ func testPermanentDeleteBatchForRetentionPolicies(t *testing.T, rctx request.CTX
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
-	channel, err := ss.Channel().Save(&model.Channel{
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
@@ -403,7 +403,7 @@ func testGetChannelsLeftSince(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.TeamOpen,
 	})
 	require.NoError(t, err)
-	channel, err := ss.Channel().Save(&model.Channel{
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		TeamId:      team.Id,
 		DisplayName: "DisplayName",
 		Name:        "channel" + model.NewId(),
