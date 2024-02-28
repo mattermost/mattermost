@@ -75,7 +75,6 @@ func (f *FeatureFlags) SetDefaults() {
 	f.CloudAnnualRenewals = false
 	f.CloudDedicatedExportUI = false
 	f.WebSocketEventScope = false
-
 }
 
 // ToMap returns the feature flags as a map[string]string
