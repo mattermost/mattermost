@@ -112,26 +112,33 @@ describe('Actions.Admin', () => {
         expect(config.TeamSettings.SiteName === 'Mattermost').toBeTruthy();
     });
 
-    it('updateConfig', async () => {
+    it('patchConfig', async () => {
         nock(Client4.getBaseRoute()).
             get('/config').
             reply(200, {
                 TeamSettings: {
                     SiteName: 'Mattermost',
+                    TeammateNameDisplay: 'username',
                 },
             });
 
         const {data} = await store.dispatch(Actions.getConfig());
         const updated = JSON.parse(JSON.stringify(data));
+        // Creating a copy.
+        const reply = JSON.parse(JSON.stringify(data));
         const oldSiteName = updated.TeamSettings.SiteName;
+        const oldNameDisplay = updated.TeamSettings.TeammateNameDisplay
         const testSiteName = 'MattermostReduxTest';
         updated.TeamSettings.SiteName = testSiteName;
+        reply.TeamSettings.SiteName = testSiteName;
+        // Testing partial config patch.
+        updated.TeamSettings.TeammateNameDisplay = null;
 
         nock(Client4.getBaseRoute()).
-            put('/config').
-            reply(200, updated);
+            put('/config/patch').
+            reply(200, reply);
 
-        await store.dispatch(Actions.updateConfig(updated));
+        await store.dispatch(Actions.patchConfig(updated));
 
         let state = store.getState();
 
@@ -139,14 +146,15 @@ describe('Actions.Admin', () => {
         expect(config).toBeTruthy();
         expect(config.TeamSettings).toBeTruthy();
         expect(config.TeamSettings.SiteName === testSiteName).toBeTruthy();
+        expect(config.TeamSettings.TeammateNameDisplay === oldNameDisplay).toBeTruthy();
 
         updated.TeamSettings.SiteName = oldSiteName;
 
         nock(Client4.getBaseRoute()).
-            put('/config').
+            put('/config/patch').
             reply(200, updated);
 
-        await store.dispatch(Actions.updateConfig(updated));
+        await store.dispatch(Actions.patchConfig(updated));
 
         state = store.getState();
 

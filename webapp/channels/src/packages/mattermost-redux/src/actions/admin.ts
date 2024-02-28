@@ -23,6 +23,7 @@ import type {
     Team,
     TeamSearchOpts,
 } from '@mattermost/types/teams';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import {AdminTypes} from 'mattermost-redux/action_types';
 import {getUsersLimits} from 'mattermost-redux/actions/limits';
@@ -82,6 +83,16 @@ export function getConfig() {
 export function updateConfig(config: AdminConfig) {
     return bindClientFunc({
         clientFunc: Client4.updateConfig,
+        onSuccess: [AdminTypes.RECEIVED_CONFIG],
+        params: [
+            config,
+        ],
+    });
+}
+
+export function patchConfig(config: DeepPartial<AdminConfig>) {
+    return bindClientFunc({
+        clientFunc: Client4.patchConfig,
         onSuccess: [AdminTypes.RECEIVED_CONFIG],
         params: [
             config,
