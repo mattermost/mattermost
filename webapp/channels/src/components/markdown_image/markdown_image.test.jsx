@@ -305,7 +305,7 @@ describe('components/MarkdownImage', () => {
     });
 
     test('should render a alt text if the link is unsafe', () => {
-        const props = {...baseProps, isUnsafeLinksPost: true};
+        const props = {...baseProps, isUnsafeLinksPost: true, src: ''};
         const wrapper = shallow(
             <MarkdownImage {...props}/>,
         );

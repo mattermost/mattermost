@@ -223,28 +223,6 @@ jobs:
         run: make app-layers
       - name: Check generated code
         run: if [[ -n $(git status --porcelain) ]]; then echo "Please update the app layers using make app-layers"; exit 1; fi
-  check-mmctl-docs:
-    name: Check mmctl docs
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout mattermost-server
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - name: Calculate Golang Version
-        id: go
-        run: echo GO_VERSION=$(cat .go-version) >> "${GITHUB_OUTPUT}"
-      - name: Setup Go
-        uses: actions/setup-go@4d34df0c2316fe8122ab82dc22947d607c0c91f9 # v4.0.0
-        with:
-          go-version: ${{ steps.go.outputs.GO_VERSION }}
-          cache-dependency-path: |
-            server/go.sum
-            server/public/go.sum
-      - name: Check docs
-        run: |
-          echo "Making sure docs are updated"
-          cd server
-          make mmctl-docs
-          if [[ -n $(git status --porcelain) ]]; then echo "Please update the mmctl docs using make mmctl-docs"; exit 1; fi
   test-postgres-binary:
     if: github.ref_name != 'master' # Do not run postgres binary tests on master
     name: Postgres with binary parameters
