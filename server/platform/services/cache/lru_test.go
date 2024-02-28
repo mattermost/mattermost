@@ -27,6 +27,11 @@ func TestLRU(t *testing.T) {
 		require.NoError(t, err)
 	}
 
+	lru, ok := l.(*LRU)
+	require.True(t, ok)
+	size := lru.len
+	require.Equalf(t, size, 128, "bad len: %v", size)
+
 	keys, err := l.Keys()
 	require.NoError(t, err)
 	for i, k := range keys {
@@ -66,6 +71,8 @@ func TestLRU(t *testing.T) {
 	}
 
 	l.Purge()
+	size = lru.len
+	require.Equalf(t, size, 0, "bad len: %v", size)
 	err = l.Get("200", &v)
 	require.Equal(t, err, ErrKeyNotFound, "should contain nothing")
 
