@@ -121,6 +121,41 @@ Object {
             >
               <h4
                 class="section-min__title"
+                id="desktopNotificationSoundTitle"
+              >
+                Desktop notification sounds
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+                class="color--link style--none section-min__edit"
+                id="desktopNotificationSoundEdit"
+              >
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="desktopNotificationSoundDesc"
+            >
+              None for messages, "Calm" for calls
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="secion-min__header"
+            >
+              <h4
+                class="section-min__title"
                 id="emailTitle"
               >
                 Email Notifications
@@ -330,6 +365,41 @@ Object {
             class="section-min__describe"
             id="desktopAndMobileDesc"
           />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="secion-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="desktopNotificationSoundTitle"
+            >
+              Desktop notification sounds
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+              class="color--link style--none section-min__edit"
+              id="desktopNotificationSoundEdit"
+            >
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="desktopNotificationSoundDesc"
+          >
+            None for messages, "Calm" for calls
+          </div>
         </div>
         <div
           class="divider-light"
@@ -622,6 +692,41 @@ Object {
             >
               <h4
                 class="section-min__title"
+                id="desktopNotificationSoundTitle"
+              >
+                Desktop notification sounds
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+                class="color--link style--none section-min__edit"
+                id="desktopNotificationSoundEdit"
+              >
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="desktopNotificationSoundDesc"
+            >
+              None for messages, "Calm" for calls
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="secion-min__header"
+            >
+              <h4
+                class="section-min__title"
                 id="emailTitle"
               >
                 Email Notifications
@@ -834,6 +939,41 @@ Object {
             class="section-min__describe"
             id="desktopAndMobileDesc"
           />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="secion-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="desktopNotificationSoundTitle"
+            >
+              Desktop notification sounds
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+              class="color--link style--none section-min__edit"
+              id="desktopNotificationSoundEdit"
+            >
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="desktopNotificationSoundDesc"
+          >
+            None for messages, "Calm" for calls
+          </div>
         </div>
         <div
           class="divider-light"
@@ -1129,6 +1269,41 @@ Object {
             >
               <h4
                 class="section-min__title"
+                id="desktopNotificationSoundTitle"
+              >
+                Desktop notification sounds
+              </h4>
+              <button
+                aria-expanded="false"
+                aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+                class="color--link style--none section-min__edit"
+                id="desktopNotificationSoundEdit"
+              >
+                <i
+                  class="icon-pencil-outline"
+                  title="Edit Icon"
+                />
+                Edit
+              </button>
+            </div>
+            <div
+              class="section-min__describe"
+              id="desktopNotificationSoundDesc"
+            >
+              None for messages, "Calm" for calls
+            </div>
+          </div>
+          <div
+            class="divider-light"
+          />
+          <div
+            class="section-min"
+          >
+            <div
+              class="secion-min__header"
+            >
+              <h4
+                class="section-min__title"
                 id="emailTitle"
               >
                 Email Notifications
@@ -1303,6 +1478,41 @@ Object {
             class="section-min__describe"
             id="desktopAndMobileDesc"
           />
+        </div>
+        <div
+          class="divider-light"
+        />
+        <div
+          class="section-min"
+        >
+          <div
+            class="secion-min__header"
+          >
+            <h4
+              class="section-min__title"
+              id="desktopNotificationSoundTitle"
+            >
+              Desktop notification sounds
+            </h4>
+            <button
+              aria-expanded="false"
+              aria-labelledby="desktopNotificationSoundTitle desktopNotificationSoundEdit"
+              class="color--link style--none section-min__edit"
+              id="desktopNotificationSoundEdit"
+            >
+              <i
+                class="icon-pencil-outline"
+                title="Edit Icon"
+              />
+              Edit
+            </button>
+          </div>
+          <div
+            class="section-min__describe"
+            id="desktopNotificationSoundDesc"
+          >
+            None for messages, "Calm" for calls
+          </div>
         </div>
         <div
           class="divider-light"

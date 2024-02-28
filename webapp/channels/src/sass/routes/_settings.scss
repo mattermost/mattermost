@@ -239,6 +239,23 @@
                             padding: 0;
                         }
 
+                        .inlineCheckboxSelect {
+                            display: flex;
+                            min-height: unset;
+                            align-items: center;
+                            justify-content: space-between;
+                            padding: 0;
+
+                            label {
+                                margin-inline-end: 24px;
+                                white-space: nowrap;
+                            }
+
+                            .inlineSelect {
+                                width: 40%;
+                            }
+                        }
+
                         .singleSelectLabel {
                             margin-bottom: 12px;
                             font-size: 14px;

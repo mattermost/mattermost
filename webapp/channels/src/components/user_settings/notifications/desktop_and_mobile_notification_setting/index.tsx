@@ -90,7 +90,7 @@ export default class DesktopAndMobileNotificationSettings extends React.PureComp
     };
 
     getSettingItemMaxInputs = () => {
-        const maxizimedSettingInputs = [];
+        const maximizedSettingInputs = [];
 
         const sendNotificationsSection = (
             <Fragment key='sendNotificationsSection'>
@@ -120,11 +120,11 @@ export default class DesktopAndMobileNotificationSettings extends React.PureComp
                 </fieldset>
             </Fragment>
         );
-        maxizimedSettingInputs.push(sendNotificationsSection);
+        maximizedSettingInputs.push(sendNotificationsSection);
 
         if (!this.props.sendPushNotifications) {
             // If push notifications are disabled, we don't show the rest of the settings and return early
-            return maxizimedSettingInputs;
+            return maximizedSettingInputs;
         }
 
         const differentMobileNotificationsSection = (
@@ -145,7 +145,7 @@ export default class DesktopAndMobileNotificationSettings extends React.PureComp
                 </div>
             </Fragment>
         );
-        maxizimedSettingInputs.push(differentMobileNotificationsSection);
+        maximizedSettingInputs.push(differentMobileNotificationsSection);
 
         if (this.props.desktopAndMobileSettingsDifferent) {
             const mobileNotificationsSection = (
@@ -176,7 +176,7 @@ export default class DesktopAndMobileNotificationSettings extends React.PureComp
                     />
                 </React.Fragment>
             );
-            maxizimedSettingInputs.push(mobileNotificationsSection);
+            maximizedSettingInputs.push(mobileNotificationsSection);
         }
 
         if (shouldShowDesktopAndMobileThreadNotificationCheckbox(this.props.isCollapsedThreadsEnabled, this.props.desktopActivity, this.props.pushActivity)) {
@@ -198,7 +198,7 @@ export default class DesktopAndMobileNotificationSettings extends React.PureComp
                     </div>
                 </Fragment>
             );
-            maxizimedSettingInputs.push(threadNotificationSection);
+            maximizedSettingInputs.push(threadNotificationSection);
         }
 
         if (shouldShowSendMobileNotificationsWhenSelect(this.props.desktopActivity, this.props.pushActivity, this.props.desktopAndMobileSettingsDifferent)) {
@@ -230,10 +230,10 @@ export default class DesktopAndMobileNotificationSettings extends React.PureComp
                     />
                 </React.Fragment>
             );
-            maxizimedSettingInputs.push(pushMobileNotificationsSection);
+            maximizedSettingInputs.push(pushMobileNotificationsSection);
         }
 
-        return maxizimedSettingInputs;
+        return maximizedSettingInputs;
     };
 
     componentDidUpdate(prevProps: Props) {

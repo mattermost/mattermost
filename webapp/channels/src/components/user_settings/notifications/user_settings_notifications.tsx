@@ -23,6 +23,7 @@ import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
 import DesktopAndMobileNotificationSettings, {areDesktopAndMobileSettingsDifferent} from './desktop_and_mobile_notification_setting';
+import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
 
@@ -953,6 +954,8 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         const commentsSection = this.createCommentsSection();
         const autoResponderSection = this.createAutoResponderSection();
 
+        const areAllSectionsInactive = this.props.activeSection === '';
+
         return (
             <div id='notificationSettings'>
                 <SettingMobileHeader
@@ -1003,7 +1006,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         saving={this.state.isSaving}
                         error={this.state.serverError}
                         setParentState={this.setStateValue}
-                        areAllSectionsInactive={this.props.activeSection === ''}
+                        areAllSectionsInactive={areAllSectionsInactive}
                         isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
                         desktopActivity={this.state.desktopActivity}
                         pushActivity={this.state.pushActivity}
@@ -1014,6 +1017,22 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         desktopAndMobileSettingsDifferent={this.state.desktopAndMobileSettingsDifferent}
                     />
                     <div className='divider-light'/>
+                    <DesktopNotificationSoundsSettings
+                        active={this.props.activeSection === UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
+                        updateSection={this.handleUpdateSection}
+                        onSubmit={this.handleSubmit}
+                        onCancel={this.handleCancel}
+                        saving={this.state.isSaving}
+                        error={this.state.serverError}
+                        setParentState={this.setStateValue}
+                        areAllSectionsInactive={areAllSectionsInactive}
+                        desktopSound={this.state.desktopSound}
+                        desktopNotificationSound={this.state.desktopNotificationSound}
+                        isCallsRingingEnabled={this.props.isCallsRingingEnabled}
+                        callsDesktopSound={this.state.callsDesktopSound}
+                        callsNotificationSound={this.state.callsNotificationSound}
+                    />
+                    <div className='divider-light'/>
                     <EmailNotificationSetting
                         active={this.props.activeSection === UserSettingsNotificationSections.EMAIL}
                         updateSection={this.handleUpdateSection}
@@ -1022,7 +1041,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
                         saving={this.state.isSaving}
                         error={this.state.serverError}
                         setParentState={this.setStateValue}
-                        areAllSectionsInactive={this.props.activeSection === ''}
+                        areAllSectionsInactive={areAllSectionsInactive}
                         isCollapsedThreadsEnabled={this.props.isCollapsedThreadsEnabled}
                         enableEmail={this.state.enableEmail === 'true'}
                         onChange={this.handleEmailRadio}
