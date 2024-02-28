@@ -24,7 +24,7 @@ const (
 )
 
 func (api *API) InitPlugin() {
-	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin)).Methods("POST")
+	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(uploadPlugin, handlerParamFileAPI)).Methods("POST")
 	api.BaseRoutes.Plugins.Handle("", api.APISessionRequired(getPlugins)).Methods("GET")
 	api.BaseRoutes.Plugin.Handle("", api.APISessionRequired(removePlugin)).Methods("DELETE")
 	api.BaseRoutes.Plugins.Handle("/install_from_url", api.APISessionRequired(installPluginFromURL)).Methods("POST")
