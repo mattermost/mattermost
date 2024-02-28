@@ -71,7 +71,7 @@ func ensureCloudInterface(c *Context, where string) bool {
 		return false
 	}
 	if disabled {
-		c.Err = model.NewAppError(where, "api.server.cws.disabled", nil, "", http.StatusBadRequest)
+		c.Err = model.NewAppError(where, "api.server.cws.disabled", nil, "", http.StatusUnprocessableEntity)
 		return false
 	}
 	return true
