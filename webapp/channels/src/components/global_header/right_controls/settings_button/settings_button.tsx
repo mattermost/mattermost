@@ -8,13 +8,15 @@ import IconButton from '@mattermost/compass-components/components/icon-button'; 
 
 import OverlayTrigger from 'components/overlay_trigger';
 import Tooltip from 'components/tooltip';
-import UserSettingsModal from 'components/user_settings/modal';
+import UserSettingsModalLegacy from 'components/user_settings/modal';
+import UserSettingsModal from 'components/user_settings_modal';
 
 import Constants, {ModalIdentifiers} from 'utils/constants';
 
 import type {ModalData} from 'types/actions';
 
 type Props = {
+    isUserSettingsModalRevamp: boolean;
     actions: {
         openModal: <P>(modalData: ModalData<P>) => void;
     };
@@ -32,6 +34,14 @@ const SettingsButton = (props: Props): JSX.Element | null => {
         </Tooltip>
     );
 
+    const handleClick = () => {
+        if (props.isUserSettingsModalRevamp) {
+            props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal});
+        } else {
+            props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModalLegacy, dialogProps: {isContentProductSettings: true}});
+        }
+    };
+
     return (
         <OverlayTrigger
             trigger={['hover', 'focus']}
@@ -42,9 +52,7 @@ const SettingsButton = (props: Props): JSX.Element | null => {
             <IconButton
                 size={'sm'}
                 icon={'settings-outline'}
-                onClick={(): void => {
-                    props.actions.openModal({modalId: ModalIdentifiers.USER_SETTINGS, dialogType: UserSettingsModal, dialogProps: {isContentProductSettings: true}});
-                }}
+                onClick={handleClick}
                 inverted={true}
                 compact={true}
                 aria-haspopup='dialog'

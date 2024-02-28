@@ -56,7 +56,7 @@ function RadioSettingItem({
 
     const content = (
         <fieldset className='mm-modal-generic-section-item__fieldset-radio'>
-            {[...fields]}
+            {fields}
         </fieldset>
     );
     return (

@@ -344,3 +344,7 @@ export function moveThreadsEnabled(state: GlobalState): boolean {
 export function streamlinedMarketplaceEnabled(state: GlobalState): boolean {
     return getFeatureFlagValue(state, 'StreamlinedMarketplace') === 'true';
 }
+
+export function getUserSettingsModalRevampEnabled(state: GlobalState): boolean {
+    return getFeatureFlagValue(state, 'UserSettingsModalRevamp') === 'true';
+}

@@ -57,6 +57,8 @@ type FeatureFlags struct {
 	NotificationMonitoring bool
 
 	ExperimentalAuditSettingsSystemConsoleUI bool
+
+	UserSettingsModalRevamp bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -81,6 +83,7 @@ func (f *FeatureFlags) SetDefaults() {
 	f.WebSocketEventScope = false
 	f.NotificationMonitoring = true
 	f.ExperimentalAuditSettingsSystemConsoleUI = false
+	f.UserSettingsModalRevamp = false
 }
 
 // ToMap returns the feature flags as a map[string]string

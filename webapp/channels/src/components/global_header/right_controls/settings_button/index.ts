@@ -5,9 +5,19 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import {getUserSettingsModalRevampEnabled} from 'mattermost-redux/selectors/entities/preferences';
+
 import {openModal} from 'actions/views/modals';
 
+import type {GlobalState} from 'types/store/index';
+
 import SettingsButton from './settings_button';
+
+function mapStateToProps(state: GlobalState) {
+    return {
+        isUserSettingsModalRevamp: getUserSettingsModalRevampEnabled(state),
+    };
+}
 
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
@@ -17,4 +27,4 @@ function mapDispatchToProps(dispatch: Dispatch) {
     };
 }
 
-export default connect(null, mapDispatchToProps)(SettingsButton);
+export default connect(mapStateToProps, mapDispatchToProps)(SettingsButton);

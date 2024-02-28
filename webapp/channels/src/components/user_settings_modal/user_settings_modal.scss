@@ -1,0 +1,84 @@
+.modal .user-settings-modal{
+    overflow: hidden;
+    width: 832px;
+    border: 1px solid rgba(var(--center-channel-text-rgb), 0.16);
+    border-radius: 12px;
+    .modal-body{
+        overflow: hidden;
+        height: calc(90vh - 80px);
+    }
+    .modal-header {
+        border: none;
+        border-bottom: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+        background: none;
+    }
+
+    &__header {
+        display: flex;
+        align-items: center;
+        padding: 24px 32px;
+        border-bottom: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+        background: none;
+    }
+
+    &__heading{
+        padding: 0;
+        margin: 0;
+        color: var(--center-channel-text);
+        font-family: 'Metropolis', serif;
+        font-size: 22px;
+        font-style: normal;
+        font-weight: 600;
+        line-height: 28px;
+    }
+    &__search-ctr{
+        display: flex;
+        flex: 1 1 auto;
+        align-items: center;
+        justify-content: flex-end;
+        color: rgba(var(--center-channel-text-rgb), 0.56);
+        gap: 24px;
+    }
+    &__search{
+        max-width: 200px;
+        border: 1px solid rgba(var(--center-channel-text-rgb), 0.16);
+        background: none;
+        input::placeholder{
+            color: rgba(var(--center-channel-text-rgb), 0.64);
+        }
+        i{
+            color: rgba(var(--center-channel-text-rgb), 0.64);
+        }
+    }
+    &__body{
+        display: flex;
+        width: 100%;
+        max-width: 1024px;
+        height: 100%;
+    }
+    &__sidebar{
+        display: flex;
+        width: 232px;
+        flex-direction: column;
+        align-items: center;
+        padding: 24px;
+        background: rgba(var(--center-channel-text-rgb), 0.04);
+        gap: 8px;
+    }
+    &__content{
+        display: flex;
+        width: 100%;
+        height: 100%;
+        flex-direction: column;
+        padding: 32px;
+        gap: 24px;
+        overflow-x: hidden;
+        overflow-y: auto;
+    }
+    &__divider{
+        border-bottom: 1px solid rgba(var(--center-channel-text-rgb), 0.08);
+    }
+    &__filler{
+        height: 80px;
+    }
+}
