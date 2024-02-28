@@ -24,10 +24,10 @@ func TestCreateTeam(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	_, err := th.service.CreateTeam(team)
+	_, err := th.service.CreateTeam(th.Context, team)
 	require.NoError(t, err, "Should create a new team")
 
-	_, err = th.service.CreateTeam(team)
+	_, err = th.service.CreateTeam(th.Context, team)
 	require.Error(t, err, "Should not create a new team - team already exist")
 }
 
@@ -43,7 +43,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	_, err := th.service.CreateTeam(team)
+	_, err := th.service.CreateTeam(th.Context, team)
 	require.NoError(t, err, "Should create a new team")
 
 	maxUsersPerTeam := th.service.config().TeamSettings.MaxUsersPerTeam

@@ -4,7 +4,7 @@
 import MuiMenuItem from '@mui/material/MenuItem';
 import type {MenuItemProps as MuiMenuItemProps} from '@mui/material/MenuItem';
 import {styled} from '@mui/material/styles';
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import React, {
     Children,
     useContext,
