@@ -670,7 +670,7 @@ func (si *SlackImporter) oldImportPost(rctx request.CTX, post *model.Post) strin
 
 		post.RootId = firstPostId
 
-		_, err := si.store.Post().Save(post)
+		_, err := si.store.Post().Save(rctx, post)
 		if err != nil {
 			rctx.Logger().Debug("Error saving post.", mlog.String("user_id", post.UserId), mlog.String("message", post.Message))
 		}
@@ -706,7 +706,7 @@ func (si *SlackImporter) oldImportUser(rctx request.CTX, team *model.Team, user 
 
 	user.Roles = model.SystemUserRoleId
 
-	ruser, nErr := si.store.User().Save(user)
+	ruser, nErr := si.store.User().Save(rctx, user)
 	if nErr != nil {
 		rctx.Logger().Debug("Error saving user.", mlog.Err(nErr))
 		return nil
@@ -774,7 +774,7 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 		return sc
 	}
 
-	sc, err := si.store.Channel().Save(channel, *si.config.TeamSettings.MaxChannelsPerTeam)
+	sc, err := si.store.Channel().Save(rctx, channel, *si.config.TeamSettings.MaxChannelsPerTeam)
 	if err != nil {
 		return nil
 	}
