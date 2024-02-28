@@ -774,7 +774,7 @@ func (si *SlackImporter) oldImportChannel(rctx request.CTX, channel *model.Chann
 		return sc
 	}
 
-	sc, err := si.store.Channel().Save(channel, *si.config.TeamSettings.MaxChannelsPerTeam)
+	sc, err := si.store.Channel().Save(rctx, channel, *si.config.TeamSettings.MaxChannelsPerTeam)
 	if err != nil {
 		return nil
 	}
