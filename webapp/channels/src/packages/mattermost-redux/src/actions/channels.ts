@@ -271,12 +271,11 @@ export function updateChannelPrivacy(channelId: string, privacy: string): Action
     });
 }
 
-export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFuncAsync {
+export function convertGroupMessageToPrivateChannel(channelID: string, teamID: string, displayName: string, name: string): ActionFuncAsync<Channel> {
     return async (dispatch, getState) => {
-        let updatedChannel;
+        let response;
         try {
-            const response = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
-            updatedChannel = response.data;
+            response = await Client4.convertGroupMessageToPrivateChannel(channelID, teamID, displayName, name);
         } catch (error) {
             forceLogoutIfNecessary(error, dispatch, getState);
             dispatch(logError(error));
@@ -285,7 +284,7 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
 
         dispatch({
             type: ChannelTypes.RECEIVED_CHANNEL,
-            data: updatedChannel,
+            data: response.data,
         });
 
         // move the channel from direct message category to the default "channels" category
@@ -294,7 +293,7 @@ export function convertGroupMessageToPrivateChannel(channelID: string, teamID: s
             return {};
         }
 
-        return updatedChannel;
+        return response;
     };
 }
 
