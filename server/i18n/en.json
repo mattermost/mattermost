@@ -2763,6 +2763,10 @@
     "translation": "CWS Server failed to delete workspace."
   },
   {
+    "id": "api.server.cws.disabled",
+    "translation": "Interactions with the Mattermost Customer Portal have been disabled by the system admin."
+  },
+  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWS Server is not available."
   },
