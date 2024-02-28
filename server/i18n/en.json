@@ -2450,7 +2450,7 @@
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.multiple",
-    "translation": "@{{.Usernames}} and @{{.LastUsername}} did not get notified by this mention because they are not members of this team."
+    "translation": "@{{.Usernames}} and @{{.LastUsername}} didn't get notified by this mention because they aren't members of this team."
   },
   {
     "id": "api.post.check_for_out_of_team_mentions.message.one",
