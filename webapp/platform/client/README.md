@@ -70,7 +70,7 @@ To use the WebSocket client, create an instance of `WebSocketClient` and then ca
 import {WebSocketClient} from '@mattermost/client';
 
 // If you already have an instance of Client4, you can call its getWebSocketUrl method to get this URL
-const connectionUrl = 'https://my-mattermost-server/api/v4/websocket';
+const connectionUrl = 'https://mymattermostserver.example.com/api/v4/websocket';
 
 // In a browser, the token may be passed automatically from a cookie
 const authToken = process.env.TOKEN;
