@@ -201,7 +201,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		var expected error
 		expected = multierror.Append(expected, errors.New("You do not have the appropriate permissions.")) //nolint:revive
 		err := pluginInstallURLCmdF(s.th.Client, &cobra.Command{}, []string{jiraURL})
-		s.Require().EqualError(err, expected.Error())
+		s.Require().ErrorContains(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", jiraURL))
@@ -221,7 +221,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		expected = multierror.Append(expected, errors.New("An error occurred while downloading the plugin.")) //nolint:revive
 
 		err := pluginInstallURLCmdF(c, &cobra.Command{}, []string{pluginURL})
-		s.Require().EqualError(err, expected.Error())
+		s.Require().ErrorContains(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", pluginURL))
@@ -246,7 +246,7 @@ func (s *MmctlE2ETestSuite) TestPluginInstallURLCmd() {
 		var expected error
 		expected = multierror.Append(expected, errors.New("Unable to install plugin. A plugin with the same ID is already installed.")) //nolint:revive
 		err = pluginInstallURLCmdF(c, &cobra.Command{}, []string{jiraURL})
-		s.Require().EqualError(err, expected.Error())
+		s.Require().ErrorContains(err, expected.Error())
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to install plugin from URL \"%s\".", jiraURL))

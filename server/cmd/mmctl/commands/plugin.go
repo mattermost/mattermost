@@ -142,7 +142,7 @@ func pluginDeleteCmdF(c client.Client, cmd *cobra.Command, args []string) error 
 	for _, plugin := range args {
 		if _, err := c.RemovePlugin(context.TODO(), plugin); err != nil {
 			printer.PrintError("Unable to delete plugin: " + plugin + ". Error: " + err.Error())
-			multiErr = multierror.Append(multiErr, err)
+			multiErr = multierror.Append(multiErr, fmt.Errorf("Unable to delete plugin. %w", err))
 		} else {
 			printer.Print("Deleted plugin: " + plugin)
 		}
