@@ -17,6 +17,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 const (
@@ -278,6 +279,13 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		}
 	}
 
+	var useMilitaryTime bool
+	if data, err := es.store.Preference().Get(user.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime); err != nil {
+		useMilitaryTime = false
+	} else {
+		useMilitaryTime = data.Value == "true"
+	}
+
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
 		for i, notification := range notifications {
 			sender, errSender := es.userService.GetUser(notification.post.UserId)
@@ -300,17 +308,9 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				embeddedFiles[senderPhoto] = bytes.NewReader(senderProfileImage)
 			}
 
-			tm := time.Unix(notification.post.CreateAt/1000, 0)
-			timezone, _ := tm.Zone()
+			formattedTime := utils.GetFormattedPostTime(user, notification.post, useMilitaryTime, translateFunc)
 
-			t := translateFunc("api.email_batching.send_batched_email_notification.time", map[string]any{
-				"Hour":     tm.Hour(),
-				"Minute":   fmt.Sprintf("%02d", tm.Minute()),
-				"Month":    translateFunc(tm.Month().String()),
-				"Day":      tm.Day(),
-				"Year":     tm.Year(),
-				"TimeZone": timezone,
-			})
+			t := translateFunc("api.email_batching.send_batched_email_notification.time", formattedTime)
 
 			MessageURL := siteURL + "/" + notification.teamName + "/pl/" + notification.post.Id
 
@@ -347,13 +347,13 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 		}
 	}
 
-	tm := time.Unix(notifications[0].post.CreateAt/1000, 0)
+	formattedTime := utils.GetFormattedPostTime(user, notifications[0].post, useMilitaryTime, translateFunc)
 
 	subject := translateFunc("api.email_batching.send_batched_email_notification.subject", len(notifications), map[string]any{
 		"SiteName": es.config().TeamSettings.SiteName,
-		"Year":     tm.Year(),
-		"Month":    translateFunc(tm.Month().String()),
-		"Day":      tm.Day(),
+		"Year":     formattedTime.Year,
+		"Month":    formattedTime.Month,
+		"Day":      formattedTime.Day,
 	})
 
 	data := es.NewEmailTemplateData(user.Locale)
