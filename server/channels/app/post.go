@@ -305,7 +305,7 @@ func (a *App) CreatePost(c request.CTX, post *model.Post, channel *model.Channel
 		post.AddProp(model.PostPropsPreviewedPost, previewPost.PostID)
 	}
 
-	rpost, nErr := a.Srv().Store().Post().Save(post)
+	rpost, nErr := a.Srv().Store().Post().Save(c, post)
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -489,7 +489,10 @@ func (a *App) handlePostEvents(c request.CTX, post *model.Post, user *model.User
 	}
 
 	a.Srv().Platform().InvalidateCacheForChannel(channel)
-	a.invalidateCacheForChannelPosts(channel.Id)
+	if post.IsPinned {
+		a.Srv().Store().Channel().InvalidatePinnedPostCount(channel.Id)
+	}
+	a.Srv().Store().Post().InvalidateLastPostTimeCache(channel.Id)
 
 	if _, err := a.SendNotifications(c, post, team, channel, user, parentPostList, setOnline); err != nil {
 		return err
@@ -2157,8 +2160,8 @@ func (a *App) SetPostReminder(postID, userID string, targetTime int64) *model.Ap
 	return nil
 }
 
-func (a *App) CheckPostReminders() {
-	systemBot, appErr := a.GetSystemBot()
+func (a *App) CheckPostReminders(rctx request.CTX) {
+	systemBot, appErr := a.GetSystemBot(rctx)
 	if appErr != nil {
 		mlog.Error("Failed to get system bot", mlog.Err(appErr))
 		return

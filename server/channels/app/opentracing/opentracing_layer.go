@@ -1279,7 +1279,7 @@ func (a *OpenTracingAppLayer) CheckPasswordAndAllCriteria(rctx request.CTX, user
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) CheckPostReminders() {
+func (a *OpenTracingAppLayer) CheckPostReminders(rctx request.CTX) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.CheckPostReminders")
 
@@ -1291,7 +1291,7 @@ func (a *OpenTracingAppLayer) CheckPostReminders() {
 	}()
 
 	defer span.Finish()
-	a.app.CheckPostReminders()
+	a.app.CheckPostReminders(rctx)
 }
 
 func (a *OpenTracingAppLayer) CheckProviderAttributes(c request.CTX, user *model.User, patch *model.UserPatch) string {
@@ -9734,7 +9734,7 @@ func (a *OpenTracingAppLayer) GetSuggestions(c request.CTX, commandArgs *model.C
 	return resultVar0
 }
 
-func (a *OpenTracingAppLayer) GetSystemBot() (*model.Bot, *model.AppError) {
+func (a *OpenTracingAppLayer) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetSystemBot")
 
@@ -9746,7 +9746,7 @@ func (a *OpenTracingAppLayer) GetSystemBot() (*model.Bot, *model.AppError) {
 	}()
 
 	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetSystemBot()
+	resultVar0, resultVar1 := a.app.GetSystemBot(rctx)
 
 	if resultVar1 != nil {
 		span.LogFields(spanlog.Error(resultVar1))
@@ -11391,50 +11391,6 @@ func (a *OpenTracingAppLayer) GetViewUsersRestrictions(c request.CTX, userID str
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWarnMetricsBot")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetWarnMetricsBot()
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
-func (a *OpenTracingAppLayer) GetWarnMetricsStatus(rctx request.CTX) (map[string]*model.WarnMetricStatus, *model.AppError) {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetWarnMetricsStatus")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0, resultVar1 := a.app.GetWarnMetricsStatus(rctx)
-
-	if resultVar1 != nil {
-		span.LogFields(spanlog.Error(resultVar1))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0, resultVar1
-}
-
 func (a *OpenTracingAppLayer) HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.HandleCommandResponse")
@@ -12868,28 +12824,6 @@ func (a *OpenTracingAppLayer) NewPluginAPI(c request.CTX, manifest *model.Manife
 
 	defer span.Finish()
 	resultVar0 := a.app.NewPluginAPI(c, manifest)
-
-	return resultVar0
-}
-
-func (a *OpenTracingAppLayer) NotifyAndSetWarnMetricAck(rctx request.CTX, warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.NotifyAndSetWarnMetricAck")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.NotifyAndSetWarnMetricAck(rctx, warnMetricId, sender, forceAck, isBot)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
 
 	return resultVar0
 }
@@ -14486,28 +14420,6 @@ func (a *OpenTracingAppLayer) RenameTeam(team *model.Team, newTeamName string, n
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) RequestLicenseAndAckWarnMetric(c request.CTX, warnMetricId string, isBot bool) *model.AppError {
-	origCtx := a.ctx
-	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.RequestLicenseAndAckWarnMetric")
-
-	a.ctx = newCtx
-	a.app.Srv().Store().SetContext(newCtx)
-	defer func() {
-		a.app.Srv().Store().SetContext(origCtx)
-		a.ctx = origCtx
-	}()
-
-	defer span.Finish()
-	resultVar0 := a.app.RequestLicenseAndAckWarnMetric(c, warnMetricId, isBot)
-
-	if resultVar0 != nil {
-		span.LogFields(spanlog.Error(resultVar0))
-		ext.Error.Set(span, true)
-	}
-
-	return resultVar0
-}
-
 func (a *OpenTracingAppLayer) ResetPasswordFromToken(c request.CTX, userSuppliedTokenString string, newPassword string) *model.AppError {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ResetPasswordFromToken")
@@ -15846,6 +15758,28 @@ func (a *OpenTracingAppLayer) SendEphemeralPost(c request.CTX, userID string, po
 
 	defer span.Finish()
 	resultVar0 := a.app.SendEphemeralPost(c, userID, post)
+
+	return resultVar0
+}
+
+func (a *OpenTracingAppLayer) SendIPFiltersChangedEmail(c request.CTX, userID string) error {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SendIPFiltersChangedEmail")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.SendIPFiltersChangedEmail(c, userID)
+
+	if resultVar0 != nil {
+		span.LogFields(spanlog.Error(resultVar0))
+		ext.Error.Set(span, true)
+	}
 
 	return resultVar0
 }

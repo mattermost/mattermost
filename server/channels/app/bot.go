@@ -95,7 +95,7 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 		return nil, vErr
 	}
 
-	user, nErr := a.Srv().Store().User().Save(model.UserFromBot(bot))
+	user, nErr := a.Srv().Store().User().Save(c, model.UserFromBot(bot))
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -160,36 +160,7 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 	return savedBot, nil
 }
 
-func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
-	perPage := 1
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  perPage,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	}
-
-	sysAdminList, err := a.GetUsersFromProfiles(userOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sysAdminList) == 0 {
-		return nil, model.NewAppError("GetWarnMetricsBot", "app.bot.get_warn_metrics_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
-	}
-
-	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
-	warnMetricsBot := &model.Bot{
-		Username:    model.BotWarnMetricBotUsername,
-		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: "",
-		OwnerId:     sysAdminList[0].Id,
-	}
-
-	return a.getOrCreateBot(warnMetricsBot)
-}
-
-func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
+func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
 	perPage := 1
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -215,10 +186,10 @@ func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
 		OwnerId:     sysAdminList[0].Id,
 	}
 
-	return a.getOrCreateBot(systemBot)
+	return a.getOrCreateBot(rctx, systemBot)
 }
 
-func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
@@ -226,7 +197,7 @@ func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 		}
 
 		// cannot find this bot user, save the user
-		user, nErr := a.Srv().Store().User().Save(model.UserFromBot(botDef))
+		user, nErr := a.Srv().Store().User().Save(rctx, model.UserFromBot(botDef))
 		if nErr != nil {
 			var appError *model.AppError
 			var invErr *store.ErrInvalidInput

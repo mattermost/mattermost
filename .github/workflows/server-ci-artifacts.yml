@@ -17,7 +17,7 @@ jobs:
     if: github.repository_owner == 'mattermost' && github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-22.04
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@a74f6d87f847326c04d326bf1908da40cb9b3556
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -33,14 +33,14 @@ jobs:
       - update-initial-status
     steps:
       - name: cd/configure-aws-credentials
-        uses: aws-actions/configure-aws-credentials@04b98b3f9e85f563fb061be8751a0352327246b0 #v3.0.1
+        uses: aws-actions/configure-aws-credentials@e3dd6a429d7300a6a4c196c26e071d42e0343502 #v4.0.2
         with:
           aws-region: us-east-1
           aws-access-key-id: ${{ secrets.PR_BUILDS_BUCKET_AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.PR_BUILDS_BUCKET_AWS_SECRET_ACCESS_KEY }}
 
       - name: cd/download-artifacts-from-PR-workflow
-        uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
+        uses: dawidd6/action-download-artifact@71072fbb1229e1317f1a8de6b04206afb461bd67 # v2.26.0
         with:
           workflow: ${{ github.event.workflow_run.workflow_id }}
           run_id: ${{ github.event.workflow_run.id }}
@@ -76,7 +76,7 @@ jobs:
       - upload-artifacts
     steps:
       - name: cd/docker-login
-        uses: docker/login-action@3da7dc6e2b31f99ef2cb9fb4c50fb0971e0d0139 # v2.1.0
+        uses: docker/login-action@343f7c4344506bcbf9b4de18042ae17996df046d # v3.0.0
         with:
           username: mattermostdev
           password: ${{ secrets.DOCKERHUB_DEV_TOKEN }}
@@ -87,7 +87,7 @@ jobs:
           cosign-release: v${{ env.COSIGN_VERSION }}
 
       - name: cd/download-artifacts-from-PR-workflow
-        uses: dawidd6/action-download-artifact@0c49384d39ceb023b8040f480a25596fd6cf441b # v2.26.0
+        uses: dawidd6/action-download-artifact@71072fbb1229e1317f1a8de6b04206afb461bd67 # v2.26.0
         with:
           workflow: ${{ github.event.workflow_run.workflow_id }}
           run_id: ${{ github.event.workflow_run.id }}
@@ -96,7 +96,7 @@ jobs:
           path: server/build/
 
       - name: cd/setup-docker-buildx
-        uses: docker/setup-buildx-action@11e8a2e2910826a92412015c515187a2d6750279 # v2.4
+        uses: docker/setup-buildx-action@0d103c3126aa41d772a8362f6aa67afac040f80c # v3.1.0
 
       - name: cd/docker-build-and-push
         id: docker
@@ -125,7 +125,7 @@ jobs:
     needs:
       - build-docker
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@a74f6d87f847326c04d326bf1908da40cb9b3556
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:
@@ -141,7 +141,7 @@ jobs:
     needs:
       - build-docker
     steps:
-      - uses: mattermost/actions/delivery/update-commit-status@a74f6d87f847326c04d326bf1908da40cb9b3556
+      - uses: mattermost/actions/delivery/update-commit-status@fec7b836001c9380d4bfaf28d443945c103a098c
         env:
           GITHUB_TOKEN: ${{ github.token }}
         with:

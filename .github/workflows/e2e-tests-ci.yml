@@ -31,11 +31,11 @@ jobs:
         working-directory: e2e-tests/cypress
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
       - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -57,11 +57,11 @@ jobs:
         working-directory: e2e-tests/playwright
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
       - name: ci/setup-node
-        uses: actions/setup-node@64ed1c7eab4cce3362f8c340dee64e5eaeef8f7c # v3.6.0
+        uses: actions/setup-node@60edb5dd545a775178f52524783378180af0d1f8 # v4.0.2
         id: setup_node
         with:
           node-version-file: ".nvmrc"
@@ -101,7 +101,7 @@ jobs:
         working-directory: e2e-tests
     steps:
       - name: ci/checkout-repo
-        uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11 # v4.1.1
         with:
           ref: ${{ inputs.commit_sha || github.sha }}
       - name: ci/setup-macos-docker
@@ -117,7 +117,7 @@ jobs:
         run: |
           make
       - name: ci/e2e-smoketests-store-results
-        uses: actions/upload-artifact@0b7f8abb1508181956e8e162db84b466c27e18ce # v3.1.2
+        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8 # v4.3.0
         with:
           name: e2e-smoketests-results-${{ matrix.os }}
           path: |
