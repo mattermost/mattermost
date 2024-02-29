@@ -124,13 +124,15 @@ describe('Actions.Admin', () => {
 
         const {data} = await store.dispatch(Actions.getConfig());
         const updated = JSON.parse(JSON.stringify(data));
+
         // Creating a copy.
         const reply = JSON.parse(JSON.stringify(data));
         const oldSiteName = updated.TeamSettings.SiteName;
-        const oldNameDisplay = updated.TeamSettings.TeammateNameDisplay
+        const oldNameDisplay = updated.TeamSettings.TeammateNameDisplay;
         const testSiteName = 'MattermostReduxTest';
         updated.TeamSettings.SiteName = testSiteName;
         reply.TeamSettings.SiteName = testSiteName;
+
         // Testing partial config patch.
         updated.TeamSettings.TeammateNameDisplay = null;
 
