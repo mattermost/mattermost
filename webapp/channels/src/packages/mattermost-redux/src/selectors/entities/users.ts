@@ -435,6 +435,11 @@ export function getStatusForUserId(state: GlobalState, userId: UserProfile['id']
     return getUserStatuses(state)[userId];
 }
 
+export function getDndEndTimeForUserId(state: GlobalState, userId: UserProfile['id']): number {
+    console.log('getDndEndTimeForUserId', state.entities.users)
+    return state.entities.users.dndEndTimes[userId];
+}
+
 export function getTotalUsersStats(state: GlobalState) {
     return state.entities.users.stats;
 }

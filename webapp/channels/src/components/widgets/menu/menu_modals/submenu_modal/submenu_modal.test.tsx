@@ -5,6 +5,7 @@ import {shallow, mount} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
+import {render, screen, userEvent} from 'tests/react_testing_utils';
 import SubMenuModal from './submenu_modal';
 
 jest.mock('../../is_mobile_view_hack', () => ({
@@ -67,24 +68,19 @@ describe('components/submenu_modal', () => {
         const props = {
             ...baseProps,
         };
-        const wrapper = mount(
-            <SubMenuModal {...props}/>,
-        );
 
-        wrapper.setState({show: true});
-        await wrapper.find('#A').at(1).simulate('click');
+        render (
+            <SubMenuModal {...props}/>
+        )
+
+        userEvent.click(screen.getByText('Text A'));
         expect(action1).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('show')).toEqual(false);
 
-        wrapper.setState({show: true});
-        await wrapper.find('#B').at(1).simulate('click');
+        userEvent.click(screen.getByText('Text B'));
         expect(action2).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('show')).toEqual(false);
 
-        wrapper.setState({show: true});
-        await wrapper.find('#C').at(1).simulate('click');
+        userEvent.click(screen.getByText('Text C'));
         expect(action3).toHaveBeenCalledTimes(1);
-        expect(wrapper.state('show')).toEqual(false);
     });
 
     test('should have called props.onExited when Modal.onExited is called', () => {

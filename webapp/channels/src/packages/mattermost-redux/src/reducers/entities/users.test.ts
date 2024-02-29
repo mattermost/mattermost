@@ -1060,6 +1060,7 @@ describe('Reducers.users', () => {
 
         expect(nextState).toEqual({
             currentUserId: '',
+            dndEndTimes: {},
             mySessions: [],
             myAudits: [],
             myUserAccessTokens: {},

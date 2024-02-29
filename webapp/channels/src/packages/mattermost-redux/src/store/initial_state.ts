@@ -34,6 +34,7 @@ const state: GlobalState = {
             filteredStats: {},
             myUserAccessTokens: {},
             lastActivity: {},
+            dndEndTimes: {},
         },
         limits: {
             usersLimits: {

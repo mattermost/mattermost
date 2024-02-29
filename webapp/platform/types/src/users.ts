@@ -82,6 +82,7 @@ export type UsersState = {
     filteredStats: Partial<UsersStats>;
     myUserAccessTokens: Record<string, UserAccessToken>;
     lastActivity: RelationOneToOne<UserProfile, number>;
+    dndEndTimes: RelationOneToOne<UserProfile, number>;
 };
 
 export type UserTimezone = {
