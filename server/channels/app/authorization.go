@@ -171,6 +171,10 @@ func (a *App) SessionHasPermissionToGroup(session model.Session, groupID string,
 }
 
 func (a *App) SessionHasPermissionToChannelByPost(session model.Session, postID string, permission *model.Permission) bool {
+	if postID == "" {
+		return false
+	}
+
 	if channelMember, err := a.Srv().Store().Channel().GetMemberForPost(postID, session.UserId, *a.Config().TeamSettings.ExperimentalViewArchivedChannels); err == nil {
 		if a.RolesGrantPermission(channelMember.GetRoles(), permission.Id) {
 			return true

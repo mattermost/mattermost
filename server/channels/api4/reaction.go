@@ -78,17 +78,7 @@ func getReactions(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteReaction(c *Context, w http.ResponseWriter, r *http.Request) {
-	c.RequireUserId()
-	if c.Err != nil {
-		return
-	}
-
-	c.RequirePostId()
-	if c.Err != nil {
-		return
-	}
-
-	c.RequireEmojiName()
+	c.RequireUserId().RequirePostId().RequireEmojiName()
 	if c.Err != nil {
 		return
 	}

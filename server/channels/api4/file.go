@@ -460,7 +460,9 @@ func getFile(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "file", info)
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+
+	if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -492,7 +494,8 @@ func getFileThumbnail(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+	if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -535,7 +538,8 @@ func getFileLink(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 	audit.AddEventParameterAuditable(auditRec, "file", info)
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+	if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -568,7 +572,8 @@ func getFilePreview(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+	if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
@@ -602,7 +607,9 @@ func getFileInfo(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if info.CreatorId != c.AppContext.Session().UserId && !c.App.SessionHasPermissionToChannelByPost(*c.AppContext.Session(), info.PostId, model.PermissionReadChannelContent) {
+	perm := c.App.SessionHasPermissionToChannel(c.AppContext, *c.AppContext.Session(), info.ChannelId, model.PermissionReadChannelContent)
+
+	if info.CreatorId != c.AppContext.Session().UserId && !perm {
 		c.SetPermissionError(model.PermissionReadChannelContent)
 		return
 	}
