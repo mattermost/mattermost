@@ -1591,7 +1591,7 @@ func TestImportUserTeams(t *testing.T) {
 			expectedUserChannels: 0,
 		},
 		{
-			name: "Should fail if one of the roles doesn't exists",
+			name: "Should fail if one of the roles doesn't exist",
 			data: &[]imports.UserTeamImportData{
 				{
 					Name:  &th.BasicTeam.Name,
@@ -1813,7 +1813,7 @@ func TestImportUserChannels(t *testing.T) {
 			expectedUserChannels: 0,
 		},
 		{
-			name: "Should fail if one of the roles doesn't exists",
+			name: "Should fail if one of the roles doesn't exist",
 			data: &[]imports.UserChannelImportData{
 				{
 					Name:  &th.BasicChannel.Name,
