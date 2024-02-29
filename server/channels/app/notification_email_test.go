@@ -18,6 +18,7 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/i18n"
 	"github.com/mattermost/mattermost/server/public/shared/timezones"
 	"github.com/mattermost/mattermost/server/v8/channels/store/storetest/mocks"
+	"github.com/mattermost/mattermost/server/v8/channels/utils"
 )
 
 func TestGetDirectMessageNotificationEmailSubject(t *testing.T) {
@@ -255,7 +256,7 @@ func TestGetNotificationEmailBodyFullNotificationLocaleTimeNoTimezone(t *testing
 	tm := time.Unix(post.CreateAt/1000, 0)
 	zone, _ := tm.Zone()
 
-	formattedTime := formattedPostTime{
+	formattedTime := utils.FormattedPostTime{
 		Hour:     fmt.Sprintf("%02d", tm.Hour()),
 		Minute:   fmt.Sprintf("%02d", tm.Minute()),
 		TimeZone: zone,
