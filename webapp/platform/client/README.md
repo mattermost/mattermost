@@ -28,9 +28,9 @@ To use this client, create an instance of `Client4`, set the server URL, and log
 import {Client4} from '@mattermost/client';
 
 const client = new Client4();
-client4.setUrl('https://mymattermostserver.example.com');
+client.setUrl('https://mymattermostserver.example.com');
 
-client4.login('username', 'password').then((user) => {
+client.login('username', 'password').then((user) => {
     // ...
 });
 ```
@@ -41,9 +41,9 @@ If you already have a session token or a user access token, you can call `Client
 import {Client4} from '@mattermost/client';
 
 const client = new Client4();
-client4.setUrl('https://mymattermostserver.example.com');
+client.setUrl('https://mymattermostserver.example.com');
 
-client4.setToken('accesstoken');
+client.setToken('accesstoken');
 ```
 
 If needed, methods exist to set other headers such as the User-Agent (`Client4.setUserAgent`), the CSRF token (`Client4.setCSRF`), or any extra headers you wish to include (`Client4.setHeader`).
