@@ -710,7 +710,7 @@ func (a *App) SendTestPushNotification(deviceID string) string {
 			mlog.String("status", model.StatusServerError),
 			mlog.String("reason", model.ReasonPushProxyError),
 			mlog.String("device_id", msg.DeviceId),
-			mlog.String("push_response", pushResponse[model.PushStatusErrorMsg]),
+			mlog.Err(errors.New(pushResponse[model.PushStatusErrorMsg])),
 		)
 		return "unknown"
 	}
