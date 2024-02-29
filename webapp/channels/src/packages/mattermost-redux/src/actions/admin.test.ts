@@ -1033,19 +1033,6 @@ describe('Actions.Admin', () => {
         expect(nock.isDone()).toBe(true);
     });
 
-    it('sendWarnMetricAck', async () => {
-        const warnMetricAck = {
-            id: 'metric1',
-        };
-        nock(Client4.getBaseRoute()).
-            post('/warn_metrics/ack/metric1').
-            reply(200, OK_RESPONSE);
-
-        await store.dispatch(Actions.sendWarnMetricAck(warnMetricAck.id, false));
-
-        expect(nock.isDone()).toBe(true);
-    });
-
     it('getDataRetentionCustomPolicies', async () => {
         const policies = {
             policies: [

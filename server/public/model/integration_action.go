@@ -122,6 +122,11 @@ func (p *PostAction) Equals(input *PostAction) bool {
 		return p.Integration == nil
 	}
 
+	// At this point, input is not nil, so return false if original is.
+	if p.Integration == nil {
+		return false
+	}
+
 	// Both are unequal and not nil.
 	if p.Integration.URL != input.Integration.URL {
 		return false
