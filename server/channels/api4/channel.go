@@ -708,18 +708,6 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-<<<<<<< HEAD
-	channelIDs := model.ArrayFromJSON(r.Body)
-	if !c.App.SessionHasPermissionToChannels(c.AppContext, *c.AppContext.Session(), channelIDs, model.PermissionReadChannel) {
-		c.SetPermissionError(model.PermissionReadChannel)
-		return
-	}
-
-	channelsMemberCount, err := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
-
-	if err != nil {
-		c.Err = err
-=======
 	channelIDs, sortErr := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
 	if sortErr != nil {
 		c.Err = model.NewAppError("getChannelsMemberCount", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(sortErr)
@@ -742,7 +730,6 @@ func getChannelsMemberCount(c *Context, w http.ResponseWriter, r *http.Request) 
 	channelsMemberCount, appErr := c.App.GetChannelsMemberCount(c.AppContext, channelIDs)
 	if appErr != nil {
 		c.Err = appErr
->>>>>>> 82b8d4dc07 (MM-55966 - Update ArrayFromJSON to use LimitedReader (#25510))
 		return
 	}
 
