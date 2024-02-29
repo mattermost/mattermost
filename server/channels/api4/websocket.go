@@ -30,6 +30,10 @@ func connectWebSocket(c *Context, w http.ResponseWriter, r *http.Request) {
 		CheckOrigin:     c.App.OriginChecker(),
 	}
 
+	if !upgrader.CheckOrigin(r) {
+		c.Logger.Warn("URL Blocked Because of CORS", mlog.String("Blocked Origin", r.Header.Get("Origin")))
+	}
+
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		c.Err = model.NewAppError("connect", "api.web_socket.connect.upgrade.app_error", nil, err.Error(), http.StatusBadRequest)
