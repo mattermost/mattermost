@@ -19,3 +19,11 @@ To use this keycloak image, we suggest you to use this configuration settings:
 - Last Name Attribute: `lastName`
 
 or overwrite your SamleSettings section in your config.json file by running `make config-saml` and restarting your server.
+
+Admin Login:
+admin/admin
+
+Users:
+homer/password
+marge/password
+lisa/password
