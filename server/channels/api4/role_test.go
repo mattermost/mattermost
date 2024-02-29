@@ -5,6 +5,7 @@ package api4
 
 import (
 	"context"
+	"fmt"
 	"sort"
 	"strings"
 	"testing"
@@ -189,7 +190,7 @@ func TestGetRolesByNames(t *testing.T) {
 		// too many roles should error with bad request
 		roles := []string{}
 		for i := 0; i < GetRolesByNamesMax+10; i++ {
-			roles = append(roles, role1.Name)
+			roles = append(roles, fmt.Sprintf("role1.Name%v", i))
 		}
 
 		_, resp, err := client.GetRolesByNames(context.Background(), roles)
