@@ -14,9 +14,9 @@ import (
 	"github.com/pkg/errors"
 )
 
-// MemoryStore is a implementation of the plugin KV store API for testing.
+// MemoryStore is an implementation of the plugin KV store API for testing.
 // It's not meant for production use.
-// It's safe for concurrent use by multiple goroutine.
+// It's safe for concurrent use by multiple goroutines.
 type MemoryStore struct {
 	mux   sync.RWMutex
 	elems map[string]elem
