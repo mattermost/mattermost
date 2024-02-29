@@ -189,7 +189,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	}
 
 	var err error
-	if channel, err = th.store.Channel().Save(channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
+	if channel, err = th.store.Channel().Save(th.Context, channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
 		panic(err)
 	}
 

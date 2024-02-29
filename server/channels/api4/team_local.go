@@ -79,7 +79,7 @@ func localInviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) 
 	}
 
 	memberInvite := &model.MemberInvite{}
-	err := model.StructFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes, memberInvite)
+	err := model.StructFromJSONLimited(r.Body, memberInvite)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.localInviteUsersToTeam", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
