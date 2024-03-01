@@ -1201,7 +1201,7 @@ func (s *Server) doPermissionsMigrations() error {
 		{Key: model.MigrationKeyAddCustomUserGroupsPermissionRestore, Migration: a.getAddCustomUserGroupsPermissionRestore},
 		{Key: model.MigrationKeyAddReadChannelContentPermissions, Migration: a.getAddChannelReadContentPermissions},
 		{Key: model.MigrationKeyAddIPFilteringPermissions, Migration: a.getAddIPFilterPermissionsMigration},
-		{Key: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Migration: a.getAddOutgoingOAuthConnectionsPermissions},
+		// {Key: model.MigrationKeyAddOutgoingOAuthConnectionsPermissions, Migration: a.getAddOutgoingOAuthConnectionsPermissions},
 	}
 
 	roles, err := s.Store().Role().GetAll()
