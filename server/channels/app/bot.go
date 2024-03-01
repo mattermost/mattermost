@@ -176,7 +176,6 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 }
 
 func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
-	>>>>>>> e9b9d4ff60 (Deprecate admin advisor (#26045))
 	perPage := 1
 	userOptions := &model.UserGetOptions{
 		Page:     0,
