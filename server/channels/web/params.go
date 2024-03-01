@@ -87,7 +87,6 @@ type Params struct {
 	FilterArchived            bool
 	FilterParentTeamPermitted bool
 	CategoryId                string
-	WarnMetricId              string
 	ExportName                string
 	ExcludePolicyConstrained  bool
 	GroupSource               model.GroupSource
@@ -232,7 +231,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.GroupIDs = query.Get("group_ids")
 	params.IncludeTotalCount, _ = strconv.ParseBool(query.Get("include_total_count"))
 	params.IncludeDeleted, _ = strconv.ParseBool(query.Get("include_deleted"))
-	params.WarnMetricId = props["warn_metric_id"]
 	params.ExportName = props["export_name"]
 	params.ExcludePolicyConstrained, _ = strconv.ParseBool(query.Get("exclude_policy_constrained"))
 

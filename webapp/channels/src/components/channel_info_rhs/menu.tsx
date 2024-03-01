@@ -18,7 +18,7 @@ const MenuItemContainer = styled.div`
 `;
 
 const Icon = styled.div`
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), var(--icon-opacity));
 `;
 
 const MenuItemText = styled.div`
@@ -28,7 +28,7 @@ const MenuItemText = styled.div`
 
 const RightSide = styled.div`
     display: flex;
-    color: rgba(var(--center-channel-color-rgb), 0.56);
+    color: rgba(var(--center-channel-color-rgb), 0.75);
 `;
 
 const Badge = styled.div`
@@ -76,14 +76,18 @@ const menuItem = ({icon, text, className, opensSubpanel, badge, onClick}: MenuIt
 
 const MenuItem = styled(menuItem)`
     display: flex;
+    width: 100%;
+    height: 40px;
     flex-direction: row;
     align-items: center;
     cursor: pointer;
-    width: 100%;
-    height: 40px;
 
     &:hover {
-       background: rgba(var(--center-channel-color-rgb), 0.08);
+        background: rgba(var(--center-channel-color-rgb), 0.08);
+
+        ${Icon} {
+            color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
+        }
     }
 `;
 

@@ -693,14 +693,14 @@ func testFileInfoStoreGetFilesBatchForIndexing(t *testing.T, rctx request.CTX, s
 	c1.DisplayName = "Channel1"
 	c1.Name = "zz" + model.NewId() + "b"
 	c1.Type = model.ChannelTypeOpen
-	c1, _ = ss.Channel().Save(c1, -1)
+	c1, _ = ss.Channel().Save(rctx, c1, -1)
 
 	c2 := &model.Channel{}
 	c2.TeamId = model.NewId()
 	c2.DisplayName = "Channel2"
 	c2.Name = "zz" + model.NewId() + "b"
 	c2.Type = model.ChannelTypeOpen
-	c2, _ = ss.Channel().Save(c2, -1)
+	c2, _ = ss.Channel().Save(rctx, c2, -1)
 
 	o1 := &model.Post{}
 	o1.ChannelId = c1.Id
