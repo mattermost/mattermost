@@ -175,36 +175,8 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 	return savedBot, nil
 }
 
-func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
-	perPage := 1
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  perPage,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	}
-
-	sysAdminList, err := a.GetUsersFromProfiles(userOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sysAdminList) == 0 {
-		return nil, model.NewAppError("GetWarnMetricsBot", "app.bot.get_warn_metrics_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
-	}
-
-	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
-	warnMetricsBot := &model.Bot{
-		Username:    model.BotWarnMetricBotUsername,
-		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: "",
-		OwnerId:     sysAdminList[0].Id,
-	}
-
-	return a.getOrCreateBot(warnMetricsBot)
-}
-
 func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
+	>>>>>>> e9b9d4ff60 (Deprecate admin advisor (#26045))
 	perPage := 1
 	userOptions := &model.UserGetOptions{
 		Page:     0,
