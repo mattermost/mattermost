@@ -28,7 +28,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     z-index: 16;
     left: 0;
     display: flex;
-    width: var(--overrideLhsWidth, 240px);
     min-width: 240px;
     max-width: 240px;
     height: 100%;
@@ -37,6 +36,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
     background-color: var(--sidebar-bg);
 
     @media screen and (min-width: 769px) {
+        width: var(--overrideLhsWidth, 264px);
         min-width: 200px;
         max-width: 264px;
         background: none;
@@ -110,8 +110,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarHeader {
-        background-color: var(--sidebar-header-bg);
-
         .header__info {
             color: var(--sidebar-header-text-color);
 

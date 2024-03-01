@@ -15,6 +15,7 @@ $app-bar-width: 48px;
     display: flex;
     min-height: 0;
     flex-flow: column;
+    margin-right: -8px;
 
     &__top {
         position: relative;
@@ -73,7 +74,7 @@ $app-bar-width: 48px;
                 line-height: 1;
 
                 &:hover {
-                    box-shadow: 0 0 0 2px rgba(var(--center-channel-color-rgb), 0.16);
+                    box-shadow: 0 0 0 2px rgba(var(--sidebar-text-rgb), 0.16);
                 }
 
                 img {
@@ -102,11 +103,11 @@ $app-bar-width: 48px;
             }
 
             .app-bar__old-icon {
-                color: rgba(var(--center-channel-color-rgb), 0.64);
+                color: rgba(var(--sidebar-text-rgb), 0.64);
 
                 &:hover,
                 &--active {
-                    color: rgba(var(--center-channel-color-rgb), 0.8);
+                    color: rgba(var(--sidebar-text-rgb), 0.8);
                 }
             }
 
@@ -118,7 +119,7 @@ $app-bar-width: 48px;
 
         .app-bar__divider {
             width: 28px;
-            border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+            border-top: 1px solid rgba(var(--sidebar-text-rgb), 0.16);
             margin-top: 0;
             margin-bottom: 19px;
         }
