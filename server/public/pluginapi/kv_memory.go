@@ -19,15 +19,15 @@ import (
 // It's safe for concurrent use by multiple goroutines.
 type MemoryStore struct {
 	mux   sync.RWMutex
-	elems map[string]elem
+	elems map[string]kvElem
 }
 
-type elem struct {
+type kvElem struct {
 	value     []byte
 	expiresAt *time.Time
 }
 
-func (e elem) isExpired() bool {
+func (e kvElem) isExpired() bool {
 	return e.expiresAt != nil && e.expiresAt.Before(time.Now())
 }
 
@@ -98,14 +98,14 @@ func (s *MemoryStore) Set(key string, value any, options ...KVSetOption) (bool, 
 	defer s.mux.Unlock()
 
 	if s.elems == nil {
-		s.elems = make(map[string]elem)
+		s.elems = make(map[string]kvElem)
 	}
 
 	if !opts.Atomic {
 		if value == nil {
 			delete(s.elems, key)
 		} else {
-			s.elems[key] = elem{
+			s.elems[key] = kvElem{
 				value:     valueBytes,
 				expiresAt: expireTime(downstreamOpts.ExpireInSeconds),
 			}
@@ -122,7 +122,7 @@ func (s *MemoryStore) Set(key string, value any, options ...KVSetOption) (bool, 
 	if value == nil {
 		delete(s.elems, key)
 	} else {
-		s.elems[key] = elem{
+		s.elems[key] = kvElem{
 			value:     valueBytes,
 			expiresAt: expireTime(downstreamOpts.ExpireInSeconds),
 		}
@@ -256,7 +256,7 @@ func (s *MemoryStore) Delete(key string) error {
 // DeleteAll removes all key-value pairs.
 func (s *MemoryStore) DeleteAll() error {
 	s.mux.Lock()
-	s.elems = make(map[string]elem)
+	s.elems = make(map[string]kvElem)
 	s.mux.Unlock()
 
 	return nil
