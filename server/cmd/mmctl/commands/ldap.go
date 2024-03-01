@@ -51,7 +51,9 @@ var LdapJobListCmd = &cobra.Command{
 	Use:     "list",
 	Example: "  ldap job list",
 	Short:   "List LDAP sync jobs",
-	// Aliases: []string{"ls"}, // Alisases cause error in zsh. Supposedly, completion V2 will fix that: https://github.com/spf13/cobra/pull/1146
+	// Alisases cause error in zsh. Supposedly, completion V2 will fix that: https://github.com/spf13/cobra/pull/1146
+	// https://mattermost.atlassian.net/browse/MM-57062
+	// Aliases: []string{"ls"},
 	Args:              cobra.NoArgs,
 	ValidArgsFunction: noCompletion,
 	RunE:              withClient(ldapJobListCmdF),
