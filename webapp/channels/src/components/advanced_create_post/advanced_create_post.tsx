@@ -83,7 +83,7 @@ export type Props = {
     currentChannelMembersCount: number;
 
     // Data used in multiple places of the component
-    currentChannel: Channel;
+    currentChannel?: Channel;
 
     //Data used for DM prewritten messages
     currentChannelTeammateUsername?: string;
@@ -238,7 +238,7 @@ type State = {
     uploadsProgressPercent: {[clientID: string]: FilePreviewInfo};
     renderScrollbar: boolean;
     scrollbarWidth: number;
-    currentChannel: Channel;
+    currentChannel?: Channel;
     errorClass: string | null;
     serverError: (ServerError & {submittedMessage?: string}) | null;
     postError?: React.ReactNode;
@@ -270,7 +270,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             currentChannel: props.currentChannel,
         };
         if (
-            props.currentChannel.id !== state.currentChannel.id ||
+            props.currentChannel?.id !== state.currentChannel?.id ||
             (props.isRemoteDraft && props.draft.message !== state.message)
         ) {
             updatedState = {
@@ -320,14 +320,14 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
 
     componentDidUpdate(prevProps: Props, prevState: State) {
         const {currentChannel, actions} = this.props;
-        if (prevProps.currentChannel.id !== currentChannel.id) {
+        if (prevProps.currentChannel?.id !== currentChannel?.id) {
             this.lastChannelSwitchAt = Date.now();
             this.focusTextbox();
             this.saveDraftWithShow(prevProps);
             this.getChannelMemberCountsByGroup();
         }
 
-        if (currentChannel.id !== prevProps.currentChannel.id) {
+        if (currentChannel?.id !== prevProps.currentChannel?.id) {
             actions.setShowPreview(false);
         }
 
@@ -355,7 +355,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     getChannelMemberCountsByGroup = () => {
         const {useLDAPGroupMentions, useCustomGroupMentions, currentChannel, actions, draft} = this.props;
 
-        if ((useLDAPGroupMentions || useCustomGroupMentions) && currentChannel.id) {
+        if ((useLDAPGroupMentions || useCustomGroupMentions) && currentChannel?.id) {
             const mentions = mentionsMinusSpecialMentionsInText(draft.message);
 
             if (mentions.length === 1) {
@@ -457,7 +457,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     doSubmit = async (e?: React.FormEvent) => {
-        const channelId = this.props.currentChannel.id;
+        const channelId = this.props.currentChannel?.id;
+        if (!channelId) {
+            return;
+        }
+
         if (e) {
             e.preventDefault();
         }
@@ -627,6 +631,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             useCustomGroupMentions,
         } = this.props;
 
+        if (!updateChannel) {
+            return;
+        }
+
         this.setShowPreview(false);
         this.isDraftSubmitting = true;
 
@@ -670,7 +678,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
                 }
             }
 
-            const {data} = await this.props.actions.getChannelTimezones(this.props.currentChannel.id);
+            const {data} = await this.props.actions.getChannelTimezones(updateChannel.id);
             channelTimezoneCount = data ? data.length : 0;
         }
 
@@ -746,6 +754,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             groupsWithAllowReference,
             useCustomGroupMentions,
         } = this.props;
+
+        if (!currentChannel) {
+            return {data: false};
+        }
 
         let post = originalPost;
 
@@ -863,6 +875,9 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
     };
 
     emitTypingEvent = () => {
+        if (!this.props.currentChannel) {
+            return;
+        }
         const channelId = this.props.currentChannel.id;
         GlobalActions.emitLocalUserTypingEvent(channelId, '');
     };
@@ -888,7 +903,11 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.handleDraftChange(draft);
     };
 
-    handleDraftChange = (draft: PostDraft, channelId = this.props.currentChannel.id, instant = false) => {
+    handleDraftChange = (draft: PostDraft, channelId = this.props.currentChannel?.id, instant = false) => {
+        if (!channelId) {
+            return;
+        }
+
         if (this.saveDraftFrame) {
             clearTimeout(this.saveDraftFrame);
         }
@@ -904,7 +923,10 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
         this.draftsForChannel[channelId] = draft;
     };
 
-    removeDraft = (channelId = this.props.currentChannel.id) => {
+    removeDraft = (channelId = this.props.currentChannel?.id) => {
+        if (!channelId) {
+            return;
+        }
         this.props.actions.setDraft(StoragePrefixes.DRAFT + channelId, null, channelId);
         this.draftsForChannel[channelId] = null;
     };
@@ -1017,7 +1039,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             };
         }
 
-        this.handleDraftChange(modifiedDraft, this.props.currentChannel.id, true);
+        this.handleDraftChange(modifiedDraft, this.props.currentChannel?.id, true);
         this.handleFileUploadChange();
 
         if (this.saveDraftFrame) {
@@ -1279,7 +1301,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             updatedDraft.metadata = {};
         }
 
-        this.handleDraftChange(updatedDraft, this.props.currentChannel.id, true);
+        this.handleDraftChange(updatedDraft, this.props.currentChannel?.id, true);
         this.focusTextbox();
     };
 
@@ -1308,7 +1330,7 @@ class AdvancedCreatePost extends React.PureComponent<Props, State> {
             return true;
         }
 
-        if (currentChannel.type === Constants.DM_CHANNEL) {
+        if (currentChannel?.type === Constants.DM_CHANNEL) {
             return true;
         }
 

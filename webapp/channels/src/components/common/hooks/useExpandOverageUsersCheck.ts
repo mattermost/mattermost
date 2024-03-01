@@ -31,7 +31,10 @@ export const useExpandOverageUsersCheck = ({
 }: UseExpandOverageUsersCheckArgs) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const {getRequestState, is_expandable: isExpandable}: LicenseSelfServeStatusReducer = useSelector((state: GlobalState) => state.entities.cloud.subscriptionStats || {is_expandable: false, getRequestState: 'IDLE'});
+    const {getRequestState, is_expandable: isExpandable}: LicenseSelfServeStatusReducer = useSelector(
+        (state: GlobalState) => state.entities.cloud.subscriptionStats || {is_expandable: false, getRequestState: 'IDLE'},
+        (a, b) => a.is_expandable === b.is_expandable && a.getRequestState === b.getRequestState,
+    );
     const expandableLink = useSelector(getExpandSeatsLink);
 
     const cta = useMemo(() => {

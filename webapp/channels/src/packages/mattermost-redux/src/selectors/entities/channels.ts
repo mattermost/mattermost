@@ -152,7 +152,7 @@ export function getChannelMember(state: GlobalState, channelId: string, userId: 
 // - The display_name set to the other user(s) names, following the Teammate Name Display setting
 // - The teammate_id for DM channels
 // - The status of the other user in a DM channel
-export function makeGetChannel(): (state: GlobalState, props: {id: string}) => Channel {
+export function makeGetChannel(): (state: GlobalState, props: {id: string}) => Channel | undefined {
     return createSelector(
         'makeGetChannel',
         getCurrentUserId,
@@ -184,7 +184,7 @@ export function makeGetChannel(): (state: GlobalState, props: {id: string}) => C
 
 // getChannel returns a channel as it exists in the store without filling in any additional details such as the
 // display_name for DM/GM channels.
-export function getChannel(state: GlobalState, id: string) {
+export function getChannel(state: GlobalState, id: string): Channel | undefined {
     return getAllChannels(state)[id];
 }
 
@@ -206,7 +206,7 @@ export function makeGetChannelsForIds(): (state: GlobalState, ids: string[]) => 
     );
 }
 
-export const getCurrentChannel: (state: GlobalState) => Channel = createSelector(
+export const getCurrentChannel: (state: GlobalState) => Channel | undefined = createSelector(
     'getCurrentChannel',
     getAllChannels,
     getCurrentChannelId,
@@ -297,7 +297,7 @@ export const isMutedChannel: (state: GlobalState, channelId: string) => boolean 
 export const isCurrentChannelArchived: (state: GlobalState) => boolean = createSelector(
     'isCurrentChannelArchived',
     getCurrentChannel,
-    (channel) => channel.delete_at !== 0,
+    (channel) => channel?.delete_at !== 0,
 );
 
 export const isCurrentChannelDefault: (state: GlobalState) => boolean = createSelector(
@@ -314,8 +314,8 @@ export function isChannelReadOnlyById(state: GlobalState, channelId: string): bo
     return isChannelReadOnly(state, getChannel(state, channelId));
 }
 
-export function isChannelReadOnly(state: GlobalState, channel: Channel): boolean {
-    return channel && channel.name === General.DEFAULT_CHANNEL && !isCurrentUserSystemAdmin(state);
+export function isChannelReadOnly(state: GlobalState, channel?: Channel): boolean {
+    return Boolean(channel && channel.name === General.DEFAULT_CHANNEL && !isCurrentUserSystemAdmin(state));
 }
 
 export function getChannelMessageCounts(state: GlobalState): RelationOneToOne<Channel, ChannelMessageCount> {
@@ -879,7 +879,7 @@ export const canManageChannelMembers: (state: GlobalState) => boolean = createSe
         Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS,
     ),
     (
-        channel: Channel,
+        channel: Channel | undefined,
         managePrivateMembers: boolean,
         managePublicMembers: boolean,
     ): boolean => {
@@ -1264,7 +1264,10 @@ export function getChannelModerations(state: GlobalState, channelId: string): Ch
 }
 
 const EMPTY_OBJECT = {};
-export function getChannelMemberCountsByGroup(state: GlobalState, channelId: string): ChannelMemberCountsByGroup {
+export function getChannelMemberCountsByGroup(state: GlobalState, channelId?: string): ChannelMemberCountsByGroup {
+    if (!channelId) {
+        return EMPTY_OBJECT;
+    }
     return state.entities.channels.channelMemberCountsByGroup[channelId] || EMPTY_OBJECT;
 }
 

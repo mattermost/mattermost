@@ -161,11 +161,11 @@ const Skeleton = styled.div`
 `;
 
 const OnBoardingTaskList = (): JSX.Element | null => {
-    const myPreferences = useSelector((state: GlobalState) => getMyPreferencesSelector(state));
+    const hasPreferences = useSelector((state: GlobalState) => Object.keys(getMyPreferencesSelector(state)).length !== 0);
 
     useEffect(() => {
         dispatch(getPrevTrialLicense());
-        if (Object.keys(myPreferences).length === 0) {
+        if (!hasPreferences) {
             dispatch(getMyPreferences());
         }
     }, []);
@@ -182,7 +182,10 @@ const OnBoardingTaskList = (): JSX.Element | null => {
     const isCurrentUserSystemAdmin = useIsCurrentUserSystemAdmin();
     const isFirstAdmin = useFirstAdminUser();
     const isEnableOnboardingFlow = useSelector((state: GlobalState) => getConfig(state).EnableOnboardingFlow === 'true');
-    const [showTaskList, firstTimeOnboarding] = useSelector(getShowTaskListBool);
+    const [showTaskList, firstTimeOnboarding] = useSelector(
+        getShowTaskListBool,
+        (a, b) => a[0] === b[0] && a[1] === b[1],
+    );
     const theme = useSelector(getTheme);
 
     const startTask = (taskName: string) => {
@@ -284,7 +287,7 @@ const OnBoardingTaskList = (): JSX.Element | null => {
         }));
     }, []);
 
-    if (Object.keys(myPreferences).length === 0 || !showTaskList || !isEnableOnboardingFlow) {
+    if (!hasPreferences || !showTaskList || !isEnableOnboardingFlow) {
         return null;
     }
 

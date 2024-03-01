@@ -141,7 +141,11 @@ export function makeGetChannelDraft() {
     const defaultDraft = Object.freeze({message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''});
     const getDraft = makeGetGlobalItemWithDefault(defaultDraft);
 
-    return (state: GlobalState, channelId: string): PostDraft => {
+    return (state: GlobalState, channelId?: string): PostDraft => {
+        if (!channelId) {
+            return defaultDraft;
+        }
+
         const draft = getDraft(state, StoragePrefixes.DRAFT + channelId);
         if (
             typeof draft.message !== 'undefined' &&

@@ -100,7 +100,7 @@ export const getAssociatedGroupsByName: (state: GlobalState, teamID: string, cha
     },
 );
 
-export const getAssociatedGroupsForReferenceByMention: (state: GlobalState, teamID: string, channelId: string) => Map<string, Group> = createSelector(
+export const getAssociatedGroupsForReferenceByMention: (state: GlobalState, teamID: string, channelId?: string) => Map<string, Group> = createSelector(
     'getAssociatedGroupsForReferenceByMention',
     getAssociatedGroupsForReference,
     (groups) => {
@@ -117,28 +117,35 @@ export function searchAssociatedGroupsForReferenceLocal(state: GlobalState, term
     return filteredGroups;
 }
 
-export function getAssociatedGroupsForReference(state: GlobalState, teamId: string, channelId: string): Group[] {
+const EMTPY_GROUP_LIST: Group[] = [];
+export function getAssociatedGroupsForReference(state: GlobalState, teamId: string, channelId?: string): Group[] {
+    if (!channelId) {
+        return EMTPY_GROUP_LIST;
+    }
+
     const team = getTeam(state, teamId);
     const channel = getChannel(state, channelId);
 
-    let groupsForReference = [];
     if (team && team.group_constrained && channel && channel.group_constrained) {
         const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
         const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
         const customGroups = getAllCustomGroups(state);
-        groupsForReference = groupsFromChannel.concat(groupsFromTeam.filter((item) => groupsFromChannel.indexOf(item) < 0), customGroups);
-    } else if (team && team.group_constrained) {
+        return groupsFromChannel.concat(groupsFromTeam.filter((item) => groupsFromChannel.indexOf(item) < 0), customGroups);
+    }
+
+    if (team && team.group_constrained) {
         const customGroups = getAllCustomGroups(state);
         const groupsFromTeam = getGroupsAssociatedToTeamForReference(state, teamId);
-        groupsForReference = [...customGroups, ...groupsFromTeam];
-    } else if (channel && channel.group_constrained) {
+        return [...customGroups, ...groupsFromTeam];
+    }
+
+    if (channel && channel.group_constrained) {
         const customGroups = getAllCustomGroups(state);
         const groupsFromChannel = getGroupsAssociatedToChannelForReference(state, channelId);
-        groupsForReference = [...customGroups, ...groupsFromChannel];
-    } else {
-        groupsForReference = getAllAssociatedGroupsForReference(state, false);
+        return [...customGroups, ...groupsFromChannel];
     }
-    return groupsForReference;
+
+    return getAllAssociatedGroupsForReference(state, false);
 }
 
 const teamGroupIDs = (state: GlobalState, teamID: string) => state.entities.teams.groupsAssociatedToTeam[teamID]?.ids || [];
