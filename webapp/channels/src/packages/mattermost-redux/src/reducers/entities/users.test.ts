@@ -1012,6 +1012,7 @@ describe('Reducers.users', () => {
 
         let state: UsersState = {
             currentUserId: '',
+            dndEndTimes: {},
             mySessions: [],
             myAudits: [],
             myUserAccessTokens: {},

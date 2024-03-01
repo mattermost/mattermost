@@ -420,7 +420,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                 <FormattedMessage
                     id='custom_status.expiry.until'
                     defaultMessage='Until {time}'
-                    values={{time: endTime.format('h:mm A')}}
+                    values={{time: endTime.format('lll')}}
                 />
             );
         }
@@ -432,7 +432,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         const {intl} = this.props;
         const needsConfirm = this.isUserOutOfOffice() && this.props.autoResetPref === '';
         const {status, customStatus, isCustomStatusExpired, currentUser, timezone, dndEndTime} = this.props;
-        console.log("🚀 ~ StatusDropdown ~ dndEndTime:", dndEndTime)
         const isStatusSet = customStatus && (customStatus.text.length > 0 || customStatus.emoji.length > 0) && !isCustomStatusExpired;
 
         const setOnline = needsConfirm ? () => this.showStatusChangeConfirmation('online') : this.setOnline;

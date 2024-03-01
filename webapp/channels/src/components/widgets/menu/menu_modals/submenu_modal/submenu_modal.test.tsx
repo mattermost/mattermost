@@ -1,11 +1,12 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow, mount} from 'enzyme';
+import {shallow} from 'enzyme';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 
 import {render, screen, userEvent} from 'tests/react_testing_utils';
+
 import SubMenuModal from './submenu_modal';
 
 jest.mock('../../is_mobile_view_hack', () => ({
@@ -69,9 +70,9 @@ describe('components/submenu_modal', () => {
             ...baseProps,
         };
 
-        render (
-            <SubMenuModal {...props}/>
-        )
+        render(
+            <SubMenuModal {...props}/>,
+        );
 
         userEvent.click(screen.getByText('Text A'));
         expect(action1).toHaveBeenCalledTimes(1);

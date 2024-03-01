@@ -497,7 +497,6 @@ function addToState<T>(state: Record<string, T>, key: string, value: T): Record<
 }
 
 function dndEndTimes(state: RelationOneToOne<UserProfile, number> = {}, action: AnyAction) {
-    console.log("🚀 ~ dndEndTimes ~ state:", action.type, action.data)
     switch (action.type) {
     case UserTypes.RECEIVED_STATUS: {
         const userId = action.data.user_id;
