@@ -4,7 +4,6 @@
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
-import {getDMsForLoading} from './user_actions';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
@@ -13,9 +12,11 @@ import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
+import * as Utils from 'utils/utils';
+
 import type {GlobalState} from 'types/store';
 
-import * as Utils from 'utils/utils';
+import {getDMsForLoading} from './user_actions';
 
 export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {

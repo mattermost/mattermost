@@ -18,7 +18,6 @@ import {
     getChannelMessageCount,
     getCurrentChannelId,
     getMyChannelMember,
-    getMyChannels,
 } from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getBool, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
