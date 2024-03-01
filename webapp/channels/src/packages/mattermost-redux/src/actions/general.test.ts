@@ -83,23 +83,6 @@ describe('Actions.General', () => {
         expect(dataRetentionPolicy).toEqual(responseData);
     });
 
-    it('getWarnMetricsStatus', async () => {
-        const responseData = {
-            metric1: true,
-            metric2: false,
-        };
-
-        nock(Client4.getBaseRoute()).
-            get('/warn_metrics/status').
-            query(true).
-            reply(200, responseData);
-
-        await store.dispatch(Actions.getWarnMetricsStatus());
-        const {warnMetricsStatus} = store.getState().entities.general;
-        expect(warnMetricsStatus.metric1).toEqual(true);
-        expect(warnMetricsStatus.metric2).toEqual(false);
-    });
-
     it('getFirstAdminVisitMarketplaceStatus', async () => {
         const responseData = {
             name: 'FirstAdminVisitMarketplace',
