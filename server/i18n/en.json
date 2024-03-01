@@ -2325,6 +2325,10 @@
     "translation": "Outgoing webhooks have been disabled by the system admin."
   },
   {
+    "id": "api.payload.parse.error",
+    "translation": "An error occurred while parsing the payload."
+  },
+  {
     "id": "api.plugin.install.download_failed.app_error",
     "translation": "An error occurred while downloading the plugin."
   },
@@ -3193,10 +3197,6 @@
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
     "translation": "Invalid request body."
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Error while parsing the body data."
   },
   {
     "id": "api.team.is_team_creation_allowed.disabled.app_error",
@@ -8777,6 +8777,10 @@
   {
     "id": "model.config.is_valid.max_notify_per_channel.app_error",
     "translation": "Invalid maximum notifications per channel for team settings. Must be a positive number."
+  },
+  {
+    "id": "model.config.is_valid.max_payload_size.app_error",
+    "translation": "Invalid max payload size for service settings. Must be a whole number greater than zero."
   },
   {
     "id": "model.config.is_valid.max_users.app_error",

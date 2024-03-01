@@ -397,6 +397,7 @@ type ServiceSettings struct {
 	SelfHostedPurchase                                *bool   `access:"write_restrictable,cloud_restrictable"`
 	AllowSyncedDrafts                                 *bool   `access:"site_posts"`
 	UniqueEmojiReactionLimitPerPost                   *int    `access:"site_posts"`
+	MaximumPayloadSizeBytes                           *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 }
 
 var MattermostGiphySdkKey string
@@ -894,6 +895,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if *s.UniqueEmojiReactionLimitPerPost > ServiceSettingsMaxUniqueReactionsPerPost {
 		s.UniqueEmojiReactionLimitPerPost = NewInt(ServiceSettingsMaxUniqueReactionsPerPost)
+	}
+
+	if s.MaximumPayloadSizeBytes == nil {
+		s.MaximumPayloadSizeBytes = NewInt64(100000)
 	}
 }
 
@@ -3903,6 +3908,10 @@ func (s *ServiceSettings) isValid() *AppError {
 				return NewAppError("Config.IsValid", "model.config.is_valid.tls_overwrite_cipher.app_error", map[string]any{"name": cipher}, "", http.StatusBadRequest)
 			}
 		}
+	}
+
+	if *s.MaximumPayloadSizeBytes <= 0 {
+		return NewAppError("Config.IsValid", "model.config.is_valid.max_payload_size.app_error", nil, "", http.StatusBadRequest)
 	}
 
 	if *s.ReadTimeout <= 0 {

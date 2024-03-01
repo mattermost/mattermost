@@ -644,10 +644,12 @@ func getTeamMembersByIds(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var userIDs []string
-	err := json.NewDecoder(r.Body).Decode(&userIDs)
-	if err != nil || len(userIDs) == 0 {
-		c.SetInvalidParamWithErr("user_ids", err)
+	userIDs, err := model.SortedArrayFromJSON(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes)
+	if err != nil {
+		c.Err = model.NewAppError("getTeamMembersByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIDs) == 0 {
+		c.SetInvalidParam("user_ids")
 		return
 	}
 
@@ -1373,14 +1375,10 @@ func inviteUsersToTeam(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	bf, err := io.ReadAll(r.Body)
+	memberInvite := &model.MemberInvite{}
+	err := model.StructFromJSONLimited(r.Body, *c.App.Config().ServiceSettings.MaximumPayloadSizeBytes, memberInvite)
 	if err != nil {
 		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body.app_error", nil, "", http.StatusBadRequest).Wrap(err)
-		return
-	}
-	memberInvite := &model.MemberInvite{}
-	if err := json.Unmarshal(bf, memberInvite); err != nil {
-		c.Err = model.NewAppError("Api4.inviteUsersToTeams", "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error", nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 
