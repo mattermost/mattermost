@@ -42,6 +42,7 @@ export type PluginsState = {
         UserGuideDropdownItem: PluginComponent[];
         FilesWillUploadHook: PluginComponent[];
         NeedsTeamComponent: NeedsTeamComponent[];
+        NeedsChannelSidebarComponent: NeedsChannelSidebarComponent[];
         CreateBoardFromTemplate: PluginComponent[];
         DesktopNotificationHooks: DesktopNotificationHook[];
     };
@@ -104,6 +105,7 @@ export type PluginComponent = {
     action?: (...args: any) => void; // TODO Add more concrete types?
     shouldRender?: (state: GlobalState) => boolean;
     hook?: (post: Post, message?: string) => string;
+    route?: string;
 };
 
 export type AppBarComponent = PluginComponent & {
@@ -111,6 +113,10 @@ export type AppBarComponent = PluginComponent & {
 }
 
 export type NeedsTeamComponent = PluginComponent & {
+    route: string;
+}
+
+export type NeedsChannelSidebarComponent = PluginComponent & {
     route: string;
 }
 
@@ -156,6 +162,13 @@ export type PostWillRenderEmbedPluginComponent = {
     match: (arg: PostEmbed) => boolean;
     toggleable: boolean;
 }
+
+export type LeftHandSidebarItem = {
+    id: string;
+    pluginId: string;
+    text: string | React.ReactElement;
+    route: string;
+};
 
 export type ProductComponent = {
 

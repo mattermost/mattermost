@@ -13,6 +13,8 @@ import PermalinkView from 'components/permalink_view';
 
 import {IDENTIFIER_PATH_PATTERN, ID_PATH_PATTERN, TEAM_NAME_PATH_PATTERN} from 'utils/path';
 
+import NeedsChannelSidebarPluggable from './pluggable';
+
 import type {OwnProps, PropsFromRedux} from './index';
 
 const LazyChannelHeaderMobile = makeAsyncComponent(
@@ -72,7 +74,7 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
     }
 
     render() {
-        const {lastChannelPath, isCollapsedThreadsEnabled, isMobileView} = this.props;
+        const {lastChannelPath, isCollapsedThreadsEnabled, isMobileView, plugins} = this.props;
         const url = this.props.match.url;
 
         return (
@@ -121,6 +123,16 @@ export default class CenterChannel extends React.PureComponent<Props, State> {
                             path={`/:team(${TEAM_NAME_PATH_PATTERN})/drafts`}
                             component={LazyDrafts}
                         />
+
+                        {plugins?.map((plugin) => (
+                            <Route
+                                key={plugin.id}
+                                path={`/:team(${TEAM_NAME_PATH_PATTERN})/` + (plugin as any).route}
+                                render={() => (
+                                    <NeedsChannelSidebarPluggable id={plugin.id}/>
+                                )}
+                            />
+                        ))}
 
                         <Redirect to={lastChannelPath}/>
                     </Switch>

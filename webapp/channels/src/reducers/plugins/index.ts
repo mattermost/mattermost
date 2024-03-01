@@ -191,6 +191,7 @@ const initialComponents: PluginsState['components'] = {
     UserGuideDropdownItem: [],
     FilesWillUploadHook: [],
     NeedsTeamComponent: [],
+    NeedsChannelSidebarComponent: [],
     CreateBoardFromTemplate: [],
     DesktopNotificationHooks: [],
 };

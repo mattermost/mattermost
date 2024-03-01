@@ -10,7 +10,7 @@ import {get} from 'mattermost-redux/selectors/entities/preferences';
 import {createShallowSelector} from 'mattermost-redux/utils/helpers';
 
 import type {GlobalState} from 'types/store';
-import type {FileDropdownPluginComponent, PluginComponent} from 'types/store/plugins';
+import type {FileDropdownPluginComponent, LeftHandSidebarItem, PluginComponent} from 'types/store/plugins';
 
 export const getPluginUserSettings = createSelector(
     'getPluginUserSettings',
@@ -73,6 +73,14 @@ export const getChannelHeaderMenuPluginComponents = createShallowSelector(
     (state: GlobalState) => state.plugins.components.ChannelHeader,
     (componentShouldRender = [], channelHeaderMenuComponents = []) => {
         return channelHeaderMenuComponents.filter((component, idx) => componentShouldRender[idx]);
+    },
+);
+
+export const getLeftHandSidebarItemPluginComponents = createSelector(
+    'getLeftHandSidebarItemPluginComponents',
+    (state: GlobalState) => state.plugins.components.LeftHandSidebarItem,
+    (components) => {
+        return (components || []) as unknown as LeftHandSidebarItem[];
     },
 );
 

@@ -31,6 +31,8 @@ import * as Utils from 'utils/utils';
 import type {DraggingState} from 'types/store';
 import type {StaticPage} from 'types/store/lhs';
 
+import PluggableSidebarList from './pluggable_sidebar_list';
+
 import SidebarCategory from '../sidebar_category';
 import UnreadChannelIndicator from '../unread_channel_indicator';
 import UnreadChannels from '../unread_channels';
@@ -537,6 +539,7 @@ export default class SidebarList extends React.PureComponent<Props, State> {
             <>
                 <GlobalThreadsLink/>
                 <DraftsLink/>
+                <PluggableSidebarList/>
                 <div
                     id='sidebar-left'
                     role='application'

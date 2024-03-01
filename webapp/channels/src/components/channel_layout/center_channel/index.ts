@@ -55,6 +55,8 @@ const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
         lastChannelPath = `${ownProps.match.url}/channels/${channelName}`;
     }
 
+    const plugins = state.plugins.components.NeedsChannelSidebarComponent;
+
     return {
         lastChannelPath,
         lhsOpen: getIsLhsOpen(state),
@@ -63,6 +65,7 @@ const mapStateToProps = (state: GlobalState, ownProps: OwnProps) => {
         isCollapsedThreadsEnabled: isCollapsedThreadsEnabled(state),
         currentUserId: getCurrentUserId(state),
         isMobileView: getIsMobileView(state),
+        plugins,
     };
 };
 

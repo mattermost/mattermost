@@ -203,6 +203,55 @@ export default class PluginRegistry {
         return id;
     });
 
+    // Add an item to the left hand sidebar.
+    // Accepts the following:
+    // - text - string or React element to use as the text
+    // - route - the route to be displayed at.
+    // - component - a react component to display.
+    registerLeftHandSidebarItem = reArg([
+        'text',
+        'route',
+        'component',
+    ], ({
+        text,
+        route,
+        component,
+    }: {
+        text: ReactResolvable;
+        route: string;
+        component: ReactResolvable;
+    }) => {
+        const id = generateId();
+        let fixedRoute = standardizeRoute(route);
+        fixedRoute = this.id + '/' + fixedRoute;
+
+        const data = {
+            id,
+            pluginId: this.id,
+            route: fixedRoute,
+            text: resolveReactElement(text),
+        };
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'LeftHandSidebarItem',
+            data,
+        });
+
+        store.dispatch({
+            type: ActionTypes.RECEIVED_PLUGIN_COMPONENT,
+            name: 'NeedsChannelSidebarComponent',
+            data: {
+                id,
+                pluginId: this.id,
+                component,
+                route: fixedRoute,
+            },
+        });
+
+        return id;
+    });
+
     // Add a button to the channel intro message.
     // Accepts the following:
     // - icon - React element to use as the button's icon

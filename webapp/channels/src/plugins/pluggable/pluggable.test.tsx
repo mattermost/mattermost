@@ -38,6 +38,7 @@ describe('plugins/Pluggable', () => {
             UserGuideDropdownItem: [],
             FilesWillUploadHook: [],
             NeedsTeamComponent: [],
+            NeedsChannelSidebarComponent: [],
             CreateBoardFromTemplate: [],
             DesktopNotificationHooks: [],
         },
