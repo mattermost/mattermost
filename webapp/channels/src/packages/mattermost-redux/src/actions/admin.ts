@@ -80,16 +80,6 @@ export function getConfig() {
     });
 }
 
-export function updateConfig(config: AdminConfig) {
-    return bindClientFunc({
-        clientFunc: Client4.updateConfig,
-        onSuccess: [AdminTypes.RECEIVED_CONFIG],
-        params: [
-            config,
-        ],
-    });
-}
-
 export function patchConfig(config: DeepPartial<AdminConfig>) {
     return bindClientFunc({
         clientFunc: Client4.patchConfig,
