@@ -45,12 +45,12 @@ describe('actions/status_actions', () => {
             channelCategories: {
                 byId: {
                     category_id1: {
-                        id: 'category_id1', 
+                        id: 'category_id1',
                         team_id: 'team_id1',
-                        sort_order:20,
-                        sorting: "alpha",
-                        type: "direct_messages",
-                        display_name: "Direct Messages",
+                        sort_order: 20,
+                        sorting: 'alpha',
+                        type: 'direct_messages',
+                        display_name: 'Direct Messages',
                         muted: false,
                         collapsed: false,
                         channel_ids: ['channel_id3'],
