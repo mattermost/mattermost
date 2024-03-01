@@ -562,19 +562,6 @@ export function setSamlIdpCertificateFromMetadata(certData: string): NewActionFu
     }) as any; // HARRISONTODO Type bindClientFunc
 }
 
-export function sendWarnMetricAck(warnMetricId: string, forceAck: boolean): NewActionFuncAsync {
-    return async (dispatch) => {
-        try {
-            Client4.trackEvent('api', 'api_request_send_metric_ack', {warnMetricId});
-            await Client4.sendWarnMetricAck(warnMetricId, forceAck);
-            return {data: true};
-        } catch (e) {
-            dispatch(logError(e as ServerError));
-            return {error: (e as ServerError).message};
-        }
-    };
-}
-
 export function getDataRetentionCustomPolicies(page = 0, perPage = 10): NewActionFuncAsync<GetDataRetentionCustomPoliciesRequest> {
     return async (dispatch, getState) => {
         let data;
