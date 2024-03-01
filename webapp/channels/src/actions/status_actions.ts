@@ -4,16 +4,18 @@
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
+import {getDMsForLoading} from './user_actions';
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/channels';
 import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getPostsInCurrentChannel} from 'mattermost-redux/selectors/entities/posts';
-import {getDirectShowPreferences} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
 import type {ActionFunc} from 'mattermost-redux/types/actions';
 
 import {loadCustomEmojisForCustomStatusesByUserIds} from 'actions/emoji_actions';
 
 import type {GlobalState} from 'types/store';
+
+import * as Utils from 'utils/utils';
 
 export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalState> {
     return (dispatch, getState) => {
@@ -22,6 +24,7 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalSt
 
         const channelId = getCurrentChannelId(state);
         const postsInChannel = getPostsInCurrentChannel(state);
+        const currentUserId = getCurrentUserId(state);
 
         if (postsInChannel) {
             const posts = postsInChannel.slice(0, state.views.channel.postVisibility[channelId] || 0);
@@ -32,15 +35,13 @@ export function loadStatusesForChannelAndSidebar(): ActionFunc<boolean, GlobalSt
             }
         }
 
-        const dmPrefs = getDirectShowPreferences(state);
+        const dmChannelsVisible = getDMsForLoading(state);
 
-        for (const pref of dmPrefs) {
-            if (pref.value === 'true') {
-                statusesToLoad[pref.name] = true;
-            }
+        for (const dmChannel of dmChannelsVisible) {
+            const userId = Utils.getUserIdFromChannelId(dmChannel.name, currentUserId);
+            statusesToLoad[userId] = true;
         }
 
-        const currentUserId = getCurrentUserId(state);
         statusesToLoad[currentUserId] = true;
 
         dispatch(loadStatusesByIds(Object.keys(statusesToLoad)));

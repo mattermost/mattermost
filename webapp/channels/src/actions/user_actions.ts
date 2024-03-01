@@ -304,6 +304,16 @@ export const getGMsForLoading = (state: GlobalState) => {
     return channels;
 };
 
+export const getDMsForLoading = (state: GlobalState) => {
+    // Get all channels visible on the current team which doesn't include hidden GMs/DMs
+    let channels = getDisplayedChannels(state);
+
+    // Make sure we only have DMs
+    channels = channels.filter((channel) => channel.type === General.DM_CHANNEL);
+
+    return channels;
+};
+
 export async function loadProfilesForGM() {
     const state = getState();
     const newPreferences = [];
@@ -357,19 +367,14 @@ export async function loadProfilesForGM() {
 
 export async function loadProfilesForDM() {
     const state = getState();
-    const channels = getMyChannels(state);
     const newPreferences = [];
     const profilesToLoad = [];
     const profileIds = [];
     const currentUserId = Selectors.getCurrentUserId(state);
     const collapsedThreads = isCollapsedThreadsEnabled(state);
+    const dmChannels = getDMsForLoading(state);
 
-    for (let i = 0; i < channels.length; i++) {
-        const channel = channels[i];
-        if (channel.type !== Constants.DM_CHANNEL) {
-            continue;
-        }
-
+    for (const channel of dmChannels) {
         const teammateId = channel.name.replace(currentUserId, '').replace('__', '');
         const isVisible = getBool(state, Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, teammateId);
 
