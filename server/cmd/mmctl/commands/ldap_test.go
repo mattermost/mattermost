@@ -216,7 +216,7 @@ func (s *MmctlUnitTestSuite) TestLdapJobShowCmdF() {
 		s.Run("no match for empty argument", func() {
 			r, dir := ldapJobShowCompletionF(context.Background(), s.client, nil, nil, "")
 			s.Equal(cobra.ShellCompDirectiveNoFileComp, dir)
-			s.Nil(r)
+			s.Equal([]string{}, r)
 		})
 
 		s.Run("one element matches", func() {
