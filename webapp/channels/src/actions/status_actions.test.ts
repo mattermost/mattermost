@@ -30,13 +30,35 @@ describe('actions/status_actions', () => {
             channel: {
                 postVisibility: {channel_id1: 100, channel_id2: 100},
             },
+            channelSidebar: {
+                unreadFilterEnabled: false,
+            },
         },
         entities: {
             channels: {
                 currentChannelId: 'channel_id1',
-                channels: {channel_id1: {id: 'channel_id1', name: 'channel1', team_id: 'team_id1'}, channel_id2: {id: 'channel_id2', name: 'channel2', team_id: 'team_id1'}},
+                channels: {channel_id1: {id: 'channel_id1', name: 'channel1', team_id: 'team_id1'}, channel_id2: {id: 'channel_id2', name: 'channel2', team_id: 'team_id1'}, channel_id3: {id: 'channel_id3', name: 'current_user_id__user_id2', team_id: '', type: 'D', delete_at: 0}},
                 myMembers: {channel_id1: {channel_id: 'channel_id1', user_id: 'current_user_id'}},
                 channelsInTeam: {team_id1: new Set(['channel_id1'])},
+                messageCounts: {},
+            },
+            channelCategories: {
+                byId: {
+                    category_id1: {
+                        id: 'category_id1', 
+                        team_id: 'team_id1',
+                        sort_order:20,
+                        sorting: "alpha",
+                        type: "direct_messages",
+                        display_name: "Direct Messages",
+                        muted: false,
+                        collapsed: false,
+                        channel_ids: ['channel_id3'],
+                    },
+                },
+                orderByTeam: {
+                    team_id1: ['category_id1'],
+                },
             },
             general: {
                 config: {
@@ -71,6 +93,7 @@ describe('actions/status_actions', () => {
                 myPreferences: {
                     [Preferences.CATEGORY_DIRECT_CHANNEL_SHOW + '--user_id3']: {category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: 'user_id3', value: 'true', user_id: 'current_user_id'},
                     [Preferences.CATEGORY_DIRECT_CHANNEL_SHOW + '--user_id1']: {category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: 'user_id1', value: 'false', user_id: 'current_user_id'},
+                    [Preferences.CATEGORY_DIRECT_CHANNEL_SHOW + '--user_id2']: {category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, name: 'user_id2', value: 'true', user_id: 'current_user_id'},
                 },
             },
         },
@@ -81,7 +104,7 @@ describe('actions/status_actions', () => {
             const state = cloneDeep(initialState);
             const testStore = mockStore(state);
             testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id2', 'user_id3']));
+            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id2']));
         });
 
         test('load statuses with empty channel and user in sidebar', () => {
@@ -89,7 +112,7 @@ describe('actions/status_actions', () => {
             state.entities.channels.currentChannelId = 'channel_id2';
             const testStore = mockStore(state);
             testStore.dispatch(Actions.loadStatusesForChannelAndSidebar());
-            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id3']));
+            expect(getStatusesByIds).toHaveBeenCalledWith((expect as GreatExpectations).arrayContainingExactly(['current_user_id', 'user_id2']));
         });
 
         test('load statuses with empty channel and no users in sidebar', () => {
