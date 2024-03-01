@@ -14,6 +14,7 @@ import (
 // release at the front of the list.
 var versions = []string{
 	"9.6.1",
+	"9.6.1",
 	"9.6.0",
 	"9.5.0",
 	"9.4.0",
