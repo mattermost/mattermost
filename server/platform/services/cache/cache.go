@@ -40,9 +40,6 @@ type Cache interface {
 	// Keys returns a slice of the keys in the cache.
 	Keys() ([]string, error)
 
-	// Len returns the number of items in the cache.
-	Len() (int, error)
-
 	// GetInvalidateClusterEvent returns the cluster event configured when this cache was created.
 	GetInvalidateClusterEvent() model.ClusterEvent
 
