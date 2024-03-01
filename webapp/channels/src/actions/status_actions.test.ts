@@ -3,10 +3,12 @@
 
 import cloneDeep from 'lodash/cloneDeep';
 
+import {CategorySorting} from '@mattermost/types/channel_categories';
 import type {UserProfile} from '@mattermost/types/users';
 
 import {getStatusesByIds} from 'mattermost-redux/actions/users';
-import {Preferences} from 'mattermost-redux/constants';
+import {General, Preferences} from 'mattermost-redux/constants';
+import {CategoryTypes} from 'mattermost-redux/constants/channel_categories';
 
 import * as Actions from 'actions/status_actions';
 
@@ -37,7 +39,7 @@ describe('actions/status_actions', () => {
         entities: {
             channels: {
                 currentChannelId: 'channel_id1',
-                channels: {channel_id1: {id: 'channel_id1', name: 'channel1', team_id: 'team_id1'}, channel_id2: {id: 'channel_id2', name: 'channel2', team_id: 'team_id1'}, channel_id3: {id: 'channel_id3', name: 'current_user_id__user_id2', team_id: '', type: 'D', delete_at: 0}},
+                channels: {channel_id1: {id: 'channel_id1', name: 'channel1', team_id: 'team_id1'}, channel_id2: {id: 'channel_id2', name: 'channel2', team_id: 'team_id1'}, channel_id3: {id: 'channel_id3', name: 'current_user_id__user_id2', team_id: '', type: General.DM_CHANNEL, delete_at: 0}},
                 myMembers: {channel_id1: {channel_id: 'channel_id1', user_id: 'current_user_id'}},
                 channelsInTeam: {team_id1: new Set(['channel_id1'])},
                 messageCounts: {},
@@ -48,8 +50,8 @@ describe('actions/status_actions', () => {
                         id: 'category_id1',
                         team_id: 'team_id1',
                         sort_order: 20,
-                        sorting: 'alpha',
-                        type: 'direct_messages',
+                        sorting: CategorySorting.Default,
+                        type: CategoryTypes.DIRECT_MESSAGES,
                         display_name: 'Direct Messages',
                         muted: false,
                         collapsed: false,
