@@ -678,7 +678,7 @@ config-ldap: ## Configures LDAP.
 config-saml: ## Configures SAML.
 	@echo Setting up configuration for local SAML with keycloak, please ensure your keycloak is running on http://localhost:8484
 
-	@cp build/docker/keycloak/saml-idp.crt ../config/saml-idp.crt
+	@cp build/docker/keycloak/keycloak.crt ../config/saml-idp.crt
 
 	@sed -i'' -e 's|"Verify": true|"Verify": false|g' ../config/config.json
 	@sed -i'' -e 's|"Encrypt": true|"Encrypt": false|g' ../config/config.json
