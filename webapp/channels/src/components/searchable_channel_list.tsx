@@ -15,6 +15,7 @@ import MagnifyingGlassSVG from 'components/common/svg_images_components/magnifyi
 import LoadingScreen from 'components/loading_screen';
 import * as Menu from 'components/menu';
 import QuickInput from 'components/quick_input';
+import SharedChannelIndicator from 'components/shared_channel_indicator';
 import CheckboxCheckedIcon from 'components/widgets/icons/checkbox_checked_icon';
 import LoadingWrapper from 'components/widgets/loading/loading_wrapper';
 
@@ -127,7 +128,15 @@ export class SearchableChannelList extends React.PureComponent<Props, State> {
         const ariaLabel = `${channel.display_name}, ${channel.purpose}`.toLowerCase();
         let channelTypeIcon;
 
-        if (isArchivedChannel(channel)) {
+        if (channel.shared) {
+            channelTypeIcon = (
+                <SharedChannelIndicator
+                    className='shared-channel-icon'
+                    channelType={channel.type}
+                    withTooltip={true}
+                />
+            );
+        } else if (isArchivedChannel(channel)) {
             channelTypeIcon = <ArchiveOutlineIcon size={18}/>;
         } else if (isPrivateChannel(channel)) {
             channelTypeIcon = <LockOutlineIcon size={18}/>;
