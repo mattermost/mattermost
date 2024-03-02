@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React from 'react';
+import React, {useMemo} from 'react';
 import {FormattedMessage} from 'react-intl';
 import {useSelector, useDispatch} from 'react-redux';
 
@@ -34,7 +34,7 @@ import AnnouncementBar from '../default_announcement_bar';
 const CloudTrialEndAnnouncementBar: React.FC = () => {
     const limits = useGetLimits();
     const subscription = useGetSubscription();
-    const getCategory = makeGetCategory();
+    const getCategory = useMemo(makeGetCategory, []);
     const dispatch = useDispatch();
     const preferences = useSelector((state: GlobalState) =>
         getCategory(state, Preferences.CLOUD_TRIAL_END_BANNER),

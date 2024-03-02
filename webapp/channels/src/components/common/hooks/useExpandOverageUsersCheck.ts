@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {useEffect, useMemo} from 'react';
+import {useEffect, useMemo, useCallback} from 'react';
 import {useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
 
@@ -31,7 +31,8 @@ export const useExpandOverageUsersCheck = ({
 }: UseExpandOverageUsersCheckArgs) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
-    const {getRequestState, is_expandable: isExpandable}: LicenseSelfServeStatusReducer = useSelector((state: GlobalState) => state.entities.cloud.subscriptionStats || {is_expandable: false, getRequestState: 'IDLE'});
+    const statsDefault: LicenseSelfServeStatusReducer = useMemo(() => {return{is_expandable: false, getRequestState: 'IDLE'}}, []);
+    const {getRequestState, is_expandable: isExpandable}: LicenseSelfServeStatusReducer = useSelector((state: GlobalState) => state.entities.cloud.subscriptionStats || statsDefault);
     const expandableLink = useSelector(getExpandSeatsLink);
 
     const cta = useMemo(() => {
