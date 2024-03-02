@@ -41,7 +41,6 @@ function makeMapStateToProps() {
     return (state: GlobalState, ownProps: OwnProps) => {
         const member = getMyChannelMemberships(state)[ownProps.channel.id];
         const unreadCount = getUnreadCount(state, ownProps.channel.id);
-        const firstChannelName = getFirstChannelName(state);
         const config = getConfig(state);
         const enableTutorial = config.EnableTutorial === 'true';
         const currentUserId = getCurrentUserId(state);
@@ -58,7 +57,7 @@ function makeMapStateToProps() {
             isMuted: isChannelMuted(member),
             hasUrgent: unreadCount.hasUrgent,
             isChannelSelected: isChannelSelected(state, ownProps.channel.id),
-            firstChannelName: showChannelsTutorialStep ? firstChannelName : '',
+            firstChannelName: showChannelsTutorialStep ? getFirstChannelName(state) : '',
             showChannelsTutorialStep,
             rhsState: getRhsState(state),
             rhsOpen: getIsRhsOpen(state),
