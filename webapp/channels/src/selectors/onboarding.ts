@@ -12,7 +12,6 @@ import {OnboardingTaskCategory, OnboardingTaskList} from 'components/onboarding_
 import {RecommendedNextStepsLegacy, Preferences} from 'utils/constants';
 
 import type {GlobalState} from 'types/store';
-import state from 'mattermost-redux/store/initial_state';
 
 const getABTestCategory = makeGetCategory();
 export const getABTestPreferences = (() => {
@@ -115,8 +114,6 @@ export const hasLegacyNextStepsPreferences = createSelector(
     (state: GlobalState) => getNextStepsCategory(state, Preferences.RECOMMENDED_NEXT_STEPS),
     (state: GlobalState) => getSteps(state),
     (stepPreferences, mySteps) => {
-        console.log('stepPreferences', stepPreferences);
-        console.log('mySteps', mySteps);
         const checkPref = (step: StepType) => stepPreferences.some((pref) => (pref.name === step.id));
         return mySteps.some(checkPref);
     },
