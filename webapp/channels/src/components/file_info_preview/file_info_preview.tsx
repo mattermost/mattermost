@@ -59,4 +59,4 @@ const FileInfoPreview = ({ fileInfo, fileUrl, canDownloadFiles }: Props) => {
   );
 };
 
-export default FileInfoPreview;
+export default React.memo(FileInfoPreview);
