@@ -10068,5 +10068,45 @@
   {
     "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
     "translation": "Arkiveringstid av filer kan inte vara mindre än 0 timmar"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Ogiltig uppdatering av teammedlem: En gäst kan inte bli teammedlem eller teamadministratör. Gör gästen till användare först."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Ett fel uppstod när en utgående OAuth-anslutning skapades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Ogiltiga inparametrar."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Ett fel uppstod när den utgående OAuth-anslutningen togs bort."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Utgående OAuth-anslutningar är inte tillgängliga på denna server."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Ett fel uppstod när den utgående OAuth-anslutning uppdaterades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Ogiltiga inparametrar."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Ett fel uppstod när en utgående OAuth-anslutnings autentiseringsuppgifter validerades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Kunde inte hämta autentiseringsuppgifter med den angivna anslutningens konfiguration."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Ogiltigt e-posttoken"
   }
 ]
