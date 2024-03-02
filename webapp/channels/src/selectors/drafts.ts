@@ -73,6 +73,7 @@ export function makeGetDraftsByPrefix(prefix: string): DraftSelector {
 
 const getChannelDrafts = makeGetDraftsByPrefix(StoragePrefixes.DRAFT);
 const getRHSDrafts = makeGetDraftsByPrefix(StoragePrefixes.COMMENT_DRAFT);
+
 /**
  * Gets all local drafts in storage.
  * @param excludeInactive determines if we filter drafts based on active channels.
