@@ -15,7 +15,7 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {UserSettingsNotificationSections} from 'utils/constants';
-import {callsNotificationSounds, notificationSounds} from 'utils/notification_sounds';
+import {callsNotificationSounds, notificationSounds, stopTryNotificationRing, tryNotificationSound, tryNotificationRing} from 'utils/notification_sounds';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
 
@@ -63,17 +63,23 @@ function DesktopNotificationSoundsSettings(props: Props) {
     const handleChangeForIncomginCallSoundCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const value = event.target.checked ? 'true' : 'false';
         props.setParentState('callsDesktopSound', value);
+
+        if (value === 'false') {
+            stopTryNotificationRing();
+        }
     }, [props.setParentState, props.callsDesktopSound]);
 
     const handleChangeForMessageNotificationSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
         if (selectedOption && 'value' in selectedOption) {
             props.setParentState('desktopNotificationSound', selectedOption.value);
+            tryNotificationSound(selectedOption.value);
         }
     }, [props.setParentState, props.desktopNotificationSound]);
 
     const handleChangeForIncomingCallSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
         if (selectedOption && 'value' in selectedOption) {
             props.setParentState('callsNotificationSound', selectedOption.value);
+            tryNotificationRing(selectedOption.value);
         }
     }, [props.setParentState, props.callsNotificationSound]);
 
@@ -171,12 +177,19 @@ function DesktopNotificationSoundsSettings(props: Props) {
     ]);
 
     function handleChangeForMaxSection(section: string) {
+        stopTryNotificationRing();
         props.updateSection(section);
     }
 
     function handleChangeForMinSection(section: string) {
+        stopTryNotificationRing();
         props.updateSection(section);
         props.onCancel();
+    }
+
+    function handleSubmit() {
+        stopTryNotificationRing();
+        props.onSubmit();
     }
 
     if (props.active) {
@@ -189,7 +202,7 @@ function DesktopNotificationSoundsSettings(props: Props) {
                     />
                 }
                 inputs={maximizedSettingInputs}
-                submit={props.onSubmit}
+                submit={handleSubmit}
                 saving={props.saving}
                 serverError={props.error}
                 updateSection={handleChangeForMaxSection}
