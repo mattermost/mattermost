@@ -261,6 +261,10 @@ func (a *App) DoSubscriptionRenewalCheck() {
 		return // Don't send renewal emails for free trials
 	}
 
+	if model.BillingType(subscription.BillingType) == model.BillingTypeLicensed || model.BillingType(subscription.BillingType) == model.BillingTypeInternal {
+		return // Don't send renewal emails for licensed or internal billing
+	}
+
 	sysVar, err := a.Srv().Store().System().GetByName(model.CloudRenewalEmail)
 	if err != nil {
 		// We only care about the error if it wasn't a not found error
