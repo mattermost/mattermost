@@ -16835,6 +16835,23 @@ func (a *OpenTracingAppLayer) ShareChannel(c request.CTX, sc *model.SharedChanne
 	return resultVar0, resultVar1
 }
 
+func (a *OpenTracingAppLayer) ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool {
+	origCtx := a.ctx
+	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.ShouldSendPushNotification")
+
+	a.ctx = newCtx
+	a.app.Srv().Store().SetContext(newCtx)
+	defer func() {
+		a.app.Srv().Store().SetContext(origCtx)
+		a.ctx = origCtx
+	}()
+
+	defer span.Finish()
+	resultVar0 := a.app.ShouldSendPushNotification(user, channelNotifyProps, wasMentioned, status, post, isGM)
+
+	return resultVar0
+}
+
 func (a *OpenTracingAppLayer) SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.SlackImport")
