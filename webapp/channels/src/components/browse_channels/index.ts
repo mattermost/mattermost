@@ -46,7 +46,7 @@ const getPrivateChannelsSelector = createSelector(
 );
 
 function mapStateToProps(state: GlobalState) {
-    const team = getCurrentTeam(state) || {};
+    const team = getCurrentTeam(state);
     const getGlobalItem = makeGetGlobalItem(StoragePrefixes.HIDE_JOINED_CHANNELS, 'false');
 
     return {
@@ -54,8 +54,8 @@ function mapStateToProps(state: GlobalState) {
         archivedChannels: getArchivedOtherChannels(state) || [],
         privateChannels: getPrivateChannelsSelector(state) || [],
         currentUserId: getCurrentUserId(state),
-        teamId: team.id,
-        teamName: team.name,
+        teamId: team?.id,
+        teamName: team?.name,
         channelsRequestStarted: state.requests.channels.getChannels.status === RequestStatus.STARTED,
         canShowArchivedChannels: (getConfig(state).ExperimentalViewArchivedChannels === 'true'),
         myChannelMemberships: getMyChannelMemberships(state) || {},

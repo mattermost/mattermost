@@ -39,7 +39,7 @@ function mapStateToProps(state: GlobalState, props: Props) {
     let {usersToAdd} = props;
 
     const teamMembers = getMembersInTeams(state)[teamId] || {};
-    const team = getTeam(state, teamId) || {};
+    const team = getTeam(state, teamId);
     const config = getConfig(state);
     const searchTerm = state.views.search.userGridSearch?.term || '';
     const filters = state.views.search.userGridSearch?.filters || {};

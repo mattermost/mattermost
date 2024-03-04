@@ -26,7 +26,7 @@ type Props = {
     currentUser: UserProfile;
     teamMember: TeamMembership;
     teamUrl: string;
-    currentTeam: Team;
+    currentTeam?: Team;
     index: number;
     totalUsers: number;
     collapsedThreads: ReturnType<typeof isCollapsedThreadsEnabled>;
@@ -190,7 +190,7 @@ export default class TeamMembersDropdown extends React.PureComponent<Props, Stat
             showMakeAdmin = false;
         }
 
-        const canRemoveFromTeam = user.id !== me.id && (!currentTeam.group_constrained || user.is_bot);
+        const canRemoveFromTeam = user.id !== me.id && (!currentTeam?.group_constrained || user.is_bot);
 
         let makeDemoteModal = null;
         if (user.id === me.id) {

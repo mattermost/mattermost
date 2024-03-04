@@ -18,7 +18,7 @@ function mapStateToProps(state: GlobalState) {
     const currentTeam = getCurrentTeam(state);
 
     return {
-        currentTeamId: currentTeam.id,
+        currentTeamId: currentTeam?.id,
     };
 }
 

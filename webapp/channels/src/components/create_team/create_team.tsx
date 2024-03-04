@@ -21,7 +21,7 @@ export type Props = {
     /*
    * Object containing information on the current team, used to define BackButton's url
    */
-    currentTeam: Team;
+    currentTeam?: Team;
 
     /*
    * Object containing information on the current selected channel, used to define BackButton's url

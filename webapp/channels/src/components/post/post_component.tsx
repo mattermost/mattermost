@@ -55,7 +55,7 @@ import PostUserProfile from './user_profile';
 
 export type Props = {
     post: Post;
-    currentTeam: Team;
+    currentTeam?: Team;
     team?: Team;
     currentUserId: string;
     compactDisplay?: boolean;
@@ -128,7 +128,7 @@ const PostComponent = (props: Props): JSX.Element => {
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
-    const teamId = props.team?.id || props.currentTeam.id;
+    const teamId = props.team?.id || props.currentTeam?.id;
 
     const [hover, setHover] = useState(false);
     const [a11yActive, setA11y] = useState(false);
@@ -391,12 +391,12 @@ const PostComponent = (props: Props): JSX.Element => {
     }, [post, props.actions, props.actions.selectPostFromRightHandSideSearch]);
 
     const handleThreadClick = useCallback((e: React.MouseEvent) => {
-        if (props.currentTeam.id === teamId) {
+        if (props.currentTeam?.id === teamId) {
             handleCommentClick(e);
         } else {
             handleJumpClick(e);
         }
-    }, [handleCommentClick, handleJumpClick, props.currentTeam.id, teamId]);
+    }, [handleCommentClick, handleJumpClick, props.currentTeam?.id, teamId]);
 
     const postClass = classNames('post__body', {'post--edited': PostUtils.isEdited(post), 'search-item-snippet': isSearchResultItem});
 
@@ -624,7 +624,7 @@ const PostComponent = (props: Props): JSX.Element => {
                             {!props.isPostBeingEdited &&
                             <PostOptions
                                 {...props}
-                                teamId={teamId}
+                                teamId={teamId || ''}
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}
                                 hover={hover || a11yActive}

@@ -97,7 +97,7 @@ export type Props = {
     canCreateCustomGroups: boolean;
 }
 
-const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
+const SidebarHeader = (props: Props) => {
     const dispatch = useDispatch();
     const currentTeam = useSelector((state: GlobalState) => getCurrentTeam(state));
     const showCreateTutorialTip = useShowOnboardingTutorialStep(OnboardingTourSteps.CREATE_AND_JOIN_CHANNELS);
@@ -114,6 +114,10 @@ const SidebarHeader: React.FC<Props> = (props: Props): JSX.Element => {
     const handleMenuToggle = () => {
         setMenuToggled(!menuToggled);
     };
+
+    if (!currentTeam) {
+        return null;
+    }
 
     return (
         <CompassThemeProvider theme={theme}>

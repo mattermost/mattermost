@@ -5,6 +5,7 @@ import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
 import type {OAuthApp} from '@mattermost/types/integrations';
+import type {Team} from '@mattermost/types/teams';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -23,7 +24,7 @@ type Props = {
     /**
     * The team data
     */
-    team: {name: string};
+    team?: Team;
 
     /**
     * The oauthApps data
@@ -123,7 +124,10 @@ export default class InstalledOAuthApps extends React.PureComponent<Props, State
             );
         });
 
-    render(): JSX.Element {
+    render() {
+        if (!this.props.team) {
+            return null;
+        }
         const integrationsEnabled = this.props.enableOAuthServiceProvider && this.props.canManageOauth;
         let props;
         if (integrationsEnabled) {

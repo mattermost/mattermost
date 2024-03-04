@@ -29,7 +29,7 @@ type Props = {
 
 function getIsInCurrentTeam(state: GlobalState, userId: string) {
     const team = getCurrentTeam(state);
-    const teamMember = getTeamMember(state, team.id, userId);
+    const teamMember = team ? getTeamMember(state, team.id, userId) : undefined;
     return Boolean(teamMember) && teamMember?.delete_at === 0;
 }
 

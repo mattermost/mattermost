@@ -46,7 +46,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
     const channel = useSelector((state: GlobalState) => getChannel(state, {id: post.channel_id}));
     const currentTeam = useSelector(getCurrentTeam);
 
-    const relativePermaLink = useSelector((state: GlobalState) => getPermalinkURL(state, currentTeam.id, post.id));
+    const relativePermaLink = useSelector((state: GlobalState) => (currentTeam ? getPermalinkURL(state, currentTeam.id, post.id) : ''));
     const permaLink = `${getSiteURL()}${relativePermaLink}`;
 
     const isPrivateConversation = channel.type !== Constants.OPEN_CHANNEL;
@@ -79,11 +79,11 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
         (state: GlobalState) => {
             const channelId = isPrivateConversation ? channel.id : selectedChannelId;
             const isDMChannel = selectedChannel?.details?.type === Constants.DM_CHANNEL;
-            const teamId = isPrivateConversation ? currentTeam.id : selectedChannel?.details?.team_id;
+            const teamId = isPrivateConversation ? currentTeam?.id : selectedChannel?.details?.team_id;
 
             const hasChannelPermission = haveIChannelPermission(
                 state,
-                teamId || currentTeam.id,
+                teamId || currentTeam?.id,
                 channelId,
                 Permissions.CREATE_POST,
             );
@@ -122,7 +122,7 @@ const ForwardPostModal = ({onExited, post, actions}: Props) => {
     const previewMetaData: PostPreviewMetadata = {
         post,
         post_id: post.id,
-        team_name: currentTeam.name,
+        team_name: currentTeam?.name || '',
         channel_display_name: channel.display_name,
         channel_type: channel.type,
         channel_id: channel.id,

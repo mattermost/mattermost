@@ -653,6 +653,9 @@ export function getPostURL(state: GlobalState, post: Post): string {
     const channel = getChannel(state, post.channel_id);
     const currentUserId = getCurrentUserId(state);
     const team = getTeam(state, channel.team_id || getCurrentTeamId(state));
+    if (!team) {
+        return '';
+    }
 
     const postURI = isCollapsedThreadsEnabled(state) && isComment(post) ? '' : `/${post.id}`;
 

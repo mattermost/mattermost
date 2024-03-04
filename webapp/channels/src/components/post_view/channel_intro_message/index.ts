@@ -43,7 +43,7 @@ function mapStateToProps(state: GlobalState) {
         channelProfiles: getProfilesInCurrentChannel(state),
         enableUserCreation,
         isReadOnly,
-        teamIsGroupConstrained: Boolean(team.group_constrained),
+        teamIsGroupConstrained: Boolean(team?.group_constrained),
         creatorName: getDisplayNameByUser(state, creator),
         teammate,
         teammateName: getDisplayNameByUser(state, teammate),

@@ -31,7 +31,7 @@ export type InstalledOAuthAppProps = {
     /**
      * The team data
      */
-    team: Partial<Team>;
+    team?: Team;
 
     /**
      * The oauthApp data
@@ -255,7 +255,7 @@ export default class InstalledOAuthApp extends React.PureComponent<InstalledOAut
                     {' - '}
                     {regen}
                     {' - '}
-                    <Link to={`/${this.props.team.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}>
+                    <Link to={`/${this.props.team?.name}/integrations/oauth2-apps/edit?id=${oauthApp.id}`}>
                         <FormattedMessage
                             id='installed_integrations.edit'
                             defaultMessage='Edit'

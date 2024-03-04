@@ -56,7 +56,7 @@ type Props = {
     /**
      * Object with info about current team
      */
-    team: Team;
+    team?: Team;
 
     /**
      * String with the current team URL
@@ -190,7 +190,9 @@ export class RenameChannelModal extends React.PureComponent<Props, State> {
     onSaveSuccess = () => {
         this.handleHide();
         this.unsetError();
-        getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
+        if (this.props.team) {
+            getHistory().push('/' + this.props.team.name + '/channels/' + this.state.channelName);
+        }
     };
 
     handleCancel = (e?: MouseEvent) => {

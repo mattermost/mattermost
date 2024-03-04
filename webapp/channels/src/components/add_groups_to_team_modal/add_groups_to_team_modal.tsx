@@ -26,8 +26,8 @@ const MAX_SELECTABLE_VALUES = 10;
 type GroupValue = Value & {member_count?: number};
 
 type Props = {
-    currentTeamName: string;
-    currentTeamId: string;
+    currentTeamName?: string;
+    currentTeamId?: string;
     intl: IntlShape;
     searchTerm: string;
     groups: Group[];
@@ -80,8 +80,8 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
 
     public componentDidMount() {
         Promise.all([
-            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, '', 0, GROUPS_PER_PAGE + 1),
-            this.props.actions.getAllGroupsAssociatedToTeam(this.props.currentTeamId, false, true),
+            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId || '', '', 0, GROUPS_PER_PAGE + 1),
+            this.props.actions.getAllGroupsAssociatedToTeam(this.props.currentTeamId || '', false, true),
         ]).then(() => {
             this.setGroupsLoadingState(false);
         });
@@ -99,7 +99,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
             this.searchTimeoutId = window.setTimeout(
                 async () => {
                     this.setGroupsLoadingState(true);
-                    await this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, searchTerm);
+                    await this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId || '', searchTerm);
                     this.setGroupsLoadingState(false);
                 },
                 Constants.SEARCH_TIMEOUT_MILLISECONDS,
@@ -148,7 +148,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
         this.setState({saving: true});
 
         await Promise.all(groupIDs.map(async (groupID) => {
-            const {error} = await this.props.actions.linkGroupSyncable(groupID, this.props.currentTeamId, SyncableType.Team, {auto_add: true, scheme_admin: false});
+            const {error} = await this.props.actions.linkGroupSyncable(groupID, this.props.currentTeamId || '', SyncableType.Team, {auto_add: true, scheme_admin: false});
             this.handleResponse(error);
             if (!error) {
                 this.handleHide();
@@ -177,7 +177,7 @@ export class AddGroupsToTeamModal extends React.PureComponent<Props, State> {
     public handlePageChange = (page: number, prevPage: number): void => {
         if (page > prevPage) {
             this.setGroupsLoadingState(true);
-            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId, this.props.searchTerm, page, GROUPS_PER_PAGE + 1).then(() => {
+            this.props.actions.getGroupsNotAssociatedToTeam(this.props.currentTeamId || '', this.props.searchTerm, page, GROUPS_PER_PAGE + 1).then(() => {
                 this.setGroupsLoadingState(false);
             });
         }

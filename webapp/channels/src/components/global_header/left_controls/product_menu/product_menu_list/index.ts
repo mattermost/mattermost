@@ -36,7 +36,7 @@ import ProductMenuList from './product_menu_list';
 
 function mapStateToProps(state: GlobalState) {
     const config = getConfig(state);
-    const currentTeam = getCurrentTeam(state) || {};
+    const currentTeam = getCurrentTeam(state);
     const currentUser = getCurrentUser(state);
 
     const appDownloadLink = config.AppDownloadLink || '';
@@ -81,8 +81,8 @@ function mapStateToProps(state: GlobalState) {
         enablePluginMarketplace,
         pluginMenuItems: state.plugins.components.MainMenu,
         siteName,
-        teamId: currentTeam.id,
-        teamName: currentTeam.name,
+        teamId: currentTeam?.id,
+        teamName: currentTeam?.name,
         currentUser,
         firstAdminVisitMarketplaceStatus: getFirstAdminVisitMarketplaceStatus(state),
         showVisitSystemConsoleTour,

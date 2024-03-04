@@ -59,7 +59,7 @@ const NewChannelModal = () => {
     const intl = useIntl();
     const {formatMessage} = intl;
 
-    const {id: currentTeamId} = useSelector(getCurrentTeam);
+    const currentTeamId = useSelector(getCurrentTeam)?.id;
 
     const canCreatePublicChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PUBLIC_CHANNEL) : false));
     const canCreatePrivateChannel = useSelector((state: GlobalState) => (currentTeamId ? haveICurrentChannelPermission(state, Permissions.CREATE_PRIVATE_CHANNEL) : false));
@@ -88,7 +88,7 @@ const NewChannelModal = () => {
     }, []);
 
     const handleOnModalConfirm = async () => {
-        if (!canCreate) {
+        if (!canCreate || !currentTeamId) {
             return;
         }
 
@@ -135,7 +135,7 @@ const NewChannelModal = () => {
     };
 
     const addBoardToChannel = async (channelId: string) => {
-        if (!createBoardFromChannelPlugin) {
+        if (!createBoardFromChannelPlugin || !currentTeamId) {
             return false;
         }
         if (!actionFromPluggable) {
