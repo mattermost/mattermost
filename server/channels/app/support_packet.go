@@ -73,7 +73,10 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	/* DB */
 
 	databaseType, databaseSchemaVersion := a.Srv().DatabaseTypeAndSchemaVersion()
-	databaseVersion, _ := a.Srv().Store().GetDbVersion(false)
+	databaseVersion, err := a.Srv().Store().GetDbVersion(false)
+	if err != nil {
+		rErr = multierror.Append(errors.Wrap(err, "error while getting DB version"))
+	}
 
 	/* Cluster */
 
@@ -86,7 +89,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 
 	fileDriver := a.Srv().Platform().FileBackend().DriverName()
 	fileStatus := model.StatusOk
-	err := a.Srv().Platform().FileBackend().TestConnection()
+	err = a.Srv().Platform().FileBackend().TestConnection()
 	if err != nil {
 		fileStatus = model.StatusFail + ": " + err.Error()
 	}
@@ -168,11 +171,11 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post indexing jobs"))
 	}
-	elasticPostAggregationJobs, _ := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostAggregation, 0, 2)
+	elasticPostAggregationJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeElasticsearchPostAggregation, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting ES post aggregation jobs"))
 	}
-	blevePostIndexingJobs, _ := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeBlevePostIndexing, 0, 2)
+	blevePostIndexingJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeBlevePostIndexing, 0, 2)
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting bleve post indexing jobs"))
 	}
