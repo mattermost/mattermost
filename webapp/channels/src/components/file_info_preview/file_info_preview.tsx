@@ -13,7 +13,11 @@ type Props = {
     canDownloadFiles: boolean;
 };
 
-const FileInfoPreview = ({fileInfo, fileUrl, canDownloadFiles}: Props) => {
+const FileInfoPreview = ({
+    fileInfo,
+    fileUrl,
+    canDownloadFiles,
+}: Props) => {
     // non-image files include a section providing details about the file
     const infoParts = [];
 
