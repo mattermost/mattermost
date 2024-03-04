@@ -511,6 +511,14 @@ func (a *App) UpdateTeamMemberSchemeRoles(teamID string, userID string, isScheme
 		return nil, err
 	}
 
+	if member.SchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.guest.app_error", nil, "", http.StatusBadRequest)
+	}
+
+	if isSchemeGuest {
+		return nil, model.NewAppError("UpdateTeamMemberSchemeRoles", "api.team.update_team_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
+	}
+
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
 	member.SchemeGuest = isSchemeGuest
