@@ -2960,10 +2960,6 @@
     "translation": "Your licence does not support SAML authentication."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "An error occurred while validating the response from the Identity Provider. Please contact your System Administrator."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "An error occurred while parsing the response from the Identity Provider. Please contact your System Administrator."
   },
@@ -2980,10 +2976,6 @@
     "translation": "An empty response from the Identity Provider was received."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML login was unsuccessful because an error occurred while decrypting the response from the Identity Provider. Please contact your System Administrator."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "SAML login was unsuccessful as the Identity Provider response is not encrypted. Please contact your System Administrator."
   },
@@ -2992,16 +2984,8 @@
     "translation": "SAML login was unsuccessful because the Service Provider Private Key was not found. Please contact your System Administrator."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate File was not found. Please contact your System Administrator."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML login was unsuccessful because encryption is not enabled. Please contact your System Administrator."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "An error occurred while encoding the request for the Identity Provider. Please contact your System Administrator."
   },
   {
     "id": "ent.saml.build_request.app_error",
