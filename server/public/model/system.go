@@ -84,7 +84,7 @@ type SupportPacket struct {
 	ServerOS           string `yaml:"server_os"`
 	ServerArchitecture string `yaml:"server_architecture"`
 	ServerVersion      string `yaml:"server_version"`
-	BuildHash          string `yaml:"build_hash,omitempty"`
+	BuildHash          string `yaml:"build_hash"`
 
 	/* DB */
 
@@ -117,7 +117,7 @@ type SupportPacket struct {
 	/* License */
 
 	LicenseTo             string `yaml:"license_to"`
-	LicenseSupportedUsers int    `yaml:"license_supported_users,omitempty"`
+	LicenseSupportedUsers int    `yaml:"license_supported_users"`
 	LicenseIsTrial        bool   `yaml:"license_is_trial,omitempty"`
 
 	/* Server stats */
