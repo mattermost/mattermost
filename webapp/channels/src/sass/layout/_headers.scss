@@ -2,10 +2,10 @@
 
 .channel-header {
     position: relative;
-    padding: 12px 12px;
     z-index: 15;
     width: 100%;
     max-height: 56px;
+    padding: 12px 12px;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background: v(center-channel-bg);
     font-size: 14px;
@@ -76,8 +76,8 @@
 
         &.active {
             i {
-                opacity: 1;
                 color: var(--button-bg);
+                opacity: 1;
             }
         }
     }
@@ -85,11 +85,6 @@
     .channel-header__mute {
         position: relative;
         z-index: 1;
-
-        &.inactive {
-            .icon {
-            }
-        }
 
         &.active {
             i {
@@ -104,7 +99,7 @@
     }
 
     .flex-child {
-        margin:0 !important; //to override inline margin added by calls button
+        margin: 0 !important; //to override inline margin added by calls button
 
         &:first-child {
             min-width: 0;
@@ -187,7 +182,7 @@
         .channel-header__info {
             .channel-header__description {
                 .header-placeholder {
-                    display:flex;
+                    display: flex;
                 }
             }
         }
@@ -264,8 +259,8 @@
 }
 
 .channel-header__info {
-    white-space: nowrap;
     padding: 4px 0;
+    white-space: nowrap;
 
     .dropdown-toggle {
         display: flex;
@@ -318,14 +313,14 @@
     .channel-header__description {
         position: relative;
         display: flex;
+        overflow: hidden;
         width: 100%;
         height: 24px;
         align-items: center;
         margin: 0;
-        gap: 2px;
         font-size: 12px;
+        gap: 2px;
         text-overflow: ellipsis;
-        overflow: hidden;
 
         span[data-emoticon] {
             .emoticon {
@@ -447,7 +442,7 @@
         }
 
         .status {
-            margin-left: 0px;
+            margin-left: 0;
             line-height: 16px;
         }
     }

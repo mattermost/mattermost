@@ -71,11 +71,11 @@ button {
 
         &.btn-xs {
             width: 24px;
+            min-width: 24px;
             height: 24px;
-            min-width: 24px;;
             padding: 0;
-            gap: 4px;
             font-size: 12px;
+            gap: 4px;
 
             &.btn-compact {
                 width: 20px;
@@ -89,11 +89,11 @@ button {
 
         &.btn-sm {
             width: 32px;
-            height: 32px;
             min-width: 32px;
+            height: 32px;
             padding: 0;
-            gap: 4px;
             font-size: 14px;
+            gap: 4px;
 
             &.btn-compact {
                 width: 28px;

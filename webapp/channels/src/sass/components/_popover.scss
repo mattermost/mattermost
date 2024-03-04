@@ -1,8 +1,8 @@
 @charset "utf-8";
 
 .app__body .popover.channel-header__popover {
-    box-shadow: var(--elevation-4);
     padding: 2px 6px 6px 6px;
+    box-shadow: var(--elevation-4);
 }
 
 .header-popover-text-measurer {
