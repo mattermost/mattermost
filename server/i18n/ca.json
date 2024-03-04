@@ -2340,20 +2340,12 @@
     "translation": "La teva llicència no és compatible amb l'autenticació SAML."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "S'ha produït un error en validar la resposta del proveïdor d'identitat. Contacta amb l'administrador del sistema."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "S'ha produït un error durant l'anàlisi de la resposta del proveïdor d'identitat. Contacta amb l'administrador del sistema."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Hem rebut una resposta buida del proveïdor d'identitat"
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "L'inici de sessió SAML no s'ha pogut completar perquè s'ha produït un error mentre es desxifra la resposta del proveïdor d'identitat. Contacta amb l'administrador del sistema."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -2364,16 +2356,8 @@
     "translation": "L'inici de sessió SAML no s'ha pogut completar perquè no s'ha trobat la clau privada del proveïdor de serveis. Contacta amb l'administrador del sistema."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "No s'ha trobat el fitxer de certificat públic del proveïdor d'identitat. Contacta amb l'administrador del sistema."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "L'inici de sessió SAML no s'ha pogut completar perquè el xifratge no està activat. Contacta amb l'administrador del sistema."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "S'ha produït un error durant la codificació de la sol·licitud per al proveïdor d'identitat. Contacta amb l'administrador del sistema."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -2766,15 +2750,17 @@
   {
     "id": "api.post.get_message_for_notification.images_sent",
     "translation": {
+      "many": "{{.Count}} imatges enviades: {{.Filenames}}",
       "one": "{{.Count}} imatge enviada: {{.Filenames}}",
-      "other": "{{.Count}} imatges enviades: {{.Filenames}}"
+      "other": ""
     }
   },
   {
     "id": "api.post.get_message_for_notification.files_sent",
     "translation": {
+      "many": "{{.Count}} fitxers enviats: {{.Filenames}}",
       "one": "{{.Count}} fitxer enviat: {{.Filenames}}",
-      "other": "{{.Count}} fitxers enviats: {{.Filenames}}"
+      "other": ""
     }
   },
   {
@@ -3160,8 +3146,9 @@
   {
     "id": "api.email_batching.send_batched_email_notification.subject",
     "translation": {
+      "many": "Noves notificacions de [{{.SiteName}}] a {{.Day}} {{.Month}}, {{.Year}}",
       "one": "Nova notificació de [{{.SiteName}}] a {{.Day}} {{.Month}}, {{.Year}}",
-      "other": "Noves notificacions de [{{.SiteName}}] a {{.Day}} {{.Month}}, {{.Year}}"
+      "other": ""
     }
   },
   {
@@ -3915,8 +3902,9 @@
   {
     "id": "api.command_groupmsg.invalid_user.app_error",
     "translation": {
+      "many": "No es poden trobar els usuaris: {{.Users}}",
       "one": "No es pot trobar l'usuari: {{.Users}}",
-      "other": "No es poden trobar els usuaris: {{.Users}}"
+      "other": ""
     }
   },
   {
