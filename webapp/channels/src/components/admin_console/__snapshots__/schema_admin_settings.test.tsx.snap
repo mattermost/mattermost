@@ -106,7 +106,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <AdminTextSetting
@@ -697,7 +697,7 @@ exports[`components/admin_console/SchemaAdminSettings should match snapshot with
             }
             value={true}
           />
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>
