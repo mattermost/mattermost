@@ -92,6 +92,23 @@ export default class Logs extends React.PureComponent<Props, State> {
         this.setState({page: this.state.page - 1});
     };
 
+    downloadLogs = () => {
+        const logString = this.props.isPlainLogs ? 
+        this.props.plainLogs.join('') : 
+        this.props.logs.map(log => JSON.stringify(log)).join('\n');
+
+        const blob = new Blob([logString], { type: 'text/plain' });
+    
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = 'mattermost.log';
+    
+        document.body.appendChild(link);
+        link.click();
+    
+        document.body.removeChild(link);
+    };
+
     reload = async () => {
         this.setState({loadingLogs: true});
         await this.props.actions.getLogs({
@@ -144,16 +161,28 @@ export default class Logs extends React.PureComponent<Props, State> {
                         <FormattedMessage {...messages.bannerDesc}/>
                     </div>
                 </div>
-                <button
-                    type='submit'
-                    className='btn btn-primary'
-                    onClick={this.reloadPlain}
-                >
-                    <FormattedMessage
-                        id='admin.logs.ReloadLogs'
-                        defaultMessage='Reload Logs'
-                    />
-                </button>
+                <div className='banner-buttons'>
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                        onClick={this.reloadPlain}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.ReloadLogs'
+                            defaultMessage='Reload Logs'
+                        />
+                    </button>
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                        onClick={this.downloadLogs}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.DownloadLogs'
+                            defaultMessage='Download Logs'
+                        />
+                    </button>
+                </div>
                 <PlainLogList
                     logs={this.props.plainLogs}
                     nextPage={this.nextPage}
@@ -170,6 +199,7 @@ export default class Logs extends React.PureComponent<Props, State> {
                             <FormattedMessage {...messages.bannerDesc}/>
                         </div>
                     </div>
+                    <div className='banner-buttons'>
                     <button
                         type='submit'
                         className='btn btn-primary'
@@ -180,6 +210,17 @@ export default class Logs extends React.PureComponent<Props, State> {
                             defaultMessage='Reload Logs'
                         />
                     </button>
+                    <button
+                        type='submit'
+                        className='btn btn-primary'
+                        onClick={this.downloadLogs}
+                    >
+                        <FormattedMessage
+                            id='admin.logs.DownloadLogs'
+                            defaultMessage='Download Logs'
+                        />
+                    </button>
+                    </div>
                 </div>
                 <LogList
                     loading={this.state.loadingLogs}
