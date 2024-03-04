@@ -4,11 +4,10 @@
 import type {Placement} from '@floating-ui/react';
 import classNames from 'classnames';
 import React, {useRef, useState} from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import useTooltip from 'components/common/hooks/useTooltip';
 
-import {t} from 'utils/i18n';
 import {copyToClipboard} from 'utils/utils';
 
 type Props = {
@@ -22,6 +21,7 @@ type Props = {
 const CopyButton: React.FC<Props> = (props: Props) => {
     const [isCopied, setIsCopied] = useState(false);
     const timerRef = useRef<NodeJS.Timeout | null>(null);
+    const intl = useIntl();
 
     const getDefaultMessage = () => {
         if (isCopied) {
@@ -32,19 +32,20 @@ const CopyButton: React.FC<Props> = (props: Props) => {
 
     const getId = () => {
         if (isCopied) {
-            return t('copied.message');
+            return 'copied.message';
         }
-        return props.beforeCopyText ? t('copy.text.message') : t('copy.code.message');
+        return props.beforeCopyText ? 'copy.text.message' : 'copy.code.message';
     };
 
     const {
         setReference,
         getReferenceProps,
-        tooltip
+        tooltip,
     } = useTooltip({
-        message: <FormattedMessage id={getId()}
-            defaultMessage={getDefaultMessage()}
-        />,
+        message: intl.formatMessage({
+                    id: getId(),
+                    defaultMessage: getDefaultMessage(),
+                 }),
         placement: props.placement,
     });
 
