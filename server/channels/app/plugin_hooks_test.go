@@ -2020,6 +2020,8 @@ func TestUserHasJoinedChannel(t *testing.T) {
 
 		expectedMessage := fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id)
 		assert.Eventually(t, func() bool {
+			// Typically, the post we're looking for will be the latest, but there's a race between the plugin and
+			// "User has joined the channel" post which means the plugin post may not the the latest one
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
 
 			require.Nil(t, appErr)
