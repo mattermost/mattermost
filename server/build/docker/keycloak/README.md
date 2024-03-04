@@ -21,9 +21,9 @@ To use this keycloak image, we suggest you to use this configuration settings:
 or overwrite your SamleSettings section in your config.json file by running `make config-saml` and restarting your server.
 
 Admin Login:
-admin/admin
+- admin/admin
 
 Users:
-homer/password
-marge/password
-lisa/password
+- homer/password
+- marge/password
+- lisa/password
