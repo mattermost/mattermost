@@ -112,12 +112,14 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 
 	/* License */
 
-	licenseTo := ""
-	supportedUsers := 0
-	var isTrial bool
+	var (
+		licenseTo      string
+		supportedUsers int
+		isTrial        bool
+	)
 	if license := a.Srv().License(); license != nil {
-		supportedUsers = *license.Features.Users
 		licenseTo = license.Customer.Company
+		supportedUsers = *license.Features.Users
 		isTrial = license.IsTrial
 	}
 
