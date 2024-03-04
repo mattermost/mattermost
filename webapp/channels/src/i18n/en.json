@@ -5657,8 +5657,6 @@
   "view_user_group_modal.ldapSynced": "AD/LDAP SYNCED",
   "view_user_group_modal.memberCount": "{member_count} {member_count, plural, one {Member} other {Members}}",
   "warn_metric_ack_modal.contact_support": "Acknowledge",
-  "warn_metric_ack_modal.learn_more.link": "",
-  "warn_metric_ack_modal.mailto.link": "",
   "warn_metric_ack_modal.mailto.message": "Support could not be reached. Please {link}.",
   "warn_metric_ack_modal.number_of_active_users.description": "Mattermost strongly recommends that deployments of over {limit}} users take advantage of features such as user management, server clustering, and performance monitoring. Contact us to learn more and let us know how we can help.",
   "warn_metric_ack_modal.number_of_posts.description": "Your Mattermost system has a large number of messages. The default Mattermost database search starts to show performance degradation at around 2.5 million posts. With over 5 million posts, Elasticsearch can help avoid significant performance issues, such as timeouts, with search and at-mentions. Contact us to learn more and let us know how we can help.",
