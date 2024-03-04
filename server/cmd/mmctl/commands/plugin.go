@@ -5,6 +5,7 @@ package commands
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/client"
