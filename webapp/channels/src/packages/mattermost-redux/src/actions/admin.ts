@@ -544,7 +544,7 @@ export function setSamlIdpCertificateFromMetadata(certData: string): ActionFunc 
     });
 }
 
-export function getDataRetentionCustomPolicies(page = 0, perPage = 10): ActionFuncAsync<GetDataRetentionCustomPoliciesRequest> {
+export function getDataRetentionCustomPolicies(page = 0, perPage = 10): ActionFunc {
     return async (dispatch, getState) => {
         let data;
         try {

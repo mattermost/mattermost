@@ -148,21 +148,6 @@ export function getRedirectLocation(url: string): ActionFunc {
     };
 }
 
-export function getWarnMetricsStatus(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        let data;
-        try {
-            data = await Client4.getWarnMetricsStatus();
-        } catch (error) {
-            forceLogoutIfNecessary(error, dispatch, getState);
-            return {error};
-        }
-        dispatch({type: GeneralTypes.WARN_METRICS_STATUS_RECEIVED, data});
-
-        return {data};
-    };
-}
-
 export function setFirstAdminVisitMarketplaceStatus(): ActionFunc {
     return async (dispatch: DispatchFunc) => {
         try {
@@ -218,6 +203,5 @@ export default {
     setServerVersion,
     setUrl,
     getRedirectLocation,
-    getWarnMetricsStatus,
     getFirstAdminVisitMarketplaceStatus,
 };
