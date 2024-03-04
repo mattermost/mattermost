@@ -6,7 +6,7 @@ import {bindActionCreators, Dispatch} from 'redux';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {haveISystemPermission} from 'mattermost-redux/selectors/entities/roles';
-import {getConfig, getLicense, warnMetricsStatus as getWarnMetricsStatus} from 'mattermost-redux/selectors/entities/general';
+import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getDisplayableErrors} from 'mattermost-redux/selectors/errors';
 import {dismissError} from 'mattermost-redux/actions/errors';
 import {getStandardAnalytics} from 'mattermost-redux/actions/admin';
@@ -24,7 +24,6 @@ function mapStateToProps(state: GlobalState) {
     const license = getLicense(state);
     const config = getConfig(state);
     const errors = getDisplayableErrors(state);
-    const warnMetricsStatus = getWarnMetricsStatus(state);
     const isCloud = license.Cloud === 'true';
     const subscription = state.entities.cloud?.subscription;
     const userIsAdmin = isCurrentUserSystemAdmin(state);
@@ -39,7 +38,6 @@ function mapStateToProps(state: GlobalState) {
         config,
         canViewSystemErrors,
         latestError,
-        warnMetricsStatus,
         isCloud,
         subscription,
         userIsAdmin,
