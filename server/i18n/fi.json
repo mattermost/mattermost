@@ -720,20 +720,12 @@
     "translation": "Lisenssisi ei tue SAML-autentikointia."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Tapahtui virhe tarkistettaessa Identity Providerin vastausta. Ota yhteys järjestelmänvalvojaan."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Tapahtui virhe parsittaessa Identity Providerin vastausta. Ota yhteys järjestelmänvalvojaan."
   },
   {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Vastaanotettuun tyhjä vastaus Identity Providerilta"
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML kirjautuminen epäonnistui koska tapahtui virhe purettaessa Identity Providerin vastausta. Ota yhteys järjestelmänvalvojaan."
   },
   {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
@@ -744,16 +736,8 @@
     "translation": "SAML kirjautuminen epäonnistui koska Service Provider Private Key ei löydetty. Ota yhteys järjestelmänvalvojaan."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Identity Provider Public Certificate tiedostoa ei löydetty. Ota yhteys järjestelmänvalvojaan."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML kirjautuminen epäonnistui koska salaus ei ole käytössä. Ota yhteys järjestelmänvalvojaan."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Tapahtui virhe enkoodattaessa pyyntöä Identity Provideriin. Ota yhteys järjestelmänvalvojaan."
   },
   {
     "id": "ent.saml.build_request.app_error",

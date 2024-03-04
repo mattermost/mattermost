@@ -1505,9 +1505,9 @@ func TestImportImportUser(t *testing.T) {
 	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
-	assert.False(t, teamMember.SchemeAdmin)
+	assert.False(t, channelMember.SchemeAdmin)
 	assert.True(t, channelMember.SchemeUser)
-	assert.False(t, teamMember.SchemeGuest)
+	assert.False(t, channelMember.SchemeGuest)
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
 	// see https://mattermost.atlassian.net/browse/MM-56986
