@@ -118,12 +118,43 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		isTrial = license.IsTrial
 	}
 
-	/* Jobs  */
+	/* Server stats */
 
 	uniqueUserCount, err := a.Srv().Store().User().Count(model.UserCountOptions{})
 	if err != nil {
 		rErr = multierror.Append(errors.Wrap(err, "error while getting user count"))
 	}
+
+	var (
+		totalChannels        int
+		totalPosts           int
+		totalTeams           int
+		websocketConnections int
+		masterDbConnections  int
+		replicaDbConnections int
+		dailyActiveUsers     int
+		monthlyActiveUsers   int
+		inactiveUserCount    int
+	)
+	analytics, appErr := a.GetAnalytics("standard", "")
+	if appErr != nil {
+		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
+	}
+	if len(analytics) < 11 {
+		rErr = multierror.Append(errors.New("not enought analytics information found"))
+	} else {
+		totalChannels = int(analytics[0].Value) + int(analytics[1].Value)
+		totalPosts = int(analytics[2].Value)
+		totalTeams = int(analytics[4].Value)
+		websocketConnections = int(analytics[5].Value)
+		masterDbConnections = int(analytics[6].Value)
+		replicaDbConnections = int(analytics[7].Value)
+		dailyActiveUsers = int(analytics[8].Value)
+		monthlyActiveUsers = int(analytics[9].Value)
+		inactiveUserCount = int(analytics[10].Value)
+	}
+
+	/* Jobs  */
 
 	dataRetentionJobs, err := a.Srv().Store().Job().GetAllByTypePage(c, model.JobTypeDataRetention, 0, 2)
 	if err != nil {
@@ -166,6 +197,9 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		DatabaseType:          databaseType,
 		DatabaseVersion:       databaseVersion,
 		DatabaseSchemaVersion: databaseSchemaVersion,
+		WebsocketConnections:  websocketConnections,
+		MasterDbConnections:   masterDbConnections,
+		ReplicaDbConnections:  replicaDbConnections,
 
 		/* Cluster */
 		ClusterID: clusterID,
@@ -188,7 +222,13 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		LicenseIsTrial:        isTrial,
 
 		/* Server stats */
-		ActiveUsers: int(uniqueUserCount),
+		ActiveUsers:        int(uniqueUserCount),
+		DailyActiveUsers:   dailyActiveUsers,
+		MonthlyActiveUsers: monthlyActiveUsers,
+		InactiveUserCount:  inactiveUserCount,
+		TotalPosts:         totalPosts,
+		TotalChannels:      totalChannels,
+		TotalTeams:         totalTeams,
 
 		/* Jobs */
 		DataRetentionJobs:          dataRetentionJobs,
@@ -198,26 +238,6 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		BlevePostIndexingJobs:      blevePostIndexingJobs,
 		LdapSyncJobs:               ldapSyncJobs,
 		MigrationJobs:              migrationJobs,
-	}
-
-	/* Server stats */
-
-	analytics, appErr := a.GetAnalytics("standard", "")
-	if appErr != nil {
-		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
-	}
-	if len(analytics) < 11 {
-		rErr = multierror.Append(errors.New("not enought analytics information found"))
-	} else {
-		supportPacket.TotalChannels = int(analytics[0].Value) + int(analytics[1].Value)
-		supportPacket.TotalPosts = int(analytics[2].Value)
-		supportPacket.TotalTeams = int(analytics[4].Value)
-		supportPacket.WebsocketConnections = int(analytics[5].Value)
-		supportPacket.MasterDbConnections = int(analytics[6].Value)
-		supportPacket.ReplicaDbConnections = int(analytics[7].Value)
-		supportPacket.DailyActiveUsers = int(analytics[8].Value)
-		supportPacket.MonthlyActiveUsers = int(analytics[9].Value)
-		supportPacket.InactiveUserCount = int(analytics[10].Value)
 	}
 
 	// Marshal to a Yaml File
