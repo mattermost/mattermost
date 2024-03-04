@@ -6,6 +6,8 @@
     align-items: center;
     justify-content: space-between;
     padding: 0 16px;
+    height: 56px;
+    background-color: var(--center-channel-bg);
 
     h1,
     h2,
@@ -23,12 +25,17 @@
         font-weight: 600;
     }
 
-    > div p {
-        margin: 6px 0 0;
-        color: rgba(var(--center-channel-color-rgb), 0.75);
-        font-size: 12px;
-        font-weight: 400;
-        line-height: 16px;
+    > div {
+
+        display: flex;
+
+        p {
+            color: rgba(var(--center-channel-color-rgb), 0.75);
+            font-size: 12px;
+            font-weight: 400;
+            line-height: 16px;
+            margin:0 0 0 8px;
+        }
     }
 
     > .spacer {

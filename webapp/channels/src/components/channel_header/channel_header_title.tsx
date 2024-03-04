@@ -91,6 +91,7 @@ const ChannelHeaderTitle = ({
     }
     return (
         <React.Fragment>
+            <ChannelHeaderTitleFavorite/>
             <MenuWrapper onToggle={setTitleMenuOpen}>
                 <div
                     id='channelHeaderDropdownButton'
@@ -120,7 +121,6 @@ const ChannelHeaderTitle = ({
                 </div>
                 <ChannelHeaderDropdown/>
             </MenuWrapper>
-            <ChannelHeaderTitleFavorite/>
         </React.Fragment>
     );
 };

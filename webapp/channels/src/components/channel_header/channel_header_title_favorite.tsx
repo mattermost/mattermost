@@ -73,7 +73,7 @@ const ChannelHeaderTitleFavorite = () => {
                 id='toggleFavorite'
                 ref={toggleFavoriteRef}
                 onClick={toggleFavoriteCallback}
-                className={classNames('style--none color--link channel-header__favorites', {active: isFavorite, inactive: !isFavorite})}
+                className={classNames('channel-header__favorites btn btn-icon btn-xs', {active: isFavorite, inactive: !isFavorite})}
                 aria-label={ariaLabel}
             >
                 <i className={classNames('icon', {'icon-star': isFavorite, 'icon-star-outline': !isFavorite})}/>

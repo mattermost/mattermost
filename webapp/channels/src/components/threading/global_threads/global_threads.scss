@@ -65,7 +65,7 @@
 
     // 2-column
     grid-template-columns: var(--list) var(--pane);
-    grid-template-rows: 63px 1fr;
+    grid-template-rows: 56px 1fr;
 
     // single column
     @media screen and (max-width: 1020px) {

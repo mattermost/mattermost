@@ -2,10 +2,10 @@
 
 .channel-header {
     position: relative;
+    padding: 12px 12px;
     z-index: 15;
     width: 100%;
-    max-height: 63px;
-    flex: 0 0 63px;
+    max-height: 56px;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background: v(center-channel-bg);
     font-size: 14px;
@@ -16,7 +16,7 @@
         height: 24px;
         flex: 1 1 0;
         align-items: center;
-        padding: 4px 4px;
+        padding: 4px;
         border-radius: 4px;
 
         &:hover {
@@ -44,7 +44,7 @@
         margin-left: 0;
     }
 
-    .channel-header__favorites {
+    .btn.channel-header__favorites {
         position: relative;
         z-index: 1;
         height: 24px;
@@ -56,7 +56,7 @@
         i {
             position: relative;
             top: -1px;
-            font-size: 18px;
+            font-size: 18px !important;
             opacity: 0.64;
         }
 
@@ -77,6 +77,7 @@
         &.active {
             i {
                 opacity: 1;
+                color: var(--button-bg);
             }
         }
     }
@@ -84,24 +85,9 @@
     .channel-header__mute {
         position: relative;
         z-index: 1;
-        height: 24px;
-        padding: 4px;
-        margin-left: 4px;
-        border-radius: 4px;
-        color: v(center-channel-color);
-        float: left;
-
-        &:hover {
-            background: rgba(v(center-channel-color-rgb), 0.08);
-
-            i {
-                opacity: 0.73;
-            }
-        }
 
         &.inactive {
             .icon {
-                color: v(center-channel-color);
             }
         }
 
@@ -110,33 +96,16 @@
                 opacity: 1;
             }
         }
-
-        i {
-            position: relative;
-            top: -2px;
-            font-size: 16px;
-            opacity: 0.75;
-        }
-    }
-
-    .channel-header__icon {
-        line-height: 16px;
-
-        .channel-header__members {
-            font-size: 14.4px;
-        }
-
-        .channel-header__pin {
-            font-size: 14.4px;
-        }
     }
 
     .flex-parent {
         display: flex;
-        padding: 0 16px 0 8px;
+        padding: 0;
     }
 
     .flex-child {
+        margin:0 !important; //to override inline margin added by calls button
+
         &:first-child {
             min-width: 0;
             flex: 1;
@@ -214,6 +183,16 @@
         }
     }
 
+    &:hover {
+        .channel-header__info {
+            .channel-header__description {
+                .header-placeholder {
+                    display:flex;
+                }
+            }
+        }
+    }
+
     .heading {
         overflow: hidden;
         margin: 0 0 0 2px;
@@ -285,8 +264,8 @@
 }
 
 .channel-header__info {
-    margin-top: 8px;
     white-space: nowrap;
+    padding: 4px 0;
 
     .dropdown-toggle {
         display: flex;
@@ -301,6 +280,7 @@
 
     .channel-header__title {
         display: flex;
+        height: 24px;
 
         .channel-header__favorites {
             flex: 0 0 auto;
@@ -312,7 +292,6 @@
 
         > div {
             display: flex;
-            min-width: 0;
             flex: 0 1 auto;
         }
 
@@ -331,16 +310,22 @@
         }
     }
 
+    .channel-header__icons {
+        margin-right: 8px;
+        gap: 4px;
+    }
+
     .channel-header__description {
         position: relative;
         display: flex;
-        overflow: hidden;
         width: 100%;
-        height: 25px;
+        height: 24px;
         align-items: center;
         margin: 0;
+        gap: 2px;
         font-size: 12px;
         text-overflow: ellipsis;
+        overflow: hidden;
 
         span[data-emoticon] {
             .emoticon {
@@ -364,10 +349,9 @@
         }
 
         .header-placeholder {
-            display: flex;
+            display: none;
             overflow: hidden;
             align-items: center;
-            margin-left: 4px;
             line-height: 16px;
 
             span {
@@ -384,10 +368,6 @@
             display: flex;
             overflow: hidden;
             flex-direction: column;
-            align-self: start;
-            margin-top: 4px;
-            margin-left: 4px;
-            line-height: 19px;
 
             ul {
                 &:first-child {
@@ -467,7 +447,7 @@
         }
 
         .status {
-            margin-left: 6px;
+            margin-left: 0px;
             line-height: 16px;
         }
     }
@@ -486,7 +466,7 @@
         overflow: hidden;
         flex-shrink: 0;
         align-items: center;
-        margin-right: 7px;
+        margin-right: 8px;
         line-height: 16px;
 
         span.last-active__text {

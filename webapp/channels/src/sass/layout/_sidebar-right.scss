@@ -136,7 +136,8 @@
 
     .sidebar--right__title {
         display: flex;
-        height: 2.4rem;
+        height: auto;
+        align-items: center;
         flex: 1 1 auto;
         padding: 0 1.6rem;
         font-family: Metropolis, sans-serif;
@@ -144,6 +145,11 @@
         font-weight: 600;
 
         @include clearfix;
+
+        span {
+            position: relative;
+            top: 1px;
+        }
     }
 
     .sidebar--right__title__channel {
@@ -215,6 +221,7 @@
 
         .sidebar--right__back {
             margin-right: 4px !important;
+            margin-left: -8px !important;
         }
 
         .controls {
@@ -307,13 +314,7 @@
         }
 
         .sidebar--right__header {
-            flex-basis: 63px;
-        }
-
-        .sidebar--right__title {
-            height: auto;
-            align-items: center;
-            line-height: 63px;
+            flex-basis: 56px;
         }
 
         // search bar container is now only for mobile
