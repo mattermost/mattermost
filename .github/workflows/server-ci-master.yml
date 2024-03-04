@@ -3,9 +3,7 @@ on:
   push:
     branches:
       - master
-      - cloud
       - release-*
-      - mono-repo*
 
 jobs:
   master-ci:
