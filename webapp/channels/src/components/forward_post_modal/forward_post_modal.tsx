@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState, useMemo} from 'react';
 import {FormattedList, FormattedMessage, useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import type {ValueType} from 'react-select';
@@ -41,7 +41,7 @@ const noop = () => {};
 const ForwardPostModal = ({onExited, post, actions}: Props) => {
     const {formatMessage} = useIntl();
 
-    const getChannel = makeGetChannel();
+    const getChannel = useMemo(makeGetChannel, []);
 
     const channel = useSelector((state: GlobalState) => getChannel(state, {id: post.channel_id}));
     const currentTeam = useSelector(getCurrentTeam);

@@ -23,10 +23,9 @@ import type {GlobalState} from 'types/store';
 export function makeGetCustomStatus(): (state: GlobalState, userID?: string) => UserCustomStatus | undefined {
     return createSelector(
         'makeGetCustomStatus',
-        (state: GlobalState, userID?: string) => (userID ? getUser(state, userID) : getCurrentUser(state)),
-        (user) => {
-            const userProps = user?.props || {};
-            return userProps.customStatus ? JSON.parse(userProps.customStatus) : undefined;
+        (state: GlobalState, userID?: string) => (userID ? getUser(state, userID)?.props?.customStatus : getCurrentUser(state).props?.customStatus),
+        (customStatus) => {
+            return customStatus ? JSON.parse(customStatus) : undefined;
         },
     );
 }

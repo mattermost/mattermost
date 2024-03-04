@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useMemo} from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
 import {useDispatch, useSelector} from 'react-redux';
@@ -94,7 +94,7 @@ const TrialBanner = ({
 
     const {formatMessage} = useIntl();
     const state = store.getState();
-    const getCategory = makeGetCategory();
+    const getCategory = useMemo(makeGetCategory, []);
     const preferences = getCategory(state, Preferences.UNIQUE);
     const restartedAfterUpgradePrefValue = preferences.find((pref: PreferenceType) => pref.name === Unique.REQUEST_TRIAL_AFTER_SERVER_UPGRADE);
     const clickedUpgradeAndStartTrialBtn = preferences.find((pref: PreferenceType) => pref.name === Unique.CLICKED_UPGRADE_AND_TRIAL_BTN);
