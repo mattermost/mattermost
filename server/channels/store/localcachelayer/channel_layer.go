@@ -73,7 +73,7 @@ func (s *LocalCacheChannelStore) handleClusterInvalidateChannelByName(msg *model
 }
 
 func (s LocalCacheChannelStore) ClearMembersForUserCache() {
-	s.rootStore.doClearCacheCluster(s.rootStore.reaction.rootStore.channelMembersForUserCache)
+	s.rootStore.doClearCacheCluster(s.rootStore.channelMembersForUserCache)
 }
 
 func (s LocalCacheChannelStore) ClearCaches() {
