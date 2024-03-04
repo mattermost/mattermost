@@ -2894,6 +2894,31 @@ func TestUpdateChannelRoles(t *testing.T) {
 func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	id := model.NewId()
+	guest := &model.User{
+		Email:         th.GenerateTestEmail(),
+		Nickname:      "nn_" + id,
+		FirstName:     "f_" + id,
+		LastName:      "l_" + id,
+		Password:      "Pa$$word11",
+		EmailVerified: true,
+	}
+	guest, appError := th.App.CreateGuest(th.Context, guest)
+	require.Nil(t, appError)
+	_, _, appError = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
+	th.AddUserToChannel(guest, th.BasicChannel)
+
+	require.Nil(t, appError)
+
 	SystemAdminClient := th.SystemAdminClient
 	WebSocketClient, err := th.CreateWebSocketClient()
 	WebSocketClient.Listen()
@@ -2944,6 +2969,11 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
 
+	//cannot set Guest to User for single channel
+	resp, err := SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, guest.Id, s2)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
+
 	s3 := &model.SchemeRoles{
 		SchemeAdmin: true,
 		SchemeUser:  false,
@@ -2977,21 +3007,17 @@ func TestUpdateChannelMemberSchemeRoles(t *testing.T) {
 		SchemeUser:  false,
 		SchemeGuest: true,
 	}
-	_, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s5)
-	require.NoError(t, err)
-
-	tm5, _, err := SystemAdminClient.GetChannelMember(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, "")
-	require.NoError(t, err)
-	assert.Equal(t, true, tm5.SchemeGuest)
-	assert.Equal(t, false, tm5.SchemeUser)
-	assert.Equal(t, false, tm5.SchemeAdmin)
+	// cannot set user to guest for a single channel
+	resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s5)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	s6 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  true,
 		SchemeGuest: true,
 	}
-	resp, err := SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s6)
+	resp, err = SystemAdminClient.UpdateChannelMemberSchemeRoles(context.Background(), th.BasicChannel.Id, th.BasicUser.Id, s6)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
