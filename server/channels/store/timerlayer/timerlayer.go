@@ -8441,22 +8441,6 @@ func (s *TimerLayerSystemStore) SaveOrUpdate(system *model.System) error {
 	return err
 }
 
-func (s *TimerLayerSystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System) error {
-	start := time.Now()
-
-	err := s.SystemStore.SaveOrUpdateWithWarnMetricHandling(system)
-
-	elapsed := float64(time.Since(start)) / float64(time.Second)
-	if s.Root.Metrics != nil {
-		success := "false"
-		if err == nil {
-			success = "true"
-		}
-		s.Root.Metrics.ObserveStoreMethodDuration("SystemStore.SaveOrUpdateWithWarnMetricHandling", success, elapsed)
-	}
-	return err
-}
-
 func (s *TimerLayerSystemStore) Update(system *model.System) error {
 	start := time.Now()
 
