@@ -3323,16 +3323,8 @@
     "translation": "Bei der Verbindung zum Identity Provider trat ein Fehler auf. Bitte kontaktiere deinen Systemadministrator."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Beim Kodieren der Anfrage für den Identity Provider trat ein Fehler auf. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML-Anmeldung war nicht erfolgreich, da Verschlüsselung nicht aktiviert ist. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Datei des öffentlichen Zertifikats des Identity Providers nicht gefunden. Bitte kontaktiere deinen Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3343,20 +3335,12 @@
     "translation": "SAML-Anmeldung war nicht erfolgreich, da die Antwort des Identity Providers nicht verschlüsselt war. Bitte kontaktiere deinen Systemadministrator."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da ein Fehler beim Entschlüsseln der Antwort des Identity Providers auftrat. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Leere Antwort vom Identitätsprovider erhalten."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Es trat ein Fehler beim Verarbeiten der Antwort des Identity Providers auf. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Es trat ein Fehler beim Validieren der Antwort des Identity Providers auf. Bitte kontaktiere deinen Systemadministrator."
   },
   {
     "id": "ent.saml.license_disable.app_error",

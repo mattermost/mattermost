@@ -2752,10 +2752,6 @@
     "translation": "Din licens ger inte tillgång till SAML-autentisering."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Ett fel uppstod då svaret från Identity Provider skulle valideras. Kontakta din Systemadministratör."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Ett fel uppstod när svaret från Identity Provider skulle tolkas. Kontakta din Systemadministratör."
   },
@@ -2772,10 +2768,6 @@
     "translation": "Vi mottog ett tomt svar från Identity Providern."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Misslyckad inloggning via SAML då ett fel uppstod när svaret från Identity Provider skulle derypteras. Kontakta Systemadministratören."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "Misslyckad inloggning via SAML då svaret från Identity Provider var okrypterat. Kontakta Systemadministratören."
   },
@@ -2784,16 +2776,8 @@
     "translation": "Misslyckad inloggning via SAML då Service Provider Private Key inte kunde hittas. Kontakta systemadministratören."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Filen med Identity Providerns publika Certifikat hittades inte. Kontakta din systemadministratör."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Misslyckad SAML-inloggning eftersom kryptering inte är aktiverad. Kontakta din systemadministratör."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Ett fel uppstod när förfrågan till Identity Provider skulle kodas. Kontakta din Systemadministratör."
   },
   {
     "id": "ent.saml.build_request.app_error",

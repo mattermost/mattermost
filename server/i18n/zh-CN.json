@@ -3318,16 +3318,8 @@
     "translation": "尝试向身份提供者请求时发生错误。请联系您的系统管理员。"
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "尝试编码身份提供者请求时发生错误。请联系您的系统管理员。"
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML 登入因加密未开启而失败。请联系您的系统管理员。"
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "身份认证提供者公共证书文件没有被发现。请与系统管理员联系。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3338,20 +3330,12 @@
     "translation": "SAML登录因身份服务提供者回应未加密而失败。请联系您的系统管理员。"
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML 登入因解码身份服务提供者回复发生错误而失败。请联系您的系统管理员。"
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "我们收到留一份来自身份提供者的空白请求。"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "尝试解析身份提供者回复时发生错误。请联系您的系统管理员。"
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "尝试验证身份提供者回复时发生错误。请联系您的系统管理员。"
   },
   {
     "id": "ent.saml.license_disable.app_error",
