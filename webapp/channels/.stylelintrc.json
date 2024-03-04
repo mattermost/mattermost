@@ -1,6 +1,7 @@
 {
     "extends": ["stylelint-config-idiomatic-order", "stylelint-config-recommended-scss"],
     "rules": {
+        "@stylistic/indentation": 4,
         "no-descending-specificity": null,
         "font-family-no-missing-generic-family-keyword": null,
         "property-no-unknown": [

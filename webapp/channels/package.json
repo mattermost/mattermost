@@ -106,6 +106,7 @@
     "@hot-loader/react-dom": "17.0.2",
     "@mattermost/eslint-plugin": "*",
     "@redux-devtools/extension": "3.2.3",
+    "@stylistic/stylelint-plugin": "2.1.0",
     "@testing-library/jest-dom": "5.16.4",
     "@testing-library/react": "12.1.4",
     "@testing-library/user-event": "13.5.0",
@@ -188,7 +189,9 @@
     }
   },
   "scripts": {
-    "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",
+    "check": "npm run check:eslint && npm run check:stylelint",
+    "check:eslint": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache",
+    "check:stylelint": "stylelint \"**/*.{css,scss}\" --cache",
     "fix": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --fix --cache && stylelint \"**/*.{css,scss}\" --fix --cache",
     "build": "cross-env NODE_ENV=production webpack",
     "run": "webpack --progress --watch",
