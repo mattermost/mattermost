@@ -15,6 +15,7 @@ import {
     registerAdminConsolePlugin,
     unregisterAdminConsolePlugin,
     registerAdminConsoleCustomSetting,
+    registerSupportPacket,
 } from 'actions/admin_actions';
 import {showRHSPlugin, hideRHSPlugin, toggleRHSPlugin} from 'actions/views/rhs';
 import {
@@ -886,6 +887,19 @@ export default class PluginRegistry {
         options?: {showTitle: boolean};
     }) => {
         store.dispatch(registerAdminConsoleCustomSetting(this.id, key, component, {showTitle}));
+    });
+    
+    registerPluginSupportPacket = reArg([
+        'translation',
+        'label',
+    ], ({
+        translation,
+        label,
+    }: {
+        translation: string;
+        label: string;
+    }) => {
+        store.dispatch(registerSupportPacket(this.id, translation, label))
     });
 
     // Unregister a previously registered admin console definition override function.

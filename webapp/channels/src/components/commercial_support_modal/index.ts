@@ -16,12 +16,16 @@ function mapStateToProps(state: GlobalState) {
     const isCloud = license.Cloud === 'true';
     const currentUser = getCurrentUser(state);
     const showBannerWarning = (config.EnableFile !== 'true' || config.FileLevel !== 'DEBUG') && !(isCloud);
+    let packetContents = [
+        {id: 'basic.contents', translation: '', default_label: 'Basic sontents', selected: true, mandatory: true},
+        {id: 'basic.server.logs', translation: '', default_label: 'Server logs', selected: false, mandatory: false},
+    ]
 
     return {
         isCloud,
         currentUser,
         showBannerWarning,
-        pluginSupportPackets: state.plugins.supportPackets,
+        packetContents,
     };
 }
 

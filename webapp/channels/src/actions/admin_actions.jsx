@@ -499,12 +499,13 @@ export function requestTrialLicense(requestLicenseBody, page) {
     };
 }
 
-export function registerSupportPacket(pluginId, label) {
+export function registerSupportPacket(pluginId, translation, label) {
     return (storeDispatch) => {
         storeDispatch({
             type: ActionTypes.RECEIVED_PLUGIN_SUPPORT_PACKET,
             data: {
                 pluginId,
+                translation,
                 label,
             },
         });

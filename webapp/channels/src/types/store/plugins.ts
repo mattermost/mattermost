@@ -252,5 +252,6 @@ export type DesktopNotificationHook = PluginComponent & {
 
 export type SupportPacketContent = {
     pluginId: string;
+    translation: string;
     label: string;
 };

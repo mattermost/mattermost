@@ -6,6 +6,7 @@ import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
 import type {UserProfile} from '@mattermost/types/users';
+import type { SupportPacketContent } from '@mattermost/types/admin';
 
 import {Client4} from 'mattermost-redux/client';
 
@@ -29,21 +30,23 @@ type Props = {
 
     currentUser: UserProfile;
 
-    pluginSupportPackets: GlobalState['plugins']['supportPackets'];
+    packetContents: SupportPacketContent[];
+
 };
 
 type State = {
     show: boolean;
     showBannerWarning: boolean;
+    packetContents:SupportPacketContent[];
 };
 
 export default class CommercialSupportModal extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
-
         this.state = {
             show: true,
             showBannerWarning: props.showBannerWarning,
+            packetContents:  props.packetContents,
         };
     }
 
@@ -65,9 +68,18 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         this.updateBannerWarning(false);
     };
 
+    updateCheckStatus = (index: number) => {
+        this.setState({
+            packetContents: this.state.packetContents.map(
+                (item, currentIndex) => (currentIndex === index && !item.mandatory ) ? { ...item, selected: !item.selected } : item
+            )
+        })
+    }
+
     render() {
         const {showBannerWarning} = this.state;
         const {isCloud, currentUser} = this.props;
+
 
         const supportLink = isCloud ? `https://customers.mattermost.com/cloud/contact-us?name=${currentUser.first_name} ${currentUser.last_name}&email=${currentUser.email}&inquiry=technical` : 'https://support.mattermost.com/hc/en-us/requests/new';
         return (
@@ -113,50 +125,31 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 defaultMessage={'**Select your support packet contents to download**'}
                             />
                         </div>
-                        <div className='CommercialSupportModal__options'>
-                            <input
-                                className='CommercialSupportModal__options__checkbox'
-                                id='basic'
-                                name='basic'
-                                type='checkbox'
-                                checked={true}
-                                readOnly={true}
-                            />
-                            <FormattedMessage
-                                id='commercial_support.description.contents.basic'
-                                defaultMessage='Basic contents'
-                            >
-                            {(text) => (
-                                <label
-                                    className='CommercialSupportModal__options_checkbox_label'
-                                    htmlFor='basic'
-                                >
-                                    {text}
-                                </label>)
-                            }
-                            </FormattedMessage>
-                        </div>
-                        <div className='CommercialSupportModal__options'>
+                        {this.state.packetContents.map((item, index) => (
+                        <div className='CommercialSupportModal__option' key={item.id}>
                         <input
                                 className='CommercialSupportModal__options__checkbox'
-                                id='logs'
-                                name='logs'
+                                id={item.id}
+                                name={item.id}
                                 type='checkbox'
+                                checked={item.selected}
+                                onChange={() => this.updateCheckStatus(index)}
                             />
                             <FormattedMessage
-                                id='commercial_support.description.contents.logs'
-                                defaultMessage='Server logs'
+                                id='${item.translation}'
+                                defaultMessage={item.default_label}
                             >
                             {(text) => (
                                 <label
                                     className='CommercialSupportModal__options_checkbox_label'
-                                    htmlFor='logs'
+                                    htmlFor={item.id}
                                 >
                                     {text}
                                 </label>)
                             }
                             </FormattedMessage>
                         </div>
+                        ))}
                         <div className='CommercialSupportModal__download'>
                         <a
                             className='btn btn-primary DownloadSupportPacket'
