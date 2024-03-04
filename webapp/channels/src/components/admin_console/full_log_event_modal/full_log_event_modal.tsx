@@ -50,7 +50,7 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
     };
 
     exportToCsv = () => {
-        const file = navigator.clipboard.writeText(JSON.stringify(this.props.log, undefined, 2));
+        const file = JSON.stringify(this.props.log, undefined, 2);
         const csvContent = 'data:text/csv;charset=utf-8,' + file;
         const encodedUri = encodeURI(csvContent);
         window.open(encodedUri);
@@ -129,10 +129,12 @@ export default class FullLogEventModal extends React.PureComponent<Props, State>
                         />
                     </button>
                     {this.state.exportSuccess ? (
-                        <FormattedMessage
-                            id='admin.server_logs.Exported'
-                            defaultMessage='Exported'
-                        />
+                        <Button>
+                            <FormattedMessage
+                                id='admin.server_logs.Exported'
+                                defaultMessage='Exported'
+                            />
+                        </Button>
                     ) : (
                         <Button onClick={this.exportToCsv}>
                             <FormattedMessage
