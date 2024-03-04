@@ -13,7 +13,6 @@ const state: GlobalState = {
             dataRetentionPolicy: {},
             license: {},
             serverVersion: '',
-            warnMetricsStatus: {},
             firstAdminVisitMarketplaceStatus: false,
             firstAdminCompleteSetup: false,
         },
