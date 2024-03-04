@@ -9,7 +9,6 @@ import (
 	"os"
 	"runtime"
 	"runtime/pprof"
-	"strconv"
 	"strings"
 	"time"
 
@@ -186,7 +185,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		/* License */
 		LicenseTo:             licenseTo,
 		LicenseSupportedUsers: supportedUsers,
-		LicenseIsTrial:        strconv.FormatBool(isTrial),
+		LicenseIsTrial:        isTrial,
 
 		/* Server stats */
 		ActiveUsers: int(uniqueUserCount),
