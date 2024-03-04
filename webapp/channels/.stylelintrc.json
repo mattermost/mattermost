@@ -1,5 +1,11 @@
 {
-    "extends": ["stylelint-config-idiomatic-order", "stylelint-config-recommended-scss"],
+    "extends": [
+        "stylelint-config-idiomatic-order",
+        "stylelint-config-recommended-scss"
+    ],
+    "plugins": [
+        "@stylistic/stylelint-plugin"
+    ],
     "rules": {
         "@stylistic/indentation": 4,
         "no-descending-specificity": null,
