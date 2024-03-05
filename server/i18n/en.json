@@ -1450,6 +1450,10 @@
     "translation": "Invites an external Mattermost instance to the current shared channel"
   },
   {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Cannot invite remote to channel: {{.Error}}"
+  },
+  {
     "id": "api.command_share.missing_action",
     "translation": "Missing action. Available actions: {{.Actions}}"
   },
@@ -2759,6 +2763,10 @@
     "translation": "CWS Server failed to delete workspace."
   },
   {
+    "id": "api.server.cws.disabled",
+    "translation": "Interactions with the Mattermost Customer Portal have been disabled by the system admin."
+  },
+  {
     "id": "api.server.cws.health_check.app_error",
     "translation": "CWS Server is not available."
   },
@@ -3155,12 +3163,12 @@
     "translation": "Invalid team member update: A guest cannot be made team member or team admin, please promote as a user first."
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Invalid team member update: A user must cannot be set as a guest and admin at the same time."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Invalid team member update: A guest cannot be set for a single team, a System Admin must promote or demote users to/from guests."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -9761,6 +9769,10 @@
   {
     "id": "model.user.is_valid.id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Invalid props (custom status)"
   },
   {
     "id": "model.user.is_valid.last_name.app_error",
