@@ -98,7 +98,7 @@
     "timezones.json": "1.6.1",
     "tinycolor2": "1.4.2",
     "turndown": "7.1.1",
-    "typescript": "4.9.5",
+    "typescript": "5.3.3",
     "zen-observable": "0.9.0"
   },
   "devDependencies": {
@@ -141,7 +141,6 @@
     "@types/tinycolor2": "1.4.3",
     "@typescript-eslint/eslint-plugin": "5.57.1",
     "@typescript-eslint/parser": "5.57.1",
-    "babel-plugin-lodash": "3.3.4",
     "copy-webpack-plugin": "11.0.0",
     "emoji-datasource": "6.1.1",
     "emoji-datasource-apple": "6.1.1",
@@ -184,6 +183,11 @@
     "webpack-bundle-analyzer": "4.7.0",
     "webpack-pwa-manifest": "4.3.0",
     "yargs": "16.2.0"
+  },
+  "overrides": {
+    "@mattermost/desktop-api": {
+      "typescript": "$typescript"
+    }
   },
   "scripts": {
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",
