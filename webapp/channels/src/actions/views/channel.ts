@@ -64,14 +64,14 @@ import type {GlobalState} from 'types/store';
 export function goToLastViewedChannel(): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
-        const currentChannel = getCurrentChannel(state) || {};
+        const currentChannel = getCurrentChannel(state);
         const channelsInTeam = getChannelsNameMapInCurrentTeam(state);
         const directChannel = getAllDirectChannelsNameMapInCurrentTeam(state);
         const channels = Object.assign({}, channelsInTeam, directChannel);
 
         let channelToSwitchTo = getChannelByName(channels, getLastViewedChannelName(state));
 
-        if (currentChannel.id === channelToSwitchTo!.id) {
+        if (currentChannel?.id === channelToSwitchTo!.id) {
             channelToSwitchTo = getChannelByName(channels, getRedirectChannelNameForTeam(state, getCurrentTeamId(state)));
         }
 
@@ -83,7 +83,10 @@ export function switchToChannelById(channelId: string): ActionFuncAsync {
     return async (dispatch, getState) => {
         const state = getState();
         const channel = getChannel(state, channelId);
-        return dispatch(switchToChannel(channel));
+        if (channel) {
+            return dispatch(switchToChannel(channel));
+        }
+        return {data: true};
     };
 }
 
@@ -119,7 +122,7 @@ export function switchToChannel(channel: Channel & {userId?: string}): ActionFun
             getHistory().push(`${teamUrl}/messages/@${channel.name}`);
         } else if (channel.type === Constants.GM_CHANNEL) {
             const gmChannel = getChannel(state, channel.id);
-            getHistory().push(`${teamUrl}/channels/${gmChannel.name}`);
+            getHistory().push(`${teamUrl}/channels/${gmChannel?.name}`);
         } else if (channel.type === Constants.THREADS) {
             getHistory().push(`${teamUrl}/${channel.name}`);
         } else {

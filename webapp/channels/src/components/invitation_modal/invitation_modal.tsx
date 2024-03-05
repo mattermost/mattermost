@@ -60,7 +60,7 @@ export type Props = {
         ) => Promise<ActionResult<InviteResults>>;
     };
     currentTeam: Team;
-    currentChannel: Channel;
+    currentChannel?: Channel;
     townSquareDisplayName: string;
     invitableChannels: Channel[];
     emailInvitationsEnabled: boolean;

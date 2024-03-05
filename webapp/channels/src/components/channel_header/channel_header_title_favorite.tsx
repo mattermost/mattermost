@@ -19,17 +19,20 @@ const ChannelHeaderTitleFavorite = () => {
     const dispatch = useDispatch();
     const isFavorite = useSelector(isCurrentChannelFavorite);
     const channel = useSelector(getCurrentChannel);
-    const channelIsArchived = channel.delete_at !== 0;
+    const channelIsArchived = channel?.delete_at !== 0;
     const toggleFavoriteRef = useRef<HTMLButtonElement>(null);
 
     const toggleFavoriteCallback = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
         e.stopPropagation();
+        if (!channel) {
+            return;
+        }
         if (isFavorite) {
             dispatch(unfavoriteChannel(channel.id));
         } else {
             dispatch(favoriteChannel(channel.id));
         }
-    }, [isFavorite, channel.id]);
+    }, [isFavorite, channel?.id]);
 
     const removeTooltipLink = useCallback(() => {
         // Bootstrap adds the attr dynamically, removing it to prevent a11y readout

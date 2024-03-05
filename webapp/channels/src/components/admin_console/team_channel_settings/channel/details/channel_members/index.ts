@@ -54,7 +54,7 @@ function makeMapStateToProps() {
 
         const config = getConfig(state);
         const channelMembers = getChannelMembersInChannels(state)[channelId] || {};
-        const channel = getChannel(state, channelId) || {channel_id: channelId};
+        const channel = getChannel(state, channelId);
         const searchTerm = state.views.search.userGridSearch?.term || '';
         const filters = getUserGridFilters(state);
 

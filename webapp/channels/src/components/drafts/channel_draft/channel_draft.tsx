@@ -27,7 +27,7 @@ import PanelBody from '../panel/panel_body';
 import Header from '../panel/panel_header';
 
 type Props = {
-    channel: Channel;
+    channel?: Channel;
     channelUrl: string;
     displayName: string;
     draftId: string;
@@ -60,14 +60,14 @@ function ChannelDraft({
     }, [history, channelUrl]);
 
     const handleOnDelete = useCallback((id: string) => {
-        dispatch(removeDraft(id, channel.id));
-    }, [dispatch, channel.id]);
+        dispatch(removeDraft(id, channel!.id));
+    }, [dispatch, channel?.id]);
 
     const doSubmit = useCallback((id: string, post: Post) => {
         dispatch(createPost(post, value.fileInfos));
-        dispatch(removeDraft(id, channel.id));
+        dispatch(removeDraft(id, channel!.id));
         history.push(channelUrl);
-    }, [dispatch, history, value.fileInfos, channel.id, channelUrl]);
+    }, [dispatch, history, value.fileInfos, channel?.id, channelUrl]);
 
     const showPersistNotificationModal = useCallback((id: string, post: Post) => {
         dispatch(openModal({
@@ -75,12 +75,12 @@ function ChannelDraft({
             dialogType: PersistNotificationConfirmModal,
             dialogProps: {
                 message: post.message,
-                channelType: channel.type,
+                channelType: channel!.type,
                 specialMentions: specialMentionsInText(post.message),
                 onConfirm: () => doSubmit(id, post),
             },
         }));
-    }, [channel.type, dispatch, doSubmit]);
+    }, [channel?.type, dispatch, doSubmit]);
 
     const handleOnSend = useCallback(async (id: string) => {
         const post = {} as Post;

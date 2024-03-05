@@ -15,7 +15,7 @@ import AdminPanel from 'components/widgets/admin_console/admin_panel';
 import './channel_profile.scss';
 interface ChannelProfileProps {
     channel: Partial<Channel>;
-    team: Partial<Team>;
+    team?: Team;
     onToggleArchive?: () => void;
     isArchived: boolean;
     isDisabled?: boolean;
@@ -71,7 +71,7 @@ export const ChannelProfile = (props: ChannelProfileProps): JSX.Element => {
                             defaultMessage='**Team**'
                         />
                         <br/>
-                        {team.display_name}
+                        {team?.display_name}
                     </div>
                     {sharedBlock}
                     <div className='AdminChannelDetails_archiveContainer'>

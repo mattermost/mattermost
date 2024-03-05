@@ -50,7 +50,7 @@ const popoverMarkdownOptions = {singleline: false, mentionHighlight: false, atMe
 export type Props = {
     teamId: string;
     currentUser: UserProfile;
-    channel: Channel;
+    channel?: Channel;
     memberCount?: number;
     channelMember?: ChannelMembership;
     dmUser?: UserProfile;
@@ -171,7 +171,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
     showChannelFiles = () => {
         if (this.props.rhsState === RHSStates.CHANNEL_FILES) {
             this.props.actions.closeRightHandSide();
-        } else {
+        } else if (this.props.channel) {
             this.props.actions.showChannelFiles(this.props.channel.id);
         }
     };
@@ -182,6 +182,10 @@ class ChannelHeader extends React.PureComponent<Props, State> {
         }
 
         const {actions, channel} = this.props;
+        if (!channel) {
+            return;
+        }
+
         const modalData = {
             modalId: ModalIdentifiers.EDIT_CHANNEL_HEADER,
             dialogType: EditChannelHeaderModal,
@@ -214,7 +218,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
     toggleChannelMembersRHS = () => {
         if (this.props.rhsState === RHSStates.CHANNEL_MEMBERS) {
             this.props.actions.closeRightHandSide();
-        } else {
+        } else if (this.props.channel) {
             this.props.actions.showChannelMembers(this.props.channel.id);
         }
     };
@@ -260,6 +264,10 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             hasGuests,
             hideGuestTags,
         } = this.props;
+        if (!channel) {
+            return null;
+        }
+
         const {formatMessage} = this.props.intl;
         const ariaLabelChannelHeader = this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'});
 

@@ -32,6 +32,9 @@ function SidebarChannel({
     autoSortedCategoryIds,
 }: Props) {
     const [show, setShow] = useState(true);
+    if (!channel) {
+        return null;
+    }
 
     function isCollapsed() {
         return isCategoryDragged || (isCategoryCollapsed && !isUnread && !isCurrentChannel);
@@ -39,7 +42,7 @@ function SidebarChannel({
 
     function setRef(refMethod?: (element: HTMLLIElement) => void) {
         return (ref: HTMLLIElement) => {
-            setChannelRef(channel.id, ref);
+            setChannelRef(channel?.id || '', ref);
             refMethod?.(ref);
         };
     }

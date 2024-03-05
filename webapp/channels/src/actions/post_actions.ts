@@ -290,7 +290,7 @@ export function setEditingPost(postId = '', refocusId = '', title = '', isRHS = 
         const license = state.entities.general.license;
         const userId = getCurrentUserId(state);
         const channel = getChannel(state, post.channel_id);
-        const teamId = channel.team_id || '';
+        const teamId = channel?.team_id || '';
 
         const canEditNow = canEditPost(state, config, license, teamId, post.channel_id, userId, post);
 

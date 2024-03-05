@@ -37,11 +37,11 @@ function makeMapStateToProps() {
 
         const currentChannelId = getCurrentChannelId(state);
 
-        const unreadCount = getUnreadCount(state, channel.id);
+        const unreadCount = getUnreadCount(state, channel?.id || '');
 
         return {
             channel,
-            isCurrentChannel: channel.id === currentChannelId,
+            isCurrentChannel: channel?.id === currentChannelId,
             currentTeamName: currentTeam.name,
             unreadMentions: unreadCount.mentions,
             isUnread: unreadCount.showUnread,

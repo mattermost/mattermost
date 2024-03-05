@@ -65,12 +65,12 @@ function makeMapStateToProps() {
     return (state: GlobalState) => {
         const config = getConfig(state);
         const license = getLicense(state);
-        const currentChannel = getCurrentChannel(state) || {};
-        const currentChannelTeammateUsername = getUser(state, currentChannel.teammate_id || '')?.username;
-        const draft = getChannelDraft(state, currentChannel.id);
-        const isRemoteDraft = state.views.drafts.remotes[`${StoragePrefixes.DRAFT}${currentChannel.id}`] || false;
+        const currentChannel = getCurrentChannel(state);
+        const currentChannelTeammateUsername = currentChannel ? getUser(state, currentChannel.teammate_id || '')?.username : undefined;
+        const draft = getChannelDraft(state, currentChannel?.id || '');
+        const isRemoteDraft = (currentChannel && state.views.drafts.remotes[`${StoragePrefixes.DRAFT}${currentChannel.id}`]) || false;
         const latestReplyablePostId = getLatestReplyablePostId(state);
-        const currentChannelMembersCount = getCurrentChannelStats(state) ? getCurrentChannelStats(state).member_count : 1;
+        const currentChannelMembersCount = getCurrentChannelStats(state) ? getCurrentChannelStats(state)?.member_count || 0 : 1;
         const enableEmojiPicker = config.EnableEmojiPicker === 'true';
         const enableGifPicker = config.EnableGifPicker === 'true';
         const enableConfirmNotificationsToChannel = config.EnableConfirmNotificationsToChannel === 'true';
@@ -82,9 +82,11 @@ function makeMapStateToProps() {
         const isLDAPEnabled = license?.IsLicensed === 'true' && license?.LDAPGroups === 'true';
         const useCustomGroupMentions = isCustomGroupsEnabled(state) && haveICurrentChannelPermission(state, Permissions.USE_GROUP_MENTIONS);
         const useLDAPGroupMentions = isLDAPEnabled && haveICurrentChannelPermission(state, Permissions.USE_GROUP_MENTIONS);
-        const channelMemberCountsByGroup = selectChannelMemberCountsByGroup(state, currentChannel.id);
+        const channelMemberCountsByGroup = currentChannel ? selectChannelMemberCountsByGroup(state, currentChannel.id) : {};
         const currentTeamId = getCurrentTeamId(state);
-        const groupsWithAllowReference = useLDAPGroupMentions || useCustomGroupMentions ? getAssociatedGroupsForReferenceByMention(state, currentTeamId, currentChannel.id) : null;
+        const groupsWithAllowReference = (currentChannel && (useLDAPGroupMentions || useCustomGroupMentions)) ?
+            getAssociatedGroupsForReferenceByMention(state, currentTeamId, currentChannel.id) :
+            null;
         const enableTutorial = config.EnableTutorial === 'true';
         const tutorialStep = getInt(state, TutorialTourName.ONBOARDING_TUTORIAL_STEP, currentUserId, 0);
 

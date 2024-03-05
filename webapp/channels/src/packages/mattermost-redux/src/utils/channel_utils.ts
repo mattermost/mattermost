@@ -151,8 +151,8 @@ export function getGroupDisplayNameFromUserIds(userIds: Set<string>, profiles: I
     return names.sort(sortUsernames).join(', ');
 }
 
-export function isDefault(channel: Channel): boolean {
-    return channel.name === General.DEFAULT_CHANNEL;
+export function isDefault(channel?: Channel): boolean {
+    return channel?.name === General.DEFAULT_CHANNEL;
 }
 
 export function completeDirectGroupInfo(usersState: UsersState, teammateNameDisplay: string, channel: Channel, omitCurrentUser = true) {
