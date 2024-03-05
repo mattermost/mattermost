@@ -114,11 +114,12 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 		len(options.Roles) == 0 &&
 		len(options.ChannelRoles) == 0 &&
 		len(options.TeamRoles) == 0 &&
+		options.Page == 0 && options.PerPage == 100 && // This is hardcoded to the webapp call.
 		options.ViewRestrictions == nil {
 		// read from cache
 		var users []*model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.allUserCache, allUserKey, &users); err == nil {
-			return users[options.Page*options.PerPage : options.PerPage], nil
+			return users, nil
 		}
 
 		users, err := s.UserStore.GetProfiles(options)
