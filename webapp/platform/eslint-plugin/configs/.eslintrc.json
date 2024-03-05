@@ -60,6 +60,7 @@
         "format": ["PascalCase"]
       }
     ],
+    "@typescript-eslint/no-dupe-class-members": 2,
     "@typescript-eslint/no-empty-function": 0,
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-unused-vars": [
@@ -302,7 +303,7 @@
     "no-debugger": 2,
     "no-div-regex": 2,
     "no-dupe-args": 2,
-    "no-dupe-class-members": 2,
+    "no-dupe-class-members": 0, // Handled by @typescript-eslint/no-dupe-class-members
     "no-dupe-keys": 2,
     "no-duplicate-case": 2,
     "no-duplicate-imports": 0, // Handled by import/no-duplicates
