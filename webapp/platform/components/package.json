@@ -28,8 +28,6 @@
     "@types/shallow-equals": "^1.0.0",
     "@types/styled-components": "^5.1.19",
     "rollup": "^2.75.7",
-    "rollup-plugin-auto-external": "^2.0.0",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-scss": "^3.0.0",
     "typescript": "^5.0.0"
   },
