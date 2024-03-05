@@ -10152,5 +10152,25 @@
   {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "Kan de gebruiker niet toevoegen als lid van het kanaal."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Ongeldige props (aangepaste status)"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Ongeldige update teamlid: Een gast kan niet worden ingesteld voor een enkel team, een systeembeheerder moet gebruikers promoveren naar of degraderen van gast."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Kan externe gebruiker niet uitnodigen tot het kanaal: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Interacties met het Mattermost Klantenportaal zijn uitgeschakeld door de systeembeheerder."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL is te lang"
   }
 ]
