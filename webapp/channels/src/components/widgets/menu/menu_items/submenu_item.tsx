@@ -238,8 +238,6 @@ export default class SubMenuItem extends React.PureComponent<Props, State> {
                     aria-label={ariaLabel}
                     onMouseEnter={this.show}
                     onMouseLeave={this.hide}
-
-                    // onClick={this.onClick}
                     tabIndex={tabIndex ?? 0}
                     onKeyDown={this.handleKeyDown}
                 >
