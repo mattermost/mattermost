@@ -853,7 +853,7 @@ func (s SqlTeamStore) SaveMultipleMembers(members []*model.TeamMember, maxUsersP
 	return newMembers, nil
 }
 
-func (s SqlTeamStore) SaveMember(member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
+func (s SqlTeamStore) SaveMember(rctx request.CTX, member *model.TeamMember, maxUsersPerTeam int) (*model.TeamMember, error) {
 	members, err := s.SaveMultipleMembers([]*model.TeamMember{member}, maxUsersPerTeam)
 	if err != nil {
 		return nil, err
@@ -936,7 +936,7 @@ func (s SqlTeamStore) UpdateMultipleMembers(members []*model.TeamMember) ([]*mod
 	return updatedMembers, nil
 }
 
-func (s SqlTeamStore) UpdateMember(member *model.TeamMember) (*model.TeamMember, error) {
+func (s SqlTeamStore) UpdateMember(rctx request.CTX, member *model.TeamMember) (*model.TeamMember, error) {
 	members, err := s.UpdateMultipleMembers([]*model.TeamMember{member})
 	if err != nil {
 		return nil, err
@@ -1184,7 +1184,7 @@ func (s SqlTeamStore) GetChannelUnreadsForTeam(teamId, userId string) ([]*model.
 	return channels, nil
 }
 
-func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) error {
+func (s SqlTeamStore) RemoveMembers(rctx request.CTX, teamId string, userIds []string) error {
 	builder := s.getQueryBuilder().
 		Delete("TeamMembers").
 		Where(sq.Eq{"TeamId": teamId}).
@@ -1202,8 +1202,8 @@ func (s SqlTeamStore) RemoveMembers(teamId string, userIds []string) error {
 }
 
 // RemoveMember remove from the database the team members that match the userId and teamId passed as parameter.
-func (s SqlTeamStore) RemoveMember(teamId string, userId string) error {
-	return s.RemoveMembers(teamId, []string{userId})
+func (s SqlTeamStore) RemoveMember(rctx request.CTX, teamId string, userId string) error {
+	return s.RemoveMembers(rctx, teamId, []string{userId})
 }
 
 // RemoveAllMembersByTeam removes from the database the team members that belong to the teamId passed as parameter.
@@ -1223,7 +1223,7 @@ func (s SqlTeamStore) RemoveAllMembersByTeam(teamId string) error {
 }
 
 // RemoveAllMembersByUser removes from the database the team members that match the userId passed as parameter.
-func (s SqlTeamStore) RemoveAllMembersByUser(userId string) error {
+func (s SqlTeamStore) RemoveAllMembersByUser(rctx request.CTX, userId string) error {
 	query, args, err := s.getQueryBuilder().
 		Delete("TeamMembers").
 		Where(sq.Eq{"UserId": userId}).ToSql()

@@ -85,7 +85,7 @@ func testPostPersistentNotificationStoreGet(t *testing.T, rctx request.CTX, ss s
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 
-	defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+	defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 	defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id, p4.Id, p5.Id})
 
 	t.Run("Get Single", func(t *testing.T) {
@@ -160,7 +160,7 @@ func testPostPersistentNotificationStoreUpdateLastSentAt(t *testing.T, rctx requ
 	require.NoError(t, err)
 	require.Equal(t, -1, errIdx)
 
-	defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+	defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 	defer ss.PostPersistentNotification().Delete([]string{p1.Id})
 
 	// Update from 0 value
@@ -239,7 +239,7 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
 		defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id})
 
 		err = ss.PostPersistentNotification().Delete([]string{p1.Id, p3.Id})
@@ -325,8 +325,8 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(p1.ChannelId)
-		defer ss.Post().PermanentDeleteByChannel(p4.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p1.ChannelId)
+		defer ss.Post().PermanentDeleteByChannel(rctx, p4.ChannelId)
 		defer ss.PostPersistentNotification().Delete([]string{p1.Id, p2.Id, p3.Id, p4.Id, p5.Id})
 
 		err = ss.PostPersistentNotification().DeleteByChannel([]string{p1.ChannelId})
@@ -351,13 +351,13 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 
 		c1 := &model.Channel{TeamId: t1.Id, Name: model.NewId(), DisplayName: "c1", Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(c1, -1)
+		_, err = ss.Channel().Save(rctx, c1, -1)
 		require.NoError(t, err)
 		c2 := &model.Channel{TeamId: t1.Id, Name: model.NewId(), DisplayName: "c2", Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(c2, -1)
+		_, err = ss.Channel().Save(rctx, c2, -1)
 		require.NoError(t, err)
 		c3 := &model.Channel{TeamId: t2.Id, Name: model.NewId(), DisplayName: "c1", Type: model.ChannelTypeOpen}
-		_, err = ss.Channel().Save(c3, -1)
+		_, err = ss.Channel().Save(rctx, c3, -1)
 		require.NoError(t, err)
 
 		p1 := model.Post{}
@@ -429,9 +429,9 @@ func testPostPersistentNotificationStoreDelete(t *testing.T, rctx request.CTX, s
 		require.NoError(t, err)
 		require.Equal(t, -1, errIdx)
 
-		defer ss.Post().PermanentDeleteByChannel(c1.Id)
-		defer ss.Post().PermanentDeleteByChannel(c2.Id)
-		defer ss.Post().PermanentDeleteByChannel(c3.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c1.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c2.Id)
+		defer ss.Post().PermanentDeleteByChannel(rctx, c3.Id)
 		defer ss.Channel().PermanentDeleteByTeam(t1.Id)
 		defer ss.Channel().PermanentDeleteByTeam(t2.Id)
 		defer ss.Team().PermanentDelete(t1.Id)

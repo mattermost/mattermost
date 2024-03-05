@@ -95,7 +95,7 @@
                         float: none;
 
                         .post__time {
-                            opacity: 0.6;
+                            opacity: 0.73;
                         }
                     }
                 }
@@ -158,7 +158,7 @@
         .msg-typing {
             display: block;
             min-width: 1px;
-            max-width: 230px;
+            max-width: 100%;
             height: 20px;
             margin: 2px 0;
             float: left;

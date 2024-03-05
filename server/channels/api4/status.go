@@ -49,9 +49,11 @@ func getUserStatus(c *Context, w http.ResponseWriter, r *http.Request) {
 }
 
 func getUserStatusesByIds(c *Context, w http.ResponseWriter, r *http.Request) {
-	userIds := model.ArrayFromJSON(r.Body)
-
-	if len(userIds) == 0 {
+	userIds, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("getUserStatusesByIds", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	} else if len(userIds) == 0 {
 		c.SetInvalidParam("user_ids")
 		return
 	}
@@ -203,7 +205,7 @@ func removeUserRecentCustomStatus(c *Context, w http.ResponseWriter, r *http.Req
 		return
 	}
 
-	if err := c.App.RemoveRecentCustomStatus(c.Params.UserId, &recentCustomStatus); err != nil {
+	if err := c.App.RemoveRecentCustomStatus(c.AppContext, c.Params.UserId, &recentCustomStatus); err != nil {
 		c.Err = err
 		return
 	}

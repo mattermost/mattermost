@@ -87,11 +87,15 @@
             margin: 0 auto;
         }
     }
+
+    span {
+        margin-left: 4px;
+    }
 }
 
 .BillingSummary__lastInvoice-date {
     margin-top: 8px;
-    color: rgba(var(--sys-center-channel-color-rgb), 0.72);
+    color: rgba(var(--sys-center-channel-color-rgb), 0.75);
 }
 
 .BillingSummary__lastInvoice-productName {
@@ -128,7 +132,7 @@
 }
 
 .BillingSummary__lastInvoice-partialCharges {
-    color: rgba(var(--sys-center-channel-color-rgb), 0.56);
+    color: rgba(var(--sys-center-channel-color-rgb), 0.75);
     font-size: 12px;
     line-height: 16px;
 

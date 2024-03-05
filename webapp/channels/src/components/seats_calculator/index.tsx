@@ -20,6 +20,7 @@ interface Props {
     existingUsers: number;
     isCloud: boolean;
     onChange: (seats: Seats) => void;
+    excludeTotal?: boolean;
 }
 
 export interface Seats {
@@ -204,37 +205,41 @@ export default function SeatsCalculator(props: Props) {
                             >
                                 <InformationOutlineIcon
                                     size={18}
-                                    color={'rgba(var(--center-channel-text-rgb), 0.72)'}
+                                    color={'rgba(var(--center-channel-text-rgb), 0.75)'}
                                 />
                             </OverlayTrigger>
                         </div>
                     </div>
                 </div>
-                <div className='SeatsCalculator__seats-item'>
-                    <div className='SeatsCalculator__seats-label'>
-                        <FormattedMessage
-                            id='self_hosted_signup.line_item_subtotal'
-                            defaultMessage='{num} seats × 12 mo.'
-                            values={{
-                                num: props.seats.quantity || '0',
-                            }}
-                        />
-                    </div>
-                    <div className='SeatsCalculator__seats-value'>
-                        {total}
-                    </div>
-                </div>
-                <div className='SeatsCalculator__total'>
-                    <div className='SeatsCalculator__total-label'>
-                        <FormattedMessage
-                            id='self_hosted_signup.total'
-                            defaultMessage='Total'
-                        />
-                    </div>
-                    <div className='SeatsCalculator__total-value'>
-                        {total}
-                    </div>
-                </div>
+                {!props.excludeTotal && (
+                    <>
+                        <div className='SeatsCalculator__seats-item'>
+                            <div className='SeatsCalculator__seats-label'>
+                                <FormattedMessage
+                                    id='self_hosted_signup.line_item_subtotal'
+                                    defaultMessage='{num} seats × 12 mo.'
+                                    values={{
+                                        num: props.seats.quantity || '0',
+                                    }}
+                                />
+                            </div>
+                            <div className='SeatsCalculator__seats-value'>
+                                {total}
+                            </div>
+                        </div>
+                        <div className='SeatsCalculator__total'>
+                            <div className='SeatsCalculator__total-label'>
+                                <FormattedMessage
+                                    id='self_hosted_signup.total'
+                                    defaultMessage='Total'
+                                />
+                            </div>
+                            <div className='SeatsCalculator__total-value'>
+                                {total}
+                            </div>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
 

@@ -87,12 +87,12 @@ type Params struct {
 	FilterArchived            bool
 	FilterParentTeamPermitted bool
 	CategoryId                string
-	WarnMetricId              string
 	ExportName                string
 	ExcludePolicyConstrained  bool
 	GroupSource               model.GroupSource
 	FilterHasMember           string
 	IncludeChannelMemberCount string
+	OutgoingOAuthConnectionID string
 
 	// Cloud
 	InvoiceId string
@@ -145,6 +145,7 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.GroupId = props["group_id"]
 	params.RemoteId = props["remote_id"]
 	params.InvoiceId = props["invoice_id"]
+	params.OutgoingOAuthConnectionID = props["outgoing_oauth_connection_id"]
 	params.Scope = query.Get("scope")
 
 	if val, err := strconv.Atoi(query.Get("page")); err != nil || val < 0 {
@@ -225,7 +226,6 @@ func ParamsFromRequest(r *http.Request) *Params {
 	params.GroupIDs = query.Get("group_ids")
 	params.IncludeTotalCount, _ = strconv.ParseBool(query.Get("include_total_count"))
 	params.IncludeDeleted, _ = strconv.ParseBool(query.Get("include_deleted"))
-	params.WarnMetricId = props["warn_metric_id"]
 	params.ExportName = props["export_name"]
 	params.ExcludePolicyConstrained, _ = strconv.ParseBool(query.Get("exclude_policy_constrained"))
 

@@ -5,14 +5,14 @@ import type {Scheme, SchemeScope, SchemePatch} from '@mattermost/types/schemes';
 
 import {SchemeTypes} from 'mattermost-redux/action_types';
 import {Client4} from 'mattermost-redux/client';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync} from 'mattermost-redux/types/actions';
 
 import {logError} from './errors';
 import {bindClientFunc, forceLogoutIfNecessary} from './helpers';
 
 import {General} from '../constants';
 
-export function getScheme(schemeId: string): ActionFunc {
+export function getScheme(schemeId: string) {
     return bindClientFunc({
         clientFunc: Client4.getScheme,
         onSuccess: [SchemeTypes.RECEIVED_SCHEME],
@@ -22,7 +22,7 @@ export function getScheme(schemeId: string): ActionFunc {
     });
 }
 
-export function getSchemes(scope: SchemeScope, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getSchemes(scope: SchemeScope, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getSchemes,
         onSuccess: [SchemeTypes.RECEIVED_SCHEMES],
@@ -34,7 +34,7 @@ export function getSchemes(scope: SchemeScope, page = 0, perPage: number = Gener
     });
 }
 
-export function createScheme(scheme: Scheme): ActionFunc {
+export function createScheme(scheme: Scheme) {
     return bindClientFunc({
         clientFunc: Client4.createScheme,
         onSuccess: [SchemeTypes.CREATED_SCHEME],
@@ -44,8 +44,8 @@ export function createScheme(scheme: Scheme): ActionFunc {
     });
 }
 
-export function deleteScheme(schemeId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteScheme(schemeId: string): ActionFuncAsync {
+    return async (dispatch, getState) => {
         let data = null;
         try {
             data = await Client4.deleteScheme(schemeId);
@@ -61,7 +61,7 @@ export function deleteScheme(schemeId: string): ActionFunc {
     };
 }
 
-export function patchScheme(schemeId: string, scheme: SchemePatch): ActionFunc {
+export function patchScheme(schemeId: string, scheme: SchemePatch) {
     return bindClientFunc({
         clientFunc: Client4.patchScheme,
         onSuccess: [SchemeTypes.PATCHED_SCHEME],
@@ -72,7 +72,7 @@ export function patchScheme(schemeId: string, scheme: SchemePatch): ActionFunc {
     });
 }
 
-export function getSchemeTeams(schemeId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getSchemeTeams(schemeId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getSchemeTeams,
         onSuccess: [SchemeTypes.RECEIVED_SCHEME_TEAMS],
@@ -84,7 +84,7 @@ export function getSchemeTeams(schemeId: string, page = 0, perPage: number = Gen
     });
 }
 
-export function getSchemeChannels(schemeId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT): ActionFunc {
+export function getSchemeChannels(schemeId: string, page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getSchemeChannels,
         onSuccess: [SchemeTypes.RECEIVED_SCHEME_CHANNELS],

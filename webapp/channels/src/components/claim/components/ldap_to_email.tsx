@@ -7,6 +7,8 @@ import {FormattedMessage, useIntl} from 'react-intl';
 
 import type {AuthChangeResponse} from '@mattermost/types/users';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import LoginMfa from 'components/login/login_mfa';
 
 import {ClaimErrors} from 'utils/constants';
@@ -19,7 +21,7 @@ import type {PasswordConfig} from '../claim_controller';
 
 type Props = {
     email: string | null;
-    switchLdapToEmail: (ldapPassword: string, email: string, password: string, token: string) => Promise<{data?: AuthChangeResponse; error?: {server_error_id: string; message: string}}>;
+    switchLdapToEmail: (ldapPassword: string, email: string, password: string, token: string) => Promise<ActionResult<AuthChangeResponse>>;
     passwordConfig?: PasswordConfig;
 }
 

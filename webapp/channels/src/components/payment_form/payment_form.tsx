@@ -65,7 +65,7 @@ const PaymentForm: React.FC<Props> = (props: Props) => {
         company_name: props.customer?.name || '',
     });
 
-    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLSelectElement>) => {
+    const handleInputChange = (event: React.ChangeEvent<HTMLInputElement> | React.ChangeEvent<HTMLTextAreaElement>) => {
         const target = event.target;
         const name = target.name;
         const value = target.value;

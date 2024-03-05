@@ -15,7 +15,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         id="admin.environment.pushNotificationServer"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <Memo(DropdownSetting)
         helpText={null}
         id="pushNotificationServerType"
@@ -122,7 +122,12 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"https://push-test.mattermost.com\\"",
+            "id": "admin.email.pushServerEx",
+          }
+        }
         setByEnv={false}
         value="https://push.mattermost.com"
       />
@@ -141,12 +146,17 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"1000\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"1000\\"",
+            "id": "admin.team.maxNotificationsPerChannelExample",
+          }
+        }
         setByEnv={false}
         type="number"
         value={1000}
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >
@@ -205,7 +215,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         id="admin.environment.pushNotificationServer"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <Memo(DropdownSetting)
         helpText={null}
         id="pushNotificationServerType"
@@ -256,7 +266,12 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"https://push-test.mattermost.com\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"https://push-test.mattermost.com\\"",
+            "id": "admin.email.pushServerEx",
+          }
+        }
         setByEnv={false}
         value="https://push.mattermost.com"
       />
@@ -275,12 +290,17 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"1000\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"1000\\"",
+            "id": "admin.team.maxNotificationsPerChannelExample",
+          }
+        }
         setByEnv={false}
         type="number"
         value={1000}
       />
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >

@@ -4,13 +4,12 @@
 import {connect} from 'react-redux';
 import type {RouteComponentProps} from 'react-router-dom';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {GlobalState} from '@mattermost/types/store';
 
 import {deleteScheme} from 'mattermost-redux/actions/schemes';
 import {makeGetSchemeTeams} from 'mattermost-redux/selectors/entities/schemes';
-import type {ActionFunc, ActionResult, GenericAction} from 'mattermost-redux/types/actions';
 
 import PermissionsSchemeSummary from './permissions_scheme_summary';
 import type {Props} from './permissions_scheme_summary';
@@ -25,13 +24,9 @@ function makeMapStateToProps() {
     };
 }
 
-type Actions = {
-    deleteScheme: (schemeId: string) => Promise<ActionResult>;
-};
-
-function mapDispatchToProps(dispatch: Dispatch<GenericAction>) {
+function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc>, Actions>({
+        actions: bindActionCreators({
             deleteScheme,
         }, dispatch),
     };

@@ -115,7 +115,7 @@ func (a *App) runPluginsHook(c request.CTX, info *model.FileInfo, file io.Reader
 		}
 	} else {
 		if fileErr := a.RemoveFile(tmpPath); fileErr != nil {
-			mlog.Warn("Failed to remove file", mlog.Err(fileErr))
+			c.Logger().Warn("Failed to remove file", mlog.Err(fileErr))
 		}
 	}
 
@@ -306,7 +306,7 @@ func (a *App) UploadData(c request.CTX, us *model.UploadSession, rd io.Reader) (
 	}
 
 	var storeErr error
-	if info, storeErr = a.Srv().Store().FileInfo().Save(info); storeErr != nil {
+	if info, storeErr = a.Srv().Store().FileInfo().Save(c, info); storeErr != nil {
 		var appErr *model.AppError
 		switch {
 		case errors.As(storeErr, &appErr):

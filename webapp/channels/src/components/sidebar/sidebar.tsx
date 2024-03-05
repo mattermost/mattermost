@@ -37,7 +37,7 @@ type Props = {
     canJoinPublicChannel: boolean;
     isOpen: boolean;
     actions: {
-        fetchMyCategories: (teamId: string) => {data: boolean};
+        fetchMyCategories: (teamId: string) => void;
         openModal: <P>(modalData: ModalData<P>) => void;
         closeModal: (modalId: string) => void;
         clearChannelSelection: () => void;

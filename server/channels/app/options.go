@@ -103,17 +103,6 @@ func SkipPostInitialization() Option {
 	}
 }
 
-// SkipProductsInitialization is intended for testing only, in cases
-// where we're mocking components like the store and products cannot
-// be initialized correctly
-func SkipProductsInitialization() Option {
-	return func(s *Server) error {
-		s.skipProductsInit = true
-
-		return nil
-	}
-}
-
 type AppOption func(a *App)
 type AppOptionCreator func() []AppOption
 

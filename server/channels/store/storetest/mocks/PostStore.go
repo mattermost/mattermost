@@ -10,6 +10,8 @@ import (
 	model "github.com/mattermost/mattermost/server/public/model"
 	mock "github.com/stretchr/testify/mock"
 
+	request "github.com/mattermost/mattermost/server/public/shared/request"
+
 	store "github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -99,13 +101,13 @@ func (_m *PostStore) ClearCaches() {
 	_m.Called()
 }
 
-// Delete provides a mock function with given fields: postID, timestamp, deleteByID
-func (_m *PostStore) Delete(postID string, timestamp int64, deleteByID string) error {
-	ret := _m.Called(postID, timestamp, deleteByID)
+// Delete provides a mock function with given fields: rctx, postID, timestamp, deleteByID
+func (_m *PostStore) Delete(rctx request.CTX, postID string, timestamp int64, deleteByID string) error {
+	ret := _m.Called(rctx, postID, timestamp, deleteByID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, int64, string) error); ok {
-		r0 = rf(postID, timestamp, deleteByID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string, int64, string) error); ok {
+		r0 = rf(rctx, postID, timestamp, deleteByID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -139,25 +141,25 @@ func (_m *PostStore) Get(ctx context.Context, id string, opts model.GetPostsOpti
 	return r0, r1
 }
 
-// GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterID
-func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID string) ([]*model.DirectPostForExport, error) {
-	ret := _m.Called(limit, afterID)
+// GetDirectPostParentsForExportAfter provides a mock function with given fields: limit, afterID, includeArchivedChannels
+func (_m *PostStore) GetDirectPostParentsForExportAfter(limit int, afterID string, includeArchivedChannels bool) ([]*model.DirectPostForExport, error) {
+	ret := _m.Called(limit, afterID, includeArchivedChannels)
 
 	var r0 []*model.DirectPostForExport
 	var r1 error
-	if rf, ok := ret.Get(0).(func(int, string) ([]*model.DirectPostForExport, error)); ok {
-		return rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) ([]*model.DirectPostForExport, error)); ok {
+		return rf(limit, afterID, includeArchivedChannels)
 	}
-	if rf, ok := ret.Get(0).(func(int, string) []*model.DirectPostForExport); ok {
-		r0 = rf(limit, afterID)
+	if rf, ok := ret.Get(0).(func(int, string, bool) []*model.DirectPostForExport); ok {
+		r0 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*model.DirectPostForExport)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(int, string) error); ok {
-		r1 = rf(limit, afterID)
+	if rf, ok := ret.Get(1).(func(int, string, bool) error); ok {
+		r1 = rf(limit, afterID, includeArchivedChannels)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -845,25 +847,25 @@ func (_m *PostStore) InvalidateLastPostTimeCache(channelID string) {
 	_m.Called(channelID)
 }
 
-// Overwrite provides a mock function with given fields: post
-func (_m *PostStore) Overwrite(post *model.Post) (*model.Post, error) {
-	ret := _m.Called(post)
+// Overwrite provides a mock function with given fields: rctx, post
+func (_m *PostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
+	ret := _m.Called(rctx, post)
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Post) (*model.Post, error)); ok {
-		return rf(post)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) (*model.Post, error)); ok {
+		return rf(rctx, post)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
-		r0 = rf(post)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) *model.Post); ok {
+		r0 = rf(rctx, post)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Post) error); ok {
-		r1 = rf(post)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post) error); ok {
+		r1 = rf(rctx, post)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -959,13 +961,13 @@ func (_m *PostStore) PermanentDeleteBatchForRetentionPolicies(now int64, globalP
 	return r0, r1, r2
 }
 
-// PermanentDeleteByChannel provides a mock function with given fields: channelID
-func (_m *PostStore) PermanentDeleteByChannel(channelID string) error {
-	ret := _m.Called(channelID)
+// PermanentDeleteByChannel provides a mock function with given fields: rctx, channelID
+func (_m *PostStore) PermanentDeleteByChannel(rctx request.CTX, channelID string) error {
+	ret := _m.Called(rctx, channelID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(channelID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(rctx, channelID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -973,13 +975,13 @@ func (_m *PostStore) PermanentDeleteByChannel(channelID string) error {
 	return r0
 }
 
-// PermanentDeleteByUser provides a mock function with given fields: userID
-func (_m *PostStore) PermanentDeleteByUser(userID string) error {
-	ret := _m.Called(userID)
+// PermanentDeleteByUser provides a mock function with given fields: rctx, userID
+func (_m *PostStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
+	ret := _m.Called(rctx, userID)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string) error); ok {
-		r0 = rf(userID)
+	if rf, ok := ret.Get(0).(func(request.CTX, string) error); ok {
+		r0 = rf(rctx, userID)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -987,25 +989,25 @@ func (_m *PostStore) PermanentDeleteByUser(userID string) error {
 	return r0
 }
 
-// Save provides a mock function with given fields: post
-func (_m *PostStore) Save(post *model.Post) (*model.Post, error) {
-	ret := _m.Called(post)
+// Save provides a mock function with given fields: rctx, post
+func (_m *PostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
+	ret := _m.Called(rctx, post)
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Post) (*model.Post, error)); ok {
-		return rf(post)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) (*model.Post, error)); ok {
+		return rf(rctx, post)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Post) *model.Post); ok {
-		r0 = rf(post)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post) *model.Post); ok {
+		r0 = rf(rctx, post)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Post) error); ok {
-		r1 = rf(post)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post) error); ok {
+		r1 = rf(rctx, post)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1072,25 +1074,25 @@ func (_m *PostStore) Search(teamID string, userID string, params *model.SearchPa
 	return r0, r1
 }
 
-// SearchPostsForUser provides a mock function with given fields: paramsList, userID, teamID, page, perPage
-func (_m *PostStore) SearchPostsForUser(paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
-	ret := _m.Called(paramsList, userID, teamID, page, perPage)
+// SearchPostsForUser provides a mock function with given fields: rctx, paramsList, userID, teamID, page, perPage
+func (_m *PostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userID string, teamID string, page int, perPage int) (*model.PostSearchResults, error) {
+	ret := _m.Called(rctx, paramsList, userID, teamID, page, perPage)
 
 	var r0 *model.PostSearchResults
 	var r1 error
-	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) (*model.PostSearchResults, error)); ok {
-		return rf(paramsList, userID, teamID, page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.SearchParams, string, string, int, int) (*model.PostSearchResults, error)); ok {
+		return rf(rctx, paramsList, userID, teamID, page, perPage)
 	}
-	if rf, ok := ret.Get(0).(func([]*model.SearchParams, string, string, int, int) *model.PostSearchResults); ok {
-		r0 = rf(paramsList, userID, teamID, page, perPage)
+	if rf, ok := ret.Get(0).(func(request.CTX, []*model.SearchParams, string, string, int, int) *model.PostSearchResults); ok {
+		r0 = rf(rctx, paramsList, userID, teamID, page, perPage)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.PostSearchResults)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func([]*model.SearchParams, string, string, int, int) error); ok {
-		r1 = rf(paramsList, userID, teamID, page, perPage)
+	if rf, ok := ret.Get(1).(func(request.CTX, []*model.SearchParams, string, string, int, int) error); ok {
+		r1 = rf(rctx, paramsList, userID, teamID, page, perPage)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -1112,25 +1114,25 @@ func (_m *PostStore) SetPostReminder(reminder *model.PostReminder) error {
 	return r0
 }
 
-// Update provides a mock function with given fields: newPost, oldPost
-func (_m *PostStore) Update(newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
-	ret := _m.Called(newPost, oldPost)
+// Update provides a mock function with given fields: rctx, newPost, oldPost
+func (_m *PostStore) Update(rctx request.CTX, newPost *model.Post, oldPost *model.Post) (*model.Post, error) {
+	ret := _m.Called(rctx, newPost, oldPost)
 
 	var r0 *model.Post
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Post, *model.Post) (*model.Post, error)); ok {
-		return rf(newPost, oldPost)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Post) (*model.Post, error)); ok {
+		return rf(rctx, newPost, oldPost)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Post, *model.Post) *model.Post); ok {
-		r0 = rf(newPost, oldPost)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Post, *model.Post) *model.Post); ok {
+		r0 = rf(rctx, newPost, oldPost)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Post)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Post, *model.Post) error); ok {
-		r1 = rf(newPost, oldPost)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Post, *model.Post) error); ok {
+		r1 = rf(rctx, newPost, oldPost)
 	} else {
 		r1 = ret.Error(1)
 	}

@@ -96,7 +96,7 @@ const ChannelNameFormField = (props: Props): JSX.Element => {
         }
     }, [props.onURLChange, displayName.current, url, displayNameModified]);
 
-    const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleOnURLChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
         e.preventDefault();
         const {target: {value: url}} = e;
 

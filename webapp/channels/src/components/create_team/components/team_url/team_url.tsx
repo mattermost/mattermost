@@ -5,8 +5,9 @@ import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import type {ServerError} from '@mattermost/types/errors';
 import type {Team} from '@mattermost/types/teams';
+
+import type {ActionResult} from 'mattermost-redux/types/actions';
 
 import {trackEvent} from 'actions/telemetry_actions.jsx';
 
@@ -44,12 +45,12 @@ type Props = {
         /*
          * Action creator to check if a team already exists
          */
-        checkIfTeamExists: (teamName: string) => Promise<{data: boolean}>;
+        checkIfTeamExists: (teamName: string) => Promise<ActionResult<boolean>>;
 
         /*
      * Action creator to create a new team
      */
-        createTeam: (team: Team) => Promise<{data: Team; error: ServerError}>;
+        createTeam: (team: Team) => Promise<ActionResult<Team>>;
     };
     history: {
         push(path: string): void;
@@ -151,7 +152,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
         teamSignup.team.type = 'O';
         teamSignup.team.name = name;
 
-        const checkIfTeamExistsData: { data: boolean } = await checkIfTeamExists(name);
+        const checkIfTeamExistsData = await checkIfTeamExists(name);
         const exists = checkIfTeamExistsData.data;
 
         if (exists) {
@@ -165,7 +166,7 @@ export default class TeamUrl extends React.PureComponent<Props, State> {
             return;
         }
 
-        const createTeamData: { data: Team; error: any } = await createTeam(teamSignup.team);
+        const createTeamData = await createTeam(teamSignup.team);
         const data = createTeamData.data;
         const error = createTeamData.error;
 

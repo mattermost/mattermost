@@ -1,10 +1,11 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isEqual} from 'lodash';
+import isEqual from 'lodash/isEqual';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
-import {FormattedMessage} from 'react-intl';
+import type {IntlShape} from 'react-intl';
+import {injectIntl, FormattedMessage} from 'react-intl';
 import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -23,7 +24,6 @@ import MultiSelect from 'components/multiselect/multiselect';
 import type {Value} from 'components/multiselect/multiselect';
 import ProfilePicture from 'components/profile_picture';
 import ToggleModalButton from 'components/toggle_modal_button';
-import AddIcon from 'components/widgets/icons/fa_add_icon';
 import BotTag from 'components/widgets/tag/bot_tag';
 import GuestTag from 'components/widgets/tag/guest_tag';
 
@@ -46,6 +46,7 @@ export type Props = {
     profilesInCurrentChannel: UserProfile[];
     profilesNotInCurrentTeam: UserProfile[];
     profilesFromRecentDMs: UserProfile[];
+    intl: IntlShape;
     membersInTeam: RelationOneToOne<UserProfile, TeamMembership>;
     userStatuses: RelationOneToOne<UserProfile, string>;
     onExited: () => void;
@@ -99,7 +100,7 @@ const UserMappingSpan = styled.span`
     right: 20px;
 `;
 
-export default class ChannelInviteModal extends React.PureComponent<Props, State> {
+export class ChannelInviteModal extends React.PureComponent<Props, State> {
     private searchTimeoutId = 0;
     private selectedItemRef = React.createRef<HTMLDivElement>();
 
@@ -304,7 +305,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
 
         this.setState({saving: true});
 
-        actions.addUsersToChannel(channel.id, userIds).then((result: any) => {
+        actions.addUsersToChannel(channel.id, userIds).then((result) => {
             if (result.error) {
                 this.handleInviteError(result.error);
             } else {
@@ -425,7 +426,9 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                     </div>
                     <div className='more-modal__actions'>
                         <div className='more-modal__actions--round'>
-                            <AddIcon/>
+                            <i
+                                className='icon icon-plus'
+                            />
                         </div>
                     </div>
                 </div>
@@ -450,18 +453,6 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         if (this.state.inviteError) {
             inviteError = (<label className='has-error control-label'>{this.state.inviteError}</label>);
         }
-
-        const header = (
-            <h1>
-                <FormattedMessage
-                    id='channel_invite.addNewMembers'
-                    defaultMessage='Add people to {channel}'
-                    values={{
-                        channel: this.props.channel.display_name,
-                    }}
-                />
-            </h1>
-        );
 
         const buttonSubmitText = localizeMessage('multiselect.add', 'Add');
         const buttonSubmitLoadingText = localizeMessage('multiselect.adding', 'Adding...');
@@ -510,6 +501,7 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 key='addUsersToChannelKey'
                 options={this.state.groupAndUserOptions}
                 optionRenderer={this.renderOption}
+                intl={this.props.intl}
                 selectedItemRef={this.selectedItemRef}
                 values={this.state.selectedUsers}
                 ariaLabelRenderer={this.renderAriaLabel}
@@ -556,14 +548,24 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
                 <Modal.Header
                     id='channelInviteModalLabel'
                     closeButton={true}
-                />
+                >
+                    <Modal.Title
+                        componentClass='h1'
+                        id='deletePostModalLabel'
+                    >
+                        <FormattedMessage
+                            id='channel_invite.addNewMembers'
+                            defaultMessage='Add people to {channel}'
+                            values={{
+                                channel: this.props.channel.display_name,
+                            }}
+                        />
+                    </Modal.Title>
+                </Modal.Header>
                 <Modal.Body
                     role='application'
                     className='overflow--visible'
                 >
-                    <div className='channel-invite__header'>
-                        {header}
-                    </div>
                     {inviteError}
                     <div className='channel-invite__content'>
                         {content}
@@ -579,3 +581,5 @@ export default class ChannelInviteModal extends React.PureComponent<Props, State
         );
     };
 }
+
+export default injectIntl(ChannelInviteModal);

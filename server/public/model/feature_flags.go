@@ -42,12 +42,18 @@ type FeatureFlags struct {
 
 	EnableExportDirectDownload bool
 
+	MoveThreadsEnabled bool
+
 	StreamlinedMarketplace bool
 
 	CloudIPFiltering bool
 	ConsumePostHook  bool
 
 	CloudAnnualRenewals bool
+
+	CloudDedicatedExportUI bool
+
+	WebSocketEventScope bool
 }
 
 func (f *FeatureFlags) SetDefaults() {
@@ -62,10 +68,13 @@ func (f *FeatureFlags) SetDefaults() {
 	f.OnboardingTourTips = true
 	f.CloudReverseTrial = false
 	f.EnableExportDirectDownload = false
+	f.MoveThreadsEnabled = false
 	f.StreamlinedMarketplace = true
 	f.CloudIPFiltering = false
 	f.ConsumePostHook = false
 	f.CloudAnnualRenewals = false
+	f.CloudDedicatedExportUI = false
+	f.WebSocketEventScope = false
 }
 
 // ToMap returns the feature flags as a map[string]string

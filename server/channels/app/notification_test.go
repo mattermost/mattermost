@@ -228,11 +228,13 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	th.LinkUserToTeam(sender, th.BasicTeam)
 	member := th.AddUserToChannel(sender, th.BasicChannel)
 
+	eventTypesFilter := []model.WebsocketEventType{model.WebsocketEventPosted}
+
 	t.Run("should inform each user if they were mentioned by a post", func(t *testing.T) {
-		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
-		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		// First post mentioning the whole channel
@@ -312,10 +314,10 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		require.Nil(t, upsertErr)
 
 		// Set up the websockets
-		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
-		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		// Confirm permissions for group mentions are correct
@@ -342,10 +344,10 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	t.Run("should inform each user if they are following a thread that was posted in", func(t *testing.T) {
 		t.Log("BasicUser ", th.BasicUser.Id)
 		t.Log("sender ", sender.Id)
-		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
-		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		// Reply to a post made by BasicUser
@@ -370,10 +372,10 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 	})
 
 	t.Run("should not include broadcast hook information in messages sent to users", func(t *testing.T) {
-		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "")
+		messages1, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
 		defer closeWS1()
 
-		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "")
+		messages2, closeWS2 := connectFakeWebSocket(t, th, th.BasicUser2.Id, "", eventTypesFilter)
 		defer closeWS2()
 
 		// For a post mentioning only one user, nobody in the channel should receive information about the broadcast hooks
@@ -395,6 +397,40 @@ func TestSendNotifications_MentionsFollowers(t *testing.T) {
 		assert.Nil(t, received2.GetBroadcast().BroadcastHooks)
 		assert.Nil(t, received2.GetBroadcast().BroadcastHookArgs)
 	})
+
+	t.Run("should sanitize the post if there is an error", func(t *testing.T) {
+		messages, closeWS1 := connectFakeWebSocket(t, th, th.BasicUser.Id, "", eventTypesFilter)
+		defer closeWS1()
+
+		linkedPostId := "123456789"
+		postURL := fmt.Sprintf("%s/%s/pl/%s", th.App.GetSiteURL(), th.BasicTeam.Name, linkedPostId)
+		post := &model.Post{
+			UserId:    sender.Id,
+			ChannelId: th.BasicChannel.Id,
+			Message:   postURL,
+			Metadata: &model.PostMetadata{
+				Embeds: []*model.PostEmbed{
+					{
+						Type: model.PostEmbedPermalink,
+						URL:  postURL,
+						Data: &model.Post{},
+					},
+				},
+			},
+		}
+		post.SetProps(model.StringInterface{model.PostPropsPreviewedPost: linkedPostId})
+
+		_, err := th.App.SendNotifications(th.Context, post, th.BasicTeam, th.BasicChannel, sender, nil, false)
+		require.NoError(t, err)
+
+		received := <-messages
+		require.Equal(t, model.WebsocketEventPosted, received.EventType())
+		receivedPost := &model.Post{}
+		err = json.Unmarshal([]byte(received.GetData()["post"].(string)), &receivedPost)
+		require.NoError(t, err)
+		assert.Equal(t, postURL, receivedPost.Message)
+		assert.Nil(t, receivedPost.Metadata.Embeds)
+	})
 }
 
 func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
@@ -406,7 +442,7 @@ func assertUnmarshalsTo(t *testing.T, expected any, actual any) {
 	assert.JSONEq(t, string(val), actual.(string))
 }
 
-func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectionID string) (chan *model.WebSocketEvent, func()) {
+func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectionID string, eventTypes []model.WebsocketEventType) (chan *model.WebSocketEvent, func()) {
 	var session *model.Session
 	var server *httptest.Server
 	var webConn *platform.WebConn
@@ -422,6 +458,11 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 			appErr := th.App.RevokeSession(th.Context, session)
 			require.Nil(t, appErr)
 		}
+	}
+
+	eventTypesSet := make(map[model.WebsocketEventType]bool)
+	for _, eventType := range eventTypes {
+		eventTypesSet[eventType] = true
 	}
 
 	// Create a session for the user's connection
@@ -456,6 +497,10 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 				break
 			}
 
+			if !eventTypesSet[msg.EventType()] {
+				continue
+			}
+
 			messages <- msg
 		}
 	}))
@@ -481,13 +526,6 @@ func connectFakeWebSocket(t *testing.T, th *TestHelper, userID string, connectio
 	// Start reading from it
 	go webConn.Pump()
 
-	// Read the events which always occur at the start of a WebSocket connection
-	received := <-messages
-	assert.Equal(t, model.WebsocketEventHello, received.EventType())
-
-	received = <-messages
-	assert.Equal(t, model.WebsocketEventStatusChange, received.EventType())
-
 	return messages, closeWS
 }
 
@@ -498,7 +536,7 @@ func TestConnectFakeWebSocket(t *testing.T) {
 	teamID := th.BasicTeam.Id
 	userID := th.BasicUser.Id
 
-	messages, closeWS := connectFakeWebSocket(t, th, userID, "")
+	messages, closeWS := connectFakeWebSocket(t, th, userID, "", []model.WebsocketEventType{model.WebsocketEventPosted, model.WebsocketEventPostEdited})
 	defer closeWS()
 
 	msg := model.NewWebSocketEvent(model.WebsocketEventPosted, teamID, "", "", nil, "")
@@ -1699,7 +1737,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, mentionableUser4ID, ids[0], "should've returned mention key of First")
 
-	dup_count := func(list []MentionableID) map[MentionableID]int {
+	dupCount := func(list []MentionableID) map[MentionableID]int {
 		duplicate_frequency := make(map[MentionableID]int)
 
 		for _, item := range list {
@@ -1746,7 +1784,7 @@ func TestGetMentionKeywords(t *testing.T) {
 	require.Len(t, ids, 2)
 	require.False(t, ids[0] != mentionableUser1ID && ids[1] != mentionableUser1ID, "should've mentioned user1  with user")
 	require.False(t, ids[0] != mentionableUser4ID && ids[1] != mentionableUser4ID, "should've mentioned user4  with user")
-	idsMap := dup_count(keywords["@user"])
+	idsMap := dupCount(keywords["@user"])
 	require.True(t, ok)
 	require.Len(t, idsMap, 4)
 	require.Equal(t, idsMap[mentionableUser1ID], 2, "should've mentioned user1 with @user")
@@ -2454,6 +2492,12 @@ func TestInsertGroupMentions(t *testing.T) {
 	_, err = th.App.UpsertGroupMember(group.Id, groupChannelMember.Id)
 	require.Nil(t, err)
 
+	senderGroupChannelMember := th.CreateUser()
+	th.LinkUserToTeam(senderGroupChannelMember, team)
+	th.App.AddUserToChannel(th.Context, senderGroupChannelMember, channel, false)
+	_, err = th.App.UpsertGroupMember(group.Id, senderGroupChannelMember.Id)
+	require.Nil(t, err)
+
 	nonGroupChannelMember := th.CreateUser()
 	th.LinkUserToTeam(nonGroupChannelMember, team)
 	th.App.AddUserToChannel(th.Context, nonGroupChannelMember, channel, false)
@@ -2469,11 +2513,11 @@ func TestInsertGroupMentions(t *testing.T) {
 	groupWithNoMembers, err = th.App.UpdateGroup(groupWithNoMembers)
 	require.Nil(t, err)
 
-	profileMap := map[string]*model.User{groupChannelMember.Id: groupChannelMember, nonGroupChannelMember.Id: nonGroupChannelMember}
+	profileMap := map[string]*model.User{groupChannelMember.Id: groupChannelMember, senderGroupChannelMember.Id: senderGroupChannelMember, nonGroupChannelMember.Id: nonGroupChannelMember}
 
-	t.Run("should add expected mentions for users part of the mentioned group", func(t *testing.T) {
+	t.Run("should add expected mentions for users part of the mentioned group sender in group", func(t *testing.T) {
 		mentions := &MentionResults{}
-		usersMentioned, err := th.App.insertGroupMentions(group, channel, profileMap, mentions)
+		usersMentioned, err := th.App.insertGroupMentions(senderGroupChannelMember.Id, group, channel, profileMap, mentions)
 		require.Nil(t, err)
 		require.Equal(t, usersMentioned, true)
 
@@ -2487,9 +2531,27 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Equal(t, mentions.OtherPotentialMentions[0], nonChannelGroupMember.Username)
 	})
 
+	t.Run("should add expected mentions for users part of the mentioned group sender not in group", func(t *testing.T) {
+		mentions := &MentionResults{}
+		usersMentioned, err := th.App.insertGroupMentions(nonGroupChannelMember.Id, group, channel, profileMap, mentions)
+		require.Nil(t, err)
+		require.Equal(t, usersMentioned, true)
+
+		// Ensure group member that is also a channel member is added to the mentions list.
+		require.Equal(t, 2, len(mentions.Mentions))
+		_, found := mentions.Mentions[groupChannelMember.Id]
+		require.Equal(t, found, true)
+		_, found = mentions.Mentions[senderGroupChannelMember.Id]
+		require.Equal(t, found, true)
+
+		// Ensure group member that is not a channel member is added to the other potential mentions list.
+		require.Equal(t, len(mentions.OtherPotentialMentions), 1)
+		require.Equal(t, mentions.OtherPotentialMentions[0], nonChannelGroupMember.Username)
+	})
+
 	t.Run("should add no expected or potential mentions if the group has no users ", func(t *testing.T) {
 		mentions := &MentionResults{}
-		usersMentioned, err := th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
+		usersMentioned, err := th.App.insertGroupMentions(senderGroupChannelMember.Id, groupWithNoMembers, channel, profileMap, mentions)
 		require.Nil(t, err)
 		require.Equal(t, usersMentioned, false)
 
@@ -2500,8 +2562,8 @@ func TestInsertGroupMentions(t *testing.T) {
 
 	t.Run("should keep existing mentions", func(t *testing.T) {
 		mentions := &MentionResults{}
-		th.App.insertGroupMentions(group, channel, profileMap, mentions)
-		th.App.insertGroupMentions(groupWithNoMembers, channel, profileMap, mentions)
+		th.App.insertGroupMentions(senderGroupChannelMember.Id, group, channel, profileMap, mentions)
+		th.App.insertGroupMentions(senderGroupChannelMember.Id, groupWithNoMembers, channel, profileMap, mentions)
 
 		// Ensure mentions from group are kept after running with groupWithNoMembers
 		require.Equal(t, len(mentions.Mentions), 1)
@@ -2513,13 +2575,13 @@ func TestInsertGroupMentions(t *testing.T) {
 		emptyProfileMap := make(map[string]*model.User)
 
 		groupChannel := &model.Channel{Type: model.ChannelTypeGroup}
-		usersMentioned, _ := th.App.insertGroupMentions(group, groupChannel, emptyProfileMap, mentions)
+		usersMentioned, _ := th.App.insertGroupMentions(senderGroupChannelMember.Id, group, groupChannel, emptyProfileMap, mentions)
 		// Ensure group channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
 		require.Equal(t, len(mentions.Mentions), 0)
 
 		directChannel := &model.Channel{Type: model.ChannelTypeDirect}
-		usersMentioned, _ = th.App.insertGroupMentions(group, directChannel, emptyProfileMap, mentions)
+		usersMentioned, _ = th.App.insertGroupMentions(senderGroupChannelMember.Id, group, directChannel, emptyProfileMap, mentions)
 		// Ensure direct channel with no group members mentioned always returns true
 		require.Equal(t, usersMentioned, true)
 		require.Equal(t, len(mentions.Mentions), 0)
@@ -2530,7 +2592,7 @@ func TestInsertGroupMentions(t *testing.T) {
 		require.Nil(t, err)
 
 		mentions := &MentionResults{}
-		th.App.insertGroupMentions(group, groupChannel, profileMap, mentions)
+		th.App.insertGroupMentions(senderGroupChannelMember.Id, group, groupChannel, profileMap, mentions)
 
 		require.Equal(t, len(mentions.Mentions), 1)
 		_, found := mentions.Mentions[groupChannelMember.Id]

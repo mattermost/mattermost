@@ -76,7 +76,7 @@ describe('components/dot_menu/DotMenu', () => {
                 },
                 currentUserId: 'current_user_id',
                 profilesInChannel: {
-                    current_user_id: ['user_1'],
+                    current_user_id: new Set(['user_1']),
                 },
             },
             teams: {
@@ -146,6 +146,7 @@ describe('components/dot_menu/DotMenu', () => {
         threadReplyCount: 0,
         userId: 'user_id_1',
         isMilitaryTime: false,
+        canMove: true,
     };
 
     test('should match snapshot, on Center', () => {
@@ -171,6 +172,32 @@ describe('components/dot_menu/DotMenu', () => {
             ...baseProps,
             canEdit: true,
             canDelete: true,
+        };
+        const wrapper = renderWithContext(
+            <DotMenu {...props}/>,
+            initialState,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, can move', () => {
+        const props = {
+            ...baseProps,
+            canMove: true,
+        };
+        const wrapper = renderWithContext(
+            <DotMenu {...props}/>,
+            initialState,
+        );
+
+        expect(wrapper).toMatchSnapshot();
+    });
+
+    test('should match snapshot, cannot move', () => {
+        const props = {
+            ...baseProps,
+            canMove: false,
         };
         const wrapper = renderWithContext(
             <DotMenu {...props}/>,

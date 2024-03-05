@@ -264,10 +264,9 @@ func searchTeamsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var teamIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("team_ids", jsonErr)
+	teamIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("addTeamsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("addTeamsToPolicy", audit.Fail)
@@ -279,9 +278,9 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.AddTeamsToRetentionPolicy(policyId, teamIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.AddTeamsToRetentionPolicy(policyId, teamIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -292,10 +291,9 @@ func addTeamsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var teamIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&teamIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("team_ids", jsonErr)
+	teamIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("removeTeamsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeTeamsFromPolicy", audit.Fail)
@@ -308,9 +306,9 @@ func removeTeamsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.RemoveTeamsFromRetentionPolicy(policyId, teamIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.RemoveTeamsFromRetentionPolicy(policyId, teamIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -385,10 +383,9 @@ func searchChannelsInPolicy(c *Context, w http.ResponseWriter, r *http.Request) 
 func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var channelIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("channel_ids", jsonErr)
+	channelIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("addChannelsToPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("addChannelsToPolicy", audit.Fail)
@@ -401,9 +398,9 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := c.App.AddChannelsToRetentionPolicy(policyId, channelIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.AddChannelsToRetentionPolicy(policyId, channelIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 
@@ -414,10 +411,9 @@ func addChannelsToPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request) {
 	c.RequirePolicyId()
 	policyId := c.Params.PolicyId
-	var channelIDs []string
-	jsonErr := json.NewDecoder(r.Body).Decode(&channelIDs)
-	if jsonErr != nil {
-		c.SetInvalidParamWithErr("channel_ids", jsonErr)
+	channelIDs, err := model.SortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("removeChannelsFromPolicy", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
 		return
 	}
 	auditRec := c.MakeAuditRecord("removeChannelsFromPolicy", audit.Fail)
@@ -430,9 +426,9 @@ func removeChannelsFromPolicy(c *Context, w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	err := c.App.RemoveChannelsFromRetentionPolicy(policyId, channelIDs)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.RemoveChannelsFromRetentionPolicy(policyId, channelIDs)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

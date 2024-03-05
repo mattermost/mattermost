@@ -3,7 +3,7 @@
 
 import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
-import type {ActionCreatorsMapObject, Dispatch} from 'redux';
+import type {Dispatch} from 'redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
@@ -25,7 +25,6 @@ import {
     searchProfilesInCurrentTeam,
     getTotalUsersStats as getTotalUsersStatsSelector,
 } from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, GenericAction} from 'mattermost-redux/types/actions';
 
 import {openDirectChannelToUserId, openGroupChannelToUserIds} from 'actions/channel_actions';
 import {loadStatusesForProfilesList, loadProfilesMissingStatus} from 'actions/status_actions';
@@ -79,30 +78,14 @@ const makeMapStateToProps = () => {
             currentChannelMembers,
             currentUserId,
             restrictDirectMessage,
-            totalCount: stats.total_users_count,
+            totalCount: stats.total_users_count ?? 0,
         };
     };
 };
 
-type Actions = {
-    getProfiles: (page?: number | undefined, perPage?: number | undefined, options?: any) => Promise<any>;
-    getProfilesInTeam: (teamId: string, page: number, perPage?: number | undefined, sort?: string | undefined, options?: any) => Promise<any>;
-    loadProfilesMissingStatus: (users: UserProfile[]) => ActionFunc;
-    getTotalUsersStats: () => ActionFunc;
-    loadStatusesForProfilesList: (users: any) => {
-        data: boolean;
-    };
-    loadProfilesForGroupChannels: (groupChannels: any) => Promise<any>;
-    openDirectChannelToUserId: (userId: any) => Promise<any>;
-    openGroupChannelToUserIds: (userIds: any) => Promise<any>;
-    searchProfiles: (term: string, options?: any) => Promise<any>;
-    searchGroupChannels: (term: string) => Promise<any>;
-    setModalSearchTerm: (term: any) => GenericAction;
-}
-
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
-        actions: bindActionCreators<ActionCreatorsMapObject<ActionFunc | GenericAction>, Actions>({
+        actions: bindActionCreators({
             getProfiles,
             getProfilesInTeam,
             loadProfilesMissingStatus,

@@ -33,8 +33,8 @@ export type ClientConfig = {
     CWSMock: string;
     DataRetentionEnableFileDeletion: string;
     DataRetentionEnableMessageDeletion: string;
-    DataRetentionFileRetentionDays: string;
-    DataRetentionMessageRetentionDays: string;
+    DataRetentionFileRetentionHours: string;
+    DataRetentionMessageRetentionHours: string;
     DefaultClientLocale: string;
     DefaultTheme: string;
     DiagnosticId: string;
@@ -57,6 +57,7 @@ export type ClientConfig = {
     EnableCustomEmoji: string;
     EnableCustomGroups: string;
     EnableCustomUserStatuses: string;
+    EnableUserStatuses: string;
     EnableLastActiveTime: string;
     EnableTimedDND: string;
     EnableCustomTermsOfService: string;
@@ -81,6 +82,7 @@ export type ClientConfig = {
     EnableMobileFileUpload: string;
     EnableMultifactorAuthentication: string;
     EnableOAuthServiceProvider: string;
+    EnableOutgoingOAuthConnections: string;
     EnableOpenServer: string;
     EnableOutgoingWebhooks: string;
     EnablePostIconOverride: string;
@@ -119,6 +121,7 @@ export type ClientConfig = {
     FileLevel: string;
     FeatureFlagAppsEnabled: string;
     FeatureFlagCallsEnabled: string;
+    FeatureFlagWebSocketEventScope: string;
     ForgotPasswordLink: string;
     GiphySdkKey: string;
     GoogleDeveloperKey: string;
@@ -199,6 +202,12 @@ export type ClientConfig = {
     PersistentNotificationIntervalMinutes: string;
     AllowPersistentNotificationsForGuests: string;
     DelayChannelAutocomplete: 'true' | 'false';
+    WranglerPermittedWranglerRoles: string;
+    WranglerAllowedEmailDomain: string;
+    WranglerMoveThreadMaxCount: string;
+    WranglerMoveThreadFromPrivateChannelEnable: string;
+    WranglerMoveThreadFromDirectMessageChannelEnable: string;
+    WranglerMoveThreadFromGroupMessageChannelEnable: string;
     ServiceEnvironment: string;
     UniqueEmojiReactionLimitPerPost: string;
 };
@@ -297,6 +306,7 @@ export type ServiceSettings = {
     EnableIncomingWebhooks: boolean;
     EnableOutgoingWebhooks: boolean;
     EnableCommands: boolean;
+    OutgoingIntegrationRequestsTimeout: number;
     EnablePostUsernameOverride: boolean;
     EnablePostIconOverride: boolean;
     EnableLinkPreviews: boolean;
@@ -381,6 +391,7 @@ export type ServiceSettings = {
     PersistentNotificationMaxRecipients: number;
     UniqueEmojiReactionLimitPerPost: number;
     RefreshPostStatsRunTime: string;
+    MaximumPayloadSizeBytes: number;
 };
 
 export type TeamSettings = {
@@ -449,6 +460,7 @@ export type LogSettings = {
     EnableSentry: boolean;
     AdvancedLoggingConfig: string;
     AdvancedLoggingJSON: Record<string, any>;
+    MaxFieldSize: number;
 };
 
 export type ExperimentalAuditSettings = {
@@ -483,6 +495,16 @@ export type PasswordSettings = {
     Uppercase: boolean;
     Symbol: boolean;
     EnableForgotLink: boolean;
+};
+
+export type WranglerSettings = {
+    PermittedWranglerRoles: string[];
+    AllowedEmailDomain: string[];
+    MoveThreadMaxCount: number;
+    MoveThreadToAnotherTeamEnable: boolean;
+    MoveThreadFromPrivateChannelEnable: boolean;
+    MoveThreadFromDirectMessageChannelEnable: boolean;
+    MoveThreadFromGroupMessageChannelEnable: boolean;
 };
 
 export type FileSettings = {
@@ -811,7 +833,9 @@ export type DataRetentionSettings = {
     EnableMessageDeletion: boolean;
     EnableFileDeletion: boolean;
     MessageRetentionDays: number;
+    MessageRetentionHours: number;
     FileRetentionDays: number;
+    FileRetentionHours: number;
     DeletionJobStartTime: string;
     BatchSize: number;
     EnableBoardsDeletion: boolean,
@@ -833,6 +857,8 @@ export type MessageExportSettings = {
         SMTPPassword: string;
         EmailAddress: string;
         SMTPServerTimeout: number;
+        CustomSMTPServerName: string;
+        CustomSMTPPort: string;
     };
 };
 
@@ -945,6 +971,7 @@ export type AdminConfig = {
     FeatureFlags: FeatureFlags;
     ImportSettings: ImportSettings;
     ExportSettings: ExportSettings;
+    WranglerSettings: WranglerSettings;
 };
 
 export type ReplicaLagSetting = {

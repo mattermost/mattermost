@@ -118,7 +118,11 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 	auditRec := c.MakeAuditRecord("updateCategoryOrderForTeamForUser", audit.Fail)
 	defer c.LogAuditRec(auditRec)
 
-	categoryOrder := model.ArrayFromJSON(r.Body)
+	categoryOrder, err := model.NonSortedArrayFromJSON(r.Body)
+	if err != nil {
+		c.Err = model.NewAppError("updateCategoryOrderForTeamForUser", model.PayloadParseError, nil, "", http.StatusBadRequest).Wrap(err)
+		return
+	}
 
 	for _, categoryId := range categoryOrder {
 		if !c.App.SessionHasPermissionToCategory(c.AppContext, *c.AppContext.Session(), c.Params.UserId, c.Params.TeamId, categoryId) {
@@ -127,9 +131,9 @@ func updateCategoryOrderForTeamForUser(c *Context, w http.ResponseWriter, r *htt
 		}
 	}
 
-	err := c.App.UpdateSidebarCategoryOrder(c.AppContext, c.Params.UserId, c.Params.TeamId, categoryOrder)
-	if err != nil {
-		c.Err = err
+	appErr := c.App.UpdateSidebarCategoryOrder(c.AppContext, c.Params.UserId, c.Params.TeamId, categoryOrder)
+	if appErr != nil {
+		c.Err = appErr
 		return
 	}
 

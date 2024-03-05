@@ -12,6 +12,8 @@ import FileUploadOverlay from 'components/file_upload_overlay';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import PostView from 'components/post_view';
 
+import WebSocketClient from 'client/web_websocket_client';
+
 import type {PropsFromRedux} from './index';
 
 export type Props = PropsFromRedux & RouteComponentProps<{
@@ -86,6 +88,10 @@ export default class ChannelView extends React.PureComponent<Props, State> {
     };
 
     componentDidUpdate(prevProps: Props) {
+        // TODO: debounce
+        if (prevProps.channelId !== this.props.channelId && this.props.enableWebSocketEventScope) {
+            WebSocketClient.updateActiveChannel(this.props.channelId);
+        }
         if (prevProps.channelId !== this.props.channelId || prevProps.channelIsArchived !== this.props.channelIsArchived) {
             if (this.props.channelIsArchived && !this.props.viewArchivedChannels) {
                 this.props.goToLastViewedChannel();
