@@ -19,7 +19,8 @@
     "clean": "npm run clean --workspaces --if-present"
   },
   "dependencies": {
-    "react-intl": "6.5.5"
+    "react-intl": "6.5.5",
+    "react-zoom-pan-pinch": "3.4.3"
   },
   "devDependencies": {
     "@babel/core": "7.21.8",

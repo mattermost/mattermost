@@ -9,3 +9,35 @@
         }
     }
 }
+
+.image_preview_zoom_actions {
+    &__actions {
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: center;
+    }
+    &__action-item {
+        display: flex;
+        overflow: hidden;
+        width: 40px;
+        height: 40px;
+        align-items: center;
+        justify-content: center;
+        border: unset;
+        margin-left: 8px;
+        background: transparent;
+        border-radius: 4px;
+
+        &:hover {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        &.active {
+            background: rgba(255, 255, 255, 0.16);
+        }
+
+        &:first-child {
+            margin-left: unset;
+        }
+    }
+}
