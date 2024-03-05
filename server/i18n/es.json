@@ -9210,5 +9210,45 @@
   {
     "id": "api.command_invite.successOverflow",
     "translation": "{{.FirstUser}} y {{.Others}} añadidos al canal {{.Channel}}."
+  },
+  {
+    "id": "api.acknowledgement.save.archived_channel.app_error",
+    "translation": "No puedes reconocer en un canal archivado."
+  },
+  {
+    "id": "api.command_invite.user_not_in_team.messageOverflow",
+    "translation": "Puedes añadir {{.FirstUser}} y otros {{.Others}} a este canal una vez que sean miembros del equipo **{{.Team}}**."
+  },
+  {
+    "id": "api.command_remote.confirm_invitation.error",
+    "translation": "No se pudo confirmar la invitación: {{.Error}}"
+  },
+  {
+    "id": "api.command_share.channel_not_shared.error",
+    "translation": "No se puede invitar remoto porque el canal {{.ChannelID}} no es compartido."
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "No se puede invitar remoto al canal: {{.Error}}"
+  },
+  {
+    "id": "api.config.update_config.translations.app_error",
+    "translation": "Falla al actualizar traducciones del servidor."
+  },
+  {
+    "id": "api.context.ip_filtering.apply_ip_filters.app_error",
+    "translation": "Ha ocurrido un error mientras se aplicaron los Filtros IP"
+  },
+  {
+    "id": "api.context.ip_filtering.get_ip_filters.app_error",
+    "translation": "Ha ocurrido un error mientras se buscaron los Filtros IP"
+  },
+  {
+    "id": "api.context.ip_filtering.get_my_ip.failed",
+    "translation": "Ha ocurrido un error mientras se buscaba la dirección IP del cliente"
+  },
+  {
+    "id": "api.context.ip_filtering.not_available.app_error",
+    "translation": "El filtrado IP no está disponible en este servidor"
   }
 ]
