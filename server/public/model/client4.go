@@ -1086,6 +1086,24 @@ func (c *Client4) GetUsers(ctx context.Context, page int, perPage int, etag stri
 	return list, BuildResponse(r), nil
 }
 
+// GetUsersByRole returns a page of users on the system with the given role. Page counting starts at 0.
+func (c *Client4) GetUsersByRole(ctx context.Context, page int, perPage int, role string, etag string) ([]*User, *Response, error) {
+	query := fmt.Sprintf("?page=%v&per_page=%v&role=%s", page, perPage, role)
+	r, err := c.DoAPIGet(ctx, c.usersRoute()+query, etag)
+	if err != nil {
+		return nil, BuildResponse(r), err
+	}
+	defer closeBody(r)
+	var list []*User
+	if r.StatusCode == http.StatusNotModified {
+		return list, BuildResponse(r), nil
+	}
+	if err := json.NewDecoder(r.Body).Decode(&list); err != nil {
+		return nil, nil, NewAppError("GetUsersByRole", "api.unmarshal_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+	return list, BuildResponse(r), nil
+}
+
 // GetUsersWithChannelRoles returns a page of users on the system. Page counting starts at 0.
 func (c *Client4) GetUsersWithCustomQueryParameters(ctx context.Context, page int, perPage int, queryParameters, etag string) ([]*User, *Response, error) {
 	query := fmt.Sprintf("?page=%v&per_page=%v&%v", page, perPage, queryParameters)

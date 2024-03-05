@@ -95,6 +95,7 @@ type Client interface {
 	SyncLdap(ctx context.Context, includeRemovedMembers bool) (*model.Response, error)
 	MigrateIdLdap(ctx context.Context, toAttribute string) (*model.Response, error)
 	GetUsers(ctx context.Context, page, perPage int, etag string) ([]*model.User, *model.Response, error)
+	GetUsersByRole(ctx context.Context, page, perPage int, role, etag string) ([]*model.User, *model.Response, error)
 	GetUsersByIds(ctx context.Context, userIDs []string) ([]*model.User, *model.Response, error)
 	GetUsersInTeam(ctx context.Context, teamID string, page, perPage int, etag string) ([]*model.User, *model.Response, error)
 	UpdateUserActive(ctx context.Context, userID string, activate bool) (*model.Response, error)
