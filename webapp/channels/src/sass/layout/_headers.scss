@@ -5,7 +5,7 @@
     z-index: 15;
     width: 100%;
     max-height: 56px;
-    padding: 12px 12px;
+    padding: 12px;
     border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
     background: v(center-channel-bg);
     font-size: 14px;
@@ -255,7 +255,7 @@
 }
 
 .channel-header__bot {
-    margin-left: 4px;
+    margin-right: 8px;
 }
 
 .channel-header__info {

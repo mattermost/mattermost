@@ -593,7 +593,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             className='channel-header__info'
                         >
                             <div
-                                className='channel-header__title'
+                                className='channel-header__title dropdown'
                             >
                                 <div>
                                     <ChannelHeaderTitle

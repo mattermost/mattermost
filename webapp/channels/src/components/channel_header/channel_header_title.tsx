@@ -73,6 +73,7 @@ const ChannelHeaderTitle = ({
                 id='channelHeaderDropdownButton'
                 className='channel-header__top channel-header__bot'
             >
+                <ChannelHeaderTitleFavorite/>
                 <strong
                     role='heading'
                     aria-level={2}
@@ -85,7 +86,6 @@ const ChannelHeaderTitle = ({
                     </span>
                 </strong>
                 <BotTag/>
-                <ChannelHeaderTitleFavorite/>
             </div>
         );
     }
