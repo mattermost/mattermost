@@ -10056,10 +10056,6 @@
     "translation": "Brak identyfikatora użytkownika do wysłania raportu"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Nieprawidłowa aktualizacja członka zespołu: Użytkownik nie może być jednocześnie gościem i administratorem."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Nieprawidłowa aktualizacja członka zespołu: Gość nie może zostać członkiem zespołu ani administratorem zespołu, proszę zamienić go najpierw na użytkownika."
   },

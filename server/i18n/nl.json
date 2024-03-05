@@ -10122,10 +10122,6 @@
     "translation": "Ongeldig email_token"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Ongeldige update van teamlid: Een gebruiker kan niet tegelijkertijd als gast en als admin ingesteld zijn."
-  },
-  {
     "id": "ent.outgoing_oauth_connections.authenticate.app_error",
     "translation": "Er is een fout opgetreden bij het verifiëren van de uitgaande oauth-verbinding: {{ .Error }}"
   },
