@@ -18,32 +18,32 @@ import (
 
 func TestSAMLSettings(t *testing.T) {
 	tt := []struct {
-		name            string
-		setNewInterface bool
-		isNil           bool
-		metadata        string
+		name         string
+		setInterface bool
+		isNil        bool
+		metadata     string
 	}{
 		{
-			name:            "No SAML Interfaces, default setting",
-			setNewInterface: false,
-			isNil:           true,
+			name:         "No SAML Interfaces, default setting",
+			setInterface: false,
+			isNil:        true,
 		},
 		{
-			name:            "No SAML Interfaces, set config true",
-			setNewInterface: false,
-			isNil:           true,
+			name:         "No SAML Interfaces, set config true",
+			setInterface: false,
+			isNil:        true,
 		},
 		{
-			name:            "Both SAML Interfaces, default setting",
-			setNewInterface: true,
-			isNil:           false,
-			metadata:        "samlTwo",
+			name:         "Both SAML Interfaces, default setting",
+			setInterface: true,
+			isNil:        false,
+			metadata:     "samlTwo",
 		},
 		{
-			name:            "Both SAML Interfaces, config true",
-			setNewInterface: true,
-			isNil:           false,
-			metadata:        "samlTwo",
+			name:         "Both SAML Interfaces, config true",
+			setInterface: true,
+			isNil:        false,
+			metadata:     "samlTwo",
 		},
 	}
 
@@ -52,12 +52,12 @@ func TestSAMLSettings(t *testing.T) {
 			saml2 := &mocks.SamlInterface{}
 			saml2.Mock.On("ConfigureSP", mock.AnythingOfType("*request.Context")).Return(nil)
 			saml2.Mock.On("GetMetadata", mock.AnythingOfType("*request.Context")).Return("samlTwo", nil)
-			if tc.setNewInterface {
-				RegisterNewSamlInterface(func(_ *App) einterfaces.SamlInterface {
+			if tc.setInterface {
+				RegisterSamlInterface(func(_ *App) einterfaces.SamlInterface {
 					return saml2
 				})
 			} else {
-				RegisterNewSamlInterface(nil)
+				RegisterSamlInterface(nil)
 			}
 
 			th := SetupEnterpriseWithStoreMock(t)
