@@ -8,17 +8,15 @@ import {Client4} from 'mattermost-redux/client';
 import {getMyPreferences as getMyPreferencesSelector, makeGetCategory} from 'mattermost-redux/selectors/entities/preferences';
 import type {Theme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {GetStateFunc, DispatchFunc, ActionFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {getPreferenceKey} from 'mattermost-redux/utils/preference_utils';
 
-import {getChannelAndMyMember, getMyChannelMember} from './channels';
 import {bindClientFunc} from './helpers';
-import {getProfilesByIds, getProfilesInChannel} from './users';
 
 import {Preferences} from '../constants';
 
-export function deletePreferences(userId: string, preferences: PreferenceType[]): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deletePreferences(userId: string, preferences: PreferenceType[]): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const myPreferences = getMyPreferencesSelector(state);
         const currentPreferences = preferences.map((pref) => myPreferences[getPreferenceKey(pref.category, pref.name)]);
@@ -43,69 +41,15 @@ export function deletePreferences(userId: string, preferences: PreferenceType[])
     };
 }
 
-export function getMyPreferences(): ActionFunc {
+export function getMyPreferences() {
     return bindClientFunc({
         clientFunc: Client4.getMyPreferences,
         onSuccess: PreferenceTypes.RECEIVED_ALL_PREFERENCES,
     });
 }
 
-export function makeDirectChannelVisibleIfNecessary(otherUserId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState();
-        const myPreferences = getMyPreferencesSelector(state);
-        const currentUserId = getCurrentUserId(state);
-
-        let preference = myPreferences[getPreferenceKey(Preferences.CATEGORY_DIRECT_CHANNEL_SHOW, otherUserId)];
-
-        if (!preference || preference.value === 'false') {
-            preference = {
-                user_id: currentUserId,
-                category: Preferences.CATEGORY_DIRECT_CHANNEL_SHOW,
-                name: otherUserId,
-                value: 'true',
-            };
-            getProfilesByIds([otherUserId])(dispatch, getState);
-            savePreferences(currentUserId, [preference])(dispatch);
-        }
-
-        return {data: true};
-    };
-}
-
-export function makeGroupMessageVisibleIfNecessary(channelId: string): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
-        const state = getState();
-        const myPreferences = getMyPreferencesSelector(state);
-        const currentUserId = getCurrentUserId(state);
-        const {channels} = state.entities.channels;
-
-        let preference = myPreferences[getPreferenceKey(Preferences.CATEGORY_GROUP_CHANNEL_SHOW, channelId)];
-
-        if (!preference || preference.value === 'false') {
-            preference = {
-                user_id: currentUserId,
-                category: Preferences.CATEGORY_GROUP_CHANNEL_SHOW,
-                name: channelId,
-                value: 'true',
-            };
-
-            if (channels[channelId]) {
-                getMyChannelMember(channelId)(dispatch, getState);
-            } else {
-                getChannelAndMyMember(channelId)(dispatch, getState);
-            }
-
-            getProfilesInChannel(channelId, 0)(dispatch, getState);
-            savePreferences(currentUserId, [preference])(dispatch);
-        }
-
-        return {data: true};
-    };
-}
-
-export function setActionsMenuInitialisationState(initializationState: Record<string, boolean>) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setActionsMenuInitialisationState(initializationState: Record<string, boolean>): ThunkActionFunc<void> {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const preference: PreferenceType = {
@@ -118,8 +62,8 @@ export function setActionsMenuInitialisationState(initializationState: Record<st
     };
 }
 
-export function setCustomStatusInitialisationState(initializationState: Record<string, boolean>) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function setCustomStatusInitialisationState(initializationState: Record<string, boolean>): ThunkActionFunc<void> {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const preference: PreferenceType = {
@@ -132,8 +76,8 @@ export function setCustomStatusInitialisationState(initializationState: Record<s
     };
 }
 
-export function savePreferences(userId: string, preferences: PreferenceType[]) {
-    return async (dispatch: DispatchFunc) => {
+export function savePreferences(userId: string, preferences: PreferenceType[]): ActionFuncAsync {
+    return async (dispatch) => {
         (async function savePreferencesWrapper() {
             try {
                 dispatch({
@@ -154,8 +98,8 @@ export function savePreferences(userId: string, preferences: PreferenceType[]) {
     };
 }
 
-export function saveTheme(teamId: string, theme: Theme): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function saveTheme(teamId: string, theme: Theme): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
         const currentUserId = getCurrentUserId(state);
         const preference: PreferenceType = {
@@ -165,13 +109,13 @@ export function saveTheme(teamId: string, theme: Theme): ActionFunc {
             value: JSON.stringify(theme),
         };
 
-        await savePreferences(currentUserId, [preference])(dispatch);
+        await dispatch(savePreferences(currentUserId, [preference]));
         return {data: true};
     };
 }
 
-export function deleteTeamSpecificThemes(): ActionFunc {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function deleteTeamSpecificThemes(): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
 
         const themePreferences: PreferenceType[] = makeGetCategory()(state, Preferences.CATEGORY_THEME);
@@ -179,7 +123,7 @@ export function deleteTeamSpecificThemes(): ActionFunc {
 
         const toDelete = themePreferences.filter((pref) => pref.name !== '');
         if (toDelete.length > 0) {
-            await deletePreferences(currentUserId, toDelete)(dispatch, getState);
+            await dispatch(deletePreferences(currentUserId, toDelete));
         }
 
         return {data: true};

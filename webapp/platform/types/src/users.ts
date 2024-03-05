@@ -70,16 +70,16 @@ export type UsersState = {
     mySessions: Session[];
     myAudits: Audit[];
     profiles: IDMappedObjects<UserProfile>;
-    profilesInTeam: RelationOneToMany<Team, UserProfile>;
-    profilesNotInTeam: RelationOneToMany<Team, UserProfile>;
+    profilesInTeam: RelationOneToManyUnique<Team, UserProfile>;
+    profilesNotInTeam: RelationOneToManyUnique<Team, UserProfile>;
     profilesWithoutTeam: Set<string>;
     profilesInChannel: RelationOneToManyUnique<Channel, UserProfile>;
     profilesNotInChannel: RelationOneToManyUnique<Channel, UserProfile>;
-    profilesInGroup: RelationOneToMany<Group, UserProfile>;
-    profilesNotInGroup: RelationOneToMany<Group, UserProfile>;
+    profilesInGroup: RelationOneToManyUnique<Group, UserProfile>;
+    profilesNotInGroup: RelationOneToManyUnique<Group, UserProfile>;
     statuses: RelationOneToOne<UserProfile, string>;
-    stats: RelationOneToOne<UserProfile, UsersStats>;
-    filteredStats?: UsersStats;
+    stats: Partial<UsersStats>;
+    filteredStats: Partial<UsersStats>;
     myUserAccessTokens: Record<string, UserAccessToken>;
     lastActivity: RelationOneToOne<UserProfile, number>;
 };
@@ -143,16 +143,3 @@ export type GetFilteredUsersStatsOpts = {
 export type AuthChangeResponse = {
     follow_link: string;
 };
-
-export type UserReport = {
-    id: string;
-    username: string;
-    email: string;
-    create_at: number;
-    display_name: string;
-    last_login_at: number;
-	last_status_at?: number;
-	last_post_date?: number;
-	days_active?: number;
-	total_posts?: number;
-}

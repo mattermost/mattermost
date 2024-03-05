@@ -2806,13 +2806,13 @@ func (_m *API) InstallPlugin(file io.Reader, replace bool) (*model.Manifest, *mo
 	return r0, r1
 }
 
-// InviteRemoteToChannel provides a mock function with given fields: channelID, remoteID, userID
-func (_m *API) InviteRemoteToChannel(channelID string, remoteID string, userID string) error {
-	ret := _m.Called(channelID, remoteID, userID)
+// InviteRemoteToChannel provides a mock function with given fields: channelID, remoteID, userID, shareIfNotShared
+func (_m *API) InviteRemoteToChannel(channelID string, remoteID string, userID string, shareIfNotShared bool) error {
+	ret := _m.Called(channelID, remoteID, userID, shareIfNotShared)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
-		r0 = rf(channelID, remoteID, userID)
+	if rf, ok := ret.Get(0).(func(string, string, string, bool) error); ok {
+		r0 = rf(channelID, remoteID, userID, shareIfNotShared)
 	} else {
 		r0 = ret.Error(0)
 	}
@@ -3224,6 +3224,22 @@ func (_m *API) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot,
 	}
 
 	return r0, r1
+}
+
+// PatchChannelMembersNotifications provides a mock function with given fields: members, notifyProps
+func (_m *API) PatchChannelMembersNotifications(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) *model.AppError {
+	ret := _m.Called(members, notifyProps)
+
+	var r0 *model.AppError
+	if rf, ok := ret.Get(0).(func([]*model.ChannelMemberIdentifier, map[string]string) *model.AppError); ok {
+		r0 = rf(members, notifyProps)
+	} else {
+		if ret.Get(0) != nil {
+			r0 = ret.Get(0).(*model.AppError)
+		}
+	}
+
+	return r0
 }
 
 // PermanentDeleteBot provides a mock function with given fields: botUserId

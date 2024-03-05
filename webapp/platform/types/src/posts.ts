@@ -66,7 +66,7 @@ export type PostMetadata = {
     emojis: CustomEmoji[];
     files: FileInfo[];
     images: Record<string, PostImage>;
-    reactions: Reaction[];
+    reactions?: Reaction[];
     priority?: PostPriorityMetadata;
     acknowledgements?: PostAcknowledgement[];
 };
@@ -146,7 +146,6 @@ export type PostsState = {
     reactions: RelationOneToOne<Post, Record<string, Reaction>>;
     openGraph: RelationOneToOne<Post, Record<string, OpenGraphMetadata>>;
     pendingPostIds: string[];
-    selectedPostId: string;
     postEditHistory: Post[];
     currentFocusedPostId: string;
     messagesHistory: MessageHistory;

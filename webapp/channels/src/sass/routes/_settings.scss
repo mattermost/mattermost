@@ -68,7 +68,8 @@
         }
 
         .modal-body {
-            min-height: calc(100% - 62px);
+            display: flex;
+            flex-direction: column;
             padding: 0;
             margin: 0 auto;
         }
@@ -187,16 +188,12 @@
         }
 
         .settings-table {
-            display: table;
+            display: flex;
             width: 100%;
             max-width: 1000px;
+            min-height: 0;
+            flex: 1;
             margin: 0 auto;
-            table-layout: fixed;
-
-            > div {
-                display: table-cell;
-                vertical-align: top;
-            }
 
             .security-links {
                 margin-right: 20px;
@@ -207,12 +204,15 @@
             }
 
             .settings-links {
+                overflow: auto;
                 width: 180px;
                 background: var(--sidebar-bg);
             }
 
             .settings-content {
-                padding: 0 20px 30px;
+                overflow: auto;
+                flex: 1;
+                padding: 20px 30px;
 
                 .modal-header {
                     display: none;
@@ -488,8 +488,13 @@
         }
 
         .nav-pills > li button {
-            color: rgba(var(--sidebar-text-rgb), 0.6);
+            color: rgba(var(--sidebar-text-rgb), 0.75);
         }
+    }
+
+    .nav {
+        position: fixed;
+        margin: 0;
     }
 
     .nav-pills {
@@ -570,6 +575,7 @@
 }
 
 .tab-header {
+    margin-top: 0;
     margin-bottom: 1em;
     font-weight: 600;
 }

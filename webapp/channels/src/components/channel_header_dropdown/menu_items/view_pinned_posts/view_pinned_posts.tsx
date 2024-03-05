@@ -5,8 +5,6 @@ import React, {useCallback, memo} from 'react';
 import type {MouseEvent} from 'react';
 import {useIntl} from 'react-intl';
 
-import type {GetStateFunc, DispatchFunc} from 'mattermost-redux/types/actions';
-
 import Menu from 'components/widgets/menu/menu';
 
 type Props = {
@@ -14,7 +12,7 @@ type Props = {
     channel: any;
     hasPinnedPosts: boolean;
     actions: {
-        closeRightHandSide: () => (dispatch: DispatchFunc, getState: GetStateFunc) => void;
+        closeRightHandSide: () => void;
         showPinnedPosts: (id: any) => void;
     };
 }

@@ -164,39 +164,50 @@ func TestPublicFilesPathConfiguration(t *testing.T) {
 }
 
 func TestPluginAPIGetUserPreference(t *testing.T) {
-	th := Setup(t).InitBasic()
-	defer th.TearDown()
-	api := th.SetupPluginAPI()
+	t.Run("should return preferences when called", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
 
-	err := api.UpdatePreferencesForUser(th.BasicUser.Id, []model.Preference{
-		{
-			UserId:   th.BasicUser.Id,
-			Category: model.PreferenceCategoryDisplaySettings,
-			Name:     model.PreferenceNameUseMilitaryTime,
-			Value:    "true",
-		},
-		{
-			UserId:   th.BasicUser.Id,
-			Category: "test_category",
-			Name:     "test_key",
-			Value:    "test_value",
-		},
+		err := api.UpdatePreferencesForUser(th.BasicUser.Id, []model.Preference{
+			{
+				UserId:   th.BasicUser.Id,
+				Category: model.PreferenceCategoryDisplaySettings,
+				Name:     model.PreferenceNameUseMilitaryTime,
+				Value:    "true",
+			},
+			{
+				UserId:   th.BasicUser.Id,
+				Category: "test_category",
+				Name:     "test_key",
+				Value:    "test_value",
+			},
+		})
+		require.Nil(t, err)
+
+		preference, err := api.GetPreferenceForUser(th.BasicUser.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime)
+
+		require.Nil(t, err)
+		assert.Equal(t, model.PreferenceCategoryDisplaySettings, preference.Category)
+		assert.Equal(t, model.PreferenceNameUseMilitaryTime, preference.Name)
+		assert.Equal(t, "true", preference.Value)
+
+		preference, err = api.GetPreferenceForUser(th.BasicUser.Id, "test_category", "test_key")
+
+		require.Nil(t, err)
+		assert.Equal(t, "test_category", preference.Category)
+		assert.Equal(t, "test_key", preference.Name)
+		assert.Equal(t, "test_value", preference.Value)
 	})
-	require.Nil(t, err)
 
-	preference, err := api.GetPreferenceForUser(th.BasicUser.Id, model.PreferenceCategoryDisplaySettings, model.PreferenceNameUseMilitaryTime)
+	t.Run("should return an error when a user doesn't have a preference set", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+		api := th.SetupPluginAPI()
 
-	require.Nil(t, err)
-	assert.Equal(t, model.PreferenceCategoryDisplaySettings, preference.Category)
-	assert.Equal(t, model.PreferenceNameUseMilitaryTime, preference.Name)
-	assert.Equal(t, "true", preference.Value)
-
-	preference, err = api.GetPreferenceForUser(th.BasicUser.Id, "test_category", "test_key")
-
-	require.Nil(t, err)
-	assert.Equal(t, "test_category", preference.Category)
-	assert.Equal(t, "test_key", preference.Name)
-	assert.Equal(t, "test_value", preference.Value)
+		_, err := api.GetPreferenceForUser(th.BasicUser.Id, "something", "that doesn't exist")
+		assert.NotNil(t, err)
+	})
 }
 
 func TestPluginAPIGetUserPreferences(t *testing.T) {
@@ -2400,4 +2411,236 @@ func TestPluginServeMetrics(t *testing.T) {
 	body, err = io.ReadAll(resp.Body)
 	require.NoError(t, err)
 	require.Equal(t, "METRICS SUBPATH", string(body))
+}
+
+func TestPluginGetChannelsForTeamForUser(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.CreateUser()
+
+	team1 := th.CreateTeam()
+	th.LinkUserToTeam(user, team1)
+	team2 := th.CreateTeam()
+	th.LinkUserToTeam(user, team2)
+
+	channel1 := th.CreateChannel(th.Context, team1)
+	th.AddUserToChannel(user, channel1)
+	channel2 := th.CreateChannel(th.Context, team2)
+	th.AddUserToChannel(user, channel2)
+
+	dmChannel := th.CreateDmChannel(user)
+
+	pluginCode := `
+	package main
+	import (
+		"github.com/mattermost/mattermost/server/public/model"
+		"github.com/mattermost/mattermost/server/public/plugin"
+		"github.com/pkg/errors"
+	)
+
+	const (
+		userID = "` + user.Id + `"
+		teamID1 = "` + team1.Id + `"
+		teamID2 = "` + team2.Id + `"
+		channelID1 = "` + channel1.Id + `"
+		channelID2 = "` + channel2.Id + `"
+		dmChannelID = "` + dmChannel.Id + `"
+	)
+
+	type TestPlugin struct {
+		plugin.MattermostPlugin
+	}
+
+	func checkForChannels(channels []*model.Channel, expectedLength int, channel1Expected, channel2Expected, dmChannelExpected bool) string {
+		if len(channels) != expectedLength {
+			return "Returned the wrong number of channels"
+		}
+
+		var channel1Found, channel2Found, dmChannelFound bool
+		for _, channel := range channels {
+			if channel.Id == channelID1 {
+				channel1Found = true
+			} else if channel.Id == channelID2 {
+				channel2Found = true
+			} else if channel.Id == dmChannelID {
+				dmChannelFound = true
+			}
+		}
+
+		if channel1Found && !channel1Expected {
+			return "Channel 1 found"
+		} else if !channel1Found && channel1Expected {
+			return "Channel 1 not found"
+		} else if channel2Found && !channel2Expected {
+			return "Channel 2 found"
+		} else if !channel2Found && channel2Expected {
+			return "Channel 2 not found"
+		} else if dmChannelFound && !dmChannelExpected {
+			return "DM Channel found"
+		} else if !dmChannelFound && dmChannelExpected {
+			return "DM Channel not found"
+		} else {
+			return ""
+		}
+	}
+
+	func (p *TestPlugin) OnActivate() error {
+		if channels, appErr := p.API.GetChannelsForTeamForUser(teamID1, userID, true); appErr != nil {
+			return appErr
+		} else if msg := checkForChannels(channels, 4, true, false, true); msg != "" {
+			return errors.New(msg + " when called with team ID 1")
+		}
+
+		if channels, appErr := p.API.GetChannelsForTeamForUser(teamID2, userID, true); appErr != nil {
+			return appErr
+		} else if msg := checkForChannels(channels, 4, false, true, true); msg != "" {
+			return errors.New(msg + " when called with team ID 2")
+		}
+
+		if channels, appErr := p.API.GetChannelsForTeamForUser("", userID, true); appErr != nil {
+			return appErr
+		} else if msg := checkForChannels(channels, 7, true, true, true); msg != "" {
+			return errors.New(msg + " when called with empty team ID")
+		}
+
+		return nil
+	}
+
+	func main() {
+		plugin.ClientMain(&TestPlugin{})
+	}`
+	pluginID := "testplugin"
+	pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+	setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+}
+
+func TestPluginPatchChannelMembersNotifications(t *testing.T) {
+	t.Run("should be able to set fields for multiple members", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel)
+		th.AddUserToChannel(th.BasicUser2, channel)
+
+		member1, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Equal(t, "", member1.NotifyProps["test_field"])
+		require.Equal(t, model.IgnoreChannelMentionsDefault, member1.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+		member2, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser2.Id)
+		require.Nil(t, err)
+		require.Equal(t, "", member2.NotifyProps["test_field"])
+		require.Equal(t, model.IgnoreChannelMentionsDefault, member2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+
+		pluginCode := `
+			package main
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			const (
+				channelID = "` + channel.Id + `"
+				userID1 = "` + th.BasicUser.Id + `"
+				userID2 = "` + th.BasicUser2.Id + `"
+			)
+
+			type TestPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *TestPlugin) OnActivate() error {
+				return p.API.PatchChannelMembersNotifications(
+					[]*model.ChannelMemberIdentifier{
+						{ChannelId: channelID, UserId: userID1},
+						{ChannelId: channelID, UserId: userID2},
+					},
+					map[string]string{
+						"test_field":                          "test_value",
+						model.IgnoreChannelMentionsNotifyProp: model.IgnoreChannelMentionsOn,
+					},
+				)
+			}
+
+			func main() {
+				plugin.ClientMain(&TestPlugin{})
+			}`
+		pluginID := "testplugin"
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		updated1, err := th.App.GetChannelMember(th.Context, member1.ChannelId, member1.UserId)
+		require.Nil(t, err)
+		updated2, err := th.App.GetChannelMember(th.Context, member2.ChannelId, member2.UserId)
+		require.Nil(t, err)
+
+		assert.Equal(t, member1.NotifyProps[model.MarkUnreadNotifyProp], updated1.NotifyProps[model.MarkUnreadNotifyProp])
+		assert.Equal(t, "test_value", updated1.NotifyProps["test_field"])
+		assert.Equal(t, model.IgnoreChannelMentionsOn, updated1.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+		assert.Equal(t, member2.NotifyProps[model.MarkUnreadNotifyProp], updated2.NotifyProps[model.MarkUnreadNotifyProp])
+		assert.Equal(t, "test_value", updated2.NotifyProps["test_field"])
+		assert.Equal(t, model.IgnoreChannelMentionsOn, updated2.NotifyProps[model.IgnoreChannelMentionsNotifyProp])
+	})
+
+	t.Run("should be able to clear a field", func(t *testing.T) {
+		th := Setup(t).InitBasic()
+		defer th.TearDown()
+
+		channel := th.CreateChannel(th.Context, th.BasicTeam)
+		th.AddUserToChannel(th.BasicUser, channel)
+
+		member, err := th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+
+		member.NotifyProps["test_field"] = "test_value"
+		_, err = th.App.updateChannelMember(th.Context, member)
+		require.Nil(t, err)
+
+		member, err = th.App.GetChannelMember(th.Context, channel.Id, th.BasicUser.Id)
+		require.Nil(t, err)
+		require.Equal(t, "test_value", member.NotifyProps["test_field"])
+
+		pluginCode := `
+			package main
+			import (
+				"github.com/mattermost/mattermost/server/public/plugin"
+				"github.com/mattermost/mattermost/server/public/model"
+			)
+
+			const (
+				channelID = "` + channel.Id + `"
+				userID = "` + th.BasicUser.Id + `"
+			)
+
+			type TestPlugin struct {
+				plugin.MattermostPlugin
+			}
+
+			func (p *TestPlugin) OnActivate() error {
+				return p.API.PatchChannelMembersNotifications(
+					[]*model.ChannelMemberIdentifier{
+						{ChannelId: channelID, UserId: userID},
+					},
+					map[string]string{
+						"test_field": "",
+					},
+				)
+			}
+
+			func main() {
+				plugin.ClientMain(&TestPlugin{})
+			}`
+		pluginID := "testplugin"
+		pluginManifest := `{"id": "testplugin", "server": {"executable": "backend.exe"}}`
+
+		setupPluginAPITest(t, pluginCode, pluginManifest, pluginID, th.App, th.Context)
+
+		updated, err := th.App.GetChannelMember(th.Context, member.ChannelId, member.UserId)
+		require.Nil(t, err)
+
+		assert.Equal(t, "", updated.NotifyProps["test_field"])
+	})
 }

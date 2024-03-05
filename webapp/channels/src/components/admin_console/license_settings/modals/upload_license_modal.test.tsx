@@ -44,7 +44,7 @@ describe('components/admin_console/license_settings/modals/upload_license_modal'
             modals: {
                 modalState: {
                     upload_license: {
-                        open: 'true',
+                        open: true,
                     },
                 },
             },

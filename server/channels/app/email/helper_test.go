@@ -189,7 +189,7 @@ func (th *TestHelper) createChannel(team *model.Team, channelType string) *model
 	}
 
 	var err error
-	if channel, err = th.store.Channel().Save(channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
+	if channel, err = th.store.Channel().Save(th.Context, channel, *th.configStore.Get().TeamSettings.MaxChannelsPerTeam); err != nil {
 		panic(err)
 	}
 
@@ -206,7 +206,7 @@ func (th *TestHelper) addUserToChannel(channel *model.Channel, user *model.User)
 	}
 
 	var err error
-	newMember, err = th.store.Channel().SaveMember(newMember)
+	newMember, err = th.store.Channel().SaveMember(th.Context, newMember)
 	if err != nil {
 		panic(err)
 	}
@@ -223,7 +223,7 @@ func (th *TestHelper) addUserToTeam(team *model.Team, user *model.User) *model.T
 	}
 
 	var err error
-	tm, err = th.store.Team().SaveMember(tm, *th.service.config().TeamSettings.MaxUsersPerTeam)
+	tm, err = th.store.Team().SaveMember(th.Context, tm, *th.service.config().TeamSettings.MaxUsersPerTeam)
 	if err != nil {
 		panic(err)
 	}
@@ -252,11 +252,11 @@ func (th *TestHelper) CreateUserOrGuest(guest bool) *model.User {
 
 	var err error
 	if guest {
-		if user, err = th.service.userService.CreateUser(user, users.UserCreateOptions{Guest: true}); err != nil {
+		if user, err = th.service.userService.CreateUser(th.Context, user, users.UserCreateOptions{Guest: true}); err != nil {
 			panic(err)
 		}
 	} else {
-		if user, err = th.service.userService.CreateUser(user, users.UserCreateOptions{}); err != nil {
+		if user, err = th.service.userService.CreateUser(th.Context, user, users.UserCreateOptions{}); err != nil {
 			panic(err)
 		}
 	}

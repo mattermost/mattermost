@@ -1153,6 +1153,30 @@ func (_m *UserStore) GetUnreadCountForChannel(userID string, channelID string) (
 	return r0, r1
 }
 
+// GetUserCountForReport provides a mock function with given fields: filter
+func (_m *UserStore) GetUserCountForReport(filter *model.UserReportOptions) (int64, error) {
+	ret := _m.Called(filter)
+
+	var r0 int64
+	var r1 error
+	if rf, ok := ret.Get(0).(func(*model.UserReportOptions) (int64, error)); ok {
+		return rf(filter)
+	}
+	if rf, ok := ret.Get(0).(func(*model.UserReportOptions) int64); ok {
+		r0 = rf(filter)
+	} else {
+		r0 = ret.Get(0).(int64)
+	}
+
+	if rf, ok := ret.Get(1).(func(*model.UserReportOptions) error); ok {
+		r1 = rf(filter)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // GetUserReport provides a mock function with given fields: filter
 func (_m *UserStore) GetUserReport(filter *model.UserReportOptions) ([]*model.UserReportQuery, error) {
 	ret := _m.Called(filter)
@@ -1388,25 +1412,25 @@ func (_m *UserStore) ResetLastPictureUpdate(userID string) error {
 	return r0
 }
 
-// Save provides a mock function with given fields: user
-func (_m *UserStore) Save(user *model.User) (*model.User, error) {
-	ret := _m.Called(user)
+// Save provides a mock function with given fields: rctx, user
+func (_m *UserStore) Save(rctx request.CTX, user *model.User) (*model.User, error) {
+	ret := _m.Called(rctx, user)
 
 	var r0 *model.User
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.User) (*model.User, error)); ok {
-		return rf(user)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) (*model.User, error)); ok {
+		return rf(rctx, user)
 	}
-	if rf, ok := ret.Get(0).(func(*model.User) *model.User); ok {
-		r0 = rf(user)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.User) *model.User); ok {
+		r0 = rf(rctx, user)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.User)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.User) error); ok {
-		r1 = rf(user)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.User) error); ok {
+		r1 = rf(rctx, user)
 	} else {
 		r1 = ret.Error(1)
 	}

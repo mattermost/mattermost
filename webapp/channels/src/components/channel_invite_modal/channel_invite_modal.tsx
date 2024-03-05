@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {isEqual} from 'lodash';
+import isEqual from 'lodash/isEqual';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import type {IntlShape} from 'react-intl';
@@ -305,7 +305,7 @@ export class ChannelInviteModal extends React.PureComponent<Props, State> {
 
         this.setState({saving: true});
 
-        actions.addUsersToChannel(channel.id, userIds).then((result: any) => {
+        actions.addUsersToChannel(channel.id, userIds).then((result) => {
             if (result.error) {
                 this.handleInviteError(result.error);
             } else {

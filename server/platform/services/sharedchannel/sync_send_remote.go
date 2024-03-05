@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"sync"
+	"time"
 
 	"github.com/wiggin77/merror"
 
@@ -77,6 +78,18 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 	if rcs == nil {
 		return fmt.Errorf("cannot update remote cluster %s for channel id %s; Remote Cluster Service not enabled", rc.Name, task.channelID)
 	}
+
+	metrics := scs.server.GetMetrics()
+
+	start := time.Now()
+	var metricsRecorded bool
+	defer func() {
+		if !metricsRecorded && metrics != nil {
+			metrics.IncrementSharedChannelsSyncCounter(rc.RemoteId)
+			metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, time.Since(start).Seconds())
+			metricsRecorded = true
+		}
+	}()
 
 	scr, err := scs.server.GetStore().SharedChannel().GetRemoteByIds(task.channelID, rc.RemoteId)
 	if isNotFoundError(err) && rc.IsOptionFlagSet(model.BitflagOptionAutoInvited) {
@@ -175,12 +188,25 @@ func (scs *Service) syncForRemote(task syncTask, rc *model.RemoteCluster) error 
 		mlog.Int("attachments", len(sd.attachments)),
 	)
 
+	if !metricsRecorded && metrics != nil {
+		metrics.IncrementSharedChannelsSyncCounter(rc.RemoteId)
+		metrics.ObserveSharedChannelsSyncCollectionDuration(rc.RemoteId, time.Since(start).Seconds())
+		metricsRecorded = true
+	}
+
 	return scs.sendSyncData(sd)
 }
 
 // fetchUsersForSync populates the sync data with any channel users who updated their user profile
 // since the last sync.
 func (scs *Service) fetchUsersForSync(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Users", time.Since(start).Seconds())
+		}
+	}()
+
 	filter := model.GetUsersForSyncFilter{
 		ChannelID: sd.task.channelID,
 		Limit:     MaxUsersPerSync,
@@ -212,6 +238,13 @@ func (scs *Service) fetchUsersForSync(sd *syncData) error {
 
 // fetchPostsForSync populates the sync data with any new or edited posts since the last sync.
 func (scs *Service) fetchPostsForSync(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Posts", time.Since(start).Seconds())
+		}
+	}()
+
 	options := model.GetPostsSinceForSyncOptions{
 		ChannelId:      sd.task.channelID,
 		IncludeDeleted: true,
@@ -235,13 +268,17 @@ func (scs *Service) fetchPostsForSync(sd *syncData) error {
 	count := len(posts)
 	sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostCreateAt)
 
+	cache := postsSliceToMap(posts)
+
 	// Fill remaining batch capacity with updated posts.
 	if len(posts) < MaxPostsPerSync {
 		options.SinceCreateAt = false
+		// use 'nextcursor' as it has the correct xxxUpdateAt values, and the updsted xxxCreateAt values.
 		posts, nextCursor, err = scs.server.GetStore().Post().GetPostsSinceForSync(options, nextCursor, MaxPostsPerSync-len(posts))
 		if err != nil {
 			return fmt.Errorf("could not fetch modified posts for sync: %w", err)
 		}
+		posts = reducePostsSliceInCache(posts, cache)
 		count += len(posts)
 		sd.posts = appendPosts(sd.posts, posts, scs.server.GetStore().Post(), cursor.LastPostUpdateAt)
 	}
@@ -284,6 +321,13 @@ func containsPost(posts []*model.Post, post *model.Post) bool {
 
 // fetchReactionsForSync populates the sync data with any new reactions since the last sync.
 func (scs *Service) fetchReactionsForSync(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Reactions", time.Since(start).Seconds())
+		}
+	}()
+
 	merr := merror.New()
 	for _, post := range sd.posts {
 		// any reactions originating from the remote cluster are filtered out
@@ -299,6 +343,13 @@ func (scs *Service) fetchReactionsForSync(sd *syncData) error {
 
 // fetchPostUsersForSync populates the sync data with all users associated with posts.
 func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "PostUsers", time.Since(start).Seconds())
+		}
+	}()
+
 	sc, err := scs.server.GetStore().SharedChannel().Get(sd.task.channelID)
 	if err != nil {
 		return fmt.Errorf("cannot determine teamID: %w", err)
@@ -363,6 +414,13 @@ func (scs *Service) fetchPostUsersForSync(sd *syncData) error {
 
 // fetchPostAttachmentsForSync populates the sync data with any file attachments for new posts.
 func (scs *Service) fetchPostAttachmentsForSync(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncCollectionStepDuration(sd.rc.RemoteId, "Attachments", time.Since(start).Seconds())
+		}
+	}()
+
 	merr := merror.New()
 	for _, post := range sd.posts {
 		fis, err := scs.server.GetStore().FileInfo().GetForPost(post.Id, false, true, true)
@@ -416,8 +474,14 @@ func (scs *Service) filterPostsForSync(sd *syncData) {
 // remote cluster.
 // The order of items sent is important: users -> attachments -> posts -> reactions -> profile images
 func (scs *Service) sendSyncData(sd *syncData) error {
-	merr := merror.New()
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendDuration(sd.rc.RemoteId, time.Since(start).Seconds())
+		}
+	}()
 
+	merr := merror.New()
 	sanitizeSyncData(sd)
 
 	// send users
@@ -458,6 +522,13 @@ func (scs *Service) sendSyncData(sd *syncData) error {
 
 // sendUserSyncData sends the collected user updates to the remote cluster.
 func (scs *Service) sendUserSyncData(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Users", time.Since(start).Seconds())
+		}
+	}()
+
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Users = sd.users
 
@@ -500,6 +571,13 @@ func (scs *Service) sendAttachmentSyncData(sd *syncData) {
 
 // sendPostSyncData sends the collected post updates to the remote cluster.
 func (scs *Service) sendPostSyncData(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Posts", time.Since(start).Seconds())
+		}
+	}()
+
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Posts = sd.posts
 
@@ -521,6 +599,13 @@ func (scs *Service) sendPostSyncData(sd *syncData) error {
 
 // sendReactionSyncData sends the collected reaction updates to the remote cluster.
 func (scs *Service) sendReactionSyncData(sd *syncData) error {
+	start := time.Now()
+	defer func() {
+		if metrics := scs.server.GetMetrics(); metrics != nil {
+			metrics.ObserveSharedChannelsSyncSendStepDuration(sd.rc.RemoteId, "Reactions", time.Since(start).Seconds())
+		}
+	}()
+
 	msg := model.NewSyncMsg(sd.task.channelID)
 	msg.Reactions = sd.reactions
 

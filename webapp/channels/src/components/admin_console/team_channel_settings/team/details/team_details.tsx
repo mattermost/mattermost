@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {cloneDeep} from 'lodash';
+import cloneDeep from 'lodash/cloneDeep';
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
 
@@ -45,7 +45,7 @@ export type Props = {
         unlinkGroupSyncable: (groupId: string, syncableId: string, syncableType: SyncableType) => Promise<ActionResult>;
         membersMinusGroupMembers: (teamId: string, groupIds: string[], page?: number, perPage?: number) => Promise<ActionResult>;
         getGroups: (teamId: string, q?: string, page?: number, perPage?: number, filterAllowReference?: boolean) => Promise<ActionResult>;
-        patchTeam: (team: Team) => ActionResult;
+        patchTeam: (team: Team) => Promise<ActionResult>;
         patchGroupSyncable: (groupId: string, syncableId: string, syncableType: SyncableType, patch: Partial<SyncablePatch>) => Promise<ActionResult>;
         addUserToTeam: (teamId: string, userId: string) => Promise<ActionResult>;
         removeUserFromTeam: (teamId: string, userId: string) => Promise<ActionResult>;

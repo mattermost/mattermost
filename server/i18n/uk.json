@@ -3324,16 +3324,8 @@
     "translation": "Сталася помилка при ініціюванні запиту постачальнику послуг ідентифікації. Будь ласка, зв'яжіться зі своїм системним адміністратором."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Під час кодування запиту до провайдера ідентифікації сталася помилка. Будь ласка, зверніться до системного адміністратора."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Спроба входу з використанням SAML не вдалася через відключеного шифрування. Будь ласка, зверніться до системного адміністратора."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Публічний сертифікат провайдера ідентифікації не найдений. Будь ласка, зверніться до системного адміністратора."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3344,20 +3336,12 @@
     "translation": "Спроба входу з використанням SAML не вдалася, так як відповідь постачальника облікових записів не зашифровані. Будь ласка, зверніться до системного адміністратора."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Спроба входу з використанням SAML не вдалася через виникнення помилки при розшифровці відповіді від постачальника облікових записів. Будь ласка, зверніться до системного адміністратора."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Отримано порожню відповідь від постачальника облікових записів"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Виникла помилка по час розбору відповіді від постачальника облікових записів. Будь ласка, зверніться до системного адміністратора."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Виникла помилка під час перевірки відповіді від постачальника облікових записів. Будь ласка, зверніться до системного адміністратора."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -6068,10 +6052,6 @@
     "translation": "Не вдалося видалити персональний токен доступу"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Потрібно SMTP сервер"
-  },
-  {
     "id": "ent.message_export.run_export.app_error",
     "translation": "Не вдалося вибрати дані експорту повідомлення"
   },
@@ -6106,18 +6086,6 @@
   {
     "id": "app.preference.delete.app_error",
     "translation": "Виникла помилка при видаленні налаштувань"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Адреса сайту:"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Усього активних користувачів"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Адреса електронної пошти:"
   },
   {
     "id": "app.webhooks.update_outgoing.app_error",
@@ -6292,10 +6260,6 @@
     "translation": "Не вдається знайти системну змінну."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Виникла помилка при пошуку властивостей системи"
-  },
-  {
     "id": "ent.user.complete_switch_with_oauth.blank_email.app_error",
     "translation": "Неможливо виконати вхід SAML за допомогою порожньої електронної адреси."
   },
@@ -6430,10 +6394,6 @@
   {
     "id": "app.channel.clear_all_custom_role_assignments.select.app_error",
     "translation": "Не вдалося оновити заголовок прямого каналу"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Забезпечити багатофакторну автентифікацію:"
   },
   {
     "id": "ent.elasticsearch.post.get_posts_batch_for_indexing.error",
@@ -6736,26 +6696,6 @@
     "translation": "{{.Filename}} in zip archive too large to process for Slack import\r\n"
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Загальна кількість активних користувачів: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Якщо у вас є додаткові питання, будь ласка, зв'яжіться з support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Електронна адреса: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Діагностичний ідентифікатор: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Контакт: {{.Contact}}"
-  },
-  {
     "id": "api.post.search_posts.invalid_body.app_error",
     "translation": "Не вдалося проаналізувати тіло запиту."
   },
@@ -6766,22 +6706,6 @@
   {
     "id": "api.license.request-trial.bad-request",
     "translation": "Кількість запитаних користувачів невірна."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Масштабування за допомогою Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Масштабування за допомогою Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Масштабування за допомогою Mattermost"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Не вдалося надіслати електронний лист із підтвердженням адміністратору"
   },
   {
     "id": "api.context.get_user.app_error",

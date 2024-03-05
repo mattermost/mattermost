@@ -658,10 +658,6 @@
     "translation": "Hiển thị cài đặt phần chưa đọc không hợp lệ cho Người dùng"
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Không tìm thấy tập tin Nhận dạng nhà cung cấp chứng chỉ công cộng. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
-  },
-  {
     "id": "app.scheme.save.app_error",
     "translation": "Không thể tạo scheme"
   },
@@ -2252,10 +2248,6 @@
   {
     "id": "model.job.is_valid.status.app_error",
     "translation": "Tình trạng công việc không hợp lệ"
-  },
-  {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Đăng nhập SAML không thành công vì đã xảy ra lỗi trong khi giải mã phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -4242,10 +4234,6 @@
     "translation": "Trường Create_at phải là thời gian hợp lệ."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Đã xảy ra lỗi trong khi mã hóa yêu cầu cho Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
-  },
-  {
     "id": "app.import.import_direct_channel.create_group_channel.error",
     "translation": "Tạo kênh nhóm không thành công"
   },
@@ -4584,10 +4572,6 @@
   {
     "id": "api.team.set_team_icon.array.app_error",
     "translation": "Dữ liệu trong trường 'image' bị trống"
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Đã xảy ra lỗi trong khi xác thực phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
@@ -5526,10 +5510,6 @@
     "translation": "Lỗi nội bộ trong khi yêu cầu api trên đám mây."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Mở rộng quy mô với Mattermost"
-  },
-  {
     "id": "api.team.invite_members.unable_to_send_email_with_defaults.app_error",
     "translation": "SMTP không được định cấu hình trong Bảng điều khiển hệ thống"
   },
@@ -5568,18 +5548,6 @@
   {
     "id": "api.templates.delinquency_30.bullet.files",
     "translation": "Tệp"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Mở rộng quy mô với Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Cảm ơn bạn đã liên hệ với Mattermost. Chúng tôi sẽ liên hệ với bạn sớm nhất có thể."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Mở rộng quy mô với Mattermost"
   },
   {
     "id": "api.channel.group_message.converted.to_private_channel",
@@ -6106,146 +6074,6 @@
     "translation": "Failed to send license up for renewal emails"
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Liên hệ: {{.Contact}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Id chẩn đoán: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "Email: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Tổng số người dùng đang hoạt động: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "URL trang web: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Liên hệ với chúng tôi yêu cầu"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Hãy gửi email cho chúng tôi."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Không thể gửi tin nhắn."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách sử dụng Tài khoản khách.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Tạo tài khoản khách"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Xác thực > Quyền truy cập của khách** để bật Tài khoản khách."
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "Gửi email cho chúng tôi"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách thực thi Xác thực đa yếu tố.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Thực thi xác thực đa yếu tố"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Xác thực > MFA** để thực thi xác thực đa yếu tố."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Nhóm của tôi hiện có 100 người dùng và tôi đang xem xét Phiên bản Mattermost Enterprise.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Xác thực > AD/LDAP** để tích hợp dịch vụ AD/LDAP của bạn."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Nhóm của tôi hiện có 200 người dùng và tôi đang xem xét Phiên bản Mattermost Enterprise.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Xác thực > SAML 2.0** để tích hợp với nhà cung cấp SAML 2.0 của bạn."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách tạo Kênh thông báo chỉ đọc.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Với rất nhiều cuộc trò chuyện diễn ra trên Matter Extreme, việc biết nơi tìm thông tin quan trọng có thể là một thách thức. Nếu bạn muốn phát thông báo tới nhiều khán giả, bạn có thể thiết lập Kênh thông báo chỉ đọc nơi bất kỳ ai cũng có thể tham gia nhưng chỉ quản trị viên kênh mới có thể đăng thông báo.\n\n[Tìm hiểu thêm về cách tạo Kênh thông báo chỉ đọc](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Tạo kênh và đi tới **Bảng điều khiển hệ thống > Quản lý người dùng > Kênh** để hạn chế đăng bài cho quản trị viên kênh."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Kênh thông báo chỉ đọc"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Nhóm của tôi hiện có 500 người dùng và tôi đang xem xét Phiên bản Mattermost Enterprise.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới Bảng điều khiển Hệ thống để bật các tính năng nâng cao."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách sử dụng Quyền nâng cao với Lược đồ hệ thống.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Sử dụng quyền nâng cao"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Quản lý người dùng > Quyền** để bật Quyền nâng cao."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về cách cải thiện hiệu suất với Elaticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Cải thiện hiệu suất"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Sau khi bạn có máy chủ Elaticsearch, hãy đi tới **Bảng điều khiển hệ thống > Môi trường > Elaticsearch** để định cấu hình Elaticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Quan trọng nhất hãy liên hệ với chúng tôi theo yêu cầu. Tôi muốn tìm hiểu thêm về Quyền nâng cao với Sơ đồ nhóm.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn hiện có nhiều nhóm. Nhiều nhóm có cách điều phối và cộng tác ưa thích của riêng họ, bao gồm cách tạo kênh, ai có thể mời đồng đội mới và cách quản lý tích hợp. Lược đồ ghi đè nhóm cho phép bạn tùy chỉnh quyền của người dùng trong mỗi nhóm để đáp ứng nhu cầu cụ thể của họ.\n\n[Tìm hiểu thêm về cách sử dụng Quyền nâng cao](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Sử dụng quyền nâng cao"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Bản dùng thử Enterprise của bạn hiện đang hoạt động. Đi tới **Bảng điều khiển hệ thống > Quản lý người dùng > Quyền** để bật Quyền nâng cao."
-  },
-  {
     "id": "api.slackimport.slack_import.zip.file_too_large",
     "translation": "{{.Filename}} trong kho lưu trữ zip quá lớn để xử lý nhập Slack\n"
   },
@@ -6296,10 +6124,6 @@
   {
     "id": "api.team.invite_members.unable_to_send_email.app_error",
     "translation": "Lỗi khi gửi email"
-  },
-  {
-    "id": "api.team.invite_members_to_team_and_channels.invalid_body_parsing.app_error",
-    "translation": "Lỗi khi phân tích cú pháp dữ liệu nội dung."
   },
   {
     "id": "api.team.invite_members_to_team_and_channels.invalid_body.app_error",
@@ -6674,36 +6498,8 @@
     "translation": "Nhấp vào bên dưới để xác minh địa chỉ email của bạn."
   },
   {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "Email: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Liên hệ: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Diagnostic Id: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Tổng số người dùng đang hoạt động: "
-  },
-  {
     "id": "api.templates.welcome_body.app_download_title",
     "translation": "Tải xuống ứng dụng dành cho máy tính để bàn và thiết bị di động"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "URL trang web: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Nếu bạn có bất kỳ thắc mắc nào khác, vui lòng liên hệ với support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Yêu cầu Mattermost liên hệ lại"
   },
   {
     "id": "api.templates.welcome_body.info1",
@@ -6718,60 +6514,12 @@
     "translation": "Cám ơn vì đã tham gia "
   },
   {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Nếu bạn có bất kỳ thắc mắc nào khác, vui lòng liên hệ với support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Không thể lấy lại giấy phép dùng thử. Truy cập https://mattermost.com/trial/ để yêu cầu giấy phép."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "Các dự án thường có sự tham gia của mọi người cả bên trong và bên ngoài tổ chức. Với Tài khoản khách, bạn có thể đưa các đối tác bên ngoài vào hệ thống Matter Extreme của mình và chỉ định họ có thể làm việc cùng ai và họ có thể xem những gì.\n\n[Tìm hiểu thêm về cách bật Tài khoản khách](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "Các dự án thường có sự tham gia của mọi người cả bên trong và bên ngoài tổ chức. Với Tài khoản khách, bạn có thể đưa các đối tác bên ngoài vào hệ thống Matter Extreme của mình và chỉ định họ có thể làm việc cùng ai và họ có thể xem những gì.\n\n[Tìm hiểu thêm về cách bật Tài khoản khách](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn có hơn 100 người dùng. Khi cơ sở người dùng của bạn tăng lên, việc cấp phép tài khoản mới có thể trở nên tốn thời gian. Chúng tôi khuyên bạn nên tích hợp Active Directory/LDAP của tổ chức mình để cho phép bất kỳ ai có tài khoản đều có thể truy cập Matter Extreme.\n\n[Tìm hiểu thêm về cách tích hợp với AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn đã bật xác thực đa yếu tố, cho phép người dùng lựa chọn bảo mật tài khoản của họ bằng các phương tiện xác thực bổ sung ngoài mật khẩu. Để nâng cao tính bảo mật trên toàn hệ thống, bạn có thể yêu cầu tất cả tài khoản Matter Extreme sử dụng xác thực đa yếu tố.\n\n[Tìm hiểu thêm về cách thực thi Xác thực đa yếu tố](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication).\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn đã bật xác thực đa yếu tố, cho phép người dùng lựa chọn bảo mật tài khoản của họ bằng các phương tiện xác thực bổ sung ngoài mật khẩu. Để nâng cao tính bảo mật trên toàn hệ thống, bạn có thể yêu cầu tất cả tài khoản Matter Extreme sử dụng xác thực đa yếu tố.\n\n[Tìm hiểu thêm về cách thực thi Xác thực đa yếu tố](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn có hơn 100 người dùng. Khi cơ sở người dùng của bạn tăng lên, việc cấp phép tài khoản mới có thể trở nên tốn thời gian. Chúng tôi khuyên bạn nên tích hợp Active Directory/LDAP của tổ chức mình để cho phép bất kỳ ai có tài khoản đều có thể truy cập Matter Extreme.\n\n[Tìm hiểu thêm về cách tích hợp với AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn hiện có 200 người dùng. Khi bạn kết nối Matter Extreme với nhà cung cấp dịch vụ đăng nhập một lần trong tổ chức của mình, người dùng có thể truy cập Matter Extreme mà không cần phải nhập lại thông tin đăng nhập của họ. Chúng tôi khuyên bạn nên tích hợp nhà cung cấp SAML 2.0 với máy chủ Mattermost của mình.[Tìm hiểu thêm về cách tích hợp với SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml) .\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn hiện có 200 người dùng. Khi bạn kết nối Matter Extreme với nhà cung cấp dịch vụ đăng nhập một lần trong tổ chức của mình, người dùng có thể truy cập Matter Extreme mà không cần phải nhập lại thông tin đăng nhập của họ. Chúng tôi khuyên bạn nên tích hợp nhà cung cấp SAML 2.0 với máy chủ Mattermost của mình.[Tìm hiểu thêm về cách tích hợp với SAML 2.0](https://www.mattermost.com/docs-saml/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Với rất nhiều cuộc trò chuyện diễn ra trên Matter Extreme, việc biết nơi tìm thông tin quan trọng có thể là một thách thức. Nếu bạn muốn phát thông báo tới nhiều khán giả, bạn có thể thiết lập Kênh thông báo chỉ đọc nơi bất kỳ ai cũng có thể tham gia nhưng chỉ quản trị viên kênh mới có thể đăng thông báo.\n\n[Tìm hiểu thêm về cách tạo Kênh thông báo chỉ đọc](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.templates.delinquency_30.subtitle1",
     "translation": "Bạn có thời gian để duy trì hoạt động Mattermost {{.Plan}} của mình nhưng bạn sẽ cần giải quyết các vấn đề với phương thức thanh toán của mình."
   },
   {
     "id": "api.templates.delinquency_7.subtitle2",
     "translation": "Để duy trì gói {{.Plan}} của bạn hoạt động, vui lòng liên hệ với tổ chức tài chính của bạn càng sớm càng tốt. Sau đó, cập nhật chi tiết thanh toán của bạn nếu cần."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost đặc biệt khuyến nghị việc triển khai trên 500 người dùng nên tận dụng các tính năng như quản lý người dùng, phân cụm máy chủ và giám sát hiệu suất. Hãy liên hệ với chúng tôi để tìm hiểu thêm và cho chúng tôi biết cách chúng tôi có thể trợ giúp.\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.templates.delinquency_45.subject",
@@ -6782,20 +6530,12 @@
     "translation": "Nếu bạn sử dụng các tính năng của Cloud Professional hoặc Enterprise cho các hoạt động kinh doanh quan trọng thì những tính năng này sẽ không còn khả dụng nữa và bạn sẽ thấy hiệu suất bị suy giảm."
   },
   {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost đặc biệt khuyến nghị việc triển khai trên 500 người dùng nên tận dụng các tính năng như quản lý người dùng, phân cụm máy chủ và giám sát hiệu suất. Hãy liên hệ với chúng tôi để tìm hiểu thêm và cho chúng tôi biết cách chúng tôi có thể trợ giúp.\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
     "id": "api.templates.delinquency_45.subtitle2",
     "translation": "Không gian làm việc bị hạ cấp có thể ảnh hưởng tiêu cực đến các quy trình công việc quan trọng và các hoạt động kinh doanh quan trọng khác được thực hiện tại không gian làm việc của bạn."
   },
   {
     "id": "api.templates.email_footer_v2",
     "translation": "© 2022 Mattermost, Inc. 530 Đại lộ Lytton, Tầng hai, Palo Alto, CA, 94301"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Các kênh giúp cải thiện khả năng giao tiếp nhưng với việc người dùng trên khắp các kênh tham gia và tạo các kênh Matter Extreme, thách thức trong việc giữ cho hệ thống luôn ngăn nắp sẽ tăng lên. Quyền nâng cao cho phép bạn đặt người dùng hoặc vai trò nào có thể thực hiện một số hành động nhất định, bao gồm quản lý cài đặt kênh và thành viên, sử dụng @channel hoặc @here để gắn thẻ các nhóm người dùng rộng rãi và tạo webhook mới.\n\n[Tìm hiểu thêm về cách sử dụng Quyền nâng cao](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.templates.delinquency_60.subtitle1",
@@ -6806,28 +6546,12 @@
     "translation": "{{ .SenderName }} đã mời bạn tham gia các kênh {{ .ChannelsLen }} trong Nhóm {{ .TeamDisplayName }}"
   },
   {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Các kênh giúp cải thiện khả năng giao tiếp nhưng với việc người dùng trên khắp các kênh tham gia và tạo các kênh Matter Extreme, thách thức trong việc giữ cho hệ thống luôn ngăn nắp sẽ tăng lên. Quyền nâng cao cho phép bạn đặt người dùng hoặc vai trò nào có thể thực hiện một số hành động nhất định, bao gồm quản lý cài đặt kênh và thành viên, sử dụng @channel hoặc @here để gắn thẻ các nhóm người dùng rộng rãi và tạo webhook mới.\n\n[Tìm hiểu thêm về cách sử dụng Quyền nâng cao](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
     "id": "api.templates.license_up_for_renewal_subtitle",
     "translation": "{{.UserName}}, đăng ký của bạn sẽ hết hạn sau {{.Days}} ngày. Chúng tôi hy vọng bạn đang trải nghiệm sự cộng tác nhóm linh hoạt và an toàn mà Mattermost mang lại. Hãy sớm gia hạn để đảm bảo nhóm của bạn có thể tiếp tục tận hưởng những lợi ích này."
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn có số lượng tin nhắn lớn. Tìm kiếm cơ sở dữ liệu Matter Extreme mặc định bắt đầu hiển thị sự suy giảm hiệu suất ở khoảng 2,5 triệu bài đăng. Với hơn 5 triệu bài đăng, Elaticsearch có thể giúp tránh các vấn đề đáng kể về hiệu suất, chẳng hạn như thời gian chờ, với tìm kiếm và lượt đề cập. Hãy liên hệ với chúng tôi để tìm hiểu thêm và cho chúng tôi biết cách chúng tôi có thể trợ giúp.\n\n[Tìm hiểu thêm về cách cải thiện hiệu suất](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBằng cách nhấp vào Liên hệ với chúng tôi, bạn sẽ chia sẻ thông tin của mình với Mattermost, Inc. [Tìm hiểu thêm](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn có số lượng tin nhắn lớn. Tìm kiếm cơ sở dữ liệu Matter Extreme mặc định bắt đầu hiển thị sự suy giảm hiệu suất ở khoảng 2,5 triệu bài đăng. Với hơn 5 triệu bài đăng, Elaticsearch có thể giúp tránh các vấn đề đáng kể về hiệu suất, chẳng hạn như thời gian chờ, với tìm kiếm và lượt đề cập. Hãy liên hệ với chúng tôi để tìm hiểu thêm và cho chúng tôi biết cách chúng tôi có thể trợ giúp.\n\n[Tìm hiểu thêm về cách cải thiện hiệu suất](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
-  },
-  {
     "id": "api.templates.payment_failed.info3",
     "translation": "Để đảm bảo quyền truy cập không bị gián đoạn vào Matter Extreme {{.Plan}}, vui lòng liên hệ với tổ chức tài chính của bạn để khắc phục sự cố cơ bản hoặc cập nhật thông tin thanh toán của bạn. Sau khi thông tin thanh toán được cập nhật, Mattermost sẽ cố gắng giải quyết mọi số dư chưa thanh toán."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Hệ thống Matter Extreme của bạn hiện có nhiều nhóm. Nhiều nhóm có cách điều phối và cộng tác ưa thích của riêng họ, bao gồm cách tạo kênh, ai có thể mời đồng đội mới và cách quản lý tích hợp. Lược đồ ghi đè nhóm cho phép bạn tùy chỉnh quyền của người dùng trong mỗi nhóm để đáp ứng nhu cầu cụ thể của họ.\n\n[Tìm hiểu thêm về cách sử dụng Quyền nâng cao](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nBằng cách nhấp vào Bắt đầu dùng thử, tôi đồng ý với [Thỏa thuận đánh giá phần mềm quan trọng nhất](https://mattermost.com/software-evaluation-agreement/), [Chính sách quyền riêng tư](https://mattermost.com/pl/privacy-policy /) và nhận email sản phẩm."
   },
   {
     "id": "api.templates.payment_failed_no_card.info1",
@@ -7102,16 +6826,8 @@
     "translation": "Việc giới thiệu chỉ có thể được hoàn thành bởi Quản trị viên hệ thống."
   },
   {
-    "id": "app.system.get.app_error",
-    "translation": "Chúng tôi đã gặp lỗi khi tìm thuộc tính hệ thống."
-  },
-  {
     "id": "app.system.get_by_name.app_error",
     "translation": "Không thể tìm thấy biến hệ thống."
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Cố vấn của Mattermost"
   },
   {
     "id": "app.system.get_onboarding_request.app_error",
@@ -7124,10 +6840,6 @@
   {
     "id": "app.system.save.app_error",
     "translation": "Chúng tôi đã gặp lỗi khi lưu thuộc tính hệ thống."
-  },
-  {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Không lưu trữ được giá trị cho {{.WarnMetricName}}"
   },
   {
     "id": "app.team.analytics_team_count.app_error",
@@ -7328,18 +7040,6 @@
   {
     "id": "api.elasticsearch.test_elasticsearch_settings_nil.app_error",
     "translation": "Cài đặt Elaticsearch có các giá trị chưa được đặt."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Không gửi được email xác nhận của quản trị viên"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "không thể tìm thấy số liệu cảnh báo."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "Máy chủ SMTP là bắt buộc"
   },
   {
     "id": "api.email_batching.send_batched_email_notification.button",
@@ -7976,10 +7676,6 @@
   {
     "id": "api.license.request_trial_license.embargoed",
     "translation": "Chúng tôi không thể xử lý yêu cầu do những hạn chế đối với các quốc gia bị cấm vận. [Tìm hiểu thêm trong tài liệu của chúng tôi](https://mattermost.com/pl/limitations-for-embargoed-countries) hoặc liên hệ với legal@mattermost.com nếu có câu hỏi xung quanh các hạn chế xuất khẩu."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Không thể nhận được giấy phép dùng thử, vui lòng thử lại hoặc liên hệ với support@mattermost.com. Không thể có được số lượng người dùng đã đăng ký."
   },
   {
     "id": "api.license.true_up_review.create_error",
@@ -9395,10 +9091,6 @@
   },
   {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
-    "translation": "Danh sách quản trị viên trống."
-  },
-  {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
     "translation": "Danh sách quản trị viên trống."
   },
   {

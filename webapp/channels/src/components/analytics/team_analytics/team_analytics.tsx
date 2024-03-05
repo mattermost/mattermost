@@ -2,9 +2,10 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedDate, FormattedMessage} from 'react-intl';
+import type {MessageDescriptor} from 'react-intl';
+import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
-import type {AnalyticsRow} from '@mattermost/types/admin';
+import type {AnalyticsRow, AnalyticsState} from '@mattermost/types/admin';
 import type {ClientLicense} from '@mattermost/types/config';
 import type {Team} from '@mattermost/types/teams';
 import type {UserProfile} from '@mattermost/types/users';
@@ -15,13 +16,13 @@ import {General} from 'mattermost-redux/constants';
 import * as AdminActions from 'actions/admin_actions';
 
 import Banner from 'components/admin_console/banner';
-import {ActivatedUserCard} from 'components/analytics/activated_users_card';
+import ActivatedUserCard from 'components/analytics/activated_users_card';
+import {messages as activatedUsersCardsMessages} from 'components/analytics/activated_users_card/title';
 import LineChart from 'components/analytics/line_chart';
 import StatisticCount from 'components/analytics/statistic_count';
 import TableChart from 'components/analytics/table_chart';
 import TrueUpReview from 'components/analytics/true_up_review';
 import ExternalLink from 'components/external_link';
-import FormattedMarkdownMessage from 'components/formatted_markdown_message';
 import LoadingScreen from 'components/loading_screen';
 import AdminHeader from 'components/widgets/admin_console/admin_header';
 
@@ -51,7 +52,7 @@ type Props = {
 
     license: ClientLicense;
 
-    stats: RelationOneToOne<Team, Record<string, number | AnalyticsRow[]>>;
+    stats: RelationOneToOne<Team, AnalyticsState>;
 
     actions: {
 
@@ -80,6 +81,29 @@ type State = {
     newUsers?: UserProfile[];
 };
 
+const messages = defineMessages({
+    title: {id: 'analytics.team.title', defaultMessage: 'Team Statistics for {team}'},
+    info: {id: 'analytics.system.info', defaultMessage: 'Use data for only the chosen team. Exclude posts in direct message channels that are not tied to a team.'},
+    totalPosts: {id: 'analytics.team.totalPosts', defaultMessage: 'Total Posts'},
+    activeUsers: {id: 'analytics.team.activeUsers', defaultMessage: 'Active Users With Posts'},
+    publicChannels: {id: 'analytics.team.publicChannels', defaultMessage: 'Public Channels'},
+    privateGroups: {id: 'analytics.team.privateGroups', defaultMessage: 'Private Channels'},
+    recentUsers: {id: 'analytics.team.recentUsers', defaultMessage: 'Recent Active Users'},
+    newlyCreated: {id: 'analytics.team.newlyCreated', defaultMessage: 'Newly Created Users'},
+});
+
+export const searchableStrings: Array<string|MessageDescriptor|[MessageDescriptor, {[key: string]: any}]> = [
+    [messages.title, {team: ''}],
+    messages.info,
+    messages.totalPosts,
+    messages.activeUsers,
+    activatedUsersCardsMessages.totalUsers,
+    messages.publicChannels,
+    messages.privateGroups,
+    messages.recentUsers,
+    messages.newlyCreated,
+];
+
 export default class TeamAnalytics extends React.PureComponent<Props, State> {
     constructor(props: Props) {
         super(props);
@@ -105,7 +129,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         }
     }
 
-    private getStatValue(stat: number | AnalyticsRow[]): number | undefined {
+    private getStatValue(stat: number | AnalyticsRow[] | undefined): number | undefined {
         if (typeof stat === 'number') {
             return stat;
         }
@@ -173,10 +197,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         let banner = (
             <div className='banner'>
                 <div className='banner__content'>
-                    <FormattedMessage
-                        id='analytics.system.info'
-                        defaultMessage='Use data for only the chosen team. Exclude posts in direct message channels that are not tied to a team.'
-                    />
+                    <FormattedMessage {...messages.info}/>
                 </div>
             </div>
         );
@@ -213,12 +234,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
         } else {
             totalPostsCount = (
                 <StatisticCount
-                    title={
-                        <FormattedMessage
-                            id='analytics.team.totalPosts'
-                            defaultMessage='Total Posts'
-                        />
-                    }
+                    title={<FormattedMessage {...messages.totalPosts}/>}
                     icon='fa-comment'
                     count={this.getStatValue(stats[StatTypes.TOTAL_POSTS])}
                 />
@@ -228,12 +244,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                 <div className='row'>
                     <LineChart
                         key={this.state.team.id}
-                        title={
-                            <FormattedMessage
-                                id='analytics.team.totalPosts'
-                                defaultMessage='Total Posts'
-                            />
-                        }
+                        title={<FormattedMessage {...messages.totalPosts}/>}
                         id='totalPosts'
                         data={postCountsDay}
                         width={740}
@@ -246,12 +257,7 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                 <div className='row'>
                     <LineChart
                         key={this.state.team.id}
-                        title={
-                            <FormattedMessage
-                                id='analytics.team.activeUsers'
-                                defaultMessage='Active Users With Posts'
-                            />
-                        }
+                        title={<FormattedMessage {...messages.activeUsers}/>}
                         id='activeUsersWithPosts'
                         data={userCountsWithPostsDay}
                         width={740}
@@ -289,9 +295,8 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
             <div className='wrapper--fixed team_statistics'>
                 <AdminHeader>
                     <div className='team-statistics__header'>
-                        <FormattedMarkdownMessage
-                            id='analytics.team.title'
-                            defaultMessage='Team Statistics for {team}'
+                        <FormattedMessage
+                            {...messages.title}
                             values={{
                                 team: this.state.team.display_name,
                             }}
@@ -320,22 +325,12 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                                 isCloud={this.props.license.Cloud === 'true'}
                             />
                             <StatisticCount
-                                title={
-                                    <FormattedMessage
-                                        id='analytics.team.publicChannels'
-                                        defaultMessage='Public Channels'
-                                    />
-                                }
+                                title={<FormattedMessage {...messages.publicChannels}/>}
                                 icon='fa-globe'
                                 count={this.getStatValue(stats[StatTypes.TOTAL_PUBLIC_CHANNELS])}
                             />
                             <StatisticCount
-                                title={
-                                    <FormattedMessage
-                                        id='analytics.team.privateGroups'
-                                        defaultMessage='Private Channels'
-                                    />
-                                }
+                                title={<FormattedMessage {...messages.privateGroups}/>}
                                 icon='fa-lock'
                                 count={this.getStatValue(stats[StatTypes.TOTAL_PRIVATE_GROUPS])}
                             />
@@ -345,21 +340,11 @@ export default class TeamAnalytics extends React.PureComponent<Props, State> {
                         {userActiveGraph}
                         <div className='row'>
                             <TableChart
-                                title={
-                                    <FormattedMessage
-                                        id='analytics.team.recentUsers'
-                                        defaultMessage='Recent Active Users'
-                                    />
-                                }
+                                title={<FormattedMessage {...messages.recentUsers}/>}
                                 data={recentActiveUsers}
                             />
                             <TableChart
-                                title={
-                                    <FormattedMessage
-                                        id='analytics.team.newlyCreated'
-                                        defaultMessage='Newly Created Users'
-                                    />
-                                }
+                                title={<FormattedMessage {...messages.newlyCreated}/>}
                                 data={newlyCreatedUsers}
                             />
                         </div>

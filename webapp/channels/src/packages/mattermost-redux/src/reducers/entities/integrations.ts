@@ -1,15 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
 import {combineReducers} from 'redux';
 
-import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp} from '@mattermost/types/integrations';
+import type {Command, IncomingWebhook, OutgoingWebhook, OAuthApp, OutgoingOAuthConnection} from '@mattermost/types/integrations';
 import type {IDMappedObjects} from '@mattermost/types/utilities';
 
 import {IntegrationTypes, UserTypes, ChannelTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
-function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: GenericAction) {
+function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_INCOMING_HOOK: {
         const nextState = {...state};
@@ -52,7 +52,7 @@ function incomingHooks(state: IDMappedObjects<IncomingWebhook> = {}, action: Gen
     }
 }
 
-function outgoingHooks(state: IDMappedObjects<OutgoingWebhook> = {}, action: GenericAction) {
+function outgoingHooks(state: IDMappedObjects<OutgoingWebhook> = {}, action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_OUTGOING_HOOK: {
         const nextState = {...state};
@@ -95,7 +95,7 @@ function outgoingHooks(state: IDMappedObjects<OutgoingWebhook> = {}, action: Gen
     }
 }
 
-function commands(state: IDMappedObjects<Command> = {}, action: GenericAction) {
+function commands(state: IDMappedObjects<Command> = {}, action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_COMMANDS:
     case IntegrationTypes.RECEIVED_CUSTOM_TEAM_COMMANDS: {
@@ -141,7 +141,7 @@ function commands(state: IDMappedObjects<Command> = {}, action: GenericAction) {
     }
 }
 
-function systemCommands(state: IDMappedObjects<Command> = {}, action: GenericAction) {
+function systemCommands(state: IDMappedObjects<Command> = {}, action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_COMMANDS: {
         const nextCommands: Record<string, Command> = {};
@@ -169,7 +169,7 @@ function systemCommands(state: IDMappedObjects<Command> = {}, action: GenericAct
     }
 }
 
-function oauthApps(state: IDMappedObjects<OAuthApp> = {}, action: GenericAction) {
+function oauthApps(state: IDMappedObjects<OAuthApp> = {}, action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_OAUTH_APPS: {
         const nextState = {...state};
@@ -196,7 +196,7 @@ function oauthApps(state: IDMappedObjects<OAuthApp> = {}, action: GenericAction)
     }
 }
 
-function appsOAuthAppIDs(state: string[] = [], action: GenericAction) {
+function appsOAuthAppIDs(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_APPS_OAUTH_APP_IDS: {
         if (state.length === 0 && action.data.length === 0) {
@@ -224,7 +224,34 @@ function appsOAuthAppIDs(state: string[] = [], action: GenericAction) {
     }
 }
 
-function appsBotIDs(state: string[] = [], action: GenericAction) {
+function outgoingOAuthConnections(state: IDMappedObjects<OutgoingOAuthConnection> = {}, action: AnyAction) {
+    switch (action.type) {
+    case IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTIONS: {
+        const nextState = {...state};
+        for (const connection of action.data) {
+            nextState[connection.id] = connection;
+        }
+        return nextState;
+    }
+    case IntegrationTypes.RECEIVED_OUTGOING_OAUTH_CONNECTION:
+        return {
+            ...state,
+            [action.data.id]: action.data,
+        };
+    case IntegrationTypes.DELETED_OUTGOING_OAUTH_CONNECTION: {
+        const nextState = {...state};
+        Reflect.deleteProperty(nextState, action.data.id);
+        return nextState;
+    }
+    case UserTypes.LOGOUT_SUCCESS:
+        return {};
+
+    default:
+        return state;
+    }
+}
+
+function appsBotIDs(state: string[] = [], action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_APPS_BOT_IDS: {
         if (!action.data) {
@@ -256,7 +283,7 @@ function appsBotIDs(state: string[] = [], action: GenericAction) {
     }
 }
 
-function dialogTriggerId(state = '', action: GenericAction) {
+function dialogTriggerId(state = '', action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_DIALOG_TRIGGER_ID:
         return action.data;
@@ -265,7 +292,7 @@ function dialogTriggerId(state = '', action: GenericAction) {
     }
 }
 
-function dialog(state = '', action: GenericAction) {
+function dialog(state = '', action: AnyAction) {
     switch (action.type) {
     case IntegrationTypes.RECEIVED_DIALOG:
         return action.data;
@@ -293,6 +320,9 @@ export default combineReducers({
 
     // object to represent the list of ids for bots associated to apps
     appsBotIDs,
+
+    // object to represent registered outgoing oauth connections with connection id as the key
+    outgoingOAuthConnections,
 
     // object to represent built-in slash commands
     systemCommands,

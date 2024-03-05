@@ -54,8 +54,8 @@ describe('components/MoreDirectChannels', () => {
         onExited: jest.fn(),
         actions: {
             getProfiles: jest.fn(() => {
-                return new Promise<void>((resolve) => {
-                    process.nextTick(() => resolve());
+                return new Promise((resolve) => {
+                    process.nextTick(() => resolve({data: true}));
                 });
             }),
             getProfilesInTeam: jest.fn().mockResolvedValue({data: true}),

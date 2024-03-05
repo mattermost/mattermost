@@ -21,6 +21,7 @@ import Markdown from 'components/markdown';
 import OverlayTrigger from 'components/overlay_trigger';
 import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
+import {statusDropdownMessages} from 'components/status_dropdown/status_dropdown';
 import StatusIcon from 'components/status_icon';
 import Timestamp from 'components/timestamp';
 import Tooltip from 'components/tooltip';
@@ -34,7 +35,7 @@ import {
     NotificationLevels,
     RHSStates,
 } from 'utils/constants';
-import {handleFormattedTextClick, localizeMessage, isEmptyObject, toTitleCase} from 'utils/utils';
+import {handleFormattedTextClick, isEmptyObject} from 'utils/utils';
 
 import type {ModalData} from 'types/actions';
 import type {RhsState} from 'types/store/rhs';
@@ -71,7 +72,6 @@ export type Props = {
         updateChannelNotifyProps: (userId: string, channelId: string, props: Partial<ChannelNotifyProps>) => void;
         goToLastViewedChannel: () => void;
         openModal: <P>(modalData: ModalData<P>) => void;
-        closeModal: () => void;
         showChannelMembers: (channelId: string, inEditingMode?: boolean) => void;
     };
     currentRelativeTeamUrl: string;
@@ -261,7 +261,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             hideGuestTags,
         } = this.props;
         const {formatMessage} = this.props.intl;
-        const ariaLabelChannelHeader = localizeMessage('accessibility.sections.channelHeader', 'channel header region');
+        const ariaLabelChannelHeader = this.props.intl.formatMessage({id: 'accessibility.sections.channelHeader', defaultMessage: 'channel header region'});
 
         let hasGuestsText: ReactNode = '';
         if (hasGuests && !hideGuestTags) {
@@ -315,10 +315,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
 
             dmHeaderTextStatus = (
                 <span className='header-status__text'>
-                    <FormattedMessage
-                        id={`status_dropdown.set_${channel.status}`}
-                        defaultMessage={toTitleCase(channel.status || '')}
-                    />
+                    <FormattedMessage {...statusDropdownMessages[channel.status!].name}/>
                     {this.renderCustomStatus()}
                 </span>
             );
@@ -498,7 +495,7 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                             placement='bottom'
                             rootClose={true}
                             target={this.headerDescriptionRef.current as React.ReactInstance}
-                            ref={this.headerOverlayRef}
+                            ref={this.headerOverlayRef as any}
                             onHide={() => this.setState({showChannelHeaderPopover: false})}
                         >
                             {popoverContent}

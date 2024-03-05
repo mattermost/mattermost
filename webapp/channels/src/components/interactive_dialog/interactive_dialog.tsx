@@ -5,9 +5,8 @@ import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
-import type {DialogSubmission, DialogElement as TDialogElement} from '@mattermost/types/integrations';
+import type {DialogSubmission} from '@mattermost/types/integrations';
 
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {
     checkDialogElementForError,
     checkIfErrorsMatchElements,
@@ -15,34 +14,23 @@ import {
 
 import SpinnerButton from 'components/spinner_button';
 
-import type EmojiMap from 'utils/emoji_map';
-import {localizeMessage} from 'utils/utils';
-
 import DialogElement from './dialog_element';
 import DialogIntroductionText from './dialog_introduction_text';
 
+import type {PropsFromRedux} from './index';
+
+// We are using Partial as we are returning empty object with dialog redux state is empty in connect
+type OptionalProsFromRedux = Partial<PropsFromRedux> & Pick<PropsFromRedux, 'actions'>;
+
 export type Props = {
-    url: string;
-    callbackId?: string;
-    elements?: TDialogElement[];
-    title: string;
-    introductionText?: string;
-    iconUrl?: string;
-    submitLabel?: string;
-    notifyOnCancel?: boolean;
-    state?: string;
     onExited?: () => void;
-    actions: {
-        submitInteractiveDialog: (submission: DialogSubmission) => ActionFunc;
-    };
-    emojiMap: EmojiMap;
-}
+} & OptionalProsFromRedux;
 
 type State = {
     show: boolean;
     values: Record<string, string | number | boolean>;
     error: string | null;
-    errors: Record<string, JSX.Element>;
+    errors: Record<string, React.ReactNode>;
     submitting: boolean;
 }
 
@@ -116,7 +104,7 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
 
         this.setState({submitting: true});
 
-        const {data}: any = await this.props.actions.submitInteractiveDialog(dialog) ?? {};
+        const {data} = await this.props.actions.submitInteractiveDialog(dialog) ?? {};
 
         this.setState({submitting: false});
 
@@ -288,10 +276,12 @@ export default class InteractiveDialog extends React.PureComponent<Props, State>
                             autoFocus={!elements || elements.length === 0}
                             className='btn btn-primary save-button'
                             spinning={this.state.submitting}
-                            spinningText={localizeMessage(
-                                'interactive_dialog.submitting',
-                                'Submitting...',
-                            )}
+                            spinningText={
+                                <FormattedMessage
+                                    id='interactive_dialog.submitting'
+                                    defaultMessage='Submitting...'
+                                />
+                            }
                         >
                             {submitText}
                         </SpinnerButton>

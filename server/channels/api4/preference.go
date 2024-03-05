@@ -12,6 +12,8 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/audit"
 )
 
+const maxUpdatePreferences = 100
+
 func (api *API) InitPreference() {
 	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(getPreferences)).Methods("GET")
 	api.BaseRoutes.Preferences.Handle("", api.APISessionRequired(updatePreferences)).Methods("PUT")
@@ -101,8 +103,12 @@ func updatePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
-		c.SetInvalidParamWithErr("preferences", jsonErr)
+	err := model.StructFromJSONLimited(r.Body, &preferences)
+	if err != nil {
+		c.SetInvalidParamWithErr("preferences", err)
+		return
+	} else if len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
+		c.SetInvalidParam("preferences")
 		return
 	}
 
@@ -149,8 +155,12 @@ func deletePreferences(c *Context, w http.ResponseWriter, r *http.Request) {
 	}
 
 	var preferences model.Preferences
-	if jsonErr := json.NewDecoder(r.Body).Decode(&preferences); jsonErr != nil {
-		c.SetInvalidParamWithErr("preferences", jsonErr)
+	err := model.StructFromJSONLimited(r.Body, &preferences)
+	if err != nil {
+		c.SetInvalidParamWithErr("preferences", err)
+		return
+	} else if len(preferences) == 0 || len(preferences) > maxUpdatePreferences {
+		c.SetInvalidParam("preferences")
 		return
 	}
 

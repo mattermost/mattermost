@@ -17,7 +17,6 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -580,7 +579,7 @@ func (s SqlChannelStore) upsertPublicChannelT(transaction *sqlxTxWrapper, channe
 }
 
 // Save writes the (non-direct) channel to the database.
-func (s SqlChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (_ *model.Channel, err error) {
+func (s SqlChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (_ *model.Channel, err error) {
 	if channel.DeleteAt != 0 {
 		return nil, store.NewErrInvalidInput("Channel", "DeleteAt", channel.DeleteAt)
 	}
@@ -1126,26 +1125,16 @@ func (s SqlChannelStore) GetChannelsByUser(userId string, includeDeleted bool, l
 	return channels, nil
 }
 
-func (s SqlChannelStore) GetAllChannelMembersById(channelID string) ([]string, error) {
-	sql, args, err := s.channelMembersForTeamWithSchemeSelectQuery.Where(sq.Eq{
-		"ChannelId": channelID,
-	}).ToSql()
-	if err != nil {
-		return nil, errors.Wrap(err, "GetAllChannelMembersById_ToSql")
-	}
-
-	dbMembers := channelMemberWithSchemeRolesList{}
-	err = s.GetReplicaX().Select(&dbMembers, sql, args...)
+func (s SqlChannelStore) GetAllChannelMemberIdsByChannelId(channelID string) ([]string, error) {
+	userIDs := []string{}
+	err := s.GetReplicaX().Select(&userIDs, `SELECT UserId
+		FROM ChannelMembers
+		WHERE ChannelId=?`, channelID)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMembers with channelID=%s", channelID)
 	}
 
-	res := make([]string, len(dbMembers))
-	for i, member := range dbMembers.ToModel() {
-		res[i] = member.UserId
-	}
-
-	return res, nil
+	return userIDs, nil
 }
 
 func (s SqlChannelStore) GetAllChannels(offset, limit int, opts store.ChannelSearchOpts) (model.ChannelListWithTeamData, error) {
@@ -1629,7 +1618,7 @@ func (s SqlChannelStore) SaveMultipleMembers(members []*model.ChannelMember) ([]
 	return newMembers, nil
 }
 
-func (s SqlChannelStore) SaveMember(member *model.ChannelMember) (*model.ChannelMember, error) {
+func (s SqlChannelStore) SaveMember(rctx request.CTX, member *model.ChannelMember) (*model.ChannelMember, error) {
 	newMembers, err := s.SaveMultipleMembers([]*model.ChannelMember{member})
 	if err != nil {
 		return nil, err
@@ -1871,6 +1860,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		sql, args, err2 := s.getQueryBuilder().
 			Update("channelmembers").
 			Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps)).
+			Set("LastUpdateAt", model.GetMillis()).
 			Where(sq.Eq{
 				"userid":    userID,
 				"channelid": channelID,
@@ -1894,6 +1884,7 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 		sql, args, err2 := s.getQueryBuilder().
 			Update("ChannelMembers").
 			Set("NotifyProps", jsonExpr).
+			Set("LastUpdateAt", model.GetMillis()).
 			Where(sq.Eq{
 				"UserId":    userID,
 				"ChannelId": channelID,
@@ -1930,6 +1921,86 @@ func (s SqlChannelStore) UpdateMemberNotifyProps(channelID, userID string, props
 	}
 
 	return dbMember.ToModel(), err
+}
+
+// PatchMultipleMembersNotifyProps updates the NotifyProps of multiple channel members at once without modifying
+// unspecified fields.
+//
+// Note that the returned array may not be in the same order as the provided IDs.
+func (s SqlChannelStore) PatchMultipleMembersNotifyProps(members []*model.ChannelMemberIdentifier, notifyProps map[string]string) ([]*model.ChannelMember, error) {
+	if len(notifyProps) == 0 {
+		return nil, errors.New("PatchMultipleMembersNotifyProps: No notifyProps specified")
+	}
+
+	if err := model.IsChannelMemberNotifyPropsValid(notifyProps, true); err != nil {
+		return nil, err
+	}
+
+	// Make the where clause first since it'll be used multiple times
+	whereClause := sq.Or{}
+	for _, member := range members {
+		whereClause = append(whereClause, sq.And{
+			sq.Eq{"ChannelId": member.ChannelId},
+			sq.Eq{"UserId": member.UserId},
+		})
+	}
+
+	// Update the channel members
+	builder := s.getQueryBuilder().Update("ChannelMembers")
+
+	if s.DriverName() == model.DatabaseDriverPostgres {
+		jsonNotifyProps := string(model.ToJSON(notifyProps))
+		builder = builder.Set("notifyprops", sq.Expr("notifyprops || ?::jsonb", jsonNotifyProps))
+	} else {
+		// Unpack the keys and values to pass to MySQL
+		jsonArgs, jsonSQL := constructMySQLJSONArgs(notifyProps)
+		jsonExpr := sq.Expr(fmt.Sprintf("JSON_SET(NotifyProps, %s)", jsonSQL), jsonArgs...)
+
+		// Example: UPDATE ChannelMembers
+		// SET NotifyProps = JSON_SET(NotifyProps, '$.mark_unread', '"yes"' [, ...])
+		// WHERE ...
+		builder = builder.Set("NotifyProps", jsonExpr)
+	}
+
+	builder = builder.Set("LastUpdateAt", model.GetMillis())
+
+	builder = builder.Where(whereClause)
+
+	transaction, err := s.GetMasterX().Beginx()
+	if err != nil {
+		return nil, errors.Wrap(err, "begin_transaction")
+	}
+	defer finalizeTransactionX(transaction, &err)
+
+	result, err := transaction.ExecBuilder(builder)
+	if err != nil {
+		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Failed to update ChannelMembers")
+	} else if count, _ := result.RowsAffected(); count != int64(len(members)) {
+		return nil, errors.Wrap(err, "PatchMultipleMembersNotifyProps: Unable to update all ChannelMembers, some must not exist")
+	}
+
+	// Get the updated channel members
+	selectSQL, selectArgs, err := s.channelMembersForTeamWithSchemeSelectQuery.
+		Where(whereClause).ToSql()
+	if err != nil {
+		return nil, errors.Wrapf(err, "PatchMultipleMembersNotifyProps_Select_ToSql")
+	}
+
+	var dbMembers []*channelMemberWithSchemeRoles
+	if err := transaction.Select(&dbMembers, selectSQL, selectArgs...); err != nil {
+		return nil, errors.Wrapf(err, "PatchMultipleMembersNotifyProps: Failed to get updated ChannelMembers")
+	}
+
+	if err := transaction.Commit(); err != nil {
+		return nil, errors.Wrap(err, "commit_transaction")
+	}
+
+	updated := make([]*model.ChannelMember, len(dbMembers))
+	for i, dbMember := range dbMembers {
+		updated[i] = dbMember.ToModel()
+	}
+
+	return updated, nil
 }
 
 func (s SqlChannelStore) GetMembers(channelID string, offset, limit int) (model.ChannelMembers, error) {
@@ -2070,6 +2141,20 @@ func (s SqlChannelStore) GetMember(ctx context.Context, channelID string, userID
 	return dbMember.ToModel(), nil
 }
 
+func (s SqlChannelStore) GetMemberLastViewedAt(ctx context.Context, channelID string, userID string) (int64, error) {
+	var lastViewedAt int64
+	if err := s.DBXFromContext(ctx).Get(&lastViewedAt, `SELECT COALESCE(LastViewedAt, 0) AS LastViewedAt
+		FROM ChannelMembers
+		WHERE ChannelId=? AND UserId=?`, channelID, userID); err != nil {
+		if err == sql.ErrNoRows {
+			return 0, store.NewErrNotFound("LastViewedAt", fmt.Sprintf("channelId=%s, userId=%s", channelID, userID))
+		}
+		return 0, errors.Wrapf(err, "failed to get lastViewedAt with channelId=%s and userId=%s", channelID, userID)
+	}
+
+	return lastViewedAt, nil
+}
+
 func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	allChannelMembersForUserCache.Remove(userId)
 	allChannelMembersForUserCache.Remove(userId + "_deleted")
@@ -2078,36 +2163,7 @@ func (s SqlChannelStore) InvalidateAllChannelMembersForUser(userId string) {
 	}
 }
 
-func (s SqlChannelStore) IsUserInChannelUseCache(userId string, channelId string) bool {
-	var ids map[string]string
-	if err := allChannelMembersForUserCache.Get(userId, &ids); err == nil {
-		if s.metrics != nil {
-			s.metrics.IncrementMemCacheHitCounter("All Channel Members for User")
-		}
-		if _, ok := ids[channelId]; ok {
-			return true
-		}
-		return false
-	}
-
-	if s.metrics != nil {
-		s.metrics.IncrementMemCacheMissCounter("All Channel Members for User")
-	}
-
-	ids, err := s.GetAllChannelMembersForUser(userId, true, false)
-	if err != nil {
-		mlog.Error("Error getting all channel members for user", mlog.Err(err))
-		return false
-	}
-
-	if _, ok := ids[channelId]; ok {
-		return true
-	}
-
-	return false
-}
-
-func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.ChannelMember, error) {
+func (s SqlChannelStore) GetMemberForPost(postId string, userId string, includeArchivedChannels bool) (*model.ChannelMember, error) {
 	var dbMember channelMemberWithSchemeRoles
 	query := `
 		SELECT
@@ -2147,6 +2203,10 @@ func (s SqlChannelStore) GetMemberForPost(postId string, userId string) (*model.
 			ChannelMembers.UserId = ?
 		AND
 			Posts.Id = ?`
+
+	if !includeArchivedChannels {
+		query += " AND Channels.DeleteAt = 0"
+	}
 	if err := s.GetReplicaX().Get(&dbMember, query, userId, postId); err != nil {
 		return nil, errors.Wrapf(err, "failed to get ChannelMember with postId=%s and userId=%s", postId, userId)
 	}
@@ -4104,18 +4164,23 @@ func (s SqlChannelStore) GetChannelMembersForExport(userId string, teamId string
 	return members, nil
 }
 
-func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string) ([]*model.DirectChannelForExport, error) {
+func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId string, includeArchivedChannels bool) ([]*model.DirectChannelForExport, error) {
 	directChannelsForExport := []*model.DirectChannelForExport{}
 	query := s.getQueryBuilder().
 		Select("Channels.*").
 		From("Channels").
 		Where(sq.And{
 			sq.Gt{"Channels.Id": afterId},
-			sq.Eq{"Channels.DeleteAt": int(0)},
 			sq.Eq{"Channels.Type": []model.ChannelType{model.ChannelTypeDirect, model.ChannelTypeGroup}},
 		}).
 		OrderBy("Channels.Id").
 		Limit(uint64(limit))
+
+	if !includeArchivedChannels {
+		query = query.Where(
+			sq.Eq{"Channels.DeleteAt": int(0)},
+		)
+	}
 
 	queryString, args, err := query.ToSql()
 	if err != nil {
@@ -4134,10 +4199,7 @@ func (s SqlChannelStore) GetAllDirectChannelsForExportAfter(limit int, afterId s
 		Select("u.Username as Username, ChannelId, UserId, cm.Roles as Roles, LastViewedAt, MsgCount, MentionCount, MentionCountRoot, COALESCE(UrgentMentionCount, 0) UrgentMentionCount, cm.NotifyProps as NotifyProps, LastUpdateAt, SchemeUser, SchemeAdmin, (SchemeGuest IS NOT NULL AND SchemeGuest) as SchemeGuest").
 		From("ChannelMembers cm").
 		Join("Users u ON ( u.Id = cm.UserId )").
-		Where(sq.And{
-			sq.Eq{"cm.ChannelId": channelIds},
-			sq.Eq{"u.DeleteAt": int(0)},
-		})
+		Where(sq.Eq{"cm.ChannelId": channelIds})
 
 	queryString, args, err = query.ToSql()
 	if err != nil {

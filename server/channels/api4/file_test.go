@@ -774,7 +774,8 @@ func TestGetFile(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileId)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetFileHeaders(t *testing.T) {
@@ -888,7 +889,8 @@ func TestGetFileThumbnail(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileLink(t *testing.T) {
@@ -1000,7 +1002,8 @@ func TestGetFilePreview(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFilePreview(context.Background(), fileId)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileInfo(t *testing.T) {
@@ -1054,7 +1057,8 @@ func TestGetFileInfo(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileInfo(context.Background(), fileId)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetPublicFile(t *testing.T) {
@@ -1085,6 +1089,10 @@ func TestGetPublicFile(t *testing.T) {
 	resp, err := http.Get(link)
 	require.NoError(t, err)
 	require.Equal(t, http.StatusOK, resp.StatusCode, "failed to get image with public link")
+
+	resp, err = http.Head(link)
+	require.NoError(t, err)
+	require.Equal(t, http.StatusOK, resp.StatusCode, "failed to respond to HEAD request")
 
 	resp, err = http.Get(link[:strings.LastIndex(link, "?")])
 	require.NoError(t, err)

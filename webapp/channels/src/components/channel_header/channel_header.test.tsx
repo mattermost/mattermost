@@ -22,7 +22,6 @@ describe('components/ChannelHeader', () => {
             showChannelFiles: jest.fn(),
             closeRightHandSide: jest.fn(),
             openModal: jest.fn(),
-            closeModal: jest.fn(),
             getCustomEmojisInText: jest.fn(),
             updateChannelNotifyProps: jest.fn(),
             goToLastViewedChannel: jest.fn(),

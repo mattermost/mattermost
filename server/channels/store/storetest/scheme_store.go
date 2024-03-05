@@ -480,7 +480,7 @@ func testSchemeStoreDelete(t *testing.T, rctx request.CTX, ss store.Store) {
 		Type:        model.ChannelTypeOpen,
 		SchemeId:    &d5.Id,
 	}
-	c5, nErr := ss.Channel().Save(c5, -1)
+	c5, nErr := ss.Channel().Save(rctx, c5, -1)
 	assert.NoError(t, nErr)
 
 	_, err = ss.Scheme().Delete(d5.Id)

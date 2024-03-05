@@ -65,8 +65,13 @@ func (api *API) InitCloud() {
 
 func ensureCloudInterface(c *Context, where string) bool {
 	cloud := c.App.Cloud()
+	disabled := c.App.Config().CloudSettings.Disable != nil && *c.App.Config().CloudSettings.Disable
 	if cloud == nil {
 		c.Err = model.NewAppError(where, "api.server.cws.needs_enterprise_edition", nil, "", http.StatusBadRequest)
+		return false
+	}
+	if disabled {
+		c.Err = model.NewAppError(where, "api.server.cws.disabled", nil, "", http.StatusUnprocessableEntity)
 		return false
 	}
 	return true
@@ -109,6 +114,10 @@ func getSubscription(c *Context, w http.ResponseWriter, r *http.Request) {
 			LastInvoice:     &model.Invoice{},
 			BillingType:     "",
 		}
+	}
+
+	if model.GetServiceEnvironment() != model.ServiceEnvironmentTest {
+		subscription.SimulatedCurrentTimeMs = nil
 	}
 
 	if !c.App.Config().FeatureFlags.CloudAnnualRenewals {

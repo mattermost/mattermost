@@ -15,7 +15,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
         id="admin.database.title"
       />
     </AdminHeader>
-    <SettingsGroup>
+    <Memo(SettingsGroup)>
       <div
         className="banner"
       >
@@ -101,7 +101,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"10\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"10\\"",
+            "id": "admin.sql.maxConnectionsExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={10}
@@ -122,7 +127,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"10\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"10\\"",
+            "id": "admin.sql.maxOpenExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={100}
@@ -143,7 +153,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"30\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"30\\"",
+            "id": "admin.sql.queryTimeoutExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={10}
@@ -164,7 +179,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"3600000\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"3600000\\"",
+            "id": "admin.sql.connMaxLifetimeExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={10}
@@ -185,7 +205,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"300000\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"300000\\"",
+            "id": "admin.sql.connMaxIdleTimeExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={20}
@@ -211,7 +236,12 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           />
         }
         onChange={[Function]}
-        placeholder="E.g.: \\"3\\""
+        placeholder={
+          Object {
+            "defaultMessage": "E.g.: \\"3\\"",
+            "id": "admin.service.minimumHashtagLengthExample",
+          }
+        }
         setByEnv={false}
         type="text"
         value={10}
@@ -392,7 +422,7 @@ exports[`components/DatabaseSettings should match snapshot 1`] = `
           </div>
         </div>
       </div>
-    </SettingsGroup>
+    </Memo(SettingsGroup)>
     <div
       className="admin-console-save"
     >

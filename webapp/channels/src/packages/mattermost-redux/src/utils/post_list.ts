@@ -58,7 +58,7 @@ export function makeFilterPostsAndAddSeparators() {
         (state: GlobalState, {postIds}: PostFilterOptions) => getPostsForIds(state, postIds),
         (state: GlobalState, {lastViewedAt}: PostFilterOptions) => lastViewedAt,
         (state: GlobalState, {indicateNewMessages}: PostFilterOptions) => indicateNewMessages,
-        (state) => state.entities.posts.selectedPostId,
+        () => '', // This previously returned state.entities.posts.selectedPostId which stopped being set at some point
         getCurrentUser,
         shouldShowJoinLeaveMessages,
         (posts, lastViewedAt, indicateNewMessages, selectedPostId, currentUser, showJoinLeave) => {
