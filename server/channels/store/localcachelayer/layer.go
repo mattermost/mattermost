@@ -102,6 +102,7 @@ type LocalCacheStore struct {
 	postsUsageCache    cache.Cache
 
 	user                   *LocalCacheUserStore
+	allUserCache           cache.Cache
 	userProfileByIdsCache  cache.Cache
 	profilesInChannelCache cache.Cache
 
@@ -281,6 +282,14 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 	localCacheStore.termsOfService = LocalCacheTermsOfServiceStore{TermsOfServiceStore: baseStore.TermsOfService(), rootStore: &localCacheStore}
 
 	// Users
+	if localCacheStore.allUserCache, err = cacheProvider.NewCache(&cache.CacheOptions{
+		Size:                   1,
+		Name:                   "AllUserProfiles",
+		DefaultExpiry:          UserProfileByIDSec * time.Second,
+		InvalidateClusterEvent: model.ClusterEventInvalidateCacheForAllProfiles,
+	}); err != nil {
+		return
+	}
 	if localCacheStore.userProfileByIdsCache, err = cacheProvider.NewCache(&cache.CacheOptions{
 		Size:                   UserProfileByIDCacheSize,
 		Name:                   "UserProfileByIds",
@@ -335,6 +344,7 @@ func NewLocalCacheLayer(baseStore store.Store, metrics einterfaces.MetricsInterf
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTermsOfService, localCacheStore.termsOfService.handleClusterInvalidateTermsOfService)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForProfileByIds, localCacheStore.user.handleClusterInvalidateScheme)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForProfileInChannel, localCacheStore.user.handleClusterInvalidateProfilesInChannel)
+		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForAllProfiles, localCacheStore.user.handleClusterInvalidateAllProfiles)
 		cluster.RegisterClusterMessageHandler(model.ClusterEventInvalidateCacheForTeams, localCacheStore.team.handleClusterInvalidateTeam)
 	}
 	return
@@ -454,6 +464,7 @@ func (s *LocalCacheStore) Invalidate() {
 	s.doClearCacheCluster(s.termsOfServiceCache)
 	s.doClearCacheCluster(s.lastPostTimeCache)
 	s.doClearCacheCluster(s.userProfileByIdsCache)
+	s.doClearCacheCluster(s.allUserCache)
 	s.doClearCacheCluster(s.profilesInChannelCache)
 	s.doClearCacheCluster(s.teamAllTeamIdsForUserCache)
 	s.doClearCacheCluster(s.rolePermissionsCache)
