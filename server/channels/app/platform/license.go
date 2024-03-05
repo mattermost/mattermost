@@ -54,9 +54,9 @@ func (ps *PlatformService) LoadLicense() {
 	// ENV var overrides all other sources of license.
 	licenseStr := os.Getenv(LicenseEnv)
 	if licenseStr != "" {
-		license, err := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr))
-		if err != nil {
-			ps.logger.Error("Failed to read license set in environment.", mlog.Err(err))
+		license, appErr := utils.LicenseValidator.LicenseFromBytes([]byte(licenseStr))
+		if appErr != nil {
+			ps.logger.Error("Failed to read license set in environment.", mlog.Err(appErr))
 			return
 		}
 
@@ -74,7 +74,9 @@ func (ps *PlatformService) LoadLicense() {
 			}
 		}
 
-		if ps.ValidateAndSetLicenseBytes([]byte(licenseStr)) {
+		if err := ps.ValidateAndSetLicenseBytes([]byte(licenseStr)); err != nil {
+			ps.logger.Info("License key from ENV is invalid.", mlog.Err(err))
+		} else {
 			ps.logger.Info("License key from ENV is valid, unlocking enterprise features.")
 		}
 		return
@@ -107,8 +109,12 @@ func (ps *PlatformService) LoadLicense() {
 		return
 	}
 
-	ps.ValidateAndSetLicenseBytes([]byte(record.Bytes))
-	ps.logger.Info("License key valid unlocking enterprise features.")
+	err := ps.ValidateAndSetLicenseBytes([]byte(record.Bytes))
+	if err != nil {
+		ps.logger.Info("License key is invalid.")
+	}
+
+	ps.logger.Info("License key is valid, unlocking enterprise features.")
 }
 
 func (ps *PlatformService) SaveLicense(licenseBytes []byte) (*model.License, *model.AppError) {
@@ -232,21 +238,19 @@ func (ps *PlatformService) SetLicense(license *model.License) bool {
 	return false
 }
 
-func (ps *PlatformService) ValidateAndSetLicenseBytes(b []byte) bool {
+func (ps *PlatformService) ValidateAndSetLicenseBytes(b []byte) error {
 	licenseStr, err := utils.LicenseValidator.ValidateLicense(b)
 	if err != nil {
-		ps.logger.Warn("No valid enterprise license found", mlog.Err(err))
-		return false
+		return errors.Wrap(err, "Failed to decode license from JSON")
 	}
 
 	var license model.License
 	if err := json.Unmarshal([]byte(licenseStr), &license); err != nil {
-		ps.logger.Warn("Failed to decode license from JSON", mlog.Err(err))
-		return false
+		return errors.Wrap(err, "Failed to decode license from JSON")
 	}
 
 	ps.SetLicense(&license)
-	return true
+	return nil
 }
 
 func (ps *PlatformService) SetClientLicense(m map[string]string) {
