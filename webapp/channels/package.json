@@ -95,6 +95,7 @@
     "smooth-scroll-into-view-if-needed": "1.1.33",
     "stream-browserify": "3.0.0",
     "styled-components": "5.3.6",
+    "stylelint": "13.13.1",
     "timezones.json": "1.6.1",
     "tinycolor2": "1.4.2",
     "turndown": "7.1.1",
