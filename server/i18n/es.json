@@ -9134,5 +9134,81 @@
   {
     "id": "api.admin.syncables_error",
     "translation": "Error al agregar usuario a grupo-equipos y grupo-canales"
+  },
+  {
+    "id": "api.acknowledgement.delete.archived_channel.app_error",
+    "translation": "No puedes quitar un reconocimiento de un canal archivado."
+  },
+  {
+    "id": "api.acknowledgement.delete.deadline.app_error",
+    "translation": "No puedes eliminar un reconocimiento después que han pasado 5 minutos."
+  },
+  {
+    "id": "api.channel.gm_to_channel_conversion.not_allowed_for_user.request_error",
+    "translation": "El usuario no tiene permitido convertir un mensaje grupal a canal privado"
+  },
+  {
+    "id": "api.channel.group_message.converted.to_private_channel",
+    "translation": "{{.ConvertedByUsername}} creó este canal desde un mensaje grupal con {{.GMMembers}}."
+  },
+  {
+    "id": "api.command_exportlink.desc",
+    "translation": "Genera un enlace para descargar una exportación."
+  },
+  {
+    "id": "api.command_exportlink.driver.app_error",
+    "translation": "EL controlador de almacenamiento de archivos no soporta la generación de enlaces."
+  },
+  {
+    "id": "api.command_exportlink.empty.app_error",
+    "translation": "No se ha encontrado archivo de exportación."
+  },
+  {
+    "id": "api.command_exportlink.hint",
+    "translation": "[job-id|nombre de archivo zip|{{.LatestMsg}}]"
+  },
+  {
+    "id": "api.command_exportlink.link.text",
+    "translation": "Puedes descargar tu archivo aquí: {{.Link}}\nEste enlace expirará en {{.Expiration}}."
+  },
+  {
+    "id": "api.command_exportlink.list.app_error",
+    "translation": "No se pudo recuperar la lista de exportación."
+  },
+  {
+    "id": "api.command_exportlink.name",
+    "translation": "exportlink"
+  },
+  {
+    "id": "api.command_exportlink.presign.app_error",
+    "translation": "No se pudo generar la url de prefirmado."
+  },
+  {
+    "id": "api.command_invite.user_already_in_channel.overflow",
+    "translation": "{{.FirstUser}} y otros {{.Others}} ya están en el canal."
+  },
+  {
+    "id": "api.channel.patch_update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "No tienes permitido actualizar el nombre, nombre para mostrar, y propósito de mensajes directos o grupales."
+  },
+  {
+    "id": "api.channel.update_channel.update_direct_or_group_messages_not_allowed.app_error",
+    "translation": "No tienes permitido actualizae el nombre, nombre para mostrar, yu propósito de mensajes directos o grupales."
+  },
+  {
+    "id": "api.command_invite.channel_constrained_user_denied",
+    "translation": "Este canal es administrado por grupos.  Este usuario no es parte de un grupo que esté sincronizado a este canal."
+  },
+  {
+    "id": "api.command_exportlink.invalid.app_error",
+    "translation": "No se pudo encontrar el archivo solicitado."
+  },
+  {
+    "id": "api.command_exportlink.permission.app_error",
+    "translation": "No tienes permisos suficientes para ejecutar este comando."
+  },
+  {
+    "id": "api.command_invite.successOverflow",
+    "translation": "{{.FirstUser}} y {{.Others}} añadidos al canal {{.Channel}}."
   }
 ]
