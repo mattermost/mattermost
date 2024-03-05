@@ -570,7 +570,6 @@ const defaultServerConfig: AdminConfig = {
         ClientSideCertCheck: 'secondary',
         LinkMetadataTimeoutMilliseconds: 5000,
         RestrictSystemAdmin: false,
-        UseNewSAMLLibrary: false,
         EnableSharedChannels: false,
         EnableRemoteClusterService: false,
         DisableAppBar: false,
