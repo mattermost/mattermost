@@ -18,37 +18,32 @@ import (
 
 func TestSAMLSettings(t *testing.T) {
 	tt := []struct {
-		name              string
-		setNewInterface   bool
-		useNewSAMLLibrary bool
-		isNil             bool
-		metadata          string
+		name            string
+		setNewInterface bool
+		isNil           bool
+		metadata        string
 	}{
 		{
-			name:              "No SAML Interfaces, default setting",
-			setNewInterface:   false,
-			useNewSAMLLibrary: false,
-			isNil:             true,
+			name:            "No SAML Interfaces, default setting",
+			setNewInterface: false,
+			isNil:           true,
 		},
 		{
-			name:              "No SAML Interfaces, set config true",
-			setNewInterface:   false,
-			useNewSAMLLibrary: true,
-			isNil:             true,
+			name:            "No SAML Interfaces, set config true",
+			setNewInterface: false,
+			isNil:           true,
 		},
 		{
-			name:              "Both SAML Interfaces, default setting",
-			setNewInterface:   true,
-			useNewSAMLLibrary: false,
-			isNil:             false,
-			metadata:          "samlTwo",
+			name:            "Both SAML Interfaces, default setting",
+			setNewInterface: true,
+			isNil:           false,
+			metadata:        "samlTwo",
 		},
 		{
-			name:              "Both SAML Interfaces, config true",
-			setNewInterface:   true,
-			useNewSAMLLibrary: true,
-			isNil:             false,
-			metadata:          "samlTwo",
+			name:            "Both SAML Interfaces, config true",
+			setNewInterface: true,
+			isNil:           false,
+			metadata:        "samlTwo",
 		},
 	}
 
@@ -83,12 +78,6 @@ func TestSAMLSettings(t *testing.T) {
 			mockStore.On("User").Return(&mockUserStore)
 			mockStore.On("Post").Return(&mockPostStore)
 			mockStore.On("System").Return(&mockSystemStore)
-
-			if tc.useNewSAMLLibrary {
-				th.App.UpdateConfig(func(cfg *model.Config) {
-					*cfg.ExperimentalSettings.UseNewSAMLLibrary = tc.useNewSAMLLibrary
-				})
-			}
 
 			if tc.isNil {
 				assert.Nil(t, th.App.Channels().Saml)
