@@ -938,7 +938,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 		printer.Clean()
 
 		err := promoteGuestToUserCmdF(s.th.Client, nil, []string{user.Email})
-		s.Require().Nil(err)
+		s.Require().NotNil(err)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("unable to promote guest %s: You do not have the appropriate permissions.", user.Email), printer.GetErrorLines()[0])
