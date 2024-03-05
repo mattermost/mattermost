@@ -182,15 +182,9 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 			s[model.STATUS] = model.StatusUnhealthy
 		}
 
-		if res, ok := s[model.STATUS].(string); ok {
-			w.Header().Set(model.STATUS, res)
-		}
-		if res, ok := s[dbStatusKey].(string); ok {
-			w.Header().Set(dbStatusKey, res)
-		}
-		if res, ok := s[filestoreStatusKey].(string); ok {
-			w.Header().Set(filestoreStatusKey, res)
-		}
+		w.Header().Set(model.STATUS, s[model.STATUS].(string))
+		w.Header().Set(dbStatusKey, s[dbStatusKey].(string))
+		w.Header().Set(filestoreStatusKey, s[filestoreStatusKey].(string))
 	}
 
 	if deviceID := r.FormValue("device_id"); deviceID != "" {
@@ -206,7 +200,7 @@ func getSystemPing(c *Context, w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 
-	w.Write([]byte(model.ToJSON(s)))
+	w.Write(model.ToJSON(s))
 }
 
 func testEmail(c *Context, w http.ResponseWriter, r *http.Request) {
