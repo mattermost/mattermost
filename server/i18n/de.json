@@ -10144,5 +10144,21 @@
   {
     "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
     "translation": "Die angegebene Zielgruppe ist ungültig: {{ .Error }}"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Ungültige Aktualisierung eines Teammitglieds: Ein Gast kann nicht für ein einzelnes Team festgelegt werden. Ein Systemadministrator muss Benutzer zu/von Gästen befördern oder degradieren."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Ungültige Eigenschaften (benutzerdefinierter Status)"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Kann Remote nicht zum Kanal einladen: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Die Interaktionen mit dem Mattermost-Kundenportal wurden vom Systemadministrator deaktiviert."
   }
 ]
