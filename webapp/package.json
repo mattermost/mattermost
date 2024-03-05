@@ -39,6 +39,8 @@
     "eslint": "8.57.0",
     "eslint-import-resolver-webpack": "0.13.8",
     "eslint-plugin-formatjs": "4.12.2",
+    "eslint-plugin-react": "7.34.0",
+    "eslint-plugin-react-hooks": "4.6.0",
     "mini-css-extract-plugin": "2.7.5",
     "sass": "1.62.1",
     "sass-loader": "13.2.2",
