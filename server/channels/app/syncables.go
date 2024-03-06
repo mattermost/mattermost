@@ -25,7 +25,7 @@ func (a *App) createDefaultChannelMemberships(rctx request.CTX, params model.Cre
 		return appErr
 	}
 
-	var rErr *multierror.Error
+	var rErr error
 	for _, userChannel := range channelMembers {
 		if params.ScopedUserID != nil && *params.ScopedUserID != userChannel.UserID {
 			continue
@@ -94,7 +94,7 @@ func (a *App) createDefaultTeamMemberships(rctx request.CTX, params model.Create
 		return appErr
 	}
 
-	var rErr *multierror.Error
+	var rErr error
 	for _, userTeam := range teamMembers {
 		if params.ScopedUserID != nil && *params.ScopedUserID != userTeam.UserID {
 			continue
@@ -164,7 +164,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *st
 		return appErr
 	}
 
-	var rErr *multierror.Error
+	var rErr error
 	for _, userTeam := range teamMembers {
 		logger := rctx.Logger().With(
 			mlog.String("user_id", userTeam.UserId),
@@ -192,7 +192,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channel
 		return appErr
 	}
 
-	var rErr *multierror.Error
+	var rErr error
 	for _, userChannel := range channelMembers {
 		logger := rctx.Logger().With(
 			mlog.String("user_id", userChannel.UserId),
