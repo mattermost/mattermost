@@ -98,31 +98,15 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCache(channelID string)
 }
 
 func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*model.User, error) {
-	// We check to see if any of the options are set or not, and then
-	// use the cache only if none are set, which is the most common case.
-	// options.WithoutTeam, Sort is unused
-	if options.InTeamId == "" &&
-		options.NotInTeamId == "" &&
-		options.InChannelId == "" &&
-		options.NotInChannelId == "" &&
-		options.InGroupId == "" &&
-		options.NotInGroupId == "" &&
-		!options.GroupConstrained &&
-		!options.Inactive &&
-		!options.Active &&
-		options.Role == "" &&
-		len(options.Roles) == 0 &&
-		len(options.ChannelRoles) == 0 &&
-		len(options.TeamRoles) == 0 &&
-		options.Page == 0 && options.PerPage == 100 && // This is hardcoded to the webapp call.
-		options.ViewRestrictions == nil {
+	if isEmptyOptions(options) &&
+		options.Page == 0 && options.PerPage == 100 { // This is hardcoded to the webapp call.
 		// read from cache
 		var users []*model.User
 		if err := s.rootStore.doStandardReadCache(s.rootStore.allUserCache, allUserKey, &users); err == nil {
 			return users, nil
 		}
 
-		users, err := s.UserStore.GetProfiles(options)
+		users, err := s.UserStore.GetAllProfiles(options)
 		if err != nil {
 			return nil, err
 		}
@@ -134,7 +118,7 @@ func (s *LocalCacheUserStore) GetAllProfiles(options *model.UserGetOptions) ([]*
 	}
 
 	// For any other case, simply use the store
-	return s.UserStore.GetProfiles(options)
+	return s.UserStore.GetAllProfiles(options)
 }
 
 func (s *LocalCacheUserStore) GetAllProfilesInChannel(ctx context.Context, channelId string, allowFromCache bool) (map[string]*model.User, error) {
@@ -312,4 +296,27 @@ func dedup(elements []string) []string {
 	}
 
 	return elements[:j+1]
+}
+
+func isEmptyOptions(options *model.UserGetOptions) bool {
+	// We check to see if any of the options are set or not, and then
+	// use the cache only if none are set, which is the most common case.
+	// options.WithoutTeam, Sort is unused
+	if options.InTeamId == "" &&
+		options.NotInTeamId == "" &&
+		options.InChannelId == "" &&
+		options.NotInChannelId == "" &&
+		options.InGroupId == "" &&
+		options.NotInGroupId == "" &&
+		!options.GroupConstrained &&
+		!options.Inactive &&
+		!options.Active &&
+		options.Role == "" &&
+		len(options.Roles) == 0 &&
+		len(options.ChannelRoles) == 0 &&
+		len(options.TeamRoles) == 0 &&
+		options.ViewRestrictions == nil {
+		return true
+	}
+	return false
 }
