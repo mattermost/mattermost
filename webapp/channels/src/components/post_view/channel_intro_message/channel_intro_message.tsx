@@ -23,6 +23,10 @@ import ToggleModalButton from 'components/toggle_modal_button';
 import UserProfile from 'components/user_profile';
 import EditIcon from 'components/widgets/icons/fa_edit_icon';
 
+import ChannelIntroPublicSvg from 'components/common/svg_images_components/channel_intro_public_svg';
+import ChannelIntroPrivateSvg from 'components/common/svg_images_components/channel_intro_private_svg';
+import ChannelIntroTownSquareSvg from 'components/common/svg_images_components/channel_intro_town_square_svg';
+
 import {Constants, ModalIdentifiers} from 'utils/constants';
 import {getMonthLong} from 'utils/i18n';
 import * as Utils from 'utils/utils';
@@ -140,13 +144,14 @@ function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles:
 
     if (profiles.length > 0) {
         const currentUserProfile = profiles.find((v) => v.id === currentUserId);
+
         const pictures = profiles.
             filter((profile) => profile.id !== currentUserId).
             map((profile) => (
                 <ProfilePicture
                     key={'introprofilepicture' + profile.id}
                     src={Utils.imageURLForUser(profile.id, profile.last_picture_update)}
-                    size='xl'
+                    size='xl-custom-GM'
                     userId={profile.id}
                     username={profile.username}
                 />
@@ -157,21 +162,20 @@ function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles:
                 id={channelIntroId}
                 className={'channel-intro ' + centeredIntro}
             >
-                <div className='post-profile-img__container channel-intro-img'>
+                <div className='post-profile-img__container channel-intro-img channel-intro-img__group'>
                     {pictures}
                 </div>
+                <h2 className='channel-intro__title'>
+                    {channel.display_name}
+                </h2>
                 <p className='channel-intro-text'>
                     <FormattedMessage
-                        id='intro_messages.GM.common'
-                        defaultMessage={'This is the start of your group message history with {names}.{br}'}
-                        values={{
-                            names: channel.display_name,
-                            br: <br/>,
-                        }}
+                        id='intro_messages.group_message'
+                        defaultMessage={'This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.'}
                     />
                     {getGMIntroMessageSpecificPart(currentUserProfile, channelMembership)}
                 </p>
-                <div style={{display: 'flex'}}>
+                <div className="channel-intro__actions">
                     {createNotificationPreferencesButton(channel, currentUserProfile)}
                     <PluggableIntroButtons channel={channel}/>
                     {createSetHeaderButton(channel)}
@@ -215,28 +219,29 @@ function createDMIntroMessage(channel: Channel, centeredIntro: string, teammate?
                 <div className='post-profile-img__container channel-intro-img'>
                     <ProfilePicture
                         src={src}
-                        size='xl'
+                        size='xl-custom-DM'
+                        status={teammate.is_bot ? '' : channel.status}
                         userId={teammate?.id}
                         username={teammate?.username}
                         hasMention={true}
                     />
                 </div>
-                <div className='channel-intro-profile d-flex'>
+                <h2 className='channel-intro__title'>
                     <UserProfile
                         userId={teammate?.id}
                         disablePopover={false}
                     />
-                </div>
+                </h2>
                 <p className='channel-intro-text'>
                     <FormattedMarkdownMessage
                         id='intro_messages.DM'
-                        defaultMessage='This is the start of your direct message history with {teammate}.\nDirect messages and files shared here are not shown to people outside this area.'
+                        defaultMessage='This is the start of your direct message history with {teammate}. Messages and files shared here are not shown to anyone else.'
                         values={{
                             teammate: teammateName,
                         }}
                     />
                 </p>
-                <div style={{display: 'flex'}}>
+                <div className="channel-intro__actions">
                     {pluggableButton}
                     {setHeaderButton}
                 </div>
@@ -252,7 +257,7 @@ function createDMIntroMessage(channel: Channel, centeredIntro: string, teammate?
             <p className='channel-intro-text'>
                 <FormattedMessage
                     id='intro_messages.teammate'
-                    defaultMessage='This is the start of your direct message history with this teammate. Direct messages and files shared here are not shown to people outside this area.'
+                    defaultMessage='This is the start of your direct message history with this teammate.Messages and files shared here are not shown to anyone else.'
                 />
             </p>
         </div>
@@ -292,14 +297,9 @@ function createOffTopicIntroMessage(channel: Channel, centeredIntro: string, sta
             id='channelIntro'
             className={'channel-intro ' + centeredIntro}
         >
+            <ChannelIntroPublicSvg />
             <h2 className='channel-intro__title'>
-                <FormattedMessage
-                    id='intro_messages.beginning'
-                    defaultMessage='Beginning of {name}'
-                    values={{
-                        name: channel.display_name,
-                    }}
-                />
+                {channel.display_name}
             </h2>
             <p className='channel-intro__content'>
                 <FormattedMessage
@@ -310,7 +310,9 @@ function createOffTopicIntroMessage(channel: Channel, centeredIntro: string, sta
                     }}
                 />
             </p>
-            {channelInviteButton}
+            <div className="channel-intro__actions">
+                {channelInviteButton}
+            </div>
         </div>
     );
 }
@@ -391,20 +393,15 @@ function createDefaultIntroMessage(
             id='channelIntro'
             className={'channel-intro ' + centeredIntro}
         >
+            <ChannelIntroTownSquareSvg />
             <h2 className='channel-intro__title'>
-                <FormattedMessage
-                    id='intro_messages.beginning'
-                    defaultMessage='Beginning of {name}'
-                    values={{
-                        name: channel.display_name,
-                    }}
-                />
+                {channel.display_name}
             </h2>
             <p className='channel-intro__content'>
                 {!isReadOnly &&
                     <FormattedMarkdownMessage
                         id='intro_messages.default'
-                        defaultMessage='**Welcome to {display_name}!**\n \nPost messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.'
+                        defaultMessage='Post messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.'
                         values={{
                             display_name: channel.display_name,
                         }}
@@ -413,17 +410,18 @@ function createDefaultIntroMessage(
                 {isReadOnly &&
                     <FormattedMarkdownMessage
                         id='intro_messages.readonly.default'
-                        defaultMessage='**Welcome to {display_name}!**\n \nMessages can only be posted by system admins. Everyone automatically becomes a permanent member of this channel when they join the team.'
+                        defaultMessage='Messages can only be posted by system admins. Everyone automatically becomes a permanent member of this channel when they join the team.'
                         values={{
                             display_name: channel.display_name,
                         }}
                     />
                 }
             </p>
-            {teamInviteLink}
-            {teamIsGroupConstrained && pluginButtons}
-            {teamIsGroupConstrained && setHeaderButton}
-            <br/>
+            <div className="channel-intro__actions">
+                {teamInviteLink}
+                {teamIsGroupConstrained && pluginButtons}
+                {teamIsGroupConstrained && setHeaderButton}
+            </div>
         </div>
     );
 }
@@ -565,22 +563,21 @@ function createStandardIntroMessage(channel: Channel, centeredIntro: string, sta
             id='channelIntro'
             className={'channel-intro ' + centeredIntro}
         >
+            {isPrivate ? <ChannelIntroPrivateSvg/> : <ChannelIntroPublicSvg/>}
             <h2 className='channel-intro__title'>
-                <FormattedMessage
-                    id='intro_messages.beginning'
-                    defaultMessage='Beginning of {name}'
-                    values={{
-                        name: (uiName),
-                    }}
-                />
+                {channel.display_name}
             </h2>
-            <p className='channel-intro__content'>
+            <p className='channel-intro_created'>
                 {createMessage}
+            </p>
+            <p className='channel-intro__content'>
                 {memberMessage}
                 {purposeMessage}
                 <br/>
             </p>
-            {channelInviteButton}
+            <div className='channel-intro__actions'>
+                {channelInviteButton}
+            </div>
         </div>
     );
 }

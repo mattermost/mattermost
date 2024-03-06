@@ -520,12 +520,11 @@
 }
 
 .channel-intro {
-    padding: 110px 15px 0;
-    margin: 0 auto 10px;
 
-    &.channel-intro--centered {
-        max-width: 1020px;
-    }
+    padding: 120px 24px 32px 24px;
+    margin: 0 auto 10px;
+    max-width: 648px;
+    text-align: center;
 
     .intro-links {
         display: flex;
@@ -541,41 +540,85 @@
     }
 
     .channel-intro-profile {
-        margin: 0 0 4px;
-        gap: 8px;
+        text-align: center;
+        margin-bottom: 16px;
+        font-size: 36px;
+        font-weight: 600;
+        line-height: 44px;
+        letter-spacing: -0.03em;
 
         .user-popover {
             overflow: hidden;
             max-width: calc(100% - 100px);
-            font-family: Metropolis, sans-serif;
-            font-size: 28px;
-            font-weight: 600;
             text-overflow: ellipsis;
         }
     }
 
     .channel-intro-img {
-        .status-wrapper {
-            height: 50px;
-            margin: 0 10px 10px 0;
+        position: relative;
+
+        button {
+            border: solid 2px var(--center-channel-bg);
         }
 
-        img {
-            border-radius: 100px;
+        &__group button {
+            margin: 0 -8px;
+        }
+
+        .status-wrapper {
+            height: auto;
+            width: auto; 
+
+            .status {
+                position: absolute;
+                top: 70px;
+                right: 4px;
+                width: 24px;
+                height: 24px;
+
+                svg {
+                    width: 20px;
+                    height: 20px;
+                    max-height: 20px;
+                }
+            }
         }
     }
 
     .channel-intro__title {
-        margin-bottom: 15px;
-        font-size: 28px;
+        margin-bottom: 16px;
+        margin-top: 16px;
+        font-size: 36px;
         font-weight: 600;
+        line-height: 44px;
+        letter-spacing: -0.03em;
+
+        span, button {
+            font-size: inherit;
+            font-weight: inherit;
+            line-height: inherit;
+            letter-spacing: inherit;
+        }
+
+        .Tag {
+            font-size: 14px;
+            line-height: 1;
+            padding: 4px;
+            margin-left: 8px;
+            position: relative;
+            display: inline-block;
+            height: auto
+        }
     }
 
     .channel-intro__content {
-        padding: 10px 15px;
-        background: $bg--gray;
-        border-radius: 3px;
+        text-align: center;
         word-break: break-word;
+    }
+
+    .channel-intro__actions {
+        display: flex;
+        justify-content: center;
     }
 }
 
