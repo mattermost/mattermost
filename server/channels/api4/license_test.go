@@ -53,7 +53,6 @@ func TestGetOldClientLicense(t *testing.T) {
 }
 
 func TestUploadLicenseFile(t *testing.T) {
-	t.Skip("MM-56359")
 	th := Setup(t)
 	defer th.TearDown()
 	client := th.Client
@@ -487,6 +486,7 @@ func TestRequestTrueUpReview(t *testing.T) {
 
 		cloud := mocks.CloudInterface{}
 		cloud.Mock.On("SubmitTrueUpReview", mock.Anything, mock.Anything).Return(nil)
+		cloud.Mock.On("CheckCWSConnection", mock.Anything).Return(nil)
 
 		cloudImpl := th.App.Srv().Cloud
 		defer func() {

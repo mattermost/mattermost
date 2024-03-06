@@ -22,7 +22,6 @@ type KVService struct {
 	api plugin.API
 }
 
-// TODO: Should this be un exported?
 type KVSetOptions struct {
 	model.PluginKVSetOptions
 	oldValue interface{}
@@ -49,7 +48,7 @@ func SetExpiry(ttl time.Duration) KVSetOption {
 }
 
 // Set stores a key-value pair, unique per plugin.
-// Keys prefixed with `mmi_` are reserved for use by this package and will fail to be set.
+// Keys prefixed with `mmi_` are reserved for internal use and will fail to be set.
 //
 // Returns (false, err) if DB error occurred
 // Returns (false, nil) if the value was not set
@@ -57,8 +56,8 @@ func SetExpiry(ttl time.Duration) KVSetOption {
 //
 // Minimum server version: 5.18
 func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (bool, error) {
-	if strings.HasPrefix(key, "mmi_") {
-		return false, errors.New("'mmi_' prefix is not allowed for keys")
+	if strings.HasPrefix(key, internalKeyPrefix) {
+		return false, errors.Errorf("'%s' prefix is not allowed for keys", internalKeyPrefix)
 	}
 
 	opts := KVSetOptions{}
@@ -101,46 +100,6 @@ func (k *KVService) Set(key string, value interface{}, options ...KVSetOption) (
 
 	written, appErr := k.api.KVSetWithOptions(key, valueBytes, downstreamOpts)
 	return written, normalizeAppErr(appErr)
-}
-
-// SetWithExpiry sets a key-value pair with the given expiration duration relative to now.
-//
-// Deprecated: SetWithExpiry exists to streamline adoption of this package for existing plugins.
-// Use Set with the appropriate options instead.
-//
-// Minimum server version: 5.18
-func (k *KVService) SetWithExpiry(key string, value interface{}, ttl time.Duration) error {
-	_, err := k.Set(key, value, SetExpiry(ttl))
-
-	return err
-}
-
-// CompareAndSet writes a key-value pair if the current value matches the given old value.
-//
-// Returns (false, err) if DB error occurred
-// Returns (false, nil) if the value was not set
-// Returns (true, nil) if the value was set
-//
-// Deprecated: CompareAndSet exists to streamline adoption of this package for existing plugins.
-// Use Set with the appropriate options instead.
-//
-// Minimum server version: 5.18
-func (k *KVService) CompareAndSet(key string, oldValue, value interface{}) (bool, error) {
-	return k.Set(key, value, SetAtomic(oldValue))
-}
-
-// CompareAndDelete deletes a key-value pair if the current value matches the given old value.
-//
-// Returns (false, err) if DB error occurred
-// Returns (false, nil) if current value != oldValue or key does not exist when deleting
-// Returns (true, nil) if current value == oldValue and the key was deleted
-//
-// Deprecated: CompareAndDelete exists to streamline adoption of this package for existing plugins.
-// Use Set with the appropriate options instead.
-//
-// Minimum server version: 5.18
-func (k *KVService) CompareAndDelete(key string, oldValue interface{}) (bool, error) {
-	return k.Set(key, nil, SetAtomic(oldValue))
 }
 
 // SetAtomicWithRetries will set a key-value pair atomically using compare and set semantics:

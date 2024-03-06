@@ -135,8 +135,8 @@ DIST_ROOT=dist
 DIST_PATH=$(DIST_ROOT)/mattermost
 DIST_PATH_LIN_AMD64=$(DIST_ROOT)/linux_amd64/mattermost
 DIST_PATH_LIN_ARM64=$(DIST_ROOT)/linux_arm64/mattermost
-DIST_PATH_OSX_AMD64=$(DIST_ROOT)/osx_amd64/mattermost
-DIST_PATH_OSX_ARM64=$(DIST_ROOT)/osx_arm64/mattermost
+DIST_PATH_OSX_AMD64=$(DIST_ROOT)/darwin_amd64/mattermost
+DIST_PATH_OSX_ARM64=$(DIST_ROOT)/darwin_arm64/mattermost
 DIST_PATH_WIN=$(DIST_ROOT)/windows/mattermost
 
 # Packages lists
@@ -147,26 +147,14 @@ TEMPLATES_DIR=templates
 
 # Plugins Packages
 PLUGIN_PACKAGES ?= $(PLUGIN_PACKAGES:)
-PLUGIN_PACKAGES += mattermost-plugin-antivirus-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-autolink-v1.4.0
-PLUGIN_PACKAGES += mattermost-plugin-aws-SNS-v1.2.0
-PLUGIN_PACKAGES += mattermost-plugin-calls-v0.23.1
-PLUGIN_PACKAGES += mattermost-plugin-channel-export-v1.0.0
-PLUGIN_PACKAGES += mattermost-plugin-confluence-v1.3.0
-PLUGIN_PACKAGES += mattermost-plugin-custom-attributes-v1.3.1
-PLUGIN_PACKAGES += mattermost-plugin-github-v2.1.7
+PLUGIN_PACKAGES += mattermost-plugin-calls-v0.24.0
+PLUGIN_PACKAGES += mattermost-plugin-github-v2.2.0
 PLUGIN_PACKAGES += mattermost-plugin-gitlab-v1.8.0
 PLUGIN_PACKAGES += mattermost-plugin-playbooks-v1.39.1
-PLUGIN_PACKAGES += mattermost-plugin-jenkins-v1.1.0
 PLUGIN_PACKAGES += mattermost-plugin-jira-v4.1.0
-PLUGIN_PACKAGES += mattermost-plugin-jitsi-v2.0.1
 PLUGIN_PACKAGES += mattermost-plugin-nps-v1.3.3
 PLUGIN_PACKAGES += mattermost-plugin-servicenow-v2.3.4
-PLUGIN_PACKAGES += mattermost-plugin-todo-v0.7.1
-PLUGIN_PACKAGES += mattermost-plugin-welcomebot-v1.3.0
 PLUGIN_PACKAGES += mattermost-plugin-zoom-v1.6.2
-PLUGIN_PACKAGES += mattermost-plugin-apps-v1.2.2
-PLUGIN_PACKAGES += focalboard-v7.11.4
 
 EE_PACKAGES=$(shell $(GO) list $(BUILD_ENTERPRISE_DIR)/...)
 
@@ -679,6 +667,7 @@ config-ldap: ## Configures LDAP.
 	@sed -i'' -e 's|"FirstNameAttribute": ".*"|"FirstNameAttribute": "cn"|g' ../config/config.json
 	@sed -i'' -e 's|"LastNameAttribute": ".*"|"LastNameAttribute": "sn"|g' ../config/config.json
 	@sed -i'' -e 's|"NicknameAttribute": ".*"|"NicknameAttribute": "cn"|g' ../config/config.json
+	@sed -i'' -e 's|"PositionAttribute": ".*"|"PositionAttribute": "title"|g' ../config/config.json
 	@sed -i'' -e 's|"EmailAttribute": ".*"|"EmailAttribute": "mail"|g' ../config/config.json
 	@sed -i'' -e 's|"UsernameAttribute": ".*"|"UsernameAttribute": "uid"|g' ../config/config.json
 	@sed -i'' -e 's|"IdAttribute": ".*"|"IdAttribute": "uid"|g' ../config/config.json

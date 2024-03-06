@@ -1130,6 +1130,191 @@ const AdminDefinition: AdminDefinitionType = {
                     ],
                 },
             },
+            export_storage: {
+                url: 'environment/export_storage',
+                title: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
+                isHidden: it.any(
+                    it.not(it.licensedForFeature('Cloud')),
+                    it.not(it.licensedForSku(LicenseSkus.Enterprise)),
+                    it.configIsFalse('FeatureFlags', 'CloudDedicatedExportUI'),
+                ),
+                schema: {
+                    id: 'ExportFileSettings',
+                    name: defineMessage({id: 'admin.sidebar.exportStorage', defaultMessage: 'Export Storage'}),
+                    settings: [
+                        {
+                            type: 'bool',
+                            key: 'FileSettings.DedicatedExportStore',
+                            label: defineMessage({id: 'admin.exportStorage.dedicatedExportStore', defaultMessage: 'Enable Dedicated Export Store:'}),
+                            help_text: defineMessage({id: 'admin.exportStorage.dedicatedExportStoreDescription', defaultMessage: 'When enabled, Mattermost will use a dedicated export storage bucket for all export operations. This is required for Mattermost Cloud deployments.'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                        },
+                        {
+                            type: 'dropdown',
+                            key: 'FileSettings.ExportDriverName',
+                            label: defineMessage({id: 'admin.exportStorage.exportDriverName', defaultMessage: 'Export Storage Driver:'}),
+                            isDisabled: true,
+                            isHidden: it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            options: [
+                                {
+                                    value: FILE_STORAGE_DRIVER_S3,
+                                    display_name: defineMessage({id: 'admin.image.storeAmazonS3', defaultMessage: 'Amazon S3'}),
+                                },
+                            ],
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportDirectory',
+                            label: defineMessage({id: 'admin.exportStorage.exportDirectory', defaultMessage: 'Export Directory'}),
+                            help_text: defineMessage({id: 'admin.image.exportDirectoryDescription', defaultMessage: 'Directory to which files are written. If blank, defaults to ./data/.'}),
+                            placeholder: defineMessage({id: 'admin.image.localExample', defaultMessage: 'E.g.: "./data/"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3AccessKeyId',
+                            label: defineMessage({id: 'admin.image.amazonS3IdTitle', defaultMessage: 'Amazon S3 Access Key ID:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3IdDescription', defaultMessage: '(Optional) Only required if you do not want to authenticate to S3 using an <link>IAM role</link>. Enter the Access Key ID provided by your Amazon EC2 administrator.'}),
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href='https://docs.aws.amazon.com/IAM/latest/UserGuide/id_roles_use_switch-role-ec2_instance-profiles.html'
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
+                            placeholder: defineMessage({id: 'admin.image.amazonS3IdExample', defaultMessage: 'E.g.: "AKIADTOVBGERKLCBV"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3SecretAccessKey',
+                            label: defineMessage({id: 'admin.image.amazonS3SecretTitle', defaultMessage: 'Amazon S3 Secret Access Key:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3SecretDescription', defaultMessage: '(Optional) The secret access key associated with your Amazon S3 Access Key ID.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3SecretExample', defaultMessage: 'E.g.: "jcuS8PuvcpGhpgHhlcpT1Mx42pnqMxQY"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3Bucket',
+                            label: defineMessage({id: 'admin.image.amazonS3BucketTitle', defaultMessage: 'Amazon S3 Bucket:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3BucketDescription', defaultMessage: 'Name you selected for your S3 bucket in AWS.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3BucketExample', defaultMessage: 'E.g.: "mattermost-export"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3PathPrefix',
+                            label: defineMessage({id: 'admin.image.amazonS3PathPrefixTitle', defaultMessage: 'Amazon S3 Path Prefix:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3PathPrefixDescription', defaultMessage: 'Prefix you selected for your S3 bucket in AWS.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3PathPrefixExample', defaultMessage: 'E.g.: "subdir1/" or you can leave it .'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3Region',
+                            label: defineMessage({id: 'admin.image.amazonS3RegionTitle', defaultMessage: 'Amazon S3 Region:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3RegionDescription', defaultMessage: 'AWS region you selected when creating your S3 bucket. If no region is set, Mattermost attempts to get the appropriate region from AWS, or sets it to "us-east-1" if none found.'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3RegionExample', defaultMessage: 'E.g.: "us-east-1"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'FileSettings.ExportAmazonS3Endpoint',
+                            label: defineMessage({id: 'admin.image.amazonS3EndpointTitle', defaultMessage: 'Amazon S3 Endpoint:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3EndpointDescription', defaultMessage: 'Hostname of your S3 Compatible Storage provider. Defaults to "s3.amazonaws.com".'}),
+                            placeholder: defineMessage({id: 'admin.image.amazonS3EndpointExample', defaultMessage: 'E.g.: "s3.amazonaws.com"'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'FileSettings.ExportAmazonS3SSL',
+                            label: defineMessage({id: 'admin.image.amazonS3SSLTitle', defaultMessage: 'Enable Secure Amazon S3 Connections:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3SSLDescription', defaultMessage: 'When false, allow insecure connections to Amazon S3. Defaults to secure connections only.'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'FileSettings.ExportAmazonSignV2',
+                            label: defineMessage({id: 'admin.image.amazonS3SignV2', defaultMessage: 'Enable Sign V2'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3SignV2Description', defaultMessage: 'When true, use Sign V2 for Amazon S3 connections'}),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'FileSettings.ExportAmazonS3SSE',
+                            label: defineMessage({id: 'admin.image.amazonS3SSETitle', defaultMessage: 'Enable Server-Side Encryption for Amazon S3:'}),
+                            help_text: defineMessage({id: 'admin.image.amazonS3SSEDescription', defaultMessage: 'When true, encrypt files in Amazon S3 using server-side encryption with Amazon S3-managed keys. See <link>documentation</link> to learn more.'}),
+                            help_text_values: {
+                                link: (msg: string) => (
+                                    <ExternalLink
+                                        location='admin_console'
+                                        href={DocLinks.SESSION_LENGTHS}
+                                    >
+                                        {msg}
+                                    </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                            isDisabled: it.any(
+                                it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                                it.stateEquals('FileSettings.DedicatedExportStore', false),
+                            ),
+                        },
+                        {
+                            type: 'button',
+                            action: testS3Connection,
+                            key: 'TestS3Connection',
+                            label: defineMessage({id: 'admin.s3.connectionS3Test', defaultMessage: 'Test Connection'}),
+                            loading: defineMessage({id: 'admin.s3.testing', defaultMessage: 'Testing...'}),
+                            error_message: defineMessage({id: 'admin.s3.s3Fail', defaultMessage: 'Connection unsuccessful: {error}'}),
+                            success_message: defineMessage({id: 'admin.s3.s3Success', defaultMessage: 'Connection was successful'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.ENVIRONMENT.FILE_STORAGE)),
+                            isHidden: it.any(it.stateEquals('FileSettings.ExportDriverName', 'NONE'), it.stateEquals('FileSettings.DedicatedExportStore', false)),
+                        },
+                    ],
+                },
+            },
             image_proxy: {
                 url: 'environment/image_proxy',
                 title: defineMessage({id: 'admin.sidebar.imageProxy', defaultMessage: 'Image Proxy'}),
@@ -3573,6 +3758,10 @@ const AdminDefinition: AdminDefinitionType = {
                                         it.stateIsFalse('LdapSettings.EnableSync'),
                                     ),
                                     render_job: (job: Job) => {
+                                        if (job.status === 'pending') {
+                                            return <span>{'--'}</span>;
+                                        }
+
                                         let ldapUsers = 0;
                                         let deleteCount = 0;
                                         let updateCount = 0;
@@ -5174,6 +5363,19 @@ const AdminDefinition: AdminDefinitionType = {
                                     >
                                         {msg}
                                     </ExternalLink>
+                                ),
+                            },
+                            help_text_markdown: false,
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.INTEGRATIONS.INTEGRATION_MANAGEMENT)),
+                        },
+                        {
+                            type: 'bool',
+                            key: 'ServiceSettings.EnableOutgoingOAuthConnections',
+                            label: defineMessage({id: 'admin.service.outgoingOAuthConnectionsTitle', defaultMessage: 'Enable Outgoing OAuth Connections: '}),
+                            help_text: defineMessage({id: 'admin.service.outgoingOAuthConnectionsDesc', defaultMessage: 'When true, outgoing webhooks and slash commands will use set up oauth connections to authenticate with third party services. See <link>documentation</link> to learn more.'}),
+                            help_text_values: {
+                                link: (text: string) => (
+                                    <a href='https://mattermost.com/pl/outgoing-oauth-connections'>{text}</a>
                                 ),
                             },
                             help_text_markdown: false,

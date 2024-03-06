@@ -9,6 +9,8 @@ import type {ComponentProps} from 'react';
 import {act} from 'react-dom/test-utils';
 import type {match} from 'react-router-dom';
 
+import {CollapsedThreads} from '@mattermost/types/config';
+
 import {getPostThread} from 'mattermost-redux/actions/posts';
 import {Client4} from 'mattermost-redux/client';
 import {Preferences} from 'mattermost-redux/constants';
@@ -151,9 +153,9 @@ describe('components/PermalinkView', () => {
                 },
                 channels: {
                     channels: {
-                        channelid1: {id: 'channelid1', name: 'channel1', type: 'O', team_id: 'current_team_id'},
-                        dmchannelid: {id: 'dmchannelid', name: 'dmchannel__current_user_id', type: 'D', team_id: ''},
-                        gmchannelid: {id: 'gmchannelid', name: 'gmchannel', type: 'G', team_id: ''},
+                        channelid1: TestHelper.getChannelMock({id: 'channelid1', name: 'channel1', type: 'O', team_id: 'current_team_id'}),
+                        dmchannelid: TestHelper.getChannelMock({id: 'dmchannelid', name: 'dmchannel__current_user_id', type: 'D', team_id: ''}),
+                        gmchannelid: TestHelper.getChannelMock({id: 'gmchannelid', name: 'gmchannel', type: 'G', team_id: ''}),
                     },
                     myMembers: {channelid1: {channel_id: 'channelid1', user_id: 'current_user_id'}},
                 },
@@ -335,7 +337,7 @@ describe('components/PermalinkView', () => {
                         ...initialState.entities,
                         general: {
                             config: {
-                                CollapsedThreads: 'default_on',
+                                CollapsedThreads: CollapsedThreads.DEFAULT_ON,
                             },
                         },
                     },

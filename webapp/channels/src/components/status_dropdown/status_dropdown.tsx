@@ -342,7 +342,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     time={customStatus.expires_at}
                     timezone={this.props.timezone}
                     className={classNames('custom_status__expiry', {
-                        padded: customStatus?.text.length > 0,
+                        padded: customStatus?.text?.length > 0,
                     })}
                     withinBrackets={true}
                 />
@@ -355,7 +355,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     modalId={ModalIdentifiers.CUSTOM_STATUS}
                     dialogType={CustomStatusModal}
                     className={classNames('MenuItem__primary-text custom_status__row', {
-                        flex: customStatus?.text.length === 0,
+                        flex: customStatus?.text?.length === 0,
                     })}
                     id={'status-menu-custom-status'}
                 >
@@ -385,7 +385,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         const {intl} = this.props;
         const needsConfirm = this.isUserOutOfOffice() && this.props.autoResetPref === '';
         const {status, customStatus, isCustomStatusExpired, currentUser} = this.props;
-        const isStatusSet = customStatus && (customStatus.text.length > 0 || customStatus.emoji.length > 0) && !isCustomStatusExpired;
+        const isStatusSet = customStatus && !isCustomStatusExpired && (customStatus.text?.length > 0 || customStatus.emoji?.length > 0);
 
         const setOnline = needsConfirm ? () => this.showStatusChangeConfirmation('online') : this.setOnline;
         const setDnd = needsConfirm ? () => this.showStatusChangeConfirmation('dnd') : this.setDnd;

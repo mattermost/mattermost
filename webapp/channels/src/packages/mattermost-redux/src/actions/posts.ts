@@ -25,6 +25,7 @@ import {getProfilesByIds, getProfilesByUsernames, getStatusesByIds} from 'matter
 import {Client4, DEFAULT_LIMIT_AFTER, DEFAULT_LIMIT_BEFORE} from 'mattermost-redux/client';
 import {General, Preferences, Posts} from 'mattermost-redux/constants';
 import {getCurrentChannelId, getMyChannelMember as getMyChannelMemberSelector} from 'mattermost-redux/selectors/entities/channels';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 import {getCustomEmojisByName as selectCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {getAllGroupsByName} from 'mattermost-redux/selectors/entities/groups';
 import * as PostSelectors from 'mattermost-redux/selectors/entities/posts';
@@ -133,6 +134,15 @@ export function postRemoved(post: Post) {
     return {
         type: PostTypes.POST_REMOVED,
         data: post,
+    };
+}
+
+export function postPinnedChanged(postId: string, isPinned: boolean, updateAt = Date.now()) {
+    return {
+        type: PostTypes.POST_PINNED_CHANGED,
+        postId,
+        isPinned,
+        updateAt,
     };
 }
 
@@ -524,11 +534,7 @@ export function pinPost(postId: string): ActionFuncAsync {
         const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
-                receivedPost({
-                    ...post,
-                    is_pinned: true,
-                    update_at: Date.now(),
-                }, isCollapsedThreadsEnabled(state)),
+                postPinnedChanged(postId, true, Date.now()),
                 {
                     type: ChannelTypes.INCREMENT_PINNED_POST_COUNT,
                     id: post.channel_id,
@@ -576,11 +582,7 @@ export function unpinPost(postId: string): ActionFuncAsync {
         const post = PostSelectors.getPost(state, postId);
         if (post) {
             actions.push(
-                receivedPost({
-                    ...post,
-                    is_pinned: false,
-                    update_at: Date.now(),
-                }, isCollapsedThreadsEnabled(state)),
+                postPinnedChanged(postId, false, Date.now()),
                 decrementPinnedPostCount(post.channel_id),
             );
         }
@@ -1004,6 +1006,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
 
     const state = getState();
     const {currentUserId, profiles, statuses} = state.entities.users;
+    const enabledUserStatuses = getIsUserStatusesConfigEnabled(state);
 
     // Statuses and profiles of the users who made the posts
     const userIdsToLoad = new Set<string>();
@@ -1053,7 +1056,7 @@ export async function getMentionsAndStatusesForPosts(postsArrayOrMap: Post[]|Pos
         promises.push(dispatch(getProfilesByIds(Array.from(userIdsToLoad))));
     }
 
-    if (statusesToLoad.size > 0) {
+    if (statusesToLoad.size > 0 && enabledUserStatuses) {
         promises.push(dispatch(getStatusesByIds(Array.from(statusesToLoad))));
     }
 
