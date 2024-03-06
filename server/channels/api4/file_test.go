@@ -774,7 +774,8 @@ func TestGetFile(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileId)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckUnauthorizedStatus(t, resp)
 }
 
 func TestGetFileHeaders(t *testing.T) {
@@ -888,7 +889,8 @@ func TestGetFileThumbnail(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileLink(t *testing.T) {
@@ -1000,7 +1002,8 @@ func TestGetFilePreview(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFilePreview(context.Background(), fileId)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetFileInfo(t *testing.T) {
@@ -1054,7 +1057,8 @@ func TestGetFileInfo(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileInfo(context.Background(), fileId)
-	require.NoError(t, err)
+	require.Error(t, err)
+	CheckForbiddenStatus(t, resp)
 }
 
 func TestGetPublicFile(t *testing.T) {

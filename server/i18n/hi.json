@@ -656,18 +656,6 @@
     "translation": "ईमेल बैचिंग को सिस्टम व्यवस्थापक द्वारा अक्षम कर दिया गया है।"
   },
   {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP Server की आवश्यकता है"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "वाॅन् मीट्रिक नहीं मिल सका।"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "व्यवस्थापक पावती ईमेल भेजने में विफलता"
-  },
-  {
     "id": "api.create_terms_of_service.empty_text.app_error",
     "translation": "कृपया अपनी कस्टम सेवा की शर्तों के लिए टेक्स्ट दर्ज करें।"
   },
@@ -810,34 +798,6 @@
   {
     "id": "api.templates.welcome_body.app_download_info",
     "translation": "बेहतरीन अनुभव के लिए, PC, Mac, iOS और Android के लिए ऐप डाउनलोड करें।"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "मैटरमोस्ट हमसे संपर्क करें अनुरोध"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "यदि आपके पास कोई अतिरिक्त पूछताछ है, तो कृपया support@mattermost.com पर संपर्क करें"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "साईट URL: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "कुल सक्रिय उपयोगकर्ता: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "डायग्नोस्टिक आईडी: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "संपर्क: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "ईमेल: "
   },
   {
     "id": "api.templates.verify_subject",
@@ -1460,54 +1420,6 @@
     "translation": "सीधे संदेश चैनलों का नाम बदलने में असमर्थ।"
   },
   {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "प्रदर्शन सुधारना"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "सबसे महत्वपूर्ण हमसे संपर्क करें अनुरोध। मुझे सिस्टम योजनाओं के साथ उन्नत अनुमतियों का उपयोग करने के बारे में अधिक जानने में दिलचस्पी है।\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। उन्नत सुविधाओं को सक्षम करने के लिए सिस्टम कंसोल पर जाएं।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "मैटरमोस्ट के साथ स्केलिंग"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "सबसे महत्वपूर्ण हमसे संपर्क करें अनुरोध। मेरी टीम में अब 500 उपयोगकर्ता हैं, और मैं मैटरमोस्ट एंटरप्राइज संस्करण पर विचार कर रहा हूं।\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "केवल पढ़ने के लिए घोषणा चैनल"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। चैनल बनाएं और चैनल व्यवस्थापकों तक पोस्टिंग को सीमित करने के लिए **System Console > User Management > Channels** पर जाएं।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "सबसे महत्वपूर्ण हमसे संपर्क करें अनुरोध। मुझे केवल-पढ़ने के लिए घोषणा चैनल बनाने के बारे में और जानने में दिलचस्पी है।\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "मैटरमोस्ट के साथ स्केलिंग"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "सबसे महत्वपूर्ण हमसे संपर्क करें अनुरोध। मेरी टीम में अब 200 उपयोगकर्ता हैं, और मैं मैटरमोस्ट एंटरप्राइज संस्करण पर विचार कर रहा हूं।\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "मैटरमोस्ट के साथ स्केलिंग"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "सबसे महत्वपूर्ण हमसे संपर्क करें अनुरोध। मेरी टीम में अब 100 उपयोगकर्ता हैं, और मैं मैटरमोस्ट एंटरप्राइज संस्करण पर विचार कर रहा हूं।\n"
-  },
-  {
     "id": "api.command_channel_rename.desc",
     "translation": "चैनल का नाम बदलें"
   },
@@ -1674,18 +1586,6 @@
   {
     "id": "api.command.disabled.app_error",
     "translation": "सिस्टम एडमिन द्वारा कमांड्स को डिसेबल कर दिया गया है।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "सबसे महत्वपूर्ण हमसे संपर्क करें अनुरोध। मुझे इलास्टिक्स खोज के साथ प्रदर्शन में सुधार के बारे में और जानने में दिलचस्पी है।\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। उन्नत अनुमतियां सक्षम करने के लिए **System Console > User Management > Permissions** पर जाएं।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "उन्नत अनुमतियों का उपयोग करना"
   },
   {
     "id": "model.team.is_valid.company.app_error",
@@ -2340,10 +2240,6 @@
     "translation": "बॉट प्राप्त करने में असमर्थ।"
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "व्यवस्थापकों की लिस्ट खाली है।"
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "व्यवस्थापकों की लिस्ट खाली है।"
   },
@@ -2920,10 +2816,6 @@
     "translation": "ईमेल {{.Email}} और पासवर्ड {{.Password}} के साथ इंटीग्रेशन/स्लैक बॉट उपयोगकर्ता आयात किया गया है।\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। उन्नत अनुमतियां सक्षम करने के लिए **सिस्टम कंसोल> उपयोगकर्ता प्रबंधन> अनुमतियां** पर जाएं।"
-  },
-  {
     "id": "api.channel.create_channel.direct_channel.team_restricted_error",
     "translation": "इन उपयोगकर्ताओं के बीच एक सीधा चैनल नहीं बनाया जा सकता क्योंकि वे एक टीम को साझा नहीं करते हैं।"
   },
@@ -3472,10 +3364,6 @@
     "translation": "फ़ीचर को एंटरप्राइज़ संस्करण में अपग्रेड करने की आवश्यकता है।"
   },
   {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "परीक्षण लाइसेंस प्राप्त करने में असमर्थ, कृपया पुनः प्रयास करें या support@mattermost.com से संपर्क करें। पंजीकृत उपयोगकर्ताओं की संख्या प्राप्त नहीं कर सकता।"
-  },
-  {
     "id": "api.license.request_trial_license.app_error",
     "translation": "परीक्षण लाइसेंस प्राप्त करने में असमर्थ, कृपया पुनः प्रयास करें या support@mattermost.com से संपर्क करें।"
   },
@@ -3817,14 +3705,6 @@
   {
     "id": "app.webhooks.save_outgoing.app_error",
     "translation": "आउटगोइंगवेबहुक को सहेजने में असमर्थ।"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "परीक्षण लाइसेंस पुनर्प्राप्त नहीं किया जा सका। लाइसेंस का अनुरोध करने के लिए https://mattermost.com/trial/ पर जाएं।"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "मैटरमॉस्ट से संपर्क करने के लिए धन्यवाद। हम जल्द ही आपसे संपर्क करेंगे।"
   },
   {
     "id": "api.preference.delete_preferences.delete.app_error",
@@ -4633,14 +4513,6 @@
     "translation": "लापता आदेश। उपलब्ध कार्रवाइयाँ: {{.क्रियाएँ}}"
   },
   {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "संदेश भेजा नहीं जा सका|"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "कृपया हमें ईमेल करें।"
-  },
-  {
     "id": "api.channel.post_user_add_remove_message_and_forget.error",
     "translation": "शामिल हों/संदेश छोड़ें पोस्ट करने में विफल"
   },
@@ -5035,50 +4907,6 @@
   {
     "id": "api.system.update_notices.validating_failed",
     "translation": "उत्पाद सूचना शर्तों को सत्यापित करना विफल रहा"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "उन्नत अनुमतियों का उपयोग करना"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "हमें ईमेल करें"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "अतिथि खाते बनाना"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Mattermost हमसे संपर्क करें अनुरोध। मुझे अतिथि खातों का उपयोग करने के बारे में और जानने में दिलचस्पी है।\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost हमसे संपर्क करें अनुरोध"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "साइट यूआरएल: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "कुल सक्रिय उपयोगकर्ता: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "यदि आपके पास कोई अतिरिक्त पूछताछ है, तो कृपया support@mattermost.com पर संपर्क करें"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "ईमेल: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "डायग्नोस्टिक आईडी: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "संपर्क:{ {.Contact}}"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -6009,18 +5837,6 @@
     "translation": "मेल खाने वाले ईमेल {{.Email}} और उपयोगकर्ता नाम {{.Username}} के साथ स्लैक उपयोगकर्ता का मौजूदा मैटरमोस्ट उपयोगकर्ता के साथ विलय हो गया।\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "सबसे महत्वपूर्ण हमसे संपर्क करें अनुरोध। मुझे टीम योजनाओं के साथ उन्नत अनुमतियों के बारे में अधिक जानने में दिलचस्पी है।\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "बहु-कारक प्रमाणीकरण लागू करना"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "सबसे महत्वपूर्ण हमसे संपर्क करें अनुरोध। मुझे मल्टी-फैक्टर ऑथेंटिकेशन लागू करने के बारे में और जानने में दिलचस्पी है।\n"
-  },
-  {
     "id": "api.post.check_for_out_of_channel_group_users.message.none",
     "translation": "@{{.GroupName}} का इस टीम में कोई सदस्य नहीं है"
   },
@@ -6489,14 +6305,6 @@
     "translation": "स्थापना तिथि को पार्स करने में विफल।"
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "{{.WarnMetricName}} के लिए मान संग्रहीत करने में विफल"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "मैटरमोस्ट सलाहकार"
-  },
-  {
     "id": "app.system.system_bot.bot_displayname",
     "translation": "प्रणाली"
   },
@@ -6645,10 +6453,6 @@
     "translation": "आपका लाइसेंस SAML प्रमाणीकरण का समर्थन नहीं करता है।"
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "पहचान प्रदाता से प्रतिक्रिया की पुष्टि करते समय एक त्रुटि उत्पन्न हुई। कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "पहचान प्रदाता से प्रतिक्रिया को पार्स करते समय एक त्रुटि उत्पन्न हुई। कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
   },
@@ -6665,10 +6469,6 @@
     "translation": "हमें पहचान प्रदाता से एक खाली प्रतिक्रिया मिली।"
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML लॉगिन असफल रहा क्योंकि पहचान प्रदाता से प्रतिक्रिया को डिक्रिप्ट करते समय एक त्रुटि हुई। कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "SAML लॉगिन असफल रहा क्योंकि पहचान प्रदाता प्रतिक्रिया एन्क्रिप्टेड नहीं है। कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
   },
@@ -6677,16 +6477,8 @@
     "translation": "SAML लॉगिन असफल रहा क्योंकि सेवा प्रदाता निजी कुंजी नहीं मिली थी। कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "पहचान प्रदाता सार्वजनिक प्रमाणपत्र फ़ाइल नहीं मिली। कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML लॉगिन असफल रहा क्योंकि एन्क्रिप्शन सक्षम नहीं है। कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "पहचान प्रदाता के लिए अनुरोध को कूटबद्ध करते समय एक त्रुटि उत्पन्न हुई। कृपया अपने सिस्टम व्यवस्थापक से संपर्क करें।"
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -7273,10 +7065,6 @@
     "translation": "उपयोगकर्ता user_id={{.UserId}}, team_id={{.TeamId}}, err={{.Error}} के लिए सीधे चैनल वरीयताएँ जोड़ने में विफल"
   },
   {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। अतिथि खातों को सक्षम करने के लिए **System Console > Authentication > Guest Access** पर जाएं।"
-  },
-  {
     "id": "api.error_set_first_admin_complete_setup",
     "translation": "स्टोर में पहले व्यवस्थापक पूर्ण सेटअप को सहेजने का प्रयास करने में त्रुटि।"
   },
@@ -7455,26 +7243,6 @@
   {
     "id": "api.slackimport.slack_add_users.merge_existing_failed",
     "translation": "मेल खाने वाले ईमेल {{.Email}} और उपयोगकर्ता नाम {{.Username}} के साथ स्लैक उपयोगकर्ता का मौजूदा मैटरमोस्ट उपयोगकर्ता के साथ विलय हो गया, लेकिन वह उपयोगकर्ता को अपनी टीम में जोड़ने में असमर्थ था।\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। एक बार आपके पास इलास्टिक्स खोज सर्वर होने के बाद, इलास्टिक्स खोज को कॉन्फ़िगर करने के लिए **System Console > Environment > Elasticsearch** पर जाएं।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। अपने SAML 2.0 प्रदाता के साथ एकीकृत करने के लिए **सिस्टम कंसोल> प्रमाणीकरण> SAML 2.0** पर जाएं।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। अपनी AD/LDAP सेवा को एकीकृत करने के लिए **सिस्टम कंसोल> प्रमाणीकरण> AD/LDAP** पर जाएं।"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "आपका एंटरप्राइज़ परीक्षण अब सक्रिय है। बहु-कारक प्रमाणीकरण लागू करने के लिए **System Console > Authentication > MFA** पर जाएं।"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "परियोजनाओं में अक्सर संगठन के अंदर और बाहर दोनों जगह के लोग शामिल होते हैं। अतिथि खातों के साथ, आप बाहरी भागीदारों को अपने मैटरमोस्ट सिस्टम में ला सकते हैं और निर्दिष्ट कर सकते हैं कि वे किसके साथ काम कर सकते हैं और वे क्या देख सकते हैं।\n\n[अतिथि खातों को सक्षम करने के बारे में अधिक जानें](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)।\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.post.get_message_for_notification.images_sent",
@@ -7886,10 +7654,6 @@
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "सिस्टम चर खोजने में असमर्थ।"
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "हमें सिस्टम गुण खोजने में त्रुटि का सामना करना पड़ा।"
   },
   {
     "id": "app.system.complete_onboarding_request.no_first_user",
@@ -8416,14 +8180,6 @@
     "translation": "ईमेल भेजते समय त्रुटि"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में अब कई टीमें हैं। कई टीमों के पास समन्वय और सहयोग करने का अपना पसंदीदा तरीका होता है, जिसमें चैनल कैसे बनाए जाते हैं, नए साथियों को कौन आमंत्रित कर सकता है, और एकीकरण कैसे प्रबंधित किया जाता है। टीम ओवरराइड योजनाएं आपको प्रत्येक टीम के भीतर उपयोगकर्ता अनुमतियों को उनकी विशिष्ट आवश्यकताओं को पूरा करने के लिए अनुकूलित करने की अनुमति देती हैं।\n\n[उन्नत अनुमतियों का उपयोग करने के बारे में अधिक जानें](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)।\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "मैटरमोस्ट दृढ़ता से अनुशंसा करता है कि 500 से अधिक उपयोगकर्ताओं की तैनाती उपयोगकर्ता प्रबंधन, सर्वर क्लस्टरिंग और प्रदर्शन निगरानी जैसी सुविधाओं का लाभ उठाएं। अधिक जानने के लिए हमसे संपर्क करें और हमें बताएं कि हम कैसे मदद कर सकते हैं।\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
     "id": "api.license_error",
     "translation": "एपीआई समापन बिंदु के लिए लाइसेंस की आवश्यकता होती है"
   },
@@ -8518,66 +8274,6 @@
   {
     "id": "api.oauth.get_access_token.redirect_uri.app_error",
     "translation": "अमान्य_अनुरोध: आपूर्ति की गई रीडायरेक्ट_यूरी प्राधिकरण कोड रीडायरेक्ट_यूरी से मेल नहीं खाती।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में 100 से अधिक उपयोगकर्ता हैं। जैसे-जैसे आपका उपयोगकर्ता आधार बढ़ता है, नए खातों का प्रावधान करना समय लेने वाला हो सकता है। हम अनुशंसा करते हैं कि आप अपने संगठन की सक्रिय निर्देशिका/एलडीएपी को एकीकृत करें, जो किसी भी व्यक्ति को खाते के साथ मैटरमोस्ट तक पहुंचने की अनुमति देगा।\n\n[AD/LDAP के साथ एकीकरण के बारे में अधिक जानें](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में बहु-कारक प्रमाणीकरण सक्षम है, जो उपयोगकर्ताओं को पासवर्ड से परे प्रमाणीकरण के अतिरिक्त साधनों के साथ अपने खातों को सुरक्षित करने का विकल्प देता है। पूरे सिस्टम में सुरक्षा में सुधार के लिए आपको सभी मैटरमोस्ट खातों को बहु-कारक प्रमाणीकरण का उपयोग करने की आवश्यकता हो सकती है।\n\n[मल्टी-फैक्टर ऑथेंटिकेशन लागू करने के बारे में ज़्यादा जानें](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में 100 से अधिक उपयोगकर्ता हैं। जैसे-जैसे आपका उपयोगकर्ता आधार बढ़ता है, नए खातों का प्रावधान करना समय लेने वाला हो सकता है। हम अनुशंसा करते हैं कि आप अपने संगठन की सक्रिय निर्देशिका/एलडीएपी को एकीकृत करें, जो किसी भी व्यक्ति को खाते के साथ मैटरमोस्ट तक पहुंचने की अनुमति देगा।\n\n[AD/LDAP के साथ एकीकरण के बारे में अधिक जानें](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में अब 200 उपयोगकर्ता हैं। जब आप मैटरमोस्ट को अपने संगठन के एकल साइन-ऑन प्रदाता से कनेक्ट करते हैं, तो उपयोगकर्ता अपने क्रेडेंशियल्स को फिर से दर्ज किए बिना मैटरमॉस्ट तक पहुंच सकते हैं। हम अनुशंसा करते हैं कि आप अपने एसएएमएल 2.0 प्रदाता को अपने मैटरमोस्ट सर्वर के साथ एकीकृत करें। .\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में अब 200 उपयोगकर्ता हैं। जब आप मैटरमॉस्ट को अपने संगठन के एकल साइन-ऑन प्रदाता से कनेक्ट करते हैं, तो उपयोगकर्ता अपने क्रेडेंशियल्स को फिर से दर्ज किए बिना मैटरमॉस्ट तक पहुंच सकते हैं। हम अनुशंसा करते हैं कि आप अपने एसएएमएल 2.0 प्रदाता को अपने मैटरमोस्ट सर्वर के साथ एकीकृत करें।\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में अब कई टीमें हैं। कई टीमों के पास समन्वय और सहयोग करने का अपना पसंदीदा तरीका होता है, जिसमें चैनल कैसे बनाए जाते हैं, नए साथियों को कौन आमंत्रित कर सकता है, और एकीकरण कैसे प्रबंधित किया जाता है। टीम ओवरराइड योजनाएं आपको प्रत्येक टीम के भीतर उपयोगकर्ता अनुमतियों को उनकी विशिष्ट आवश्यकताओं को पूरा करने के लिए अनुकूलित करने की अनुमति देती हैं।\n\n[उन्नत अनुमतियों का उपयोग करने के बारे में अधिक जानें](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override)\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में बड़ी संख्या में संदेश हैं। डिफ़ॉल्ट मैटरमॉस्ट डेटाबेस खोज लगभग 2.5 मिलियन पोस्ट पर प्रदर्शन में गिरावट दिखाना शुरू कर देती है। 5 मिलियन से अधिक पोस्ट के साथ, Elasticsearch महत्वपूर्ण प्रदर्शन समस्याओं से बचने में मदद कर सकता है, जैसे कि टाइमआउट, खोज और उल्लेख के साथ। अधिक जानने के लिए हमसे संपर्क करें और हमें बताएं कि हम कैसे मदद कर सकते हैं।\n\n[प्रदर्शन सुधारने के बारे में और जानें](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में बड़ी संख्या में संदेश हैं। डिफ़ॉल्ट मैटरमॉस्ट डेटाबेस खोज लगभग 2.5 मिलियन पोस्ट पर प्रदर्शन में गिरावट दिखाना शुरू कर देती है। 5 मिलियन से अधिक पोस्ट के साथ, Elasticsearch महत्वपूर्ण प्रदर्शन समस्याओं से बचने में मदद कर सकता है, जैसे कि टाइमआउट, खोज और उल्लेख के साथ। अधिक जानने के लिए हमसे संपर्क करें और हमें बताएं कि हम कैसे मदद कर सकते हैं।\n\n[प्रदर्शन सुधारने के बारे में और जानें](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "चैनल संचार को बेहतर बनाने में मदद करते हैं, लेकिन मैटरमोस्ट के उपयोगकर्ताओं के साथ जुड़ने और चैनल बनाने के साथ, सिस्टम को व्यवस्थित रखने की चुनौती बढ़ जाती है। उन्नत अनुमतियां आपको यह सेट करने में सक्षम बनाती हैं कि कौन से उपयोगकर्ता या भूमिकाएं कुछ क्रियाएं कर सकती हैं, जिसमें चैनल सेटिंग और सदस्यों को प्रबंधित करना, उपयोगकर्ताओं के व्यापक समूहों को टैग करने के लिए @चैनल या @here का उपयोग करना और नए वेबहुक बनाना शामिल है।\n\n[उन्नत अनुमतियों का उपयोग करने के बारे में और जानें](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "चैनल संचार को बेहतर बनाने में मदद करते हैं, लेकिन मैटरमोस्ट के उपयोगकर्ताओं के साथ जुड़ने और चैनल बनाने के साथ, सिस्टम को व्यवस्थित रखने की चुनौती बढ़ जाती है। उन्नत अनुमतियां आपको यह सेट करने में सक्षम बनाती हैं कि कौन से उपयोगकर्ता या भूमिकाएं कुछ क्रियाएं कर सकती हैं, जिसमें चैनल सेटिंग और सदस्यों को प्रबंधित करना, उपयोगकर्ताओं के व्यापक समूहों को टैग करने के लिए @चैनल या @here का उपयोग करना और नए वेबहुक बनाना शामिल है।\n\n[उन्नत अनुमतियों का उपयोग करने के बारे में और जानें](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "मैटरमोस्ट दृढ़ता से अनुशंसा करता है कि 500 से अधिक उपयोगकर्ताओं की तैनाती उपयोगकर्ता प्रबंधन, सर्वर क्लस्टरिंग और प्रदर्शन निगरानी जैसी सुविधाओं का लाभ उठाएं। अधिक जानने के लिए हमसे संपर्क करें और हमें बताएं कि हम कैसे मदद कर सकते हैं।\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "मैटरमॉस्ट में इतनी अधिक बातचीत होने के कारण, यह जानना चुनौतीपूर्ण हो सकता है कि महत्वपूर्ण जानकारी को कहाँ खोजा जाए। यदि आप एक संदेश को बड़े दर्शकों तक प्रसारित करना चाहते हैं, तो आप केवल-पढ़ने के लिए घोषणा चैनल सेट कर सकते हैं, जहां कोई भी शामिल हो सकता है, लेकिन केवल चैनल व्यवस्थापक ही संदेश पोस्ट कर सकते हैं।\n\n[केवल पढ़ने के लिए घोषणा चैनल बनाने के बारे में अधिक जानें](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "मैटरमॉस्ट में इतनी अधिक बातचीत होने के कारण, यह जानना चुनौतीपूर्ण हो सकता है कि महत्वपूर्ण जानकारी को कहाँ खोजा जाए। यदि आप एक संदेश को बड़े दर्शकों तक प्रसारित करना चाहते हैं, तो आप केवल-पढ़ने के लिए घोषणा चैनल सेट कर सकते हैं, जहां कोई भी शामिल हो सकता है, लेकिन केवल चैनल व्यवस्थापक ही संदेश पोस्ट कर सकते हैं।\n\n[केवल पढ़ने के लिए घोषणा चैनल बनाने के बारे में अधिक जानें](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "परियोजनाओं में अक्सर संगठन के अंदर और बाहर दोनों जगह के लोग शामिल होते हैं। अतिथि खातों के साथ, आप बाहरी भागीदारों को अपने मैटरमोस्ट सिस्टम में ला सकते हैं और निर्दिष्ट कर सकते हैं कि वे किसके साथ काम कर सकते हैं और क्या देख सकते हैं।\n\n[अतिथि खातों को सक्षम करने के बारे में और जानें](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts)\n\nपरीक्षण प्रारंभ करें क्लिक करके, मैं [Mattermost सॉफ़्टवेयर मूल्यांकन अनुबंध](https://mattermost.com/software-evaluation-agreement/), [गोपनीयता नीति](https://mattermost.com/privacy-policy/) से सहमत हूं , और उत्पाद ईमेल प्राप्त करना।"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "आपके मैटरमॉस्ट सिस्टम में बहु-कारक प्रमाणीकरण सक्षम है, जो उपयोगकर्ताओं को पासवर्ड से परे प्रमाणीकरण के अतिरिक्त साधनों के साथ अपने खातों को सुरक्षित करने का विकल्प देता है। पूरे सिस्टम में सुरक्षा को बेहतर बनाने के लिए आपको सभी मैटरमोस्ट खातों को बहु-कारक प्रमाणीकरण का उपयोग करने की आवश्यकता हो सकती है।\n\n[मल्टी-फैक्टर ऑथेंटिकेशन लागू करने के बारे में और जानें](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication)।\n\nहमसे संपर्क करें क्लिक करके, आप मैटरमोस्ट, इंक. के साथ अपनी जानकारी साझा करेंगे। [अधिक जानें](https://mattermost.com/pl/default-admin-advisory)"
   },
   {
     "id": "api.command_marketplace.unsupported.app_error",

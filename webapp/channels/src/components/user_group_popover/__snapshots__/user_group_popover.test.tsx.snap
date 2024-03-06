@@ -208,7 +208,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
                         </Heading>
                         <Subtitle>
                           <div
-                            className="Subtitle-ocLvS yXVnq"
+                            className="Subtitle-ocLvS dzpPJy"
                           >
                             <span
                               className="overflow--ellipsis text-nowrap"

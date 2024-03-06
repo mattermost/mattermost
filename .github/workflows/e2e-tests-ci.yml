@@ -1,17 +1,17 @@
 ---
-  name: E2E Smoketests
-  on:
-    # For PRs, this workflow gets triggered from the Argo Events platform.
-    # Check the following repo for details: https://github.com/mattermost/delivery-platform
-    workflow_dispatch:
-      inputs:
-        commit_sha:
-          type: string
-          required: false
+name: E2E Smoketests
+on:
+  # For PRs, this workflow gets triggered from the Argo Events platform.
+  # Check the following repo for details: https://github.com/mattermost/delivery-platform
+  workflow_dispatch:
+    inputs:
+      commit_sha:
+        type: string
+        required: false
 
-  jobs:
-    e2e-smoketest:
-      uses: ./.github/workflows/e2e-tests-ci-template.yml
-      with:
-        ref: "${{ inputs.commit_sha || github.sha }}"
-        status_check_context: "E2E Tests/smoketests"
+jobs:
+  e2e-smoketest:
+    uses: ./.github/workflows/e2e-tests-ci-template.yml
+    with:
+      ref: "${{ inputs.commit_sha || github.sha }}"
+      status_check_context: "E2E Tests/smoketests"

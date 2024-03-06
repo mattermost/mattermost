@@ -2316,14 +2316,6 @@
     "translation": "Kunde inte tolka installationsdatum."
   },
   {
-    "id": "app.system.warn_metric.store.app_error",
-    "translation": "Misslyckades spara värdet för {{.WarnMetricName}}"
-  },
-  {
-    "id": "app.system.warn_metric.bot_displayname",
-    "translation": "Mattermost-råd"
-  },
-  {
     "id": "app.system.save.app_error",
     "translation": "Ett fel uppstod när systemparametern skulle sparas."
   },
@@ -2334,10 +2326,6 @@
   {
     "id": "app.system.get_by_name.app_error",
     "translation": "Kunde inte hitta systemvariabeln."
-  },
-  {
-    "id": "app.system.get.app_error",
-    "translation": "Ett fel uppstod vid sökning efter systemparametern."
   },
   {
     "id": "app.submit_interactive_dialog.json_error",
@@ -2764,10 +2752,6 @@
     "translation": "Din licens ger inte tillgång till SAML-autentisering."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Ett fel uppstod då svaret från Identity Provider skulle valideras. Kontakta din Systemadministratör."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Ett fel uppstod när svaret från Identity Provider skulle tolkas. Kontakta din Systemadministratör."
   },
@@ -2784,10 +2768,6 @@
     "translation": "Vi mottog ett tomt svar från Identity Providern."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "Misslyckad inloggning via SAML då ett fel uppstod när svaret från Identity Provider skulle derypteras. Kontakta Systemadministratören."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "Misslyckad inloggning via SAML då svaret från Identity Provider var okrypterat. Kontakta Systemadministratören."
   },
@@ -2796,16 +2776,8 @@
     "translation": "Misslyckad inloggning via SAML då Service Provider Private Key inte kunde hittas. Kontakta systemadministratören."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Filen med Identity Providerns publika Certifikat hittades inte. Kontakta din systemadministratör."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Misslyckad SAML-inloggning eftersom kryptering inte är aktiverad. Kontakta din systemadministratör."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Ett fel uppstod när förfrågan till Identity Provider skulle kodas. Kontakta din Systemadministratör."
   },
   {
     "id": "ent.saml.build_request.app_error",
@@ -5452,194 +5424,6 @@
     "translation": "Integrations-/Slack Bot-Användaren med epost {{.Email}} och lösenord {{.Password}} har importerats.\n"
   },
   {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial_notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. Gå till **Systemkonsol > Användaradministration > Behörigheter** för att aktivera Avancerade Behörigheter."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.start_trial.notification_body",
-    "translation": "Din Mattermostinstallation innehåller nu flera team. Olika Team kan ha olika sätt som samarbetet organiseras och koordineras, exempelvis hur kanaler skapas, vem som bjuda in nya teammedlemmar eller hur integrationer hanteras. Med Team Override Schemes har du möjligheten att skräddarsy användarbehörigheter inom specifika team så att deras behov kan mötas.\n\n[Läs mer om avancerade behörigheter](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_title",
-    "translation": "Använda avancerade behörigheter"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.notification_body",
-    "translation": "Din Mattermostinstallation innehåller nu flera team. Olika Team kan ha olika sätt som samarbetet organiseras och koordineras, exempelvis hur kanaler skapas, vem som bjuda in nya teammedlemmar eller hur integrationer hanteras. Med Team Override Schemes har du möjligheten att skräddarsy användarbehörigheter inom specifika team så att deras behov kan mötas.\n\n[Läs mer om avancerade behörigheter](https://www.mattermost.com/docs-advanced-permissions-team-override/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions-team-override).\n\nGenom att klicka på Kontakta oss delar du information med Mattermost Inc. och lär dig mer om uppgradering. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_teams_5.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about Advanced Permissions with Team Schemes.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. När du har en Elasticsearch-server tillgänglig, gå till **Systemkonsol > systemmiljö > Elasticsearch** för att konfigurera Elasticsearch."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.start_trial.notification_body",
-    "translation": "Din Mattermost-installation innehåller en stor mängd meddelanden. Sökfunktionen i Mattermost standarddatabas kommer tappa prestanda efter ca 2,5 miljoner meddelanden. Med över 5 miljoner meddelanden kan Elasticsearch förhindra påverkande prestandaproblem, som exempelvis timeout vid sökningar och @-omnämnanden. Kontakta oss för att veta mer och låt oss hjälpa dig.\n\n[Läs mer om prestandaförbättringar](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_title",
-    "translation": "Förbättra prestandan"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.notification_body",
-    "translation": "Din Mattermost-installation innehåller en stor mängd meddelanden. Sökfunktionen i Mattermost standarddatabas kommer tappa prestanda efter ca 2,5 miljoner meddelanden. Med över 5 miljoner meddelanden kan Elasticsearch förhindra påverkande prestandaproblem, som exempelvis timeout vid sökningar och @-omnämnanden. Kontakta oss för att veta mer och låt oss hjälpa dig.\n\n[Läs mer om prestandaförbättringar](https://www.mattermost.com/docs-elasticsearch/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=elasticsearch)\n\nGenom att klicka på Kontakta oss delar du information med Mattermost Inc. och lär dig mer om uppgradering. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_posts_2M.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about improving performance with Elasticsearch.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. Gå till **Systemkonsol > Användaradministration > Behörigheter** för att aktivera avancerade behörigheter."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.start_trial.notification_body",
-    "translation": "Kanaler ger möjlighet att förbättra kommunikation men med alla användare i Mattermost som skapar och ansluter till kanaler ökar utmaningen att hålla ordning. Med avancerade behörigheter ges du möjligheten att styra vilka användare eller roller som kan göra vad, inklusive hantera kanalinställningar och medlemmar, använda @channel eller @here för att notifiera stora mängder användare eller vem som får skapa nya webhooks.\n\n[Läs mer om hur du använder avancerade behörigheter](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_title",
-    "translation": "Använd avancerade behörigheter"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.notification_body",
-    "translation": "Kanaler ger möjlighet att förbättra kommunikation men med alla användare i Mattermost som skapar och ansluter till kanaler ökar utmaningen att hålla ordning. Med avancerade behörigheter ges du möjligheten att styra vilka användare eller roller som kan göra vad, inklusive hantera kanalinställningar och medlemmar, använda @channel eller @here för att notifiera stora mängder användare eller vem som får skapa nya webhooks.\n\n[Läs mer om hur du använder avancerade behörigheter](https://www.mattermost.com/docs-advanced-permissions/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=advanced-permissions)\n\nGenom att klicka på Kontakta oss delar du information med Mattermost Inc. och lär dig mer om uppgradering. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_channels_50.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about using Advanced Permissions with System Schemes.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. Gå till Systemkonsolen för att aktivera avancerade funktioner."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.start_trial.notification_body",
-    "translation": "Mattermost rekommenderar att installationer med fler än 500 användare nyttjar funktionerna för användarhantering, klusterteknik och prestandamätning. Kontakta oss för att veta mer och berätta på vilket sätt vi kan hjälpa till.\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_title",
-    "translation": "Väx med Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.notification_body",
-    "translation": "Mattermost rekommenderar att installationer med fler än 500 användare nyttjar funktionerna för användarhantering, klusterteknik och prestandamätning. Kontakta oss för att veta mer och berätta på vilket sätt vi kan hjälpa till.\n\nGenom att klicka på Kontakta oss delar du information med Mattermost Inc. och lär dig mer om uppgradering. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_500.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 500 users, and I'm considering Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_title",
-    "translation": "Skrivskyddade Informationskanaler"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. Skapa en kanal och gå till **Systemkonsol > Användaradministration > Kanaler** för att begränsa meddelanden till kanaladministratörer."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.start_trial.notification_body",
-    "translation": "Med all kommunikation som sker i Mattermost kan det vara utmanande att veta var man hittar viktig information. Om du vill komma ut med ditt budskap till en stor publik kan du skapa read-only Informationskanaler som vem som helst kan ansluta till men där endast administratören kan posta meddelanden.\n\n[Läs mer om att skapa Informationskanaler](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.notification_body",
-    "translation": "Med all kommunikation som sker i Mattermost kan det vara utmanande att veta var man hittar viktig information. Om du vill komma ut med ditt budskap till en stor publik kan du skapa read-only Informationskanaler som vem som helst kan ansluta till men där endast administratören kan posta meddelanden.\n\n[Läs mer om att skapa Informationskanaler](https://www.mattermost.com/docs-channel-moderation/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=channel-moderation)\n\n Genom att klicka på Kontakta oss delar du information med Mattermost Inc. och lär dig mer om uppgradering. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_300.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about creating read-only Announcement Channels.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. Gå till **Systemkonsol > Autentisering > SAML 2.0** för att integrera med din SAML 2.0-tjänst."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.start_trial.notification_body",
-    "translation": "Din Mattermost-installation har nu 200 användare. När din ansluter Mattermost med din organisations single sign-on tjänst kommer dina användare kunna ansluta till Mattermost utan att ange inloggningsuppgifterna igen. Vi rekommenderar att du integrerar din SAML 2.0-tjänst med din Mattermost.server [Läs mer om integration med SAML 2.0] (https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nGenom att klicka på Starta test godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_title",
-    "translation": "Väx med Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.notification_body",
-    "translation": "Din Mattermost-installation har nu 200 användare. När din ansluter Mattermost med din organisations single sign-on tjänst kommer dina användare kunna ansluta till Mattermost utan att ange inloggningsuppgifterna igen. Vi rekommenderar att du integrerar din SAML 2.0-tjänst med din Mattermost.server [Läs mer om integration med SAML 2.0] (https://docs.mattermost.com/deployment/sso-ldap.html?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=saml).\n\nGenom att klicka på Kontakta oss kommer du dela information med Mattermost Inc. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_200.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 200 users, and I'm considering Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. Gå till **Systemkonsol > Autentisering > AD/LDAP** för att integrera AD/LDAP."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.start_trial.notification_body",
-    "translation": "Din Mattermostinstallation har nu fler än 100 användare. När användarbasen växer kan kontoskapande vara tidskrävande. Vi rekommenderar att integrera din organisations Active Directory/LDAP med Mattermost så att alla med ett konto får tillgång till Mattermost.\n\n[Läs mer om integration med AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_title",
-    "translation": "Väx med Mattermost"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.notification_body",
-    "translation": "Din Mattermostinstallation har nu fler än 100 användare. När användarbasen växer kan kontoskapande vara tidskrävande. Vi rekommenderar att integrera din organisations Active Directory/LDAP med Mattermost så att alla med ett konto får tillgång till Mattermost.\n\n[Läs mer om integration med AD/LDAP](https://www.mattermost.com/docs-adldap/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=adldap)\n\nGenom att klicka på Kontakta oss kommer du dela information med Mattermost Inc. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.number_of_active_users_100.contact_us.email_body",
-    "translation": "Mattermost contact us request. My team now has 100 users, and I'm considering Mattermost Enterprise Edition.\n"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial_notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. Gå till **Systemkonsol > Autentisering > MFA** för att kräva flerfaktors-autentisering."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.start_trial.notification_body",
-    "translation": "Din Mattermostinstallation har flerfaktorsautentisering aktiverad som ger användaren möjlighet att säkra sitt konto med fler autentiseringslösningar utöver traditionellt lösenord. För att utöka säkerheten för hela installationen kan du kräva flerfaktorsiautentisering av alla anvädare.\n\n[Läs mer om flerfaktorsautentisering](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot mejl om produkten."
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_title",
-    "translation": "Kräv flerfaktorsautentisering"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.notification_body",
-    "translation": "Din Mattermostinstallation har flerfaktorsautentisering aktiverad som ger användaren möjlighet att säkra sitt konto med fler autentiseringslösningar utöver traditionellt lösenord. För att utöka säkerheten för hela installationen kan du kräva flerfaktorsiautentisering av alla anvädare.\n\n[Läs mer om flerfaktorsautentisering](https://www.mattermost.com/docs-multi-factor-authentication/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=multi-factor-authentication). \n\nGenom att klicka på Kontakta oss kommer du dela information med Mattermost Inc. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.mfa.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about enforcing Multi-Factor Authentication.\n"
-  },
-  {
-    "id": "api.server.warn_metric.email_us",
-    "translation": "E-posta oss"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial_notification_success.message",
-    "translation": "Din Enterprise prova-på är nu aktiv. Gå till **Systemkonsol > Autentisering > Gäståtkomst** för att aktivera gäst-konton."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.start_trial.notification_body",
-    "translation": "I projekt involveras ofta personer både från din organisation och från andra. Med Gäst-konton kan externa parter bli en del av ditt Mattermost-system och du kan ange vem de kan jobba tillsammans med och vad de kan se.\n\n[Läs mer om att tillåta gäst-konton](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nGenom att klicka på Starta prova-på godkänner du [Mattermost Software Evaluation Agreement](https://mattermost.com/software-evaluation-agreement/), [Privacy Policy](https://mattermost.com/pl/privacy-policy/) och att ta emot produktmejl."
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_title",
-    "translation": "Skapa Gäst-konton"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.notification_body",
-    "translation": "I projekt involveras ofta personer både från din organisation och från andra. Med Gäst-konton kan externa parter bli en del av ditt Mattermost-system och du kan ange vem de kan jobba tillsammans med och vad de kan se.\n\n[Läs mer om att tillåta gäst-konton](https://www.mattermost.com/docs-guest-accounts/?utm_medium=product&utm_source=mattermost-advisor-bot&utm_content=guest-accounts).\n\nGenom att klicka på Kontakta oss kommer du dela med dig av din information med Mattermost Inc. [Läs mer](https://mattermost.com/pl/default-admin-advisory)"
-  },
-  {
-    "id": "api.server.warn_metric.email_domain.contact_us.email_body",
-    "translation": "Mattermost contact us request. I'm interested in learning more about using Guest Accounts.\n"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.start_trial_failure.message",
-    "translation": "Prova-på-licensen kunde inte hämtas. Besök https://mattermost.com/trial/ för att be om en testlicens."
-  },
-  {
     "id": "api.post.deduplicate_create_post.failed_to_get",
     "translation": "Misslyckades hitta originalmeddelandet efter duplicering vid repeterande klientanrop."
   },
@@ -5810,10 +5594,6 @@
   {
     "id": "api.marshal_error",
     "translation": "Misslyckades att arrangera."
-  },
-  {
-    "id": "api.license.request_trial_license.fail_get_user_count.app_error",
-    "translation": "Kunde inte få en prova-på-licens, försök igen eller kontakta support@mattermost.com. Kunde inte ta fram antalet registrerade användare."
   },
   {
     "id": "api.license.request_trial_license.app_error",
@@ -6088,34 +5868,6 @@
     "translation": "För en bättre upplevelse kan du ladda ner app för PC, Mac, iOS och Android."
   },
   {
-    "id": "api.templates.warn_metric_ack.subject",
-    "translation": "Mattermost Kontakta oss-begäran"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.footer",
-    "translation": "Om du har fler frågor, kontakta support@mattermost.com"
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.site_url_header",
-    "translation": "Sajt-URL: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.registered_users_header",
-    "translation": "Totalt antal aktiva användare: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.diagnostic_id_header",
-    "translation": "Diagnos-id: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_name_header",
-    "translation": "Kontakt: "
-  },
-  {
-    "id": "api.templates.warn_metric_ack.body.contact_email_header",
-    "translation": "E-post: "
-  },
-  {
     "id": "api.templates.verify_subject",
     "translation": "[{{ .SiteName }}] Verifiera e-postadress"
   },
@@ -6353,18 +6105,6 @@
   {
     "id": "api.email_batching.add_notification_email_to_batch.channel_full.app_error",
     "translation": "Mottagande kanal för massbearbetning av e-post är full. Vänligen öka värdet för inställningen EmailBatchingBufferSize."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.missing_server.app_error",
-    "translation": "SMTP-server är nödvändig"
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.invalid_warn_metric.app_error",
-    "translation": "Kunde inte hitta varningsvärde."
-  },
-  {
-    "id": "api.email.send_warn_metric_ack.failure.app_error",
-    "translation": "Misslyckades att skicka administratörs-bekräftelsemejl"
   },
   {
     "id": "api.create_terms_of_service.empty_text.app_error",
@@ -7031,46 +6771,6 @@
   {
     "id": "api.command.invite_people.email_invitations_off",
     "translation": "E-post inbjudan är avaktiverad, ingen inbjudan skickad"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_success.message",
-    "translation": "Tack för att du kontaktar Mattermost. Vi återkommer snart till dig."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.message",
-    "translation": "Meddelandet kunde inte skickas."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.notification_failure.body",
-    "translation": "Eposta oss."
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_subject",
-    "translation": "Mattermost Kontakta oss-förfrågan"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_site_url_header",
-    "translation": "Sajt-URL: {{.SiteUrl}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_registered_users_header",
-    "translation": "Totalt antal aktiva användare: {{.NoRegisteredUsers}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_footer",
-    "translation": "Om du har fler frågor kan du kontakta support@mattermost.com"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_email_header",
-    "translation": "E-post: {{.Email}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_diagnostic_id_header",
-    "translation": "Diagnostik-id: {{.DiagnosticId}}"
-  },
-  {
-    "id": "api.server.warn_metric.bot_response.mailto_contact_header",
-    "translation": "Kontakt: {{.Contact}}"
   },
   {
     "id": "api.server.start_server.starting.critical",
@@ -8738,10 +8438,6 @@
     "translation": "Kontroll av bildstorlek misslyckades. Upplösningen är för hög."
   },
   {
-    "id": "app.bot.get_warn_metrics_bot.empty_admin_list.app_error",
-    "translation": "Listan med administratörer är tom."
-  },
-  {
     "id": "app.bot.get_system_bot.empty_admin_list.app_error",
     "translation": "Listan med administratörer är tom."
   },
@@ -10356,5 +10052,45 @@
   {
     "id": "model.config.is_valid.data_retention.file_retention_hours_too_low.app_error",
     "translation": "Arkiveringstid av filer kan inte vara mindre än 0 timmar"
+  },
+  {
+    "id": "api.team.update_team_member_roles.guest.app_error",
+    "translation": "Ogiltig uppdatering av teammedlem: En gäst kan inte bli teammedlem eller teamadministratör. Gör gästen till användare först."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Ett fel uppstod när en utgående OAuth-anslutning skapades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Ogiltiga inparametrar."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Ett fel uppstod när den utgående OAuth-anslutningen togs bort."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Utgående OAuth-anslutningar är inte tillgängliga på denna server."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Ett fel uppstod när den utgående OAuth-anslutning uppdaterades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Ogiltiga inparametrar."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Ett fel uppstod när en utgående OAuth-anslutnings autentiseringsuppgifter validerades."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Kunde inte hämta autentiseringsuppgifter med den angivna anslutningens konfiguration."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Ogiltigt e-posttoken"
   }
 ]
