@@ -10136,5 +10136,21 @@
   {
     "id": "basic_security_check.url.too_long_error",
     "translation": "URL 过长"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "团队成员更新无效：不能为单个团队设置访客，一位系统管理员必须将用户降级为访客，或将访客提升为用户。"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "无效的属性（自定义状态）"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "与 Mattermost 客户门户的交互已被系统管理员禁用。"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "无法邀请远端至频道：{{.Error}}"
   }
 ]
