@@ -3104,6 +3104,13 @@ export default class Client4 {
         );
     };
 
+    getAllPlainLogs = () => {
+        return this.doFetch<string[]>(
+            `${this.getBaseRoute()}/logs`,
+            {method: 'get'},
+        );
+    };
+
     getAudits = (page = 0, perPage = PER_PAGE_DEFAULT) => {
         return this.doFetch<Audit[]>(
             `${this.getBaseRoute()}/audits${buildQueryString({page, per_page: perPage})}`,

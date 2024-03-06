@@ -61,6 +61,13 @@ export function getPlainLogs(page = 0, perPage: number = General.LOGS_PAGE_SIZE_
     });
 }
 
+export function getAllPlainLogs() {
+    return bindClientFunc({
+        clientFunc: Client4.getAllPlainLogs,
+        onSuccess: [AdminTypes.RECEIVED_ALL_PLAIN_LOGS],
+    });
+}
+
 export function getAudits(page = 0, perPage: number = General.PAGE_SIZE_DEFAULT) {
     return bindClientFunc({
         clientFunc: Client4.getAudits,

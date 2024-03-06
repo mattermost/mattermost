@@ -51,6 +51,7 @@ export type LogFilterQuery = {
 export type AdminState = {
     logs: LogObject[];
     plainLogs: string[];
+    allPlainLogs: string[];
     audits: Record<string, Audit>;
     config: Partial<AdminConfig>;
     environmentConfig: Partial<EnvironmentConfig>;

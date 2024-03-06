@@ -20,6 +20,7 @@ import PlainLogList from './plain_log_list';
 type Props = {
     logs: LogObject[];
     plainLogs: string[];
+    allPlainLogs: string[];
     isPlainLogs: boolean;
     actions: {
         getLogs: (logFilter: LogFilter) => Promise<unknown>;
@@ -27,6 +28,7 @@ type Props = {
             page?: number | undefined,
             perPage?: number | undefined
         ) => Promise<unknown>;
+        getAllPlainLogs: () => Promise<unknown>;
     };
 };
 
@@ -92,11 +94,14 @@ export default class Logs extends React.PureComponent<Props, State> {
         this.setState({page: this.state.page - 1});
     };
 
-    downloadLogs = () => {
-        const logString = this.props.isPlainLogs ? 
-        this.props.plainLogs.join('') : 
-        this.props.logs.map(log => JSON.stringify(log)).join('\n');
-
+    downloadLogs = async () => {
+        let logString;
+        if(this.props.isPlainLogs){
+            await this.props.actions.getAllPlainLogs();
+            logString = this.props.allPlainLogs.join('');
+        }else{
+            logString = this.props.logs.map(log => JSON.stringify(log)).join('\n');
+        }
         const blob = new Blob([logString], { type: 'text/plain' });
     
         const link = document.createElement('a');
