@@ -40,53 +40,67 @@ export type Props = {
     callsNotificationSound: UserNotifyProps['calls_notification_sound'];
 };
 
-function DesktopNotificationSoundsSettings(props: Props) {
+function DesktopNotificationSoundsSettings({
+    active,
+    updateSection,
+    onSubmit,
+    onCancel,
+    saving,
+    error,
+    setParentState,
+    areAllSectionsInactive,
+    desktopSound,
+    desktopNotificationSound,
+    isCallsRingingEnabled,
+    callsDesktopSound,
+    callsNotificationSound,
+}: Props) {
     const intl = useIntl();
 
     const editButtonRef = useRef<SettingItemMinComponent>(null);
-    const previousActiveRef = useRef(props.active);
+    const previousActiveRef = useRef(active);
 
     // Focus back on the edit button, after this section was closed after it was opened
     useEffect(() => {
-        if (previousActiveRef.current && !props.active && props.areAllSectionsInactive) {
+        if (previousActiveRef.current && !active && areAllSectionsInactive) {
             editButtonRef.current?.focus();
         }
 
-        previousActiveRef.current = props.active;
-    }, [props.active, props.areAllSectionsInactive]);
+        previousActiveRef.current = active;
+    }, [active, areAllSectionsInactive]);
 
     const handleChangeForMessageNotificationSoundCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const value = event.target.checked ? 'true' : 'false';
-        props.setParentState('desktopSound', value);
-    }, [props.setParentState, props.desktopSound]);
+        setParentState('desktopSound', value);
+    }, [setParentState]);
 
     const handleChangeForIncomginCallSoundCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const value = event.target.checked ? 'true' : 'false';
-        props.setParentState('callsDesktopSound', value);
+        setParentState('callsDesktopSound', value);
 
         if (value === 'false') {
             stopTryNotificationRing();
         }
-    }, [props.setParentState, props.callsDesktopSound]);
+    }, [setParentState]);
 
     const handleChangeForMessageNotificationSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
         if (selectedOption && 'value' in selectedOption) {
-            props.setParentState('desktopNotificationSound', selectedOption.value);
+            setParentState('desktopNotificationSound', selectedOption.value);
             tryNotificationSound(selectedOption.value);
         }
-    }, [props.setParentState, props.desktopNotificationSound]);
+    }, [setParentState]);
 
     const handleChangeForIncomingCallSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
         if (selectedOption && 'value' in selectedOption) {
-            props.setParentState('callsNotificationSound', selectedOption.value);
+            setParentState('callsNotificationSound', selectedOption.value);
             tryNotificationRing(selectedOption.value);
         }
-    }, [props.setParentState, props.callsNotificationSound]);
+    }, [setParentState]);
 
     const maximizedSettingInputs = useMemo(() => {
         const maximizedSettingInputs = [];
 
-        const isMessageNotificationSoundChecked = props.desktopSound === 'true';
+        const isMessageNotificationSoundChecked = desktopSound === 'true';
         const messageNotificationSoundSection = (
             <Fragment key='messageNotificationSoundSection'>
                 <div className='checkbox inlineCheckboxSelect'>
@@ -115,7 +129,7 @@ function DesktopNotificationSoundsSettings(props: Props) {
                             defaultMessage: 'Select a sound',
                         })}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                        value={getValueOfMessageNotificationSoundsSelect(props.desktopNotificationSound)}
+                        value={getValueOfMessageNotificationSoundsSelect(desktopNotificationSound)}
                         onChange={handleChangeForMessageNotificationSoundSelect}
                     />
                 </div>
@@ -123,8 +137,9 @@ function DesktopNotificationSoundsSettings(props: Props) {
         );
         maximizedSettingInputs.push(messageNotificationSoundSection);
 
-        if (props.isCallsRingingEnabled) {
-            const isIncomingCallSoundsChecked = props.callsDesktopSound === 'true';
+        if (isCallsRingingEnabled) {
+            const isChecked = callsDesktopSound === 'true';
+
             const incomingCallSoundNotificationSection = (
                 <Fragment key='incomingCallSoundNotificationSection'>
                     <br/>
@@ -132,7 +147,7 @@ function DesktopNotificationSoundsSettings(props: Props) {
                         <label>
                             <input
                                 type='checkbox'
-                                checked={isIncomingCallSoundsChecked}
+                                checked={isChecked}
                                 onChange={handleChangeForIncomginCallSoundCheckbox}
                             />
                             <FormattedMessage
@@ -148,13 +163,13 @@ function DesktopNotificationSoundsSettings(props: Props) {
                             clearable={false}
                             isClearable={false}
                             isSearchable={false}
-                            isDisabled={!isIncomingCallSoundsChecked}
+                            isDisabled={!isChecked}
                             components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                             placeholder={intl.formatMessage({
                                 id: 'user.settings.notifications.desktopNotificationSound.soundSelectPlaceholder',
                                 defaultMessage: 'Select a sound',
                             })}
-                            value={getValueOfIncomingCallSoundsSelect(props.callsNotificationSound)}
+                            value={getValueOfIncomingCallSoundsSelect(callsNotificationSound)}
                             onChange={handleChangeForIncomingCallSoundSelect}
                         />
                     </div>
@@ -165,34 +180,34 @@ function DesktopNotificationSoundsSettings(props: Props) {
         return maximizedSettingInputs;
     },
     [
-        props.desktopSound,
+        desktopSound,
         handleChangeForMessageNotificationSoundCheckbox,
         handleChangeForMessageNotificationSoundSelect,
-        props.desktopNotificationSound,
-        props.isCallsRingingEnabled,
-        props.callsDesktopSound,
+        desktopNotificationSound,
+        isCallsRingingEnabled,
+        callsDesktopSound,
         handleChangeForIncomginCallSoundCheckbox,
-        props.callsNotificationSound,
+        callsNotificationSound,
         handleChangeForIncomingCallSoundSelect,
     ]);
 
     function handleChangeForMaxSection(section: string) {
         stopTryNotificationRing();
-        props.updateSection(section);
+        updateSection(section);
     }
 
     function handleChangeForMinSection(section: string) {
         stopTryNotificationRing();
-        props.updateSection(section);
-        props.onCancel();
+        updateSection(section);
+        onCancel();
     }
 
     function handleSubmit() {
         stopTryNotificationRing();
-        props.onSubmit();
+        onSubmit();
     }
 
-    if (props.active) {
+    if (active) {
         return (
             <SettingItemMax
                 title={
@@ -203,8 +218,8 @@ function DesktopNotificationSoundsSettings(props: Props) {
                 }
                 inputs={maximizedSettingInputs}
                 submit={handleSubmit}
-                saving={props.saving}
-                serverError={props.error}
+                saving={saving}
+                serverError={error}
                 updateSection={handleChangeForMaxSection}
             />
         );
@@ -219,7 +234,7 @@ function DesktopNotificationSoundsSettings(props: Props) {
                     defaultMessage='Desktop notification sounds'
                 />
             }
-            describe={getCollapsedText(props.isCallsRingingEnabled, props.desktopSound, props.desktopNotificationSound, props.callsDesktopSound, props.callsNotificationSound, intl)}
+            describe={getCollapsedText(isCallsRingingEnabled, desktopSound, desktopNotificationSound, callsDesktopSound, callsNotificationSound, intl)}
             section={UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
             updateSection={handleChangeForMinSection}
         />

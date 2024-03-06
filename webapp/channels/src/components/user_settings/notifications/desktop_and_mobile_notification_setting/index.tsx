@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import React, {Fragment, useEffect, useRef} from 'react';
+import React, {Fragment, useCallback, useEffect, useMemo, useRef, memo} from 'react';
 import type {ChangeEvent, ReactNode} from 'react';
 import {FormattedMessage} from 'react-intl';
 import ReactSelect from 'react-select';
@@ -41,117 +41,151 @@ export type Props = {
     desktopAndMobileSettingsDifferent: boolean;
 };
 
-export default function DesktopAndMobileNotificationSettings(props: Props) {
+function DesktopAndMobileNotificationSettings({
+    active,
+    updateSection,
+    onSubmit,
+    onCancel,
+    saving,
+    error,
+    setParentState,
+    areAllSectionsInactive,
+    isCollapsedThreadsEnabled,
+    desktopActivity,
+    sendPushNotifications,
+    pushActivity,
+    pushStatus,
+    desktopThreads,
+    pushThreads,
+    desktopAndMobileSettingsDifferent,
+}: Props) {
     const editButtonRef = useRef<SettingItemMinComponent>(null);
-    const previousActiveRef = useRef(props.active);
+    const previousActiveRef = useRef(active);
 
     // Focus back on the edit button, after this section was closed after it was opened
     useEffect(() => {
-        if (previousActiveRef.current && !props.active && props.areAllSectionsInactive) {
+        if (previousActiveRef.current && !active && areAllSectionsInactive) {
             editButtonRef.current?.focus();
         }
 
-        previousActiveRef.current = props.active;
-    }, [props.active, props.areAllSectionsInactive]);
+        previousActiveRef.current = active;
+    }, [active, areAllSectionsInactive]);
 
-    function handleChangeForMinSection(section: string) {
-        props.updateSection(section);
-        props.onCancel();
-    }
-
-    function handleChangeForMaxSection(section: string) {
-        props.updateSection(section);
-    }
-
-    function handleChangeForSendNotificationsRadio(event: ChangeEvent<HTMLInputElement>) {
+    const handleChangeForSendDesktopNotificationsRadio = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const value = event.target.value;
-        props.setParentState('desktopActivity', value);
-    }
+        setParentState('desktopActivity', value);
+    }, [setParentState]);
 
-    function handleChangeForDifferentMobileNotificationsCheckbox(event: ChangeEvent<HTMLInputElement>) {
-        const value = event.target.checked;
-        props.setParentState('desktopAndMobileSettingsDifferent', value);
-    }
-
-    function handleChangeForSendMobileNotificationForSelect(selectedOption: ValueType<SelectOption>) {
-        if (selectedOption && 'value' in selectedOption) {
-            props.setParentState('pushActivity', selectedOption.value);
-        }
-    }
-
-    function handleChangeForThreadsNotificationCheckbox(event: ChangeEvent<HTMLInputElement>) {
+    const handleChangeForDesktopThreadsNotificationCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const value = event.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
+        setParentState('desktopThreads', value);
+    }, [setParentState]);
 
-        // We set thread notification for desktop and mobile to the same value
-        props.setParentState('desktopThreads', value);
-        props.setParentState('pushThreads', value);
-    }
+    const handleChangeForDifferentMobileNotificationsCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.checked;
+        setParentState('desktopAndMobileSettingsDifferent', value);
+    }, [setParentState]);
 
-    function handleChangeForSendMobileNotificationsWhenSelect(selectedOption: ValueType<SelectOption>) {
+    const handleChangeForSendMobileNotificationForSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
         if (selectedOption && 'value' in selectedOption) {
-            props.setParentState('pushStatus', selectedOption.value);
+            setParentState('pushActivity', selectedOption.value);
         }
-    }
+    }, [setParentState]);
 
-    function getSettingItemMaxInputs() {
+    const handleChangeForMobileThreadsNotificationCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        const value = event.target.checked ? NotificationLevels.ALL : NotificationLevels.MENTION;
+        setParentState('pushThreads', value);
+    }, [setParentState]);
+
+    const handleChangeForSendMobileNotificationsWhenSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+        if (selectedOption && 'value' in selectedOption) {
+            setParentState('pushStatus', selectedOption.value);
+        }
+    }, [setParentState]);
+
+    const maximizedSettingsInputs = useMemo(() => {
         const maximizedSettingInputs = [];
 
-        const sendNotificationsSection = (
-            <Fragment key='sendNotificationsSection'>
+        const sendDesktopNotificationsSection = (
+            <Fragment key='sendDesktopNotificationsSection'>
                 <fieldset>
                     <legend className='form-legend'>
                         <FormattedMessage
-                            id='user.settings.notifications.desktopAndMobile.sendNotificationFor'
-                            defaultMessage='Send notifications for:'
+                            id='user.settings.notifications.desktopAndMobile.sendDesktopNotificationFor'
+                            defaultMessage='Send desktop notifications for:'
                         />
                     </legend>
-                    {optionsOfSendDesktopOrMobileNotifications.map((radioInput) => (
+                    {optionsOfSendNotifications.map((optionOfSendNotifications) => (
                         <div
-                            key={radioInput.value}
+                            key={optionOfSendNotifications.value}
                             className='radio'
                         >
                             <label>
                                 <input
                                     type='radio'
-                                    checked={props.desktopActivity === radioInput.value}
-                                    value={radioInput.value}
-                                    onChange={handleChangeForSendNotificationsRadio}
+                                    checked={desktopActivity === optionOfSendNotifications.value}
+                                    value={optionOfSendNotifications.value}
+                                    onChange={handleChangeForSendDesktopNotificationsRadio}
                                 />
-                                {radioInput.label}
+                                {optionOfSendNotifications.label}
                             </label>
                         </div>
                     ))}
                 </fieldset>
             </Fragment>
         );
-        maximizedSettingInputs.push(sendNotificationsSection);
+        maximizedSettingInputs.push(sendDesktopNotificationsSection);
 
-        if (!props.sendPushNotifications) {
-            // If push notifications are disabled, we don't show the rest of the settings and return early
-            return maximizedSettingInputs;
+        if (shouldShowDesktopThreadNotificationCheckbox(isCollapsedThreadsEnabled, desktopActivity)) {
+            const isChecked = desktopThreads === NotificationLevels.ALL;
+            const desktopThreadNotificationSection = (
+                <Fragment key='desktopThreadNotificationSection'>
+                    <br/>
+                    <div className='checkbox single-checkbox'>
+                        <label>
+                            <input
+                                type='checkbox'
+                                checked={isChecked}
+                                onChange={handleChangeForDesktopThreadsNotificationCheckbox}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.desktopAndMobile.notifyForDesktopthreads'
+                                defaultMessage={'Notify me about replies to threads I\'m following'}
+                            />
+                        </label>
+                    </div>
+                </Fragment>
+            );
+            maximizedSettingInputs.push(desktopThreadNotificationSection);
         }
 
-        const differentMobileNotificationsSection = (
-            <Fragment key='differentMobileNotificationsSection'>
-                <br/>
-                <div className='checkbox single-checkbox'>
-                    <label>
-                        <input
-                            type='checkbox'
-                            checked={props.desktopAndMobileSettingsDifferent}
-                            onChange={handleChangeForDifferentMobileNotificationsCheckbox}
-                        />
-                        <FormattedMessage
-                            id='user.settings.notifications.desktopAndMobile.differentMobileNotificationsTitle'
-                            defaultMessage='Use different settings for mobile notifications'
-                        />
-                    </label>
-                </div>
-            </Fragment>
-        );
-        maximizedSettingInputs.push(differentMobileNotificationsSection);
+        if (sendPushNotifications) {
+            const differentMobileNotificationsSection = (
+                <Fragment key='differentMobileNotificationsSection'>
+                    <hr/>
+                    <div className='checkbox single-checkbox'>
+                        <label>
+                            <input
+                                type='checkbox'
+                                data-testid='differentMobileNotificationsCheckbox'
+                                checked={desktopAndMobileSettingsDifferent}
+                                onChange={handleChangeForDifferentMobileNotificationsCheckbox}
+                            />
+                            <FormattedMessage
+                                id='user.settings.notifications.desktopAndMobile.differentMobileNotificationsTitle'
+                                defaultMessage='Use different settings for <strong>mobile push notifications</strong>'
+                                values={{
+                                    strong: (content: string) => <strong>{content}</strong>,
+                                }}
+                            />
+                        </label>
+                    </div>
+                </Fragment>
+            );
+            maximizedSettingInputs.push(differentMobileNotificationsSection);
+        }
 
-        if (props.desktopAndMobileSettingsDifferent) {
+        if (shouldShowSendMobileNotificationsForSelect(sendPushNotifications, desktopAndMobileSettingsDifferent)) {
             const mobileNotificationsSection = (
                 <React.Fragment key='mobileNotificationsSection'>
                     <br/>
@@ -170,12 +204,12 @@ export default function DesktopAndMobileNotificationSettings(props: Props) {
                         aria-labelledby='sendMobileNotificationsLabel'
                         className='react-select singleSelect'
                         classNamePrefix='react-select'
-                        options={optionsOfSendDesktopOrMobileNotifications}
+                        options={optionsOfSendNotifications}
                         clearable={false}
                         isClearable={false}
                         isSearchable={false}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                        value={getValueOfSendMobileNotificationForSelect(props.pushActivity)}
+                        value={getValueOfSendMobileNotificationForSelect(pushActivity)}
                         onChange={handleChangeForSendMobileNotificationForSelect}
                     />
                 </React.Fragment>
@@ -183,20 +217,21 @@ export default function DesktopAndMobileNotificationSettings(props: Props) {
             maximizedSettingInputs.push(mobileNotificationsSection);
         }
 
-        if (shouldShowDesktopAndMobileThreadNotificationCheckbox(props.isCollapsedThreadsEnabled, props.desktopActivity, props.pushActivity)) {
+        if (shouldShowMobileThreadNotificationCheckbox(sendPushNotifications, isCollapsedThreadsEnabled, desktopAndMobileSettingsDifferent, desktopActivity, pushActivity)) {
+            const isChecked = pushThreads === NotificationLevels.ALL;
             const threadNotificationSection = (
                 <Fragment key='threadNotificationSection'>
-                    <hr/>
+                    <br/>
                     <div className='checkbox single-checkbox'>
                         <label>
                             <input
                                 type='checkbox'
-                                checked={getValueOfDesktopAndMobileThreads(props.pushThreads, props.desktopThreads)}
-                                onChange={handleChangeForThreadsNotificationCheckbox}
+                                checked={isChecked}
+                                onChange={handleChangeForMobileThreadsNotificationCheckbox}
                             />
                             <FormattedMessage
-                                id='user.settings.notifications.desktopAndMobile.notifyForthreads'
-                                defaultMessage={'Notify me about replies to threads I\'m following'}
+                                id='user.settings.notifications.desktopAndMobile.notifyForMobilethreads'
+                                defaultMessage={'Notify me on mobile about replies to threads I\'m following'}
                             />
                         </label>
                     </div>
@@ -205,9 +240,9 @@ export default function DesktopAndMobileNotificationSettings(props: Props) {
             maximizedSettingInputs.push(threadNotificationSection);
         }
 
-        if (shouldShowSendMobileNotificationsWhenSelect(props.desktopActivity, props.pushActivity, props.desktopAndMobileSettingsDifferent)) {
-            const pushMobileNotificationsSection = (
-                <React.Fragment key='pushMobileNotificationsSection'>
+        if (shouldShowSendMobileNotificationsWhenSelect(sendPushNotifications, desktopActivity, pushActivity, desktopAndMobileSettingsDifferent)) {
+            const sendMobileNotificationsWhenSection = (
+                <React.Fragment key='sendMobileNotificationsWhenSection'>
                     <hr/>
                     <label
                         id='pushMobileNotificationsLabel'
@@ -229,18 +264,43 @@ export default function DesktopAndMobileNotificationSettings(props: Props) {
                         isClearable={false}
                         isSearchable={false}
                         components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
-                        value={getValueOfSendMobileNotificationWhenSelect(props.pushStatus)}
+                        value={getValueOfSendMobileNotificationWhenSelect(pushStatus)}
                         onChange={handleChangeForSendMobileNotificationsWhenSelect}
                     />
                 </React.Fragment>
             );
-            maximizedSettingInputs.push(pushMobileNotificationsSection);
+            maximizedSettingInputs.push(sendMobileNotificationsWhenSection);
         }
 
         return maximizedSettingInputs;
+    },
+    [
+        desktopActivity,
+        handleChangeForSendDesktopNotificationsRadio,
+        isCollapsedThreadsEnabled,
+        desktopThreads,
+        handleChangeForDesktopThreadsNotificationCheckbox,
+        sendPushNotifications,
+        desktopAndMobileSettingsDifferent,
+        handleChangeForDifferentMobileNotificationsCheckbox,
+        pushActivity,
+        handleChangeForSendMobileNotificationForSelect,
+        pushThreads,
+        handleChangeForMobileThreadsNotificationCheckbox,
+        pushStatus,
+        handleChangeForSendMobileNotificationsWhenSelect,
+    ]);
+
+    function handleChangeForMaxSection(section: string) {
+        updateSection(section);
     }
 
-    if (props.active) {
+    function handleChangeForMinSection(section: string) {
+        updateSection(section);
+        onCancel();
+    }
+
+    if (active) {
         return (
             <SettingItemMax
                 title={
@@ -249,10 +309,10 @@ export default function DesktopAndMobileNotificationSettings(props: Props) {
                         defaultMessage='Desktop and mobile notifications'
                     />
                 }
-                inputs={getSettingItemMaxInputs()}
-                submit={props.onSubmit}
-                saving={props.saving}
-                serverError={props.error}
+                inputs={maximizedSettingsInputs}
+                submit={onSubmit}
+                saving={saving}
+                serverError={error}
                 updateSection={handleChangeForMaxSection}
             />
         );
@@ -267,7 +327,7 @@ export default function DesktopAndMobileNotificationSettings(props: Props) {
                     defaultMessage='Desktop and mobile notifications'
                 />
             }
-            describe={getCollapsedText(props.desktopActivity, props.pushActivity)}
+            describe={getCollapsedText(desktopActivity, pushActivity)}
             section={UserSettingsNotificationSections.DESKTOP_AND_MOBILE}
             updateSection={handleChangeForMinSection}
         />
@@ -278,7 +338,7 @@ function NoIndicatorSeparatorComponent() {
     return null;
 }
 
-const optionsOfSendDesktopOrMobileNotifications = [
+const optionsOfSendNotifications = [
     {
         label: (
             <FormattedMessage
@@ -308,38 +368,68 @@ const optionsOfSendDesktopOrMobileNotifications = [
     },
 ];
 
-const validNotificationLevels = Object.values(NotificationLevels);
-
-export function areDesktopAndMobileSettingsDifferent(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']): boolean {
-    if (!desktopActivity || !pushActivity) {
-        return true;
+export function shouldShowDesktopThreadNotificationCheckbox(isCollapsedThreadsEnabled: boolean, desktopActivity: UserNotifyProps['desktop']) {
+    if (!isCollapsedThreadsEnabled) {
+        return false;
     }
 
-    if (!validNotificationLevels.includes(desktopActivity) || !validNotificationLevels.includes(pushActivity)) {
-        return true;
-    }
-
-    if (desktopActivity === pushActivity) {
+    if (desktopActivity === NotificationLevels.ALL || desktopActivity === NotificationLevels.NONE) {
         return false;
     }
 
     return true;
 }
 
-export function getValueOfSendMobileNotificationForSelect(pushActivity: UserNotifyProps['push']): ValueType<SelectOption> {
-    if (!pushActivity) {
-        return optionsOfSendDesktopOrMobileNotifications[1];
+export function shouldShowMobileThreadNotificationCheckbox(sendPushNotifications: UserSettingsNotificationsProps['sendPushNotifications'], isCollapsedThreadsEnabled: boolean, desktopAndMobileSettingsDifferent: boolean, desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']) {
+    if (!sendPushNotifications) {
+        return false;
     }
 
-    const option = optionsOfSendDesktopOrMobileNotifications.find((option) => option.value === pushActivity);
+    if (!isCollapsedThreadsEnabled) {
+        return false;
+    }
+
+    if (!desktopAndMobileSettingsDifferent) {
+        return false;
+    }
+
+    if (pushActivity === NotificationLevels.ALL || pushActivity === NotificationLevels.NONE) {
+        return false;
+    }
+
+    return true;
+}
+
+function shouldShowSendMobileNotificationsForSelect(sendPushNotifications: UserSettingsNotificationsProps['sendPushNotifications'], desktopAndMobileSettingsDifferent: boolean) {
+    if (!sendPushNotifications) {
+        return false;
+    }
+
+    if (desktopAndMobileSettingsDifferent) {
+        return true;
+    }
+
+    return false;
+}
+
+export function getValueOfSendMobileNotificationForSelect(pushActivity: UserNotifyProps['push']): ValueType<SelectOption> {
+    if (!pushActivity) {
+        return optionsOfSendNotifications[1];
+    }
+
+    const option = optionsOfSendNotifications.find((option) => option.value === pushActivity);
     if (!option) {
-        return optionsOfSendDesktopOrMobileNotifications[1];
+        return optionsOfSendNotifications[1];
     }
 
     return option;
 }
 
-export function shouldShowSendMobileNotificationsWhenSelect(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push'], desktopAndMobileSettingsDifferent: boolean): boolean {
+export function shouldShowSendMobileNotificationsWhenSelect(sendPushNotifications: UserSettingsNotificationsProps['sendPushNotifications'], desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push'], desktopAndMobileSettingsDifferent: boolean): boolean {
+    if (!sendPushNotifications) {
+        return false;
+    }
+
     if (!desktopActivity || !pushActivity) {
         return true;
     }
@@ -404,26 +494,6 @@ const optionsOfSendMobileNotificationsWhenSelect: OptionsType<SelectOption> = [
     },
 ];
 
-export function shouldShowDesktopAndMobileThreadNotificationCheckbox(isCollapsedThreadsEnabled: boolean, desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']) {
-    if (!isCollapsedThreadsEnabled) {
-        return false;
-    }
-
-    if (!desktopActivity || !pushActivity) {
-        return true;
-    }
-
-    if (desktopActivity === NotificationLevels.MENTION || pushActivity === NotificationLevels.MENTION) {
-        return true;
-    }
-
-    if (validNotificationLevels.includes(desktopActivity) && validNotificationLevels.includes(pushActivity)) {
-        return false;
-    }
-
-    return true;
-}
-
 export function getValueOfSendMobileNotificationWhenSelect(pushStatus?: UserNotifyProps['push_status']): ValueType<SelectOption> {
     if (!pushStatus) {
         return optionsOfSendMobileNotificationsWhenSelect[2];
@@ -435,24 +505,6 @@ export function getValueOfSendMobileNotificationWhenSelect(pushStatus?: UserNoti
     }
 
     return option;
-}
-
-export function getValueOfDesktopAndMobileThreads(pushThreads: UserNotifyProps['push_threads'], desktopThreads: UserNotifyProps['desktop_threads']): boolean {
-    if (!desktopThreads || !pushThreads) {
-        if (!desktopThreads && pushThreads) {
-            if (pushThreads === NotificationLevels.ALL) {
-                return true;
-            }
-        } else if (desktopThreads && !pushThreads) {
-            if (desktopThreads === NotificationLevels.ALL) {
-                return true;
-            }
-        }
-    } else if (desktopThreads === NotificationLevels.ALL || pushThreads === NotificationLevels.ALL) {
-        return true;
-    }
-
-    return false;
 }
 
 function getCollapsedText(desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']) {
@@ -530,3 +582,5 @@ function getCollapsedText(desktopActivity: UserNotifyProps['desktop'], pushActiv
 
     return collapsedText;
 }
+
+export default memo(DesktopAndMobileNotificationSettings);

@@ -22,7 +22,7 @@ import Constants, {NotificationLevels, MattermostFeatures, LicenseSkus, UserSett
 import {stopTryNotificationRing} from 'utils/notification_sounds';
 import {a11yFocus} from 'utils/utils';
 
-import DesktopAndMobileNotificationSettings, {areDesktopAndMobileSettingsDifferent} from './desktop_and_mobile_notification_setting';
+import DesktopAndMobileNotificationSettings from './desktop_and_mobile_notification_setting';
 import DesktopNotificationSoundsSettings from './desktop_notification_sounds_setting';
 import EmailNotificationSetting from './email_notification_setting';
 import ManageAutoResponder from './manage_auto_responder/manage_auto_responder';
@@ -145,7 +145,7 @@ function getDefaultStateFromProps(props: Props): State {
         }
 
         if (props.user.notify_props.desktop && props.user.notify_props.push) {
-            desktopAndMobileSettingsDifferent = areDesktopAndMobileSettingsDifferent(props.user.notify_props.desktop, props.user.notify_props.push);
+            desktopAndMobileSettingsDifferent = areDesktopAndMobileSettingsDifferent(props.user.notify_props.desktop, props.user.notify_props.push, props.user.notify_props?.desktop_threads, props.user.notify_props?.push_threads, props.isCollapsedThreadsEnabled);
         }
     }
 
@@ -239,9 +239,7 @@ class NotificationsTab extends React.PureComponent<Props, State> {
         data.calls_notification_sound = this.state.callsNotificationSound;
         data.desktop = this.state.desktopActivity;
         data.desktop_threads = this.state.desktopThreads;
-        data.push_threads = this.state.pushThreads;
         data.email_threads = this.state.emailThreads;
-        data.push = this.state.pushActivity;
         data.push_status = this.state.pushStatus;
         data.comments = this.state.notifyCommentsLevel;
         data.auto_responder_active = this.state.autoResponderActive ? 'true' : 'false';
@@ -251,8 +249,10 @@ class NotificationsTab extends React.PureComponent<Props, State> {
 
         if (this.state.desktopAndMobileSettingsDifferent) {
             data.push = this.state.pushActivity;
+            data.push_threads = this.state.pushThreads;
         } else {
             data.push = this.state.desktopActivity;
+            data.push_threads = this.state.desktopThreads;
         }
 
         if (!data.auto_responder_message || data.auto_responder_message === '') {
@@ -1123,5 +1123,40 @@ const customKeywordsSelectorStyles: ReactSelectStyles = {
         },
     })),
 };
+
+const validNotificationLevels = Object.values(NotificationLevels);
+
+export function areDesktopAndMobileSettingsDifferent(
+    desktopActivity: UserNotifyProps['desktop'],
+    pushActivity: UserNotifyProps['push'],
+    desktopThreads?: UserNotifyProps['desktop_threads'],
+    pushThreads?: UserNotifyProps['push_threads'],
+    isCollapsedThreadsEnabled?: boolean,
+): boolean {
+    if (!desktopActivity || !pushActivity || !desktopThreads || !pushThreads) {
+        return true;
+    }
+
+    if (
+        !validNotificationLevels.includes(desktopActivity) ||
+        !validNotificationLevels.includes(pushActivity) ||
+        !validNotificationLevels.includes(desktopThreads) ||
+        !validNotificationLevels.includes(pushThreads)
+    ) {
+        return true;
+    }
+
+    if (desktopActivity === pushActivity) {
+        if (isCollapsedThreadsEnabled) {
+            if (desktopThreads === pushThreads) {
+                return false;
+            }
+            return true;
+        }
+        return false;
+    }
+
+    return true;
+}
 
 export default injectIntl(NotificationsTab);
