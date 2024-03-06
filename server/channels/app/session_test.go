@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"slices"
 	"testing"
 	"time"
 
@@ -417,13 +416,10 @@ func TestSessionsLimit(t *testing.T) {
 	}
 
 	gotSessions, _ := th.App.GetSessions(th.Context, user.Id)
-	require.Equal(t, MaxSessionsLimit, len(sessions), "should have MaxSessionsLimit number of sessions")
+	require.Equal(t, MaxSessionsLimit, len(gotSessions), "should have MaxSessionsLimit number of sessions")
 
-	// gotSessions was returned newest first
-	slices.Reverse(gotSessions)
-	require.ElementsMatch(t, sessions, gotSessions)
-
-	// compare session IDs -- ElementsMatch was giving weird results with pointers to structs
+	// ensure the the oldest sessions were removed first
+	reverse(gotSessions)
 	for i, sess := range gotSessions {
 		require.Equal(t, sessions[i].Id, sess.Id)
 	}
@@ -441,11 +437,18 @@ func TestSessionsLimit(t *testing.T) {
 
 	// Ensure that we still only have the max allowed.
 	gotSessions, _ = th.App.GetSessions(th.Context, user.Id)
-	require.Equal(t, MaxSessionsLimit, len(sessions), "should have MaxSessionsLimit number of sessions")
+	require.Equal(t, MaxSessionsLimit, len(gotSessions), "should have MaxSessionsLimit number of sessions")
 
-	// gotSessions was returned newest first
-	slices.Reverse(gotSessions)
+	// ensure the the oldest sessions were removed first
+	reverse(gotSessions)
 	for i, sess := range gotSessions {
 		require.Equal(t, sessions[i].Id, sess.Id)
+	}
+}
+
+// reverse can be replaced by the slices version when we move to 1.21+
+func reverse[S ~[]E, E any](s S) {
+	for i, j := 0, len(s)-1; i < j; i, j = i+1, j-1 {
+		s[i], s[j] = s[j], s[i]
 	}
 }
