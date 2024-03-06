@@ -4,11 +4,11 @@
 package app
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 	"strings"
 
+	"github.com/hashicorp/go-multierror"
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/shared/request"
@@ -25,7 +25,7 @@ func (a *App) createDefaultChannelMemberships(rctx request.CTX, params model.Cre
 		return appErr
 	}
 
-	var rErr error
+	var rErr *multierror.Error
 	for _, userChannel := range channelMembers {
 		if params.ScopedUserID != nil && *params.ScopedUserID != userChannel.UserID {
 			continue
@@ -38,13 +38,13 @@ func (a *App) createDefaultChannelMemberships(rctx request.CTX, params model.Cre
 
 		channel, err := a.GetChannel(rctx, userChannel.ChannelID)
 		if err != nil {
-			rErr = errors.Join(rErr, fmt.Errorf("Failed to get channel for default channel membership: %w", err))
+			rErr = multierror.Append(rErr, fmt.Errorf("Failed to get channel for default channel membership: %w", err))
 			continue
 		}
 
 		tmem, err := a.GetTeamMember(rctx, channel.TeamId, userChannel.UserID)
 		if err != nil && err.Id != "app.team.get_member.missing.app_error" {
-			rErr = errors.Join(rErr, fmt.Errorf("Failed to get member for default channel membership: %w", err))
+			rErr = multierror.Append(rErr, fmt.Errorf("Failed to get member for default channel membership: %w", err))
 			continue
 		}
 
@@ -58,7 +58,7 @@ func (a *App) createDefaultChannelMemberships(rctx request.CTX, params model.Cre
 						mlog.String("team_id", channel.TeamId),
 					)
 				} else {
-					rErr = errors.Join(rErr, fmt.Errorf("Failed to add team member for default channel membership: %w", err))
+					rErr = multierror.Append(rErr, fmt.Errorf("Failed to add team member for default channel membership: %w", err))
 				}
 				continue
 			}
@@ -72,7 +72,7 @@ func (a *App) createDefaultChannelMemberships(rctx request.CTX, params model.Cre
 			if err.Id == "api.channel.add_user.to.channel.failed.deleted.app_error" {
 				logger.Info("Not adding user to channel because they have already left the team")
 			} else {
-				rErr = errors.Join(rErr, fmt.Errorf("Failed to add channel member for default channel membership: %w", err))
+				rErr = multierror.Append(rErr, fmt.Errorf("Failed to add channel member for default channel membership: %w", err))
 			}
 			continue
 		}
@@ -94,7 +94,7 @@ func (a *App) createDefaultTeamMemberships(rctx request.CTX, params model.Create
 		return appErr
 	}
 
-	var rErr error
+	var rErr *multierror.Error
 	for _, userTeam := range teamMembers {
 		if params.ScopedUserID != nil && *params.ScopedUserID != userTeam.UserID {
 			continue
@@ -110,7 +110,7 @@ func (a *App) createDefaultTeamMemberships(rctx request.CTX, params model.Create
 			if err.Id == "api.team.join_user_to_team.allowed_domains.app_error" {
 				logger.Info("User not added to team - the domain associated with the user is not in the list of allowed team domains")
 			} else {
-				rErr = errors.Join(rErr, fmt.Errorf("Failed to add team member for default team membership: %w", err))
+				rErr = multierror.Append(rErr, fmt.Errorf("Failed to add team member for default team membership: %w", err))
 			}
 			continue
 		}
@@ -164,7 +164,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *st
 		return appErr
 	}
 
-	var rErr error
+	var rErr *multierror.Error
 	for _, userTeam := range teamMembers {
 		logger := rctx.Logger().With(
 			mlog.String("user_id", userTeam.UserId),
@@ -173,7 +173,7 @@ func (a *App) deleteGroupConstrainedTeamMemberships(rctx request.CTX, teamID *st
 
 		err := a.RemoveUserFromTeam(rctx, userTeam.TeamId, userTeam.UserId, "")
 		if err != nil {
-			rErr = errors.Join(rErr, fmt.Errorf("Failed to add team member for default team membership: %w", err))
+			rErr = multierror.Append(rErr, fmt.Errorf("Failed to add team member for default team membership: %w", err))
 			continue
 		}
 
@@ -192,7 +192,7 @@ func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channel
 		return appErr
 	}
 
-	var rErr error
+	var rErr *multierror.Error
 	for _, userChannel := range channelMembers {
 		logger := rctx.Logger().With(
 			mlog.String("user_id", userChannel.UserId),
@@ -201,13 +201,13 @@ func (a *App) deleteGroupConstrainedChannelMemberships(rctx request.CTX, channel
 
 		channel, err := a.GetChannel(rctx, userChannel.ChannelId)
 		if err != nil {
-			rErr = errors.Join(rErr, fmt.Errorf("Failed to get channel for group contrained channel membership: %w", err))
+			rErr = multierror.Append(rErr, fmt.Errorf("Failed to get channel for group contrained channel membership: %w", err))
 			continue
 		}
 
 		err = a.RemoveUserFromChannel(rctx, userChannel.UserId, "", channel)
 		if err != nil {
-			rErr = errors.Join(rErr, fmt.Errorf("Failed to remove channel member for group contrained channel membership: %w", err))
+			rErr = multierror.Append(rErr, fmt.Errorf("Failed to remove channel member for group contrained channel membership: %w", err))
 			continue
 		}
 
