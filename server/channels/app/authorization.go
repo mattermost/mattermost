@@ -340,7 +340,8 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 // This function deviates from other authorization checks in returning an error instead of just
 // a boolean, allowing the permission failure to be exposed with more granularity.
 func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
-	existingBot, err := a.GetBot(botUserId, true)
+	// TODO: Ezekiel
+	existingBot, err := a.GetBot(a.req, botUserId, true)
 	if err != nil {
 		return err
 	}

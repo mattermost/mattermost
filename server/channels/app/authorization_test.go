@@ -256,7 +256,7 @@ func TestSessionHasPermissionToManageBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 	assert.NotNil(t, bot)
 
 	t.Run("test my bot", func(t *testing.T) {
@@ -385,7 +385,7 @@ func TestSessionHasPermissionToUser(t *testing.T) {
 		})
 		require.Nil(t, err)
 		assert.NotNil(t, bot)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		assert.False(t, th.App.SessionHasPermissionToUser(session, bot.UserId))
 	})
@@ -410,7 +410,7 @@ func TestSessionHasPermissionToManageUserOrBot(t *testing.T) {
 		OwnerId:     th.BasicUser.Id,
 	})
 	require.Nil(t, err)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 	t.Run("test basic user access", func(t *testing.T) {
 		session := model.Session{
