@@ -151,6 +151,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'O',
             name: 'other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         },
         {
@@ -158,6 +159,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'D',
             name: 'current_user_id__other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         }];
         const searchText = 'other';
@@ -194,6 +196,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'O',
             name: 'other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         }];
         const searchText = 'other';
@@ -226,6 +229,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'O',
             name: 'other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         },
         {
@@ -233,6 +237,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'D',
             name: 'current_user_id__other_user',
             display_name: 'other_user',
+            update_at: 0,
             delete_at: 0,
         }];
         const searchText = 'something else';
@@ -833,6 +838,7 @@ describe('components/SwitchChannelProvider', () => {
             type: 'G',
             name: 'other_gm_channel',
             delete_at: 0,
+            update_at: 0,
             display_name: 'other_user1, current_user_id',
         }];
 
