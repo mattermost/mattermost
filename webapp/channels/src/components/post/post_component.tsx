@@ -128,7 +128,7 @@ const PostComponent = (props: Props): JSX.Element => {
     const isRHS = props.location === Locations.RHS_ROOT || props.location === Locations.RHS_COMMENT || props.location === Locations.SEARCH;
     const postRef = useRef<HTMLDivElement>(null);
     const postHeaderRef = useRef<HTMLDivElement>(null);
-    const teamId = props.team?.id || props.currentTeam?.id;
+    const teamId = props.team?.id ?? props.currentTeam?.id ?? '';
 
     const [hover, setHover] = useState(false);
     const [a11yActive, setA11y] = useState(false);
@@ -624,7 +624,7 @@ const PostComponent = (props: Props): JSX.Element => {
                             {!props.isPostBeingEdited &&
                             <PostOptions
                                 {...props}
-                                teamId={teamId || ''}
+                                teamId={teamId}
                                 handleDropdownOpened={handleDropdownOpened}
                                 handleCommentClick={handleCommentClick}
                                 hover={hover || a11yActive}

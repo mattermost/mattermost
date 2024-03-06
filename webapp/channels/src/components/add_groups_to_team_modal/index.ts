@@ -10,7 +10,7 @@ import type {Team} from '@mattermost/types/teams';
 
 import {getGroupsNotAssociatedToTeam, linkGroupSyncable, getAllGroupsAssociatedToTeam} from 'mattermost-redux/actions/groups';
 import {getGroupsNotAssociatedToTeam as selectGroupsNotAssociatedToTeam} from 'mattermost-redux/selectors/entities/groups';
-import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
+import {getCurrentTeam, getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {setModalSearchTerm} from 'actions/views/search';
 
@@ -38,7 +38,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
 
     return {
         currentTeamName: team?.display_name,
-        currentTeamId: team?.id,
+        currentTeamId: team?.id ?? getCurrentTeamId(state),
         skipCommit: ownProps.skipCommit,
         onAddCallback: ownProps.onAddCallback,
         excludeGroups: ownProps.excludeGroups,

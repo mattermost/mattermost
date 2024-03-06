@@ -60,7 +60,7 @@ export type Props = {
     archivedChannels: Channel[];
     privateChannels: Channel[];
     currentUserId: string;
-    teamId?: string;
+    teamId: string;
     teamName?: string;
     channelsRequestStarted?: boolean;
     canShowArchivedChannels?: boolean;
@@ -164,7 +164,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     };
 
     nextPage = (page: number) => {
-        this.props.actions.getChannels(this.props.teamId!, page + 1, CHANNELS_PER_PAGE).then((result) => {
+        this.props.actions.getChannels(this.props.teamId, page + 1, CHANNELS_PER_PAGE).then((result) => {
             if (result.data && result.data.length > 0) {
                 this.props.actions.getChannelsMemberCount(result.data.map((channel) => channel.id));
             }
@@ -176,7 +176,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         let result;
 
         if (!this.isMemberOfChannel(channel.id)) {
-            result = await actions.joinChannel(currentUserId, teamId!, channel.id);
+            result = await actions.joinChannel(currentUserId, teamId, channel.id);
         }
 
         if (result?.error) {
@@ -206,7 +206,7 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
         const searchTimeoutId = window.setTimeout(
             async () => {
                 try {
-                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId!], nonAdminSearch: true, include_deleted: true}) as ActionResult<Channel[]>;
+                    const {data} = await this.props.actions.searchAllChannels(term, {team_ids: [this.props.teamId], nonAdminSearch: true, include_deleted: true}) as ActionResult<Channel[]>;
                     if (searchTimeoutId !== this.searchTimeoutId) {
                         return;
                     }
@@ -293,10 +293,6 @@ export default class BrowseChannels extends React.PureComponent<Props, State> {
     render() {
         const {teamId, channelsRequestStarted, shouldHideJoinedChannels} = this.props;
         const {search, serverError: serverErrorState, searching} = this.state;
-
-        if (!teamId) {
-            return null;
-        }
 
         this.activeChannels = this.getActiveChannels();
 
