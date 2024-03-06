@@ -20,8 +20,8 @@ func (api *API) InitRemoteCluster() {
 	api.BaseRoutes.RemoteCluster.Handle("/ping", api.RemoteClusterTokenRequired(remoteClusterPing)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/msg", api.RemoteClusterTokenRequired(remoteClusterAcceptMessage)).Methods("POST")
 	api.BaseRoutes.RemoteCluster.Handle("/confirm_invite", api.RemoteClusterTokenRequired(remoteClusterConfirmInvite)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData)).Methods("POST")
-	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/upload/{upload_id:[A-Za-z0-9]+}", api.RemoteClusterTokenRequired(uploadRemoteData, handlerParamFileAPI)).Methods("POST")
+	api.BaseRoutes.RemoteCluster.Handle("/{user_id:[A-Za-z0-9]+}/image", api.RemoteClusterTokenRequired(remoteSetProfileImage, handlerParamFileAPI)).Methods("POST")
 }
 
 func remoteClusterPing(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -122,7 +122,8 @@ func remoteClusterAcceptMessage(c *Context, w http.ResponseWriter, r *http.Reque
 
 func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Request) {
 	// make sure remote cluster service is running.
-	if _, appErr := c.App.GetRemoteClusterService(); appErr != nil {
+	rcs, appErr := c.App.GetRemoteClusterService()
+	if appErr != nil {
 		c.Err = appErr
 		return
 	}
@@ -155,6 +156,7 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 	}
 	audit.AddEventParameterAuditable(auditRec, "remote_cluster", rc)
 
+	// check if the invitation has expired
 	if time.Since(model.GetTimeForMillis(rc.CreateAt)) > remotecluster.InviteExpiresAfter {
 		c.Err = model.NewAppError("remoteClusterAcceptMessage", "api.context.invitation_expired.error", nil, "", http.StatusBadRequest)
 		return
@@ -166,12 +168,9 @@ func remoteClusterConfirmInvite(c *Context, w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	rc.RemoteTeamId = confirm.RemoteTeamId
-	rc.SiteURL = confirm.SiteURL
-	rc.RemoteToken = confirm.Token
-
-	if _, err := c.App.UpdateRemoteCluster(rc); err != nil {
-		c.Err = err
+	if _, rcsErr := rcs.ReceiveInviteConfirmation(confirm); rcsErr != nil {
+		c.Err = model.NewAppError("remoteClusterConfirmInvite", "api.command_remote.confirm_invitation.error",
+			map[string]any{"Error": rcsErr.Error()}, "", http.StatusInternalServerError)
 		return
 	}
 

@@ -1,11 +1,15 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import classNames from 'classnames';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
 
+import './confirm_modal.scss';
+
 type Props = {
+    id?: string;
 
     /*
      * Set to show modal
@@ -51,6 +55,11 @@ type Props = {
      * Text/jsx element to display with the checkbox
      */
     checkboxText?: React.ReactNode;
+
+    /*
+     * If true, show the checkbox in the footer instead of the modal body
+     */
+    checkboxInFooter?: boolean;
 
     /*
      * Function called when the confirm button or ENTER is pressed. Passes `true` if the checkbox is checked
@@ -158,18 +167,18 @@ export default class ConfirmModal extends React.Component<Props, State> {
 
         return (
             <Modal
+                id={classNames('confirmModal', this.props.id)}
                 className={'modal-confirm ' + this.props.modalClass}
                 dialogClassName='a11y__modal'
                 show={this.props.show}
                 onHide={this.handleCancel}
                 onExited={this.props.onExited}
-                id='confirmModal'
                 role='dialog'
                 aria-modal={true}
                 aria-labelledby='confirmModalLabel'
                 aria-describedby='confirmModalBody'
             >
-                <Modal.Header closeButton={false}>
+                <Modal.Header closeButton={true}>
                     <Modal.Title
                         componentClass='h1'
                         id='confirmModalLabel'
@@ -179,9 +188,10 @@ export default class ConfirmModal extends React.Component<Props, State> {
                 </Modal.Header>
                 <Modal.Body id='confirmModalBody'>
                     {this.props.message}
-                    {checkbox}
+                    {!this.props.checkboxInFooter && checkbox}
                 </Modal.Body>
                 <Modal.Footer>
+                    {this.props.checkboxInFooter && checkbox}
                     {cancelButton}
                     <button
                         autoFocus={true}

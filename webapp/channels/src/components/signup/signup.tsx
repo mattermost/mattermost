@@ -18,7 +18,6 @@ import {Client4} from 'mattermost-redux/client';
 import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getIsOnboardingFlowEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 import {isEmail} from 'mattermost-redux/utils/helpers';
 
 import {redirectUserToDefaultTeam} from 'actions/global_actions';
@@ -30,7 +29,7 @@ import {getGlobalItem} from 'selectors/storage';
 
 import AlertBanner from 'components/alert_banner';
 import type {ModeType, AlertBannerProps} from 'components/alert_banner';
-import useCWSAvailabilityCheck from 'components/common/hooks/useCWSAvailabilityCheck';
+import useCWSAvailabilityCheck, {CSWAvailabilityCheckTypes} from 'components/common/hooks/useCWSAvailabilityCheck';
 import LaptopAlertSVG from 'components/common/svg_images_components/laptop_alert_svg';
 import ManWithLaptopSVG from 'components/common/svg_images_components/man_with_laptop_svg';
 import DesktopAuthToken from 'components/desktop_auth_token';
@@ -71,7 +70,7 @@ type SignupProps = {
 const Signup = ({onCustomizeHeader}: SignupProps) => {
     const intl = useIntl();
     const {formatMessage} = intl;
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
     const history = useHistory();
     const {search} = useLocation();
 
@@ -144,7 +143,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const [isMobileView, setIsMobileView] = useState(false);
     const [subscribeToSecurityNewsletter, setSubscribeToSecurityNewsletter] = useState(false);
 
-    const canReachCWS = useCWSAvailabilityCheck();
+    const cwsAvailability = useCWSAvailabilityCheck();
 
     const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableLDAP || enableSAML;
     const hasError = Boolean(emailError || nameError || passwordError || serverError || alertBanner);
@@ -607,7 +606,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
                 return;
             }
 
-            await handleSignupSuccess(user, data as UserProfile);
+            await handleSignupSuccess(user, data!);
             if (subscribeToSecurityNewsletter) {
                 subscribeToSecurityNewsletterFunc();
             }
@@ -619,7 +618,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
     const handleReturnButtonOnClick = () => history.replace('/');
 
     const getNewsletterCheck = () => {
-        if (canReachCWS) {
+        if (cwsAvailability === CSWAvailabilityCheckTypes.Available) {
             return (
                 <CheckInput
                     id='signup-body-card-form-check-newsletter'
@@ -680,7 +679,7 @@ const Signup = ({onCustomizeHeader}: SignupProps) => {
         );
     };
 
-    const handleOnBlur = (e: FocusEvent<HTMLInputElement>, inputId: string) => {
+    const handleOnBlur = (e: FocusEvent<HTMLInputElement | HTMLTextAreaElement>, inputId: string) => {
         const text = e.target.value;
         if (!text) {
             return;

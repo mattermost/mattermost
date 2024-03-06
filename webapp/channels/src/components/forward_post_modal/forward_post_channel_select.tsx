@@ -5,7 +5,7 @@ import React, {useEffect, useRef} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 import {components} from 'react-select';
-import type {IndicatorProps, OptionProps, SingleValueProps, ValueType} from 'react-select';
+import type {IndicatorProps, OptionProps, SingleValueProps, ValueType, OptionTypeBase} from 'react-select';
 import AsyncSelect from 'react-select/async';
 
 import {
@@ -75,7 +75,7 @@ const FormattedOption = (props: ChannelOption & {className: string; isSingleValu
     let icon;
     const iconProps = {
         size: 16,
-        color: 'rgba(var(--center-channel-color-rgb), 0.56)',
+        color: 'rgba(var(--center-channel-color-rgb), 0.75)',
     };
 
     if (channelIsArchived) {
@@ -216,21 +216,20 @@ const DropdownIndicator = (props: IndicatorProps<ChannelOption>) => {
         <components.DropdownIndicator {...props}>
             <ChevronDownIcon
                 size={16}
-                color={'rgba(var(--center-channel-color-rgb), 0.64)'}
+                color={'rgba(var(--center-channel-color-rgb), 0.75)'}
             />
         </components.DropdownIndicator>
     );
 };
 
-const validChannelTypes = ['O', 'P', 'D', 'G'];
-
-type Props<O> = {
+type Props<O extends OptionTypeBase> = {
     onSelect: (channel: ValueType<O>) => void;
     currentBodyHeight: number;
     value?: O;
+    validChannelTypes?: string[];
 }
 
-function ForwardPostChannelSelect({onSelect, value, currentBodyHeight}: Props<ChannelOption>) {
+function ForwardPostChannelSelect({onSelect, value, currentBodyHeight, validChannelTypes = ['O', 'P', 'D', 'G']}: Props<ChannelOption>) {
     const {formatMessage} = useIntl();
     const {current: provider} = useRef<SwitchChannelProvider>(new SwitchChannelProvider());
 

@@ -4,9 +4,11 @@
 import React from 'react';
 import {Button} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
+import type {RouteComponentProps} from 'react-router';
 
 import type {TermsOfService as ReduxTermsOfService} from '@mattermost/types/terms_of_service';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
 import {memoizeResult} from 'mattermost-redux/utils/helpers';
 
 import * as GlobalActions from 'actions/global_actions';
@@ -29,15 +31,14 @@ export interface UpdateMyTermsOfServiceStatusResponse {
     user_id: number;
 }
 
-export interface TermsOfServiceProps {
-    location: {search: string};
+export interface TermsOfServiceProps extends RouteComponentProps {
     termsEnabled: boolean;
     actions: {
-        getTermsOfService: () => Promise<{ data: ReduxTermsOfService }>;
+        getTermsOfService: () => Promise<ActionResult<ReduxTermsOfService>>;
         updateMyTermsOfServiceStatus: (
             termsOfServiceId: string,
             accepted: boolean
-        ) => {data: UpdateMyTermsOfServiceStatusResponse};
+        ) => Promise<ActionResult>;
     };
     emojiMap: EmojiMap;
     onboardingFlowEnabled: boolean;
@@ -109,7 +110,7 @@ export default class TermsOfService extends React.PureComponent<TermsOfServicePr
         this.registerUserAction(
             true,
             () => {
-                const query = new URLSearchParams(this.props.location.search);
+                const query = new URLSearchParams(this.props.location?.search);
                 const redirectTo = query.get('redirect_to');
                 if (redirectTo && redirectTo.match(/^\/([^/]|$)/)) {
                     getHistory().push(redirectTo);

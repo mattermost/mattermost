@@ -1,8 +1,9 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import type {AnyAction} from 'redux';
+
 import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
-import type {GenericAction} from 'mattermost-redux/types/actions';
 
 function getInitialState() {
     return {
@@ -13,7 +14,7 @@ function getInitialState() {
     };
 }
 
-export default function reducer(state = getInitialState(), action: GenericAction) {
+export default function reducer(state = getInitialState(), action: AnyAction) {
     if (!state.connected && action.type === GeneralTypes.WEBSOCKET_SUCCESS) {
         return {
             ...state,

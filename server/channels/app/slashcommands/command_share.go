@@ -127,11 +127,13 @@ func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 		return responsef(args.T("api.command_share.permission_required", map[string]any{"Permission": "manage_shared_channels"}))
 	}
 
-	if a.Srv().GetSharedChannelSyncService() == nil {
+	syncService := a.Srv().GetSharedChannelSyncService()
+	if syncService == nil || !syncService.Active() {
 		return responsef(args.T("api.command_share.service_disabled"))
 	}
 
-	if a.Srv().GetRemoteClusterService() == nil {
+	rcService := a.Srv().GetRemoteClusterService()
+	if rcService == nil || !rcService.Active() {
 		return responsef(args.T("api.command_remote.service_disabled"))
 	}
 
@@ -157,7 +159,7 @@ func (sp *ShareProvider) DoCommand(a *app.App, c request.CTX, args *model.Comman
 }
 
 func (sp *ShareProvider) doShareChannel(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	// check that channel exists.
+	// fetch defaults for missing channel props
 	channel, errApp := a.GetChannel(c, args.ChannelId)
 	if errApp != nil {
 		return responsef(args.T("api.command_share.share_channel.error", map[string]any{"Error": errApp.Error()}))
@@ -196,22 +198,15 @@ func (sp *ShareProvider) doShareChannel(a *app.App, c request.CTX, args *model.C
 		CreatorId:        args.UserId,
 	}
 
-	if _, err := a.SaveSharedChannel(c, sc); err != nil {
+	if _, err := a.ShareChannel(c, sc); err != nil {
 		return responsef(args.T("api.command_share.share_channel.error", map[string]any{"Error": err.Error()}))
 	}
-
-	notifyClientsForChannelUpdate(a, sc)
 
 	return responsef("##### " + args.T("api.command_share.channel_shared"))
 }
 
 func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	sc, appErr := a.GetSharedChannel(args.ChannelId)
-	if appErr != nil {
-		return responsef(args.T("api.command_share.shared_channel_unshare.error", map[string]any{"Error": appErr.Error()}))
-	}
-
-	deleted, err := a.DeleteSharedChannel(args.ChannelId)
+	deleted, err := a.UnshareChannel(args.ChannelId)
 	if err != nil {
 		return responsef(args.T("api.command_share.shared_channel_unshare.error", map[string]any{"Error": err.Error()}))
 	}
@@ -219,18 +214,16 @@ func (sp *ShareProvider) doUnshareChannel(a *app.App, args *model.CommandArgs, m
 		return responsef(args.T("api.command_share.not_shared_channel_unshare"))
 	}
 
-	notifyClientsForChannelUpdate(a, sc)
-
 	return responsef("##### " + args.T("api.command_share.shared_channel_unavailable"))
 }
 
 func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.CommandArgs, margs map[string]string) (resp *model.CommandResponse) {
-	remoteId, ok := margs["connectionID"]
-	if !ok || remoteId == "" {
+	remoteID, ok := margs["connectionID"]
+	if !ok || remoteID == "" {
 		return responsef(args.T("api.command_share.must_specify_valid_remote"))
 	}
 
-	hasRemote, err := a.HasRemote(args.ChannelId, remoteId)
+	hasRemote, err := a.HasRemote(args.ChannelId, remoteID)
 	if err != nil {
 		return responsef(args.T("api.command_share.fetch_remote.error", map[string]any{"Error": err.Error()}))
 	}
@@ -239,9 +232,11 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 	}
 
 	// Check if channel is shared or not.
+	// TODO: have the share channels service generate the "channel has been shared post" and this section can be removed since
+	//       since `a.InviteRemoteToChannel` will share the channel automatically.
 	hasChan, err := a.HasSharedChannel(args.ChannelId)
 	if err != nil {
-		return responsef(args.T("api.command_share.check_channel_exist.error", map[string]any{"Error": err.Error()}))
+		return responsef(args.T("api.command_share.check_channel_exist.error", map[string]any{"ChannelID": args.ChannelId, "Error": err.Error()}))
 	}
 	if !hasChan {
 		// If it doesn't exist, then create it.
@@ -253,45 +248,30 @@ func (sp *ShareProvider) doInviteRemote(a *app.App, c request.CTX, args *model.C
 		}()
 	}
 
-	// don't allow invitation to shared channel originating from remote.
-	// (also blocks cyclic invitations)
-	if err := a.CheckCanInviteToSharedChannel(args.ChannelId); err != nil {
-		return responsef(args.T("api.command_share.channel_invite_not_home.error"))
-	}
-
-	rc, appErr := a.GetRemoteCluster(remoteId)
+	rc, appErr := a.GetRemoteCluster(remoteID)
 	if appErr != nil {
 		return responsef(args.T("api.command_share.remote_id_invalid.error", map[string]any{"Error": appErr.Error()}))
 	}
 
-	channel, errApp := a.GetChannel(c, args.ChannelId)
-	if errApp != nil {
-		return responsef(args.T("api.command_share.channel_invite.error", map[string]any{"Name": rc.DisplayName, "Error": errApp.Error()}))
-	}
-	// send channel invite to remote cluster
-	if err := a.Srv().GetSharedChannelSyncService().SendChannelInvite(channel, args.UserId, rc); err != nil {
-		return responsef(args.T("api.command_share.channel_invite.error", map[string]any{"Name": rc.DisplayName, "Error": err.Error()}))
+	if err = a.InviteRemoteToChannel(args.ChannelId, remoteID, args.UserId, true); err != nil {
+		return responsef(args.T("api.command_share.invite_remote_to_channel.error", map[string]any{"Error": err.Error()}))
 	}
 
 	return responsef("##### " + args.T("api.command_share.invitation_sent", map[string]any{"Name": rc.DisplayName, "SiteURL": rc.SiteURL}))
 }
 
 func (sp *ShareProvider) doUninviteRemote(a *app.App, args *model.CommandArgs, margs map[string]string) *model.CommandResponse {
-	remoteId, ok := margs["connectionID"]
-	if !ok || remoteId == "" {
+	remoteID, ok := margs["connectionID"]
+	if !ok || remoteID == "" {
 		return responsef(args.T("api.command_share.remote_not_valid"))
 	}
 
-	scr, err := a.GetSharedChannelRemoteByIds(args.ChannelId, remoteId)
-	if err != nil || scr.ChannelId != args.ChannelId {
-		return responsef(args.T("api.command_share.channel_remote_id_not_exists", map[string]any{"RemoteId": remoteId}))
+	err := a.UninviteRemoteFromChannel(args.ChannelId, remoteID)
+	if err != nil {
+		return responsef(err.Error())
 	}
 
-	deleted, err := a.DeleteSharedChannelRemote(scr.Id)
-	if err != nil || !deleted {
-		return responsef(args.T("api.command_share.could_not_uninvite.error", map[string]any{"RemoteId": remoteId, "Error": err.Error()}))
-	}
-	return responsef("##### " + args.T("api.command_share.remote_uninvited", map[string]any{"RemoteId": remoteId}))
+	return responsef("##### " + args.T("api.command_share.remote_uninvited", map[string]any{"RemoteId": remoteID}))
 }
 
 func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[string]string) *model.CommandResponse {
@@ -322,10 +302,4 @@ func (sp *ShareProvider) doStatus(a *app.App, args *model.CommandArgs, _ map[str
 			status.DisplayName, status.SiteURL, readonly, accepted, online, lastSync)
 	}
 	return responsef(sb.String())
-}
-
-func notifyClientsForChannelUpdate(a *app.App, sharedChannel *model.SharedChannel) {
-	messageWs := model.NewWebSocketEvent(model.WebsocketEventChannelConverted, sharedChannel.TeamId, "", "", nil, "")
-	messageWs.Add("channel_id", sharedChannel.ChannelId)
-	a.Publish(messageWs)
 }

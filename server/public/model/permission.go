@@ -3,6 +3,10 @@
 
 package model
 
+import (
+	"net/http"
+)
+
 const (
 	PermissionScopeSystem   = "system_scope"
 	PermissionScopeTeam     = "team_scope"
@@ -383,6 +387,8 @@ var ChannelModeratedPermissionsMap map[string]string
 
 var SysconsoleReadPermissions []*Permission
 var SysconsoleWritePermissions []*Permission
+
+var PermissionManageOutgoingOAuthConnections *Permission
 
 func initializePermissions() {
 	PermissionInviteUser = &Permission{
@@ -2121,6 +2127,13 @@ func initializePermissions() {
 		PermissionScopeSystem,
 	}
 
+	PermissionManageOutgoingOAuthConnections = &Permission{
+		"manage_outgoing_oauth_connections",
+		"authentication.permissions.manage_outgoing_oauth_connections.name",
+		"authentication.permissions.manage_outgoing_oauth_connections.description",
+		PermissionScopeSystem,
+	}
+
 	SysconsoleReadPermissions = []*Permission{
 		PermissionSysconsoleReadAboutEditionAndLicense,
 		PermissionSysconsoleReadBilling,
@@ -2313,6 +2326,7 @@ func initializePermissions() {
 		PermissionReadLicenseInformation,
 		PermissionManageLicenseInformation,
 		PermissionCreateCustomGroup,
+		PermissionManageOutgoingOAuthConnections,
 	}
 
 	TeamScopedPermissions := []*Permission{
@@ -2454,4 +2468,15 @@ func initializePermissions() {
 
 func init() {
 	initializePermissions()
+}
+
+func MakePermissionError(s *Session, permissions []*Permission) *AppError {
+	permissionsStr := "permission="
+	for i, permission := range permissions {
+		permissionsStr += permission.Id
+		if i != len(permissions)-1 {
+			permissionsStr += ","
+		}
+	}
+	return NewAppError("Permissions", "api.context.permissions.app_error", nil, "userId="+s.UserId+", "+permissionsStr, http.StatusForbidden)
 }

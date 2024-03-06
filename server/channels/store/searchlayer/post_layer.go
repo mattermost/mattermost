@@ -10,6 +10,7 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
+	"github.com/mattermost/mattermost/server/public/shared/request"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/platform/services/searchengine"
 )
@@ -19,17 +20,17 @@ type SearchPostStore struct {
 	rootStore *SearchStore
 }
 
-func (s SearchPostStore) indexPost(post *model.Post) {
+func (s SearchPostStore) indexPost(rctx request.CTX, post *model.Post) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
 				channel, chanErr := s.rootStore.Channel().Get(post.ChannelId, true)
 				if chanErr != nil {
-					mlog.Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", post.ChannelId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id), mlog.Err(chanErr))
+					rctx.Logger().Error("Couldn't get channel for post for SearchEngine indexing.", mlog.String("channel_id", post.ChannelId), mlog.String("search_engine", engineCopy.GetName()), mlog.String("post_id", post.Id), mlog.Err(chanErr))
 					return
 				}
 				if err := engineCopy.IndexPost(post, channel.TeamId); err != nil {
-					mlog.Warn("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					rctx.Logger().Warn("Encountered error indexing post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
 			})
@@ -37,12 +38,12 @@ func (s SearchPostStore) indexPost(post *model.Post) {
 	}
 }
 
-func (s SearchPostStore) deletePostIndex(post *model.Post) {
+func (s SearchPostStore) deletePostIndex(rctx request.CTX, post *model.Post) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
 				if err := engineCopy.DeletePost(post); err != nil {
-					mlog.Warn("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+					rctx.Logger().Warn("Encountered error deleting post", mlog.String("post_id", post.Id), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
 			})
@@ -50,62 +51,62 @@ func (s SearchPostStore) deletePostIndex(post *model.Post) {
 	}
 }
 
-func (s SearchPostStore) deleteChannelPostsIndex(channelID string) {
+func (s SearchPostStore) deleteChannelPostsIndex(rctx request.CTX, channelID string) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.DeleteChannelPosts(channelID); err != nil {
-					mlog.Warn("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+				if err := engineCopy.DeleteChannelPosts(rctx, channelID); err != nil {
+					rctx.Logger().Warn("Encountered error deleting channel posts", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Removed all channel posts from the index in search engine", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()))
+				rctx.Logger().Debug("Removed all channel posts from the index in search engine", mlog.String("channel_id", channelID), mlog.String("search_engine", engineCopy.GetName()))
 			})
 		}
 	}
 }
 
-func (s SearchPostStore) deleteUserPostsIndex(userID string) {
+func (s SearchPostStore) deleteUserPostsIndex(rctx request.CTX, userID string) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsIndexingEnabled() {
-			runIndexFn(engine, func(engineCopy searchengine.SearchEngineInterface) {
-				if err := engineCopy.DeleteUserPosts(userID); err != nil {
-					mlog.Warn("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
+			runIndexFn(rctx, engine, func(engineCopy searchengine.SearchEngineInterface) {
+				if err := engineCopy.DeleteUserPosts(rctx, userID); err != nil {
+					rctx.Logger().Warn("Encountered error deleting user posts", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()), mlog.Err(err))
 					return
 				}
-				mlog.Debug("Removed all user posts from the index in search engine", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()))
+				rctx.Logger().Debug("Removed all user posts from the index in search engine", mlog.String("user_id", userID), mlog.String("search_engine", engineCopy.GetName()))
 			})
 		}
 	}
 }
 
-func (s SearchPostStore) Update(newPost, oldPost *model.Post) (*model.Post, error) {
-	post, err := s.PostStore.Update(newPost, oldPost)
+func (s SearchPostStore) Update(rctx request.CTX, newPost, oldPost *model.Post) (*model.Post, error) {
+	post, err := s.PostStore.Update(rctx, newPost, oldPost)
 
 	if err == nil {
-		s.indexPost(post)
+		s.indexPost(rctx, post)
 	}
 	return post, err
 }
 
-func (s *SearchPostStore) Overwrite(post *model.Post) (*model.Post, error) {
-	post, err := s.PostStore.Overwrite(post)
+func (s *SearchPostStore) Overwrite(rctx request.CTX, post *model.Post) (*model.Post, error) {
+	post, err := s.PostStore.Overwrite(rctx, post)
 	if err == nil {
-		s.indexPost(post)
+		s.indexPost(rctx, post)
 	}
 	return post, err
 }
 
-func (s SearchPostStore) Save(post *model.Post) (*model.Post, error) {
-	npost, err := s.PostStore.Save(post)
+func (s SearchPostStore) Save(rctx request.CTX, post *model.Post) (*model.Post, error) {
+	npost, err := s.PostStore.Save(rctx, post)
 
 	if err == nil {
-		s.indexPost(npost)
+		s.indexPost(rctx, npost)
 	}
 	return npost, err
 }
 
-func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) error {
-	err := s.PostStore.Delete(postId, date, deletedByID)
+func (s SearchPostStore) Delete(rctx request.CTX, postId string, date int64, deletedByID string) error {
+	err := s.PostStore.Delete(rctx, postId, date, deletedByID)
 
 	if err == nil {
 		opts := model.GetPostsOptions{
@@ -114,25 +115,25 @@ func (s SearchPostStore) Delete(postId string, date int64, deletedByID string) e
 		postList, err2 := s.PostStore.Get(context.Background(), postId, opts, "", map[string]bool{})
 		if postList != nil && len(postList.Order) > 0 {
 			if err2 != nil {
-				s.deletePostIndex(postList.Posts[postList.Order[0]])
+				s.deletePostIndex(rctx, postList.Posts[postList.Order[0]])
 			}
 		}
 	}
 	return err
 }
 
-func (s SearchPostStore) PermanentDeleteByUser(userID string) error {
-	err := s.PostStore.PermanentDeleteByUser(userID)
+func (s SearchPostStore) PermanentDeleteByUser(rctx request.CTX, userID string) error {
+	err := s.PostStore.PermanentDeleteByUser(rctx, userID)
 	if err == nil {
-		s.deleteUserPostsIndex(userID)
+		s.deleteUserPostsIndex(rctx, userID)
 	}
 	return err
 }
 
-func (s SearchPostStore) PermanentDeleteByChannel(channelID string) error {
-	err := s.PostStore.PermanentDeleteByChannel(channelID)
+func (s SearchPostStore) PermanentDeleteByChannel(rctx request.CTX, channelID string) error {
+	err := s.PostStore.PermanentDeleteByChannel(rctx, channelID)
 	if err == nil {
-		s.deleteChannelPostsIndex(channelID)
+		s.deleteChannelPostsIndex(rctx, channelID)
 	}
 	return err
 }
@@ -175,12 +176,12 @@ func (s SearchPostStore) searchPostsForUserByEngine(engine searchengine.SearchEn
 	return model.MakePostSearchResults(postList, matches), nil
 }
 
-func (s SearchPostStore) SearchPostsForUser(paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
+func (s SearchPostStore) SearchPostsForUser(rctx request.CTX, paramsList []*model.SearchParams, userId, teamId string, page, perPage int) (*model.PostSearchResults, error) {
 	for _, engine := range s.rootStore.searchEngine.GetActiveEngines() {
 		if engine.IsSearchEnabled() {
 			results, err := s.searchPostsForUserByEngine(engine, paramsList, userId, teamId, page, perPage)
 			if err != nil {
-				mlog.Warn("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
+				rctx.Logger().Warn("Encountered error on SearchPostsInTeamForUser.", mlog.String("search_engine", engine.GetName()), mlog.Err(err))
 				continue
 			}
 			return results, err
@@ -191,5 +192,5 @@ func (s SearchPostStore) SearchPostsForUser(paramsList []*model.SearchParams, us
 		return &model.PostSearchResults{PostList: model.NewPostList(), Matches: model.PostSearchMatches{}}, nil
 	}
 
-	return s.PostStore.SearchPostsForUser(paramsList, userId, teamId, page, perPage)
+	return s.PostStore.SearchPostsForUser(rctx, paramsList, userId, teamId, page, perPage)
 }

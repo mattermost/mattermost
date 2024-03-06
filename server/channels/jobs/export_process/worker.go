@@ -43,6 +43,11 @@ func MakeWorker(jobServer *jobs.JobServer, app AppIface) *jobs.SimpleWorker {
 			opts.IncludeArchivedChannels = true
 		}
 
+		includeProfilePictures, ok := job.Data["include_profile_pictures"]
+		if ok && includeProfilePictures == "true" {
+			opts.IncludeProfilePictures = true
+		}
+
 		outPath := *app.Config().ExportSettings.Directory
 		exportFilename := job.Id + "_export.zip"
 

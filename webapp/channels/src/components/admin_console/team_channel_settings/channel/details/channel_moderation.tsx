@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import {isNil} from 'lodash';
+import isNil from 'lodash/isNil';
 import React from 'react';
 import {FormattedMessage, defineMessages} from 'react-intl';
 import type {MessageDescriptor} from 'react-intl';
@@ -440,13 +440,11 @@ export default class ChannelModeration extends React.PureComponent<Props> {
         return (
             <AdminPanel
                 id='channel_moderation'
-                titleId={channelModerationHeaderMessages.titleMessage.id}
-                titleDefault={channelModerationHeaderMessages.titleMessage.defaultMessage}
-                subtitleId={
-                    guestAccountsEnabled ? channelModerationHeaderMessages.subtitleMessageForMembersAndGuests.id : channelModerationHeaderMessages.subtitleMessageForMembers.id
-                }
-                subtitleDefault={
-                    guestAccountsEnabled ? channelModerationHeaderMessages.subtitleMessageForMembersAndGuests.defaultMessage : channelModerationHeaderMessages.subtitleMessageForMembers.defaultMessage
+                title={channelModerationHeaderMessages.titleMessage}
+                subtitle={
+                    guestAccountsEnabled ?
+                        channelModerationHeaderMessages.subtitleMessageForMembersAndGuests :
+                        channelModerationHeaderMessages.subtitleMessageForMembers
                 }
             >
                 <div className='channel-moderation'>

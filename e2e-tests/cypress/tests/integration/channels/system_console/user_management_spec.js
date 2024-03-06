@@ -52,20 +52,20 @@ describe('User Management', () => {
 
         cy.visit('/admin_console/user_management/users');
 
-        cy.get('#searchableUserListTotal').then((el) => {
+        cy.get('.adminConsoleListTabletOptionalHead > span').then((el) => {
             const count1 = el[0].innerText.replace(/\n/g, '').replace(/\s/g, ' ');
 
             // * Can page through several pages of users.
-            cy.get('#searchableUserListNextBtn').should('be.visible').click();
+            cy.get('.adminConsoleListTabletOptionalHead > .paginationButtons > [aria-label="Go to next page"]').should('be.visible').click();
 
             // * Count at top changes appropriately.
-            cy.get('#searchableUserListTotal').then((el2) => {
+            cy.get('.adminConsoleListTabletOptionalHead > span').then((el2) => {
                 const count2 = el2[0].innerText.replace(/\n/g, '').replace(/\s/g, ' ');
                 expect(count1).not.equal(count2);
             });
 
             // * Can page backward as well.
-            cy.get('#searchableUserListPrevBtn').should('be.visible').click();
+            cy.get('.adminConsoleListTabletOptionalHead > .paginationButtons > [aria-label="Go to previous page"]').should('be.visible').click();
         });
     });
 
@@ -103,10 +103,8 @@ describe('User Management', () => {
         resetUserEmail(testUser.email, newEmailAddr, '');
 
         // # Updates immediately in Profile for the user.
-        cy.get('#searchUsers').clear().type(newEmailAddr).wait(TIMEOUTS.HALF_SEC);
-        cy.get('.more-modal__details').should('be.visible').within(() => {
-            cy.findByText(newEmailAddr).should('exist');
-        });
+        cy.get('#input_searchTerm').clear().type(newEmailAddr).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#systemUsersTable-cell-0_emailColumn').should('have.text', newEmailAddr);
 
         // * User also receives email confirmation that email address has been changed.
         checkResetEmail(testUser, newEmailAddr);
@@ -186,15 +184,21 @@ describe('User Management', () => {
             cy.apiUpdateUserAuth(gitlabUser.id, gitlabUser.email, '', 'gitlab');
 
             // # Search for the user.
-            cy.get('#searchUsers').clear().type(gitlabUser.email).wait(TIMEOUTS.HALF_SEC);
+            cy.get('#input_searchTerm').clear().type(gitlabUser.email).wait(TIMEOUTS.HALF_SEC);
 
-            cy.findByTestId('userListRow').within(() => {
-                // # Open the actions menu.
-                cy.findByText('Member').click().wait(TIMEOUTS.HALF_SEC);
+            // # Open actions menu.
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click();
 
-                // # Click the Update email menu option.
-                cy.findByLabelText('User Actions Menu').findByText('Update Email').should('not.exist');
-            });
+            // * Verify Switch to Email/Password is visible.
+            cy.findByText('Switch to Email/Password').should('be.visible').click().wait(TIMEOUTS.HALF_SEC);
+
+            // # Set new password.
+            cy.get('input[type=password]').type('new' + testUser.password);
+            cy.get('button[type=submit]').should('contain', 'Reset').click().wait(TIMEOUTS.HALF_SEC);
+
+            // * Verify Update email option is visible.
+            cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
+            cy.findByText('Update email').should('be.visible');
         });
     });
 
@@ -222,15 +226,10 @@ describe('User Management', () => {
         cy.visit('/admin_console/user_management/users');
 
         // # Search for the user.
-        cy.get('#searchUsers').clear().type(oldEmail).wait(TIMEOUTS.HALF_SEC);
+        cy.get('#input_searchTerm').clear().type(oldEmail).wait(TIMEOUTS.HALF_SEC);
 
-        cy.findByTestId('userListRow').within(() => {
-            // # Open the actions menu.
-            cy.findByText('Member').click().wait(TIMEOUTS.HALF_SEC);
-
-            // # Click the Update email menu option.
-            cy.findByLabelText('User Actions Menu').findByText('Update Email').click().wait(TIMEOUTS.HALF_SEC);
-        });
+        cy.get('#systemUsersTable-cell-0_actionsColumn').click().wait(TIMEOUTS.HALF_SEC);
+        cy.findByText('Update email').click().wait(TIMEOUTS.HALF_SEC);
 
         // # Verify the modal opened.
         cy.findByTestId('resetEmailModal').should('exist');

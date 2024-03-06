@@ -8,6 +8,8 @@ import type {Command} from '@mattermost/types/integrations';
 import type {Team} from '@mattermost/types/teams';
 import type {RelationOneToOne} from '@mattermost/types/utilities';
 
+import type {ActionResult} from 'mattermost-redux/types/actions';
+
 import ConfirmModal from 'components/confirm_modal';
 import LoadingScreen from 'components/loading_screen';
 
@@ -41,12 +43,12 @@ type Props = {
         /**
         * The function to call to fetch team commands
         */
-        getCustomTeamCommands: (teamId: string) => Promise<Command[]>;
+        getCustomTeamCommands: (teamId: string) => Promise<ActionResult>;
 
         /**
         * The function to call to edit command
         */
-        editCommand: (command?: Command) => Promise<{data?: Command; error?: Error}>;
+        editCommand: (command: Command) => Promise<ActionResult>;
     };
 
     /**
@@ -59,7 +61,6 @@ type State = {
     originalCommand: Command | null;
     showConfirmModal: boolean;
     serverError: string;
-
 }
 
 export default class EditCommand extends React.PureComponent<Props, State> {
@@ -115,7 +116,7 @@ export default class EditCommand extends React.PureComponent<Props, State> {
     public submitCommand = async (): Promise<void> => {
         this.setState({serverError: ''});
 
-        const {data, error} = await this.props.actions.editCommand(this.newCommand);
+        const {data, error} = await this.props.actions.editCommand(this.newCommand!);
 
         if (data) {
             getHistory().push(`/${this.props.team.name}/integrations/commands`);
@@ -156,6 +157,7 @@ export default class EditCommand extends React.PureComponent<Props, State> {
                 title={confirmTitle}
                 message={confirmMessage}
                 confirmButtonText={confirmButton}
+                modalClass='integrations-backstage-modal'
                 show={this.state.showConfirmModal}
                 onConfirm={this.submitCommand}
                 onCancel={this.confirmModalDismissed}

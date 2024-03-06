@@ -14,7 +14,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 
 	"github.com/mattermost/mattermost/server/public/shared/request"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
@@ -23,23 +22,9 @@ const (
 	botUserKey        = internalKeyPrefix + "botid"
 )
 
-// Ensure bot service wrapper implements `product.BotService`
-var _ product.BotService = (*botServiceWrapper)(nil)
-
-// botServiceWrapper provides an implementation of `product.BotService` for use by products.
-type botServiceWrapper struct {
-	app AppIface
-}
-
-func (w *botServiceWrapper) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error) {
-	return w.app.EnsureBot(c, productID, bot)
-}
-
 // EnsureBot provides similar functionality with the plugin-api BotService. It doesn't accept
 // any ensureBotOptions hence it is not required for now.
-// TODO: Once the focalboard migration completed, we should add this logic to the app and
-// let plugin-api use the same code
-func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string, error) {
+func (a *App) EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (string, error) {
 	if bot == nil {
 		return "", errors.New("passed a nil bot")
 	}
@@ -48,7 +33,7 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 		return "", errors.New("passed a bot with no username")
 	}
 
-	botIDBytes, err := a.GetPluginKey(productID, botUserKey)
+	botIDBytes, err := a.GetPluginKey(pluginID, botUserKey)
 	if err != nil {
 		return "", err
 	}
@@ -64,7 +49,7 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 			Description: &bot.Description,
 		}
 
-		if _, err = a.PatchBot(botID, botPatch); err != nil {
+		if _, err = a.PatchBot(rctx, botID, botPatch); err != nil {
 			return "", fmt.Errorf("failed to patch bot: %w", err)
 		}
 
@@ -74,11 +59,11 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 	// Check for an existing bot user with that username. If one exists, then use that.
 	if user, appErr := a.GetUserByUsername(bot.Username); appErr == nil && user != nil {
 		if user.IsBot {
-			if appErr := a.SetPluginKey(productID, botUserKey, []byte(user.Id)); appErr != nil {
+			if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(user.Id)); appErr != nil {
 				return "", fmt.Errorf("failed to set plugin key: %w", err)
 			}
 		} else {
-			c.Logger().Error("Product attempted to use an account that already exists. Convert user to a bot "+
+			rctx.Logger().Error("Plugin attempted to use an account that already exists. Convert user to a bot "+
 				"account in the CLI by running 'mattermost user convert <username> --bot'. If the user is an "+
 				"existing user account you want to preserve, change its username and restart the Mattermost server, "+
 				"after which the plugin will create a bot account with that name. For more information about bot "+
@@ -91,12 +76,12 @@ func (a *App) EnsureBot(c request.CTX, productID string, bot *model.Bot) (string
 		return user.Id, nil
 	}
 
-	createdBot, err := a.CreateBot(c, bot)
+	createdBot, err := a.CreateBot(rctx, bot)
 	if err != nil {
 		return "", fmt.Errorf("failed to create bot: %w", err)
 	}
 
-	if appErr := a.SetPluginKey(productID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
+	if appErr := a.SetPluginKey(pluginID, botUserKey, []byte(createdBot.UserId)); appErr != nil {
 		return "", fmt.Errorf("failed to set plugin key: %w", err)
 	}
 
@@ -110,7 +95,7 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 		return nil, vErr
 	}
 
-	user, nErr := a.Srv().Store().User().Save(model.UserFromBot(bot))
+	user, nErr := a.Srv().Store().User().Save(c, model.UserFromBot(bot))
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -175,36 +160,7 @@ func (a *App) CreateBot(c request.CTX, bot *model.Bot) (*model.Bot, *model.AppEr
 	return savedBot, nil
 }
 
-func (a *App) GetWarnMetricsBot() (*model.Bot, *model.AppError) {
-	perPage := 1
-	userOptions := &model.UserGetOptions{
-		Page:     0,
-		PerPage:  perPage,
-		Role:     model.SystemAdminRoleId,
-		Inactive: false,
-	}
-
-	sysAdminList, err := a.GetUsersFromProfiles(userOptions)
-	if err != nil {
-		return nil, err
-	}
-
-	if len(sysAdminList) == 0 {
-		return nil, model.NewAppError("GetWarnMetricsBot", "app.bot.get_warn_metrics_bot.empty_admin_list.app_error", nil, "", http.StatusInternalServerError)
-	}
-
-	T := i18n.GetUserTranslations(sysAdminList[0].Locale)
-	warnMetricsBot := &model.Bot{
-		Username:    model.BotWarnMetricBotUsername,
-		DisplayName: T("app.system.warn_metric.bot_displayname"),
-		Description: "",
-		OwnerId:     sysAdminList[0].Id,
-	}
-
-	return a.getOrCreateBot(warnMetricsBot)
-}
-
-func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
+func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
 	perPage := 1
 	userOptions := &model.UserGetOptions{
 		Page:     0,
@@ -230,10 +186,10 @@ func (a *App) GetSystemBot() (*model.Bot, *model.AppError) {
 		OwnerId:     sysAdminList[0].Id,
 	}
 
-	return a.getOrCreateBot(systemBot)
+	return a.getOrCreateBot(rctx, systemBot)
 }
 
-func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
+func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *model.AppError) {
 	botUser, appErr := a.GetUserByUsername(botDef.Username)
 	if appErr != nil {
 		if appErr.StatusCode != http.StatusNotFound {
@@ -241,7 +197,7 @@ func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 		}
 
 		// cannot find this bot user, save the user
-		user, nErr := a.Srv().Store().User().Save(model.UserFromBot(botDef))
+		user, nErr := a.Srv().Store().User().Save(rctx, model.UserFromBot(botDef))
 		if nErr != nil {
 			var appError *model.AppError
 			var invErr *store.ErrInvalidInput
@@ -294,7 +250,7 @@ func (a *App) getOrCreateBot(botDef *model.Bot) (*model.Bot, *model.AppError) {
 }
 
 // PatchBot applies the given patch to the bot and corresponding user.
-func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
+func (a *App) PatchBot(rctx request.CTX, botUserId string, botPatch *model.BotPatch) (*model.Bot, *model.AppError) {
 	bot, err := a.GetBot(botUserId, true)
 	if err != nil {
 		return nil, err
@@ -323,7 +279,7 @@ func (a *App) PatchBot(botUserId string, botPatch *model.BotPatch) (*model.Bot, 
 	user.Email = patchedUser.Email
 	user.FirstName = patchedUser.FirstName
 
-	userUpdate, nErr := a.Srv().Store().User().Update(user, true)
+	userUpdate, nErr := a.Srv().Store().User().Update(rctx, user, true)
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput

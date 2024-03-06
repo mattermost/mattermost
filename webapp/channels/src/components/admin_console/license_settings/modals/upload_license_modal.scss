@@ -5,13 +5,14 @@
 
         button.close {
             span {
-                color: rgba(63, 67, 80, 0.56) !important;
+                color: rgba(63, 67, 80, 0.75) !important;
             }
         }
     }
 
     .modal-body {
         padding-top: 0 !important;
+        padding-bottom: 24px !important;
     }
 
     .content-body {
@@ -56,7 +57,7 @@
             border-radius: 4px;
 
             &__titleSection {
-                color: rgba(63, 67, 80, 0.72);
+                color: rgba(63, 67, 80, 0.75);
                 font-size: 12px;
                 font-weight: bold;
                 line-height: 16px;

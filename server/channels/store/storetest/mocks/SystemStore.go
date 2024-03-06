@@ -146,20 +146,6 @@ func (_m *SystemStore) SaveOrUpdate(system *model.System) error {
 	return r0
 }
 
-// SaveOrUpdateWithWarnMetricHandling provides a mock function with given fields: system
-func (_m *SystemStore) SaveOrUpdateWithWarnMetricHandling(system *model.System) error {
-	ret := _m.Called(system)
-
-	var r0 error
-	if rf, ok := ret.Get(0).(func(*model.System) error); ok {
-		r0 = rf(system)
-	} else {
-		r0 = ret.Error(0)
-	}
-
-	return r0
-}
-
 // Update provides a mock function with given fields: system
 func (_m *SystemStore) Update(system *model.System) error {
 	ret := _m.Called(system)

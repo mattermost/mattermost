@@ -24,10 +24,10 @@ func TestCreateTeam(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	_, err := th.service.CreateTeam(team)
+	_, err := th.service.CreateTeam(th.Context, team)
 	require.NoError(t, err, "Should create a new team")
 
-	_, err = th.service.CreateTeam(team)
+	_, err = th.service.CreateTeam(th.Context, team)
 	require.Error(t, err, "Should not create a new team - team already exist")
 }
 
@@ -43,7 +43,7 @@ func TestJoinUserToTeam(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	_, err := th.service.CreateTeam(team)
+	_, err := th.service.CreateTeam(th.Context, team)
 	require.NoError(t, err, "Should create a new team")
 
 	maxUsersPerTeam := th.service.config().TeamSettings.MaxUsersPerTeam
@@ -84,7 +84,7 @@ func TestJoinUserToTeam(t *testing.T) {
 
 		member, _, err := th.service.JoinUserToTeam(th.Context, team, ruser)
 		require.NoError(t, err)
-		err = th.service.RemoveTeamMember(member)
+		err = th.service.RemoveTeamMember(th.Context, member)
 		require.NoError(t, err)
 
 		_, alreadyAdded, err := th.service.JoinUserToTeam(th.Context, team, ruser)
@@ -120,7 +120,7 @@ func TestJoinUserToTeam(t *testing.T) {
 
 		member, _, err := th.service.JoinUserToTeam(th.Context, team, ruser1)
 		require.NoError(t, err)
-		err = th.service.RemoveTeamMember(member)
+		err = th.service.RemoveTeamMember(th.Context, member)
 		require.NoError(t, err)
 		_, _, err = th.service.JoinUserToTeam(th.Context, team, ruser2)
 		require.NoError(t, err)

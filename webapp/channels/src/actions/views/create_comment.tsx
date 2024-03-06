@@ -5,20 +5,16 @@ import type {Post} from '@mattermost/types/posts';
 
 import {
     addMessageIntoHistory,
-    moveHistoryIndexBack,
-    moveHistoryIndexForward,
 } from 'mattermost-redux/actions/posts';
-import {Posts} from 'mattermost-redux/constants';
 import {createSelector} from 'mattermost-redux/selectors/create_selector';
 import {getCustomEmojisByName} from 'mattermost-redux/selectors/entities/emojis';
 import {
-    makeGetMessageInHistoryItem,
     getPost,
     makeGetPostIdsForThread,
 } from 'mattermost-redux/selectors/entities/posts';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUserId} from 'mattermost-redux/selectors/entities/users';
-import type {DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFunc, ActionFuncAsync} from 'mattermost-redux/types/actions';
 import {isPostPendingOrFailed} from 'mattermost-redux/utils/post_utils';
 
 import {executeCommand} from 'actions/command';
@@ -26,7 +22,6 @@ import {runMessageWillBePostedHooks, runSlashCommandWillBePostedHooks} from 'act
 import * as PostActions from 'actions/post_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {updateDraft, removeDraft} from 'actions/views/drafts';
-import {getPostDraft} from 'selectors/rhs';
 
 import {Constants, StoragePrefixes} from 'utils/constants';
 import EmojiMap from 'utils/emoji_map';
@@ -52,30 +47,8 @@ export function updateCommentDraft(rootId: string, draft?: PostDraft, save = fal
     return updateDraft(key, draft ?? null, rootId, save);
 }
 
-export function makeOnMoveHistoryIndex(rootId: string, direction: number) {
-    const getMessageInHistory = makeGetMessageInHistoryItem(Posts.MESSAGE_TYPES.COMMENT as 'comment');
-
-    return () => (dispatch: DispatchFunc, getState: () => GlobalState) => {
-        const draft = getPostDraft(getState(), StoragePrefixes.COMMENT_DRAFT, rootId);
-        if (draft.message !== '' && draft.message !== getMessageInHistory(getState())) {
-            return {data: true};
-        }
-
-        if (direction === -1) {
-            dispatch(moveHistoryIndexBack(Posts.MESSAGE_TYPES.COMMENT as 'comment'));
-        } else if (direction === 1) {
-            dispatch(moveHistoryIndexForward(Posts.MESSAGE_TYPES.COMMENT as 'comment'));
-        }
-
-        const nextMessageInHistory = getMessageInHistory(getState());
-
-        dispatch(updateCommentDraft(rootId, {...draft, message: nextMessageInHistory}));
-        return {data: true};
-    };
-}
-
-export function submitPost(channelId: string, rootId: string, draft: PostDraft) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function submitPost(channelId: string, rootId: string, draft: PostDraft): ActionFuncAsync {
+    return async (dispatch, getState) => {
         const state = getState();
 
         const userId = getCurrentUserId(state);
@@ -105,8 +78,8 @@ export function submitPost(channelId: string, rootId: string, draft: PostDraft) 
     };
 }
 
-export function submitCommand(channelId: string, rootId: string, draft: PostDraft) {
-    return async (dispatch: DispatchFunc, getState: GetStateFunc) => {
+export function submitCommand(channelId: string, rootId: string, draft: PostDraft): ActionFuncAsync<unknown, GlobalState> {
+    return async (dispatch, getState) => {
         const state = getState();
 
         const teamId = getCurrentTeamId(state);
@@ -122,13 +95,13 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
         const hookResult = await dispatch(runSlashCommandWillBePostedHooks(message, args));
         if (hookResult.error) {
             return {error: hookResult.error};
-        } else if (!hookResult.data.message && !hookResult.data.args) {
+        } else if (!hookResult.data!.message && !hookResult.data!.args) {
             // do nothing with an empty return from a hook
             return {};
         }
 
-        message = hookResult.data.message;
-        args = hookResult.data.args;
+        message = hookResult.data!.message;
+        args = hookResult.data!.args;
 
         const {error} = await dispatch(executeCommand(message, args));
 
@@ -143,8 +116,8 @@ export function submitCommand(channelId: string, rootId: string, draft: PostDraf
     };
 }
 
-export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string) {
-    return (draft: PostDraft, options: {ignoreSlash?: boolean} = {}) => async (dispatch: DispatchFunc, getState: () => GlobalState) => {
+export function makeOnSubmit(channelId: string, rootId: string, latestPostId: string): (draft: PostDraft, options?: {ignoreSlash?: boolean}) => ActionFuncAsync<boolean, GlobalState> {
+    return (draft, options = {}) => async (dispatch, getState) => {
         const {message} = draft;
 
         dispatch(addMessageIntoHistory(message));
@@ -218,10 +191,10 @@ function makeGetCurrentUsersLatestReply() {
     );
 }
 
-export function makeOnEditLatestPost(rootId: string) {
+export function makeOnEditLatestPost(rootId: string): () => ActionFunc<boolean> {
     const getCurrentUsersLatestPost = makeGetCurrentUsersLatestReply();
 
-    return () => (dispatch: DispatchFunc, getState: GetStateFunc) => {
+    return () => (dispatch, getState) => {
         const state = getState();
 
         const lastPost = getCurrentUsersLatestPost(state, rootId);

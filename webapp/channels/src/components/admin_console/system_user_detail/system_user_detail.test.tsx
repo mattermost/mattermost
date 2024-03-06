@@ -1,108 +1,82 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {shallow} from 'enzyme';
 import React from 'react';
+import type {RouteComponentProps} from 'react-router-dom';
 
-import SystemUserDetail from 'components/admin_console/system_user_detail/system_user_detail';
+import type {UserProfile} from '@mattermost/types/users';
 
-import {Constants} from 'utils/constants';
+import SystemUserDetail, {getUserAuthenticationTextField} from 'components/admin_console/system_user_detail/system_user_detail';
+import type {
+    Props,
+    Params,
+} from 'components/admin_console/system_user_detail/system_user_detail';
 
-jest.mock('actions/admin_actions.jsx');
+import {shallowWithIntl, type MockIntl} from 'tests/helpers/intl-test-helper';
 
-describe('components/admin_console/system_user_detail', () => {
-    const defaultProps = {
-        user: {
-            username: 'jim.halpert',
-            first_name: 'Jim',
-            last_name: 'Halpert',
-            nickname: 'Big Tuna',
-            id: '1234',
-            roles: 'system_user',
-        },
-        actions: {
-            updateUserActive: jest.fn(),
-            setNavigationBlocked: jest.fn(),
-            addUserToTeam: jest.fn(),
-        },
-    } as any;
+describe('SystemUserDetail', () => {
+    const defaultProps: Props = {
+        mfaEnabled: false,
+        patchUser: jest.fn(),
+        updateUserMfa: jest.fn(),
+        getUser: jest.fn(),
+        updateUserActive: jest.fn(),
+        setNavigationBlocked: jest.fn(),
+        addUserToTeam: jest.fn(),
+        openModal: jest.fn(),
+        intl: {
+            formatMessage: jest.fn(),
+        } as MockIntl,
+        ...({
+            match: {
+                params: {
+                    user_id: 'user_id',
+                },
+            },
+        } as RouteComponentProps<Params>),
+    };
 
     test('should match default snapshot', () => {
         const props = defaultProps;
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should redirect if user id is not defined', () => {
-        const props = {
-            ...defaultProps,
-            user: {
-                id: null,
-            },
-        };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
-        expect(wrapper).toMatchSnapshot();
-    });
-
-    test('should match snapshot if user is inactive', () => {
-        const props = {
-            ...defaultProps,
-            user: {
-                ...defaultProps.user,
-                delete_at: 1561683854166,
-            },
-        };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
 
     test('should match snapshot if MFA is enabled', () => {
         const props = {
             ...defaultProps,
-            user: {
-                ...defaultProps.user,
-                mfa_active: 'MFA',
-            },
             mfaEnabled: true,
         };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
+        const wrapper = shallowWithIntl(<SystemUserDetail {...props}/>);
         expect(wrapper).toMatchSnapshot();
     });
+});
 
-    test('should match snapshot if no nickname is defined', () => {
-        const props = {
-            ...defaultProps,
-            user: {
-                ...defaultProps.user,
-                nickname: null,
-            },
-        };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+describe('getUserAuthenticationTextField', () => {
+    const intl = {formatMessage: ({defaultMessage}) => defaultMessage} as MockIntl;
+
+    it('should return empty string if user is not provided', () => {
+        const result = getUserAuthenticationTextField(intl, false, undefined);
+        expect(result).toEqual('');
     });
 
-    test('should match snapshot if LDAP Authentication', () => {
-        const props = {
-            ...defaultProps,
-            user: {
-                ...defaultProps.user,
-                auth_service: Constants.LDAP_SERVICE,
-            },
-        };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+    it('should return email if user has no auth service and MFA is not enabled', () => {
+        const result = getUserAuthenticationTextField(intl, false, {auth_service: '', mfa_active: false} as UserProfile);
+        expect(result).toEqual('Email');
     });
 
-    test('should match snapshot if SAML Authentication', () => {
-        const props = {
-            ...defaultProps,
-            user: {
-                ...defaultProps.user,
-                auth_service: Constants.SAML_SERVICE,
-            },
-            mfaEnabled: true,
-        };
-        const wrapper = shallow(<SystemUserDetail {...props}/>);
-        expect(wrapper).toMatchSnapshot();
+    it('should return auth service in uppercase if it is LDAP or SAML', () => {
+        const result = getUserAuthenticationTextField(intl, false, {auth_service: 'ldap', mfa_active: false} as UserProfile);
+        expect(result).toEqual('LDAP');
+    });
+
+    it('should return auth service in title case if it is not LDAP or SAML', () => {
+        const result = getUserAuthenticationTextField(intl, true, {auth_service: 'oauth', mfa_active: false} as UserProfile);
+        expect(result).toEqual('Oauth');
+    });
+
+    it('should include MFA if user has MFA enabled', () => {
+        const result = getUserAuthenticationTextField(intl, true, {auth_service: 'oauth', mfa_active: true} as UserProfile);
+        expect(result).toEqual('Oauth, MFA');
     });
 });

@@ -24,11 +24,10 @@ import {getConfig, isPerformanceDebuggingEnabled} from 'mattermost-redux/selecto
 import {getBool, getIsOnboardingFlowEnabled, isCollapsedThreadsEnabled} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId, getMyTeams, getTeam, getMyTeamMember, getTeamMemberships, getActiveTeamsList} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getCurrentUserId, isFirstAdmin} from 'mattermost-redux/selectors/entities/users';
-import type {ActionFunc, DispatchFunc, GetStateFunc} from 'mattermost-redux/types/actions';
+import type {ActionFuncAsync, ThunkActionFunc} from 'mattermost-redux/types/actions';
 import {calculateUnreadCount} from 'mattermost-redux/utils/channel_utils';
 
 import {handleNewPost} from 'actions/post_actions';
-import {stopPeriodicStatusUpdates} from 'actions/status_actions';
 import {loadProfilesForSidebar} from 'actions/user_actions';
 import {clearUserCookie} from 'actions/views/cookie';
 import {close as closeLhs} from 'actions/views/lhs';
@@ -169,8 +168,8 @@ export function showMobileSubMenuModal(elements: any[]) { // TODO Use more speci
     dispatch(openModal(submenuModalData));
 }
 
-export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFunc {
-    return (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
+export function sendEphemeralPost(message: string, channelId?: string, parentId?: string, userId?: string): ActionFuncAsync<boolean, GlobalState> {
+    return (doDispatch, doGetState) => {
         const timestamp = Utils.getTimestamp();
         const post = {
             id: Utils.generateId(),
@@ -178,25 +177,6 @@ export function sendEphemeralPost(message: string, channelId?: string, parentId?
             channel_id: channelId || getCurrentChannelId(doGetState()),
             message,
             type: PostTypes.EPHEMERAL,
-            create_at: timestamp,
-            update_at: timestamp,
-            root_id: parentId || '',
-            props: {},
-        } as Post;
-
-        return doDispatch(handleNewPost(post));
-    };
-}
-
-export function sendGenericPostMessage(message: string, channelId?: string, parentId?: string, userId?: string): ActionFunc {
-    return (doDispatch: DispatchFunc, doGetState: GetStateFunc) => {
-        const timestamp = Utils.getTimestamp();
-        const post = {
-            id: Utils.generateId(),
-            user_id: userId || '0',
-            channel_id: channelId || getCurrentChannelId(doGetState()),
-            message,
-            type: PostTypes.SYSTEM_GENERIC,
             create_at: timestamp,
             update_at: timestamp,
             root_id: parentId || '',
@@ -229,7 +209,7 @@ export function sendAddToChannelEphemeralPost(user: UserProfile, addedUsername: 
 
 let lastTimeTypingSent = 0;
 export function emitLocalUserTypingEvent(channelId: string, parentPostId: string) {
-    const userTyping = async (actionDispatch: DispatchFunc, actionGetState: GetStateFunc) => {
+    const userTyping: ActionFuncAsync = async (actionDispatch, actionGetState) => {
         const state = actionGetState();
         const config = getConfig(state);
 
@@ -271,7 +251,6 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
             BrowserStore.signalLogout();
         }
 
-        stopPeriodicStatusUpdates();
         WebsocketActions.close();
 
         clearUserCookie();
@@ -282,8 +261,8 @@ export function emitUserLoggedOutEvent(redirectTo = '/', shouldSignalLogout = tr
     });
 }
 
-export function toggleSideBarRightMenuAction() {
-    return (doDispatch: DispatchFunc) => {
+export function toggleSideBarRightMenuAction(): ThunkActionFunc<void> {
+    return (doDispatch) => {
         doDispatch(closeRightHandSide());
         doDispatch(closeLhs());
         doDispatch(closeRhsMenu());

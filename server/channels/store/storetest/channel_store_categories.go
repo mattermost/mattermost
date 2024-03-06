@@ -193,26 +193,26 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		team := setupTeam(t, rctx, ss, userId)
 
 		// Set up two channels, one favorited and one not
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId: team.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "channel1",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		require.NoError(t, err)
 
-		channel2, nErr := ss.Channel().Save(&model.Channel{
+		channel2, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId: team.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "channel2",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel2.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -254,28 +254,28 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		team := setupTeam(t, rctx, ss, userId)
 
 		// Set up two channels
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      team.Id,
 			Type:        model.ChannelTypeOpen,
 			Name:        "channel1",
 			DisplayName: "zebra",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		require.NoError(t, err)
 
-		channel2, nErr := ss.Channel().Save(&model.Channel{
+		channel2, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId:      team.Id,
 			Type:        model.ChannelTypeOpen,
 			Name:        "channel2",
 			DisplayName: "aardvark",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err = ss.Channel().SaveMember(&model.ChannelMember{
+		_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel2.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -324,7 +324,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		otherUserId2 := model.NewId()
 
 		// Set up two direct channels, one favorited and one not
-		dmChannel1, err := ss.Channel().SaveDirectChannel(
+		dmChannel1, err := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId1),
 				Type: model.ChannelTypeDirect,
@@ -340,7 +340,7 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		)
 		require.NoError(t, err)
 
-		dmChannel2, err := ss.Channel().SaveDirectChannel(
+		dmChannel2, err := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId2),
 				Type: model.ChannelTypeDirect,
@@ -392,13 +392,13 @@ func testCreateInitialSidebarCategories(t *testing.T, rctx request.CTX, ss store
 		team2 := setupTeam(t, rctx, ss, userId)
 
 		// Set up a channel on another team and favorite it
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			TeamId: team2.Id,
 			Type:   model.ChannelTypeOpen,
 			Name:   "channel1",
 		}, 1000)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			ChannelId:   channel1.Id,
 			UserId:      userId,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -537,13 +537,13 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotEmpty(t, res)
 
 		// Create some channels
-		channel1, err := ss.Channel().Save(&model.Channel{
+		channel1, err := ss.Channel().Save(rctx, &model.Channel{
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 			Name:   model.NewId(),
 		}, 100)
 		require.NoError(t, err)
-		channel2, err := ss.Channel().Save(&model.Channel{
+		channel2, err := ss.Channel().Save(rctx, &model.Channel{
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 			Name:   model.NewId(),
@@ -588,13 +588,13 @@ func testCreateSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Create some channels
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 			Name:   model.NewId(),
 		}, 100)
 		require.NoError(t, nErr)
-		channel2, nErr := ss.Channel().Save(&model.Channel{
+		channel2, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 			Name:   model.NewId(),
@@ -721,28 +721,28 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Join some channels
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:        "channel1",
 			DisplayName: "DEF",
 			TeamId:      team.Id,
 			Type:        model.ChannelTypePrivate,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		require.NoError(t, nErr)
 
-		channel2, nErr := ss.Channel().Save(&model.Channel{
+		channel2, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:        "channel2",
 			DisplayName: "ABC",
 			TeamId:      team.Id,
 			Type:        model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel2.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -789,15 +789,15 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		channelsCategory := categories.Categories[1]
 
 		// Join a channel on another team
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   "abc",
 			TeamId: model.NewId(),
 			Type:   model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(channel1.Id)
+		defer ss.Channel().PermanentDelete(rctx, channel1.Id)
 
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -834,28 +834,28 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory.Type)
 
 		// Join some channels
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:        "channel1",
 			DisplayName: "DEF",
 			TeamId:      team.Id,
 			Type:        model.ChannelTypePrivate,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel1.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		require.NoError(t, nErr)
 
-		channel2, nErr := ss.Channel().Save(&model.Channel{
+		channel2, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:        "channel2",
 			DisplayName: "ABC",
 			TeamId:      team.Id,
 			Type:        model.ChannelTypeOpen,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel2.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -900,7 +900,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 
 		// Create a DM
 		otherUserId := model.NewId()
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -944,14 +944,14 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 		dmsCategory := categories.Categories[2]
 
 		// Create a GM
-		gmChannel, nErr := ss.Channel().Save(&model.Channel{
+		gmChannel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   "abc",
 			TeamId: "",
 			Type:   model.ChannelTypeGroup,
 		}, 10)
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(gmChannel.Id)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		defer ss.Channel().PermanentDelete(rctx, gmChannel.Id)
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   gmChannel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -987,7 +987,7 @@ func testGetSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s Sq
 
 		// Create a DM
 		otherUserId := model.NewId()
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1086,7 +1086,7 @@ func testGetSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store) {
 		require.NotEmpty(t, members)
 		member := members[0]
 		member.DeleteAt = model.GetMillis()
-		ss.Team().UpdateMember(member)
+		ss.Team().UpdateMember(rctx, member)
 
 		teamIds := []string{
 			teamMember1.Id,
@@ -1293,13 +1293,13 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.Equal(t, model.SidebarCategoryFavorites, favoritesCategory.Type)
 
 		// Join a channel
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1360,7 +1360,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		// Create a direct channel
 		otherUserId := model.NewId()
 
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1445,7 +1445,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		// Create a direct channel
 		otherUserId := model.NewId()
 
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1553,19 +1553,19 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		require.Equal(t, model.SidebarCategoryChannels, channelsCategory2.Type)
 
 		// Have both users join a channel
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
 		})
 		require.NoError(t, nErr)
-		_, nErr = ss.Channel().SaveMember(&model.ChannelMember{
+		_, nErr = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId2,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1666,13 +1666,13 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userId)
 
 		// Create some channels
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1681,6 +1681,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 
 		otherUserId := model.NewId()
 		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+			rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1739,7 +1740,7 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userId)
 
 		otherUserId := model.NewId()
-		dmChannel, nErr := ss.Channel().SaveDirectChannel(
+		dmChannel, nErr := ss.Channel().SaveDirectChannel(rctx,
 			&model.Channel{
 				Name: model.GetDMNameFromIds(userId, otherUserId),
 				Type: model.ChannelTypeDirect,
@@ -1833,13 +1834,13 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userId)
 
 		// Join a channel
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -1901,13 +1902,13 @@ func testUpdateSidebarCategories(t *testing.T, rctx request.CTX, ss store.Store)
 		team := setupTeam(t, rctx, ss, userId)
 
 		// Join a channel
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
 			TeamId: team.Id,
 		}, 10)
 		require.NoError(t, nErr)
-		_, err := ss.Channel().SaveMember(&model.ChannelMember{
+		_, err := ss.Channel().SaveMember(rctx, &model.ChannelMember{
 			UserId:      userId,
 			ChannelId:   channel.Id,
 			NotifyProps: model.GetDefaultChannelNotifyProps(),
@@ -2001,14 +2002,14 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		}
 
 		// Create some channels and assign them to a custom category
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   model.NewId(),
 			TeamId: teamId,
 			Type:   model.ChannelTypeOpen,
 		}, 1000)
 		require.NoError(t, nErr)
 
-		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, &model.User{
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(rctx, user, &model.User{
 			Id: model.NewId(),
 		})
 		require.NoError(t, nErr)
@@ -2050,14 +2051,14 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		}
 
 		// Create some channels and assign them to a custom category
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   model.NewId(),
 			TeamId: teamId,
 			Type:   model.ChannelTypeOpen,
 		}, 1000)
 		require.NoError(t, nErr)
 
-		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, &model.User{
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(rctx, user, &model.User{
 			Id: model.NewId(),
 		})
 		require.NoError(t, nErr)
@@ -2117,14 +2118,14 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		require.Len(t, res.Categories, 3)
 
 		// On the first team, create some channels and assign them to a custom category
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   model.NewId(),
 			TeamId: teamId,
 			Type:   model.ChannelTypeOpen,
 		}, 1000)
 		require.NoError(t, nErr)
 
-		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, user2)
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(rctx, user, user2)
 		require.NoError(t, nErr)
 
 		_, err = ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
@@ -2133,7 +2134,7 @@ func testClearSidebarOnTeamLeave(t *testing.T, rctx request.CTX, ss store.Store,
 		require.NoError(t, err)
 
 		// Do the same on the second team
-		channel2, nErr := ss.Channel().Save(&model.Channel{
+		channel2, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   model.NewId(),
 			TeamId: team2.Id,
 			Type:   model.ChannelTypeOpen,
@@ -2210,27 +2211,27 @@ func testDeleteSidebarCategory(t *testing.T, rctx request.CTX, ss store.Store, s
 		}
 
 		// Create some channels
-		channel1, nErr := ss.Channel().Save(&model.Channel{
+		channel1, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   model.NewId(),
 			TeamId: teamId,
 			Type:   model.ChannelTypeOpen,
 		}, 1000)
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(channel1.Id)
+		defer ss.Channel().PermanentDelete(rctx, channel1.Id)
 
-		channel2, nErr := ss.Channel().Save(&model.Channel{
+		channel2, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   model.NewId(),
 			TeamId: teamId,
 			Type:   model.ChannelTypePrivate,
 		}, 1000)
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(channel2.Id)
+		defer ss.Channel().PermanentDelete(rctx, channel2.Id)
 
-		dmChannel1, nErr := ss.Channel().CreateDirectChannel(user, &model.User{
+		dmChannel1, nErr := ss.Channel().CreateDirectChannel(rctx, user, &model.User{
 			Id: model.NewId(),
 		})
 		require.NoError(t, nErr)
-		defer ss.Channel().PermanentDelete(dmChannel1.Id)
+		defer ss.Channel().PermanentDelete(rctx, dmChannel1.Id)
 
 		// Assign some of those channels to a custom category
 		newCategory, err := ss.Channel().CreateSidebarCategory(userId, teamId, &model.SidebarCategoryWithChannels{
@@ -2303,7 +2304,7 @@ func testUpdateSidebarChannelsByPreferences(t *testing.T, rctx request.CTX, ss s
 		require.NoError(t, nErr)
 		require.NotEmpty(t, res)
 
-		channel, nErr := ss.Channel().Save(&model.Channel{
+		channel, nErr := ss.Channel().Save(rctx, &model.Channel{
 			Name:   "channel",
 			Type:   model.ChannelTypeOpen,
 			TeamId: teamId,
@@ -2352,13 +2353,13 @@ func testSidebarCategoryDeadlock(t *testing.T, rctx request.CTX, ss store.Store)
 	team := setupTeam(t, rctx, ss, userID)
 
 	// Join a channel
-	channel, err := ss.Channel().Save(&model.Channel{
+	channel, err := ss.Channel().Save(rctx, &model.Channel{
 		Name:   "channel",
 		Type:   model.ChannelTypeOpen,
 		TeamId: team.Id,
 	}, 10)
 	require.NoError(t, err)
-	_, err = ss.Channel().SaveMember(&model.ChannelMember{
+	_, err = ss.Channel().SaveMember(rctx, &model.ChannelMember{
 		UserId:      userID,
 		ChannelId:   channel.Id,
 		NotifyProps: model.GetDefaultChannelNotifyProps(),

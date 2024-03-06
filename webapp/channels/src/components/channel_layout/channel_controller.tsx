@@ -3,18 +3,18 @@
 
 import classNames from 'classnames';
 import React, {useEffect} from 'react';
-import {useDispatch} from 'react-redux';
+import {useDispatch, useSelector} from 'react-redux';
 
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
+import {getIsUserStatusesConfigEnabled} from 'mattermost-redux/selectors/entities/common';
 
 import {loadStatusesForChannelAndSidebar} from 'actions/status_actions';
 
 import CenterChannel from 'components/channel_layout/center_channel';
-import FaviconTitleHandler from 'components/favicon_title_handler';
 import LoadingScreen from 'components/loading_screen';
 import ProductNoticesModal from 'components/product_notices_modal';
 import ResetStatusModal from 'components/reset_status_modal';
 import Sidebar from 'components/sidebar';
+import UnreadsStatusHandler from 'components/unreads_status_handler';
 
 import Pluggable from 'plugins/pluggable';
 import {Constants} from 'utils/constants';
@@ -27,11 +27,15 @@ type Props = {
 }
 
 export default function ChannelController(props: Props) {
-    const dispatch = useDispatch<DispatchFunc>();
+    const enabledUserStatuses = useSelector(getIsUserStatusesConfigEnabled);
+    const dispatch = useDispatch();
 
     useEffect(() => {
         const isMsBrowser = isInternetExplorer() || isEdge();
-        const platform = window.navigator.platform;
+        const {navigator} = window;
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const platform = navigator?.userAgentData?.platform || navigator?.platform || 'unknown';
         document.body.classList.add(...getClassnamesForBody(platform, isMsBrowser));
 
         return () => {
@@ -40,14 +44,16 @@ export default function ChannelController(props: Props) {
     }, []);
 
     useEffect(() => {
-        const loadStatusesIntervalId = setInterval(() => {
-            dispatch(loadStatusesForChannelAndSidebar());
-        }, Constants.STATUS_INTERVAL);
-
+        let loadStatusesIntervalId: ReturnType<typeof setInterval>;
+        if (enabledUserStatuses) {
+            loadStatusesIntervalId = setInterval(() => {
+                dispatch(loadStatusesForChannelAndSidebar());
+            }, Constants.STATUS_INTERVAL);
+        }
         return () => {
             clearInterval(loadStatusesIntervalId);
         };
-    }, []);
+    }, [dispatch, enabledUserStatuses]);
 
     return (
         <>
@@ -57,7 +63,7 @@ export default function ChannelController(props: Props) {
                 className='channel-view'
                 data-testid='channel_view'
             >
-                <FaviconTitleHandler/>
+                <UnreadsStatusHandler/>
                 <ProductNoticesModal/>
                 <div className={classNames('container-fluid channel-view-inner')}>
                     {props.shouldRenderCenterChannel ? <CenterChannel/> : <LoadingScreen centered={true}/>}

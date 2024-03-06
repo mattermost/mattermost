@@ -17,7 +17,8 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/mattermost/mattermost/server/public/model"
-	"github.com/mattermost/mattermost/server/v8/platform/services/httpservice"
+	"github.com/mattermost/mattermost/server/public/plugin/plugintest/mock"
+	"github.com/mattermost/mattermost/server/v8/einterfaces/mocks"
 )
 
 type InfiniteReader struct {
@@ -363,7 +364,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 
 		assert.NotNil(t, resp)
@@ -378,7 +379,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 
 		assert.NotNil(t, resp)
@@ -393,7 +394,7 @@ func TestDoCommandRequest(t *testing.T) {
 
 		// Since we limit the length of the response, no error will be returned and resp.Text will be a finite string
 
-		_, resp, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.Nil(t, err)
 		require.NotNil(t, resp)
 	})
@@ -406,7 +407,7 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 	})
@@ -419,28 +420,91 @@ func TestDoCommandRequest(t *testing.T) {
 		}))
 		defer server.Close()
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 	})
 
-	t.Run("with a slow response", func(t *testing.T) {
+	t.Run("with a too slow response", func(t *testing.T) {
 		done := make(chan bool)
 		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			<-done
-			io.Copy(w, strings.NewReader(`{"text": "Hello, World!"}`))
+			io.Copy(w, strings.NewReader("Hello, World!"))
 		}))
 		defer server.Close()
 
-		th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = 100 * time.Millisecond
-		defer func() {
-			th.App.HTTPService().(*httpservice.HTTPServiceImpl).RequestTimeout = httpservice.RequestTimeout
-		}()
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(1)
+		})
 
-		_, _, err := th.App.DoCommandRequest(&model.Command{URL: server.URL}, url.Values{})
+		_, _, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
 		require.NotNil(t, err)
 		require.Equal(t, "api.command.execute_command.failed.app_error", err.Id)
 		close(done)
+	})
+
+	t.Run("with a too slow response, long timeout configured", func(t *testing.T) {
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			time.Sleep(1 * time.Second)
+
+			io.Copy(w, strings.NewReader("Hello, World!"))
+		}))
+		defer server.Close()
+
+		th.App.UpdateConfig(func(cfg *model.Config) {
+			cfg.ServiceSettings.OutgoingIntegrationRequestsTimeout = model.NewInt64(2)
+		})
+
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: server.URL}, url.Values{})
+		require.Nil(t, err)
+
+		require.NotNil(t, resp)
+		assert.Equal(t, "Hello, World!", resp.Text)
+	})
+
+	t.Run("with a url that matches an outgoing oauth connection", func(t *testing.T) {
+		outgoingOauthIface := &mocks.OutgoingOAuthConnectionInterface{}
+		outgoingOauthImpl := th.App.Srv().OutgoingOAuthConnection
+		outgoingOAuthConnectionConfig := th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections
+		th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = model.NewBool(true)
+		t.Cleanup(func() {
+			th.App.Srv().OutgoingOAuthConnection = outgoingOauthImpl
+			th.App.Config().ServiceSettings.EnableOutgoingOAuthConnections = outgoingOAuthConnectionConfig
+		})
+		th.App.Srv().OutgoingOAuthConnection = outgoingOauthIface
+
+		serverCommand := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			io.Copy(w, strings.NewReader(r.Header.Get("Authorization")))
+		}))
+		defer serverCommand.Close()
+
+		connection := &model.OutgoingOAuthConnection{
+			Id:            model.NewId(),
+			Name:          "test",
+			ClientId:      "test",
+			ClientSecret:  "test",
+			CreatorId:     model.NewId(),
+			OAuthTokenURL: "fake",
+			GrantType:     model.OutgoingOAuthConnectionGrantTypeClientCredentials,
+			Audiences: model.StringArray{
+				serverCommand.URL,
+			},
+		}
+
+		outgoingOauthIface.Mock.On("GetConnectionForAudience", mock.Anything, serverCommand.URL).Return(connection, nil)
+		outgoingOauthIface.Mock.On("SanitizeConnections", mock.Anything)
+		outgoingOauthIface.Mock.On("RetrieveTokenForConnection", mock.Anything, connection).Return(&model.OutgoingOAuthConnectionToken{
+			AccessToken: "token",
+			TokenType:   "type",
+		}, nil)
+
+		_, resp, err := th.App.DoCommandRequest(th.Context, &model.Command{URL: serverCommand.URL}, url.Values{})
+		require.Nil(t, err)
+
+		require.NotNil(t, resp)
+		// Ensure that the Authorization header was set correctly by reading the body from the command response
+		// which was set to the Authorization header by the command handler.
+		assert.Equal(t, "type token", resp.Text)
 	})
 }
 

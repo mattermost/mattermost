@@ -12,7 +12,6 @@ import type {ClientLicense} from '@mattermost/types/config';
 import {uploadLicense} from 'mattermost-redux/actions/admin';
 import {getLicenseConfig} from 'mattermost-redux/actions/general';
 import {getLicense} from 'mattermost-redux/selectors/entities/general';
-import type {DispatchFunc} from 'mattermost-redux/types/actions';
 
 import {closeModal} from 'actions/views/modals';
 import {getCurrentLocale} from 'selectors/i18n';
@@ -38,7 +37,7 @@ type Props = {
 }
 
 const UploadLicenseModal = (props: Props): JSX.Element | null => {
-    const dispatch = useDispatch<DispatchFunc>();
+    const dispatch = useDispatch();
 
     const [fileObj, setFileObj] = React.useState<File | null>(props.fileObjFromProps);
     const [isUploading, setIsUploading] = React.useState(false);
@@ -290,6 +289,7 @@ const UploadLicenseModal = (props: Props): JSX.Element | null => {
             className={'UploadLicenseModal'}
             show={show}
             id='UploadLicenseModal'
+            compassDesign={true}
             onExited={handleOnClose}
         >
             {uploadLicenseContent}

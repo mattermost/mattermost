@@ -7,12 +7,11 @@ import nock from 'nock';
 
 import type {Team} from '@mattermost/types/teams';
 
-import {GeneralTypes, UserTypes} from 'mattermost-redux/action_types';
+import {UserTypes} from 'mattermost-redux/action_types';
 import * as Actions from 'mattermost-redux/actions/teams';
 import {loadMe} from 'mattermost-redux/actions/users';
 import {Client4} from 'mattermost-redux/client';
-import {General, RequestStatus} from 'mattermost-redux/constants';
-import type {ActionResult} from 'mattermost-redux/types/actions';
+import {RequestStatus} from 'mattermost-redux/constants';
 
 import TestHelper from '../../test/test_helper';
 import configureStore from '../../test/test_store';
@@ -55,12 +54,12 @@ describe('Actions.Teams', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMe()(store.dispatch, store.getState);
+        await store.dispatch(loadMe());
 
         nock(Client4.getBaseRoute()).
             get('/users/me/teams').
             reply(200, [TestHelper.basicTeam]);
-        await Actions.getMyTeams()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getMyTeams());
 
         const teamsRequest = store.getState().requests.teams.getMyTeams;
         const {teams} = store.getState().entities.teams;
@@ -78,7 +77,7 @@ describe('Actions.Teams', () => {
             get(`/users/${TestHelper.basicUser!.id}/teams`).
             reply(200, [TestHelper.basicTeam]);
 
-        await Actions.getTeamsForUser(TestHelper.basicUser!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeamsForUser(TestHelper.basicUser!.id));
 
         const teamsRequest = store.getState().requests.teams.getTeams;
         const {teams} = store.getState().entities.teams;
@@ -103,7 +102,7 @@ describe('Actions.Teams', () => {
             get('/teams').
             query(true).
             reply(200, [team]);
-        await Actions.getTeams()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeams());
 
         const teamsRequest = store.getState().requests.teams.getTeams;
         const {teams} = store.getState().entities.teams;
@@ -127,7 +126,7 @@ describe('Actions.Teams', () => {
             get('/teams').
             query(true).
             reply(200, {teams: [team], total_count: 43});
-        await Actions.getTeams(0, 1, true)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeams(0, 1, true));
 
         const teamsRequest = store.getState().requests.teams.getTeams;
         const {teams, totalCount} = store.getState().entities.teams;
@@ -149,7 +148,7 @@ describe('Actions.Teams', () => {
         nock(Client4.getBaseRoute()).
             get(`/teams/${team.id}`).
             reply(200, team);
-        await Actions.getTeam(team.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeam(team.id));
 
         const state = store.getState();
         const {teams} = state.entities.teams;
@@ -167,7 +166,7 @@ describe('Actions.Teams', () => {
         nock(Client4.getBaseRoute()).
             get(`/teams/name/${team.name}`).
             reply(200, team);
-        await Actions.getTeamByName(team.name)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeamByName(team.name));
 
         const state = store.getState();
         const {teams} = state.entities.teams;
@@ -180,9 +179,9 @@ describe('Actions.Teams', () => {
         nock(Client4.getBaseRoute()).
             post('/teams').
             reply(201, TestHelper.fakeTeamWithId());
-        await Actions.createTeam(
+        await store.dispatch(Actions.createTeam(
             TestHelper.fakeTeam(),
-        )(store.dispatch, store.getState);
+        ));
 
         const {teams, myMembers, currentTeamId} = store.getState().entities.teams;
 
@@ -222,9 +221,9 @@ describe('Actions.Teams', () => {
             delete(`/teams/${secondTeam.id}`).
             reply(200, OK_RESPONSE);
 
-        await Actions.deleteTeam(
+        await store.dispatch(Actions.deleteTeam(
             secondTeam.id,
-        )(store.dispatch, store.getState);
+        ));
 
         const {teams, myMembers} = store.getState().entities.teams;
         if (teams[secondTeam.id]) {
@@ -265,17 +264,17 @@ describe('Actions.Teams', () => {
             delete(`/teams/${secondTeam.id}`).
             reply(200, OK_RESPONSE);
 
-        await Actions.deleteTeam(
+        await store.dispatch(Actions.deleteTeam(
             secondTeam.id,
-        )(store.dispatch, store.getState);
+        ));
 
         nock(Client4.getBaseRoute()).
             post(`/teams/${secondTeam.id}/restore`).
             reply(200, secondTeam);
 
-        await Actions.unarchiveTeam(
+        await store.dispatch(Actions.unarchiveTeam(
             secondTeam.id,
-        )(store.dispatch, store.getState);
+        ));
 
         const {teams} = store.getState().entities.teams;
         expect(teams[secondTeam.id]).toEqual(secondTeam);
@@ -293,7 +292,7 @@ describe('Actions.Teams', () => {
         nock(Client4.getBaseRoute()).
             put(`/teams/${team.id}`).
             reply(200, team);
-        await Actions.updateTeam(team as Team)(store.dispatch, store.getState);
+        await store.dispatch(Actions.updateTeam(team as Team));
 
         const {teams} = store.getState().entities.teams;
         const updated = teams[TestHelper.basicTeam!.id];
@@ -315,7 +314,7 @@ describe('Actions.Teams', () => {
         nock(Client4.getBaseRoute()).
             put(`/teams/${team.id}/patch`).
             reply(200, team);
-        await Actions.patchTeam(team as Team)(store.dispatch, store.getState);
+        await store.dispatch(Actions.patchTeam(team as Team));
         const {teams} = store.getState().entities.teams;
 
         const patched = teams[TestHelper.basicTeam!.id];
@@ -335,7 +334,7 @@ describe('Actions.Teams', () => {
         nock(Client4.getBaseRoute()).
             post(`/teams/${team!.id}/regenerate_invite_id`).
             reply(200, patchedTeam);
-        await Actions.regenerateTeamInviteId(team!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.regenerateTeamInviteId(team!.id));
         const {teams} = store.getState().entities.teams;
 
         const patched = teams[TestHelper.basicTeam!.id];
@@ -345,76 +344,17 @@ describe('Actions.Teams', () => {
         expect(patched.invite_id).toEqual(patchedInviteId);
     });
 
-    it('Join Open Team', async () => {
-        const client = TestHelper.createClient4();
-
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            query(true).
-            reply(201, TestHelper.fakeUserWithId());
-        const user = await client.createUser(
-            TestHelper.fakeUser(),
-            '',
-            '',
-            TestHelper.basicTeam!.invite_id,
-        );
-
-        nock(Client4.getBaseRoute()).
-            post('/users/login').
-            reply(200, user);
-        await client.login(user.email, 'password1');
-
-        nock(Client4.getBaseRoute()).
-            post('/teams').
-            reply(201, {...TestHelper.fakeTeamWithId(), allow_open_invite: true});
-        const team = await client.createTeam({...TestHelper.fakeTeam(), allow_open_invite: true});
-
-        store.dispatch({type: GeneralTypes.RECEIVED_SERVER_VERSION, data: '4.0.0'});
-
-        nock(Client4.getBaseRoute()).
-            post('/teams/members/invite').
-            query(true).
-            reply(201, {user_id: TestHelper.basicUser!.id, team_id: team.id});
-
-        nock(Client4.getBaseRoute()).
-            get(`/teams/${team.id}`).
-            reply(200, team);
-
-        nock(Client4.getUserRoute('me')).
-            get('/teams/members').
-            reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'team_user', team_id: team.id}]);
-
-        nock(Client4.getUserRoute('me')).
-            get('/teams/unread').
-            query({params: {include_collapsed_threads: true}}).
-            reply(200, [{team_id: team.id, msg_count: 0, mention_count: 0}]);
-
-        await Actions.joinTeam(team.invite_id, team.id)(store.dispatch, store.getState);
-
-        const state = store.getState();
-
-        const request = state.requests.teams.joinTeam;
-
-        if (request.status !== RequestStatus.SUCCESS) {
-            throw new Error(JSON.stringify(request.error));
-        }
-
-        const {teams, myMembers} = state.entities.teams;
-        expect(teams[team.id]).toBeTruthy();
-        expect(myMembers[team.id]).toBeTruthy();
-    });
-
     it('getMyTeamMembers and getMyTeamUnreads', async () => {
         nock(Client4.getUserRoute('me')).
             get('/teams/members').
             reply(200, [{user_id: TestHelper.basicUser!.id, roles: 'team_user', team_id: TestHelper.basicTeam!.id}]);
-        await Actions.getMyTeamMembers()(store.dispatch, store.getState);
+        await store.dispatch(Actions.getMyTeamMembers());
 
         nock(Client4.getUserRoute('me')).
             get('/teams/unread').
             query({params: {include_collapsed_threads: true}}).
             reply(200, [{team_id: TestHelper.basicTeam!.id, msg_count: 0, mention_count: 0}]);
-        await Actions.getMyTeamUnreads(false)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getMyTeamUnreads(false));
 
         const members = store.getState().entities.teams.myMembers;
         const member = members[TestHelper.basicTeam!.id];
@@ -427,7 +367,7 @@ describe('Actions.Teams', () => {
         nock(Client4.getUserRoute(TestHelper.basicUser!.id)).
             get('/teams/members').
             reply(200, [{user_id: TestHelper.basicUser!.id, team_id: TestHelper.basicTeam!.id}]);
-        await Actions.getTeamMembersForUser(TestHelper.basicUser!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeamMembersForUser(TestHelper.basicUser!.id));
 
         const membersInTeam = store.getState().entities.teams.membersInTeam;
 
@@ -451,7 +391,7 @@ describe('Actions.Teams', () => {
         nock(Client4.getBaseRoute()).
             get(`/teams/${TestHelper.basicTeam!.id}/members/${user.id}`).
             reply(200, {user_id: user.id, team_id: TestHelper.basicTeam!.id});
-        await Actions.getTeamMember(TestHelper.basicTeam!.id, user.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeamMember(TestHelper.basicTeam!.id, user.id));
 
         const members = store.getState().entities.teams.membersInTeam;
 
@@ -473,18 +413,18 @@ describe('Actions.Teams', () => {
         nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
             post('/members').
             reply(201, {user_id: user1.id, team_id: TestHelper.basicTeam!.id});
-        const {data: member1} = await Actions.addUserToTeam(TestHelper.basicTeam!.id, user1.id)(store.dispatch, store.getState) as ActionResult;
+        const {data: member1} = await store.dispatch(Actions.addUserToTeam(TestHelper.basicTeam!.id, user1.id));
 
         nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
             post('/members').
             reply(201, {user_id: user2.id, team_id: TestHelper.basicTeam!.id});
-        const {data: member2} = await Actions.addUserToTeam(TestHelper.basicTeam!.id, user2.id)(store.dispatch, store.getState) as ActionResult;
+        const {data: member2} = await store.dispatch(Actions.addUserToTeam(TestHelper.basicTeam!.id, user2.id));
 
         nock(Client4.getBaseRoute()).
             get(`/teams/${TestHelper.basicTeam!.id}/members`).
             query(true).
             reply(200, [member1, member2, TestHelper.basicTeamMember]);
-        await Actions.getTeamMembers(TestHelper.basicTeam!.id, undefined, undefined, {})(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeamMembers(TestHelper.basicTeam!.id, undefined, undefined, {}));
         const membersInTeam = store.getState().entities.teams.membersInTeam;
 
         expect(membersInTeam[TestHelper.basicTeam!.id]).toBeTruthy();
@@ -519,10 +459,10 @@ describe('Actions.Teams', () => {
         nock(Client4.getBaseRoute()).
             post(`/teams/${TestHelper.basicTeam!.id}/members/ids`).
             reply(200, [{user_id: user1.id, team_id: TestHelper.basicTeam!.id}, {user_id: user2.id, team_id: TestHelper.basicTeam!.id}]);
-        await Actions.getTeamMembersByIds(
+        await store.dispatch(Actions.getTeamMembersByIds(
             TestHelper.basicTeam!.id,
             [user1.id, user2.id],
-        )(store.dispatch, store.getState);
+        ));
 
         const members = store.getState().entities.teams.membersInTeam;
 
@@ -535,7 +475,7 @@ describe('Actions.Teams', () => {
         nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
             get('/stats').
             reply(200, {team_id: TestHelper.basicTeam!.id, total_member_count: 2605, active_member_count: 2571});
-        await Actions.getTeamStats(TestHelper.basicTeam!.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.getTeamStats(TestHelper.basicTeam!.id));
 
         const {stats} = store.getState().entities.teams;
 
@@ -555,38 +495,11 @@ describe('Actions.Teams', () => {
         nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
             post('/members').
             reply(201, {user_id: user.id, team_id: TestHelper.basicTeam!.id});
-        await Actions.addUserToTeam(TestHelper.basicTeam!.id, user.id)(store.dispatch, store.getState);
+        await store.dispatch(Actions.addUserToTeam(TestHelper.basicTeam!.id, user.id));
         const members = store.getState().entities.teams.membersInTeam;
 
         expect(members[TestHelper.basicTeam!.id]).toBeTruthy();
         expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
-    });
-
-    it('addUsersToTeam', async () => {
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user2 = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
-            post('/members/batch').
-            reply(201, [{user_id: user.id, team_id: TestHelper.basicTeam!.id}, {user_id: user2.id, team_id: TestHelper.basicTeam!.id}]);
-        await Actions.addUsersToTeam(TestHelper.basicTeam!.id, [user.id, user2.id])(store.dispatch, store.getState);
-
-        const members = store.getState().entities.teams.membersInTeam;
-        const profilesInTeam = store.getState().entities.users.profilesInTeam;
-
-        expect(members[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user2.id]).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id].has(user.id)).toBeTruthy();
-        expect(profilesInTeam[TestHelper.basicTeam!.id].has(user2.id)).toBeTruthy();
     });
 
     describe('removeUserFromTeam', () => {
@@ -685,36 +598,11 @@ describe('Actions.Teams', () => {
         });
     });
 
-    it('updateTeamMemberRoles', async () => {
-        nock(Client4.getBaseRoute()).
-            post('/users').
-            reply(201, TestHelper.fakeUserWithId());
-        const user = await TestHelper.basicClient4!.createUser(TestHelper.fakeUser(), '', '');
-
-        nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
-            post('/members').
-            reply(201, {user_id: user.id, team_id: TestHelper.basicTeam!.id});
-        await Actions.addUserToTeam(TestHelper.basicTeam!.id, user.id)(store.dispatch, store.getState);
-
-        const roles = General.TEAM_USER_ROLE + ' ' + General.TEAM_ADMIN_ROLE;
-
-        nock(Client4.getBaseRoute()).
-            put(`/teams/${TestHelper.basicTeam!.id}/members/${user.id}/roles`).
-            reply(200, {user_id: user.id, team_id: TestHelper.basicTeam!.id, roles});
-        await Actions.updateTeamMemberRoles(TestHelper.basicTeam!.id, user.id, roles.split(' '))(store.dispatch, store.getState);
-
-        const members = store.getState().entities.teams.membersInTeam;
-
-        expect(members[TestHelper.basicTeam!.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id]).toBeTruthy();
-        expect(members[TestHelper.basicTeam!.id][user.id].roles).toEqual(roles.split(' '));
-    });
-
     it('sendEmailInvitesToTeam', async () => {
         nock(Client4.getTeamRoute(TestHelper.basicTeam!.id)).
             post('/invite/email').
             reply(200, OK_RESPONSE);
-        const {data} = await Actions.sendEmailInvitesToTeam(TestHelper.basicTeam!.id, ['fakeemail1@example.com', 'fakeemail2@example.com'])(store.dispatch, store.getState) as ActionResult;
+        const {data} = await store.dispatch(Actions.sendEmailInvitesToTeam(TestHelper.basicTeam!.id, ['fakeemail1@example.com', 'fakeemail2@example.com']));
         expect(data).toEqual(OK_RESPONSE);
     });
 
@@ -723,14 +611,14 @@ describe('Actions.Teams', () => {
             get(`/teams/name/${TestHelper.basicTeam!.name}/exists`).
             reply(200, {exists: true});
 
-        let {data: exists} = await Actions.checkIfTeamExists(TestHelper.basicTeam!.name)(store.dispatch, store.getState) as ActionResult;
+        let {data: exists} = await store.dispatch(Actions.checkIfTeamExists(TestHelper.basicTeam!.name));
 
         expect(exists === true).toBeTruthy();
 
         nock(Client4.getBaseRoute()).
             get('/teams/name/junk/exists').
             reply(200, {exists: false});
-        const {data} = await Actions.checkIfTeamExists('junk')(store.dispatch, store.getState) as ActionResult;
+        const {data} = await store.dispatch(Actions.checkIfTeamExists('junk'));
         exists = data;
 
         expect(exists === false).toBeTruthy();
@@ -752,7 +640,7 @@ describe('Actions.Teams', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMe()(store.dispatch, store.getState);
+        await store.dispatch(loadMe());
 
         let state = store.getState();
         expect(state.entities.teams.teams[team!.id].invite_id).toEqual('');
@@ -767,7 +655,7 @@ describe('Actions.Teams', () => {
             get('').
             reply(200, {...team, invite_id: 'inviteId'});
 
-        const {data} = await Actions.setTeamIcon(team!.id, imageData as any)(store.dispatch, store.getState) as ActionResult;
+        const {data} = await store.dispatch(Actions.setTeamIcon(team!.id, imageData as any));
         expect(data).toEqual(OK_RESPONSE);
 
         state = store.getState();
@@ -790,7 +678,7 @@ describe('Actions.Teams', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMe()(store.dispatch, store.getState);
+        await store.dispatch(loadMe());
 
         let state = store.getState();
         expect(state.entities.teams.teams[team!.id].invite_id).toEqual('');
@@ -803,7 +691,7 @@ describe('Actions.Teams', () => {
             get('').
             reply(200, {...team, invite_id: 'inviteId'});
 
-        const {data} = await Actions.removeTeamIcon(team!.id)(store.dispatch, store.getState) as ActionResult;
+        const {data} = await store.dispatch(Actions.removeTeamIcon(team!.id));
         expect(data).toEqual(OK_RESPONSE);
 
         state = store.getState();
@@ -815,7 +703,7 @@ describe('Actions.Teams', () => {
         store.dispatch({
             type: UserTypes.LOGIN_SUCCESS,
         });
-        await loadMe()(store.dispatch, store.getState);
+        await store.dispatch(loadMe());
 
         const schemeId = 'xxxxxxxxxxxxxxxxxxxxxxxxxx';
         const {id} = TestHelper.basicTeam!;
@@ -824,7 +712,7 @@ describe('Actions.Teams', () => {
             put('/teams/' + id + '/scheme').
             reply(200, OK_RESPONSE);
 
-        await Actions.updateTeamScheme(id, schemeId)(store.dispatch, store.getState);
+        await store.dispatch(Actions.updateTeamScheme(id, schemeId));
 
         const state = store.getState!();
         const {teams} = state.entities.teams;
@@ -844,7 +732,7 @@ describe('Actions.Teams', () => {
             `/teams/${teamID}/members_minus_group_members?group_ids=${groupIDs.join(',')}&page=${page}&per_page=${perPage}`).
             reply(200, {users: [], total_count: 0});
 
-        const {error} = await Actions.membersMinusGroupMembers(teamID, groupIDs, page, perPage)(store.dispatch, store.getState) as ActionResult;
+        const {error} = await store.dispatch(Actions.membersMinusGroupMembers(teamID, groupIDs, page, perPage));
 
         expect(error).toEqual(undefined);
     });
@@ -882,7 +770,7 @@ describe('Actions.Teams', () => {
             post('/teams/search').
             reply(200, [TestHelper.basicTeam, userTeam]);
 
-        await store.dispatch(Actions.searchTeams('test', {page: 0}));
+        await store.dispatch(Actions.searchTeams('test', {page: 0, per_page: 1}));
 
         const moreRequest = store.getState().requests.teams.getTeams;
         if (moreRequest.status === RequestStatus.FAILURE) {

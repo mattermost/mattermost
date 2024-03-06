@@ -94,7 +94,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceInstallCmd() {
 func removePluginIfInstalled(c client.Client, s *MmctlE2ETestSuite, pluginID string) {
 	appErr := pluginDeleteCmdF(c, &cobra.Command{}, []string{pluginID})
 	if appErr != nil {
-		s.Require().Contains(appErr.Error(), "Plugin is not installed.")
+		s.Require().Contains(appErr.Error(), "Unable to delete plugin.")
 	}
 }
 
@@ -119,7 +119,7 @@ func (s *MmctlE2ETestSuite) TestPluginMarketplaceListCmd() {
 
 		err := pluginMarketplaceListCmdF(s.th.Client, &cobra.Command{}, nil)
 
-		s.Require().ErrorContains(err, "Failed to fetch plugins: : You do not have the appropriate permissions.")
+		s.Require().ErrorContains(err, "Failed to fetch plugins: You do not have the appropriate permissions.")
 		s.Require().Empty(printer.GetErrorLines())
 		s.Require().Empty(printer.GetLines())
 	})

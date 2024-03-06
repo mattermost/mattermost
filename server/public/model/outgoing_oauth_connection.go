@@ -4,7 +4,9 @@
 package model
 
 import (
+	"fmt"
 	"net/http"
+	"net/url"
 	"unicode/utf8"
 )
 
@@ -27,8 +29,8 @@ type OutgoingOAuthConnection struct {
 	CreateAt            int64                            `json:"create_at"`
 	UpdateAt            int64                            `json:"update_at"`
 	Name                string                           `json:"name"`
-	ClientId            string                           `json:"client_id"`
-	ClientSecret        string                           `json:"client_secret"`
+	ClientId            string                           `json:"client_id,omitempty"`
+	ClientSecret        string                           `json:"client_secret,omitempty"`
 	CredentialsUsername *string                          `json:"credentials_username,omitempty"`
 	CredentialsPassword *string                          `json:"credentials_password,omitempty"`
 	OAuthTokenURL       string                           `json:"oauth_token_url"`
@@ -44,6 +46,44 @@ func (oa *OutgoingOAuthConnection) Auditable() map[string]interface{} {
 		"update_at":  oa.UpdateAt,
 		"name":       oa.Name,
 		"grant_type": oa.GrantType,
+	}
+}
+
+// Sanitize removes any sensitive fields from the OutgoingOAuthConnection object.
+func (oa *OutgoingOAuthConnection) Sanitize() {
+	oa.ClientSecret = ""
+	oa.CredentialsPassword = nil
+}
+
+// Patch updates the OutgoingOAuthConnection object with the non-empty fields from the given connection.
+func (oa *OutgoingOAuthConnection) Patch(conn *OutgoingOAuthConnection) {
+	if conn == nil {
+		return
+	}
+
+	if conn.Name != "" {
+		oa.Name = conn.Name
+	}
+	if conn.ClientId != "" {
+		oa.ClientId = conn.ClientId
+	}
+	if conn.ClientSecret != "" {
+		oa.ClientSecret = conn.ClientSecret
+	}
+	if conn.OAuthTokenURL != "" {
+		oa.OAuthTokenURL = conn.OAuthTokenURL
+	}
+	if conn.GrantType != "" {
+		oa.GrantType = conn.GrantType
+	}
+	if len(conn.Audiences) > 0 {
+		oa.Audiences = conn.Audiences
+	}
+	if conn.CredentialsUsername != nil {
+		oa.CredentialsUsername = conn.CredentialsUsername
+	}
+	if conn.CredentialsPassword != nil {
+		oa.CredentialsPassword = conn.CredentialsPassword
 	}
 }
 
@@ -65,23 +105,23 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.creator_id.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if utf8.RuneCountInString(oa.Name) > 64 {
+	if oa.Name == "" || utf8.RuneCountInString(oa.Name) > 64 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.name.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if len(oa.ClientId) == 0 || utf8.RuneCountInString(oa.ClientId) > 255 {
+	if oa.ClientId == "" || utf8.RuneCountInString(oa.ClientId) > 255 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.client_id.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if len(oa.ClientSecret) == 0 || utf8.RuneCountInString(oa.ClientSecret) > 255 {
+	if oa.ClientSecret == "" || utf8.RuneCountInString(oa.ClientSecret) > 255 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.client_secret.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if len(oa.OAuthTokenURL) == 0 || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
+	if !IsValidHTTPURL(oa.OAuthTokenURL) || utf8.RuneCountInString(oa.OAuthTokenURL) > 256 {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.oauth_token_url.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
 
-	if err := oa.IsValidGrantType(); err != nil {
+	if err := oa.HasValidGrantType(); err != nil {
 		return err
 	}
 
@@ -92,7 +132,7 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 	if len(oa.Audiences) > 0 {
 		for _, audience := range oa.Audiences {
 			if !IsValidHTTPURL(audience) {
-				return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.audience.error", nil, "id="+oa.Id, http.StatusBadRequest)
+				return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.audience.error", map[string]any{"Url": audience}, "id="+oa.Id, http.StatusBadRequest)
 			}
 		}
 	}
@@ -100,8 +140,8 @@ func (oa *OutgoingOAuthConnection) IsValid() *AppError {
 	return nil
 }
 
-// IsValidGrantType validates the grant type and its parameters returning an error if it isn't properly configured
-func (oa *OutgoingOAuthConnection) IsValidGrantType() *AppError {
+// HasValidGrantType validates the grant type and its parameters returning an error if it isn't properly configured
+func (oa *OutgoingOAuthConnection) HasValidGrantType() *AppError {
 	if !oa.GrantType.IsValid() {
 		return NewAppError("OutgoingOAuthConnection.IsValid", "model.outgoing_oauth_connection.is_valid.grant_type.error", nil, "id="+oa.Id, http.StatusBadRequest)
 	}
@@ -137,17 +177,16 @@ func (oa *OutgoingOAuthConnection) Etag() string {
 	return Etag(oa.Id, oa.UpdateAt)
 }
 
-// Sanitize removes any sensitive fields from the OutgoingOAuthConnection object.
-func (oa *OutgoingOAuthConnection) Sanitize() {
-	oa.ClientSecret = ""
-	oa.CredentialsUsername = nil
-	oa.CredentialsPassword = nil
-}
-
 // OutgoingOAuthConnectionGetConnectionsFilter is used to filter outgoing connections
 type OutgoingOAuthConnectionGetConnectionsFilter struct {
 	OffsetId string
 	Limit    int
+	Audience string
+
+	// TeamId is not used as a filter but as a way to check if the current user has permission to
+	// access the outgoing oauth connection for the given team in order to use them in the slash
+	// commands and outgoing webhooks.
+	TeamId string
 }
 
 // SetDefaults sets the default values for the filter
@@ -155,4 +194,37 @@ func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) SetDefaults() {
 	if oaf.Limit == 0 {
 		oaf.Limit = defaultGetConnectionsLimit
 	}
+}
+
+// ToURLValues converts the filter to url.Values
+func (oaf *OutgoingOAuthConnectionGetConnectionsFilter) ToURLValues() url.Values {
+	v := url.Values{}
+
+	if oaf.Limit > 0 {
+		v.Set("limit", fmt.Sprintf("%d", oaf.Limit))
+	}
+
+	if oaf.OffsetId != "" {
+		v.Set("offset_id", oaf.OffsetId)
+	}
+
+	if oaf.Audience != "" {
+		v.Set("audience", oaf.Audience)
+	}
+
+	if oaf.TeamId != "" {
+		v.Set("team_id", oaf.TeamId)
+	}
+	return v
+}
+
+// OutgoingOAuthConnectionToken is used to return the token for an outgoing connection oauth
+// authentication request
+type OutgoingOAuthConnectionToken struct {
+	AccessToken string
+	TokenType   string
+}
+
+func (ooct *OutgoingOAuthConnectionToken) AsHeaderValue() string {
+	return ooct.TokenType + " " + ooct.AccessToken
 }
