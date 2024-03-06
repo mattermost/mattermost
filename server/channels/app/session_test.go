@@ -418,7 +418,7 @@ func TestSessionsLimit(t *testing.T) {
 	gotSessions, _ := th.App.GetSessions(th.Context, user.Id)
 	require.Equal(t, MaxSessionsLimit, len(gotSessions), "should have MaxSessionsLimit number of sessions")
 
-	// ensure the the oldest sessions were removed first
+	// Ensure we are retrieving the same sessions.
 	reverse(gotSessions)
 	for i, sess := range gotSessions {
 		require.Equal(t, sessions[i].Id, sess.Id)
@@ -429,7 +429,7 @@ func TestSessionsLimit(t *testing.T) {
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 		require.Nil(t, err, "should not have an error creating user sessions")
 
-		// remove oldest, append newest
+		// Remove oldest, append newest.
 		sessions = sessions[1:]
 		sessions = append(sessions, session)
 		time.Sleep(1 * time.Millisecond)
@@ -439,7 +439,7 @@ func TestSessionsLimit(t *testing.T) {
 	gotSessions, _ = th.App.GetSessions(th.Context, user.Id)
 	require.Equal(t, MaxSessionsLimit, len(gotSessions), "should have MaxSessionsLimit number of sessions")
 
-	// ensure the the oldest sessions were removed first
+	// Ensure the the oldest sessions were removed first.
 	reverse(gotSessions)
 	for i, sess := range gotSessions {
 		require.Equal(t, sessions[i].Id, sess.Id)
