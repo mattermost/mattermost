@@ -69,11 +69,11 @@ const Close = styled.button`
     font-size: 17px;
     justify-content: center;
     margin-top: -1px;
-    opacity: 0.56;
+    opacity: 0.73;
     visibility: hidden;
 
     &:hover {
-        opacity: 0.72;
+        opacity: 0.73;
     }
 
     ${Priority}:hover & {

@@ -1903,20 +1903,6 @@ func (_m *ChannelStore) InvalidatePinnedPostCount(channelID string) {
 	_m.Called(channelID)
 }
 
-// IsUserInChannelUseCache provides a mock function with given fields: userID, channelID
-func (_m *ChannelStore) IsUserInChannelUseCache(userID string, channelID string) bool {
-	ret := _m.Called(userID, channelID)
-
-	var r0 bool
-	if rf, ok := ret.Get(0).(func(string, string) bool); ok {
-		r0 = rf(userID, channelID)
-	} else {
-		r0 = ret.Get(0).(bool)
-	}
-
-	return r0
-}
-
 // MigrateChannelMembers provides a mock function with given fields: fromChannelID, fromUserID
 func (_m *ChannelStore) MigrateChannelMembers(fromChannelID string, fromUserID string) (map[string]string, error) {
 	ret := _m.Called(fromChannelID, fromUserID)
@@ -2095,25 +2081,25 @@ func (_m *ChannelStore) Restore(channelID string, timestamp int64) error {
 	return r0
 }
 
-// Save provides a mock function with given fields: channel, maxChannelsPerTeam
-func (_m *ChannelStore) Save(channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
-	ret := _m.Called(channel, maxChannelsPerTeam)
+// Save provides a mock function with given fields: rctx, channel, maxChannelsPerTeam
+func (_m *ChannelStore) Save(rctx request.CTX, channel *model.Channel, maxChannelsPerTeam int64) (*model.Channel, error) {
+	ret := _m.Called(rctx, channel, maxChannelsPerTeam)
 
 	var r0 *model.Channel
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*model.Channel, int64) (*model.Channel, error)); ok {
-		return rf(channel, maxChannelsPerTeam)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, int64) (*model.Channel, error)); ok {
+		return rf(rctx, channel, maxChannelsPerTeam)
 	}
-	if rf, ok := ret.Get(0).(func(*model.Channel, int64) *model.Channel); ok {
-		r0 = rf(channel, maxChannelsPerTeam)
+	if rf, ok := ret.Get(0).(func(request.CTX, *model.Channel, int64) *model.Channel); ok {
+		r0 = rf(rctx, channel, maxChannelsPerTeam)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(*model.Channel)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(*model.Channel, int64) error); ok {
-		r1 = rf(channel, maxChannelsPerTeam)
+	if rf, ok := ret.Get(1).(func(request.CTX, *model.Channel, int64) error); ok {
+		r1 = rf(rctx, channel, maxChannelsPerTeam)
 	} else {
 		r1 = ret.Error(1)
 	}

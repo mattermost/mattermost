@@ -33,7 +33,7 @@ func testPostAcknowledgementsStoreSave(t *testing.T, rctx request.CTX, ss store.
 			PersistentNotifications: model.NewBool(false),
 		},
 	}
-	post, err := ss.Post().Save(&p1)
+	post, err := ss.Post().Save(rctx, &p1)
 	require.NoError(t, err)
 
 	t.Run("consecutive saves should just update the acknowledged at", func(t *testing.T) {
@@ -78,7 +78,7 @@ func testPostAcknowledgementsStoreGetForPost(t *testing.T, rctx request.CTX, ss 
 			PersistentNotifications: model.NewBool(false),
 		},
 	}
-	_, err := ss.Post().Save(&p1)
+	_, err := ss.Post().Save(rctx, &p1)
 	require.NoError(t, err)
 
 	t.Run("get acknowledgements for post", func(t *testing.T) {

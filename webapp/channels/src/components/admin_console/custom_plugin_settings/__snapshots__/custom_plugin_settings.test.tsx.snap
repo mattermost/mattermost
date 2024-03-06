@@ -4,7 +4,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 <div
   className="wrapper--fixed "
 >
-  testplugin
+  <AdminHeader>
+    testplugin
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -16,7 +18,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <div
@@ -176,7 +178,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 *This* is the **footer**"
             />
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>
@@ -233,7 +235,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 <div
   className="wrapper--fixed "
 >
-  testplugin
+  <AdminHeader>
+    testplugin
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -300,7 +304,9 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 <div
   className="wrapper--fixed "
 >
-  testplugin
+  <AdminHeader>
+    testplugin
+  </AdminHeader>
   <div
     className="admin-console__wrapper"
   >
@@ -312,7 +318,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <SettingsGroup
+        <Memo(SettingsGroup)
           container={false}
         >
           <div
@@ -472,7 +478,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 *This* is the **footer**"
             />
           </div>
-        </SettingsGroup>
+        </Memo(SettingsGroup)>
       </form>
     </div>
   </div>

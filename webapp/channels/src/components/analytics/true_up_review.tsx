@@ -10,7 +10,7 @@ import {useDispatch, useSelector} from 'react-redux';
 import type {GlobalState} from '@mattermost/types/store';
 
 import {isCurrentLicenseCloud} from 'mattermost-redux/selectors/entities/cloud';
-import {getConfig, getLicense} from 'mattermost-redux/selectors/entities/general';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {
     getSelfHostedErrors,
     getTrueUpReviewProfile as trueUpReviewProfileSelector,
@@ -50,7 +50,6 @@ const TrueUpReview: React.FC = () => {
     // * are not on starter/free
     // * are not a government sku
     const licenseIsTrueUpEligible = isLicensed && !isCloud && !isStarter && !isGovSku;
-    const telemetryEnabled = useSelector(getConfig).EnableDiagnostics === 'true';
     const trueUpReviewError = useSelector((state: GlobalState) => {
         const errors = getSelfHostedErrors(state);
         return Boolean(errors.trueUpReview);
@@ -70,7 +69,7 @@ const TrueUpReview: React.FC = () => {
             return;
         }
 
-        if (reviewProfile.getRequestState === 'OK' && isAirGapped && !trueUpReviewError && reviewProfile.content.length > 0) {
+        if (reviewProfile.getRequestState === 'OK' && !reviewStatus.complete && isAirGapped && !trueUpReviewError && reviewProfile.content.length > 0) {
             // Create the bundle as a blob containing base64 encoded json data and assign it to a link element.
             const blob = new Blob([reviewProfile.content], {type: 'application/text'});
             const href = URL.createObjectURL(blob);
@@ -85,6 +84,7 @@ const TrueUpReview: React.FC = () => {
             // Remove link and revoke object url to avoid memory leaks.
             document.body.removeChild(link);
             URL.revokeObjectURL(href);
+            dispatch(getTrueUpReviewStatus());
         }
     }, [isAirGapped, reviewProfile, reviewProfile.getRequestState, trueUpReviewError]);
 
@@ -218,10 +218,6 @@ const TrueUpReview: React.FC = () => {
 
     // If the review has already been submitted, don't show anything.
     if (reviewStatus.complete) {
-        return null;
-    }
-
-    if (telemetryEnabled) {
         return null;
     }
 
