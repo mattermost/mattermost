@@ -9250,5 +9250,33 @@
   {
     "id": "api.context.ip_filtering.not_available.app_error",
     "translation": "El filtrado IP no está disponible en este servidor"
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "No se pudieron recuperar las credenciales con la conexión de configuración especificada."
+  },
+  {
+    "id": "api.drafts.disabled.app_error",
+    "translation": "La función de borradores está deshabilitada."
+  },
+  {
+    "id": "api.draft.create_draft.can_not_draft_to_deleted.error",
+    "translation": "No se puede guardar el borrador en el canal eliminado"
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_active_filter",
+    "translation": "No se puede ocultar tanto usuarios activos como inactivos."
+  },
+  {
+    "id": "api.emoji.get_multiple_by_name_too_many.request_error",
+    "translation": "No se pueden obtener tantos emojis por nombre. Sólo {{.MaxNames}} emojis pueden ser solicitados de una vez."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_team_filter",
+    "translation": "Se proporcionó un id de equipo inválido."
+  },
+  {
+    "id": "api.getUsersForReporting.invalid_page_size",
+    "translation": "El tamaño de la página es inválido o demasiado grande."
   }
 ]
