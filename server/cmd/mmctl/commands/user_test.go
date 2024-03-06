@@ -2747,7 +2747,6 @@ func (s *MmctlUnitTestSuite) TestPromoteGuestToUserCmd() {
 			Times(1)
 
 		err := promoteGuestToUserCmdF(s.client, nil, []string{emailArg})
-		s.Require().NoError(err)
 		s.Require().ErrorContains(err, "unable to promote user")
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
