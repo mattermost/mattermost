@@ -98,33 +98,37 @@ exports[`components/Root Routes Should mount public product routes 1`] = `
       <GlobalHeader />
       <CloudEffectsWrapper />
       <withRouter(Connect(TeamSidebar)) />
-      <Switch>
-        <Route
-          key="productwithpublic-public"
-          path="/productwithpublic/public"
-          render={[Function]}
+      <div
+        className="content-container"
+      >
+        <Switch>
+          <Route
+            key="productwithpublic-public"
+            path="/productwithpublic/public"
+            render={[Function]}
+          />
+          <Route
+            key="productwithpublic"
+            path="/productwithpublic"
+            render={[Function]}
+          />
+          <Route
+            key="productwithoutpublic"
+            path="/productwithoutpublic"
+            render={[Function]}
+          />
+          <LoggedInRoute
+            component={[Function]}
+            path="/:team([a-z0-9\\\\-_]+)"
+            theme={Object {}}
+          />
+          <Connect(RootRedirect) />
+        </Switch>
+        <Connect(Pluggable)
+          pluggableName="Global"
         />
-        <Route
-          key="productwithpublic"
-          path="/productwithpublic"
-          render={[Function]}
-        />
-        <Route
-          key="productwithoutpublic"
-          path="/productwithoutpublic"
-          render={[Function]}
-        />
-        <LoggedInRoute
-          component={[Function]}
-          path="/:team([a-z0-9\\\\-_]+)"
-          theme={Object {}}
-        />
-        <Connect(RootRedirect) />
-      </Switch>
-      <Connect(Pluggable)
-        pluggableName="Global"
-      />
-      <withRouter(Connect(SidebarRight)) />
+        <withRouter(Connect(SidebarRight)) />
+      </div>
       <AppBar />
       <Connect(SidebarRightMenu) />
     </CompassThemeProvider>
