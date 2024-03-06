@@ -9,9 +9,11 @@ import {useSelector} from 'react-redux';
 
 import type {UserProfile} from '@mattermost/types/users';
 
+import {Client4} from 'mattermost-redux/client';
 import {getCurrentChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {ChannelHeaderDropdown} from 'components/channel_header_dropdown';
+import ProfilePicture from 'components/profile_picture';
 import SharedChannelIndicator from 'components/shared_channel_indicator';
 import ArchiveIcon from 'components/widgets/icons/archive_icon';
 import MenuWrapper from 'components/widgets/menu/menu_wrapper';
@@ -74,6 +76,10 @@ const ChannelHeaderTitle = ({
                 className='channel-header__top channel-header__bot'
             >
                 <ChannelHeaderTitleFavorite/>
+                <ProfilePicture
+                    src={Client4.getProfilePictureUrl(dmUser.id, dmUser.last_picture_update)}
+                    size='sm'
+                />
                 <strong
                     role='heading'
                     aria-level={2}
@@ -90,8 +96,15 @@ const ChannelHeaderTitle = ({
         );
     }
     return (
-        <React.Fragment>
+        <div className='channel-header__top'>
             <ChannelHeaderTitleFavorite/>
+            {isDirect && dmUser && ( // Check if it's a DM and dmUser is provided
+                <ProfilePicture
+                    src={Client4.getProfilePictureUrl(dmUser.id, dmUser.last_picture_update)}
+                    size='sm'
+                    status={channel.status}
+                />
+            )}
             <MenuWrapper onToggle={setTitleMenuOpen}>
                 <div
                     id='channelHeaderDropdownButton'
@@ -121,7 +134,7 @@ const ChannelHeaderTitle = ({
                 </div>
                 <ChannelHeaderDropdown/>
             </MenuWrapper>
-        </React.Fragment>
+        </div>
     );
 };
 

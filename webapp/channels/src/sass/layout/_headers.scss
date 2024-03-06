@@ -262,6 +262,22 @@
     padding: 4px 0;
     white-space: nowrap;
 
+    .status-wrapper {
+        .status {
+            right: -4px;
+            bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            svg {
+                top: 1px;
+                left: 1px;
+                max-height: initial;
+            }
+        }
+    }
+
     .dropdown-toggle {
         display: flex;
         overflow: hidden;

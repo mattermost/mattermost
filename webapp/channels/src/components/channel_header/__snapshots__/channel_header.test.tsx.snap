@@ -104,9 +104,6 @@ exports[`components/ChannelHeader should match snapshot with last active display
             dir="auto"
             id="channelHeaderDescription"
           >
-            <Memo(StatusIcon)
-              status="offline"
-            />
             <span
               className="header-status__text"
             >
@@ -402,17 +399,9 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
             dir="auto"
             id="channelHeaderDescription"
           >
-            <Memo(StatusIcon)
-              status="offline"
-            />
             <span
               className="header-status__text"
-            >
-              <MemoizedFormattedMessage
-                defaultMessage="Offline"
-                id="status_dropdown.set_offline"
-              />
-            </span>
+            />
             <div
               className="header-popover-text-measurer"
             >
@@ -2404,9 +2393,6 @@ exports[`components/ChannelHeader should render properly when custom status is e
             dir="auto"
             id="channelHeaderDescription"
           >
-            <Memo(StatusIcon)
-              status="offline"
-            />
             <span
               className="header-status__text"
             >
@@ -2700,9 +2686,6 @@ exports[`components/ChannelHeader should render properly when custom status is s
             dir="auto"
             id="channelHeaderDescription"
           >
-            <Memo(StatusIcon)
-              status="offline"
-            />
             <span
               className="header-status__text"
             >

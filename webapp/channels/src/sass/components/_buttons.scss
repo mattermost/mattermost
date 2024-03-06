@@ -59,7 +59,6 @@ button {
             color: rgba(var(--center-channel-color-rgb), var(--icon-opacity-hover));
         }
 
-        &:focus,
         &:active {
             background-color: rgba(var(--button-bg-rgb), 0.08);
             color: rgba(var(--button-bg-rgb), 1);

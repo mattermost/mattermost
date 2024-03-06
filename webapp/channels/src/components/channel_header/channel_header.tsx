@@ -21,8 +21,6 @@ import Markdown from 'components/markdown';
 import OverlayTrigger from 'components/overlay_trigger';
 import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import {statusDropdownMessages} from 'components/status_dropdown/status_dropdown';
-import StatusIcon from 'components/status_icon';
 import Timestamp from 'components/timestamp';
 import Tooltip from 'components/tooltip';
 import Popover from 'components/widgets/popover';
@@ -308,14 +306,10 @@ class ChannelHeader extends React.PureComponent<Props, State> {
             }
         }
 
-        let dmHeaderIconStatus: ReactNode;
         let dmHeaderTextStatus: ReactNode;
         if (isDirect && !dmUser?.delete_at && !dmUser?.is_bot) {
-            dmHeaderIconStatus = (<StatusIcon status={channel.status}/>);
-
             dmHeaderTextStatus = (
                 <span className='header-status__text'>
-                    <FormattedMessage {...statusDropdownMessages[channel.status!].name}/>
                     {this.renderCustomStatus()}
                 </span>
             );
@@ -450,7 +444,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     className='channel-header__description'
                     dir='auto'
                 >
-                    {dmHeaderIconStatus}
                     {dmHeaderTextStatus}
                     {hasGuestsText}
                     <div
@@ -539,7 +532,6 @@ class ChannelHeader extends React.PureComponent<Props, State> {
                     id='channelHeaderDescription'
                     className='channel-header__description light'
                 >
-                    {dmHeaderIconStatus}
                     {dmHeaderTextStatus}
                     {hasGuestsText}
                     {editMessage}
