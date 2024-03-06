@@ -217,12 +217,12 @@ func (a *App) SessionHasPermissionToUser(session model.Session, userID string) b
 	return false
 }
 
-func (a *App) SessionHasPermissionToUserOrBot(session model.Session, userID string) bool {
+func (a *App) SessionHasPermissionToUserOrBot(rctx request.CTX, session model.Session, userID string) bool {
 	if session.IsUnrestricted() {
 		return true
 	}
 
-	err := a.SessionHasPermissionToManageBot(session, userID)
+	err := a.SessionHasPermissionToManageBot(rctx, session, userID)
 	if err == nil {
 		return true
 	}
@@ -339,9 +339,9 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 // SessionHasPermissionToManageBot returns nil if the session has access to manage the given bot.
 // This function deviates from other authorization checks in returning an error instead of just
 // a boolean, allowing the permission failure to be exposed with more granularity.
-func (a *App) SessionHasPermissionToManageBot(session model.Session, botUserId string) *model.AppError {
+func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Session, botUserId string) *model.AppError {
 	// TODO: Ezekiel
-	existingBot, err := a.GetBot(a.req, botUserId, true)
+	existingBot, err := a.GetBot(rctx, botUserId, true)
 	if err != nil {
 		return err
 	}
