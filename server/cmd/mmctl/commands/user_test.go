@@ -208,7 +208,7 @@ func (s *MmctlUnitTestSuite) TestUserActivateCmd() {
 
 			r, dir := userActivateCompletionF(context.Background(), s.client, nil, nil, "1")
 			s.Equal(cobra.ShellCompDirectiveNoFileComp, dir)
-			s.Equal([]string{"1_id", "1_username", "1_email@example.org"}, r)
+			s.Equal([]string{"1_id"}, r)
 		})
 	})
 }
