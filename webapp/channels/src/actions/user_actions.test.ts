@@ -71,7 +71,7 @@ jest.mock('actions/telemetry_actions.jsx', () => {
 });
 
 describe('Actions.User', () => {
-    const initialState: GlobalState = {
+    const initialState = {
         entities: {
             channels: {
                 currentChannelId: 'current_channel_id',
@@ -90,7 +90,7 @@ describe('Actions.User', () => {
                     } as Channel,
                 },
                 channelsInTeam: {
-                    team_1: ['current_channel_id'],
+                    team_1: new Set(['current_channel_id']),
                 },
                 messageCounts: {
                     current_channel_id: {total: 10} as ChannelMessageCount,
@@ -100,10 +100,12 @@ describe('Actions.User', () => {
                         current_user_id: {channel_id: 'current_user_id'} as ChannelMembership,
                     },
                 },
-            } as unknown as GlobalState['entities']['channels'],
+            },
             general: {
-                config: {},
-            } as GlobalState['entities']['general'],
+                config: {
+                    EnableUserStatuses: 'true',
+                },
+            },
             preferences: {
                 myPreferences: {
                     'theme--team_1': {
@@ -140,13 +142,13 @@ describe('Actions.User', () => {
                         current_user_id: {id: 'current_user_id'} as unknown as TeamMembership,
                     },
                 },
-            } as unknown as GlobalState['entities']['teams'],
+            },
             users: {
                 currentUserId: 'current_user_id',
                 profilesInChannel: {
-                    group_channel_2: ['user_1', 'user_2'],
+                    group_channel_2: new Set(['user_1', 'user_2']),
                 },
-            } as unknown as GlobalState['entities']['users'],
+            },
             posts: {
                 posts: {
                     sample_post_id: {
@@ -159,35 +161,25 @@ describe('Actions.User', () => {
                             order: ['sample_post_id'],
                         },
                     ]},
-            } as unknown as GlobalState['entities']['posts'],
-        } as unknown as GlobalState['entities'],
+            },
+        },
         storage: {
             storage: {},
             initialized: true,
         },
         views: {
             channel: {
-            } as GlobalState['views']['channel'],
+            },
             channelSidebar: {
                 unreadFilterEnabled: false,
-            } as GlobalState['views']['channelSidebar'],
-        } as GlobalState['views'],
-    } as GlobalState;
-
-    test('loadProfilesAndStatusesInChannel', async () => {
-        const testStore = mockStore(initialState);
-        await testStore.dispatch(UserActions.loadProfilesAndStatusesInChannel('channel_1', 0, 60, 'status', {}));
-        const actualActions = testStore.getActions();
-        expect(actualActions[0].args).toEqual(['channel_1', 0, 60, 'status', {}]);
-        expect(actualActions[0].type).toEqual('MOCK_GET_PROFILES_IN_CHANNEL');
-        expect(actualActions[1].args).toEqual([['user_1']]);
-        expect(actualActions[1].type).toEqual('MOCK_GET_STATUSES_BY_ID');
-    });
+            },
+        },
+    };
 
     test('loadProfilesAndTeamMembers', async () => {
         const expectedActions = [{type: 'MOCK_GET_PROFILES_IN_TEAM', args: ['team_1', 0, 60, '', {}]}];
 
-        let testStore = mockStore({} as GlobalState);
+        let testStore = mockStore({});
         await testStore.dispatch(UserActions.loadProfilesAndTeamMembers(0, 60, 'team_1', {}));
         let actualActions = testStore.getActions();
         expect(actualActions[0].args).toEqual(expectedActions[0].args);
@@ -345,7 +337,6 @@ describe('Actions.User', () => {
             entities: {
                 ...initialState.entities,
                 channelCategories: {
-                    ...initialState.entities.channelCategories,
                     byId: {
                         dmsCategory,
                     },
@@ -548,7 +539,7 @@ describe('Actions.User', () => {
         };
 
         const channelsInTeam = {
-            '': [gmChannel.id],
+            '': new Set([gmChannel.id]),
         };
 
         const myMembers = {

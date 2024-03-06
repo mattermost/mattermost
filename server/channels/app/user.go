@@ -235,7 +235,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		return nil, err
 	}
 
-	ruser, nErr := a.ch.srv.userService.CreateUser(user, users.UserCreateOptions{Guest: guest})
+	ruser, nErr := a.ch.srv.userService.CreateUser(c, user, users.UserCreateOptions{Guest: guest})
 	if nErr != nil {
 		var appErr *model.AppError
 		var invErr *store.ErrInvalidInput
@@ -325,7 +325,7 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 		mlog.Error("Error fetching user limits in createUserOrGuest", mlog.Err(appErr))
 	} else {
 		if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-			mlog.Warn("ERROR_USER_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+			mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Created user exceeds the total activated users limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
 		}
 	}
 
@@ -1049,7 +1049,7 @@ func (a *App) UpdateActive(c request.CTX, user *model.User, active bool) (*model
 			mlog.Error("Error fetching user limits in UpdateActive", mlog.Err(appErr))
 		} else {
 			if userLimits.ActiveUserCount > userLimits.MaxUsersLimit {
-				mlog.Warn("ERROR_USER_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
+				mlog.Warn("ERROR_SAFETY_LIMITS_EXCEEDED: Activated user exceeds the total active user limit.", mlog.Int("user_limit", userLimits.MaxUsersLimit))
 			}
 		}
 	}

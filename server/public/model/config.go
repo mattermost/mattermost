@@ -312,6 +312,7 @@ type ServiceSettings struct {
 	EnableOAuthServiceProvider          *bool    `access:"integrations_integration_management"`
 	EnableIncomingWebhooks              *bool    `access:"integrations_integration_management"`
 	EnableOutgoingWebhooks              *bool    `access:"integrations_integration_management"`
+	EnableOutgoingOAuthConnections      *bool    `access:"integrations_integration_management"`
 	EnableCommands                      *bool    `access:"integrations_integration_management"`
 	OutgoingIntegrationRequestsTimeout  *int64   `access:"integrations_integration_management"` // In seconds.
 	EnablePostUsernameOverride          *bool    `access:"integrations_integration_management"`
@@ -513,6 +514,10 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnableOutgoingWebhooks == nil {
 		s.EnableOutgoingWebhooks = NewBool(true)
+	}
+
+	if s.EnableOutgoingOAuthConnections == nil {
+		s.EnableOutgoingOAuthConnections = NewBool(false)
 	}
 
 	if s.OutgoingIntegrationRequestsTimeout == nil {
@@ -1595,21 +1600,21 @@ type FileSettings struct {
 	AmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
 	AmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
 	// Export store settings
-	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3Region                     *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportAmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportAmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable,cloud_restrictable"`
-	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
-	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable,cloud_restrictable"` // telemetry: none
+	DedicatedExportStore                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportDriverName                         *string `access:"environment_file_storage,write_restrictable"`
+	ExportDirectory                          *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3AccessKeyId                *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3SecretAccessKey            *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3Bucket                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3PathPrefix                 *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3Region                     *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3Endpoint                   *string `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3SSL                        *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAmazonS3SignV2                     *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAmazonS3SSE                        *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAmazonS3Trace                      *bool   `access:"environment_file_storage,write_restrictable"`
+	ExportAmazonS3RequestTimeoutMilliseconds *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
+	ExportAmazonS3PresignExpiresSeconds      *int64  `access:"environment_file_storage,write_restrictable"` // telemetry: none
 }
 
 func (s *FileSettings) SetDefaults(isUpdate bool) {
@@ -3026,6 +3031,7 @@ type CloudSettings struct {
 	CWSURL    *string `access:"write_restrictable"`
 	CWSAPIURL *string `access:"write_restrictable"`
 	CWSMock   *bool   `access:"write_restrictable"`
+	Disable   *bool   `access:"write_restrictable,cloud_restrictable"`
 }
 
 func (s *CloudSettings) SetDefaults() {
@@ -3048,6 +3054,10 @@ func (s *CloudSettings) SetDefaults() {
 	if s.CWSMock == nil {
 		isMockCws := MockCWS == "true"
 		s.CWSMock = &isMockCws
+	}
+
+	if s.Disable == nil {
+		s.Disable = NewBool(false)
 	}
 }
 
@@ -3489,7 +3499,7 @@ type Config struct {
 	DataRetentionSettings     DataRetentionSettings
 	MessageExportSettings     MessageExportSettings
 	JobSettings               JobSettings
-	ProductSettings           ProductSettings
+	ProductSettings           ProductSettings // Deprecated: Remove in next major version:: https://mattermost.atlassian.net/browse/MM-56655
 	PluginSettings            PluginSettings
 	DisplaySettings           DisplaySettings
 	GuestAccountsSettings     GuestAccountsSettings

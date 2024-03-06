@@ -21,7 +21,6 @@ import (
 	"github.com/mattermost/mattermost/server/public/plugin"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
 	"github.com/mattermost/mattermost/server/public/utils"
-	"github.com/mattermost/mattermost/server/v8/channels/product"
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 	"github.com/mattermost/mattermost/server/v8/config"
 	"github.com/mattermost/mattermost/server/v8/einterfaces"
@@ -36,9 +35,6 @@ type ServiceConfig struct {
 	// Optional fields
 	Cluster einterfaces.ClusterInterface
 }
-
-// ensure the config wrapper implements `product.ConfigService`
-var _ product.ConfigService = (*PlatformService)(nil)
 
 func (ps *PlatformService) Config() *model.Config {
 	return ps.configStore.Get()

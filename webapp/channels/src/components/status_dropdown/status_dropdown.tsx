@@ -282,13 +282,13 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
             customStatusText = customStatus?.text;
             break;
         case isStatusSet && !customStatus?.text && customStatus?.duration === CustomStatusDuration.DONT_CLEAR:
-            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom_text', defaultMessage: 'Set Custom Status Text...'});
+            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom_text', defaultMessage: 'Set custom status text...'});
             break;
         case isStatusSet && !customStatus?.text && customStatus?.duration !== CustomStatusDuration.DONT_CLEAR:
             customStatusText = '';
             break;
         case !isStatusSet:
-            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom', defaultMessage: 'Set a Custom Status'});
+            customStatusHelpText = this.props.intl.formatMessage({id: 'status_dropdown.set_custom', defaultMessage: 'Set a custom status'});
         }
 
         const customStatusEmoji = isStatusSet ? (
@@ -342,7 +342,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     time={customStatus.expires_at}
                     timezone={this.props.timezone}
                     className={classNames('custom_status__expiry', {
-                        padded: customStatus?.text.length > 0,
+                        padded: customStatus?.text?.length > 0,
                     })}
                     withinBrackets={true}
                 />
@@ -355,7 +355,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                     modalId={ModalIdentifiers.CUSTOM_STATUS}
                     dialogType={CustomStatusModal}
                     className={classNames('MenuItem__primary-text custom_status__row', {
-                        flex: customStatus?.text.length === 0,
+                        flex: customStatus?.text?.length === 0,
                     })}
                     id={'status-menu-custom-status'}
                 >
@@ -369,7 +369,6 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         />
                         <Text
                             margin='none'
-                            color='disabled'
                         >
                             {customStatusHelpText}
                         </Text>
@@ -386,7 +385,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         const {intl} = this.props;
         const needsConfirm = this.isUserOutOfOffice() && this.props.autoResetPref === '';
         const {status, customStatus, isCustomStatusExpired, currentUser} = this.props;
-        const isStatusSet = customStatus && (customStatus.text.length > 0 || customStatus.emoji.length > 0) && !isCustomStatusExpired;
+        const isStatusSet = customStatus && !isCustomStatusExpired && (customStatus.text?.length > 0 || customStatus.emoji?.length > 0);
 
         const setOnline = needsConfirm ? () => this.showStatusChangeConfirmation('online') : this.setOnline;
         const setDnd = needsConfirm ? () => this.showStatusChangeConfirmation('dnd') : this.setDnd;
@@ -397,7 +396,7 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
         const selectedIndicator = (
             <CheckIcon
                 size={16}
-                color={'var(--semantic-color-success)'}
+                color={'var(--button-bg)'}
             />
         );
 
@@ -529,8 +528,8 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                                 >{`${currentUser.first_name} ${currentUser.last_name}`}</Text>
                                 <Text
                                     margin={'none'}
-                                    className={!currentUser.first_name && !currentUser.last_name ? 'bold' : ''}
-                                    color={!currentUser.first_name && !currentUser.last_name ? undefined : 'disabled'}
+                                    className={!currentUser.first_name && !currentUser.last_name ? 'bold' : 'contrast'}
+                                    color={!currentUser.first_name && !currentUser.last_name ? undefined : 'inherit'}
                                 >
                                     {'@' + currentUser.username}
                                 </Text>
@@ -612,7 +611,13 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                             dialogType={UserSettingsModal}
                             dialogProps={{isContentProductSettings: false}}
                             text={this.props.intl.formatMessage({id: 'navbar_dropdown.profileSettings', defaultMessage: 'Profile'})}
-                            icon={<AccountOutlineIcon size={16}/>}
+                            icon={
+                                <AccountOutlineIcon
+                                    size={16}
+                                    color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                                    className={'profile__icon'}
+                                />
+                            }
                         >
                             {this.props.showCompleteYourProfileTour && (
                                 <div
@@ -625,12 +630,19 @@ export class StatusDropdown extends React.PureComponent<Props, State> {
                         </Menu.ItemToggleModalRedux>
                     </Menu.Group>
                     <Menu.Group>
-                        <Menu.ItemAction
-                            id='logout'
-                            onClick={this.handleEmitUserLoggedOutEvent}
-                            text={this.props.intl.formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
-                            icon={<ExitToAppIcon size={16}/>}
-                        />
+                        <span className={'logout__icon'}>
+                            <Menu.ItemAction
+                                id='logout'
+                                onClick={this.handleEmitUserLoggedOutEvent}
+                                text={this.props.intl.formatMessage({id: 'navbar_dropdown.logout', defaultMessage: 'Log Out'})}
+                                icon={
+                                    <ExitToAppIcon
+                                        size={16}
+                                        color={'rgba(var(--center-channel-color-rgb), 0.56)'}
+                                    />
+                                }
+                            />
+                        </span>
                     </Menu.Group>
                 </Menu>
             </MenuWrapper>

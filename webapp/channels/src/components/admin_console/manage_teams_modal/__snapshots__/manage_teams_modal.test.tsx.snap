@@ -23,7 +23,8 @@ exports[`ManageTeamsModal should match snapshot init 1`] = `
       "remove": [Function],
     }
   }
-  onHide={[MockFunction]}
+  onExited={[MockFunction]}
+  onHide={[Function]}
   renderBackdrop={[Function]}
   restoreFocus={true}
   role="dialog"

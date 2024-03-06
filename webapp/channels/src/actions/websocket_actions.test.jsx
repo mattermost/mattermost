@@ -132,7 +132,7 @@ let mockState = {
                 },
             },
             channelsInTeam: {
-                team: ['channel1', 'channel2'],
+                team: new Set(['channel1', 'channel2']),
             },
             membersInChannel: {
                 otherChannel: {},

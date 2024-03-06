@@ -4,6 +4,7 @@
 import store from 'stores/redux_store';
 
 import mockStore from 'tests/test_store';
+import {TestHelper} from 'utils/test_helper';
 
 import SearchChannelWithPermissionsProvider from './search_channel_with_permissions_provider';
 
@@ -40,64 +41,64 @@ describe('components/SearchChannelWithPermissionsProvider', () => {
                     },
                 },
                 roles: {
-                    somePublicMemberChannelId: [],
-                    somePrivateMemberChannelId: [],
-                    someDirectConversation: [],
-                    someGroupConversation: [],
+                    somePublicMemberChannelId: new Set<string>(),
+                    somePrivateMemberChannelId: new Set<string>(),
+                    someDirectConversation: new Set<string>(),
+                    someGroupConversation: new Set<string>(),
                 },
                 channels: {
-                    somePublicMemberChannelId: {
+                    somePublicMemberChannelId: TestHelper.getChannelMock({
                         id: 'somePublicMemberChannelId',
                         type: 'O',
                         name: 'some-public-member-channel',
                         display_name: 'Some Public Member Channel',
                         delete_at: 0,
-                    },
-                    somePrivateMemberChannelId: {
+                    }),
+                    somePrivateMemberChannelId: TestHelper.getChannelMock({
                         id: 'somePrivateMemberChannelId',
                         type: 'P',
                         name: 'some-private-member-channel',
                         display_name: 'Some Private Member Channel',
                         delete_at: 0,
-                    },
-                    somePublicNonMemberChannelId: {
+                    }),
+                    somePublicNonMemberChannelId: TestHelper.getChannelMock({
                         id: 'somePublicNonMemberChannelId',
                         type: 'O',
                         name: 'some-public-non-member-channel',
                         display_name: 'Some Public Non-Member Channel',
                         delete_at: 0,
-                    },
-                    somePrivateNonMemberChannelId: {
+                    }),
+                    somePrivateNonMemberChannelId: TestHelper.getChannelMock({
                         id: 'somePrivateNonMemberChannelId',
                         type: 'P',
                         name: 'some-private=non-member-channel',
                         display_name: 'Some Private Non-Member Channel',
                         delete_at: 0,
-                    },
-                    someDirectConversation: {
+                    }),
+                    someDirectConversation: TestHelper.getChannelMock({
                         id: 'someDirectConversation',
                         type: 'D',
                         name: 'some-direct-conversation',
                         display_name: 'Some Direct Conversation',
                         delete_at: 0,
-                    },
-                    someGroupConversation: {
+                    }),
+                    someGroupConversation: TestHelper.getChannelMock({
                         id: 'someGroupConversation',
-                        type: 'GM',
+                        type: 'G',
                         name: 'some-group-conversation',
                         display_name: 'Some Group Conversation',
                         delete_at: 0,
-                    },
+                    }),
                 },
                 channelsInTeam: {
-                    someTeamId: [
+                    someTeamId: new Set([
                         'somePublicMemberChannelId',
                         'somePrivateMemberChannelId',
                         'somePublicNonMemberChannelId',
                         'somePrivateNonMemberChannelId',
                         'someDirectConversation',
                         'someGroupConversation',
-                    ],
+                    ]),
                 },
             },
             roles: {

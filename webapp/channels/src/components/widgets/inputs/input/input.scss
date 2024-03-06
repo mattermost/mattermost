@@ -17,9 +17,12 @@
 .Input_container {
     width: 100%;
 
+    textarea {
+        resize: none;
+    }
+
     .Input {
         position: relative;
-        z-index: 2;
         left: 0;
         width: 100%;
         padding: 0;
@@ -32,7 +35,7 @@
         outline: 0;
 
         &::placeholder {
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--center-channel-color-rgb), 0.75);
         }
 
         &.Input__focus {
@@ -52,12 +55,16 @@
         align-items: center;
         padding: 0 16px;
         margin: 2px 0;
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 14px;
         line-height: 20px;
 
         > :not(:first-child) {
             margin-left: 8px;
+        }
+
+        textarea {
+            margin-top: 6px;
         }
     }
 
@@ -112,7 +119,7 @@
     }
 
     .Input___info {
-        color: rgba(var(--center-channel-color-rgb), 0.56);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
 
         > span.valid {
             margin-left: 7px;
@@ -121,7 +128,6 @@
 
     .Input_fieldset {
         position: relative;
-        z-index: 3;
         display: flex;
         width: 100%;
         box-sizing: border-box;
@@ -170,7 +176,7 @@
 
     .Input_legend {
         position: absolute;
-        z-index: 4;
+        z-index: 1;
         top: -8px;
         display: flex;
         width: auto;
@@ -178,7 +184,7 @@
         border: none;
         margin-left: 12px;
         background-color: var(--center-channel-bg);
-        color: rgba(var(--center-channel-color-rgb), 0.64);
+        color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 10px;
         line-height: 14px;
         opacity: 0;

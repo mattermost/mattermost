@@ -140,9 +140,7 @@ type AppIface interface {
 	EnablePlugin(id string) *model.AppError
 	// EnsureBot provides similar functionality with the plugin-api BotService. It doesn't accept
 	// any ensureBotOptions hence it is not required for now.
-	// TODO: Once the focalboard migration completed, we should add this logic to the app and
-	// let plugin-api use the same code
-	EnsureBot(rctx request.CTX, productID string, bot *model.Bot) (string, error)
+	EnsureBot(rctx request.CTX, pluginID string, bot *model.Bot) (string, error)
 	// Expand announcements in incoming webhooks from Slack. Those announcements
 	// can be found in the text attribute, or in the pretext, text, title and value
 	// attributes of the attachment structure. The Slack attachment structure is
@@ -477,7 +475,7 @@ type AppIface interface {
 	CheckIntegrity() <-chan model.IntegrityCheckResult
 	CheckMandatoryS3Fields(settings *model.FileSettings) *model.AppError
 	CheckPasswordAndAllCriteria(rctx request.CTX, user *model.User, password string, mfaToken string) *model.AppError
-	CheckPostReminders()
+	CheckPostReminders(rctx request.CTX)
 	CheckRolesExist(roleNames []string) *model.AppError
 	CheckUserAllAuthenticationCriteria(rctx request.CTX, user *model.User, mfaToken string) *model.AppError
 	CheckUserMfa(rctx request.CTX, user *model.User, token string) *model.AppError
@@ -527,6 +525,7 @@ type AppIface interface {
 	CreatePostMissingChannel(c request.CTX, post *model.Post, triggerWebhooks bool, setOnline bool) (*model.Post, *model.AppError)
 	CreateRetentionPolicy(policy *model.RetentionPolicyWithTeamAndChannelIDs) (*model.RetentionPolicyWithTeamAndChannelCounts, *model.AppError)
 	CreateRole(role *model.Role) (*model.Role, *model.AppError)
+	CreateSamlRelayToken(extra string) (*model.Token, *model.AppError)
 	CreateScheme(scheme *model.Scheme) (*model.Scheme, *model.AppError)
 	CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError)
 	CreateSidebarCategory(c request.CTX, userID, teamID string, newCategory *model.SidebarCategoryWithChannels) (*model.SidebarCategoryWithChannels, *model.AppError)
@@ -785,6 +784,7 @@ type AppIface interface {
 	GetRoleByName(ctx context.Context, name string) (*model.Role, *model.AppError)
 	GetRolesByNames(names []string) ([]*model.Role, *model.AppError)
 	GetSamlCertificateStatus() *model.SamlCertificateStatus
+	GetSamlEmailToken(token string) (*model.Token, *model.AppError)
 	GetSamlMetadata(c request.CTX) (string, *model.AppError)
 	GetSamlMetadataFromIdp(idpMetadataURL string) (*model.SamlMetadataResponse, *model.AppError)
 	GetSanitizeOptions(asAdmin bool) map[string]bool
@@ -811,7 +811,7 @@ type AppIface interface {
 	GetSiteURL() string
 	GetStatus(userID string) (*model.Status, *model.AppError)
 	GetStatusFromCache(userID string) *model.Status
-	GetSystemBot() (*model.Bot, *model.AppError)
+	GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError)
 	GetTeam(teamID string) (*model.Team, *model.AppError)
 	GetTeamByInviteId(inviteId string) (*model.Team, *model.AppError)
 	GetTeamByName(name string) (*model.Team, *model.AppError)
@@ -883,8 +883,6 @@ type AppIface interface {
 	GetUsersWithoutTeamPage(options *model.UserGetOptions, asAdmin bool) ([]*model.User, *model.AppError)
 	GetVerifyEmailToken(token string) (*model.Token, *model.AppError)
 	GetViewUsersRestrictions(c request.CTX, userID string) (*model.ViewUsersRestrictions, *model.AppError)
-	GetWarnMetricsBot() (*model.Bot, *model.AppError)
-	GetWarnMetricsStatus(rctx request.CTX) (map[string]*model.WarnMetricStatus, *model.AppError)
 	HTTPService() httpservice.HTTPService
 	HandleCommandResponse(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.CommandResponse, *model.AppError)
 	HandleCommandResponsePost(c request.CTX, command *model.Command, args *model.CommandArgs, response *model.CommandResponse, builtIn bool) (*model.Post, *model.AppError)
@@ -913,7 +911,7 @@ type AppIface interface {
 	InviteGuestsToChannelsGracefully(teamID string, guestsInvite *model.GuestsInvite, senderId string) ([]*model.EmailInviteWithError, *model.AppError)
 	InviteNewUsersToTeam(emailList []string, teamID, senderId string) *model.AppError
 	InviteNewUsersToTeamGracefully(memberInvite *model.MemberInvite, teamID, senderId string, reminderInterval string) ([]*model.EmailInviteWithError, *model.AppError)
-	InviteRemoteToChannel(channelID, remoteID, userID string) error
+	InviteRemoteToChannel(channelID, remoteID, userID string, shareIfNotShared bool) error
 	IsCRTEnabledForUser(c request.CTX, userID string) bool
 	IsConfigReadOnly() bool
 	IsFirstUserAccount() bool
@@ -953,7 +951,6 @@ type AppIface interface {
 	NewPluginAPI(c request.CTX, manifest *model.Manifest) plugin.API
 	Notification() einterfaces.NotificationInterface
 	NotificationsLog() *mlog.Logger
-	NotifyAndSetWarnMetricAck(rctx request.CTX, warnMetricId string, sender *model.User, forceAck bool, isBot bool) *model.AppError
 	NotifySelfHostedSignupProgress(progress string, userId string)
 	NotifySharedChannelUserUpdate(user *model.User)
 	OpenInteractiveDialog(request model.OpenDialogRequest) *model.AppError
@@ -1016,7 +1013,6 @@ type AppIface interface {
 	RemoveUserFromChannel(c request.CTX, userIDToRemove string, removerUserId string, channel *model.Channel) *model.AppError
 	RemoveUserFromTeam(c request.CTX, teamID string, userID string, requestorId string) *model.AppError
 	RemoveUsersFromChannelNotMemberOfTeam(c request.CTX, remover *model.User, channel *model.Channel, team *model.Team) *model.AppError
-	RequestLicenseAndAckWarnMetric(c request.CTX, warnMetricId string, isBot bool) *model.AppError
 	ResetPasswordFromToken(c request.CTX, userSuppliedTokenString, newPassword string) *model.AppError
 	ResetPermissionsSystem() *model.AppError
 	ResetSamlAuthDataToEmail(includeDeleted bool, dryRun bool, userIDs []string) (numAffected int, appErr *model.AppError)
@@ -1025,7 +1021,6 @@ type AppIface interface {
 	RestoreTeam(teamID string) *model.AppError
 	RestrictUsersGetByPermissions(c request.CTX, userID string, options *model.UserGetOptions) (*model.UserGetOptions, *model.AppError)
 	RestrictUsersSearchByPermissions(c request.CTX, userID string, options *model.UserSearchOptions) (*model.UserSearchOptions, *model.AppError)
-	RetrieveBatchReport(reportID string, format string) (filestore.ReadCloseSeeker, string, *model.AppError)
 	ReturnSessionToPool(session *model.Session)
 	RevokeAccessToken(c request.CTX, token string) *model.AppError
 	RevokeAllSessions(c request.CTX, userID string) *model.AppError
@@ -1077,12 +1072,13 @@ type AppIface interface {
 	SendDelinquencyEmail(emailToSend model.DelinquencyEmail) *model.AppError
 	SendEmailVerification(user *model.User, newEmail, redirect string) *model.AppError
 	SendEphemeralPost(c request.CTX, userID string, post *model.Post) *model.Post
+	SendIPFiltersChangedEmail(c request.CTX, userID string) error
 	SendNotifications(c request.CTX, post *model.Post, team *model.Team, channel *model.Channel, sender *model.User, parentPostList *model.PostList, setOnline bool) ([]string, error)
 	SendNotifyAdminPosts(c request.CTX, workspaceName string, currentSKU string, trial bool) *model.AppError
 	SendPasswordReset(email string, siteURL string) (bool, *model.AppError)
 	SendPaymentFailedEmail(failedPayment *model.FailedPayment) *model.AppError
 	SendPersistentNotifications() error
-	SendReportToUser(rctx request.CTX, userID string, jobId string, format string) *model.AppError
+	SendReportToUser(rctx request.CTX, job *model.Job, format string) *model.AppError
 	SendTestPushNotification(deviceID string) string
 	SendUpgradeConfirmationEmail(isYearly bool) *model.AppError
 	ServeInterPluginRequest(w http.ResponseWriter, r *http.Request, sourcePluginId, destinationPluginId string)
@@ -1124,10 +1120,11 @@ type AppIface interface {
 	SetTeamIconFromFile(team *model.Team, file io.Reader) *model.AppError
 	SetTeamIconFromMultiPartFile(teamID string, file multipart.File) *model.AppError
 	ShareChannel(c request.CTX, sc *model.SharedChannel) (*model.SharedChannel, error)
+	ShouldSendPushNotification(user *model.User, channelNotifyProps model.StringMap, wasMentioned bool, status *model.Status, post *model.Post, isGM bool) bool
 	SlackImport(c request.CTX, fileData multipart.File, fileSize int64, teamID string) (*model.AppError, *bytes.Buffer)
 	SoftDeleteTeam(teamID string) *model.AppError
 	Srv() *Server
-	StartUsersBatchExport(rctx request.CTX, startAt int64, endAt int64) *model.AppError
+	StartUsersBatchExport(rctx request.CTX, dateRange string, startAt int64, endAt int64) *model.AppError
 	SubmitInteractiveDialog(c request.CTX, request model.SubmitDialogRequest) (*model.SubmitDialogResponse, *model.AppError)
 	SwitchEmailToLdap(c request.CTX, email, password, code, ldapLoginId, ldapPassword string) (string, *model.AppError)
 	SwitchEmailToOAuth(c request.CTX, w http.ResponseWriter, r *http.Request, email, password, code, service string) (string, *model.AppError)

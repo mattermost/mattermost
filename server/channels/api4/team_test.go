@@ -326,7 +326,19 @@ func TestGetTeamSanitization(t *testing.T) {
 		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 	})
 
-	t.Run("team admin", func(t *testing.T) {
+	t.Run("team admin default removed", func(t *testing.T) {
+		// the above test removes PermissionInviteUser from TeamUser,
+		// which also removes it from TeamAdmin. By default, TeamAdmin
+		// permission is inherited from TeamUser.
+		rteam, _, err := th.Client.GetTeam(context.Background(), team.Id, "")
+		require.NoError(t, err)
+
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
+	})
+
+	t.Run("team admin permission re-added", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 		rteam, _, err := th.Client.GetTeam(context.Background(), team.Id, "")
 		require.NoError(t, err)
 
@@ -1452,7 +1464,19 @@ func TestGetTeamByNameSanitization(t *testing.T) {
 		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
 	})
 
-	t.Run("team admin/non-admin", func(t *testing.T) {
+	t.Run("team admin/non-admin without invite permission", func(t *testing.T) {
+		// the above test removes PermissionInviteUser from TeamUser,
+		// which also removes it from TeamAdmin. By default, TeamAdmin
+		// permission is inherited from TeamUser.
+		rteam, _, err := th.Client.GetTeamByName(context.Background(), team.Name, "")
+		require.NoError(t, err)
+
+		require.NotEmpty(t, rteam.Email, "should not have sanitized email")
+		require.Empty(t, rteam.InviteId, "should have sanitized inviteid")
+	})
+
+	t.Run("team admin/non-admin with invite permission", func(t *testing.T) {
+		th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamAdminRoleId)
 		rteam, _, err := th.Client.GetTeamByName(context.Background(), team.Name, "")
 		require.NoError(t, err)
 
@@ -1861,6 +1885,8 @@ func TestGetTeamsForUserSanitization(t *testing.T) {
 
 		client := th.CreateClient()
 		th.RemovePermissionFromRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+		defer th.AddPermissionToRole(model.PermissionInviteUser.Id, model.TeamUserRoleId)
+
 		th.LoginBasic2WithClient(client)
 
 		rteams, _, err := client.GetTeamsForUser(context.Background(), th.BasicUser2.Id, "")
@@ -2887,6 +2913,28 @@ func TestUpdateTeamMemberRoles(t *testing.T) {
 func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	th := Setup(t).InitBasic()
 	defer th.TearDown()
+	enableGuestAccounts := *th.App.Config().GuestAccountsSettings.Enable
+	defer func() {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = enableGuestAccounts })
+		th.App.Srv().RemoveLicense()
+	}()
+	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.GuestAccountsSettings.Enable = true })
+	th.App.Srv().SetLicense(model.NewTestLicense())
+
+	id := model.NewId()
+	guest := &model.User{
+		Email:         th.GenerateTestEmail(),
+		Nickname:      "nn_" + id,
+		FirstName:     "f_" + id,
+		LastName:      "l_" + id,
+		Password:      "Pa$$word11",
+		EmailVerified: true,
+	}
+	guest, appError := th.App.CreateGuest(th.Context, guest)
+	require.Nil(t, appError)
+	_, _, appError = th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, "")
+	require.Nil(t, appError)
+
 	SystemAdminClient := th.SystemAdminClient
 	th.LoginBasic()
 
@@ -2917,6 +2965,11 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	assert.Equal(t, false, tm2.SchemeGuest)
 	assert.Equal(t, true, tm2.SchemeUser)
 	assert.Equal(t, false, tm2.SchemeAdmin)
+
+	//cannot set Guest to User for single team
+	resp, err := SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, guest.Id, s2)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	s3 := &model.SchemeRoles{
 		SchemeAdmin: true,
@@ -2951,21 +3004,18 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 		SchemeUser:  false,
 		SchemeGuest: true,
 	}
-	_, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s5)
-	require.NoError(t, err)
 
-	tm5, _, err := SystemAdminClient.GetTeamMember(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, "")
-	require.NoError(t, err)
-	assert.Equal(t, true, tm5.SchemeGuest)
-	assert.Equal(t, false, tm5.SchemeUser)
-	assert.Equal(t, false, tm5.SchemeAdmin)
+	// cannot set user to guest for a single team
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s5)
+	require.Error(t, err)
+	CheckBadRequestStatus(t, resp)
 
 	s6 := &model.SchemeRoles{
 		SchemeAdmin: false,
 		SchemeUser:  true,
 		SchemeGuest: true,
 	}
-	resp, err := SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s6)
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, th.BasicUser.Id, s6)
 	require.Error(t, err)
 	CheckBadRequestStatus(t, resp)
 
@@ -2976,6 +3026,10 @@ func TestUpdateTeamMemberSchemeRoles(t *testing.T) {
 	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, model.NewId(), s4)
 	require.Error(t, err)
 	CheckNotFoundStatus(t, resp)
+
+	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), th.BasicTeam.Id, guest.Id, s4)
+	require.Error(t, err) // user is a guest, cannot be set as member or admin
+	CheckBadRequestStatus(t, resp)
 
 	resp, err = SystemAdminClient.UpdateTeamMemberSchemeRoles(context.Background(), "ASDF", th.BasicUser.Id, s4)
 	require.Error(t, err)
