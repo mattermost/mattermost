@@ -68,7 +68,7 @@ func (api *API) InitSystem() {
 	api.BaseRoutes.APIRoot.Handle("/restart", api.APISessionRequired(restart)).Methods("POST")
 	api.BaseRoutes.System.Handle("/notices/{team_id:[A-Za-z0-9]+}", api.APISessionRequired(getProductNotices)).Methods("GET")
 	api.BaseRoutes.System.Handle("/notices/view", api.APISessionRequired(updateViewedProductNotices)).Methods("PUT")
-	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET", "POST")
+	api.BaseRoutes.System.Handle("/support_packet", api.APISessionRequired(generateSupportPacket)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(getOnboarding)).Methods("GET")
 	api.BaseRoutes.System.Handle("/onboarding/complete", api.APISessionRequired(completeOnboarding)).Methods("POST")
 	api.BaseRoutes.System.Handle("/schema/version", api.APISessionRequired(getAppliedSchemaMigrations)).Methods("GET")
@@ -89,17 +89,15 @@ func generateSupportPacket(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// We support the existing API hence the logs are always included.
-	supportPacketOptions := &model.SupportPacketOptions{
-		IncludeLogs: true,
+	// We support the existing API hence the logs are always included
+	// if nothing specified.
+	includeLogs := true
+	if r.FormValue("basic.server.logs") == "false" {
+		includeLogs = false
 	}
-	if r.Method == http.MethodPost {
-		var err error
-		supportPacketOptions, err = model.SupportPacketOptionsFromReader(r.Body)
-		if err != nil {
-			c.Err = model.NewAppError("generateSupportPacket", "api.unmarshal_error", nil, "", http.StatusBadRequest).Wrap(err)
-			return
-		}
+	supportPacketOptions := &model.SupportPacketOptions{
+		IncludeLogs:   includeLogs,
+		PluginPackets: r.Form["plugin_packets"],
 	}
 
 	// Checking to see if the server has a e10 or e20 license (this feature is only permitted for servers with licenses)

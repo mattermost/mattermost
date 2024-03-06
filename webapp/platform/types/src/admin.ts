@@ -128,8 +128,8 @@ export type SchemaMigration = {
 
 export type SupportPacketContent = {
     id: string;
-    translation: string;
-    default_label: string;
+    translation_id?: string
+    label: string;
     selected: boolean;
     mandatory: boolean;
 }

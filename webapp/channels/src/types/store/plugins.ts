@@ -68,10 +68,6 @@ export type PluginsState = {
     userSettings: {
         [pluginId: string]: PluginConfiguration;
     };
-
-    supportPackets: {
-        [pluginId: string]: SupportPacketContent;
-    };
 };
 
 export type Menu = {
@@ -249,9 +245,3 @@ export type DesktopNotificationHook = PluginComponent & {
         args?: DesktopNotificationArgs;
     }>;
 }
-
-export type SupportPacketContent = {
-    pluginId: string;
-    translation: string;
-    label: string;
-};

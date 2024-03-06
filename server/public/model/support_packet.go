@@ -78,7 +78,7 @@ type FileData struct {
 }
 
 type SupportPacketOptions struct {
-	IncludeLogs   bool     `json:"organization"`   // IncludeLogs is the option to include server logs
+	IncludeLogs   bool     `json:"include_logs"`   // IncludeLogs is the option to include server logs
 	PluginPackets []string `json:"plugin_packets"` // PluginPackets is a list of pluginids to call hooks
 }
 

@@ -16,10 +16,21 @@ function mapStateToProps(state: GlobalState) {
     const isCloud = license.Cloud === 'true';
     const currentUser = getCurrentUser(state);
     const showBannerWarning = (config.EnableFile !== 'true' || config.FileLevel !== 'DEBUG') && !(isCloud);
-    let packetContents = [
-        {id: 'basic.contents', translation: '', default_label: 'Basic sontents', selected: true, mandatory: true},
-        {id: 'basic.server.logs', translation: '', default_label: 'Server logs', selected: false, mandatory: false},
-    ]
+    const packetContents = [
+        {id: 'basic.contents', label: 'Basic contents', selected: true, mandatory: true},
+        {id: 'basic.server.logs', label: 'Server logs', selected: true, mandatory: false},
+    ];
+
+    for (const [key, value] of Object.entries(state.entities.admin.plugins!)) {
+        if (value.active && value.props !== undefined && value.props.support_packet !== undefined) {
+            packetContents.push({
+                id: key,
+                label: value.props.support_packet,
+                selected: false,
+                mandatory: false,
+            });
+        }
+    }
 
     return {
         isCloud,
