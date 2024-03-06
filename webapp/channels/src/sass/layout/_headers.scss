@@ -264,20 +264,20 @@
 
     .status-wrapper {
         .status {
+            right: -5px;
+            bottom: 0;
+            display: flex;
             width: 16px;
             height: 16px;
-            right: -5px;
-            bottom: 0px;
-            display: flex;
             align-items: center;
             justify-content: center;
 
             svg {
                 top: 0;
                 left: 0;
-                max-height: initial;
                 width: 12px;
                 height: 12px;
+                max-height: initial;
             }
         }
     }
