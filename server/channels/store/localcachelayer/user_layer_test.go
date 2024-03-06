@@ -153,7 +153,6 @@ func TestUserStoreGetAllProfiles(t *testing.T) {
 		_, _ = cachedStore.User().GetAllProfiles(&model.UserGetOptions{Page: 1, PerPage: 2})
 		mockStore.User().(*mocks.UserStore).AssertNumberOfCalls(t, "GetAllProfiles", 3)
 	})
-
 }
 
 func TestUserStoreProfilesInChannelCache(t *testing.T) {

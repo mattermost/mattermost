@@ -272,7 +272,6 @@ func (a *App) createUserOrGuest(c request.CTX, user *model.User, guest bool) (*m
 	a.InvalidateCacheForUser(ruser.Id)
 
 	if user.EmailVerified {
-
 		nUser, err := a.ch.srv.userService.GetUser(ruser.Id)
 		if err != nil {
 			var nfErr *store.ErrNotFound
