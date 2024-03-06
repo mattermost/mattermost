@@ -38,6 +38,7 @@ Instructions, detailed:
   * When running with `SERVER=cloud`, this will automatically create a cloud customer against the specified `CWS_URL` service, and delete that user after the run is complete.
   * If you want to run the Playwright tests instead of the Cypress ones, you can run `TEST=playwright make`
   * If you just want to run a local server instance, without any further testing, you can run `TEST=none make`
+  * If you're using the automation dashboard, you have the option of sharding the E2E test run: you can launch the `make` command in parallel on different machiness (NB: you must use the same `BUILD_ID` and `BRANCH` values that you used for `make generate-test-cycle`) to distribute running the test cases across them. When doing this, you should also set on each machine the `CI_BASE_URL` variable to a value that uniquely identifies the instance where `make` is running.
 4. `make stop`: tears down the server (and the dashboard, if running)
   * `make clean` will also remove any generated environment or docker-compose files, in addition to stopping the containers.
 
@@ -50,6 +51,7 @@ Notes:
   * If their value is fixed (e.g. a static server configuration), these may be simply added to the `docker_compose_generator.sh` file, to the appropriate container.
   * If you need to introduce variables that you want to control from `.ci/env`: you need to update the scripts under the `.ci/` dir, and configure them to write the new variables' values over to the appropriate `.env.*` file. In particular, avoid defining variables that depend on other variables within the docker-compose override files: this is to ensure uniformity in their availability, and simplifies the question of what container has access to which variable considerably.
   * Exceptions are of course accepted wherever it makes sense (e.g. if you need to group variables based on some common functionality)
+- The `publish-report` Make target is meant for internal usage. Usage and variables are documented in the respective scripts.
 
 ##### For code changes:
 * `make fmt-ci` to format and check yaml files and shell scripts.
