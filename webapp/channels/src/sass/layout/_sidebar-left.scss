@@ -7,7 +7,7 @@ $sidebarOpacityAnimationDuration: 0.15s;
 #TeamSidebar {
     z-index: 13;
     display: flex;
-    width: 65px;
+    width: 64px;
     height: 100%;
     flex-direction: column;
     background-color: var(--sidebar-header-bg);
@@ -28,17 +28,18 @@ $sidebarOpacityAnimationDuration: 0.15s;
     z-index: 16;
     left: 0;
     display: flex;
-    width: var(--overrideLhsWidth, 240px);
     min-width: 240px;
     max-width: 240px;
     height: 100%;
     flex-direction: column;
-    border-right: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
+    padding-top: 4px;
     background-color: var(--sidebar-bg);
 
     @media screen and (min-width: 769px) {
+        width: var(--overrideLhsWidth, 264px);
         min-width: 200px;
         max-width: 264px;
+        background: none;
     }
 
     @media screen and (min-width: 1201px) {
@@ -109,8 +110,6 @@ $sidebarOpacityAnimationDuration: 0.15s;
     }
 
     .SidebarHeader {
-        background-color: var(--sidebar-header-bg);
-
         .header__info {
             color: var(--sidebar-header-text-color);
 

@@ -92,17 +92,48 @@ body.app__body #root {
     display: grid;
     overflow: hidden;
 
-    --columns: min-content min-content minmax(385px, 1fr) minmax(0, auto) min-content;
     grid-template:
-        'announcement announcement announcement announcement announcement' min-content
-        'header header header header header' min-content
-        'team-sidebar lhs center rhs app-sidebar'
-        'footer footer footer footer footer' min-content
-        / var(--columns);
+        'header' min-content
+        'center'
+        'footer' min-content
     ;
 
+    &.channel-view {
+        background-color: var(--sidebar-header-bg);
+        padding-bottom: 8px;
+        padding-right: 8px;
+        --columns: min-content minmax(385px, 1fr) min-content;
+        grid-template:
+            'announcement announcement announcement' min-content
+            'header header header' min-content
+            'team-sidebar main app-sidebar'
+            'footer footer footer' min-content
+            / var(--columns);
+        ;
+        &:has(.backstage-body){
+            background-color: $bg--gray;
+        }
+    }
+
+    &.console__root {
+        background-color: inherit;
+        padding-bottom: 0;
+        padding-right: 0;
+        grid-template:
+            'announcement announcement' min-content
+            'header header' min-content
+            'lhs center'
+            'footer footer' min-content
+        ;
+        grid-template-columns: min-content auto;
+    }
+
+    &.container-fluid {
+        background: none;
+        display: block;
+    }
+
     > :only-child {
-        grid-area: center;
         width: 100%;
     }
 
@@ -114,51 +145,100 @@ body.app__body #root {
     #global-header {
         grid-area: header;
     }
+
     .team-sidebar {
         grid-area: team-sidebar;
     }
+
+    .content-container {
+        position: relative;
+        display: grid;
+        background-color: var(--sidebar-bg);
+        outline: solid 1px rgba(var(--center-channel-color-rgb),0.08);
+        border-radius: var(--radius-l);
+        grid-area: main;
+        grid-template:
+            'lhs center rhs'
+        ;
+        grid-template-columns: min-content minmax(385px, 1fr) min-content;
+
+        &:has(.backstage-body){
+            background: inherit;
+            padding: 0;
+            grid-template:
+                'header' min-content
+                'center'
+            ;
+        }
+    }
+
     #SidebarContainer {
         grid-area: lhs;
     }
+
     #channel_view,
     .product-wrapper {
         grid-area: center;
         overflow: hidden;
     }
+
     .sidebar--right--width-holder {
         grid-area: rhs;
     }
+
     #sidebar-right {
-        grid-area: rhs;
+        top: 0;
+        right: 0;
 
         @media screen and (min-width: 768px) {
             position: absolute;
-            right: 0;
         }
     }
+
     .app-bar {
         grid-area: app-sidebar;
     }
 
     &:not(.console__root) {
         @media screen and (max-width: 768px) {
+            padding-bottom: 0;
+            padding-right: 0;
+            z-index: 17;
             grid-template:
                 'announcement' min-content
                 'header' min-content
-                'center'
+                'main' auto
                 'footer' min-content
                 / auto
             ;
             .team-sidebar,
-            #SidebarContainer,
-            #channel_view,
-            .product-wrapper,
-            #sidebar-right,
             .app-bar {
-                grid-area: center;
+                grid-area: main;
             }
             #SidebarContainer.move--right {
                 position: relative;
+            }
+
+            .content-container {
+                grid-template:
+                    'main'
+                ;
+                padding:0;
+                border-radius: 0;
+
+                #channel_view,
+                #SidebarContainer,
+                .product-wrapper,
+                #sidebar-right {
+                    grid-area: main;
+                    border-radius: 0;
+                }
+
+                .channel-view {
+                    border-radius: 0;
+                    border:none;
+                    box-shadow: none;
+                }
             }
         }
     }
@@ -169,10 +249,12 @@ body.app__body #root {
                 display: none;
             }
             #sidebar-right {
-                position: relative;
+                position: absolute;
                 width: 100%;
+                grid-area: center;
+                transition: width .25s ease-in-out;
             }
-            --columns: min-content min-content 0 1fr min-content;
+            --columns: min-content auto min-content;
         }
         #sidebar-right {
             transition: none;
@@ -183,7 +265,19 @@ body.app__body #root {
 /* stylelint-enable -- grid-template indentation */
 
 #channel_view.channel-view {
+    overflow: hidden;
+    border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
     background: var(--center-channel-bg);
+    border-radius: var(--radius-l);
+    box-shadow: var(--elevation-1);
+}
+
+.rhs-open #channel_view.channel-view,
+.rhs-open-expanded #channel_view.channel.view {
+    @media screen and (min-width: 1200px) {
+        padding-right: 20px;
+        margin-right: -20px;
+    }
 }
 
 img {

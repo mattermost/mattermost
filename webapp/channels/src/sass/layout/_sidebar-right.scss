@@ -43,25 +43,6 @@
     padding: 0;
     transform: translateX(100%);
 
-    &.is-open {
-        body:not(.layout-changing) & {
-            transition: width 0.25s 0s ease-in, z-index 0.25s 0s step-end;
-        }
-    }
-
-    &.expanded {
-        z-index: 13;
-        box-shadow: 0 8px 24px alpha-color($black, 0.24);
-
-        .sidebar-right__body {
-            overflow: hidden;
-        }
-
-        body:not(.layout-changing) & {
-            transition: width 0.25s 0s ease-in, z-index 0.15s 0.1s step-start;
-        }
-    }
-
     .sidebar-right__table {
         display: table;
 
@@ -92,8 +73,7 @@
         height: 100%;
         flex: 1 1 auto;
         flex-direction: column;
-        border-left: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
-        background: v(center-channel-bg);
+        background: var(--center-channel-bg);
 
         .info-card {
             padding: 5px 15px 60px 15px;
@@ -203,8 +183,7 @@
         align-items: center;
         justify-content: space-between;
         padding: 0 16px 0 0;
-        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
-        background: rgba(var(--center-channel-color-rgb), 0.04);
+        border-bottom: 1px solid rgba(var(--center-channel-color-rgb), 0.12);
         color: inherit;
         white-space: nowrap;
 
@@ -293,6 +272,30 @@
     }
 }
 
+#sidebar-right {
+    overflow: hidden;
+    height: 100%;
+    border-left: solid 1px rgba(var(--center-channel-color-rgb), 0.12);
+    border-radius: var(--radius-l);
+    box-shadow: var(--elevation-2);
+
+    &.expanded {
+        position: absolute;
+        z-index: 20;
+        box-shadow: var(--elevation-4);
+
+        .sidebar-right__body {
+            overflow: hidden;
+        }
+    }
+
+    body:not(.layout-changing) & {
+        transition-duration: 250ms;
+        transition-property: width, z-index, box-shadow;
+        transition-timing-function: ease-in-out;
+    }
+}
+
 // global header style adjustments
 @media screen and (min-width: 769px) {
     // adjust RHS position and height
@@ -300,7 +303,7 @@
         // If this is changed, the interaction with the App Bar icons must be tested
         //(see .app-bar__icon in components/app_bar/app_bar.scss)
         z-index: 20;
-        top: 0;
+        box-shadow: var(--elevation-2);
 
         .sidebar-right-container {
             height: 100%;

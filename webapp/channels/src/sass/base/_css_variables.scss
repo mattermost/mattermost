@@ -78,6 +78,13 @@
     --elevation-5: 0 12px 32px 0 rgba(0, 0, 0, 0.12);
     --elevation-6: 0 20px 32px 0 rgba(0, 0, 0, 0.12);
 
+    //Corner Radius variables
+    --radius-xs: 2px;
+    --radius-s: 4px;
+    --radius-m: 8px;
+    --radius-l: 12px;
+    --radius-xl: 16px;
+
     // Global Header variables
     --global-header-background: var(--sidebar-teambar-bg);
     --global-header-text: var(--sidebar-header-text-color);
