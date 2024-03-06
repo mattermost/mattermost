@@ -5,7 +5,7 @@
   "keywords": [
     "mattermost"
   ],
-  "homepage": "https://github.com/mattermost/mattermost-server/tree/master/webapp/platform/client#readme",
+  "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/client#readme",
   "license": "MIT",
   "files": [
     "lib"
@@ -14,7 +14,7 @@
   "types": "lib/index.d.ts",
   "repository": {
     "type": "git",
-    "url": "github:mattermost/mattermost-server",
+    "url": "github:mattermost/mattermost",
     "directory": "webapp/platform/client"
   },
   "dependencies": {
