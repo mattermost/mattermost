@@ -18,6 +18,9 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
+// MaxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
+const MaxSessionsLimit = 500
+
 func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError) {
 	session, err := a.ch.srv.platform.CreateSession(c, session)
 	if err != nil {
@@ -131,6 +134,17 @@ func (a *App) GetSessions(c request.CTX, userID string) ([]*model.Session, *mode
 	sessions, err := a.ch.srv.platform.GetSessions(c, userID)
 	if err != nil {
 		return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+	}
+
+	// MM-55320: the problem MaxSessionsLimit prevents is the OOM caused by marshalling all the sessions,
+	//  so limit sessions only when retrieving all sessions.
+	for len(sessions) > MaxSessionsLimit {
+		// Sessions are ordered by LastActivityAt DESC, so remove oldest
+		toRevoke := sessions[len(sessions)-1]
+		if err := a.RevokeSession(c, toRevoke); err != nil {
+			return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+		sessions = sessions[:len(sessions)-1]
 	}
 
 	return sessions, nil

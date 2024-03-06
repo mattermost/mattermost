@@ -5,8 +5,12 @@ package app
 
 import (
 	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
+	"slices"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -394,4 +398,54 @@ func TestGetRemoteClusterSession(t *testing.T) {
 		require.NotNil(t, err)
 		require.Nil(t, session)
 	})
+}
+
+func TestSessionsLimit(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+
+	user := th.BasicUser
+	var sessions []*model.Session
+
+	r := &http.Request{}
+	w := httptest.NewRecorder()
+	for i := 0; i < MaxSessionsLimit; i++ {
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err)
+		sessions = append(sessions, session)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	gotSessions, _ := th.App.GetSessions(th.Context, user.Id)
+	require.Equal(t, MaxSessionsLimit, len(sessions), "should have MaxSessionsLimit number of sessions")
+
+	// gotSessions was returned newest first
+	slices.Reverse(gotSessions)
+	require.ElementsMatch(t, sessions, gotSessions)
+
+	// compare session IDs -- ElementsMatch was giving weird results with pointers to structs
+	for i, sess := range gotSessions {
+		require.Equal(t, sessions[i].Id, sess.Id)
+	}
+
+	// Now add 10 more.
+	for i := 0; i < 10; i++ {
+		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
+		require.Nil(t, err, "should not have an error creating user sessions")
+
+		// remove oldest, append newest
+		sessions = sessions[1:]
+		sessions = append(sessions, session)
+		time.Sleep(1 * time.Millisecond)
+	}
+
+	// Ensure that we still only have the max allowed.
+	gotSessions, _ = th.App.GetSessions(th.Context, user.Id)
+	require.Equal(t, MaxSessionsLimit, len(sessions), "should have MaxSessionsLimit number of sessions")
+
+	// gotSessions was returned newest first
+	slices.Reverse(gotSessions)
+	for i, sess := range gotSessions {
+		require.Equal(t, sessions[i].Id, sess.Id)
+	}
 }
