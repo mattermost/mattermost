@@ -2019,12 +2019,22 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		assert.EventuallyWithT(t, func(t *assert.CollectT) {
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
-
+		expectedMessage := fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id)
+		assert.Eventually(t, func() bool {
+			// Typically, the post we're looking for will be the latest, but there's a race between the plugin and
+			// "User has joined the channel" post which means the plugin post may not the the latest one
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
 			require.Nil(t, appErr)
 
-			assert.Equal(t, fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id), posts.Posts[posts.Order[0]].Message)
+			for _, postId := range posts.Order {
+				post := posts.Posts[postId]
+
+				if post.Message == expectedMessage {
+					return true
+				}
+			}
+
+			return false
 		}, 5*time.Second, 100*time.Millisecond)
 	})
 
