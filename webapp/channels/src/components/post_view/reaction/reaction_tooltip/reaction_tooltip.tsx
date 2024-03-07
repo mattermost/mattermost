@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {useIntl} from 'react-intl';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
@@ -33,107 +33,97 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         users,
     } = props;
 
+    const intl = useIntl();
+
     const otherUsersCount = reactions.length - users.length;
 
-    let names: React.ReactNode;
+    let names;
     if (otherUsersCount > 0) {
         if (users.length > 0) {
-            names = (
-                <FormattedMessage
-                    id='reaction.usersAndOthersReacted'
-                    defaultMessage='{users} and {otherUsers, number} other {otherUsers, plural, one {user} other {users}}'
-                    values={{
-                        users: users.join(', '),
-                        otherUsers: otherUsersCount,
-                    }}
-                />
+            names = intl.formatMessage(
+                {
+                    id: 'reaction.usersAndOthersReacted',
+                    defaultMessage: '{users} and {otherUsers, number} other {otherUsers, plural, one {user} other {users}}',
+                },
+                {
+                    users: users.join(', '),
+                    otherUsers: otherUsersCount,
+                },
             );
         } else {
-            names = (
-                <FormattedMessage
-                    id='reaction.othersReacted'
-                    defaultMessage='{otherUsers, number} {otherUsers, plural, one {user} other {users}}'
-                    values={{
-                        otherUsers: otherUsersCount,
-                    }}
-                />
+            names = intl.formatMessage(
+                {
+                    id: 'reaction.othersReacted',
+                    defaultMessage: '{otherUsers, number} {otherUsers, plural, one {user} other {users}}',
+                },
+                {
+                    otherUsers: otherUsersCount,
+                },
             );
         }
     } else if (users.length > 1) {
-        names = (
-            <FormattedMessage
-                id='reaction.usersReacted'
-                defaultMessage='{users} and {lastUser}'
-                values={{
-                    users: users.slice(0, -1).join(', '),
-                    lastUser: users[users.length - 1],
-                }}
-            />
+        names = intl.formatMessage(
+            {
+                id: 'reaction.usersReacted',
+                defaultMessage: '{users} and {lastUser}',
+            },
+            {
+                users: users.slice(0, -1).join(', '),
+                lastUser: users[users.length - 1],
+            },
         );
     } else {
         names = users[0];
     }
 
-    let reactionVerb: React.ReactNode;
+    let reactionVerb;
     if (users.length + otherUsersCount > 1) {
         if (currentUserReacted) {
-            reactionVerb = (
-                <FormattedMessage
-                    id='reaction.reactionVerb.youAndUsers'
-                    defaultMessage='reacted'
-                />
-            );
+            reactionVerb = intl.formatMessage({
+                id: 'reaction.reactionVerb.youAndUsers',
+                defaultMessage: 'reacted',
+            });
         } else {
-            reactionVerb = (
-                <FormattedMessage
-                    id='reaction.reactionVerb.users'
-                    defaultMessage='reacted'
-                />
-            );
+            reactionVerb = intl.formatMessage({
+                id: 'reaction.reactionVerb.users',
+                defaultMessage: 'reacted',
+            });
         }
     } else if (currentUserReacted) {
-        reactionVerb = (
-            <FormattedMessage
-                id='reaction.reactionVerb.you'
-                defaultMessage='reacted'
-            />
-        );
+        reactionVerb = intl.formatMessage({
+            id: 'reaction.reactionVerb.you',
+            defaultMessage: 'reacted',
+        });
     } else {
-        reactionVerb = (
-            <FormattedMessage
-                id='reaction.reactionVerb.user'
-                defaultMessage='reacted'
-            />
-        );
+        reactionVerb = intl.formatMessage({
+            id: 'reaction.reactionVerb.user',
+            defaultMessage: 'reacted',
+        });
     }
 
-    const tooltip = (
-        <FormattedMessage
-            id='reaction.reacted'
-            defaultMessage='{users} {reactionVerb} with {emoji}'
-            values={{
-                users: <b>{names}</b>,
-                reactionVerb,
-                emoji: <b>{':' + emojiName + ':'}</b>,
-            }}
-        />
+    const tooltip = intl.formatMessage(
+        {
+            id: 'reaction.reacted',
+            defaultMessage: '{users} {reactionVerb} with {emoji}',
+        },
+        {
+            users: names,
+            reactionVerb,
+            emoji: ':' + emojiName + ':',
+        },
     );
 
     let clickTooltip;
     if (currentUserReacted && canRemoveReactions) {
-        clickTooltip = (
-            <FormattedMessage
-                id='reaction.clickToRemove'
-                defaultMessage='(click to remove)'
-            />
-        );
+        clickTooltip = intl.formatMessage({
+            id: 'reaction.clickToRemove',
+            defaultMessage: '(click to remove)',
+        });
     } else if (!currentUserReacted && canAddReactions) {
-        clickTooltip = (
-            <FormattedMessage
-                id='reaction.clickToAdd'
-                defaultMessage='(click to add)'
-            />
-        );
+        clickTooltip = intl.formatMessage({
+            id: 'reaction.clickToAdd',
+            defaultMessage: '(click to add)',
+        });
     }
 
     return (
