@@ -112,6 +112,7 @@ func (s *StoreService) initializeReplica() error {
 	if s.initializedReplica {
 		return nil
 	}
+
 	config := s.api.GetUnsanitizedConfig()
 	// Set up replica db
 	if len(config.SqlSettings.DataSourceReplicas) > 0 {
