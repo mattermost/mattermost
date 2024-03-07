@@ -151,7 +151,7 @@ func (a *App) BulkExport(ctx request.CTX, writer io.Writer, outPath string, job 
 			}
 			totalExportedFiles++
 			if totalExportedFiles%10 == 0 {
-				ctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_exported_attachments", totalExportedFiles), mlog.Int("total_attachments", totalFiles))
+				ctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_successfully_exported_files", totalExportedFiles), mlog.Int("total_files_to_export", totalFiles))
 			}
 		}
 
@@ -178,7 +178,7 @@ func (a *App) exportAttachments(ctx request.CTX, attachments []imports.Attachmen
 		}
 		*totalExportedFiles++
 		if *totalExportedFiles%10 == 0 {
-			ctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_exported_attachments", *totalExportedFiles), mlog.Int("total_attachments", totalFiles))
+			ctx.Logger().Info("Bulk export: exporting file attachments progress", mlog.Int("total_successfully_exported_files", *totalExportedFiles), mlog.Int("total_files_to_export", totalFiles))
 		}
 	}
 	return nil
