@@ -144,6 +144,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                     name={item.id}
                                     type='checkbox'
                                     checked={item.selected}
+                                    disabled={item.mandatory}
                                     onChange={() => this.updateCheckStatus(index)}
                                 />
                                 <FormattedMessage
