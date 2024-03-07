@@ -18,10 +18,23 @@ import (
 	"github.com/mattermost/mattermost/server/v8/channels/store"
 )
 
-// MaxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
-const MaxSessionsLimit = 500
+// maxSessionsLimit prevents a potential DOS caused by creating an unbounded number of sessions; MM-55320
+const maxSessionsLimit = 500
 
 func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError) {
+	// MM-55320: limit the number of sessions on creation to prevent OOM in GetSessions
+	sessions, appErr := a.GetLRUSessions(c, session.UserId, maxSessionsLimit-1)
+	if appErr != nil {
+		return nil, model.NewAppError("CreateSession", "app.session.create.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+	}
+
+	// Revoke any sessions over the limit to make room for the new session we'll create below.
+	for _, sess := range sessions {
+		if err := a.RevokeSession(c, sess); err != nil {
+			return nil, model.NewAppError("CreateSession", "app.session.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+		}
+	}
+
 	session, err := a.ch.srv.platform.CreateSession(c, session)
 	if err != nil {
 		var invErr *store.ErrInvalidInput
@@ -136,15 +149,15 @@ func (a *App) GetSessions(c request.CTX, userID string) ([]*model.Session, *mode
 		return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
-	// MM-55320: the problem MaxSessionsLimit prevents is the OOM caused by marshalling all the sessions,
-	//  so limit sessions only when retrieving all sessions.
-	for len(sessions) > MaxSessionsLimit {
-		// Sessions are ordered by LastActivityAt DESC, so remove oldest
-		toRevoke := sessions[len(sessions)-1]
-		if err := a.RevokeSession(c, toRevoke); err != nil {
-			return nil, model.NewAppError("GetSessions", "app.session.get_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
-		}
-		sessions = sessions[:len(sessions)-1]
+	return sessions, nil
+}
+
+// GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
+// number of sessions. E.g., if userID has 100 sessions, offset 98 will return the oldest 2 sessions.
+func (a *App) GetLRUSessions(c request.CTX, userID string, offset int) ([]*model.Session, *model.AppError) {
+	sessions, err := a.ch.srv.platform.GetLRUSessions(c, userID, offset)
+	if err != nil {
+		return nil, model.NewAppError("GetLRUSessions", "app.session.get_lru_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}
 
 	return sessions, nil

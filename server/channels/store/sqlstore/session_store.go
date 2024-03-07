@@ -123,6 +123,16 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 	return sessions, nil
 }
 
+func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, offset int) ([]*model.Session, error) {
+	query := `SELECT * FROM Sessions WHERE UserId = ? ORDER BY LastActivityAt DESC OFFSET ?`
+
+	var sessions []*model.Session
+	if err := me.GetReplicaX().Select(&sessions, query, userId, offset); err != nil {
+		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
+	}
+	return sessions, nil
+}
+
 func (me SqlSessionStore) GetSessionsWithActiveDeviceIds(userId string) ([]*model.Session, error) {
 	query :=
 		`SELECT *

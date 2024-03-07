@@ -408,7 +408,7 @@ func TestSessionsLimit(t *testing.T) {
 
 	r := &http.Request{}
 	w := httptest.NewRecorder()
-	for i := 0; i < MaxSessionsLimit; i++ {
+	for i := 0; i < maxSessionsLimit; i++ {
 		session, err := th.App.DoLogin(th.Context, w, r, th.BasicUser, "", false, false, false)
 		require.Nil(t, err)
 		sessions = append(sessions, session)
@@ -416,7 +416,7 @@ func TestSessionsLimit(t *testing.T) {
 	}
 
 	gotSessions, _ := th.App.GetSessions(th.Context, user.Id)
-	require.Equal(t, MaxSessionsLimit, len(gotSessions), "should have MaxSessionsLimit number of sessions")
+	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
 
 	// Ensure we are retrieving the same sessions.
 	reverse(gotSessions)
@@ -437,7 +437,7 @@ func TestSessionsLimit(t *testing.T) {
 
 	// Ensure that we still only have the max allowed.
 	gotSessions, _ = th.App.GetSessions(th.Context, user.Id)
-	require.Equal(t, MaxSessionsLimit, len(gotSessions), "should have MaxSessionsLimit number of sessions")
+	require.Equal(t, maxSessionsLimit, len(gotSessions), "should have maxSessionsLimit number of sessions")
 
 	// Ensure the the oldest sessions were removed first.
 	reverse(gotSessions)

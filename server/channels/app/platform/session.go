@@ -41,6 +41,10 @@ func (ps *PlatformService) GetSessions(c request.CTX, userID string) ([]*model.S
 	return ps.Store.Session().GetSessions(c, userID)
 }
 
+func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, offset int) ([]*model.Session, error) {
+	return ps.Store.Session().GetLRUSessions(c, userID, offset)
+}
+
 func (ps *PlatformService) AddSessionToCache(session *model.Session) {
 	ps.sessionCache.SetWithExpiry(session.Token, session, time.Duration(int64(*ps.Config().ServiceSettings.SessionCacheInMinutes))*time.Minute)
 }
