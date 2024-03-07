@@ -3334,6 +3334,7 @@
   "combined_system_message.removed_from_team.two": "{firstUser} and {secondUser} were **removed from the team**.",
   "combined_system_message.you": "You",
   "commercial_support.description": "If you're experiencing issues, [submit a support ticket](!{supportLink}). To help with troubleshooting, it's recommended to download the support packet below that includes more details about your Mattermost environment.",
+  "commercial_support.download_contents": "**Select your support packet contents to download**",
   "commercial_support.download_support_packet": "Download Support Packet",
   "commercial_support.title": "Commercial Support",
   "commercial_support.warning.banner": "Before downloading the support packet, set **Output Logs to File** to **true** and set **File Log Level** to **DEBUG** [here](!/admin_console/environment/logging).",
