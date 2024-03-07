@@ -21,6 +21,7 @@ const WithTooltip = ({
     id,
     title,
     emoji,
+    emojiStyle,
     hint,
     shortcut,
     placement,
@@ -30,9 +31,10 @@ const WithTooltip = ({
         id,
         title,
         emoji,
+        emojiStyle,
         hint,
         shortcut,
-    }), [id, title, emoji, hint, shortcut]);
+    }), [id, title, emoji, emojiStyle, hint, shortcut]);
 
     return (
         <OverlayTrigger

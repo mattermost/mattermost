@@ -53,6 +53,10 @@
     .tooltip-title {
         font-weight: 600;
         line-height: 15px;
+
+        .emoticon {
+            margin-right: 6px;
+        }
     }
 
     .tooltip-hint {
@@ -69,7 +73,6 @@
     }
 
     .emoticon {
-        margin-right: 6px;
         vertical-align: center;
     }
 }
