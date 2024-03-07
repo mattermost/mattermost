@@ -198,7 +198,7 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		w.Write([]byte(appErr.ToJSON(true)))
 		return
 	}
 
@@ -219,7 +219,7 @@ func (pm *platformMetrics) servePluginMetricsRequest(w http.ResponseWriter, r *h
 		mlog.Error(appErr.Error())
 		w.WriteHeader(appErr.StatusCode)
 		w.Header().Set("Content-Type", "application/json")
-		w.Write([]byte(appErr.ToJSON()))
+		w.Write([]byte(appErr.ToJSON(true)))
 		return
 	}
 

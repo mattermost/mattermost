@@ -126,7 +126,7 @@ func TestAppErrorSerialize(t *testing.T) {
 
 	t.Run("Normal", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "", http.StatusTeapot)
-		js := aerr.ToJSON()
+		js := aerr.ToJSON(true)
 		err := AppErrorFromJSON(strings.NewReader(js))
 		berr, ok := err.(*AppError)
 		require.True(t, ok)
@@ -139,7 +139,7 @@ func TestAppErrorSerialize(t *testing.T) {
 
 	t.Run("Detailed", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot)
-		js := aerr.ToJSON()
+		js := aerr.ToJSON(true)
 		err := AppErrorFromJSON(strings.NewReader(js))
 		berr, ok := err.(*AppError)
 		require.True(t, ok)
@@ -152,7 +152,7 @@ func TestAppErrorSerialize(t *testing.T) {
 
 	t.Run("Wrapped", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "", http.StatusTeapot).Wrap(errors.New("wrapped"))
-		js := aerr.ToJSON()
+		js := aerr.ToJSON(true)
 		err := AppErrorFromJSON(strings.NewReader(js))
 		berr, ok := err.(*AppError)
 		require.True(t, ok)
@@ -165,7 +165,7 @@ func TestAppErrorSerialize(t *testing.T) {
 
 	t.Run("Detailed + Wrapped", func(t *testing.T) {
 		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
-		js := aerr.ToJSON()
+		js := aerr.ToJSON(true)
 		err := AppErrorFromJSON(strings.NewReader(js))
 		berr, ok := err.(*AppError)
 		require.True(t, ok)
@@ -176,9 +176,33 @@ func TestAppErrorSerialize(t *testing.T) {
 		require.EqualError(t, berr, aerr.Error())
 	})
 
+	t.Run("Detailed + Wrapped, not developer mode", func(t *testing.T) {
+		aerr := NewAppError("", "message", nil, "detail", http.StatusTeapot).Wrap(errors.New("wrapped"))
+		js := aerr.ToJSON(false)
+		err := AppErrorFromJSON(strings.NewReader(js))
+		berr, ok := err.(*AppError)
+		require.True(t, ok)
+		require.Equal(t, "message", berr.Id)
+		require.Equal(t, "", berr.DetailedError)
+		require.Equal(t, nil, berr.wrapped)
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+
+		aerrWithoutDevmode := *aerr
+		aerrWithoutDevmode.DetailedError = ""
+		aerrWithoutDevmode.wrapped = nil
+
+		require.EqualError(t, berr, aerrWithoutDevmode.Error())
+
+		// Ensure original error still has detail + wrapped
+		require.Equal(t, "message", aerr.Id)
+		require.Equal(t, "detail", aerr.DetailedError)
+		require.Equal(t, "wrapped", aerr.wrapped.Error())
+		require.Equal(t, http.StatusTeapot, berr.StatusCode)
+	})
+
 	t.Run("Where", func(t *testing.T) {
 		appErr := NewAppError("TestAppError", "message", nil, "", http.StatusInternalServerError)
-		json := appErr.ToJSON()
+		json := appErr.ToJSON(true)
 		err := AppErrorFromJSON(strings.NewReader(json))
 		rerr, ok := err.(*AppError)
 		require.True(t, ok)
