@@ -395,7 +395,6 @@
         resize: none;
         scrollbar-color: var(--center-channel-color-32) #fff0;
         scrollbar-width: thin;
-        transition: height 150ms ease-in-out;
 
         &.textbox-preview-area {
             overflow-y: auto;
