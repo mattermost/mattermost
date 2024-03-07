@@ -46,7 +46,7 @@ func TestCreateTeamWithExperimentalDefaultChannels(t *testing.T) {
 		Type:        model.TeamOpen,
 	}
 
-	_, err := th.service.CreateTeam(team)
+	_, err := th.service.CreateTeam(th.Context, team)
 	require.NoError(t, err, "Should create a new team")
 
 	createdTeam, err := th.service.GetTeam(team.Id)
