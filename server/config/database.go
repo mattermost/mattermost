@@ -12,9 +12,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
-	"github.com/mattermost/mattermost/server/public/utils"
 	"path/filepath"
 	"strings"
+
+	"github.com/mattermost/mattermost/server/public/utils"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
