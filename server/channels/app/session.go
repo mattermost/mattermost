@@ -26,13 +26,13 @@ func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Sessi
 	const returnLimit = 100
 	sessions, appErr := a.GetLRUSessions(c, session.UserId, returnLimit, maxSessionsLimit-1)
 	if appErr != nil {
-		return nil, model.NewAppError("CreateSession", "app.session.create.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
+		return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
 
 	// Revoke any sessions over the limit to make room for the new session we'll create below.
 	for _, sess := range sessions {
 		if err := a.RevokeSession(c, sess); err != nil {
-			return nil, model.NewAppError("CreateSession", "app.session.create.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
+			return nil, model.NewAppError("CreateSession", "app.session.save.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 		}
 	}
 
