@@ -19,7 +19,7 @@
     "clean": "npm run clean --workspaces --if-present"
   },
   "dependencies": {
-    "react-intl": "6.5.5"
+    "react-intl": "6.6.2"
   },
   "devDependencies": {
     "@babel/core": "7.21.8",
@@ -38,7 +38,7 @@
     "css-loader": "6.7.3",
     "eslint": "8.37.0",
     "eslint-import-resolver-webpack": "0.13.2",
-    "eslint-plugin-formatjs": "4.9.1",
+    "eslint-plugin-formatjs": "4.12.2",
     "mini-css-extract-plugin": "2.7.5",
     "sass": "1.62.1",
     "sass-loader": "13.2.2",
