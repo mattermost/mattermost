@@ -29,11 +29,10 @@ export interface AddMembersButtonProps {
     totalUsers?: number;
     usersLimit: number;
     channel: Channel;
-    setHeader?: React.ReactNode;
     pluginButtons?: React.ReactNode;
 }
 
-const AddMembersButton: React.FC<AddMembersButtonProps> = ({totalUsers, usersLimit, channel, setHeader, pluginButtons}: AddMembersButtonProps) => {
+const AddMembersButton: React.FC<AddMembersButtonProps> = ({totalUsers, usersLimit, channel, pluginButtons}: AddMembersButtonProps) => {
     const currentTeamId = useSelector(getCurrentTeamId);
 
     if (!totalUsers) {
@@ -51,20 +50,18 @@ const AddMembersButton: React.FC<AddMembersButtonProps> = ({totalUsers, usersLim
             {inviteUsers ? (
                 <LessThanMaxFreeUsers
                     pluginButtons={pluginButtons}
-                    setHeader={setHeader}
                 />
             ) : (
                 <MoreThanMaxFreeUsers
                     channel={channel}
                     pluginButtons={pluginButtons}
-                    setHeader={setHeader}
                 />
             )}
         </TeamPermissionGate>
     );
 };
 
-const LessThanMaxFreeUsers = ({setHeader, pluginButtons}: {setHeader: React.ReactNode; pluginButtons: React.ReactNode}) => {
+const LessThanMaxFreeUsers = ({pluginButtons}: {pluginButtons: React.ReactNode}) => {
     const {formatMessage} = useIntl();
 
     return (
@@ -95,7 +92,7 @@ const LessThanMaxFreeUsers = ({setHeader, pluginButtons}: {setHeader: React.Reac
     );
 };
 
-const MoreThanMaxFreeUsers = ({channel, setHeader, pluginButtons}: {channel: Channel; setHeader: React.ReactNode; pluginButtons: React.ReactNode}) => {
+const MoreThanMaxFreeUsers = ({channel, pluginButtons}: {channel: Channel; pluginButtons: React.ReactNode}) => {
     const {formatMessage} = useIntl();
 
     const modalId = channel.group_constrained ? ModalIdentifiers.ADD_GROUPS_TO_CHANNEL : ModalIdentifiers.CHANNEL_INVITE;
@@ -115,7 +112,7 @@ const MoreThanMaxFreeUsers = ({channel, setHeader, pluginButtons}: {channel: Cha
                     permissions={[isPrivate ? Permissions.MANAGE_PRIVATE_CHANNEL_MEMBERS : Permissions.MANAGE_PUBLIC_CHANNEL_MEMBERS]}
                 >
                     <ToggleModalButton
-                        className='btn btn-sm btn-primary'
+                        className='action-button'
                         modalId={modalId}
                         dialogType={modal}
                         dialogProps={{channel}}
@@ -132,18 +129,17 @@ const MoreThanMaxFreeUsers = ({channel, setHeader, pluginButtons}: {channel: Cha
                         {isPrivate && !channel.group_constrained &&
                             <FormattedMessage
                                 id='intro_messages.inviteMembersToChannel.button'
-                                defaultMessage='Add members to this channel'
+                                defaultMessage='Add members'
                             />}
                         {!isPrivate &&
                             <FormattedMessage
                                 id='intro_messages.inviteMembersToChannel.button'
-                                defaultMessage='Add members to this channel'
+                                defaultMessage='Add members'
                             />}
                     </ToggleModalButton>
                 </ChannelPermissionGate>
             </div>
             {pluginButtons}
-            {setHeader}
         </div>
     );
 };
