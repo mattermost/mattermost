@@ -10146,5 +10146,17 @@
   {
     "id": "basic_security_check.url.too_long_error",
     "translation": "URL слишком длинный"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Неверное обновление участника команды: гость не может быть установлен для команды, Системный администратор должен повышать или понижать пользователей до/из гостей."
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Взаимодействие с клиентским порталом Mattermost было отключено системным администратором."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Недействительный реквизит (пользовательский статус)"
   }
 ]
