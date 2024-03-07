@@ -9,12 +9,6 @@ export type KeyboardShortcutDescriptor =
 	| MessageDescriptor
 	| {default: MessageDescriptor; mac?: MessageDescriptor};
 
-export function isMessageDescriptor(
-    descriptor: KeyboardShortcutDescriptor,
-): descriptor is MessageDescriptor {
-    return Boolean((descriptor as MessageDescriptor).id);
-}
-
 const callsKBShortcuts = {
     global: {
         callsJoinCall: {

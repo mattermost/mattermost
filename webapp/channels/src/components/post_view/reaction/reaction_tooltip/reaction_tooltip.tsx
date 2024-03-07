@@ -6,12 +6,16 @@ import {FormattedMessage} from 'react-intl';
 
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
+import WithTooltip from 'components/with_tooltip';
+
 type Props = {
     canAddReactions: boolean;
     canRemoveReactions: boolean;
+    children: React.ReactNode;
     currentUserReacted: boolean;
     emojiName: string;
-    emojiIcon: React.ReactNode;
+    id: string;
+    onShow: () => void;
     reactions: ReactionType[];
     users: string[];
 };
@@ -20,9 +24,11 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
     const {
         canAddReactions,
         canRemoveReactions,
+        children,
         currentUserReacted,
-        emojiIcon,
         emojiName,
+        id,
+        onShow,
         reactions,
         users,
     } = props;
@@ -113,7 +119,7 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
         />
     );
 
-    let clickTooltip: React.ReactNode;
+    let clickTooltip;
     if (currentUserReacted && canRemoveReactions) {
         clickTooltip = (
             <FormattedMessage
@@ -131,12 +137,17 @@ const ReactionTooltip: React.FC<Props> = (props: Props) => {
     }
 
     return (
-        <>
-            <div className='reaction-emoji--large'>{emojiIcon}</div>
-            {tooltip}
-            <br/>
-            {clickTooltip}
-        </>
+        <WithTooltip
+            id={id}
+            emoji={emojiName}
+            emojiStyle='large'
+            placement='top'
+            title={tooltip}
+            hint={clickTooltip}
+            onShow={onShow}
+        >
+            {children}
+        </WithTooltip>
     );
 };
 

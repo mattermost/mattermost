@@ -9,14 +9,14 @@ import RenderEmoji from 'components/emoji/render_emoji';
 import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 import Tooltip from 'components/tooltip';
 
-import {getStringOrDescriptorComponent} from './utils';
+import {getAsFormattedMessage} from './utils';
 
 type EmojiStyle = 'inline' | 'large' | undefined;
 
 export type CommonTooltipProps = {
     id: string;
-    title: string | MessageDescriptor;
-    hint?: string | MessageDescriptor;
+    title: string | MessageDescriptor | React.ReactElement;
+    hint?: string | MessageDescriptor | React.ReactElement;
     shortcut?: string[];
     emoji?: string;
     emojiStyle?: EmojiStyle;
@@ -36,7 +36,7 @@ export function createTooltip(commonTooltipProps: CommonTooltipProps) {
             );
         }
 
-        const title = getStringOrDescriptorComponent(commonTooltipProps.title);
+        const title = getAsFormattedMessage(commonTooltipProps.title);
         if (commonTooltipProps.emoji && commonTooltipProps.emojiStyle !== 'large') {
             contents.push(
                 <div
@@ -79,7 +79,7 @@ export function createTooltip(commonTooltipProps: CommonTooltipProps) {
             );
         }
 
-        const hint = getStringOrDescriptorComponent(commonTooltipProps.hint);
+        const hint = getAsFormattedMessage(commonTooltipProps.hint);
         if (commonTooltipProps.hint) {
             contents.push(
                 <div
