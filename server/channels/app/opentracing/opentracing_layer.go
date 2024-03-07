@@ -7203,7 +7203,7 @@ func (a *OpenTracingAppLayer) GetKnownUsers(userID string) ([]string, *model.App
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetLRUSessions(c request.CTX, userID string, offset int) ([]*model.Session, *model.AppError) {
+func (a *OpenTracingAppLayer) GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, *model.AppError) {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetLRUSessions")
 

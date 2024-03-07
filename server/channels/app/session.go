@@ -154,7 +154,7 @@ func (a *App) GetSessions(c request.CTX, userID string) ([]*model.Session, *mode
 
 // GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
 // number of sessions. E.g., if userID has 100 sessions, offset 98 will return the oldest 2 sessions.
-func (a *App) GetLRUSessions(c request.CTX, userID string, offset int) ([]*model.Session, *model.AppError) {
+func (a *App) GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, *model.AppError) {
 	sessions, err := a.ch.srv.platform.GetLRUSessions(c, userID, offset)
 	if err != nil {
 		return nil, model.NewAppError("GetLRUSessions", "app.session.get_lru_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)

@@ -41,7 +41,7 @@ func (ps *PlatformService) GetSessions(c request.CTX, userID string) ([]*model.S
 	return ps.Store.Session().GetSessions(c, userID)
 }
 
-func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, offset int) ([]*model.Session, error) {
+func (ps *PlatformService) GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, error) {
 	return ps.Store.Session().GetLRUSessions(c, userID, offset)
 }
 

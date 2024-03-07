@@ -9707,7 +9707,7 @@ func (s *RetryLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*m
 
 }
 
-func (s *RetryLayerSessionStore) GetLRUSessions(c request.CTX, userID string, offset int) ([]*model.Session, error) {
+func (s *RetryLayerSessionStore) GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, error) {
 
 	tries := 0
 	for {

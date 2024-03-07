@@ -123,11 +123,20 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 	return sessions, nil
 }
 
-func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, offset int) ([]*model.Session, error) {
-	query := `SELECT * FROM Sessions WHERE UserId = ? ORDER BY LastActivityAt DESC OFFSET ?`
+func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, offset uint64) ([]*model.Session, error) {
+	builder := me.getQueryBuilder().
+		Select("*").
+		From("Sessions").
+		Where(sq.Eq{"UserId": userId}).
+		OrderBy("LastActivityAt DESC").
+		Offset(offset)
+	query, args, err := builder.ToSql()
+	if err != nil {
+		return nil, errors.Wrap(err, "get_lru_sessions_tosql")
+	}
 
 	var sessions []*model.Session
-	if err := me.GetReplicaX().Select(&sessions, query, userId, offset); err != nil {
+	if err := me.GetReplicaX().Select(&sessions, query, args...); err != nil {
 		return nil, errors.Wrapf(err, "failed to find Sessions with userId=%s", userId)
 	}
 	return sessions, nil

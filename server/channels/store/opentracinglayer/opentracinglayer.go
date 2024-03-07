@@ -8512,7 +8512,7 @@ func (s *OpenTracingLayerSessionStore) Get(c request.CTX, sessionIDOrToken strin
 	return result, err
 }
 
-func (s *OpenTracingLayerSessionStore) GetLRUSessions(c request.CTX, userID string, offset int) ([]*model.Session, error) {
+func (s *OpenTracingLayerSessionStore) GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, error) {
 	origCtx := s.Root.Store.Context()
 	span, newCtx := tracing.StartSpanWithParentByContext(s.Root.Store.Context(), "SessionStore.GetLRUSessions")
 	s.Root.Store.SetContext(newCtx)
