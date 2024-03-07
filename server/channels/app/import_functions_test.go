@@ -1499,7 +1499,6 @@ func TestImportImportUser(t *testing.T) {
 
 	// see https://mattermost.atlassian.net/browse/MM-56986
 	// Test importing deleted guest with a valid team & valid channel name in apply mode.
-	// mlog.Debug("TESTING GUEST")
 	// username = model.NewId()
 	// deleteAt = model.GetMillis()
 	// deletedGuestData := &imports.UserImportData{
@@ -1524,7 +1523,6 @@ func TestImportImportUser(t *testing.T) {
 
 	// user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
 	// require.Nil(t, appErr, "Failed to get user from database.")
-	// mlog.Debug(user.Roles)
 
 	// teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
 	// require.Nil(t, appErr, "Failed to get the team member")
