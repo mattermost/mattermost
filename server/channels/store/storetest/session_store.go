@@ -434,22 +434,22 @@ func testGetLRUSessions(t *testing.T, rctx request.CTX, ss store.Store) {
 	s3, err = ss.Session().Save(rctx, s3)
 	require.NoError(t, err)
 
-	sessions, err := ss.Session().GetLRUSessions(rctx, userId, 3)
+	sessions, err := ss.Session().GetLRUSessions(rctx, userId, 3, 3)
 	require.NoError(t, err)
 	require.Len(t, sessions, 0)
 
-	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 2)
+	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 3, 2)
 	require.NoError(t, err)
 	require.Len(t, sessions, 1)
 	require.Equal(t, s1.Id, sessions[0].Id)
 
-	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 1)
+	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 3, 1)
 	require.NoError(t, err)
 	require.Len(t, sessions, 2)
 	require.Equal(t, s2.Id, sessions[0].Id)
 	require.Equal(t, s1.Id, sessions[1].Id)
 
-	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 0)
+	sessions, err = ss.Session().GetLRUSessions(rctx, userId, 3, 0)
 	require.NoError(t, err)
 	require.Len(t, sessions, 3)
 	require.Equal(t, s3.Id, sessions[0].Id)

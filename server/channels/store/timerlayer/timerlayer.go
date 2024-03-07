@@ -7673,10 +7673,10 @@ func (s *TimerLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*m
 	return result, err
 }
 
-func (s *TimerLayerSessionStore) GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, error) {
+func (s *TimerLayerSessionStore) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
 	start := time.Now()
 
-	result, err := s.SessionStore.GetLRUSessions(c, userID, offset)
+	result, err := s.SessionStore.GetLRUSessions(c, userID, limit, offset)
 
 	elapsed := float64(time.Since(start)) / float64(time.Second)
 	if s.Root.Metrics != nil {

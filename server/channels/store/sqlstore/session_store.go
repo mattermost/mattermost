@@ -123,12 +123,13 @@ func (me SqlSessionStore) GetSessions(c request.CTX, userId string) ([]*model.Se
 	return sessions, nil
 }
 
-func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, offset uint64) ([]*model.Session, error) {
+func (me SqlSessionStore) GetLRUSessions(c request.CTX, userId string, limit uint64, offset uint64) ([]*model.Session, error) {
 	builder := me.getQueryBuilder().
 		Select("*").
 		From("Sessions").
 		Where(sq.Eq{"UserId": userId}).
 		OrderBy("LastActivityAt DESC").
+		Limit(limit).
 		Offset(offset)
 	query, args, err := builder.ToSql()
 	if err != nil {

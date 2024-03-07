@@ -23,7 +23,8 @@ const maxSessionsLimit = 500
 
 func (a *App) CreateSession(c request.CTX, session *model.Session) (*model.Session, *model.AppError) {
 	// MM-55320: limit the number of sessions on creation to prevent OOM in GetSessions
-	sessions, appErr := a.GetLRUSessions(c, session.UserId, maxSessionsLimit-1)
+	const returnLimit = 100
+	sessions, appErr := a.GetLRUSessions(c, session.UserId, returnLimit, maxSessionsLimit-1)
 	if appErr != nil {
 		return nil, model.NewAppError("CreateSession", "app.session.create.app_error", nil, "", http.StatusInternalServerError).Wrap(appErr)
 	}
@@ -154,8 +155,8 @@ func (a *App) GetSessions(c request.CTX, userID string) ([]*model.Session, *mode
 
 // GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
 // number of sessions. E.g., if userID has 100 sessions, offset 98 will return the oldest 2 sessions.
-func (a *App) GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, *model.AppError) {
-	sessions, err := a.ch.srv.platform.GetLRUSessions(c, userID, offset)
+func (a *App) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, *model.AppError) {
+	sessions, err := a.ch.srv.platform.GetLRUSessions(c, userID, limit, offset)
 	if err != nil {
 		return nil, model.NewAppError("GetLRUSessions", "app.session.get_lru_sessions.app_error", nil, "", http.StatusInternalServerError).Wrap(err)
 	}

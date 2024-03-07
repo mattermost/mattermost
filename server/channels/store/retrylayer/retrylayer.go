@@ -9707,11 +9707,11 @@ func (s *RetryLayerSessionStore) Get(c request.CTX, sessionIDOrToken string) (*m
 
 }
 
-func (s *RetryLayerSessionStore) GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, error) {
+func (s *RetryLayerSessionStore) GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, error) {
 
 	tries := 0
 	for {
-		result, err := s.SessionStore.GetLRUSessions(c, userID, offset)
+		result, err := s.SessionStore.GetLRUSessions(c, userID, limit, offset)
 		if err == nil {
 			return result, nil
 		}

@@ -194,7 +194,7 @@ type AppIface interface {
 	GetKnownUsers(userID string) ([]string, *model.AppError)
 	// GetLRUSessions returns the Least Recently Used sessions for userID, skipping over the newest 'offset'
 	// number of sessions. E.g., if userID has 100 sessions, offset 98 will return the oldest 2 sessions.
-	GetLRUSessions(c request.CTX, userID string, offset uint64) ([]*model.Session, *model.AppError)
+	GetLRUSessions(c request.CTX, userID string, limit uint64, offset uint64) ([]*model.Session, *model.AppError)
 	// GetLastAccessibleFileTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
 	GetLastAccessibleFileTime() (int64, *model.AppError)
 	// GetLastAccessiblePostTime returns CreateAt time(from cache) of the last accessible post as per the cloud limit
