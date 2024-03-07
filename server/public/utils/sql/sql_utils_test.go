@@ -3,7 +3,7 @@
  * // See LICENSE.txt for license information.
  */
 
-package utils
+package sql
 
 import (
 	"testing"

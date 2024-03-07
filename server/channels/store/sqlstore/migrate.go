@@ -12,7 +12,7 @@ import (
 	"strconv"
 	"sync"
 
-	"github.com/mattermost/mattermost/server/public/utils"
+	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
@@ -121,12 +121,12 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 	var driver drivers.Driver
 	switch ss.DriverName() {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := utils.ResetReadTimeout(*ss.settings.DataSource)
+		dataSource, rErr := sqlUtils.ResetReadTimeout(*ss.settings.DataSource)
 		if rErr != nil {
 			mlog.Fatal("Failed to reset read timeout from datasource.", mlog.Err(rErr), mlog.String("src", *ss.settings.DataSource))
 			return nil, rErr
 		}
-		dataSource, err = utils.AppendMultipleStatementsFlag(dataSource)
+		dataSource, err = sqlUtils.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return nil, err
 		}

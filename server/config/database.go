@@ -15,7 +15,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/mattermost/mattermost/server/public/utils"
+	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
 
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
@@ -123,12 +123,12 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	var driver drivers.Driver
 	switch ds.driverName {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := utils.ResetReadTimeout(ds.dataSourceName)
+		dataSource, rErr := sqlUtils.ResetReadTimeout(ds.dataSourceName)
 		if rErr != nil {
 			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
 		}
 
-		dataSource, err = utils.AppendMultipleStatementsFlag(dataSource)
+		dataSource, err = sqlUtils.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}

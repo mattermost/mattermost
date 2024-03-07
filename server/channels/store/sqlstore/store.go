@@ -15,7 +15,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/mattermost/mattermost/server/public/utils"
+	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
 
 	sq "github.com/mattermost/squirrel"
 
@@ -316,7 +316,7 @@ func (ss *SqlStore) initConnection() error {
 		// covers that already. Ideally we'd like to do this only for the upgrade
 		// step. To be reviewed in MM-35789.
 		var err error
-		dataSource, err = utils.ResetReadTimeout(dataSource)
+		dataSource, err = sqlUtils.ResetReadTimeout(dataSource)
 		if err != nil {
 			return errors.Wrap(err, "failed to reset read timeout from datasource")
 		}
