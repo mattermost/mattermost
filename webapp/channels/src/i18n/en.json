@@ -2237,8 +2237,6 @@
   "admin.security.password": "Password",
   "admin.server_logs.CopyLog": "Copy log",
   "admin.server_logs.DataCopied": "Data copied",
-  "admin.server_logs.Export": "Export",
-  "admin.server_logs.Exported": "Exported",
   "admin.server_logs.LogEvent": "Log Event",
   "admin.service.attemptDescription": "Number of login attempts allowed before a user is locked out and required to reset their password via email.",
   "admin.service.attemptExample": "E.g.: \"10\"",
