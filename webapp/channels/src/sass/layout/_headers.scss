@@ -526,19 +526,6 @@
     max-width: 648px;
     text-align: center;
 
-    .intro-links {
-        display: flex;
-        align-items: center;
-        padding: 8px 16px;
-        margin-bottom: 10px;
-
-        .fa,
-        svg,
-        i {
-            margin-right: 5px;
-        }
-    }
-
     .channel-intro-profile {
         text-align: center;
         margin-bottom: 16px;
@@ -590,8 +577,16 @@
         margin-top: 16px;
         font-size: 36px;
         font-weight: 600;
-        line-height: 44px;
+        line-height: 40px;
         letter-spacing: -0.03em;
+
+        @media screen and (max-width: 768px) and (min-width: 414px) {
+            font-size: 32px;
+        }
+
+        @media screen and (max-width: 414px) {
+            font-size: 28px;
+        }
 
         span, button {
             font-size: inherit;
@@ -611,14 +606,31 @@
         }
     }
 
-    .channel-intro__content {
+    .channel-intro__created {
+        color: rgba(var(--center-channel-color-rgb), 0.75);
+        font-size: 11px;
+        line-height: 1.4;
+        margin-bottom: 20px;
+        text-align: center;
+
+        svg {
+            margin-right: 4px;
+            position: relative;
+            top: 2px;
+            display: inline;
+        }
+    }
+
+    .channel-intro__text {
         text-align: center;
         word-break: break-word;
+        margin-bottom: 24px;
     }
 
     .channel-intro__actions {
         display: flex;
         justify-content: center;
+        gap: 4px;
     }
 }
 

@@ -4,7 +4,7 @@
 import React from 'react';
 import {FormattedDate, FormattedMessage, defineMessages} from 'react-intl';
 
-import {BellRingOutlineIcon} from '@mattermost/compass-icons/components';
+import {BellRingOutlineIcon, GlobeIcon, PencilOutlineIcon, StarOutlineIcon, AccountPlusOutlineIcon, LockOutlineIcon, StarIcon} from '@mattermost/compass-icons/components';
 import type {Channel, ChannelMembership} from '@mattermost/types/channels';
 import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
@@ -33,6 +33,7 @@ import * as Utils from 'utils/utils';
 
 import AddMembersButton from './add_members_button';
 import PluggableIntroButtons from './pluggable_intro_buttons';
+import LockIcon from 'components/widgets/icons/lock_icon';
 
 type Props = {
     currentUserId: string;
@@ -168,13 +169,13 @@ function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles:
                 <h2 className='channel-intro__title'>
                     {channel.display_name}
                 </h2>
-                <p className='channel-intro-text'>
+                <div className='channel-intro__text'>
                     <FormattedMessage
                         id='intro_messages.group_message'
                         defaultMessage={'This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.'}
                     />
                     {getGMIntroMessageSpecificPart(currentUserProfile, channelMembership)}
-                </p>
+                </div>
                 <div className="channel-intro__actions">
                     {createNotificationPreferencesButton(channel, currentUserProfile)}
                     <PluggableIntroButtons channel={channel}/>
@@ -189,12 +190,12 @@ function createGMIntroMessage(channel: Channel, centeredIntro: string, profiles:
             id={channelIntroId}
             className={'channel-intro ' + centeredIntro}
         >
-            <p className='channel-intro-text'>
+            <div className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.group_message'
                     defaultMessage='This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.'
                 />
-            </p>
+            </div>
         </div>
     );
 }
@@ -232,7 +233,7 @@ function createDMIntroMessage(channel: Channel, centeredIntro: string, teammate?
                         disablePopover={false}
                     />
                 </h2>
-                <p className='channel-intro-text'>
+                <div className='channel-intro__text'>
                     <FormattedMarkdownMessage
                         id='intro_messages.DM'
                         defaultMessage='This is the start of your direct message history with {teammate}. Messages and files shared here are not shown to anyone else.'
@@ -240,7 +241,7 @@ function createDMIntroMessage(channel: Channel, centeredIntro: string, teammate?
                             teammate: teammateName,
                         }}
                     />
-                </p>
+                </div>
                 <div className="channel-intro__actions">
                     {pluggableButton}
                     {setHeaderButton}
@@ -254,12 +255,12 @@ function createDMIntroMessage(channel: Channel, centeredIntro: string, teammate?
             id={channelIntroId}
             className={'channel-intro ' + centeredIntro}
         >
-            <p className='channel-intro-text'>
+            <div className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.teammate'
                     defaultMessage='This is the start of your direct message history with this teammate.Messages and files shared here are not shown to anyone else.'
                 />
-            </p>
+            </div>
         </div>
     );
 }
@@ -301,7 +302,7 @@ function createOffTopicIntroMessage(channel: Channel, centeredIntro: string, sta
             <h2 className='channel-intro__title'>
                 {channel.display_name}
             </h2>
-            <p className='channel-intro__content'>
+            <div className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.offTopic'
                     defaultMessage='This is the start of {display_name}, a channel for non-work-related conversations.'
@@ -309,7 +310,7 @@ function createOffTopicIntroMessage(channel: Channel, centeredIntro: string, sta
                         display_name: channel.display_name,
                     }}
                 />
-            </p>
+            </div>
             <div className="channel-intro__actions">
                 {channelInviteButton}
             </div>
@@ -397,9 +398,9 @@ function createDefaultIntroMessage(
             <h2 className='channel-intro__title'>
                 {channel.display_name}
             </h2>
-            <p className='channel-intro__content'>
+            <div className='channel-intro__text'>
                 {!isReadOnly &&
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='intro_messages.default'
                         defaultMessage='Post messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.'
                         values={{
@@ -408,15 +409,15 @@ function createDefaultIntroMessage(
                     />
                 }
                 {isReadOnly &&
-                    <FormattedMarkdownMessage
+                    <FormattedMessage
                         id='intro_messages.readonly.default'
-                        defaultMessage='Messages can only be posted by system admins. Everyone automatically becomes a permanent member of this channel when they join the team.'
+                        defaultMessage='Messages can only be posted by admins. Everyone automatically becomes a permanent member of this channel when they join the team.'
                         values={{
                             display_name: channel.display_name,
                         }}
                     />
                 }
-            </p>
+            </div>
             <div className="channel-intro__actions">
                 {teamInviteLink}
                 {teamIsGroupConstrained && pluginButtons}
@@ -567,14 +568,14 @@ function createStandardIntroMessage(channel: Channel, centeredIntro: string, sta
             <h2 className='channel-intro__title'>
                 {channel.display_name}
             </h2>
-            <p className='channel-intro_created'>
+            <div className='channel-intro__created'>
+                {isPrivate ? <LockOutlineIcon size={14} /> : <GlobeIcon size={14} />}
                 {createMessage}
-            </p>
-            <p className='channel-intro__content'>
+            </div>
+            <div className='channel-intro__text'>
                 {memberMessage}
                 {purposeMessage}
-                <br/>
-            </p>
+            </div>
             <div className='channel-intro__actions'>
                 {channelInviteButton}
             </div>
@@ -592,7 +593,7 @@ function createSetHeaderButton(channel: Channel) {
         <ToggleModalButton
             modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
             ariaLabel={Utils.localizeMessage('intro_messages.setHeader', 'Set a Header')}
-            className={'intro-links color--link channelIntroButton'}
+            className={'btn btn-sm btn-tertiary'}
             dialogType={EditChannelHeaderModal}
             dialogProps={{channel}}
         >
@@ -615,7 +616,7 @@ function createNotificationPreferencesButton(channel: Channel, currentUser?: Use
         <ToggleModalButton
             modalId={ModalIdentifiers.CHANNEL_NOTIFICATIONS}
             ariaLabel={Utils.localizeMessage('intro_messages.notificationPreferences', 'Notification Preferences')}
-            className={'intro-links color--link channelIntroButton'}
+            className={'btn btn-sm btn-tertiary'}
             dialogType={ChannelNotificationsModal}
             dialogProps={{channel, currentUser}}
         >
