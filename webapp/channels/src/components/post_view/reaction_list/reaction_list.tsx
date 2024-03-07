@@ -9,7 +9,7 @@ import type {Post} from '@mattermost/types/posts';
 import type {Reaction as ReactionType} from '@mattermost/types/reactions';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -90,7 +90,7 @@ export default class ReactionList extends React.PureComponent<Props, State> {
 
     handleEmojiClick = (emoji: Emoji): void => {
         this.setState({showEmojiPicker: false});
-        const emojiName = isSystemEmoji(emoji) ? emoji.short_names[0] : emoji.name;
+        const emojiName = getEmojiName(emoji);
         this.props.actions.toggleReaction(this.props.post.id, emojiName);
     };
 

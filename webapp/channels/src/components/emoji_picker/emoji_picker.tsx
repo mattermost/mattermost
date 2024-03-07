@@ -9,7 +9,7 @@ import type InfiniteLoader from 'react-window-infinite-loader';
 
 import type {Emoji, EmojiCategory} from '@mattermost/types/emojis';
 
-import {isSystemEmoji} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import EmojiPickerCategories from 'components/emoji_picker/components/emoji_picker_categories';
 import EmojiPickerCurrentResults from 'components/emoji_picker/components/emoji_picker_current_results';
@@ -358,7 +358,7 @@ const EmojiPicker = ({
             return '';
         }
 
-        const name = isSystemEmoji(emoji) ? emoji.short_name : emoji.name;
+        const name = getEmojiName(emoji);
         return name.replace(/_/g, ' ');
     }, [cursor.emojiId]);
 
@@ -429,8 +429,7 @@ const EmojiPicker = ({
                 />
             )}
             <div className='emoji-picker__footer'>
-                {areSearchResultsEmpty ? (<div/>) :
-                    (<EmojiPickerPreview emoji={cursor.emoji}/>)
+                {areSearchResultsEmpty ? (<div/>) : (<EmojiPickerPreview emoji={cursor.emoji}/>)
                 }
                 <EmojiPickerCustomEmojiButton
                     currentTeamName={currentTeamName}

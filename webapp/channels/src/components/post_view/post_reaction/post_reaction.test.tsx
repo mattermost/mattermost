@@ -4,9 +4,9 @@
 import {shallow} from 'enzyme';
 import React from 'react';
 
-import type {Emoji} from '@mattermost/types/emojis';
+import {TestHelper} from 'utils/test_helper';
 
-import PostReaction from 'components/post_view/post_reaction/post_reaction';
+import PostReaction from './post_reaction';
 
 describe('components/post_view/PostReaction', () => {
     const baseProps = {
@@ -31,7 +31,7 @@ describe('components/post_view/PostReaction', () => {
         const wrapper = shallow(<PostReaction {...baseProps}/>);
         const instance = wrapper.instance() as PostReaction;
 
-        instance.handleToggleEmoji({name: 'smile'} as Emoji);
+        instance.handleToggleEmoji(TestHelper.getCustomEmojiMock({name: 'smile'}));
         expect(baseProps.actions.toggleReaction).toHaveBeenCalledTimes(1);
         expect(baseProps.actions.toggleReaction).toHaveBeenCalledWith('post_id_1', 'smile');
         expect(baseProps.toggleEmojiPicker).toHaveBeenCalledTimes(1);

@@ -6,7 +6,7 @@ import React from 'react';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getEmojiImageUrl} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiImageUrl, getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import OverlayTrigger from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
@@ -43,7 +43,7 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
     };
 
     handleToggleEmoji = (emoji: Emoji): void => {
-        const emojiName = 'short_name' in emoji ? emoji.short_name : emoji.name;
+        const emojiName = getEmojiName(emoji);
         this.props.actions.toggleReaction(this.props.postId, emojiName);
     };
 
@@ -70,7 +70,7 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
         function capitalizeFirstLetter(s: string) {
             return s[0].toLocaleUpperCase(locale) + s.slice(1);
         }
-        const name = 'short_name' in emoji ? emoji.short_name : emoji.name;
+        const name = getEmojiName(emoji);
         return capitalizeFirstLetter(name.replace(/_/g, ' '));
     };
 

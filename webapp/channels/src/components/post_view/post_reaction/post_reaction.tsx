@@ -8,6 +8,7 @@ import {FormattedMessage} from 'react-intl';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -46,7 +47,7 @@ export default class PostReaction extends React.PureComponent<Props, State> {
 
     handleToggleEmoji = (emoji: Emoji): void => {
         this.setState({showEmojiPicker: false});
-        const emojiName = 'short_name' in emoji ? emoji.short_name : emoji.name;
+        const emojiName = getEmojiName(emoji);
         this.props.actions.toggleReaction(this.props.postId, emojiName);
         this.props.toggleEmojiPicker();
     };
