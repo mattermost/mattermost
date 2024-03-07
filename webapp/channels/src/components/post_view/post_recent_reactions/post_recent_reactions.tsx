@@ -6,11 +6,10 @@ import React from 'react';
 import type {Emoji} from '@mattermost/types/emojis';
 
 import Permissions from 'mattermost-redux/constants/permissions';
-import {getEmojiImageUrl, getEmojiName} from 'mattermost-redux/utils/emoji_utils';
+import {getEmojiName} from 'mattermost-redux/utils/emoji_utils';
 
-import OverlayTrigger from 'components/overlay_trigger';
 import ChannelPermissionGate from 'components/permissions_gates/channel_permission_gate';
-import Tooltip from 'components/tooltip';
+import WithTooltip from 'components/with_tooltip';
 
 import {Locations} from 'utils/constants';
 
@@ -92,25 +91,12 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                 teamId={teamId}
                 permissions={[Permissions.ADD_REACTION]}
             >
-                <OverlayTrigger
-                    className='hidden-xs'
-                    delayShow={500}
+                <WithTooltip
+                    id='post_info.emoji.tooltip'
+                    title={this.emojiName(emoji, this.props.locale)}
+                    emoji={getEmojiName(emoji)}
+                    emojiStyle='large'
                     placement='top'
-                    overlay={
-                        <Tooltip
-                            id='post_info.emoji.tooltip'
-                            className='hidden-xs'
-                        >
-                            <div>
-                                <img
-                                    className='Reaction__emoji Reaction__emoji--large'
-                                    src={getEmojiImageUrl(emoji)}
-                                    width={48}
-                                />
-                            </div>
-                            {this.emojiName(emoji, this.props.locale)}
-                        </Tooltip>
-                    }
                 >
                     <div>
                         <React.Fragment>
@@ -121,7 +107,7 @@ export default class PostRecentReactions extends React.PureComponent<Props, Stat
                             />
                         </React.Fragment>
                     </div>
-                </OverlayTrigger>
+                </WithTooltip>
             </ChannelPermissionGate>
         ),
         );
