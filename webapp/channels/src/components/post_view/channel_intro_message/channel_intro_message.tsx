@@ -54,6 +54,7 @@ type Props = {
     stats: any;
     usersLimit: number;
     channelMember?: ChannelMembership;
+    isMobileView: boolean;
     actions: {
         getTotalUsersStats: () => ActionFunc;
         favoriteChannel: (channelId: string) => ActionFunc;
@@ -93,6 +94,7 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
             currentUser,
             stats,
             usersLimit,
+            isMobileView,
         } = this.props;
 
         let centeredIntro = '';
@@ -101,15 +103,15 @@ export default class ChannelIntroMessage extends React.PureComponent<Props> {
         }
 
         if (channel.type === Constants.DM_CHANNEL) {
-            return createDMIntroMessage(channel, centeredIntro, currentUser, this.props.isFavorite, this.toggleFavorite, teammate, teammateName);
+            return createDMIntroMessage(channel, centeredIntro, currentUser, this.props.isFavorite, isMobileView, this.toggleFavorite, teammate, teammateName);
         } else if (channel.type === Constants.GM_CHANNEL) {
-            return createGMIntroMessage(channel, centeredIntro, this.props.isFavorite, this.toggleFavorite, channelProfiles, currentUserId, currentUser, channelMember);
+            return createGMIntroMessage(channel, centeredIntro, this.props.isFavorite, isMobileView, this.toggleFavorite, channelProfiles, currentUserId, currentUser, channelMember);
         } else if (channel.name === Constants.DEFAULT_CHANNEL) {
-            return createDefaultIntroMessage(channel, centeredIntro, currentUser, this.props.isFavorite, this.toggleFavorite, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained);
+            return createDefaultIntroMessage(channel, centeredIntro, currentUser, this.props.isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, enableUserCreation, isReadOnly, teamIsGroupConstrained);
         } else if (channel.name === Constants.OFFTOPIC_CHANNEL) {
-            return createOffTopicIntroMessage(channel, centeredIntro, this.props.isFavorite, currentUser, this.toggleFavorite, stats, usersLimit);
+            return createOffTopicIntroMessage(channel, centeredIntro, this.props.isFavorite, isMobileView, currentUser, this.toggleFavorite, stats, usersLimit);
         } else if (channel.type === Constants.OPEN_CHANNEL || channel.type === Constants.PRIVATE_CHANNEL) {
-            return createStandardIntroMessage(channel, centeredIntro, currentUser, this.props.isFavorite, this.toggleFavorite, stats, usersLimit, locale, creatorName);
+            return createStandardIntroMessage(channel, centeredIntro, currentUser, this.props.isFavorite, isMobileView, this.toggleFavorite, stats, usersLimit, locale, creatorName);
         }
         return null;
     }
@@ -159,6 +161,7 @@ function createGMIntroMessage(
     channel: Channel,
     centeredIntro: string,
     isFavorite: boolean,
+    isMobileView: boolean,
     toggleFavorite: () => void,
     profiles: UserProfileType[],
     currentUserId: string,
@@ -203,7 +206,7 @@ function createGMIntroMessage(
                 <div className="channel-intro__actions">
                     {createFavoriteButton(isFavorite, toggleFavorite)}
                     {createSetHeaderButton(channel)}
-                    {createNotificationPreferencesButton(channel, currentUser)}
+                    {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
                     <PluggableIntroButtons channel={channel}/>
                 </div>
             </div>
@@ -230,6 +233,7 @@ function createDMIntroMessage(
     centeredIntro: string,
     currentUser: UserProfileType,
     isFavorite: boolean,
+    isMobileView: boolean,
     toggleFavorite: () => void,
     teammate?: UserProfileType,
     teammateName?: string
@@ -279,7 +283,6 @@ function createDMIntroMessage(
                     {createFavoriteButton(isFavorite, toggleFavorite)}
                     {pluggableButton}
                     {setHeaderButton}
-                    {createNotificationPreferencesButton(channel, currentUser)}
                 </div>
             </div>
         );
@@ -304,9 +307,10 @@ function createOffTopicIntroMessage(
     channel: Channel,
     centeredIntro: string,
     isFavorite: boolean,
+    isMobileView: boolean,
     currentUser: UserProfileType,
     toggleFavorite: () => void,
-    stats: any, usersLimit: number
+    stats: any, usersLimit: number,
 ) {
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const children = createSetHeaderButton(channel);
@@ -356,7 +360,8 @@ function createOffTopicIntroMessage(
             <div className="channel-intro__actions">
                 {createFavoriteButton(isFavorite, toggleFavorite)}
                 {channelInviteButton}
-                {createNotificationPreferencesButton(channel, currentUser)}
+                {setHeaderButton}
+                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
             </div>
         </div>
     );
@@ -367,6 +372,7 @@ function createDefaultIntroMessage(
     centeredIntro: string,
     currentUser: UserProfileType,
     isFavorite: boolean,
+    isMobileView: boolean,
     toggleFavorite: () => void,
     stats: any,
     usersLimit: number,
@@ -467,8 +473,8 @@ function createDefaultIntroMessage(
             <div className="channel-intro__actions">
                 {createFavoriteButton(isFavorite, toggleFavorite)}
                 {teamIsGroupConstrained && pluginButtons}
-                {teamIsGroupConstrained && setHeaderButton}
-                {createNotificationPreferencesButton(channel, currentUser)}
+                {setHeaderButton}
+                {!isMobileView &&createNotificationPreferencesButton(channel, currentUser)}
             </div>
         </div>
     );
@@ -479,6 +485,7 @@ function createStandardIntroMessage(
     centeredIntro: string,
     currentUser: UserProfileType,
     isFavorite: boolean,
+    isMobileView: boolean,
     toggleFavorite: () => void,
     stats: any,
     usersLimit: number,
@@ -636,7 +643,7 @@ function createStandardIntroMessage(
                 {createFavoriteButton(isFavorite, toggleFavorite)}
                 {channelInviteButton}
                 {setHeaderButton}
-                {createNotificationPreferencesButton(channel, currentUser)}
+                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
             </div>
         </div>
     );

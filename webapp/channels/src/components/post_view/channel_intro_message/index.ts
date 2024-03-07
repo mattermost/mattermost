@@ -41,9 +41,6 @@ function mapStateToProps(state: GlobalState) {
     const usersLimit = 10;
 
     const stats = getTotalUsersStatsSelector(state) || {total_users_count: 0};
-    const isInvitingPeople = isModalOpen(state, ModalIdentifiers.CHANNEL_INVITE) || isModalOpen(state, ModalIdentifiers.CREATE_DM_CHANNEL);
-    const isNotificationsOpen = isModalOpen(state, ModalIdentifiers.NOTIFICATIONS);
-    const isSetHeaderOpen = isModalOpen(state, ModalIdentifiers.EDIT_CHANNEL_HEADER);
 
     return {
         currentUserId: getCurrentUserId(state),
@@ -57,14 +54,11 @@ function mapStateToProps(state: GlobalState) {
         teamIsGroupConstrained: Boolean(team.group_constrained),
         creatorName: getDisplayNameByUser(state, creator),
         teammate,
-        currentUser,
         teammateName: getDisplayNameByUser(state, teammate),
+        currentUser,
         stats,
         usersLimit,
         channelMember,
-        isInvitingPeople,
-        isNotificationsOpen,
-        isSetHeaderOpen,
         isMobileView: getIsMobileView(state),
     };
 }
