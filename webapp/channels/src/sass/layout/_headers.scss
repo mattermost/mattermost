@@ -520,19 +520,18 @@
 }
 
 .channel-intro {
-
+    max-width: 648px;
     padding: 120px 24px 32px 24px;
     margin: 0 auto 10px;
-    max-width: 648px;
     text-align: center;
 
     .channel-intro-profile {
-        text-align: center;
         margin-bottom: 16px;
         font-size: 36px;
         font-weight: 600;
-        line-height: 44px;
         letter-spacing: -0.03em;
+        line-height: 44px;
+        text-align: center;
 
         .user-popover {
             overflow: hidden;
@@ -553,8 +552,8 @@
         }
 
         .status-wrapper {
+            width: auto;
             height: auto;
-            width: auto; 
 
             .status {
                 position: absolute;
@@ -573,12 +572,12 @@
     }
 
     .channel-intro__title {
-        margin-bottom: 16px;
         margin-top: 16px;
+        margin-bottom: 16px;
         font-size: 36px;
         font-weight: 600;
-        line-height: 40px;
         letter-spacing: -0.03em;
+        line-height: 40px;
 
         @media screen and (max-width: 768px) and (min-width: 414px) {
             font-size: 32px;
@@ -588,43 +587,44 @@
             font-size: 28px;
         }
 
-        span, button {
+        span,
+        button {
             font-size: inherit;
             font-weight: inherit;
-            line-height: inherit;
             letter-spacing: inherit;
+            line-height: inherit;
         }
 
         .Tag {
-            font-size: 14px;
-            line-height: 1;
-            padding: 4px;
-            margin-left: 8px;
             position: relative;
             display: inline-block;
-            height: auto
+            height: auto;
+            padding: 4px;
+            margin-left: 8px;
+            font-size: 14px;
+            line-height: 1;
         }
     }
 
     .channel-intro__created {
+        margin-bottom: 20px;
         color: rgba(var(--center-channel-color-rgb), 0.75);
         font-size: 11px;
         line-height: 1.4;
-        margin-bottom: 20px;
         text-align: center;
 
         svg {
-            margin-right: 4px;
             position: relative;
             top: 2px;
             display: inline;
+            margin-right: 4px;
         }
     }
 
     .channel-intro__text {
+        margin-bottom: 24px;
         text-align: center;
         word-break: break-word;
-        margin-bottom: 24px;
     }
 
     .channel-intro__actions {

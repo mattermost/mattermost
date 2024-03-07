@@ -5,6 +5,7 @@ import {connect} from 'react-redux';
 import {bindActionCreators} from 'redux';
 import type {Dispatch} from 'redux';
 
+import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
 import {getTotalUsersStats} from 'mattermost-redux/actions/users';
 import {getCurrentChannel, getDirectTeammate, getMyCurrentChannelMembership, isCurrentChannelFavorite} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
@@ -13,17 +14,12 @@ import {getCurrentTeam} from 'mattermost-redux/selectors/entities/teams';
 import {getCurrentUser, getProfilesInCurrentChannel, getCurrentUserId, getUser, getTotalUsersStats as getTotalUsersStatsSelector} from 'mattermost-redux/selectors/entities/users';
 
 import {getCurrentLocale} from 'selectors/i18n';
+import {getIsMobileView} from 'selectors/views/browser';
 
-import {favoriteChannel, unfavoriteChannel} from 'mattermost-redux/actions/channels';
-
-import {ModalIdentifiers, Preferences, suitePluginIds} from 'utils/constants';
+import {Preferences} from 'utils/constants';
 import {getDisplayNameByUser} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
-
-import {isModalOpen} from 'selectors/views/modals';
-
-import {getIsMobileView} from 'selectors/views/browser';
 
 import ChannelIntroMessage from './channel_intro_message';
 

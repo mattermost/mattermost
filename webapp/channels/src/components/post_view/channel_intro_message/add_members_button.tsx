@@ -39,7 +39,6 @@ const AddMembersButton: React.FC<AddMembersButtonProps> = ({totalUsers, usersLim
         return (<LoadingSpinner/>);
     }
 
-    const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const inviteUsers = totalUsers < usersLimit;
 
     return (
