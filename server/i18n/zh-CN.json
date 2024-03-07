@@ -2859,7 +2859,7 @@
   },
   {
     "id": "app.plugin.cluster.save_config.app_error",
-    "translation": "当机群开启并使用 ReadOnlyConfig 时，config.json 文件中的插件设置必须手动上传。"
+    "translation": "当集群开启并使用 ReadOnlyConfig 时，config.json 文件中的插件设置必须手动上传。"
   },
   {
     "id": "app.plugin.config.app_error",
@@ -2883,7 +2883,7 @@
   },
   {
     "id": "app.plugin.get_cluster_plugin_statuses.app_error",
-    "translation": "无法从机群获取插件状态。"
+    "translation": "无法从集群获取插件状态。"
   },
   {
     "id": "app.plugin.get_plugins.app_error",
@@ -2987,7 +2987,7 @@
   },
   {
     "id": "ent.cluster.config_changed.info",
-    "translation": "机群设定 id={{ .id }} 已更改。机群可能不稳定并且需要重启。为了确保机群配置正确您应该立刻逐进重启。"
+    "translation": "id={{ .id }} 的集群配置已更改。集群可能不稳定并且需要重启。为确保集群配置正确，您应该立刻进行滚动重启。"
   },
   {
     "id": "ent.cluster.save_config.error",
@@ -3691,7 +3691,7 @@
   },
   {
     "id": "model.config.is_valid.cluster_email_batching.app_error",
-    "translation": "当机群启用时没法启动批量电子邮件。"
+    "translation": "当集群启用时无法启用批量电子邮件。"
   },
   {
     "id": "model.config.is_valid.data_retention.deletion_job_start_time.app_error",
@@ -4955,7 +4955,7 @@
   },
   {
     "id": "ent.cluster.timeout.error",
-    "translation": "等待机群回应超时"
+    "translation": "等待集群响应超时"
   },
   {
     "id": "ent.compliance.csv.metadata.json.zipfile.appError",
@@ -6391,7 +6391,7 @@
   },
   {
     "id": "ent.cluster.404.app_error",
-    "translation": "未找到机群 API 接口。"
+    "translation": "未找到集群 API 接口。"
   },
   {
     "id": "ent.api.post.send_notifications_and_forget.push_image_only",
