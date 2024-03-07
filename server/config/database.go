@@ -12,6 +12,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"github.com/mattermost/mattermost/server/public/utils"
 	"path/filepath"
 	"strings"
 
@@ -121,12 +122,12 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	var driver drivers.Driver
 	switch ds.driverName {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := sqlstore.ResetReadTimeout(ds.dataSourceName)
+		dataSource, rErr := utils.ResetReadTimeout(ds.dataSourceName)
 		if rErr != nil {
 			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
 		}
 
-		dataSource, err = sqlstore.AppendMultipleStatementsFlag(dataSource)
+		dataSource, err = utils.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
