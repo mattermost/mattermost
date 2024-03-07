@@ -135,33 +135,6 @@ func TestMySQLJSONArgs(t *testing.T) {
 	}
 }
 
-func TestAppendMultipleStatementsFlag(t *testing.T) {
-	testCases := []struct {
-		Scenario    string
-		DSN         string
-		ExpectedDSN string
-	}{
-		{
-			"Should append multiStatements param to the DSN path with existing params",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?writeTimeout=30s&multiStatements=true",
-		},
-		{
-			"Should append multiStatements param to the DSN path with no existing params",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost",
-			"user:rand?&ompasswith@character@unix(/var/run/mysqld/mysqld.sock)/mattermost?multiStatements=true",
-		},
-	}
-
-	for _, tc := range testCases {
-		t.Run(tc.Scenario, func(t *testing.T) {
-			res, err := AppendMultipleStatementsFlag(tc.DSN)
-			require.NoError(t, err)
-			assert.Equal(t, tc.ExpectedDSN, res)
-		})
-	}
-}
-
 func TestSanitizeDataSource(t *testing.T) {
 	t.Run(model.DatabaseDriverPostgres, func(t *testing.T) {
 		testCases := []struct {
