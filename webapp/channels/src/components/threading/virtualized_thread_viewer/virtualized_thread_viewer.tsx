@@ -3,14 +3,17 @@
 
 import {DynamicSizeList} from 'dynamic-virtualized-list';
 import type {OnScrollArgs, OnItemsRenderedArgs} from 'dynamic-virtualized-list';
-import React, {PureComponent} from 'react';
+import React, {PureComponent, useMemo} from 'react';
 import type {RefObject} from 'react';
+import {useSelector} from 'react-redux';
 import AutoSizer from 'react-virtualized-auto-sizer';
 
 import type {Channel} from '@mattermost/types/channels';
 import type {Post} from '@mattermost/types/posts';
 import type {UserProfile} from '@mattermost/types/users';
 
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
+import {makeGetThreadOrSynthetic} from 'mattermost-redux/selectors/entities/threads';
 import {isDateLine, isStartOfNewMessages, isCreateComment} from 'mattermost-redux/utils/post_list';
 
 import NewRepliesBanner from 'components/new_replies_banner';
@@ -349,7 +352,12 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
 
         const isLastPost = itemId === this.props.lastPost.id;
         const isRootPost = itemId === this.props.selected.id;
-        const replyCount = this.props.selected.reply_count;
+
+        const post = useSelector((state: GlobalState) => getPost(state, this.props.selected.id));
+        const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, [post.id]);
+        const thread = useSelector((state: GlobalState) => getThreadOrSynthetic(state, post));
+
+        const {reply_count: totalReplies = 0} = thread;
 
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;
@@ -380,7 +388,7 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
                     isRootPost={isRootPost}
                     isLastPost={isLastPost}
                     listId={itemId}
-                    replyCount={replyCount}
+                    replyCount={totalReplies}
                     onCardClick={this.props.onCardClick}
                     previousPostId={getPreviousPostId(data, index)}
                     timestampProps={this.props.useRelativeTimestamp ? THREADING_TIME : undefined}
