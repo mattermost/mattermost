@@ -4,9 +4,9 @@
 import React from 'react';
 
 type Props = {
-    isBot: boolean;
-    haveOverrideProp: boolean;
-    botDescription: string;
+    isBot?: boolean;
+    haveOverrideProp?: boolean;
+    botDescription?: string;
 }
 const BotDescription = ({
     haveOverrideProp,

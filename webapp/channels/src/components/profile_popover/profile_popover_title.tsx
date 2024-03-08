@@ -21,7 +21,7 @@ import Tag from 'components/widgets/tag/tag';
 import type {GlobalState} from 'types/store';
 
 type Props = {
-    isBot: boolean;
+    isBot?: boolean;
     roles: string;
     username: string;
     returnFocus: () => void;

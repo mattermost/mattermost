@@ -4,9 +4,9 @@
 import React from 'react';
 
 type Props = {
-    email: string;
-    haveOverrideProp: boolean;
-    isBot: boolean;
+    email?: string;
+    haveOverrideProp?: boolean;
+    isBot?: boolean;
 }
 const ProfilePopoverEmail = ({
     email,
