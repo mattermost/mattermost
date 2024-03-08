@@ -9278,5 +9278,21 @@
   {
     "id": "api.getUsersForReporting.invalid_page_size",
     "translation": "El tamaño de la página es inválido o demasiado grande."
+  },
+  {
+    "id": "api.license.true_up_review.user_count_fail",
+    "translation": "No se pudo obtener el conteo total de usuarios activos"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_in_count_fail",
+    "translation": "No se pudo obtener el conteo total de webhooks entrantes"
+  },
+  {
+    "id": "api.license.true_up_review.webhook_out_count_fail",
+    "translation": "No se pudo obtener el conteo total de webhooks salientes"
+  },
+  {
+    "id": "api.payload.parse.error",
+    "translation": "Ha ocurrido un error al analizar el payload."
   }
 ]
