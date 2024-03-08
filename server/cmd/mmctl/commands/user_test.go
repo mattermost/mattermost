@@ -1838,7 +1838,9 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 	cmd.Flags().Int("page", 0, "")
 	cmd.Flags().Int("per-page", 200, "")
 	cmd.Flags().Bool("all", false, "")
+	cmd.Flags().Bool("roles", false, "")
 	cmd.Flags().String("team", "", "")
+	cmd.Flags().String("role", "", "")
 
 	s.Run("Listing users with paging", func() {
 		printer.Clean()
@@ -2000,6 +2002,33 @@ func (s *MmctlUnitTestSuite) TestListUserCmdF() {
 		s.client.
 			EXPECT().
 			GetUsersInTeam(context.Background(), resultID, page, perPage, "").
+			Return([]*model.User{&mockUser}, &model.Response{}, nil).
+			Times(1)
+
+		err := listUsersCmdF(s.client, cmd, []string{})
+		s.Require().Nil(err)
+		s.Require().Len(printer.GetLines(), 1)
+		s.Require().Equal(&mockUser, printer.GetLines()[0])
+	})
+
+	s.Run("Listing users for given role", func() {
+		printer.Clean()
+
+		email := "example@example.com"
+		mockUser := model.User{Username: "ExampleUser", Email: email, Roles: "rossle"}
+
+		page := 0
+		perPage := 1
+		showAll := false
+		role := "role"
+		_ = cmd.Flags().Set("page", strconv.Itoa(page))
+		_ = cmd.Flags().Set("per-page", strconv.Itoa(perPage))
+		_ = cmd.Flags().Set("all", strconv.FormatBool(showAll))
+		_ = cmd.Flags().Set("role", role)
+
+		s.client.
+			EXPECT().
+			GetUsersByRole(context.Background(), page, perPage, role, "").
 			Return([]*model.User{&mockUser}, &model.Response{}, nil).
 			Times(1)
 
