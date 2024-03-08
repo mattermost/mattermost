@@ -46,6 +46,7 @@ describe('components/post_view/ChannelIntroMessages', () => {
         enableUserCreation: false,
         teamIsGroupConstrained: false,
         creatorName: 'creatorName',
+        currentUser: users[0],
         stats: {},
         usersLimit: 10,
         isMobileView: false,
