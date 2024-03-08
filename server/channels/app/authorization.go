@@ -340,7 +340,6 @@ func (a *App) RolesGrantPermission(roleNames []string, permissionId string) bool
 // This function deviates from other authorization checks in returning an error instead of just
 // a boolean, allowing the permission failure to be exposed with more granularity.
 func (a *App) SessionHasPermissionToManageBot(rctx request.CTX, session model.Session, botUserId string) *model.AppError {
-	// TODO: Ezekiel
 	existingBot, err := a.GetBot(rctx, botUserId, true)
 	if err != nil {
 		return err
