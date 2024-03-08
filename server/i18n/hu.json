@@ -596,10 +596,6 @@
     "translation": "A licenced nem támogatja az SAML hitelesítést."
   },
   {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) válaszának ellenőrzése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
-  },
-  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) válaszának értelmezése során. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
@@ -616,10 +612,6 @@
     "translation": "Üres választ kaptunk a Személyazonosság szolgáltatótól (IdP)."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "A SAML bejelentkezés sikertelen volt, mert hiba történt a Személyazonosság szolgáltató (IdP) válaszának visszafejtése közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
-  },
-  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "A SAML bejelentkezés sikertelen volt, mivel a Személyazonosság szolgáltató (IdP) válasza nincs titkosítva. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
@@ -628,16 +620,8 @@
     "translation": "A SAML bejelentkezés sikertelen volt, mert a szolgáltató privát kulcsa nem található. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "A Személyazonosság szolgáltató (IdP) nyilvános tanúsítvány fájlja nem található. Kérjük, lépjen kapcsolatba a rendszergazdával."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Az SAML bejelentkezés sikertelen volt, mert a titkosítás nincs engedélyezve. Kérjük, lépjen kapcsolatba a rendszergazdával."
-  },
-  {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Hiba történt a Személyazonosság szolgáltató (IdP) kérelem kódolása közben. Kérjük, lépjen kapcsolatba a rendszergazdával."
   },
   {
     "id": "ent.saml.build_request.app_error",
