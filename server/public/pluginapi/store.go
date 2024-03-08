@@ -63,20 +63,16 @@ func (s *StoreService) Close() error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
-	// replicaDB will be nil if it's not initialized, so no need
-	// to check for initialization again.
 	if s.replicaDB != nil {
 		if err := s.replicaDB.Close(); err != nil {
 			return err
 		}
 	}
 
-	if !s.initializedMaster {
-		return nil
-	}
-
-	if err := s.masterDB.Close(); err != nil {
-		return err
+	if s.masterDB != nil {
+		if err := s.masterDB.Close(); err != nil {
+			return err
+		}
 	}
 
 	return nil
