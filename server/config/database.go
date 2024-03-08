@@ -29,8 +29,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
-
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
@@ -411,7 +409,7 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 func (ds *DatabaseStore) String() string {
 	// This is called during the running of MM, so we expect the parsing of DSN
 	// to be successful.
-	sanitized, _ := sqlstore.SanitizeDataSource(ds.driverName, ds.originalDsn)
+	sanitized, _ := sqlUtils.SanitizeDataSource(ds.driverName, ds.originalDsn)
 	return sanitized
 }
 

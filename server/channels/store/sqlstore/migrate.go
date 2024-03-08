@@ -130,7 +130,7 @@ func (ss *SqlStore) initMorph(dryRun bool) (*morph.Morph, error) {
 		if err != nil {
 			return nil, err
 		}
-		db, err2 := SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
+		db, err2 := sqlUtils.SetupConnection(ss.Logger(), "master", dataSource, ss.settings, DBPingAttempts)
 		if err2 != nil {
 			return nil, err2
 		}
