@@ -165,16 +165,6 @@ export const KEYBOARD_SHORTCUTS = {
             defaultMessage: 'Navigate to a specific team:\t⌘|⌥|[1-9]',
         },
     },
-    teamNavigation: {
-        default: {
-            id: t('team.button.tooltip'),
-            defaultMessage: 'Ctrl|Alt|{order}',
-        },
-        mac: {
-            id: t('team.button.tooltip.mac'),
-            defaultMessage: '⌘|⌥|{order}',
-        },
-    },
     navSwitcher: {
         default: {
             id: t('shortcuts.nav.switcher'),

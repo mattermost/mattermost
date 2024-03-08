@@ -2,20 +2,18 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import {Draggable} from 'react-beautiful-dnd';
-import {Tooltip} from 'react-bootstrap';
 import {defineMessages, useIntl} from 'react-intl';
 import {Link} from 'react-router-dom';
 
 import {mark, trackEvent} from 'actions/telemetry_actions.jsx';
 
 import CopyUrlContextMenu from 'components/copy_url_context_menu';
-import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
-import OverlayTrigger from 'components/overlay_trigger';
 import TeamIcon from 'components/widgets/team_icon/team_icon';
+import WithTooltip from 'components/with_tooltip';
+import {ShortcutKeys} from 'components/with_tooltip/shortcut';
 
-import Constants from 'utils/constants';
 import {isDesktopApp} from 'utils/user_agent';
 
 const messages = defineMessages({
@@ -58,6 +56,7 @@ export default function TeamButton({
     switchTeam,
     teamIndex,
     teamId,
+    tip,
     ...props
 }: Props) {
     const {formatMessage} = useIntl();
@@ -132,21 +131,8 @@ export default function TeamButton({
         />
     );
 
-    let toolTip = props.tip || formatMessage(messages.nameUndefined);
     let orderIndicator: JSX.Element | undefined;
     if (typeof order !== 'undefined' && order < 10) {
-        toolTip = (
-            <>
-                {toolTip}
-                <KeyboardShortcutSequence
-                    shortcut={KEYBOARD_SHORTCUTS.teamNavigation}
-                    values={{order}}
-                    hideDescription={true}
-                    isInsideTooltip={true}
-                />
-            </>
-        );
-
         if (props.showOrder) {
             orderIndicator = (
                 <div className='order-indicator'>
@@ -157,20 +143,16 @@ export default function TeamButton({
     }
 
     const btn = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
-            placement={props.placement}
-            overlay={
-                <Tooltip id={`tooltip-${url}`}>
-                    {toolTip}
-                </Tooltip>
-            }
+        <WithTeamTooltip
+            order={order}
+            tip={tip}
+            url={url}
         >
             <div className={'team-btn ' + btnClass}>
                 {!props.isInProduct && badge}
                 {content}
             </div>
-        </OverlayTrigger>
+        </WithTeamTooltip>
     );
 
     let teamButton = (
@@ -227,5 +209,36 @@ export default function TeamButton({
             {teamButton}
             {orderIndicator}
         </div>
+    );
+}
+
+function WithTeamTooltip({
+    order,
+    tip,
+    url,
+    children,
+}: React.PropsWithChildren<Pick<Props, 'order' | 'tip' | 'url'>>) {
+    const intl = useIntl();
+
+    const shortcut = useMemo(() => {
+        if (!order || order >= 10) {
+            return undefined;
+        }
+
+        return {
+            default: [ShortcutKeys.ctrl, ShortcutKeys.alt, order.toString()],
+            mac: [ShortcutKeys.cmd, ShortcutKeys.option, order.toString()],
+        };
+    }, [order]);
+
+    return (
+        <WithTooltip
+            id={`tooltip-${url}`}
+            title={tip || intl.formatMessage(messages.nameUndefined)}
+            shortcut={shortcut}
+            placement='right'
+        >
+            {children}
+        </WithTooltip>
     );
 }
