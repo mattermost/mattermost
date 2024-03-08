@@ -65,8 +65,8 @@ func (s *LocalCacheUserStore) InvalidateProfileCacheForUser(userId string) {
 	s.userProfileByIdsMut.Lock()
 	s.userProfileByIdsInvalidations[userId] = true
 	s.userProfileByIdsMut.Unlock()
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.userProfileByIdsCache, userId)
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.allUserCache, allUserKey)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.userProfileByIdsCache, userId, nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.allUserCache, allUserKey, nil)
 
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profile By Ids - Remove")
@@ -80,7 +80,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 			var userMap map[string]*model.User
 			if err = s.rootStore.profilesInChannelCache.Get(key, &userMap); err == nil {
 				if _, userInCache := userMap[userId]; userInCache {
-					s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key)
+					s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, key, nil)
 					if s.rootStore.metrics != nil {
 						s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by User")
 					}
@@ -91,7 +91,7 @@ func (s *LocalCacheUserStore) InvalidateProfilesInChannelCacheByUser(userId stri
 }
 
 func (s *LocalCacheUserStore) InvalidateProfilesInChannelCache(channelID string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, channelID)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.profilesInChannelCache, channelID, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Profiles in Channel - Remove by Channel")
 	}
