@@ -2,7 +2,7 @@
 // See LICENSE.txt for license information.
 
 import classNames from 'classnames';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
 
@@ -11,6 +11,7 @@ import type {Emoji} from '@mattermost/types/emojis';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 
+import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import EmojiPickerOverlay from 'components/emoji_picker/emoji_picker_overlay';
 import KeyboardShortcutSequence, {KEYBOARD_SHORTCUTS} from 'components/keyboard_shortcuts/keyboard_shortcuts_sequence';
 import OverlayTrigger from 'components/overlay_trigger';
@@ -104,12 +105,11 @@ const useEmojiPicker = (
             message: newMessage,
         });
 
-        // focusTextbox();
         setShowEmojiPicker(false);
     }, [draft, handleDraftChange]);
 
     // Focus textbox when the emoji picker closes
-    useEffect(() => {
+    useDidUpdate(() => {
         if (!showEmojiPicker) {
             focusTextbox();
         }

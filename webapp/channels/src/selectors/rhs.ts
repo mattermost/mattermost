@@ -137,30 +137,35 @@ export function getIsSearchGettingMore(state: GlobalState): boolean {
     return state.entities.search.isSearchGettingMore;
 }
 
-export function getDraft(state: GlobalState, channelId: string, rootId = ''): PostDraft {
-    const prefix = rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT;
-    const suffix = rootId || channelId;
-    const defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId, rootId};
-    const draft = getGlobalItem(state, `${prefix}${suffix}`, defaultDraft);
+export function makeGetDraft() {
+    let defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId: '', rootId: ''};
+    return (state: GlobalState, channelId: string, rootId = ''): PostDraft => {
+        if (defaultDraft.channelId !== channelId || defaultDraft.rootId !== rootId) {
+            defaultDraft = {message: '', fileInfos: [], uploadsInProgress: [], createAt: 0, updateAt: 0, channelId, rootId};
+        }
+        const prefix = rootId ? StoragePrefixes.COMMENT_DRAFT : StoragePrefixes.DRAFT;
+        const suffix = rootId || channelId;
+        const draft = getGlobalItem(state, `${prefix}${suffix}`, defaultDraft);
 
-    let toReturn = defaultDraft;
-    if (
-        typeof draft.message !== 'undefined' &&
-        typeof draft.uploadsInProgress !== 'undefined' &&
-        typeof draft.fileInfos !== 'undefined'
-    ) {
-        toReturn = draft;
-    }
+        let toReturn = defaultDraft;
+        if (
+            typeof draft.message !== 'undefined' &&
+            typeof draft.uploadsInProgress !== 'undefined' &&
+            typeof draft.fileInfos !== 'undefined'
+        ) {
+            toReturn = draft;
+        }
 
-    if (draft.rootId !== rootId || draft.channelId !== channelId) {
-        toReturn = {
-            ...draft,
-            rootId,
-            channelId,
-        };
-    }
+        if (draft.rootId !== rootId || draft.channelId !== channelId) {
+            toReturn = {
+                ...draft,
+                rootId,
+                channelId,
+            };
+        }
 
-    return toReturn;
+        return toReturn;
+    };
 }
 
 export function makeGetChannelDraft() {

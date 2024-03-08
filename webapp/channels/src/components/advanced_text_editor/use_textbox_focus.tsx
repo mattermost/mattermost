@@ -7,6 +7,7 @@ import {useSelector} from 'react-redux';
 
 import {getIsRhsExpanded, getIsRhsOpen} from 'selectors/rhs';
 
+import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import type TextboxClass from 'components/textbox/textbox';
 
 import {shouldFocusMainTextbox} from 'utils/post_utils';
@@ -18,6 +19,7 @@ const useTextboxFocus = (
     postId: string,
     isThreadView: boolean,
     canPost: boolean,
+    focusOnMount: boolean,
 ) => {
     const rhsExpanded = useSelector(getIsRhsExpanded);
     const rhsOpen = useSelector(getIsRhsOpen);
@@ -70,9 +72,16 @@ const useTextboxFocus = (
     }, [focusTextboxIfNecessary]);
 
     // Focus on textbox on channel switch
-    useEffect(() => {
+    useDidUpdate(() => {
         focusTextbox();
     }, [channelId]);
+
+    // Focus on mount
+    useEffect(() => {
+        if (focusOnMount) {
+            focusTextbox();
+        }
+    }, []);
 
     return focusTextbox;
 };

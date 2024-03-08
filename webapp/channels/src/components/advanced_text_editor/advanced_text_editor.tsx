@@ -19,11 +19,12 @@ import {getCurrentUserId, isCurrentUserGuestUser} from 'mattermost-redux/selecto
 import * as GlobalActions from 'actions/global_actions';
 import {actionOnGlobalItemsWithPrefix} from 'actions/storage';
 import {removeDraft, updateDraft} from 'actions/views/drafts';
-import {getDraft} from 'selectors/rhs';
+import {makeGetDraft} from 'selectors/rhs';
 import {connectionErrorCount} from 'selectors/views/system';
 import LocalStorageStore from 'stores/local_storage_store';
 
 import AutoHeightSwitcher from 'components/common/auto_height_switcher';
+import useDidUpdate from 'components/common/hooks/useDidUpdate';
 import FileLimitStickyBanner from 'components/file_limit_sticky_banner';
 import MessageSubmitError from 'components/message_submit_error';
 import MsgTyping from 'components/msg_typing';
@@ -77,6 +78,7 @@ type Props = {
     isThreadView?: boolean;
     replyToLastPost?: (e: React.KeyboardEvent) => void;
     placeholder?: string;
+    focusOnMount?: boolean;
 }
 
 const AdvanceTextEditor = ({
@@ -87,15 +89,17 @@ const AdvanceTextEditor = ({
     isThreadView = false,
     replyToLastPost,
     placeholder,
+    focusOnMount = true,
 }: Props) => {
     const {formatMessage} = useIntl();
     const dispatch = useDispatch();
 
     const getChannelSelector = useMemo(makeGetChannel, []);
+    const getDraftSelector = useMemo(makeGetDraft, []);
 
     const currentUserId = useSelector(getCurrentUserId);
     const channelDisplayName = useSelector((state: GlobalState) => getChannelSelector(state, {id: channelId})?.display_name || '');
-    const draftFromStore = useSelector((state: GlobalState) => getDraft(state, channelId, postId));
+    const draftFromStore = useSelector((state: GlobalState) => getDraftSelector(state, channelId, postId));
     const badConnection = useSelector((state: GlobalState) => connectionErrorCount(state) > 1);
     const maxPostSize = useSelector((state: GlobalState) => parseInt(getConfig(state).MaxPostSize || '', 10) || Constants.DEFAULT_CHARACTER_LIMIT);
     const canUploadFiles = useSelector((state: GlobalState) => canUploadFilesAccordingToConfig(getConfig(state)));
@@ -219,7 +223,7 @@ const AdvanceTextEditor = ({
 
     useOrientationHandler(textboxRef, postId);
     const pluginItems = usePluginItems(draft, textboxRef, handleDraftChange);
-    const focusTextbox = useTextboxFocus(textboxRef, channelId, postId, isThreadView, canPost);
+    const focusTextbox = useTextboxFocus(textboxRef, channelId, postId, isThreadView, canPost, focusOnMount);
     const [attachmentPreview, fileUploadJSX] = useUploadFiles(draft, postId, channelId, isThreadView, storedDrafts, readOnlyChannel, textboxRef, handleDraftChange, focusTextbox, setServerError);
     const [emojiPicker, enableEmojiPicker, toggleEmojiPicker] = useEmojiPicker(readOnlyChannel, draft, caretPosition, setCaretPosition, handleDraftChange, showPreview, focusTextbox);
     const [labels, priorityAdditionalControl, isValidPersistentNotifications, prioritySubmitCheck] = usePriority(draft, handleDraftChange, focusTextbox, showPreview);
@@ -350,7 +354,7 @@ const AdvanceTextEditor = ({
     }, []);
 
     // Focus textbox when we stop showing the preview
-    useEffect(() => {
+    useDidUpdate(() => {
         if (!showPreview) {
             focusTextbox();
         }
