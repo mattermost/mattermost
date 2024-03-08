@@ -28,7 +28,7 @@ import {getMyPreferences} from 'mattermost-redux/selectors/entities/preferences'
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 import {getUsers, getCurrentUserId, getUserStatuses} from 'mattermost-redux/selectors/entities/users';
 import {createIdsSelector} from 'mattermost-redux/utils/helpers';
-import {shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
+import {isCombinedUserActivityPost, shouldShowJoinLeaveMessages} from 'mattermost-redux/utils/post_list';
 import {
     isPostEphemeral,
     isSystemMessage,
@@ -267,6 +267,59 @@ function formatPostInChannel(post: Post, previousPost: Post | undefined | null, 
         isCommentMention,
         highlight,
     };
+}
+
+export function getLatestPostIdToReact(state: GlobalState, channelId: string, rootId = '') {
+    const postsIds = rootId ? getPostsInThread(state)[rootId] : getPostIdsInChannel(state, channelId);
+    if (!postsIds) {
+        return '';
+    }
+
+    const allPosts = getAllPosts(state);
+
+    for (const postId of postsIds) {
+        if (isCombinedUserActivityPost(postId)) {
+            continue;
+        }
+
+        const post = allPosts[postId];
+        if (!post) {
+            continue;
+        }
+
+        if (post.delete_at) {
+            continue;
+        }
+
+        return postId;
+    }
+
+    if (rootId && allPosts[rootId] && !allPosts[rootId].delete_at) {
+        return rootId;
+    }
+
+    return '';
+}
+
+export function getLatestPostToEdit(state: GlobalState, channelId: string, rootId = '') {
+    const postsIds = rootId ? getPostsInThread(state)[rootId] : getPostIdsInChannel(state, channelId);
+    if (!postsIds) {
+        return '';
+    }
+
+    const allPosts = getAllPosts(state);
+    const currentUserId = getCurrentUserId(state);
+
+    for (const postId of postsIds) {
+        const post = allPosts[postId];
+        if (!post || post.user_id !== currentUserId || (post.props?.from_webhook) || post.state === Posts.POST_DELETED || isSystemMessage(post) || isPostEphemeral(post) || isPostPendingOrFailed(post)) {
+            continue;
+        }
+
+        return post.id;
+    }
+
+    return '';
 }
 
 // makeGetPostsInChannel creates a selector that returns up to the given number of posts loaded at the bottom of the
