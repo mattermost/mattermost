@@ -1207,17 +1207,13 @@ func (a *App) UpdateChannelMemberSchemeRoles(c request.CTX, channelID string, us
 		return nil, err
 	}
 
-	if member.SchemeGuest {
-		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.guest.app_error", nil, "", http.StatusBadRequest)
-	}
-
-	if isSchemeGuest {
-		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.user_and_guest.app_error", nil, "", http.StatusBadRequest)
-	}
-
 	member.SchemeAdmin = isSchemeAdmin
 	member.SchemeUser = isSchemeUser
 	member.SchemeGuest = isSchemeGuest
+
+	if member.SchemeUser && member.SchemeGuest {
+		return nil, model.NewAppError("UpdateChannelMemberSchemeRoles", "api.channel.update_channel_member_roles.guest_and_user.app_error", nil, "", http.StatusBadRequest)
+	}
 
 	// If the migration is not completed, we also need to check the default channel_admin/channel_user roles are not present in the roles field.
 	if err = a.IsPhase2MigrationCompleted(); err != nil {

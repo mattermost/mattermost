@@ -15,7 +15,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         id="admin.elasticsearch.title"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -462,7 +462,7 @@ exports[`components/ElasticSearchSettings should match snapshot, disabled 1`] = 
         }
         value={false}
       />
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >
@@ -521,7 +521,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         id="admin.elasticsearch.title"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
+    <SettingsGroup>
       <BooleanSetting
         disabled={false}
         falseText={
@@ -967,7 +967,7 @@ exports[`components/ElasticSearchSettings should match snapshot, enabled 1`] = `
         }
         value={false}
       />
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >

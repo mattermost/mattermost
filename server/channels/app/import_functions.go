@@ -1417,7 +1417,7 @@ func (a *App) getChannelsForPosts(teams map[string]*model.Team, data []*imports.
 		channelName := strings.ToLower(*postData.Channel)
 		if channel, ok := teamChannels[teamName][channelName]; !ok || channel == nil {
 			var err error
-			channel, err = a.Srv().Store().Channel().GetByNameIncludeDeleted(teams[teamName].Id, *postData.Channel, true)
+			channel, err = a.Srv().Store().Channel().GetByName(teams[teamName].Id, *postData.Channel, true)
 			if err != nil {
 				return nil, model.NewAppError("BulkImport", "app.import.import_post.channel_not_found.error", map[string]any{"ChannelName": *postData.Channel}, "", http.StatusBadRequest).Wrap(err)
 			}

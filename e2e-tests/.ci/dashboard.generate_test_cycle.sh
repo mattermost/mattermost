@@ -11,13 +11,7 @@ fi
 set -a
 . .env.cypress
 
-if [ -z "${AUTOMATION_DASHBOARD_URL:-}" ]; then
-  mme2e_log "AUTOMATION_DASHBOARD_URL is unset. Skipping test cycle generation."
-  exit 0
-fi
-
 mme2e_log "Generating the test cycle on the Automation Dashboard"
 cd ../cypress
-npm i
 # shellcheck disable=SC2086
 exec node --trace-warnings generate_test_cycle.js $TEST_FILTER

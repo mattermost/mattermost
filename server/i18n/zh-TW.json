@@ -3316,8 +3316,16 @@
     "translation": "建立與身分識別提供者連接的要求時發生錯誤。請聯繫系統管理員。"
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "對與身分識別提供者連接的要求編碼時發生錯誤。請聯繫系統管理員。"
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "由於沒有啟用加密，SAML 登入失敗。請聯繫系統管理員。"
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "找不到身份識別提供者公開憑證檔案。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3328,12 +3336,20 @@
     "translation": "由於身份識別提供者的回應未加密，SAML 登入失敗。請聯繫系統管理員。"
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "由於解碼身份識別提供者的回應時發生錯誤，SAML 登入失敗。請聯繫系統管理員。"
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "身份識別提供者的回應為空值"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "解析身份識別提供者的回應時發生錯誤。請聯繫系統管理員。"
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "驗證身份識別提供者的回應時發生錯誤。請聯繫系統管理員。"
   },
   {
     "id": "ent.saml.license_disable.app_error",

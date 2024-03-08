@@ -21,7 +21,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -302,7 +302,7 @@ exports[`components/PluginManagement should match snapshot 1`] = `
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -369,7 +369,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -650,7 +650,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Marketp
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -717,7 +717,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -746,7 +746,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Plugins
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -813,7 +813,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -1094,7 +1094,7 @@ exports[`components/PluginManagement should match snapshot when \`Enable Remote 
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -1161,7 +1161,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -1444,7 +1444,7 @@ exports[`components/PluginManagement should match snapshot when \`Require Signat
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -1511,7 +1511,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -1796,7 +1796,7 @@ exports[`components/PluginManagement should match snapshot, No installed plugins
               />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -1863,7 +1863,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -2144,7 +2144,7 @@ exports[`components/PluginManagement should match snapshot, allow insecure URL e
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -2211,7 +2211,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -2469,7 +2469,7 @@ exports[`components/PluginManagement should match snapshot, disabled 1`] = `
             setByEnv={false}
             value="marketplace.example.com"
           />
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -2536,7 +2536,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -2817,7 +2817,7 @@ exports[`components/PluginManagement should match snapshot, text entered into th
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -2884,7 +2884,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -3172,7 +3172,7 @@ exports[`components/PluginManagement should match snapshot, upload disabled 1`] 
               <br />
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -3239,7 +3239,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -3583,7 +3583,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -3650,7 +3650,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -3962,7 +3962,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -4029,7 +4029,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -4341,7 +4341,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -4408,7 +4408,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -4720,7 +4720,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div
@@ -4787,7 +4787,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
       <div
         className="admin-console__content"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
           id="PluginSettings"
         >
@@ -5131,7 +5131,7 @@ exports[`components/PluginManagement should match snapshot, with installed plugi
               </div>
             </div>
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </div>
     </div>
     <div

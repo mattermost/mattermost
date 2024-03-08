@@ -3323,8 +3323,16 @@
     "translation": "Kimlik hizmeti sağlayıcı isteği yapılırken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Kimlik hizmeti sağlayıcı isteği şifrelenirken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "Şifreleme etkinleştirilmemiş olduğundan SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Kimlik hizmeti sağlayıcının herkese açık sertifika dosyası bulunamadı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3335,12 +3343,20 @@
     "translation": "Kimlik hizmeti sağlayıcının yanıtı şifrelenmemiş olduğundan SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "Kimlik hizmeti sağlayıcı yanıtının şifresi çözülürken bir sorun çıktığından SAML oturumu açılamadı. Lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Kimlik hizmeti sağlayıcıdan boş bir yanıt alındı."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt işlenirken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Kimlik hizmeti sağlayıcıdan alınan yanıt doğrulanırken bir sorun çıktı. Lütfen sistem yöneticiniz ile görüşün."
   },
   {
     "id": "ent.saml.license_disable.app_error",

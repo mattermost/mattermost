@@ -286,8 +286,7 @@ func TestUpdateIncomingWebhook(t *testing.T) {
 }
 
 func TestCreateWebhookPost(t *testing.T) {
-	testCluster := &testlib.FakeClusterInterface{}
-	th := SetupWithClusterMock(t, testCluster).InitBasic()
+	th := Setup(t).InitBasic()
 	defer th.TearDown()
 
 	th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.EnableIncomingWebhooks = true })
@@ -366,18 +365,20 @@ Date:   Thu Mar 1 19:46:48 2018 +0300
 	assert.Equal(t, expectedText, post.Message)
 
 	t.Run("should set webhook creator status to online", func(t *testing.T) {
+		testCluster := &testlib.FakeClusterInterface{}
+		th.Server.Platform().SetCluster(testCluster)
+		defer th.Server.Platform().SetCluster(nil)
+
 		testCluster.ClearMessages()
 		_, appErr := th.App.CreateWebhookPost(th.Context, hook.UserId, th.BasicChannel, "text", "", "", "", model.StringInterface{}, model.PostTypeDefault, "")
 		require.Nil(t, appErr)
 
-		msgs := testCluster.SelectMessages(func(msg *model.ClusterMessage) bool {
-			event, err := model.WebSocketEventFromJSON(bytes.NewReader(msg.Data))
-			return err == nil && event.EventType() == model.WebsocketEventPosted
-		})
-		require.Len(t, msgs, 1)
-		// We know there will be no error from the filter condition.
-		event, _ := model.WebSocketEventFromJSON(bytes.NewReader(msgs[0].Data))
-		assert.Equal(t, false, event.GetData()["set_online"])
+		msgs := testCluster.GetMessages()
+		// The first message is ClusterEventInvalidateCacheForChannelByName so we skip it
+		ev, err1 := model.WebSocketEventFromJSON(bytes.NewReader(msgs[1].Data))
+		require.NoError(t, err1)
+		require.Equal(t, model.WebsocketEventPosted, ev.EventType())
+		assert.Equal(t, false, ev.GetData()["set_online"])
 	})
 }
 

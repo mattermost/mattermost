@@ -3318,8 +3318,16 @@
     "translation": "認証プロバイダーへのリクエストを初期化する際にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "認証プロバイダーへのリクエストをエンコードする際にエラーが発生しました。システム管理者に連絡してください。"
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAMLログインは、暗号化が有効になっていないため、失敗しました。システム管理者に連絡してください。"
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "認証プロバイダーの公開証明書ファイルが見付かりません。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3330,12 +3338,20 @@
     "translation": "SAMLログインは、認証プロバイダーのレスポンスが暗号化されていないため失敗しました。システム管理者に連絡してください。"
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "SAMLログインは、認証プロバイダーからのレスポンスを復号する際にエラーが発生したため、失敗しました。システム管理者に連絡してください。"
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "認証プロバイダーから空のレスポンスを受け取りました。"
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "認証プロバイダーからのレスポンスを解析中にエラーが発生しました。システム管理者に連絡してください。"
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "認証プロバイダーからのレスポンスの妥当性を確認中にエラーが発生しました。システム管理者に連絡してください。"
   },
   {
     "id": "ent.saml.license_disable.app_error",

@@ -95,11 +95,10 @@
     "smooth-scroll-into-view-if-needed": "1.1.33",
     "stream-browserify": "3.0.0",
     "styled-components": "5.3.6",
-    "stylelint": "13.13.1",
     "timezones.json": "1.6.1",
     "tinycolor2": "1.4.2",
     "turndown": "7.1.1",
-    "typescript": "5.3.3",
+    "typescript": "4.9.5",
     "zen-observable": "0.9.0"
   },
   "devDependencies": {
@@ -174,6 +173,7 @@
     "react-router-enzyme-context": "1.2.0",
     "redux-mock-store": "1.5.4",
     "redux-persist-node-storage": "2.0.0",
+    "stylelint": "13.13.1",
     "stylelint-config-idiomatic-order": "8.1.0",
     "stylelint-config-recommended": "5.0.0",
     "stylelint-config-recommended-scss": "4.2.0",
@@ -183,11 +183,6 @@
     "webpack-bundle-analyzer": "4.7.0",
     "webpack-pwa-manifest": "4.3.0",
     "yargs": "16.2.0"
-  },
-  "overrides": {
-    "@mattermost/desktop-api": {
-      "typescript": "$typescript"
-    }
   },
   "scripts": {
     "check": "eslint --ext .js,.jsx,.tsx,.ts ./src --quiet --cache && stylelint \"**/*.{css,scss}\" --cache",

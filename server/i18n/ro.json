@@ -3324,8 +3324,16 @@
     "translation": "Eroare la initierea cererii de către furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Eroare în timp ce codare cererea pentru furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML login a avut succes, deoarece criptare nu este activat. Vă rugăm să contactaţi administratorul de sistem."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Identitatea furnizorului Public Certificate dosar nu a fost găsit. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3336,12 +3344,20 @@
     "translation": "SAML login a avut succes ca răspuns furnizor de identitate nu este criptat. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "SAML login a avut succes pentru că a apărut o eroare în timp ce decriptarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Am primit un raspuns gol la furnizorul de identitate."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Eroare la parsarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Eroare la validarea răspunsul de la furnizorul de identitate. Vă rugăm să contactaţi administratorul de sistem."
   },
   {
     "id": "ent.saml.license_disable.app_error",

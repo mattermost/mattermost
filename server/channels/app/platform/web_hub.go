@@ -165,12 +165,24 @@ func (ps *PlatformService) HubUnregister(webConn *WebConn) {
 
 func (ps *PlatformService) InvalidateCacheForChannel(channel *model.Channel) {
 	ps.Store.Channel().InvalidateChannel(channel.Id)
-	teamID := channel.TeamId
-	if teamID == "" {
-		teamID = "dm"
-	}
+	ps.invalidateCacheForChannelByNameSkipClusterSend(channel.TeamId, channel.Name)
 
-	ps.Store.Channel().InvalidateChannelByName(teamID, channel.Name)
+	if ps.clusterIFace != nil {
+		nameMsg := &model.ClusterMessage{
+			Event:    model.ClusterEventInvalidateCacheForChannelByName,
+			SendType: model.ClusterSendBestEffort,
+			Props:    make(map[string]string),
+		}
+
+		nameMsg.Props["name"] = channel.Name
+		if channel.TeamId == "" {
+			nameMsg.Props["id"] = "dm"
+		} else {
+			nameMsg.Props["id"] = channel.TeamId
+		}
+
+		ps.clusterIFace.SendClusterMessage(nameMsg)
+	}
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelMembers(channelID string) {
@@ -180,7 +192,16 @@ func (ps *PlatformService) InvalidateCacheForChannelMembers(channelID string) {
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelMembersNotifyProps(channelID string) {
-	ps.Store.Channel().InvalidateCacheForChannelMembersNotifyProps(channelID)
+	ps.invalidateCacheForChannelMembersNotifyPropsSkipClusterSend(channelID)
+
+	if ps.clusterIFace != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.ClusterEventInvalidateCacheForChannelMembersNotifyProps,
+			SendType: model.ClusterSendBestEffort,
+			Data:     []byte(channelID),
+		}
+		ps.clusterIFace.SendClusterMessage(msg)
+	}
 }
 
 func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
@@ -189,11 +210,19 @@ func (ps *PlatformService) InvalidateCacheForChannelPosts(channelID string) {
 }
 
 func (ps *PlatformService) InvalidateCacheForUser(userID string) {
-	ps.Store.Channel().InvalidateAllChannelMembersForUser(userID)
-	ps.invalidateWebConnSessionCacheForUser(userID)
+	ps.InvalidateCacheForUserSkipClusterSend(userID)
 
 	ps.Store.User().InvalidateProfilesInChannelCacheByUser(userID)
 	ps.Store.User().InvalidateProfileCacheForUser(userID)
+
+	if ps.clusterIFace != nil {
+		msg := &model.ClusterMessage{
+			Event:    model.ClusterEventInvalidateCacheForUser,
+			SendType: model.ClusterSendBestEffort,
+			Data:     []byte(userID),
+		}
+		ps.clusterIFace.SendClusterMessage(msg)
+	}
 }
 
 func (ps *PlatformService) InvalidateCacheForUserTeams(userID string) {

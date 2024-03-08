@@ -3328,8 +3328,16 @@
     "translation": "Ocorreu um erro ao iniciar a solicitação para o Provedor de Identidade. Entre em contato com o Administrador do Sistema."
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Ocorreu um erro durante a codificação do pedido para o Provedor de Identidade. Entre em contato com o Administrador do Sistema."
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML login não foi bem sucedido pois a criptografia não está ativada. Entre em contato com o Administrador do Sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "O Arquivo do Certificado Publico do Provedor de Identidade não foi encontrado. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3340,12 +3348,20 @@
     "translation": "SAML login não foi bem sucedido pois a resposta do Provedor de Identidade não está criptografada. Entre em contato com a Administrador do Sistema."
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "SAML login não foi bem sucedida porque ocorreu um erro ao descriptografar a resposta do Provedor de Identidade. Entre em contato com o Administrador do Sistema."
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Recebido uma resposta em branco do Provedor de Identidade."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Ocorreu um erro ao analisar a resposta do Provedor de Identidade. Entre em contato com o Administrador do Sistema."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Ocorreu um erro ao validar a resposta do Provedor de Identidade. Entre em contato com o Administrador do Sistema."
   },
   {
     "id": "ent.saml.license_disable.app_error",

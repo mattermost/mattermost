@@ -3324,8 +3324,16 @@
     "translation": "Se ha producido un error mientras se inicia la solicitud al Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Se ha producido un error mientras se codificaba la solicitud para el Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "El inicio de sesión con SAML no tuvo éxito porque el cifrado no está habilitado. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "El archivo del Certificado Público del Proveedor de identidad no fue encontrado. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3336,12 +3344,20 @@
     "translation": "El inicio de sesión con SAML no tuvo éxito porque la respuesta del Proveedor de Identidad está cifrada. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "El inicio de sesión con SAML no tuvo éxito porque se ha producido un error al descifrar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Hemos recibido una respuesta vacía desde el Proveedor de Identidad."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Se ha producido un error al analizar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Se ha producido un error al validar la respuesta del Proveedor de Identidad. Por favor, póngase en contacto con su Administrador del Sistema."
   },
   {
     "id": "ent.saml.license_disable.app_error",

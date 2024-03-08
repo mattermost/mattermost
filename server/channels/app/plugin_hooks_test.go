@@ -1791,7 +1791,7 @@ func TestHookPreferencesHaveChanged(t *testing.T) {
 
 			require.Nil(t, appErr)
 			assert.Equal(t, "test_value_third", preference.Value)
-		}, 5*time.Second, 100*time.Millisecond)
+		}, 1*time.Second, 10*time.Millisecond)
 	})
 }
 
@@ -1854,12 +1854,11 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
 
 			post := posts.Posts[posts.Order[0]]
 			assert.Equal(t, channel.Id, post.ChannelId)
 			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
-		}, 5*time.Second, 100*time.Millisecond)
+		}, 1*time.Second, 10*time.Millisecond)
 	})
 
 	t.Run("should call hook when a DM is created", func(t *testing.T) {
@@ -1880,11 +1879,11 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
+
 			post := posts.Posts[posts.Order[0]]
 			assert.Equal(t, channel.Id, post.ChannelId)
 			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
-		}, 5*time.Second, 100*time.Millisecond)
+		}, 1*time.Second, 10*time.Millisecond)
 	})
 
 	t.Run("should call hook when a GM is created", func(t *testing.T) {
@@ -1906,11 +1905,11 @@ func TestChannelHasBeenCreated(t *testing.T) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
+
 			post := posts.Posts[posts.Order[0]]
 			assert.Equal(t, channel.Id, post.ChannelId)
 			assert.Equal(t, "ChannelHasBeenCreated has been called for "+channel.Id, post.Message)
-		}, 5*time.Second, 100*time.Millisecond)
+		}, 1*time.Second, 10*time.Millisecond)
 	})
 }
 
@@ -1988,9 +1987,9 @@ func TestUserHasJoinedChannel(t *testing.T) {
 			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
 
 			require.Nil(t, appErr)
-			assert.True(t, len(posts.Order) > 0)
+
 			assert.Equal(t, fmt.Sprintf("Test: User %s joined %s", user2.Id, channel.Id), posts.Posts[posts.Order[0]].Message)
-		}, 5*time.Second, 100*time.Millisecond)
+		}, 1*time.Second, 10*time.Millisecond)
 	})
 
 	t.Run("should call hook when a user is added to an existing channel", func(t *testing.T) {
@@ -2019,23 +2018,13 @@ func TestUserHasJoinedChannel(t *testing.T) {
 		})
 		require.Nil(t, appErr)
 
-		expectedMessage := fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id)
-		assert.Eventually(t, func() bool {
-			// Typically, the post we're looking for will be the latest, but there's a race between the plugin and
-			// "User has joined the channel" post which means the plugin post may not the the latest one
-			posts, appErr := th.App.GetPosts(channel.Id, 0, 10)
+		assert.EventuallyWithT(t, func(t *assert.CollectT) {
+			posts, appErr := th.App.GetPosts(channel.Id, 0, 1)
+
 			require.Nil(t, appErr)
 
-			for _, postId := range posts.Order {
-				post := posts.Posts[postId]
-
-				if post.Message == expectedMessage {
-					return true
-				}
-			}
-
-			return false
-		}, 5*time.Second, 100*time.Millisecond)
+			assert.Equal(t, fmt.Sprintf("Test: User %s added to %s by %s", user2.Id, channel.Id, user1.Id), posts.Posts[posts.Order[0]].Message)
+		}, 1*time.Second, 10*time.Millisecond)
 	})
 
 	t.Run("should not call hook when a regular channel is created", func(t *testing.T) {

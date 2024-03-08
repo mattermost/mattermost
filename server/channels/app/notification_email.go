@@ -9,6 +9,7 @@ import (
 	"html"
 	"html/template"
 	"io"
+	"strings"
 
 	"github.com/pkg/errors"
 
@@ -231,8 +232,20 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	}
 
 	if emailNotificationContentsType == model.EmailNotificationContentsFull {
-		postMessage := a.GetMessageForNotification(post, teamName, a.GetSiteURL(), translateFunc)
-		pData.Message = template.HTML(postMessage)
+		postMessage := a.GetMessageForNotification(post, translateFunc)
+		postMessage = html.EscapeString(postMessage)
+		mdPostMessage, mdErr := utils.MarkdownToHTML(postMessage, a.GetSiteURL())
+		if mdErr != nil {
+			c.Logger().Warn("Encountered error while converting markdown to HTML", mlog.Err(mdErr))
+			mdPostMessage = postMessage
+		}
+
+		normalizedPostMessage, err := a.generateHyperlinkForChannels(c, mdPostMessage, teamName, landingURL)
+		if err != nil {
+			c.Logger().Warn("Encountered error while generating hyperlink for channels", mlog.String("team_name", teamName), mlog.Err(err))
+			normalizedPostMessage = mdPostMessage
+		}
+		pData.Message = template.HTML(normalizedPostMessage)
 		pData.Time = translateFunc("app.notification.body.dm.time", messageTime)
 		pData.MessageAttachments = email.ProcessMessageAttachments(post, a.GetSiteURL())
 	}
@@ -296,6 +309,34 @@ func (a *App) getNotificationEmailBody(c request.CTX, recipient *model.User, pos
 	return a.Srv().TemplatesContainer().RenderToString("messages_notification", data)
 }
 
-func (a *App) GetMessageForNotification(post *model.Post, teamName, siteUrl string, translateFunc i18n.TranslateFunc) string {
-	return a.Srv().EmailService.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
+func (a *App) generateHyperlinkForChannels(c request.CTX, postMessage, teamName, teamURL string) (string, *model.AppError) {
+	team, err := a.GetTeamByName(teamName)
+	if err != nil {
+		return "", err
+	}
+
+	channelNames := model.ChannelMentions(postMessage)
+	if len(channelNames) == 0 {
+		return postMessage, nil
+	}
+
+	channels, err := a.GetChannelsByNames(c, channelNames, team.Id)
+	if err != nil {
+		return "", err
+	}
+
+	visited := make(map[string]bool)
+	for _, ch := range channels {
+		if !visited[ch.Id] && ch.Type == model.ChannelTypeOpen {
+			channelURL := teamURL + "/channels/" + ch.Name
+			channelHyperLink := fmt.Sprintf("<a href='%s'>%s</a>", channelURL, "~"+ch.Name)
+			postMessage = strings.Replace(postMessage, "~"+ch.Name, channelHyperLink, -1)
+			visited[ch.Id] = true
+		}
+	}
+	return postMessage, nil
+}
+
+func (a *App) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+	return a.Srv().EmailService.GetMessageForNotification(post, translateFunc)
 }

@@ -40,7 +40,7 @@ func (s LocalCacheTermsOfServiceStore) Save(termsOfService *model.TermsOfService
 
 	if err == nil {
 		s.rootStore.doStandardAddToCache(s.rootStore.termsOfServiceCache, tos.Id, tos)
-		s.rootStore.doInvalidateCacheCluster(s.rootStore.termsOfServiceCache, LatestKey, nil)
+		s.rootStore.doInvalidateCacheCluster(s.rootStore.termsOfServiceCache, LatestKey)
 	}
 	return tos, err
 }

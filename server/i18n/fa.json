@@ -1640,6 +1640,10 @@
     "translation": "مجوز شما از تأیید اعتبار SAML پشتیبانی نمی کند."
   },
   {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "هنگام تأیید پاسخ از طرف ارائه دهنده هویت ، خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
+  },
+  {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "هنگام تجزیه و تحلیل پاسخ از طرف ارائه دهنده هویت خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
@@ -1656,6 +1660,10 @@
     "translation": "ما یک پاسخ خالی از ارائه دهنده هویت دریافت کرده است."
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "ورود به سیستم SAML ناموفق بود زیرا هنگام رمزگشایی پاسخ از طرف ارائه دهنده هویت خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
+  },
+  {
     "id": "ent.saml.configure.not_encrypted_response.app_error",
     "translation": "ورود SAML ناموفق بود زیرا پاسخ Identity Provider رمزگذاری نشده است. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
@@ -1664,8 +1672,16 @@
     "translation": "ورود SAML ناموفق بود زیرا کلید خصوصی ارائه دهنده خدمات یافت نشد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
   {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "پرونده گواهی عمومی ارائه دهنده هویت یافت نشد. لطفا با سرپرست سیستم خود تماس بگیرید."
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "ورود SAML ناموفق بود زیرا رمزگذاری فعال نیست. لطفا با سرپرست سیستم خود تماس بگیرید."
+  },
+  {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "هنگام رمزگذاری درخواست برای Identity Provider خطایی روی داد. لطفا با سرپرست سیستم خود تماس بگیرید."
   },
   {
     "id": "ent.saml.build_request.app_error",

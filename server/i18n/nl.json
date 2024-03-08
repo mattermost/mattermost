@@ -3323,8 +3323,16 @@
     "translation": "Er is een fout opgetreden bij de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML aanmelding is mislukt vanwege het ontbreken van encryptie. Neem contact op met de beheerder."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Identity Provider Public Certificate File is niet gevonden. Neem contact op met de beheerder."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3335,11 +3343,19 @@
     "translation": "SAML aanmelding is mislukt omdat de communicatie met de Identity Provider niet versleuteld is . Neem contact op met de beheerder."
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "SAML aanmelding is mislukt omdat er een fout is opgetreden tijdens het ondersleuteling van het bericht van de Identity Provider. Neem contact op met de beheerder."
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "We hebben leeg anwtoord ontvangen van de Identity Provider."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
+    "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
     "translation": "Er is een fout opgetreden tijdens het versleutelen van de aanvraag richting de Identity Provider. Neem contact op met de beheerder."
   },
   {

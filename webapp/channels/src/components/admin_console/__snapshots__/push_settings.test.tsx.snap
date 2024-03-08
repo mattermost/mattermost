@@ -15,7 +15,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         id="admin.environment.pushNotificationServer"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
+    <SettingsGroup>
       <Memo(DropdownSetting)
         helpText={null}
         id="pushNotificationServerType"
@@ -156,7 +156,7 @@ exports[`components/PushSettings should match snapshot, licensed 1`] = `
         type="number"
         value={1000}
       />
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >
@@ -215,7 +215,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         id="admin.environment.pushNotificationServer"
       />
     </AdminHeader>
-    <Memo(SettingsGroup)>
+    <SettingsGroup>
       <Memo(DropdownSetting)
         helpText={null}
         id="pushNotificationServerType"
@@ -300,7 +300,7 @@ exports[`components/PushSettings should match snapshot, unlicensed 1`] = `
         type="number"
         value={1000}
       />
-    </Memo(SettingsGroup)>
+    </SettingsGroup>
     <div
       className="admin-console-save"
     >

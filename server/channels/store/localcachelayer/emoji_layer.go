@@ -171,10 +171,10 @@ func (es *LocalCacheEmojiStore) removeFromCache(emoji *model.Emoji) {
 	es.emojiByIdMut.Lock()
 	es.emojiByIdInvalidations[emoji.Id] = true
 	es.emojiByIdMut.Unlock()
-	es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiCacheById, emoji.Id, nil)
+	es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiCacheById, emoji.Id)
 
 	es.emojiByNameMut.Lock()
 	es.emojiByNameInvalidations[emoji.Name] = true
 	es.emojiByNameMut.Unlock()
-	es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiIdCacheByName, emoji.Name, nil)
+	es.rootStore.doInvalidateCacheCluster(es.rootStore.emojiIdCacheByName, emoji.Name)
 }

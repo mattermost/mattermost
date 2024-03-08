@@ -18,7 +18,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
         >
           <div
@@ -178,7 +178,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 *This* is the **footer**"
             />
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </form>
     </div>
   </div>
@@ -318,7 +318,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
         onSubmit={[Function]}
         role="form"
       >
-        <Memo(SettingsGroup)
+        <SettingsGroup
           container={false}
         >
           <div
@@ -478,7 +478,7 @@ exports[`components/admin_console/CustomPluginSettings should match snapshot wit
 *This* is the **footer**"
             />
           </div>
-        </Memo(SettingsGroup)>
+        </SettingsGroup>
       </form>
     </div>
   </div>

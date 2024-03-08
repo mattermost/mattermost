@@ -12,8 +12,6 @@ import packagejson from './package.json';
 const externals = [
     ...Object.keys(packagejson.dependencies || {}),
     ...Object.keys(packagejson.peerDependencies || {}),
-    '@mattermost/compass-icons/components',
-    'lodash/throttle',
     'mattermost-redux',
     'reselect',
 ];
@@ -36,11 +34,9 @@ export default [
                 extensions: ['.ts', '.tsx'],
             }),
             commonjs(),
-            typescript({
-                outputToFilesystem: true,
-            }),
+            typescript(),
         ],
-        external: externals,
+        external: (pkg) => externals.some((external) => pkg.startsWith(external)),
         watch: {
             clearScreen: false,
         },

@@ -5040,7 +5040,7 @@
   "sidebar_left.channel_filter.showAllChannels": "すべてのチャンネルを表示する",
   "sidebar_left.channel_navigator.channelSwitcherLabel": "チャンネル検索",
   "sidebar_left.channel_navigator.goBackLabel": "戻る",
-  "sidebar_left.channel_navigator.goForwardLabel": "進む",
+  "sidebar_left.channel_navigator.goForwardLabel": "次へ",
   "sidebar_left.channel_navigator.jumpTo": "チャンネル検索",
   "sidebar_left.inviteMembers": "メンバーを招待する",
   "sidebar_left.sidebar_category.newDropBoxLabel": "ここにチャンネルをドラッグしてください...",

@@ -3328,8 +3328,16 @@
     "translation": "Une erreur s'est produite lors de l'initialisation de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Une erreur s'est produite lors de l'encodage de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
+  },
+  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "La connexion via SAML a échoué, car le chiffrement n'est pas activé. Veuillez contacter votre administrateur système."
+  },
+  {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Le fichier de certificat de fournisseur d'identité est introuvable. Veuillez contacter votre administrateur système."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3340,11 +3348,19 @@
     "translation": "La connexion via SAML a échoué, car la réponse du fournisseur d'identité n'est pas chiffrée. Veuillez contacter votre administrateur système."
   },
   {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "La connexion via SAML a échoué, car une erreur s'est produite lors du déchiffrement de la réponse du serveur d'identité. Veuillez contacter votre administrateur système."
+  },
+  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Une réponse vide a été reçue du fournisseur d'identité."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
+    "translation": "Une erreur s'est produite lors de l'encodage de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
     "translation": "Une erreur s'est produite lors de l'encodage de la requête au fournisseur d'identité. Veuillez contacter votre administrateur système."
   },
   {

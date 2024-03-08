@@ -658,6 +658,10 @@
     "translation": "Hiển thị cài đặt phần chưa đọc không hợp lệ cho Người dùng"
   },
   {
+    "id": "ent.saml.configure.load_idp_cert.app_error",
+    "translation": "Không tìm thấy tập tin Nhận dạng nhà cung cấp chứng chỉ công cộng. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
     "id": "app.scheme.save.app_error",
     "translation": "Không thể tạo scheme"
   },
@@ -2248,6 +2252,10 @@
   {
     "id": "model.job.is_valid.status.app_error",
     "translation": "Tình trạng công việc không hợp lệ"
+  },
+  {
+    "id": "ent.saml.do_login.decrypt.app_error",
+    "translation": "Đăng nhập SAML không thành công vì đã xảy ra lỗi trong khi giải mã phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
   },
   {
     "id": "model.config.is_valid.atmos_camo_image_proxy_options.app_error",
@@ -4234,6 +4242,10 @@
     "translation": "Trường Create_at phải là thời gian hợp lệ."
   },
   {
+    "id": "ent.saml.build_request.encoding.app_error",
+    "translation": "Đã xảy ra lỗi trong khi mã hóa yêu cầu cho Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
+  },
+  {
     "id": "app.import.import_direct_channel.create_group_channel.error",
     "translation": "Tạo kênh nhóm không thành công"
   },
@@ -4572,6 +4584,10 @@
   {
     "id": "api.team.set_team_icon.array.app_error",
     "translation": "Dữ liệu trong trường 'image' bị trống"
+  },
+  {
+    "id": "ent.saml.do_login.validate.app_error",
+    "translation": "Đã xảy ra lỗi trong khi xác thực phản hồi từ Nhà cung cấp danh tính. Xin vui lòng liên hệ với quản trị hệ thống của bạn."
   },
   {
     "id": "app.export.export_write_line.io_writer.error",
