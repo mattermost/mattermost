@@ -1498,6 +1498,7 @@
   "admin.logs.options": "Options",
   "admin.logs.prev": "Previous",
   "admin.logs.ReloadLogs": "Reload Logs",
+  "admin.logs.DownloadLogs": "Download Logs",
   "admin.logs.showErrors": "Show last {n} errors",
   "admin.logs.title": "Server Logs",
   "admin.logs.Warn": "Warn",
