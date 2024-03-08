@@ -10,7 +10,6 @@ import type {UserProfile as UserProfileType} from '@mattermost/types/users';
 
 import {Permissions} from 'mattermost-redux/constants';
 import {NotificationLevel} from 'mattermost-redux/constants/channels';
-import type {ActionFunc} from 'mattermost-redux/types/actions';
 import {isChannelMuted} from 'mattermost-redux/utils/channel_utils';
 
 import AddGroupsToTeamModal from 'components/add_groups_to_team_modal';
@@ -54,9 +53,9 @@ type Props = {
     channelMember?: ChannelMembership;
     isMobileView: boolean;
     actions: {
-        getTotalUsersStats: () => ActionFunc;
-        favoriteChannel: (channelId: string) => ActionFunc;
-        unfavoriteChannel: (channelId: string) => ActionFunc;
+        getTotalUsersStats: () => any;
+        favoriteChannel: (channelId: string) => any;
+        unfavoriteChannel: (channelId: string) => any;
     };
 }
 
@@ -198,7 +197,7 @@ function createGMIntroMessage(
                 <div className='channel-intro__text'>
                     <FormattedMessage
                         id='intro_messages.group_message'
-                        defaultMessage={'This is the start of your group message history with these teammates. Messages and files shared here are not shown to people outside this area.'}
+                        defaultMessage={'This is the start of your group message history with these teammates. '}
                     />
                     {getGMIntroMessageSpecificPart(currentUserProfile, channelMembership)}
                 </div>
@@ -295,7 +294,7 @@ function createDMIntroMessage(
             <div className='channel-intro__text'>
                 <FormattedMessage
                     id='intro_messages.teammate'
-                    defaultMessage='This is the start of your direct message history with this teammate.Messages and files shared here are not shown to anyone else.'
+                    defaultMessage='This is the start of your direct message history with this teammate. Messages and files shared here are not shown to anyone else.'
                 />
             </div>
         </div>
@@ -453,7 +452,7 @@ function createDefaultIntroMessage(
                 {!isReadOnly &&
                     <FormattedMessage
                         id='intro_messages.default'
-                        defaultMessage='Post messages here that you want everyone to see. Everyone automatically becomes a permanent member of this channel when they join the team.'
+                        defaultMessage='Welcome to {display_name}. Post messages here that you want everyone to see. Everyone automatically becomes a member of this channel when they join the team.'
                         values={{
                             display_name: channel.display_name,
                         }}
@@ -462,7 +461,7 @@ function createDefaultIntroMessage(
                 {isReadOnly &&
                     <FormattedMessage
                         id='intro_messages.readonly.default'
-                        defaultMessage='Messages can only be posted by admins. Everyone automatically becomes a permanent member of this channel when they join the team.'
+                        defaultMessage='Welcome to {display_name}. Messages can only be posted by admins. Everyone automatically becomes a permanent member of this channel when they join the team.'
                         values={{
                             display_name: channel.display_name,
                         }}
@@ -658,7 +657,7 @@ function createSetHeaderButton(channel: Channel) {
     return (
         <ToggleModalButton
             modalId={ModalIdentifiers.EDIT_CHANNEL_HEADER}
-            ariaLabel={Utils.localizeMessage('intro_messages.setHeader', 'Set Header')}
+            ariaLabel={Utils.localizeMessage('intro_messages.setHeader', 'Set header')}
             className={'action-button'}
             dialogType={EditChannelHeaderModal}
             dialogProps={{channel}}
@@ -668,7 +667,7 @@ function createSetHeaderButton(channel: Channel) {
             />
             <FormattedMessage
                 id='intro_messages.setHeader'
-                defaultMessage='Set Header'
+                defaultMessage='Set header'
             />
         </ToggleModalButton>
     );
