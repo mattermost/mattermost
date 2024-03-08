@@ -12,11 +12,13 @@
     .post-right-comments-container {
         position: relative;
         margin-right: 5px;
+
         .post {
             &:hover {
                 & + .Separator {
                     .separator__hr {
                         overflow: visible;
+
                         &::before {
                             position: absolute;
                             top: -16px;
@@ -106,6 +108,7 @@
 
         &.post--compact {
             padding-left: 1em;
+
             .post__body {
                 padding-left: 0;
             }
@@ -113,10 +116,12 @@
             &.same--root {
                 &.post--comment {
                     padding-left: 1em;
+
                     .post__header {
-                        float: none;
                         height: auto;
                         margin-left: 0;
+                        float: none;
+
                         .post__time {
                             opacity: 0.73;
                         }
@@ -163,11 +168,13 @@
 
     .post-create__container {
         width: 100%;
+
         .btn {
             margin-bottom: 10px;
+
             &.disabled {
-                background: grey !important;
                 border-color: transparent !important;
+                background: grey !important;
             }
         }
 
@@ -178,20 +185,20 @@
 
         .msg-typing {
             display: block;
-            float: left;
-            opacity: 0.7;
             min-width: 1px;
             max-width: 100%;
             height: 20px;
             margin: 2px 0;
+            float: left;
             font-size: 11px;
             line-height: 16px;
+            opacity: 0.7;
         }
 
         .post-right-comments-upload-in-progress {
-            opacity: 0.7;
-            margin-right: 10px;
             padding: 6px 0;
+            margin-right: 10px;
+            opacity: 0.7;
         }
 
         .emoji-picker {
@@ -210,13 +217,13 @@
 
         .post-create-footer {
             .post-error {
-                display: inline-block;
                 position: relative;
                 top: 0;
-                opacity: 0.55;
+                display: inline-block;
                 margin-bottom: 0;
                 font-size: 0.85em;
                 font-weight: normal;
+                opacity: 0.55;
             }
         }
     }
@@ -224,6 +231,7 @@
 
 .post-right__container {
     flex: 1;
+
     .ThreadViewer {
         flex: 1;
     }
@@ -233,18 +241,19 @@
     height: 39px;
     padding: 10px 10px 0 15px;
     border-bottom: $border-gray;
+    color: #999;
     font-size: 1em;
     font-weight: 400;
-    color: #999;
     text-transform: uppercase;
 }
 
 .post-right-root-container {
     padding: 5px 10px;
     border-bottom: $border-gray;
+
     ul {
-        margin-bottom: 2px;
         padding-left: 0;
+        margin-bottom: 2px;
     }
 }
 
@@ -273,15 +282,16 @@
     bottom: 0;
     left: 0;
     width: 100%;
-    margin-bottom: 18px;
     padding: 5px;
+    margin-bottom: 18px;
 }
 
 .post-right__scroll {
-    -webkit-overflow-scrolling: touch;
-    flex: 1 1 auto;
     position: relative;
+    flex: 1 1 auto;
     padding-top: 28px;
+    -webkit-overflow-scrolling: touch;
+
     .file-preview__container {
         margin-top: 5px;
     }

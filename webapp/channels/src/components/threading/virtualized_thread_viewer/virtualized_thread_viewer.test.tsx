@@ -26,6 +26,7 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
     const currentUser = TestHelper.getUserMock({roles: 'role'});
     const post = TestHelper.getPostMock({
         channel_id: channel.id,
+        reply_count: 0,
     });
 
     const directTeammate: UserProfile = TestHelper.getUserMock();

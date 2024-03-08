@@ -25,6 +25,7 @@ import DelayedAction from 'utils/delayed_action';
 import {getNewMessageIndex, getPreviousPostId, getLatestPostId} from 'utils/post_utils';
 import * as Utils from 'utils/utils';
 
+import type {GlobalState} from 'types/store';
 import type {PluginComponent} from 'types/store/plugins';
 import type {FakePost} from 'types/store/rhs';
 
@@ -354,10 +355,12 @@ class ThreadViewerVirtualized extends PureComponent<Props, State> {
         const isRootPost = itemId === this.props.selected.id;
 
         const post = useSelector((state: GlobalState) => getPost(state, this.props.selected.id));
-        const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, [post.id]);
-        const thread = useSelector((state: GlobalState) => getThreadOrSynthetic(state, post));
+        const getThreadOrSynthetic = useMemo(makeGetThreadOrSynthetic, []);
 
-        const {reply_count: totalReplies = 0} = thread;
+        const totalReplies = useSelector((state: GlobalState) => {
+            const thread = getThreadOrSynthetic(state, post);
+            return thread.reply_count || 0;
+        });
 
         if (!isDateLine(itemId) && !isStartOfNewMessages(itemId) && !isCreateComment(itemId) && !isRootPost) {
             a11yIndex++;
