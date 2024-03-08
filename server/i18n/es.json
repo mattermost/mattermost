@@ -9294,5 +9294,41 @@
   {
     "id": "api.payload.parse.error",
     "translation": "Ha ocurrido un error al analizar el payload."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "email_token inválido"
+  },
+  {
+    "id": "api.post.post_priority.priority_post_not_allowed_for_user.request_error",
+    "translation": "El usuario no tiene permitido crear una publicación prioritaria o notificación persistente."
+  },
+  {
+    "id": "api.post.post_priority.urgent_persistent_notification_post.request_error",
+    "translation": "Las publicaciones de notificación persistente deben tener Prioridad Urgente."
+  },
+  {
+    "id": "api.server.cws.delete_workspace.app_error",
+    "translation": "El servidor CWS falló al eliminar el espacio de trabajo."
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Las interacciones con el Portal de Cliente Mattermost han sido deshabilitadas por el administrador del sistema."
+  },
+  {
+    "id": "api.server.cws.needs_enterprise_edition",
+    "translation": "Servicio sólo disponible en Mattermost Enterprise edition"
+  },
+  {
+    "id": "api.server.cws.subscribe_to_newsletter.app_error",
+    "translation": "El servidor CWS falló al suscribirse al boletín informativo."
+  },
+  {
+    "id": "api.post.post_priority.priority_post_only_allowed_for_root_post.request_error",
+    "translation": "Sólo las publicaciones raíz tienen permitidas tener prioridad."
+  },
+  {
+    "id": "api.server.cws.health_check.app_error",
+    "translation": "El servidor CWS no está disponible."
   }
 ]
