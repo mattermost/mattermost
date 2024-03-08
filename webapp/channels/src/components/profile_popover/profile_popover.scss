@@ -37,22 +37,15 @@
     width: 240px;
     max-height: calc(100vh - 240px);
     overflow-y: auto;
+    border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+    background: var(--center-channel-bg);
+    border-radius: 4px;
 
-    .popover-title {
-        overflow: unset;
-        max-width: 110%;
-        padding: 0;
-        border-bottom: none;
-        margin-top: 8px;
-        margin-right: -8px;
-
-        &.popover-title_height {
-            overflow: visible;
-            height: 22px;
-        }
+    .user-profile-popover-title {
+        padding: 16px;
 
         .user-popover__role {
-            padding: 0 4px;
             margin-left: 0;
             background-color: rgba(var(--center-channel-color-rgb), 0.08);
             color: var(--center-channel-color-rgb);
@@ -63,7 +56,7 @@
         }
     }
 
-    .popover-content {
+    .user-profile-popover-content {
         padding: 0 16px;
 
         .overflow--ellipsis {

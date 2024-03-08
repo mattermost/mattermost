@@ -121,7 +121,7 @@ const ProfilePopoverTitle = ({
             />
         );
     }
-    const titleClassName = classNames('popover-title', {'popover-title_height': !roleTitle});
+    const titleClassName = classNames('user-profile-popover-title', {'popover-title_height': !roleTitle});
 
     return (
         <div className={titleClassName}>
