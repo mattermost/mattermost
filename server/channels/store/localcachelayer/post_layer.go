@@ -56,11 +56,11 @@ func (s LocalCachePostStore) ClearCaches() {
 }
 
 func (s LocalCachePostStore) InvalidateLastPostTimeCache(channelId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.lastPostTimeCache, channelId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.lastPostTimeCache, channelId, nil)
 
 	// Keys are "{channelid}{limit}" and caching only occurs on limits of 30 and 60
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"30")
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"60")
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"30", nil)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.postLastPostsCache, channelId+"60", nil)
 
 	s.PostStore.InvalidateLastPostTimeCache(channelId)
 
