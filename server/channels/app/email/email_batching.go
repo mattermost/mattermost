@@ -332,12 +332,13 @@ func (es *Service) sendBatchedEmailNotification(userID string, notifications []*
 				channelDisplayName = truncateUserNames(channel.DisplayName, 11)
 			}
 
+			postMessage := es.GetMessageForNotification(notification.post, notification.teamName, siteURL, translateFunc)
 			postsData = append(postsData, &postData{
 				SenderPhoto:              senderPhoto,
 				SenderName:               truncateUserNames(sender.GetDisplayName(displayNameFormat), 22),
 				Time:                     t,
 				ChannelName:              channelDisplayName,
-				Message:                  template.HTML(es.GetMessageForNotification(notification.post, translateFunc)),
+				Message:                  template.HTML(postMessage),
 				MessageURL:               MessageURL,
 				ShowChannelIcon:          showChannelIcon,
 				OtherChannelMembersCount: otherChannelMembersCount,
