@@ -1114,7 +1114,7 @@ func (s *Server) stopLocalModeServer() {
 	}
 }
 
-func (a *App) OriginChecker() func(*http.Request) bool {
+func (a *App) OriginChecker(logger *mlog.Logger) func(*http.Request) bool {
 	if allowed := *a.Config().ServiceSettings.AllowCorsFrom; allowed != "" {
 		if allowed != "*" {
 			siteURL, err := url.Parse(*a.Config().ServiceSettings.SiteURL)
@@ -1149,7 +1149,14 @@ func (a *App) OriginChecker() func(*http.Request) bool {
 		if err != nil {
 			return false
 		}
-		return strings.EqualFold(u.Host, siteURL.Host) && strings.EqualFold(u.Scheme, siteURL.Scheme)
+
+		allowed := strings.EqualFold(u.Host, siteURL.Host) && strings.EqualFold(u.Scheme, siteURL.Scheme)
+
+		if !allowed {
+			logger.Warn("URL Blocked Because of CORS", mlog.String("Blocked Origin", origin[0]))
+		}
+
+		return allowed
 	}
 }
 
