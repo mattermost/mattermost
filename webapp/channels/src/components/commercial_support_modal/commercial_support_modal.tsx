@@ -1,6 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import moment from 'moment';
 import React from 'react';
 import {Modal} from 'react-bootstrap';
 import {FormattedMessage} from 'react-intl';
@@ -12,6 +13,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import AlertBanner from 'components/alert_banner';
 import FormattedMarkdownMessage from 'components/formatted_markdown_message';
+import LoadingSpinner from 'components/widgets/loading/loading_spinner';
 
 import './commercial_support_modal.scss';
 
@@ -35,6 +37,7 @@ type State = {
     show: boolean;
     showBannerWarning: boolean;
     packetContents: SupportPacketContent[];
+    loading: boolean;
 };
 
 export default class CommercialSupportModal extends React.PureComponent<Props, State> {
@@ -44,6 +47,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
             show: true,
             showBannerWarning: props.showBannerWarning,
             packetContents: props.packetContents,
+            loading: false,
         };
     }
 
@@ -83,6 +87,30 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
             }
         });
         return url.toString();
+    };
+
+    downloadSupportPacket = () => {
+        this.setState({loading: true});
+        fetch(this.genereateDownloadURLWithParams(), {
+            method: 'GET',
+            headers: {'Content-Type': 'application/zip'},
+        }).then((res) => {
+            return res.blob();
+        }).finally(() => {
+            this.setState({loading: false});
+        }).then((blob) => {
+            // we emulate the server filenaming convention to maintain file name
+            const formattedDate = (moment(new Date())).format('YYYY-MM-DD-HH-mm');
+            const href = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = href;
+            link.setAttribute('download', `mattermost_support_packet_${formattedDate}.zip`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }).catch((err) => {
+            return Promise.reject(err);
+        });
     };
 
     render() {
@@ -165,9 +193,10 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                         <div className='CommercialSupportModal__download'>
                             <a
                                 className='btn btn-primary DownloadSupportPacket'
-                                href={this.genereateDownloadURLWithParams()}
+                                onClick={this.downloadSupportPacket}
                                 rel='noopener noreferrer'
                             >
+                                { this.state.loading ? <LoadingSpinner/> : <span className='icon icon-download-outline'/> }
                                 <FormattedMessage
                                     id='commercial_support.download_support_packet'
                                     defaultMessage='Download Support Packet'

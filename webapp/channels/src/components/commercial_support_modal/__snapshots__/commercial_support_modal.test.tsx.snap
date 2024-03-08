@@ -83,9 +83,12 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
       >
         <a
           className="btn btn-primary DownloadSupportPacket"
-          href="/api/v4/system/support_packet"
+          onClick={[Function]}
           rel="noopener noreferrer"
         >
+          <span
+            className="icon icon-download-outline"
+          />
           <MemoizedFormattedMessage
             defaultMessage="Download Support Packet"
             id="commercial_support.download_support_packet"
