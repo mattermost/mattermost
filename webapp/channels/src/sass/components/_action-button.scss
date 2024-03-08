@@ -17,7 +17,8 @@
     outline: none !important;
     transition: all 0.15s ease;
 
-    &.active {
+    &.active,
+    &:active {
         background-color: rgba(var(--button-bg-rgb), 0.04);
         color: var(--button-bg);
 

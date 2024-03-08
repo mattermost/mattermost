@@ -183,6 +183,15 @@ function createGMIntroMessage(
                 />
             ));
 
+        const actionButtons = (
+            <div className='channel-intro__actions'>
+                {createFavoriteButton(isFavorite, toggleFavorite)}
+                {createSetHeaderButton(channel)}
+                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
+                <PluggableIntroButtons channel={channel}/>
+            </div>
+        );
+
         return (
             <div
                 id={channelIntroId}
@@ -201,12 +210,7 @@ function createGMIntroMessage(
                     />
                     {getGMIntroMessageSpecificPart(currentUserProfile, channelMembership)}
                 </div>
-                <div className='channel-intro__actions'>
-                    {createFavoriteButton(isFavorite, toggleFavorite)}
-                    {createSetHeaderButton(channel)}
-                    {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
-                    <PluggableIntroButtons channel={channel}/>
-                </div>
+                {actionButtons}
             </div>
         );
     }
@@ -247,6 +251,14 @@ function createDMIntroMessage(
             setHeaderButton = createSetHeaderButton(channel);
         }
 
+        const actionButtons = (
+            <div className='channel-intro__actions'>
+                {createFavoriteButton(isFavorite, toggleFavorite)}
+                {setHeaderButton}
+                {pluggableButton}
+            </div>
+        );
+
         return (
             <div
                 id={channelIntroId}
@@ -277,11 +289,7 @@ function createDMIntroMessage(
                         }}
                     />
                 </div>
-                <div className='channel-intro__actions'>
-                    {createFavoriteButton(isFavorite, toggleFavorite)}
-                    {pluggableButton}
-                    {setHeaderButton}
-                </div>
+                {actionButtons}
             </div>
         );
     }
@@ -308,13 +316,16 @@ function createOffTopicIntroMessage(
     isMobileView: boolean,
     currentUser: UserProfileType,
     toggleFavorite: () => void,
-    stats: any, usersLimit: number,
+    stats: any,
+    usersLimit: number,
 ) {
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     const children = createSetHeaderButton(channel);
     const totalUsers = stats.total_users_count;
+    const inviteUsers = totalUsers < usersLimit;
 
     let setHeaderButton = null;
+    let actionButtons = null;
 
     if (children) {
         setHeaderButton = (
@@ -337,6 +348,23 @@ function createOffTopicIntroMessage(
         />
     );
 
+    if (inviteUsers) {
+        actionButtons = (
+            <div className='channel-intro__actions'>
+                {actionButtons = channelInviteButton}
+            </div>
+        );
+    } else {
+        actionButtons = (
+            <div className='channel-intro__actions'>
+                {createFavoriteButton(isFavorite, toggleFavorite)}
+                {channelInviteButton}
+                {setHeaderButton}
+                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
+            </div>
+        );
+    }
+
     return (
         <div
             id='channelIntro'
@@ -355,12 +383,7 @@ function createOffTopicIntroMessage(
                     }}
                 />
             </div>
-            <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite)}
-                {channelInviteButton}
-                {setHeaderButton}
-                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
-            </div>
+            {actionButtons}
         </div>
     );
 }
@@ -381,9 +404,12 @@ function createDefaultIntroMessage(
     let teamInviteLink = null;
     const totalUsers = stats.total_users_count;
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
+    const inviteUsers = totalUsers < usersLimit;
 
     let setHeaderButton = null;
     let pluginButtons = null;
+    let actionButtons = null;
+
     if (!isReadOnly) {
         pluginButtons = <PluggableIntroButtons channel={channel}/>;
         const children = createSetHeaderButton(channel);
@@ -439,6 +465,24 @@ function createDefaultIntroMessage(
         );
     }
 
+    if (inviteUsers) {
+        actionButtons = (
+            <div className='channel-intro__actions'>
+                {actionButtons = teamInviteLink}
+            </div>
+        );
+    } else {
+        actionButtons = (
+            <div className='channel-intro__actions'>
+                {createFavoriteButton(isFavorite, toggleFavorite)}
+                {teamInviteLink}
+                {setHeaderButton}
+                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
+                {teamIsGroupConstrained && pluginButtons}
+            </div>
+        );
+    }
+
     return (
         <div
             id='channelIntro'
@@ -468,13 +512,7 @@ function createDefaultIntroMessage(
                     />
                 }
             </div>
-            <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite)}
-                {teamInviteLink}
-                {teamIsGroupConstrained && pluginButtons}
-                {teamIsGroupConstrained && setHeaderButton}
-                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
-            </div>
+            {actionButtons}
         </div>
     );
 }
@@ -493,8 +531,10 @@ function createStandardIntroMessage(
 ) {
     const uiName = channel.display_name;
     let memberMessage;
+    let teamInviteLink = null;
     const channelIsArchived = channel.delete_at !== 0;
     const totalUsers = stats.total_users_count;
+    const inviteUsers = totalUsers < usersLimit;
 
     if (channelIsArchived) {
         memberMessage = '';
@@ -599,6 +639,7 @@ function createStandardIntroMessage(
 
     const isPrivate = channel.type === Constants.PRIVATE_CHANNEL;
     let setHeaderButton = null;
+    let actionButtons = null;
     const children = createSetHeaderButton(channel);
     if (children) {
         setHeaderButton = (
@@ -612,7 +653,7 @@ function createStandardIntroMessage(
         );
     }
 
-    const channelInviteButton = (
+    teamInviteLink = (
         <AddMembersButton
             totalUsers={totalUsers}
             usersLimit={usersLimit}
@@ -620,6 +661,24 @@ function createStandardIntroMessage(
             pluginButtons={<PluggableIntroButtons channel={channel}/>}
         />
     );
+
+    if (inviteUsers) {
+        actionButtons = (
+            <div className='channel-intro__actions'>
+                {actionButtons = teamInviteLink}
+            </div>
+        );
+    } else {
+        actionButtons = (
+            <div className='channel-intro__actions'>
+                {createFavoriteButton(isFavorite, toggleFavorite)}
+                {teamInviteLink}
+                {setHeaderButton}
+                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
+                <PluggableIntroButtons channel={channel}/>
+            </div>
+        );
+    }
 
     return (
         <div
@@ -638,12 +697,7 @@ function createStandardIntroMessage(
                 {memberMessage}
                 {purposeMessage}
             </div>
-            <div className='channel-intro__actions'>
-                {createFavoriteButton(isFavorite, toggleFavorite)}
-                {channelInviteButton}
-                {setHeaderButton}
-                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
-            </div>
+            {actionButtons}
         </div>
     );
 }
