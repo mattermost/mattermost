@@ -61,7 +61,7 @@ services:
       MM_TEAMSETTINGS_ENABLEOPENSERVER: "true"
       MM_SQLSETTINGS_DATASOURCE: "postgres://mmuser:mostest@localhost:5432/mattermost_test?sslmode=disable&connect_timeout=10&binary_parameters=yes"
       MM_SQLSETTINGS_DRIVERNAME: "postgres"
-      MM_EMAILSETTINGS_SMTPSERVER: "inbucket"
+      MM_EMAILSETTINGS_SMTPSERVER: "localhost"
       MM_CLUSTERSETTINGS_READONLYCONFIG: "false"
       MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
       MM_FEATUREFLAGS_ONBOARDINGTOURTIPS: "false"
@@ -259,9 +259,7 @@ EOL
 generate_env_files() {
   # Generate .env.server
   mme2e_log "Generating .env.server"
-  mme2e_generate_envfile_from_var_names >.env.server <<-EOF
-	MM_LICENSE
-	EOF
+  truncate --size=0 .env.server
 
   # Setting SERVER-specific variables
   case "$SERVER" in
@@ -282,16 +280,15 @@ generate_env_files() {
   done
 
   # Generating TEST-specific env files
-  BRANCH_DEFAULT=$(git branch --show-current)
-  BUILD_ID_DEFAULT=$(date +%s)
-  export BRANCH=${BRANCH:-$BRANCH_DEFAULT}
-  export BUILD_ID=${BUILD_ID:-$BUILD_ID_DEFAULT}
-  export CI_BASE_URL="${CI_BASE_URL:-localhost}"
+  # Some are defaulted in .e2erc due to being needed to other scripts as well
+  export CI_BASE_URL="${CI_BASE_URL:-http://localhost:8065}"
   export REPO=mattermost # Static, but declared here for making generate_test_cycle.js easier to run
   export HEADLESS=true   # Static, but declared here for making generate_test_cycle.js easier to run
   case "$TEST" in
   cypress)
     mme2e_log "Cypress: Generating .env.cypress"
+    truncate --size=0 .env.cypress
+
     mme2e_generate_envfile_from_var_names >.env.cypress <<-EOF
 	BRANCH
 	BUILD_ID
@@ -299,6 +296,7 @@ generate_env_files() {
 	BROWSER
         HEADLESS
         REPO
+        CYPRESS_pushNotificationServer
 	EOF
     # Adding service-specific cypress variables
     for SERVICE in $ENABLED_DOCKER_SERVICES; do
@@ -327,8 +325,14 @@ generate_env_files() {
       echo "CYPRESS_serverEdition=E20" >>.env.cypress
       ;;
     esac
-    # If the dashboard is running, load .env.dashboard into .env.cypress
-    if DC_COMMAND="$MME2E_DC_DASHBOARD" mme2e_wait_service_healthy dashboard 1; then
+    # Add Automation Dashboard related variables to cypress container
+    if [ -n "${AUTOMATION_DASHBOARD_URL:-}" ]; then
+      mme2e_log "Automation dashboard URL is set: loading related variables into the Cypress container"
+      mme2e_generate_envfile_from_var_names >>.env.cypress <<-EOF
+	AUTOMATION_DASHBOARD_URL
+	AUTOMATION_DASHBOARD_TOKEN
+	EOF
+    elif DC_COMMAND="$MME2E_DC_DASHBOARD" mme2e_wait_service_healthy dashboard 1; then
       mme2e_log "Detected a running automation dashboard: loading its access variables into the Cypress container"
       cat >>.env.cypress <.env.dashboard
     fi

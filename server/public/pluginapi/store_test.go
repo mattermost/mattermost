@@ -12,18 +12,10 @@ import (
 
 func TestStore(t *testing.T) {
 	t.Run("master db singleton", func(t *testing.T) {
-		config := &model.Config{
-			SqlSettings: model.SqlSettings{
-				DriverName: model.NewString("test"),
-				DataSource: model.NewString("TestStore-master-db"),
-			},
-		}
-
 		api := &plugintest.API{}
-		defer api.AssertExpectations(t)
-		api.On("GetUnsanitizedConfig").Return(config)
 
 		driver := &plugintest.Driver{}
+		defer driver.AssertExpectations(t)
 		driver.On("Conn", true).Return("test", nil)
 		driver.On("ConnPing", "test").Return(nil)
 		driver.On("ConnClose", "test").Return(nil)
@@ -52,6 +44,7 @@ func TestStore(t *testing.T) {
 		}
 
 		driver := &plugintest.Driver{}
+		defer driver.AssertExpectations(t)
 		driver.On("Conn", true).Return("test", nil)
 		driver.On("ConnPing", "test").Return(nil)
 		driver.On("ConnClose", "test").Return(nil)
@@ -88,7 +81,7 @@ func TestStore(t *testing.T) {
 		api.On("GetUnsanitizedConfig").Return(config)
 
 		driver := &plugintest.Driver{}
-		driver.On("Conn", true).Return("test", nil)
+		defer driver.AssertExpectations(t)
 		driver.On("Conn", false).Return("test", nil)
 		driver.On("ConnPing", "test").Return(nil)
 		driver.On("ConnClose", "test").Return(nil)
