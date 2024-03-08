@@ -50,7 +50,7 @@
             display: inline-flex;
             padding: 5px 0;
             line-height: 22px;
-            white-space: normal;
+            white-space: nowrap;
         }
 
         span.MenuItem__text-color {
@@ -63,7 +63,7 @@
             font-size: 12px;
             line-height: 16px;
             opacity: 0.7;
-            white-space: normal;
+            white-space: nowrap;
 
             @media (max-width: 768px) {
                 padding-left: 28px !important;

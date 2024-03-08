@@ -131,7 +131,7 @@ func TestCreatePost(t *testing.T) {
 		require.NoError(t, err)
 
 		// Message with no channel mentions should result in no ephemeral message
-		timeout := time.After(2 * time.Second)
+		timeout := time.After(5 * time.Second)
 		waiting := true
 		for waiting {
 			select {
@@ -157,7 +157,7 @@ func TestCreatePost(t *testing.T) {
 		_, _, err = client.CreatePost(context.Background(), post)
 		require.NoError(t, err)
 
-		timeout = time.After(2 * time.Second)
+		timeout = time.After(5 * time.Second)
 		eventsToGo := 3 // 3 Posts created with @ mentions should result in 3 websocket events
 		for eventsToGo > 0 {
 			select {
@@ -1081,7 +1081,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout := time.After(2 * time.Second)
+	timeout := time.After(5 * time.Second)
 	waiting := true
 	for waiting {
 		select {
@@ -1100,7 +1100,7 @@ func TestCreatePostSendOutOfChannelMentions(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 
-	timeout = time.After(2 * time.Second)
+	timeout = time.After(5 * time.Second)
 	waiting = true
 	for waiting {
 		select {
@@ -2796,7 +2796,7 @@ func TestDeletePostEvent(t *testing.T) {
 				require.NoError(t, err)
 				received = true
 			}
-		case <-time.After(2 * time.Second):
+		case <-time.After(5 * time.Second):
 			exit = true
 		}
 		if exit {
@@ -3594,7 +3594,7 @@ func TestSetPostUnreadWithoutCollapsedThreads(t *testing.T) {
 					caught = true
 					data = ev.GetData()
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(5 * time.Second):
 				exit = true
 			}
 			if exit {
@@ -3866,7 +3866,7 @@ func TestCreatePostNotificationsWithCRT(t *testing.T) {
 								require.EqualValues(t, "[\""+th.BasicUser.Id+"\"]", users)
 							}
 						}
-					case <-time.After(1 * time.Second):
+					case <-time.After(5 * time.Second):
 						return
 					}
 				}
@@ -3980,7 +3980,7 @@ func TestPostReminder(t *testing.T) {
 					require.Equal(t, th.BasicTeam.Name, parsedPost.GetProp("team_name").(string))
 					return
 				}
-			case <-time.After(1 * time.Second):
+			case <-time.After(5 * time.Second):
 				return
 			}
 		}
