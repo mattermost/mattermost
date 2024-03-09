@@ -24,11 +24,14 @@ type ResultContainer struct {
 // used by plugins built by the Mattermost team.
 type Driver interface {
 	// Connection
-	Conn(isMaster bool) (string, error)
+	Conn(isMaster bool, pluginID string) (string, error)
 	ConnPing(connID string) error
 	ConnClose(connID string) error
 	ConnQuery(connID, q string, args []driver.NamedValue) (string, error)         // rows
 	ConnExec(connID, q string, args []driver.NamedValue) (ResultContainer, error) // result
+	// This is an extra method needed to shutdown connections
+	// after a plugin shuts down.
+	ShutdownConns(pluginID string)
 
 	// Transaction
 	Tx(connID string, opts driver.TxOptions) (string, error)

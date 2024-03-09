@@ -24,6 +24,7 @@ import (
 
 type supervisor struct {
 	lock        sync.RWMutex
+	pluginID    string
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksID]bool
@@ -32,7 +33,9 @@ type supervisor struct {
 }
 
 func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics metricsInterface) (retSupervisor *supervisor, retErr error) {
-	sup := supervisor{}
+	sup := supervisor{
+		pluginID: pluginInfo.Manifest.Id,
+	}
 	defer func() {
 		if retErr != nil {
 			sup.Shutdown()
@@ -48,6 +51,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
+			pluginID:   pluginInfo.Manifest.Id,
 			log:        wrappedLogger,
 			driverImpl: driver,
 			apiImpl:    &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
@@ -133,6 +137,8 @@ func (sup *supervisor) Shutdown() {
 	if sup.hooksClient != nil {
 		sup.hooksClient.doneWg.Wait()
 	}
+
+	sup.hooksClient.driver.ShutdownConns(sup.pluginID)
 }
 
 func (sup *supervisor) Hooks() Hooks {

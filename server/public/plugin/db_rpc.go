@@ -19,7 +19,8 @@ type dbRPCClient struct {
 // dbRPCServer is the server-side component which is responsible for calling
 // the driver methods and properly encoding the responses back to the RPC client.
 type dbRPCServer struct {
-	dbImpl Driver
+	pluginID string
+	dbImpl   Driver
 }
 
 var _ Driver = &dbRPCClient{}
@@ -42,8 +43,10 @@ type Z_DbBoolReturn struct {
 	A bool
 }
 
-func (db *dbRPCClient) Conn(isMaster bool) (string, error) {
+func (db *dbRPCClient) Conn(isMaster bool, _ string) (string, error) {
 	ret := &Z_DbStrErrReturn{}
+	// We don't care about passing the pluginID param because it's just there
+	// to satisfy the interface.
 	err := db.client.Call("Plugin.Conn", isMaster, ret)
 	if err != nil {
 		log.Printf("error during Plugin.Conn: %v", err)
@@ -53,7 +56,7 @@ func (db *dbRPCClient) Conn(isMaster bool) (string, error) {
 }
 
 func (db *dbRPCServer) Conn(isMaster bool, ret *Z_DbStrErrReturn) error {
-	ret.A, ret.B = db.dbImpl.Conn(isMaster)
+	ret.A, ret.B = db.dbImpl.Conn(isMaster, db.pluginID)
 	ret.B = encodableError(ret.B)
 	return nil
 }
@@ -456,4 +459,7 @@ func (db *dbRPCClient) RowsColumnTypePrecisionScale(rowsID string, index int) (i
 func (db *dbRPCServer) RowsColumnTypePrecisionScale(args *Z_DbRowsColumnArg, ret *Z_DbRowsColumnTypePrecisionScaleReturn) error {
 	ret.A, ret.B, ret.C = db.dbImpl.RowsColumnTypePrecisionScale(args.A, args.B)
 	return nil
+}
+
+func (db *dbRPCClient) ShutdownConns(_ string) {
 }

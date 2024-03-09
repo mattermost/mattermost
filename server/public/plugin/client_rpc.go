@@ -32,6 +32,7 @@ var hookNameToId = make(map[string]int)
 
 type hooksRPCClient struct {
 	client      *rpc.Client
+	pluginID    string
 	log         *mlog.Logger
 	muxBroker   *plugin.MuxBroker
 	apiImpl     API
@@ -48,6 +49,7 @@ type hooksRPCServer struct {
 
 // Implements hashicorp/go-plugin/plugin.Plugin interface to connect the hooks of a plugin
 type hooksPlugin struct {
+	pluginID   string
 	hooks      any
 	apiImpl    API
 	driverImpl Driver
@@ -60,6 +62,7 @@ func (p *hooksPlugin) Server(b *plugin.MuxBroker) (any, error) {
 
 func (p *hooksPlugin) Client(b *plugin.MuxBroker, client *rpc.Client) (any, error) {
 	return &hooksRPCClient{client: client,
+		pluginID:  p.pluginID,
 		log:       p.log,
 		muxBroker: b,
 		apiImpl:   p.apiImpl,
@@ -254,7 +257,8 @@ func (g *hooksRPCClient) OnActivate() error {
 	go func() {
 		defer g.doneWg.Done()
 		g.muxBroker.AcceptAndServe(nextID, &dbRPCServer{
-			dbImpl: g.driver,
+			pluginID: g.pluginID,
+			dbImpl:   g.driver,
 		})
 	}()
 
