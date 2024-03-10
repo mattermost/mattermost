@@ -105,7 +105,7 @@ const ProfilePopoverCallButtonWrapper = ({
             <button
                 id='startCallButton'
                 type='button'
-                disabled={disabled}
+                aria-disabled={disabled}
                 className='btn btn-icon btn-sm'
             >
                 <PhoneInTalkIcon
