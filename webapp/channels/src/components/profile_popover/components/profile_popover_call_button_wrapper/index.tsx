@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import classNames from 'classnames';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useIntl} from 'react-intl';
 import {useSelector} from 'react-redux';
@@ -14,14 +13,13 @@ import {getCallsConfig, getProfilesInCalls} from 'mattermost-redux/selectors/ent
 
 import {isCallsEnabled as getIsCallsEnabled} from 'selectors/calls';
 
-import OverlayTrigger from 'components/overlay_trigger';
-import ProfilePopoverCallButton from 'components/profile_popover_call_button';
-import Tooltip from 'components/tooltip';
+import ProfilePopoverCallButton from 'components/profile_popover/components/profile_popover_call_button';
+import WithTooltip from 'components/with_tooltip';
 
-import Constants from 'utils/constants';
 import {getDirectChannelName} from 'utils/utils';
 
 import type {GlobalState} from 'types/store';
+
 type Props = {
     userId: string;
     currentUserId: string;
@@ -35,19 +33,7 @@ type ChannelCallsState = {
     id: string;
 };
 
-export function checkUserInCall(state: GlobalState, userId: string) {
-    for (const profilesMap of Object.values(getProfilesInCalls(state))) {
-        for (const profile of Object.values(profilesMap || {})) {
-            if (profile?.id === userId) {
-                return true;
-            }
-        }
-    }
-
-    return false;
-}
-
-const CallButton = ({
+const ProfilePopoverCallButtonWrapper = ({
     userId,
     currentUserId,
     channelId,
@@ -109,29 +95,25 @@ const CallButton = ({
         id: 'webapp.mattermost.feature.start_call',
         defaultMessage: 'Start Call',
     });
-    const iconButtonClassname = classNames('btn icon-btn', {'icon-btn-disabled': disabled});
+
     const callButton = (
-        <OverlayTrigger
-            delayShow={Constants.OVERLAY_TIME_DELAY}
+        <WithTooltip
+            id='user_profile.call'
             placement='top'
-            overlay={
-                <Tooltip id='startCallTooltip'>
-                    {startCallMessage}
-                </Tooltip>
-            }
+            title={startCallMessage}
         >
             <button
                 id='startCallButton'
                 type='button'
-                aria-disabled={disabled}
-                className={iconButtonClassname}
+                disabled={disabled}
+                className='btn btn-icon btn-sm'
             >
                 <PhoneInTalkIcon
                     size={18}
                     aria-label={startCallMessage}
                 />
             </button>
-        </OverlayTrigger>
+        </WithTooltip>
     );
 
     if (disabled) {
@@ -147,4 +129,16 @@ const CallButton = ({
     );
 };
 
-export default CallButton;
+export function checkUserInCall(state: GlobalState, userId: string) {
+    for (const profilesMap of Object.values(getProfilesInCalls(state))) {
+        for (const profile of Object.values(profilesMap || {})) {
+            if (profile?.id === userId) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+export default ProfilePopoverCallButtonWrapper;

@@ -2,13 +2,12 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage, useIntl} from 'react-intl';
+import {FormattedMessage} from 'react-intl';
 
-import {SendIcon} from '@mattermost/compass-icons/components';
 import type {UserProfile} from '@mattermost/types/users';
 
-import AddToChannel from './add_to_channel';
-import CallButton from './call_button';
+import ProfilePopoverAddToChannel from 'components/profile_popover/components/profile_popover_add_to_channel';
+import ProfilePopoverCallButtonWrapper from 'components/profile_popover/components/profile_popover_call_button_wrapper';
 
 type Props = {
     user: UserProfile;
@@ -22,7 +21,7 @@ type Props = {
     hide?: () => void;
 };
 
-const ProfilePopoverActions = ({
+const ProfilePopoverOtherUserRow = ({
     currentUserId,
     haveOverrideProp,
     user,
@@ -33,42 +32,31 @@ const ProfilePopoverActions = ({
     fullname,
     channelId,
 }: Props) => {
-    const {formatMessage} = useIntl();
-
     if (user.id === currentUserId || haveOverrideProp) {
         return null;
     }
+
     return (
-        <div
-            data-toggle='tooltip'
-            className='popover__row first'
-        >
+        <div className='user-popover__bottom-row-container'>
             <button
-                id='messageButton'
                 type='button'
-                className='btn'
+                className='btn btn-primary btn-sm'
                 onClick={handleShowDirectChannel}
             >
-                <SendIcon
-                    size={16}
-                    aria-label={formatMessage({
-                        id: 'user_profile.send.dm.icon',
-                        defaultMessage: 'Send Message Icon',
-                    })}
-                />
+                <i className='icon icon-send'/>
                 <FormattedMessage
                     id='user_profile.send.dm'
                     defaultMessage='Message'
                 />
             </button>
-            <div className='popover_row-controlContainer'>
-                <AddToChannel
+            <div className='user-popover__bottom-row-end'>
+                <ProfilePopoverAddToChannel
                     handleCloseModals={handleCloseModals}
                     returnFocus={returnFocus}
                     user={user}
                     hide={hide}
                 />
-                <CallButton
+                <ProfilePopoverCallButtonWrapper
                     channelId={channelId}
                     currentUserId={currentUserId}
                     fullname={fullname}
@@ -80,4 +68,4 @@ const ProfilePopoverActions = ({
     );
 };
 
-export default ProfilePopoverActions;
+export default ProfilePopoverOtherUserRow;

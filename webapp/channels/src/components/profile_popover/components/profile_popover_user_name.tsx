@@ -9,19 +9,22 @@ type Props = {
     username: string;
 }
 
-const UserName = ({
+const ProfilePopoverUserName = ({
     hasFullName,
     username,
 }: Props) => {
-    const userNameClass = classNames('overflow--ellipsis pb-1', {'user-profile-popover__heading': !hasFullName});
     return (
         <div
             id='userPopoverUsername'
-            className={userNameClass}
+            className={classNames({
+                'user-profile-popover__heading': !hasFullName,
+                'user-profile-popover__non-heading': hasFullName,
+            })}
+            title={username}
         >
             {`@${username}`}
         </div>
     );
 };
 
-export default UserName;
+export default ProfilePopoverUserName;

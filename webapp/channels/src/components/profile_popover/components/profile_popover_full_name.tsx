@@ -10,7 +10,7 @@ type Props = {
     username: string;
     remoteId?: string;
 }
-const FullName = ({
+const ProfilePopoverFullName = ({
     fullname,
     username,
     remoteId,
@@ -20,22 +20,25 @@ const FullName = ({
     }
 
     let sharedIcon;
+
     if (remoteId) {
         sharedIcon = (
             <SharedUserIndicator
                 className='shared-user-icon'
-                withTooltip={true}
             />
         );
     }
+
     return (
         <div
             data-testid={`popover-fullname-${username}`}
-            className='overflow--ellipsis pb-1'
+            className='user-profile-popover__heading'
         >
-            <span className='user-profile-popover__heading'>{fullname}</span>
+            <span title={fullname}>
+                {fullname}
+            </span>
             {sharedIcon}
         </div>
     );
 };
-export default FullName;
+export default ProfilePopoverFullName;

@@ -18,8 +18,7 @@ const ProfilePopoverOverrideDisclaimer = ({
 
     return (
         <div
-            data-toggle='tooltip'
-            className='popover__row first'
+            className='user-popover__bottom-row-container'
         >
             <FormattedMessage
                 id='user_profile.account.post_was_created'
