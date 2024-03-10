@@ -9727,7 +9727,7 @@
   },
   {
     "id": "model.outgoing_oauth_connection.is_valid.audience.error",
-    "translation": "Någon URL för Audience är felaktigt."
+    "translation": "Någon URL för Audience är felaktigt: {{ .Url }}"
   },
   {
     "id": "api.templates.ip_filters_changed_footer.send_an_email_to",
@@ -9987,7 +9987,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.update_connection.app_error",
-    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle uppdateras."
+    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle uppdateras: {{ .Error }}"
   },
   {
     "id": "model.config.is_valid.data_retention.message_retention_misconfiguration.app_error",
@@ -10031,7 +10031,7 @@
   },
   {
     "id": "ent.outgoing_oauth_connections.save_connection.app_error",
-    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle sparas."
+    "translation": "Det uppstod ett fel när den utgående oauth-anslutningen skulle sparas: {{ .Error }}"
   },
   {
     "id": "model.config.is_valid.data_retention.file_retention_misconfiguration.app_error",
@@ -10092,5 +10092,73 @@
   {
     "id": "api.saml.invalid_email_token.app_error",
     "translation": "Ogiltigt e-posttoken"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Externa användare kan inte bjudas in: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Systemadministratören har stängt av samverkan med Mattermost Customer Portal."
+  },
+  {
+    "id": "app.channel.add_member.deleted_user.app_error",
+    "translation": "Det går inte att lägga till användaren som medlem i kanalen."
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL är för lång"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Det uppstod ett fel vid autentiseringen av den utgående OAuth-anslutningen: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Det finns redan en utgående OAuth-anslutning för den angivna \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Det finns ingen utgående OAuth-anslutning för angiven \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Utgående OAuth-anslutningar är inte tillgängliga på denna server."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Det uppstod ett fel vid hämtningen av den utgående OAuth-anslutningen för angiven \"audience\"."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Den utgående OAuth-anslutningen för angiven \"audience\" hittades inte."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Din licens stöder inte utgående OAuth-anslutningar."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Det finns redan en utgående OAuth-anslutning för angiven \"audience\": {{ .Audience }}"
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Ogiltiga props (anpassad status)"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Ogiltig uppdatering av teammedlem: En gäst kan inte vara ett enskilt team, en systemadministratör måste befordra eller degradera användare till/från gäster."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Angiven \"audience\" är ogiltig: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Det finns redan en utgående OAuth-anslutning för angiven \"audience\": {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Angiven \"audience\" är ogiltig: {{ .Error }}"
   }
 ]
