@@ -5,11 +5,12 @@ exports[`components/UserProfile should match snapshot 1`] = `
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
+    triggerButtonContainerClass="user-popover"
     userId="user_id"
     userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     <button
-      className="user-popover style--none"
+      className="style--none"
     >
       nickname
     </button>
@@ -22,11 +23,12 @@ exports[`components/UserProfile should match snapshot, when displayUsername is e
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
+    triggerButtonContainerClass="user-popover"
     userId="user_id"
     userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     <button
-      className="user-popover style--none"
+      className="style--none"
     >
       @username
     </button>
@@ -47,11 +49,12 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
+    triggerButtonContainerClass="user-popover"
     userId="user_id"
     userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     <button
-      className="user-popover style--none"
+      className="style--none"
     >
       nickname
     </button>
@@ -67,11 +70,12 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
+    triggerButtonContainerClass="user-popover"
     userId="user_id"
     userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     <button
-      className="user-popover style--none"
+      className="style--none"
       style={
         Object {
           "color": "#bbd279",

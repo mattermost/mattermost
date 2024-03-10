@@ -69,6 +69,7 @@ export default function UserProfile({
     return (
         <>
             <ProfilePopoverController
+                triggerButtonContainerClass='user-popover'
                 userId={userId}
                 userProfileSrc={profileImg}
                 channelId={channelId}
@@ -77,7 +78,7 @@ export default function UserProfile({
                 overwriteName={overwriteName}
             >
                 <button
-                    className='user-popover style--none'
+                    className='style--none'
                     style={userStyle}
                 >
                     {name}
