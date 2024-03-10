@@ -12,7 +12,7 @@ import {Client4} from 'mattermost-redux/client';
 
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
-import UserProfileElement from 'components/user_profile';
+import UserProfileComponent from 'components/user_profile';
 
 import EditableArea from './components/editable_area';
 import LineLimiter from './components/linelimiter';
@@ -89,7 +89,6 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                                 userId={user.id}
                                 username={user.username}
                                 channelId={channel.id}
-                                popoverPlacement='left'
                             />
                         </ProfilePictureContainer>
                     ))}
@@ -97,9 +96,8 @@ const AboutAreaGM = ({channel, gmUsers, actions}: Props) => {
                 <Usernames>
                     {gmUsers.map((user, i, {length}) => (
                         <React.Fragment key={user.id}>
-                            <UserProfileElement
+                            <UserProfileComponent
                                 userId={user.id}
-                                isRHS={true}
                                 channelId={channel.id}
                             />
                             {(i + 1 !== length) && (<span>{', '}</span>)}
