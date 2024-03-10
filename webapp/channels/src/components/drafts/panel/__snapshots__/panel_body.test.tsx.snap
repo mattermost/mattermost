@@ -31,161 +31,90 @@ exports[`components/drafts/panel/panel_body should have called handleFormattedTe
       >
         <ProfilePicture
           channelId="channel_id"
-          hasMention={false}
-          isEmoji={false}
-          popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
           status="status"
           userId="user_id"
           username="username"
-          wrapperClass=""
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(ProfilePopover)
-                channelId="channel_id"
-                className="user-profile-popover"
-                hide={[Function]}
-                src="/api/v4/users/user_id/image?_=0"
-                userId="user_id"
-              />
-            }
-            placement="right"
-            rootClose={true}
-            trigger={
-              Array [
-                "click",
-              ]
-            }
+          <ProfilePopoverController
+            channelId="channel_id"
+            triggerButtonContainerClass="status-wrapper"
+            userId="user_id"
+            userProfileSrc="/api/v4/users/user_id/image?_=0"
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              overlay={
-                <OverlayWrapper
-                  channelId="channel_id"
-                  className="user-profile-popover"
-                  hide={[Function]}
-                  intl={
-                    Object {
-                      "$t": [Function],
-                      "defaultFormats": Object {},
-                      "defaultLocale": "en",
-                      "defaultRichTextElements": undefined,
-                      "fallbackOnEmptyString": true,
-                      "formatDate": [Function],
-                      "formatDateTimeRange": [Function],
-                      "formatDateToParts": [Function],
-                      "formatDisplayName": [Function],
-                      "formatList": [Function],
-                      "formatListToParts": [Function],
-                      "formatMessage": [Function],
-                      "formatNumber": [Function],
-                      "formatNumberToParts": [Function],
-                      "formatPlural": [Function],
-                      "formatRelativeTime": [Function],
-                      "formatTime": [Function],
-                      "formatTimeToParts": [Function],
-                      "formats": Object {},
-                      "formatters": Object {
-                        "getDateTimeFormat": [Function],
-                        "getDisplayNames": [Function],
-                        "getListFormat": [Function],
-                        "getMessageFormat": [Function],
-                        "getNumberFormat": [Function],
-                        "getPluralRules": [Function],
-                        "getRelativeTimeFormat": [Function],
-                      },
-                      "locale": "en",
-                      "messages": Object {},
-                      "onError": [Function],
-                      "onWarn": [Function],
-                      "textComponent": "span",
-                      "timeZone": "Etc/UTC",
-                      "wrapRichTextChunksInFragment": undefined,
-                    }
-                  }
-                  src="/api/v4/users/user_id/image?_=0"
-                  userId="user_id"
-                />
-              }
-              placement="right"
-              rootClose={true}
-              trigger={
-                Array [
-                  "click",
-                ]
-              }
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              className="status-wrapper"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onPointerDown={[Function]}
             >
-              <span
-                className="status-wrapper  "
-                onClick={[Function]}
+              <RoundButton
+                className="style--none"
+                size="md"
               >
-                <RoundButton
-                  className="style--none"
+                <button
+                  className="RoundButton-dvlhqG gfRzmz style--none"
                   size="md"
                 >
-                  <button
-                    className="RoundButton-dvlhqG gfRzmz style--none"
-                    size="md"
+                  <span
+                    className="profile-icon "
                   >
-                    <span
-                      className="profile-icon "
+                    <Memo(Avatar)
+                      size="md"
+                      url="/api/v4/users/user_id/image?_=0"
+                      username="username"
                     >
-                      <Memo(Avatar)
-                        size="md"
-                        tabIndex={-1}
-                        url="/api/v4/users/user_id/image?_=0"
-                        username="username"
-                      >
-                        <img
-                          alt="username profile image"
-                          className="Avatar Avatar-md"
-                          loading="lazy"
-                          onError={[Function]}
-                          src="/api/v4/users/user_id/image?_=0"
-                          tabIndex={-1}
-                        />
-                      </Memo(Avatar)>
-                    </span>
-                  </button>
-                </RoundButton>
-                <Memo(StatusIcon)
-                  status="status"
+                      <img
+                        alt="username profile image"
+                        className="Avatar Avatar-md"
+                        loading="lazy"
+                        onError={[Function]}
+                        src="/api/v4/users/user_id/image?_=0"
+                        tabIndex={0}
+                      />
+                    </Memo(Avatar)>
+                  </span>
+                </button>
+              </RoundButton>
+              <Memo(StatusIcon)
+                status="status"
+              >
+                <StatusOfflineIcon
+                  className="status "
                 >
-                  <StatusOfflineIcon
+                  <span
                     className="status "
                   >
-                    <span
-                      className="status "
-                    >
-                      <svg
-                        aria-label="Offline Icon"
-                        className="offline--icon"
-                        height="100%"
-                        role="img"
-                        style={
-                          Object {
-                            "clipRule": "evenodd",
-                            "fillRule": "evenodd",
-                            "strokeLinejoin": "round",
-                            "strokeMiterlimit": 1.41421,
-                          }
+                    <svg
+                      aria-label="Offline Icon"
+                      className="offline--icon"
+                      height="100%"
+                      role="img"
+                      style={
+                        Object {
+                          "clipRule": "evenodd",
+                          "fillRule": "evenodd",
+                          "strokeLinejoin": "round",
+                          "strokeMiterlimit": 1.41421,
                         }
-                        viewBox="0 0 20 20"
-                        width="100%"
-                      >
-                        <path
-                          d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
-                        />
-                      </svg>
-                    </span>
-                  </StatusOfflineIcon>
-                </Memo(StatusIcon)>
-              </span>
-            </OverlayTrigger>
-          </OverlayTrigger>
+                      }
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </StatusOfflineIcon>
+              </Memo(StatusIcon)>
+            </span>
+          </ProfilePopoverController>
         </ProfilePicture>
       </div>
       <div
@@ -300,161 +229,90 @@ exports[`components/drafts/panel/panel_body should match snapshot 1`] = `
       >
         <ProfilePicture
           channelId="channel_id"
-          hasMention={false}
-          isEmoji={false}
-          popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
           status="status"
           userId="user_id"
           username="username"
-          wrapperClass=""
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(ProfilePopover)
-                channelId="channel_id"
-                className="user-profile-popover"
-                hide={[Function]}
-                src="/api/v4/users/user_id/image?_=0"
-                userId="user_id"
-              />
-            }
-            placement="right"
-            rootClose={true}
-            trigger={
-              Array [
-                "click",
-              ]
-            }
+          <ProfilePopoverController
+            channelId="channel_id"
+            triggerButtonContainerClass="status-wrapper"
+            userId="user_id"
+            userProfileSrc="/api/v4/users/user_id/image?_=0"
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              overlay={
-                <OverlayWrapper
-                  channelId="channel_id"
-                  className="user-profile-popover"
-                  hide={[Function]}
-                  intl={
-                    Object {
-                      "$t": [Function],
-                      "defaultFormats": Object {},
-                      "defaultLocale": "en",
-                      "defaultRichTextElements": undefined,
-                      "fallbackOnEmptyString": true,
-                      "formatDate": [Function],
-                      "formatDateTimeRange": [Function],
-                      "formatDateToParts": [Function],
-                      "formatDisplayName": [Function],
-                      "formatList": [Function],
-                      "formatListToParts": [Function],
-                      "formatMessage": [Function],
-                      "formatNumber": [Function],
-                      "formatNumberToParts": [Function],
-                      "formatPlural": [Function],
-                      "formatRelativeTime": [Function],
-                      "formatTime": [Function],
-                      "formatTimeToParts": [Function],
-                      "formats": Object {},
-                      "formatters": Object {
-                        "getDateTimeFormat": [Function],
-                        "getDisplayNames": [Function],
-                        "getListFormat": [Function],
-                        "getMessageFormat": [Function],
-                        "getNumberFormat": [Function],
-                        "getPluralRules": [Function],
-                        "getRelativeTimeFormat": [Function],
-                      },
-                      "locale": "en",
-                      "messages": Object {},
-                      "onError": [Function],
-                      "onWarn": [Function],
-                      "textComponent": "span",
-                      "timeZone": "Etc/UTC",
-                      "wrapRichTextChunksInFragment": undefined,
-                    }
-                  }
-                  src="/api/v4/users/user_id/image?_=0"
-                  userId="user_id"
-                />
-              }
-              placement="right"
-              rootClose={true}
-              trigger={
-                Array [
-                  "click",
-                ]
-              }
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              className="status-wrapper"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onPointerDown={[Function]}
             >
-              <span
-                className="status-wrapper  "
-                onClick={[Function]}
+              <RoundButton
+                className="style--none"
+                size="md"
               >
-                <RoundButton
-                  className="style--none"
+                <button
+                  className="RoundButton-dvlhqG gfRzmz style--none"
                   size="md"
                 >
-                  <button
-                    className="RoundButton-dvlhqG gfRzmz style--none"
-                    size="md"
+                  <span
+                    className="profile-icon "
                   >
-                    <span
-                      className="profile-icon "
+                    <Memo(Avatar)
+                      size="md"
+                      url="/api/v4/users/user_id/image?_=0"
+                      username="username"
                     >
-                      <Memo(Avatar)
-                        size="md"
-                        tabIndex={-1}
-                        url="/api/v4/users/user_id/image?_=0"
-                        username="username"
-                      >
-                        <img
-                          alt="username profile image"
-                          className="Avatar Avatar-md"
-                          loading="lazy"
-                          onError={[Function]}
-                          src="/api/v4/users/user_id/image?_=0"
-                          tabIndex={-1}
-                        />
-                      </Memo(Avatar)>
-                    </span>
-                  </button>
-                </RoundButton>
-                <Memo(StatusIcon)
-                  status="status"
+                      <img
+                        alt="username profile image"
+                        className="Avatar Avatar-md"
+                        loading="lazy"
+                        onError={[Function]}
+                        src="/api/v4/users/user_id/image?_=0"
+                        tabIndex={0}
+                      />
+                    </Memo(Avatar)>
+                  </span>
+                </button>
+              </RoundButton>
+              <Memo(StatusIcon)
+                status="status"
+              >
+                <StatusOfflineIcon
+                  className="status "
                 >
-                  <StatusOfflineIcon
+                  <span
                     className="status "
                   >
-                    <span
-                      className="status "
-                    >
-                      <svg
-                        aria-label="Offline Icon"
-                        className="offline--icon"
-                        height="100%"
-                        role="img"
-                        style={
-                          Object {
-                            "clipRule": "evenodd",
-                            "fillRule": "evenodd",
-                            "strokeLinejoin": "round",
-                            "strokeMiterlimit": 1.41421,
-                          }
+                    <svg
+                      aria-label="Offline Icon"
+                      className="offline--icon"
+                      height="100%"
+                      role="img"
+                      style={
+                        Object {
+                          "clipRule": "evenodd",
+                          "fillRule": "evenodd",
+                          "strokeLinejoin": "round",
+                          "strokeMiterlimit": 1.41421,
                         }
-                        viewBox="0 0 20 20"
-                        width="100%"
-                      >
-                        <path
-                          d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
-                        />
-                      </svg>
-                    </span>
-                  </StatusOfflineIcon>
-                </Memo(StatusIcon)>
-              </span>
-            </OverlayTrigger>
-          </OverlayTrigger>
+                      }
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </StatusOfflineIcon>
+              </Memo(StatusIcon)>
+            </span>
+          </ProfilePopoverController>
         </ProfilePicture>
       </div>
       <div
@@ -575,161 +433,90 @@ exports[`components/drafts/panel/panel_body should match snapshot for priority 1
       >
         <ProfilePicture
           channelId="channel_id"
-          hasMention={false}
-          isEmoji={false}
-          popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
           status="status"
           userId="user_id"
           username="username"
-          wrapperClass=""
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(ProfilePopover)
-                channelId="channel_id"
-                className="user-profile-popover"
-                hide={[Function]}
-                src="/api/v4/users/user_id/image?_=0"
-                userId="user_id"
-              />
-            }
-            placement="right"
-            rootClose={true}
-            trigger={
-              Array [
-                "click",
-              ]
-            }
+          <ProfilePopoverController
+            channelId="channel_id"
+            triggerButtonContainerClass="status-wrapper"
+            userId="user_id"
+            userProfileSrc="/api/v4/users/user_id/image?_=0"
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              overlay={
-                <OverlayWrapper
-                  channelId="channel_id"
-                  className="user-profile-popover"
-                  hide={[Function]}
-                  intl={
-                    Object {
-                      "$t": [Function],
-                      "defaultFormats": Object {},
-                      "defaultLocale": "en",
-                      "defaultRichTextElements": undefined,
-                      "fallbackOnEmptyString": true,
-                      "formatDate": [Function],
-                      "formatDateTimeRange": [Function],
-                      "formatDateToParts": [Function],
-                      "formatDisplayName": [Function],
-                      "formatList": [Function],
-                      "formatListToParts": [Function],
-                      "formatMessage": [Function],
-                      "formatNumber": [Function],
-                      "formatNumberToParts": [Function],
-                      "formatPlural": [Function],
-                      "formatRelativeTime": [Function],
-                      "formatTime": [Function],
-                      "formatTimeToParts": [Function],
-                      "formats": Object {},
-                      "formatters": Object {
-                        "getDateTimeFormat": [Function],
-                        "getDisplayNames": [Function],
-                        "getListFormat": [Function],
-                        "getMessageFormat": [Function],
-                        "getNumberFormat": [Function],
-                        "getPluralRules": [Function],
-                        "getRelativeTimeFormat": [Function],
-                      },
-                      "locale": "en",
-                      "messages": Object {},
-                      "onError": [Function],
-                      "onWarn": [Function],
-                      "textComponent": "span",
-                      "timeZone": "Etc/UTC",
-                      "wrapRichTextChunksInFragment": undefined,
-                    }
-                  }
-                  src="/api/v4/users/user_id/image?_=0"
-                  userId="user_id"
-                />
-              }
-              placement="right"
-              rootClose={true}
-              trigger={
-                Array [
-                  "click",
-                ]
-              }
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              className="status-wrapper"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onPointerDown={[Function]}
             >
-              <span
-                className="status-wrapper  "
-                onClick={[Function]}
+              <RoundButton
+                className="style--none"
+                size="md"
               >
-                <RoundButton
-                  className="style--none"
+                <button
+                  className="RoundButton-dvlhqG gfRzmz style--none"
                   size="md"
                 >
-                  <button
-                    className="RoundButton-dvlhqG gfRzmz style--none"
-                    size="md"
+                  <span
+                    className="profile-icon "
                   >
-                    <span
-                      className="profile-icon "
+                    <Memo(Avatar)
+                      size="md"
+                      url="/api/v4/users/user_id/image?_=0"
+                      username="username"
                     >
-                      <Memo(Avatar)
-                        size="md"
-                        tabIndex={-1}
-                        url="/api/v4/users/user_id/image?_=0"
-                        username="username"
-                      >
-                        <img
-                          alt="username profile image"
-                          className="Avatar Avatar-md"
-                          loading="lazy"
-                          onError={[Function]}
-                          src="/api/v4/users/user_id/image?_=0"
-                          tabIndex={-1}
-                        />
-                      </Memo(Avatar)>
-                    </span>
-                  </button>
-                </RoundButton>
-                <Memo(StatusIcon)
-                  status="status"
+                      <img
+                        alt="username profile image"
+                        className="Avatar Avatar-md"
+                        loading="lazy"
+                        onError={[Function]}
+                        src="/api/v4/users/user_id/image?_=0"
+                        tabIndex={0}
+                      />
+                    </Memo(Avatar)>
+                  </span>
+                </button>
+              </RoundButton>
+              <Memo(StatusIcon)
+                status="status"
+              >
+                <StatusOfflineIcon
+                  className="status "
                 >
-                  <StatusOfflineIcon
+                  <span
                     className="status "
                   >
-                    <span
-                      className="status "
-                    >
-                      <svg
-                        aria-label="Offline Icon"
-                        className="offline--icon"
-                        height="100%"
-                        role="img"
-                        style={
-                          Object {
-                            "clipRule": "evenodd",
-                            "fillRule": "evenodd",
-                            "strokeLinejoin": "round",
-                            "strokeMiterlimit": 1.41421,
-                          }
+                    <svg
+                      aria-label="Offline Icon"
+                      className="offline--icon"
+                      height="100%"
+                      role="img"
+                      style={
+                        Object {
+                          "clipRule": "evenodd",
+                          "fillRule": "evenodd",
+                          "strokeLinejoin": "round",
+                          "strokeMiterlimit": 1.41421,
                         }
-                        viewBox="0 0 20 20"
-                        width="100%"
-                      >
-                        <path
-                          d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
-                        />
-                      </svg>
-                    </span>
-                  </StatusOfflineIcon>
-                </Memo(StatusIcon)>
-              </span>
-            </OverlayTrigger>
-          </OverlayTrigger>
+                      }
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </StatusOfflineIcon>
+              </Memo(StatusIcon)>
+            </span>
+          </ProfilePopoverController>
         </ProfilePicture>
       </div>
       <div
@@ -912,161 +699,90 @@ exports[`components/drafts/panel/panel_body should match snapshot for requested_
       >
         <ProfilePicture
           channelId="channel_id"
-          hasMention={false}
-          isEmoji={false}
-          popoverPlacement="right"
           size="md"
           src="/api/v4/users/user_id/image?_=0"
           status="status"
           userId="user_id"
           username="username"
-          wrapperClass=""
         >
-          <OverlayTrigger
-            defaultOverlayShown={false}
-            overlay={
-              <Memo(ProfilePopover)
-                channelId="channel_id"
-                className="user-profile-popover"
-                hide={[Function]}
-                src="/api/v4/users/user_id/image?_=0"
-                userId="user_id"
-              />
-            }
-            placement="right"
-            rootClose={true}
-            trigger={
-              Array [
-                "click",
-              ]
-            }
+          <ProfilePopoverController
+            channelId="channel_id"
+            triggerButtonContainerClass="status-wrapper"
+            userId="user_id"
+            userProfileSrc="/api/v4/users/user_id/image?_=0"
           >
-            <OverlayTrigger
-              defaultOverlayShown={false}
-              overlay={
-                <OverlayWrapper
-                  channelId="channel_id"
-                  className="user-profile-popover"
-                  hide={[Function]}
-                  intl={
-                    Object {
-                      "$t": [Function],
-                      "defaultFormats": Object {},
-                      "defaultLocale": "en",
-                      "defaultRichTextElements": undefined,
-                      "fallbackOnEmptyString": true,
-                      "formatDate": [Function],
-                      "formatDateTimeRange": [Function],
-                      "formatDateToParts": [Function],
-                      "formatDisplayName": [Function],
-                      "formatList": [Function],
-                      "formatListToParts": [Function],
-                      "formatMessage": [Function],
-                      "formatNumber": [Function],
-                      "formatNumberToParts": [Function],
-                      "formatPlural": [Function],
-                      "formatRelativeTime": [Function],
-                      "formatTime": [Function],
-                      "formatTimeToParts": [Function],
-                      "formats": Object {},
-                      "formatters": Object {
-                        "getDateTimeFormat": [Function],
-                        "getDisplayNames": [Function],
-                        "getListFormat": [Function],
-                        "getMessageFormat": [Function],
-                        "getNumberFormat": [Function],
-                        "getPluralRules": [Function],
-                        "getRelativeTimeFormat": [Function],
-                      },
-                      "locale": "en",
-                      "messages": Object {},
-                      "onError": [Function],
-                      "onWarn": [Function],
-                      "textComponent": "span",
-                      "timeZone": "Etc/UTC",
-                      "wrapRichTextChunksInFragment": undefined,
-                    }
-                  }
-                  src="/api/v4/users/user_id/image?_=0"
-                  userId="user_id"
-                />
-              }
-              placement="right"
-              rootClose={true}
-              trigger={
-                Array [
-                  "click",
-                ]
-              }
+            <span
+              aria-expanded="false"
+              aria-haspopup="dialog"
+              className="status-wrapper"
+              onClick={[Function]}
+              onKeyDown={[Function]}
+              onKeyUp={[Function]}
+              onMouseDown={[Function]}
+              onPointerDown={[Function]}
             >
-              <span
-                className="status-wrapper  "
-                onClick={[Function]}
+              <RoundButton
+                className="style--none"
+                size="md"
               >
-                <RoundButton
-                  className="style--none"
+                <button
+                  className="RoundButton-dvlhqG gfRzmz style--none"
                   size="md"
                 >
-                  <button
-                    className="RoundButton-dvlhqG gfRzmz style--none"
-                    size="md"
+                  <span
+                    className="profile-icon "
                   >
-                    <span
-                      className="profile-icon "
+                    <Memo(Avatar)
+                      size="md"
+                      url="/api/v4/users/user_id/image?_=0"
+                      username="username"
                     >
-                      <Memo(Avatar)
-                        size="md"
-                        tabIndex={-1}
-                        url="/api/v4/users/user_id/image?_=0"
-                        username="username"
-                      >
-                        <img
-                          alt="username profile image"
-                          className="Avatar Avatar-md"
-                          loading="lazy"
-                          onError={[Function]}
-                          src="/api/v4/users/user_id/image?_=0"
-                          tabIndex={-1}
-                        />
-                      </Memo(Avatar)>
-                    </span>
-                  </button>
-                </RoundButton>
-                <Memo(StatusIcon)
-                  status="status"
+                      <img
+                        alt="username profile image"
+                        className="Avatar Avatar-md"
+                        loading="lazy"
+                        onError={[Function]}
+                        src="/api/v4/users/user_id/image?_=0"
+                        tabIndex={0}
+                      />
+                    </Memo(Avatar)>
+                  </span>
+                </button>
+              </RoundButton>
+              <Memo(StatusIcon)
+                status="status"
+              >
+                <StatusOfflineIcon
+                  className="status "
                 >
-                  <StatusOfflineIcon
+                  <span
                     className="status "
                   >
-                    <span
-                      className="status "
-                    >
-                      <svg
-                        aria-label="Offline Icon"
-                        className="offline--icon"
-                        height="100%"
-                        role="img"
-                        style={
-                          Object {
-                            "clipRule": "evenodd",
-                            "fillRule": "evenodd",
-                            "strokeLinejoin": "round",
-                            "strokeMiterlimit": 1.41421,
-                          }
+                    <svg
+                      aria-label="Offline Icon"
+                      className="offline--icon"
+                      height="100%"
+                      role="img"
+                      style={
+                        Object {
+                          "clipRule": "evenodd",
+                          "fillRule": "evenodd",
+                          "strokeLinejoin": "round",
+                          "strokeMiterlimit": 1.41421,
                         }
-                        viewBox="0 0 20 20"
-                        width="100%"
-                      >
-                        <path
-                          d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
-                        />
-                      </svg>
-                    </span>
-                  </StatusOfflineIcon>
-                </Memo(StatusIcon)>
-              </span>
-            </OverlayTrigger>
-          </OverlayTrigger>
+                      }
+                      viewBox="0 0 20 20"
+                      width="100%"
+                    >
+                      <path
+                        d="M10,0c5.519,0 10,4.481 10,10c0,5.519 -4.481,10 -10,10c-5.519,0 -10,-4.481 -10,-10c0,-5.519 4.481,-10 10,-10Zm0,2c4.415,0 8,3.585 8,8c0,4.415 -3.585,8 -8,8c-4.415,0 -8,-3.585 -8,-8c0,-4.415 3.585,-8 8,-8Z"
+                      />
+                    </svg>
+                  </span>
+                </StatusOfflineIcon>
+              </Memo(StatusIcon)>
+            </span>
+          </ProfilePopoverController>
         </ProfilePicture>
       </div>
       <div

@@ -2,65 +2,35 @@
 
 exports[`components/UserProfile should match snapshot 1`] = `
 <Fragment>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Memo(ProfilePopover)
-        className="user-profile-popover"
-        hide={[Function]}
-        hideStatus={false}
-        overwriteName=""
-        src="/api/v4/users/undefined/image?_=0"
-        userId="user_id"
-      />
-    }
-    placement="right"
-    rootClose={true}
-    trigger={
-      Array [
-        "click",
-      ]
-    }
+  <ProfilePopoverController
+    hideStatus={false}
+    overwriteName=""
+    userId="user_id"
+    userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     <button
-      aria-label="nickname"
       className="user-popover style--none"
     >
       nickname
     </button>
-  </OverlayTrigger>
+  </ProfilePopoverController>
 </Fragment>
 `;
 
 exports[`components/UserProfile should match snapshot, when displayUsername is enabled 1`] = `
 <Fragment>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Memo(ProfilePopover)
-        className="user-profile-popover"
-        hide={[Function]}
-        hideStatus={false}
-        overwriteName=""
-        src="/api/v4/users/undefined/image?_=0"
-        userId="user_id"
-      />
-    }
-    placement="right"
-    rootClose={true}
-    trigger={
-      Array [
-        "click",
-      ]
-    }
+  <ProfilePopoverController
+    hideStatus={false}
+    overwriteName=""
+    userId="user_id"
+    userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     <button
-      aria-label="@username"
       className="user-popover style--none"
     >
       @username
     </button>
-  </OverlayTrigger>
+  </ProfilePopoverController>
 </Fragment>
 `;
 
@@ -74,64 +44,33 @@ exports[`components/UserProfile should match snapshot, when popover is disabled 
 
 exports[`components/UserProfile should match snapshot, when user is shared 1`] = `
 <Fragment>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Memo(ProfilePopover)
-        className="user-profile-popover"
-        hide={[Function]}
-        hideStatus={false}
-        overwriteName=""
-        src="/api/v4/users/undefined/image?_=0"
-        userId="user_id"
-      />
-    }
-    placement="right"
-    rootClose={true}
-    trigger={
-      Array [
-        "click",
-      ]
-    }
+  <ProfilePopoverController
+    hideStatus={false}
+    overwriteName=""
+    userId="user_id"
+    userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     <button
-      aria-label="nickname"
       className="user-popover style--none"
     >
       nickname
     </button>
-  </OverlayTrigger>
+  </ProfilePopoverController>
   <SharedUserIndicator
     className="shared-user-icon"
-    withTooltip={true}
   />
 </Fragment>
 `;
 
 exports[`components/UserProfile should match snapshot, with colorization 1`] = `
 <Fragment>
-  <OverlayTrigger
-    defaultOverlayShown={false}
-    overlay={
-      <Memo(ProfilePopover)
-        className="user-profile-popover"
-        hide={[Function]}
-        hideStatus={false}
-        overwriteName=""
-        src="/api/v4/users/undefined/image?_=0"
-        userId="user_id"
-      />
-    }
-    placement="right"
-    rootClose={true}
-    trigger={
-      Array [
-        "click",
-      ]
-    }
+  <ProfilePopoverController
+    hideStatus={false}
+    overwriteName=""
+    userId="user_id"
+    userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
     <button
-      aria-label="nickname"
       className="user-popover style--none"
       style={
         Object {
@@ -141,6 +80,6 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
     >
       nickname
     </button>
-  </OverlayTrigger>
+  </ProfilePopoverController>
 </Fragment>
 `;
