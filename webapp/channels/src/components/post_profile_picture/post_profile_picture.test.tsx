@@ -41,11 +41,10 @@ describe('components/PostProfilePicture', () => {
         expect(screen.getByLabelText('Offline Icon')).toBeInTheDocument();
     });
 
-    test('status and post icon override specified, default props', () => {
+    test('status is specified, default props', () => {
         const props: Props = {
             ...baseProps,
             status: 'away',
-            postIconOverrideURL: 'http://example.com/image.png',
         };
         render(
             <PostProfilePicture {...props}/>,

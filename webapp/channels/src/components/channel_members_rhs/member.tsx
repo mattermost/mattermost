@@ -138,9 +138,8 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                 rootClose={true}
                 overlay={
                     <ProfilePopover
-                        className='user-profile-popover'
                         userId={member.user.id}
-                        src={profileSrc}
+                        userProfileSrc={profileSrc}
                         hide={hideProfilePopover}
                         hideStatus={member.user.is_bot}
                     />
@@ -149,7 +148,6 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                 <span className='ProfileSpan'>
                     <Avatar>
                         <ProfilePicture
-                            popoverPlacement='left'
                             size='sm'
                             status={member.status}
                             isBot={member.user.is_bot}

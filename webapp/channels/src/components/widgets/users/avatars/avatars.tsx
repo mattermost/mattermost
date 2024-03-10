@@ -89,9 +89,8 @@ function UserAvatar({
             ref={overlay}
             overlay={
                 <ProfilePopover
-                    className='user-profile-popover'
                     userId={userId}
-                    src={profilePictureURL}
+                    userProfileSrc={profilePictureURL}
                     hide={hideProfilePopover}
                 />
             }

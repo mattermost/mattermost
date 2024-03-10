@@ -87,10 +87,9 @@ exports[`components/threading/channel_threads/thread_footer should report total 
             disabled={false}
             overlay={
               <Memo(ProfilePopover)
-                className="user-profile-popover"
                 hide={[Function]}
-                src="/api/v4/users/5/image?_=0"
                 userId="5"
+                userProfileSrc="/api/v4/users/5/image?_=0"
               />
             }
             placement="right"
@@ -101,7 +100,6 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               defaultOverlayShown={false}
               overlay={
                 <OverlayWrapper
-                  className="user-profile-popover"
                   hide={[Function]}
                   intl={
                     Object {
@@ -142,8 +140,8 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  src="/api/v4/users/5/image?_=0"
                   userId="5"
+                  userProfileSrc="/api/v4/users/5/image?_=0"
                 />
               }
               placement="right"
@@ -313,10 +311,9 @@ exports[`components/threading/channel_threads/thread_footer should report total 
             disabled={false}
             overlay={
               <Memo(ProfilePopover)
-                className="user-profile-popover"
                 hide={[Function]}
-                src="/api/v4/users/4/image?_=0"
                 userId="4"
+                userProfileSrc="/api/v4/users/4/image?_=0"
               />
             }
             placement="right"
@@ -327,7 +324,6 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               defaultOverlayShown={false}
               overlay={
                 <OverlayWrapper
-                  className="user-profile-popover"
                   hide={[Function]}
                   intl={
                     Object {
@@ -368,8 +364,8 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  src="/api/v4/users/4/image?_=0"
                   userId="4"
+                  userProfileSrc="/api/v4/users/4/image?_=0"
                 />
               }
               placement="right"
@@ -539,10 +535,9 @@ exports[`components/threading/channel_threads/thread_footer should report total 
             disabled={false}
             overlay={
               <Memo(ProfilePopover)
-                className="user-profile-popover"
                 hide={[Function]}
-                src="/api/v4/users/3/image?_=0"
                 userId="3"
+                userProfileSrc="/api/v4/users/3/image?_=0"
               />
             }
             placement="right"
@@ -553,7 +548,6 @@ exports[`components/threading/channel_threads/thread_footer should report total 
               defaultOverlayShown={false}
               overlay={
                 <OverlayWrapper
-                  className="user-profile-popover"
                   hide={[Function]}
                   intl={
                     Object {
@@ -594,8 +588,8 @@ exports[`components/threading/channel_threads/thread_footer should report total 
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  src="/api/v4/users/3/image?_=0"
                   userId="3"
+                  userProfileSrc="/api/v4/users/3/image?_=0"
                 />
               }
               placement="right"
@@ -1242,10 +1236,9 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
             disabled={false}
             overlay={
               <Memo(ProfilePopover)
-                className="user-profile-popover"
                 hide={[Function]}
-                src="/api/v4/users/5/image?_=0"
                 userId="5"
+                userProfileSrc="/api/v4/users/5/image?_=0"
               />
             }
             placement="right"
@@ -1256,7 +1249,6 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               defaultOverlayShown={false}
               overlay={
                 <OverlayWrapper
-                  className="user-profile-popover"
                   hide={[Function]}
                   intl={
                     Object {
@@ -1297,8 +1289,8 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  src="/api/v4/users/5/image?_=0"
                   userId="5"
+                  userProfileSrc="/api/v4/users/5/image?_=0"
                 />
               }
               placement="right"
@@ -1468,10 +1460,9 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
             disabled={false}
             overlay={
               <Memo(ProfilePopover)
-                className="user-profile-popover"
                 hide={[Function]}
-                src="/api/v4/users/4/image?_=0"
                 userId="4"
+                userProfileSrc="/api/v4/users/4/image?_=0"
               />
             }
             placement="right"
@@ -1482,7 +1473,6 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               defaultOverlayShown={false}
               overlay={
                 <OverlayWrapper
-                  className="user-profile-popover"
                   hide={[Function]}
                   intl={
                     Object {
@@ -1523,8 +1513,8 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  src="/api/v4/users/4/image?_=0"
                   userId="4"
+                  userProfileSrc="/api/v4/users/4/image?_=0"
                 />
               }
               placement="right"
@@ -1694,10 +1684,9 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
             disabled={false}
             overlay={
               <Memo(ProfilePopover)
-                className="user-profile-popover"
                 hide={[Function]}
-                src="/api/v4/users/3/image?_=0"
                 userId="3"
+                userProfileSrc="/api/v4/users/3/image?_=0"
               />
             }
             placement="right"
@@ -1708,7 +1697,6 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
               defaultOverlayShown={false}
               overlay={
                 <OverlayWrapper
-                  className="user-profile-popover"
                   hide={[Function]}
                   intl={
                     Object {
@@ -1749,8 +1737,8 @@ exports[`components/threading/channel_threads/thread_footer should show unread i
                       "wrapRichTextChunksInFragment": undefined,
                     }
                   }
-                  src="/api/v4/users/3/image?_=0"
                   userId="3"
+                  userProfileSrc="/api/v4/users/3/image?_=0"
                 />
               }
               placement="right"
