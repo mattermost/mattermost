@@ -5,10 +5,19 @@
         &.tippy-box {
             padding: 18px 24px 24px;
             border: 1px solid rgba(var(--center-channel-color-rgb), 0.16);
-            background: var(--center-channel-bg);
+            background: var(--button-bg);
             border-radius: 4px;
-            color: var(--center-channel-color-rgb);
+            color: var(--button-color);
             filter: drop-shadow(0 12px 32px rgba(0, 0, 0, 0.12));
+
+            a {
+                color: rgba(var(--button-color-rgb), 0.8);
+
+                &:hover {
+                    color: var(--button-color);
+                    text-decoration: underline;
+                }
+            }
 
             .tippy-content {
                 padding: 0;
@@ -19,15 +28,28 @@
                 height: 12px;
                 border-color: rgba(var(--center-channel-color-rgb), 0.16);
                 color: var(--center-channel-bg);
+                color: var(--center-channel-bg);
             }
 
             .tippy-arrow::before {
                 width: 12px;
                 height: 12px;
                 border-color: rgba(var(--center-channel-color-rgb), 0.16);
-                background: var(--center-channel-bg);
-                color: var(--center-channel-bg);
+                background: var(--button-bg);
+                color: var(--button-color);
                 transform-origin: center;
+            }
+
+            button[class^='StyledChip-'],
+            button[class*='StyledChip-'] {
+                color: var(--button-color);
+                background-color: rgba(var(--button-color-rgb), 0.08);
+                box-shadow: none;
+                margin: 0 8px 8px 0;
+
+                &:hover {
+                    background-color: rgba(var(--button-color-rgb), 0.16);
+                }
             }
 
             // fix for https://mattermost.atlassian.net/browse/MM-41711. This covers the current placements we use for the channels and other tools tour
@@ -167,16 +189,16 @@
             margin-left: 1.2rem;
             background: transparent;
             border-radius: 4px;
-            color: rgba(var(--center-channel-color-rgb), 0.64);
+            color: rgba(var(--button-color-rgb), 0.64);
             font-weight: 600;
 
             &:hover {
-                background: rgba(var(--center-channel-color-rgb), 0.08);
-                color: rgba(var(--center-channel-color-rgb), 0.8);
+                background: rgba(var(--button-color-rgb), 0.08);
+                color: rgba(var(--button-color-rgb), 0.8);
             }
 
             &.active {
-                background: rgba(var(--center-channel-color-rgb), 0.08);
+                background: rgba(var(--button-color-rgb), 0.08);
             }
 
             i {
@@ -216,6 +238,8 @@
         align-items: center;
         justify-content: center;
         margin-top: 2.4rem;
+        background-color: rgba(var(--button-color-rgb), 0.08);
+        border-radius: 4px;
 
         img {
             width: 100%;
@@ -244,27 +268,25 @@
     }
 
     &__confirm-btn {
-        background: var(--button-bg);
-        color: var(--button-color);
+        background: var(--button-color);
+        color: var(--button-bg);
 
         &:hover:not(.disabled) {
             background:
                 linear-gradient(
                     0deg,
-                    rgba(var(--center-channel-color-rgb), 0.16),
-                    rgba(var(--center-channel-color-rgb), 0.16)
-                ),
-                var(--button-bg);
+                    rgba(var(--button-bg-rgb), 0.08) 0%,
+                    rgba(var(--button-bg-rgb), 0.08) 100%),
+                    var(--button-color);
         }
 
         &:active {
             background:
                 linear-gradient(
                     0deg,
-                    rgba(var(--center-channel-color-rgb), 0.32),
-                    rgba(var(--center-channel-color-rgb), 0.32)
-                ),
-                var(--button-bg);
+                    rgba(var(--button-bg-rgb), 0.16) 0%,
+                    rgba(var(--button-bg-rgb), 0.16) 100%),
+                    var(--button-color);
         }
 
         &:focus {
@@ -278,17 +300,17 @@
 
     &__cancel-btn {
         margin-right: 4px;
-        background: rgba(var(--button-bg-rgb), 0.08);
+        background: rgba(var(--button-color-rgb), 0.08);
         border-radius: 4px;
-        color: var(--button-bg);
+        color: var(--button-color);
         text-decoration: none;
 
         &:hover {
-            background: rgba(var(--button-bg-rgb), 0.04);
+            background: rgba(var(--button-color-rgb), 0.12);
         }
 
         &:active {
-            background: rgba(var(--button-bg-rgb), 0.08);
+            background: rgba(var(--button-color-rgb), 0.16);
         }
 
         &:focus {
@@ -323,7 +345,7 @@
     }
 
     &__dot-ring-active {
-        background: rgba(var(--button-bg-rgb), 0.16);
+        background: rgba(var(--button-color-rgb), 0.16);
     }
 
     &__dot {
@@ -332,11 +354,11 @@
         left: 3px;
         width: 6px;
         height: 6px;
-        background: rgba(var(--button-bg-rgb), 0.32);
+        background: rgba(var(--button-color-rgb), 0.32);
         border-radius: 6px;
 
         &.active {
-            background: rgba(var(--button-bg-rgb), 1);
+            background: rgba(var(--button-color-rgb), 1);
         }
     }
 
@@ -400,58 +422,4 @@
     left: 1px !important;
     border-width: 0 0 1px 1px !important;
     transform: rotate(-45deg) !important;
-}
-
-// this style is defined outside of the block scope because is intended to affect the tippy element
-.tippy-blue-style {
-    background: var(--button-bg) !important;
-    color: var(--sidebar-text) !important;
-
-    .tippy-arrow {
-        border-color: var(--button-bg) !important;
-        color: var(--button-bg) !important;
-
-        &::before {
-            border-width: 0 !important;
-            border-color: var(--button-bg) !important;
-            border-left-color: initial;
-            background-color: var(--button-bg) !important;
-            transform-origin: unset !important;
-        }
-    }
-
-    .tour-tip__header {
-        font-weight: 600;
-    }
-
-    .icon-close {
-        color: var(--sidebar-text) !important;
-    }
-
-    // style buttons while in the blue style
-    .tour-tip {
-        &__btn {
-            background: var(--button-color);
-            color: var(--button-bg);
-
-            &:hover,
-            &:active,
-            &:focus {
-                background: var(--button-color);
-                color: var(--button-bg);
-            }
-        }
-
-        &__dot-ring {
-            .tour-tip__dot {
-                background: var(--offline-indicator);
-            }
-        }
-
-        &__dot-ring-active {
-            .active {
-                background: var(--button-color);
-            }
-        }
-    }
 }
