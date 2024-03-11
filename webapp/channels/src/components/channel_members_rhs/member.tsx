@@ -3,7 +3,7 @@
 
 import classNames from 'classnames';
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 import styled from 'styled-components';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -14,16 +14,14 @@ import {isGuest} from 'mattermost-redux/utils/user_utils';
 
 import ChannelMembersDropdown from 'components/channel_members_dropdown';
 import CustomStatusEmoji from 'components/custom_status/custom_status_emoji';
-import OverlayTrigger from 'components/overlay_trigger';
-import type {BaseOverlayTrigger} from 'components/overlay_trigger';
 import ProfilePicture from 'components/profile_picture';
-import ProfilePopover from 'components/profile_popover';
-import Tooltip from 'components/tooltip';
+import ProfilePopoverController from 'components/profile_popover_controller';
 import GuestTag from 'components/widgets/tag/guest_tag';
-
-import Constants from 'utils/constants';
+import WithTooltip from 'components/with_tooltip';
 
 import type {ChannelMember} from './channel_members_rhs';
+
+import './index.scss';
 
 const Avatar = styled.div`
     flex-basis: fit-content;
@@ -110,19 +108,10 @@ interface Props {
     };
 }
 
-interface MMOverlayTrigger extends BaseOverlayTrigger {
-    hide: () => void;
-}
-
 const Member = ({className, channel, member, index, totalUsers, editing, actions}: Props) => {
-    const overlay = React.createRef<MMOverlayTrigger>();
-    const profileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
+    const {formatMessage} = useIntl();
 
-    const hideProfilePopover = () => {
-        if (overlay.current) {
-            overlay.current.hide();
-        }
-    };
+    const userProfileSrc = Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update);
 
     return (
         <div
@@ -130,32 +119,23 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
             style={{height: '48px'}}
             data-testid={`memberline-${member.user.id}`}
         >
-
-            <OverlayTrigger
-                ref={overlay}
-                trigger={['click']}
-                placement={'left'}
-                rootClose={true}
-                overlay={
-                    <ProfilePopover
+            <span className='ProfileSpan'>
+                <Avatar>
+                    <ProfilePicture
+                        size='sm'
+                        status={member.status}
+                        isBot={member.user.is_bot}
                         userId={member.user.id}
-                        userProfileSrc={profileSrc}
-                        hide={hideProfilePopover}
-                        hideStatus={member.user.is_bot}
+                        username={member.displayName}
+                        src={userProfileSrc}
                     />
-                }
-            >
-                <span className='ProfileSpan'>
-                    <Avatar>
-                        <ProfilePicture
-                            size='sm'
-                            status={member.status}
-                            isBot={member.user.is_bot}
-                            userId={member.user.id}
-                            username={member.displayName}
-                            src={Client4.getProfilePictureUrl(member.user.id, member.user.last_picture_update)}
-                        />
-                    </Avatar>
+                </Avatar>
+                <ProfilePopoverController
+                    triggerButtonContainerClass='profileSpan_userInfo'
+                    userId={member.user.id}
+                    userProfileSrc={userProfileSrc}
+                    hideStatus={member.user.is_bot}
+                >
                     <UserInfo>
                         <DisplayName>
                             {member.displayName}
@@ -179,8 +159,8 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                             }}
                         />
                     </UserInfo>
-                </span>
-            </OverlayTrigger>
+                </ProfilePopoverController>
+            </span>
 
             <RoleChooser
                 className={classNames({editing}, 'member-role-chooser')}
@@ -215,22 +195,18 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                 )}
             </RoleChooser>
             {!editing && (
-                <SendMessage onClick={() => actions.openDirectMessage(member.user)}>
-                    <OverlayTrigger
-                        delayShow={Constants.OVERLAY_TIME_DELAY}
-                        placement='left'
-                        overlay={
-                            <Tooltip>
-                                <FormattedMessage
-                                    id='channel_members_rhs.member.send_message'
-                                    defaultMessage='Send message'
-                                />
-                            </Tooltip>
-                        }
-                    >
+                <WithTooltip
+                    id={`member-tooltip-${member.user.id}`}
+                    title={formatMessage({
+                        id: 'channel_members_rhs.member.send_message',
+                        defaultMessage: 'Send message',
+                    })}
+                    placement='left'
+                >
+                    <SendMessage onClick={() => actions.openDirectMessage(member.user)}>
                         <i className='icon icon-send'/>
-                    </OverlayTrigger>
-                </SendMessage>
+                    </SendMessage>
+                </WithTooltip>
             )}
         </div>
     );
