@@ -197,7 +197,8 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 
 		nonexistentUserName := "nonexistent"
 		err := channelUsersRemoveCmdF(c, &cobra.Command{}, []string{channel.Id, nonexistentUserName})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
+		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("Can't find user '%s'", nonexistentUserName), printer.GetErrorLines()[0])
@@ -215,7 +216,8 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 
 		nonexistentUserName := "nonexistent"
 		err := channelUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, nonexistentUserName})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to find user")
+		s.Require().ErrorContains(err, nonexistentUserName)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Equal(fmt.Sprintf("Can't find user '%s'", nonexistentUserName), printer.GetErrorLines()[0])
@@ -233,7 +235,9 @@ func (s *MmctlE2ETestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Equal(user.Id, (members)[0].UserId)
 
 		err := channelUsersRemoveCmdF(s.th.Client, &cobra.Command{}, []string{channel.Id, user.Id})
-		s.Require().Nil(err)
+		s.Require().ErrorContains(err, "unable to remove")
+		s.Require().ErrorContains(err, user.Id)
+		s.Require().ErrorContains(err, channelName)
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 		s.Require().Contains(printer.GetErrorLines()[0], fmt.Sprintf("Unable to remove '%s' from %s", user.Id, channelName))

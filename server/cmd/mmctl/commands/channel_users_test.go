@@ -439,4 +439,54 @@ func (s *MmctlUnitTestSuite) TestChannelUsersRemoveCmd() {
 		s.Require().Len(printer.GetLines(), 0)
 		s.Require().Len(printer.GetErrorLines(), 1)
 	})
+
+	s.Run("should remove user from channel throws error", func() {
+		printer.Clean()
+
+		cmd := &cobra.Command{}
+		args := []string{argsTeamChannel, userEmail}
+
+		foundTeam := &model.Team{
+			Id:          teamID,
+			DisplayName: teamDisplayName,
+			Name:        teamName,
+		}
+
+		foundChannel := &model.Channel{
+			Id:          channelID,
+			Name:        channelName,
+			DisplayName: channelDisplayName,
+		}
+
+		s.client.
+			EXPECT().
+			GetTeam(context.Background(), teamName, "").
+			Return(foundTeam, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetChannelByNameIncludeDeleted(context.Background(), channelName, foundTeam.Id, "").
+			Return(foundChannel, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			GetUserByEmail(context.Background(), userEmail, "").
+			Return(&mockUser, &model.Response{}, nil).
+			Times(1)
+
+		s.client.
+			EXPECT().
+			RemoveUserFromChannel(context.Background(), foundChannel.Id, mockUser.Id).
+			Return(&model.Response{StatusCode: http.StatusNotFound}, errors.New("mock error")).
+			Times(1)
+
+		err := channelUsersRemoveCmdF(s.client, cmd, args)
+		s.Require().ErrorContains(err, "unable to remove")
+		s.Require().ErrorContains(err, userEmail)
+		s.Require().ErrorContains(err, channelName)
+		s.Require().Len(printer.GetLines(), 0)
+		s.Require().Len(printer.GetErrorLines(), 1)
+	})
 }
