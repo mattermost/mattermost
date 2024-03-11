@@ -1928,19 +1928,22 @@ func (a *App) GetTeamIdFromQuery(query url.Values) (string, *model.AppError) {
 }
 
 func (a *App) SanitizeTeam(session model.Session, team *model.Team) *model.Team {
-	if a.SessionHasPermissionToTeam(session, team.Id, model.PermissionManageTeam) {
+	manageTeamPermission := a.SessionHasPermissionToTeam(session, team.Id, model.PermissionManageTeam)
+	inviteUserPermission := a.SessionHasPermissionToTeam(session, team.Id, model.PermissionInviteUser)
+
+	if manageTeamPermission && inviteUserPermission {
 		return team
 	}
-
-	if a.SessionHasPermissionToTeam(session, team.Id, model.PermissionInviteUser) {
-		inviteId := team.InviteId
-		team.Sanitize()
-		team.InviteId = inviteId
-		return team
-	}
-
+	email := team.Email
+	inviteId := team.InviteId
 	team.Sanitize()
 
+	if manageTeamPermission {
+		team.Email = email
+	}
+	if inviteUserPermission {
+		team.InviteId = inviteId
+	}
 	return team
 }
 
