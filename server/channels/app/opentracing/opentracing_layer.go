@@ -7401,7 +7401,7 @@ func (a *OpenTracingAppLayer) GetMemberCountsByGroup(rctx request.CTX, channelID
 	return resultVar0, resultVar1
 }
 
-func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, translateFunc i18n.TranslateFunc) string {
+func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, teamName string, siteUrl string, translateFunc i18n.TranslateFunc) string {
 	origCtx := a.ctx
 	span, newCtx := tracing.StartSpanWithParentByContext(a.ctx, "app.GetMessageForNotification")
 
@@ -7413,7 +7413,7 @@ func (a *OpenTracingAppLayer) GetMessageForNotification(post *model.Post, transl
 	}()
 
 	defer span.Finish()
-	resultVar0 := a.app.GetMessageForNotification(post, translateFunc)
+	resultVar0 := a.app.GetMessageForNotification(post, teamName, siteUrl, translateFunc)
 
 	return resultVar0
 }
