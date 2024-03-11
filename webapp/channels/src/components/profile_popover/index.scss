@@ -1,7 +1,8 @@
 @import "sass/utils/_mixins";
 
 .user-profile-popover-floating-overlay {
-    z-index: 21;
+    // 99 being the z-index of the global header
+    z-index: 100;
 }
 
 .user-profile-popover {

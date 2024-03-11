@@ -5,15 +5,17 @@ exports[`components/UserProfile should match snapshot 1`] = `
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
-    triggerButtonContainerClass="user-popover"
+    triggerComponentRootProps={
+      Object {
+        "as": "button",
+        "className": "user-popover style--none",
+        "style": undefined,
+      }
+    }
     userId="user_id"
     userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
-    <button
-      className="style--none"
-    >
-      nickname
-    </button>
+    nickname
   </ProfilePopoverController>
 </Fragment>
 `;
@@ -23,15 +25,17 @@ exports[`components/UserProfile should match snapshot, when displayUsername is e
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
-    triggerButtonContainerClass="user-popover"
+    triggerComponentRootProps={
+      Object {
+        "as": "button",
+        "className": "user-popover style--none",
+        "style": undefined,
+      }
+    }
     userId="user_id"
     userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
-    <button
-      className="style--none"
-    >
-      @username
-    </button>
+    @username
   </ProfilePopoverController>
 </Fragment>
 `;
@@ -49,15 +53,17 @@ exports[`components/UserProfile should match snapshot, when user is shared 1`] =
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
-    triggerButtonContainerClass="user-popover"
+    triggerComponentRootProps={
+      Object {
+        "as": "button",
+        "className": "user-popover style--none",
+        "style": undefined,
+      }
+    }
     userId="user_id"
     userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
-    <button
-      className="style--none"
-    >
-      nickname
-    </button>
+    nickname
   </ProfilePopoverController>
   <SharedUserIndicator
     className="shared-user-icon"
@@ -70,20 +76,19 @@ exports[`components/UserProfile should match snapshot, with colorization 1`] = `
   <ProfilePopoverController
     hideStatus={false}
     overwriteName=""
-    triggerButtonContainerClass="user-popover"
+    triggerComponentRootProps={
+      Object {
+        "as": "button",
+        "className": "user-popover style--none",
+        "style": Object {
+          "color": "#bbd279",
+        },
+      }
+    }
     userId="user_id"
     userProfileSrc="/api/v4/users/undefined/image?_=0"
   >
-    <button
-      className="style--none"
-      style={
-        Object {
-          "color": "#bbd279",
-        }
-      }
-    >
-      nickname
-    </button>
+    nickname
   </ProfilePopoverController>
 </Fragment>
 `;

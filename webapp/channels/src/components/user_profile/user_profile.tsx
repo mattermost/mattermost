@@ -68,8 +68,12 @@ export default function UserProfile({
 
     return (
         <>
-            <ProfilePopoverController
-                triggerButtonContainerClass='user-popover'
+            <ProfilePopoverController<HTMLButtonElement>
+                triggerComponentRootProps={{
+                    as: 'button',
+                    className: 'user-popover style--none',
+                    style: userStyle,
+                }}
                 userId={userId}
                 userProfileSrc={profileImg}
                 channelId={channelId}
@@ -77,12 +81,7 @@ export default function UserProfile({
                 overwriteIcon={overwriteIcon}
                 overwriteName={overwriteName}
             >
-                <button
-                    className='style--none'
-                    style={userStyle}
-                >
-                    {name}
-                </button>
+                {name}
             </ProfilePopoverController>
             {(isShared) &&
             <SharedUserIndicator

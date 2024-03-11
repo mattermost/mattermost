@@ -28,15 +28,6 @@ const Avatar = styled.div`
     flex-shrink: 0;
 `;
 
-const UserInfo = styled.div`
-    display: flex;
-    flex: 1;
-    cursor: pointer;
-    overflow-x: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-`;
-
 const DisplayName = styled.span`
     display: inline;
     overflow: hidden;
@@ -131,34 +122,34 @@ const Member = ({className, channel, member, index, totalUsers, editing, actions
                     />
                 </Avatar>
                 <ProfilePopoverController
-                    triggerButtonContainerClass='profileSpan_userInfo'
+                    triggerComponentRootProps={{
+                        className: 'profileSpan_userInfo',
+                    }}
                     userId={member.user.id}
                     userProfileSrc={userProfileSrc}
                     hideStatus={member.user.is_bot}
                 >
-                    <UserInfo>
-                        <DisplayName>
-                            {member.displayName}
-                            {isGuest(member.user.roles) && <GuestTag/>}
-                        </DisplayName>
-                        {
-                            member.displayName === member.user.username ? null : <Username>{'@'}{member.user.username}</Username>
-                        }
-                        <CustomStatusEmoji
-                            userID={member.user.id}
-                            showTooltip={true}
-                            emojiSize={16}
-                            spanStyle={{
-                                display: 'flex',
-                                flex: '0 0 auto',
-                                alignItems: 'center',
-                            }}
-                            emojiStyle={{
-                                marginLeft: '8px',
-                                alignItems: 'center',
-                            }}
-                        />
-                    </UserInfo>
+                    <DisplayName>
+                        {member.displayName}
+                        {isGuest(member.user.roles) && <GuestTag/>}
+                    </DisplayName>
+                    {
+                        member.displayName === member.user.username ? null : <Username>{'@'}{member.user.username}</Username>
+                    }
+                    <CustomStatusEmoji
+                        userID={member.user.id}
+                        showTooltip={true}
+                        emojiSize={16}
+                        spanStyle={{
+                            display: 'flex',
+                            flex: '0 0 auto',
+                            alignItems: 'center',
+                        }}
+                        emojiStyle={{
+                            marginLeft: '8px',
+                            alignItems: 'center',
+                        }}
+                    />
                 </ProfilePopoverController>
             </span>
 

@@ -11,8 +11,6 @@ import StatusIconNew from 'components/status_icon_new';
 import Avatar, {getAvatarWidth} from 'components/widgets/users/avatar';
 import type {TAvatarSizeToken} from 'components/widgets/users/avatar';
 
-import './index.scss';
-
 type Props = {
     size?: TAvatarSizeToken;
     isEmoji?: boolean;
@@ -44,7 +42,9 @@ function ProfilePicture(props: Props) {
     if (props.userId) {
         return (
             <ProfilePopoverController
-                triggerButtonContainerClass={classNames('status-wrapper', props.wrapperClass)}
+                triggerComponentRootProps={{
+                    className: classNames('status-wrapper', props.wrapperClass),
+                }}
                 userId={props.userId}
                 userProfileSrc={profileSrc}
                 channelId={props.channelId}

@@ -21,6 +21,10 @@
     }
 }
 
+.rounded-button {
+    border-radius: 50%;
+}
+
 button {
     .unread-badge {
         display: inline-block;
