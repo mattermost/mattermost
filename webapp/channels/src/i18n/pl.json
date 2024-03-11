@@ -127,7 +127,7 @@
   "add_emoji.name": "Nazwa",
   "add_emoji.name.help": "Podaj nazwę emoji składającą się maksymalnie z 64 znaków. Może ona zawierać małe litery, cyfry oraz symbole \"-\", \"+\" i \"_\".",
   "add_emoji.nameInvalid": "Nazwa emoji może zawierać tylko małe litery, cyfry oraz znaki '-' i '_'.",
-  "add_emoji.nameRequired": "Obraz jest wymagany dla emoji",
+  "add_emoji.nameRequired": "Wymagana jest nazwa dla emoji",
   "add_emoji.nameTaken": "Ta nazwa jest już używana przez systemowe emoji. Proszę wybrać inną nazwę.",
   "add_emoji.preview": "Podgląd",
   "add_emoji.preview.sentence": "To jest zdanie zawierające {image}.",
