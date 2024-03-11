@@ -4376,6 +4376,10 @@ func (o *Config) Sanitize() {
 		o.SqlSettings.DataSourceSearchReplicas[i] = FakeSetting
 	}
 
+	for i := range o.SqlSettings.ReplicaLagSettings {
+		o.SqlSettings.ReplicaLagSettings[i].DataSource = NewString(FakeSetting)
+	}
+
 	if o.MessageExportSettings.GlobalRelaySettings != nil &&
 		o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != nil &&
 		*o.MessageExportSettings.GlobalRelaySettings.SMTPPassword != "" {
