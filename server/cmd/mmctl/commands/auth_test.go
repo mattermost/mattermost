@@ -4,12 +4,14 @@
 package commands
 
 import (
-	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
-	"github.com/spf13/cobra"
-	"github.com/spf13/viper"
 	"os"
 	"os/user"
 	"path/filepath"
+
+	"github.com/mattermost/mattermost/server/v8/cmd/mmctl/printer"
+
+	"github.com/spf13/cobra"
+	"github.com/spf13/viper"
 )
 
 func (s *MmctlUnitTestSuite) TestAuthList() {
@@ -18,8 +20,11 @@ func (s *MmctlUnitTestSuite) TestAuthList() {
 		SetUser(&originalUser)
 	}()
 
-	tmp, _ := os.MkdirTemp("", "mmctl-")
-	defer os.RemoveAll(tmp)
+	tmp, errMkDir := os.MkdirTemp("", "mmctl-")
+	s.Require().NoError(errMkDir)
+	s.T().Cleanup(func() {
+		s.Require().NoError(os.RemoveAll(tmp))
+	})
 
 	testUser, err := user.Current()
 	s.Require().NoError(err)
