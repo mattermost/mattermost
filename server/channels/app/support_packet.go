@@ -141,7 +141,7 @@ func (a *App) generateSupportPacketYaml(c request.CTX) (*model.FileData, error) 
 		monthlyActiveUsers   int
 		inactiveUserCount    int
 	)
-	analytics, appErr := a.GetAnalytics("standard", "")
+	analytics, appErr := a.GetAnalytics(c, "standard", "")
 	if appErr != nil {
 		rErr = multierror.Append(errors.Wrap(appErr, "error while getting analytics"))
 	}
