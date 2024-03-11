@@ -15,7 +15,7 @@ import {
     FloatingPortal,
 } from '@floating-ui/react';
 import classNames from 'classnames';
-import type {ReactNode} from 'react';
+import type {HtmlHTMLAttributes, ReactNode} from 'react';
 import React, {useState} from 'react';
 
 import type {Channel} from '@mattermost/types/channels';
@@ -28,8 +28,13 @@ import {A11yClassNames} from 'utils/constants';
 const PROFILE_POPOVER_OPENING_DELAY = 300;
 const PROFILE_POPOVER_CLOSING_DELAY = 500;
 
-interface Props {
-    triggerButtonContainerClass?: string;
+interface Props<TriggerComponentType> {
+    triggerComponentRootProps?: {
+        as?: React.ElementType;
+        id?: HtmlHTMLAttributes<TriggerComponentType>['id'];
+        className?: HtmlHTMLAttributes<TriggerComponentType>['className'];
+        style?: HtmlHTMLAttributes<TriggerComponentType>['style'];
+    };
 
     /**
      * Source URL from the image to display in the popover
@@ -37,7 +42,7 @@ interface Props {
     userProfileSrc: string;
 
     /**
-     * This should be the trigger button for the popover, Do note that button will be wrapped in a span
+     * This should be the trigger button for the popover, Do note that the root element of the trigger component should be passed in triggerComponentRoot
      */
     children: ReactNode;
     userId: UserProfile['id'];
@@ -69,7 +74,7 @@ interface Props {
     returnFocus?: () => void;
 }
 
-function ProfilePopoverController(props: Props) {
+function ProfilePopoverController<TriggerComponentType = HTMLSpanElement>(props: Props<TriggerComponentType>) {
     const [isOpen, setOpen] = useState(false);
 
     const {refs, floatingStyles, context: floatingContext} = useFloating({
@@ -94,7 +99,7 @@ function ProfilePopoverController(props: Props) {
 
     const role = useRole(floatingContext);
 
-    const {getReferenceProps: getAvatarReferenceProps, getFloatingProps: getProfilePopoverFloatinProps} = useInteractions([
+    const {getReferenceProps, getFloatingProps} = useInteractions([
         clickInteractions,
         dismissInteraction,
         role,
@@ -104,15 +109,19 @@ function ProfilePopoverController(props: Props) {
         setOpen(false);
     }
 
+    const TriggerComponent = props.triggerComponentRootProps?.as ?? 'span';
+
     return (
         <>
-            <span
+            <TriggerComponent
+                id={props.triggerComponentRootProps?.id}
                 ref={refs.setReference}
-                className={props.triggerButtonContainerClass}
-                {...getAvatarReferenceProps()}
+                className={props.triggerComponentRootProps?.className}
+                style={props.triggerComponentRootProps?.style}
+                {...getReferenceProps()}
             >
                 {props.children}
-            </span>
+            </TriggerComponent>
 
             {isMounted && (
                 <FloatingPortal id='user-profile-popover-portal'>
@@ -126,8 +135,8 @@ function ProfilePopoverController(props: Props) {
                                 ref={refs.setFloating}
                                 style={combinedFloatingStyles}
                                 className={classNames('user-profile-popover', A11yClassNames.POPUP)}
-                                {...getProfilePopoverFloatinProps()}
-                                id='user-profile-popover' // This is placed here as id is being overwritten by getProfilePopoverFloatinProps
+                                {...getFloatingProps()}
+                                id='user-profile-popover' // This is placed here as id is being overwritten by getFloatingProps
                             >
                                 <ProfilePopover
                                     userId={props.userId}
