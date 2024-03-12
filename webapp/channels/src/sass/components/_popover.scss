@@ -69,10 +69,10 @@
 
     &.channel-header__popover {
         z-index: 999;
-        margin-left: 8px;
-        font-size: 12px;
         min-width: 200px;
+        margin-left: 8px;
         box-shadow: var(--elevation-4);
+        font-size: 12px;
 
         &.chanel-header__popover--lhs_offset {
             margin-left: 68px;
@@ -95,8 +95,8 @@
             }
 
             .file-preview__button {
-                vertical-align: middle;
                 max-height: inherit;
+                vertical-align: middle;
             }
         }
 
