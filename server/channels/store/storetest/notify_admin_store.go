@@ -62,9 +62,9 @@ func testNotifyAdminStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.Error(t, err)
 
 	// same user requesting same feature error
-	singleUserId := model.NewId()
+	singleUserID := model.NewId()
 	d5 := &model.NotifyAdminData{
-		UserId:          singleUserId,
+		UserId:          singleUserID,
 		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
@@ -72,7 +72,7 @@ func testNotifyAdminStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	d6 := &model.NotifyAdminData{
-		UserId:          singleUserId,
+		UserId:          singleUserID,
 		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
@@ -83,9 +83,9 @@ func testNotifyAdminStoreSave(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGet(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId1 := model.NewId()
+	userID1 := model.NewId()
 	d1 := &model.NotifyAdminData{
-		UserId:          userId1,
+		UserId:          userID1,
 		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
@@ -94,7 +94,7 @@ func testGet(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	d1Trial := &model.NotifyAdminData{
-		UserId:          userId1,
+		UserId:          userID1,
 		RequiredPlan:    model.LicenseShortSkuEnterprise,
 		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,
@@ -123,9 +123,9 @@ func testGet(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testGetDataByUserIdAndFeature(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId1 := model.NewId()
+	userID1 := model.NewId()
 	d1 := &model.NotifyAdminData{
-		UserId:          userId1,
+		UserId:          userID1,
 		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
@@ -133,9 +133,9 @@ func testGetDataByUserIdAndFeature(t *testing.T, rctx request.CTX, ss store.Stor
 	_, err := ss.NotifyAdmin().Save(d1)
 	require.NoError(t, err)
 
-	userId2 := model.NewId()
+	userID2 := model.NewId()
 	d2 := &model.NotifyAdminData{
-		UserId:          userId2,
+		UserId:          userID2,
 		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureCustomUsergroups,
 	}
@@ -143,7 +143,7 @@ func testGetDataByUserIdAndFeature(t *testing.T, rctx request.CTX, ss store.Stor
 	_, err = ss.NotifyAdmin().Save(d2)
 	require.NoError(t, err)
 
-	user1Request, err := ss.NotifyAdmin().GetDataByUserIdAndFeature(userId1, model.PaidFeatureAllProfessionalfeatures)
+	user1Request, err := ss.NotifyAdmin().GetDataByUserIdAndFeature(userID1, model.PaidFeatureAllProfessionalfeatures)
 	require.NoError(t, err)
 	require.Equal(t, len(user1Request), 1)
 	require.Equal(t, user1Request[0].RequiredFeature, model.PaidFeatureAllProfessionalfeatures)
@@ -152,9 +152,9 @@ func testGetDataByUserIdAndFeature(t *testing.T, rctx request.CTX, ss store.Stor
 }
 
 func testUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId1 := model.NewId()
+	userID1 := model.NewId()
 	d1 := &model.NotifyAdminData{
-		UserId:          userId1,
+		UserId:          userID1,
 		RequiredPlan:    PluginIdJenkins,
 		RequiredFeature: model.PluginFeature,
 	}
@@ -174,9 +174,9 @@ func testUpdate(t *testing.T, rctx request.CTX, ss store.Store) {
 }
 
 func testDeleteBefore(t *testing.T, rctx request.CTX, ss store.Store) {
-	userId1 := model.NewId()
+	userID1 := model.NewId()
 	d1 := &model.NotifyAdminData{
-		UserId:          userId1,
+		UserId:          userID1,
 		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllProfessionalfeatures,
 	}
@@ -185,7 +185,7 @@ func testDeleteBefore(t *testing.T, rctx request.CTX, ss store.Store) {
 	require.NoError(t, err)
 
 	d1Trial := &model.NotifyAdminData{
-		UserId:          userId1,
+		UserId:          userID1,
 		RequiredPlan:    model.LicenseShortSkuProfessional,
 		RequiredFeature: model.PaidFeatureAllEnterprisefeatures,
 		Trial:           true,

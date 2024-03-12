@@ -376,26 +376,26 @@ func countDraftPages(t *testing.T, rctx request.CTX, ss store.Store) int {
 
 	pages := 0
 	createAt := int64(0)
-	userId := ""
+	userID := ""
 
 	for {
-		nextCreateAt, nextUserId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
 
-		if nextCreateAt == 0 && nextUserId == "" {
+		if nextCreateAt == 0 && nextUserID == "" {
 			break
 		}
 
 		// Ensure we're always making progress.
 		if nextCreateAt == createAt {
-			require.Greater(t, nextUserId, userId)
+			require.Greater(t, nextUserID, userID)
 		} else {
 			require.Greater(t, nextCreateAt, createAt)
 		}
 
 		pages++
 		createAt = nextCreateAt
-		userId = nextUserId
+		userID = nextUserID
 	}
 
 	return pages
@@ -405,10 +405,10 @@ func testGetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(t *testing.T, rct
 	t.Run("no drafts", func(t *testing.T) {
 		clearDrafts(t, rctx, ss)
 
-		createAt, userId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(0, "")
+		createAt, userID, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(0, "")
 		require.NoError(t, err)
 		assert.EqualValues(t, 0, createAt)
-		assert.Equal(t, "", userId)
+		assert.Equal(t, "", userID)
 
 		assert.Equal(t, 0, countDraftPages(t, rctx, ss), "incorrect number of pages")
 	})
@@ -440,54 +440,54 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, rctx request.CTX, ss
 		clearDrafts(t, rctx, ss)
 		makeDrafts(t, ss, 100, "")
 
-		createAt, userId := int64(0), ""
-		nextCreateAt, nextUserId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		createAt, userID := int64(0), ""
+		nextCreateAt, nextUserID, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		assert.Equal(t, 0, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
 		assert.EqualValues(t, 0, nextCreateAt, "should have finished iterating through drafts")
-		assert.Equal(t, "", nextUserId, "should have finished iterating through drafts")
+		assert.Equal(t, "", nextUserID, "should have finished iterating through drafts")
 	})
 
 	t.Run("delete multiple pages, all empty", func(t *testing.T) {
 		clearDrafts(t, rctx, ss)
 		makeDrafts(t, ss, 300, "")
 
-		createAt, userId := int64(0), ""
-		nextCreateAt, nextUserId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		createAt, userID := int64(0), ""
+		nextCreateAt, nextUserID, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		assert.Equal(t, 2, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		assert.Equal(t, 1, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		assert.Equal(t, 0, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
 		assert.EqualValues(t, 0, nextCreateAt, "should have finished iterating through drafts")
-		assert.Equal(t, "", nextUserId, "should have finished iterating through drafts")
+		assert.Equal(t, "", nextUserID, "should have finished iterating through drafts")
 	})
 
 	t.Run("delete multiple pages, some empty", func(t *testing.T) {
@@ -506,57 +506,57 @@ func testDeleteEmptyDraftsByCreateAtAndUserId(t *testing.T, rctx request.CTX, ss
 		// Verify initially 5 pages
 		assert.Equal(t, 5, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
-		createAt, userId := int64(0), ""
+		createAt, userID := int64(0), ""
 
-		nextCreateAt, nextUserId, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err := ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		// Only deleted 50, so still 5 pages
 		assert.Equal(t, 5, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		// Now deleted 100, so down to 4 pages
 		assert.Equal(t, 4, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		// Only deleted 150 now, so still 4 pages
 		assert.Equal(t, 4, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		// Now deleted all 200 empty messages, so down to 3 pages
 		assert.Equal(t, 3, countDraftPages(t, rctx, ss), "incorrect number of pages")
 
 		// Keep going through all pages to verify nothing else gets deleted.
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
-		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userId)
+		err = ss.Draft().DeleteEmptyDraftsByCreateAtAndUserId(createAt, userID)
 		require.NoError(t, err)
-		createAt, userId = nextCreateAt, nextUserId
+		createAt, userID = nextCreateAt, nextUserID
 
 		// Verify we're done iterating
 
-		nextCreateAt, nextUserId, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userId)
+		nextCreateAt, nextUserID, err = ss.Draft().GetLastCreateAtAndUserIdValuesForEmptyDraftsMigration(createAt, userID)
 		require.NoError(t, err)
 		assert.EqualValues(t, 0, nextCreateAt, "should have finished iterating through drafts")
-		assert.Equal(t, "", nextUserId, "should have finished iterating through drafts")
+		assert.Equal(t, "", nextUserID, "should have finished iterating through drafts")
 	})
 }
