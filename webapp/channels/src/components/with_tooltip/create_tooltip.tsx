@@ -3,12 +3,12 @@
 
 import React from 'react';
 import type {ComponentProps} from 'react';
-import type {MessageDescriptor} from 'react-intl';
+import {type MessageDescriptor} from 'react-intl';
 
 import RenderEmoji from 'components/emoji/render_emoji';
-import {ShortcutKey, ShortcutKeyVariant} from 'components/shortcut_key';
 import Tooltip from 'components/tooltip';
 
+import {TooltipShortcutSequence, type ShortcutDefinition} from './shortcut';
 import {getAsFormattedMessage} from './utils';
 
 type EmojiStyle = 'inline' | 'large' | undefined;
@@ -17,7 +17,7 @@ export type CommonTooltipProps = {
     id: string;
     title: string | MessageDescriptor | React.ReactElement;
     hint?: string | MessageDescriptor | React.ReactElement;
-    shortcut?: string[];
+    shortcut?: ShortcutDefinition;
     emoji?: string;
     emojiStyle?: EmojiStyle;
 }
@@ -67,14 +67,7 @@ export function createTooltip(commonTooltipProps: CommonTooltipProps) {
                     key='shortcut'
                     className={'tooltip-shortcuts-container'}
                 >
-                    {commonTooltipProps.shortcut.map((v) => (
-                        <ShortcutKey
-                            key={v}
-                            variant={ShortcutKeyVariant.Tooltip}
-                        >
-                            {v}
-                        </ShortcutKey>
-                    ))}
+                    <TooltipShortcutSequence shortcut={commonTooltipProps.shortcut}/>
                 </div>,
             );
         }
