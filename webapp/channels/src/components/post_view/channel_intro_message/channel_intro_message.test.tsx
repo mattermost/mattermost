@@ -279,9 +279,6 @@ describe('components/post_view/ChannelIntroMessages', () => {
             );
             screen.getByText('This is the start of off-topic, a channel for non-work-related conversations.');
             expect(screen.getByText('This is the start of off-topic, a channel for non-work-related conversations.')).toHaveClass('channel-intro__text');
-
-            // stats.total_users_count is not specified, loading icon should be in the dom
-            screen.getByTitle('Loading Icon');
         });
     });
 });

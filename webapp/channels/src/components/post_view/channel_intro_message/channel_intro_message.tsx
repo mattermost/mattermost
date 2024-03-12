@@ -358,9 +358,8 @@ function createOffTopicIntroMessage(
         actionButtons = (
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite)}
-                {channelInviteButton}
                 {setHeaderButton}
-                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
+                {createNotificationPreferencesButton(channel, currentUser)}
             </div>
         );
     }
@@ -475,9 +474,8 @@ function createDefaultIntroMessage(
         actionButtons = (
             <div className='channel-intro__actions'>
                 {createFavoriteButton(isFavorite, toggleFavorite)}
-                {teamInviteLink}
                 {setHeaderButton}
-                {!isMobileView && createNotificationPreferencesButton(channel, currentUser)}
+                {createNotificationPreferencesButton(channel, currentUser)}
                 {teamIsGroupConstrained && pluginButtons}
             </div>
         );
