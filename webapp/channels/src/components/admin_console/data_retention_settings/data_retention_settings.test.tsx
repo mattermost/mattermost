@@ -29,7 +29,7 @@ describe('components/admin_console/data_retention_settings/data_retention_settin
             createJob: jest.fn(),
             getJobsByType: jest.fn().mockResolvedValue([]),
             deleteDataRetentionCustomPolicy: jest.fn(),
-            updateConfig: jest.fn(),
+            patchConfig: jest.fn(),
         },
     };
 
