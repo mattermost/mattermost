@@ -72,6 +72,10 @@ function DesktopNotificationSoundsSettings({
     const handleChangeForMessageNotificationSoundCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
         const value = event.target.checked ? 'true' : 'false';
         setParentState('desktopSound', value);
+
+        if (value === 'false') {
+            stopTryNotificationRing();
+        }
     }, [setParentState]);
 
     const handleChangeForIncomginCallSoundCheckbox = useCallback((event: ChangeEvent<HTMLInputElement>) => {
@@ -84,6 +88,8 @@ function DesktopNotificationSoundsSettings({
     }, [setParentState]);
 
     const handleChangeForMessageNotificationSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+        stopTryNotificationRing();
+
         if (selectedOption && 'value' in selectedOption) {
             setParentState('desktopNotificationSound', selectedOption.value);
             tryNotificationSound(selectedOption.value);
@@ -91,6 +97,8 @@ function DesktopNotificationSoundsSettings({
     }, [setParentState]);
 
     const handleChangeForIncomingCallSoundSelect = useCallback((selectedOption: ValueType<SelectOption>) => {
+        stopTryNotificationRing();
+
         if (selectedOption && 'value' in selectedOption) {
             setParentState('callsNotificationSound', selectedOption.value);
             tryNotificationRing(selectedOption.value);
