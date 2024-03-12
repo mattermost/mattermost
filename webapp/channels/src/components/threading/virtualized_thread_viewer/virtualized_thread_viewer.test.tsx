@@ -41,7 +41,6 @@ function getBasePropsAndState(): [Props, DeepPartial<GlobalState>] {
         useRelativeTimestamp: true,
         isMobileView: false,
         isThreadView: false,
-        lastViewedAt: 0,
         newMessagesSeparatorActions: [],
         fromSuppressed: false,
     };
