@@ -4230,9 +4230,9 @@ func TestGetChannelModerations(t *testing.T) {
 	t.Run("Returns default moderations with default roles", func(t *testing.T) {
 		moderations, _, err := th.SystemAdminClient.GetChannelModerations(context.Background(), channel.Id, "")
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 4)
+		require.Equal(t, len(moderations), 5)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
 				require.Equal(t, moderation.Roles.Guests.Value, true)
@@ -4320,7 +4320,7 @@ func TestGetChannelModerations(t *testing.T) {
 		require.Nil(t, appErr)
 
 		th.RemovePermissionFromRole(model.PermissionManagePublicChannelMembers.Id, scheme.DefaultChannelUserRole)
-		defer th.AddPermissionToRole(model.PermissionCreatePost.Id, scheme.DefaultChannelUserRole)
+		defer th.AddPermissionToRole(model.PermissionManagePublicChannelMembers.Id, scheme.DefaultChannelUserRole)
 
 		// public channel does not have the permission
 		moderations, _, err := th.SystemAdminClient.GetChannelModerations(context.Background(), channel.Id, "")
@@ -4336,6 +4336,48 @@ func TestGetChannelModerations(t *testing.T) {
 		require.NoError(t, err)
 		for _, moderation := range moderations {
 			if moderation.Name == "manage_members" {
+				require.Equal(t, moderation.Roles.Members.Value, true)
+			}
+		}
+	})
+
+	t.Run("Returns the correct value for manage_bookmarks depending on whether the channel is public or private", func(t *testing.T) {
+		scheme := th.SetupTeamScheme()
+		team.SchemeId = &scheme.Id
+		_, appErr := th.App.UpdateTeamScheme(team)
+		require.Nil(t, appErr)
+
+		bookmarkPublicPermissions := []string{
+			model.PermissionAddBookmarkPublicChannel.Id,
+			model.PermissionEditBookmarkPublicChannel.Id,
+			model.PermissionDeleteBookmarkPublicChannel.Id,
+			model.PermissionOrderBookmarkPublicChannel.Id,
+		}
+
+		for _, p := range bookmarkPublicPermissions {
+			th.RemovePermissionFromRole(p, scheme.DefaultChannelUserRole)
+		}
+
+		defer func() {
+			for _, p := range bookmarkPublicPermissions {
+				th.AddPermissionToRole(p, scheme.DefaultChannelUserRole)
+			}
+		}()
+
+		// public channel does not have the permissions
+		moderations, _, err := th.SystemAdminClient.GetChannelModerations(context.Background(), channel.Id, "")
+		require.NoError(t, err)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_bookmarks" {
+				require.Equal(t, moderation.Roles.Members.Value, false)
+			}
+		}
+
+		// private channel does have the permissions
+		moderations, _, err = th.SystemAdminClient.GetChannelModerations(context.Background(), th.BasicPrivateChannel.Id, "")
+		require.NoError(t, err)
+		for _, moderation := range moderations {
+			if moderation.Name == "manage_bookmarks" {
 				require.Equal(t, moderation.Roles.Members.Value, true)
 			}
 		}
@@ -4405,9 +4447,9 @@ func TestPatchChannelModerations(t *testing.T) {
 	t.Run("Returns default moderations with empty patch", func(t *testing.T) {
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, emptyPatch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 4)
+		require.Equal(t, len(moderations), 5)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
 				require.Equal(t, moderation.Roles.Guests.Value, true)
@@ -4431,9 +4473,9 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, patch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 4)
+		require.Equal(t, len(moderations), 5)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
 				require.Equal(t, moderation.Roles.Guests.Value, true)
@@ -4468,9 +4510,9 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, patch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 4)
+		require.Equal(t, len(moderations), 5)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
 				require.Equal(t, moderation.Roles.Guests.Value, true)
@@ -4523,9 +4565,9 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		moderations, _, err := th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, emptyPatch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 4)
+		require.Equal(t, len(moderations), 5)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
 				require.Equal(t, moderation.Roles.Guests.Value, false)
@@ -4545,9 +4587,9 @@ func TestPatchChannelModerations(t *testing.T) {
 
 		moderations, _, err = th.SystemAdminClient.PatchChannelModerations(context.Background(), channel.Id, patch)
 		require.NoError(t, err)
-		require.Equal(t, len(moderations), 4)
+		require.Equal(t, len(moderations), 5)
 		for _, moderation := range moderations {
-			if moderation.Name == "manage_members" {
+			if moderation.Name == "manage_members" || moderation.Name == "manage_bookmarks" {
 				require.Empty(t, moderation.Roles.Guests)
 			} else {
 				require.Equal(t, moderation.Roles.Guests.Value, false)
