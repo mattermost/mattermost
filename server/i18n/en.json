@@ -9447,6 +9447,10 @@
     "translation": "Invalid user id."
   },
   {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Invalid props (custom status)"
+  },
+  {
     "id": "model.user.is_valid.last_name.app_error",
     "translation": "Invalid last name."
   },
