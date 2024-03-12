@@ -4925,7 +4925,7 @@ func TestCreateChannelWithMissingTeamId(t *testing.T) {
 	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
 
 	_, resp, err := client.CreateChannel(context.Background(), channel)
-	CheckErrorID(t, err, "api.channel.create_channel.missing_team_id.error")
+	CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 	CheckBadRequestStatus(t, resp)
 }
 
@@ -4938,6 +4938,6 @@ func TestCreateChannelWithMissingDisplayName(t *testing.T) {
 	channel := &model.Channel{DisplayName: "", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
 
 	_, resp, err := client.CreateChannel(context.Background(), channel)
-	CheckErrorID(t, err, "api.channel.create_channel.missing_display_name.error")
+	CheckErrorID(t, err, "api.context.invalid_body_param.app_error")
 	CheckBadRequestStatus(t, resp)
 }
