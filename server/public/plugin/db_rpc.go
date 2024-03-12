@@ -56,7 +56,7 @@ func (db *dbRPCClient) Conn(isMaster bool) (string, error) {
 }
 
 func (db *dbRPCServer) Conn(isMaster bool, ret *Z_DbStrErrReturn) error {
-	ret.A, ret.B = db.dbImpl.ConnWithPluginID(isMaster, db.pluginID)
+	ret.A, ret.B = db.dbImpl.Conn(isMaster)
 	ret.B = encodableError(ret.B)
 	return nil
 }

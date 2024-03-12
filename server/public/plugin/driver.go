@@ -25,6 +25,7 @@ type ResultContainer struct {
 type Driver interface {
 	// Connection
 	Conn(isMaster bool) (string, error)
+	// ConnWithPluginID is only used by the server, and fails if called over RPC.
 	ConnWithPluginID(isMaster bool, pluginID string) (string, error)
 	ConnPing(connID string) error
 	ConnClose(connID string) error

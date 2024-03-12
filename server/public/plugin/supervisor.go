@@ -32,6 +32,15 @@ type supervisor struct {
 	hooksClient *hooksRPCClient
 }
 
+type driverForPlugin struct {
+	Driver
+	pluginID string
+}
+
+func (d *driverForPlugin) Conn(isMaster bool) (string, error) {
+	return d.Driver.ConnWithPluginID(isMaster, d.pluginID)
+}
+
 func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics metricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{
 		pluginID: pluginInfo.Manifest.Id,
@@ -53,7 +62,7 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, par
 		"hooks": &hooksPlugin{
 			pluginID:   pluginInfo.Manifest.Id,
 			log:        wrappedLogger,
-			driverImpl: driver,
+			driverImpl: &driverForPlugin{driver, pluginInfo.Manifest.Id},
 			apiImpl:    &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
