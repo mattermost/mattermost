@@ -134,11 +134,11 @@ func (sup *supervisor) Shutdown() {
 	}
 
 	// Wait for API RPC server and DB RPC server to exit.
+	// And then shutdown conns.
 	if sup.hooksClient != nil {
 		sup.hooksClient.doneWg.Wait()
+		sup.hooksClient.driver.ShutdownConns(sup.pluginID)
 	}
-
-	sup.hooksClient.driver.ShutdownConns(sup.pluginID)
 }
 
 func (sup *supervisor) Hooks() Hooks {

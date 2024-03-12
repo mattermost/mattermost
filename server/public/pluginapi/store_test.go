@@ -16,7 +16,7 @@ func TestStore(t *testing.T) {
 
 		driver := &plugintest.Driver{}
 		defer driver.AssertExpectations(t)
-		driver.On("Conn", true).Return("test", nil)
+		driver.On("Conn", true, "").Return("test", nil)
 		driver.On("ConnPing", "test").Return(nil)
 		driver.On("ConnClose", "test").Return(nil)
 
@@ -45,7 +45,7 @@ func TestStore(t *testing.T) {
 
 		driver := &plugintest.Driver{}
 		defer driver.AssertExpectations(t)
-		driver.On("Conn", true).Return("test", nil)
+		driver.On("Conn", true, "").Return("test", nil)
 		driver.On("ConnPing", "test").Return(nil)
 		driver.On("ConnClose", "test").Return(nil)
 
@@ -82,7 +82,7 @@ func TestStore(t *testing.T) {
 
 		driver := &plugintest.Driver{}
 		defer driver.AssertExpectations(t)
-		driver.On("Conn", false).Return("test", nil)
+		driver.On("Conn", false, "").Return("test", nil)
 		driver.On("ConnPing", "test").Return(nil)
 		driver.On("ConnClose", "test").Return(nil)
 
