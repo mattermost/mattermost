@@ -5,7 +5,7 @@
   "keywords": [
     "mattermost"
   ],
-  "homepage": "https://github.com/mattermost/mattermost-server/tree/master/webapp/platform/types#readme",
+  "homepage": "https://github.com/mattermost/mattermost/tree/master/webapp/platform/types#readme",
   "license": "MIT",
   "files": [
     "lib"
@@ -22,11 +22,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "github:mattermost/mattermost-server",
+    "url": "github:mattermost/mattermost",
     "directory": "webapp/platform/types"
   },
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
   "peerDependencies": {
-    "typescript": "^4.3"
+    "typescript": "^4.3.0 || ^5.0.0"
   },
   "peerDependenciesMeta": {
     "typescript": {

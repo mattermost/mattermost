@@ -452,12 +452,20 @@
     "translation": "Invalid channel member update: You can't add or remove the guest role manually."
   },
   {
+    "id": "api.channel.update_channel_member_roles.guest.app_error",
+    "translation": "Invalid channel member update: A guest cannot be made team member or team admin, please promote as a user first."
+  },
+  {
     "id": "api.channel.update_channel_member_roles.guest_and_user.app_error",
     "translation": "Invalid channel member update: A user must be a guest or a user but not both."
   },
   {
     "id": "api.channel.update_channel_member_roles.scheme_role.app_error",
     "translation": "The provided role is managed by a Scheme and therefore cannot be applied directly to a Channel Member."
+  },
+  {
+    "id": "api.channel.update_channel_member_roles.user_and_guest.app_error",
+    "translation": "Invalid channel member update: A guest cannot be set for a single channel, a System Admin must promote or demote users to/from guests."
   },
   {
     "id": "api.channel.update_channel_privacy.default_channel_error",
@@ -3167,12 +3175,12 @@
     "translation": "Invalid team member update: A guest cannot be made team member or team admin, please promote as a user first."
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Invalid team member update: A user must cannot be set as a guest and admin at the same time."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest_and_user.app_error",
     "translation": "Invalid team member update: A user must be a guest or a user but not both."
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Invalid team member update: A guest cannot be set for a single team, a System Admin must promote or demote users to/from guests."
   },
   {
     "id": "api.team.update_team_scheme.license.error",
@@ -7944,7 +7952,7 @@
   },
   {
     "id": "ent.ldap.syncronize.search_failure_size_exceeded.app_error",
-    "translation": "Size Limit Exceeded. Try checking your [max page size](https://docs.mattermost.com/deployment/sso-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded)."
+    "translation": "Size Limit Exceeded. Try increasing your Maximum page size setting. Check out https://docs.mattermost.com/onboard/ad-ldap.html#i-see-the-log-error-ldap-result-code-4-size-limit-exceeded for more details."
   },
   {
     "id": "ent.ldap.validate_admin_filter.app_error",
@@ -9789,6 +9797,10 @@
   {
     "id": "model.user.is_valid.id.app_error",
     "translation": "Invalid user id."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Invalid props (custom status)"
   },
   {
     "id": "model.user.is_valid.last_name.app_error",
