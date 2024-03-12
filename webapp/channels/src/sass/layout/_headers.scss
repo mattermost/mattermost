@@ -113,6 +113,10 @@
             width: 100%;
             margin: 0;
             text-overflow: ellipsis;
+
+            .file-preview__button {
+                vertical-align: middle;
+            }
         }
     }
 
@@ -383,6 +387,7 @@
             display: flex;
             overflow: hidden;
             flex-direction: column;
+            height: 20px;
 
             ul {
                 &:first-child {
