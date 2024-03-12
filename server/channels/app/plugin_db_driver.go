@@ -46,7 +46,15 @@ func NewDriverImpl(s *Server) *DriverImpl {
 	}
 }
 
-func (d *DriverImpl) Conn(isMaster bool, pluginID string) (string, error) {
+func (d *DriverImpl) Conn(isMaster bool) (string, error) {
+	return d.conn(isMaster, "")
+}
+
+func (d *DriverImpl) ConnWithPluginID(isMaster bool, pluginID string) (string, error) {
+	return d.conn(isMaster, pluginID)
+}
+
+func (d *DriverImpl) conn(isMaster bool, pluginID string) (string, error) {
 	dbFunc := d.s.Platform().Store.GetInternalMasterDB
 	if !isMaster {
 		dbFunc = d.s.Platform().Store.GetInternalReplicaDB

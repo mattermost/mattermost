@@ -17,23 +17,23 @@ type Driver struct {
 	mock.Mock
 }
 
-// Conn provides a mock function with given fields: isMaster, pluginID
-func (_m *Driver) Conn(isMaster bool, pluginID string) (string, error) {
-	ret := _m.Called(isMaster, pluginID)
+// Conn provides a mock function with given fields: isMaster
+func (_m *Driver) Conn(isMaster bool) (string, error) {
+	ret := _m.Called(isMaster)
 
 	var r0 string
 	var r1 error
-	if rf, ok := ret.Get(0).(func(bool, string) (string, error)); ok {
-		return rf(isMaster, pluginID)
+	if rf, ok := ret.Get(0).(func(bool) (string, error)); ok {
+		return rf(isMaster)
 	}
-	if rf, ok := ret.Get(0).(func(bool, string) string); ok {
-		r0 = rf(isMaster, pluginID)
+	if rf, ok := ret.Get(0).(func(bool) string); ok {
+		r0 = rf(isMaster)
 	} else {
 		r0 = ret.Get(0).(string)
 	}
 
-	if rf, ok := ret.Get(1).(func(bool, string) error); ok {
-		r1 = rf(isMaster, pluginID)
+	if rf, ok := ret.Get(1).(func(bool) error); ok {
+		r1 = rf(isMaster)
 	} else {
 		r1 = ret.Error(1)
 	}
@@ -110,6 +110,30 @@ func (_m *Driver) ConnQuery(connID string, q string, args []driver.NamedValue) (
 
 	if rf, ok := ret.Get(1).(func(string, string, []driver.NamedValue) error); ok {
 		r1 = rf(connID, q, args)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// ConnWithPluginID provides a mock function with given fields: isMaster, pluginID
+func (_m *Driver) ConnWithPluginID(isMaster bool, pluginID string) (string, error) {
+	ret := _m.Called(isMaster, pluginID)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(bool, string) (string, error)); ok {
+		return rf(isMaster, pluginID)
+	}
+	if rf, ok := ret.Get(0).(func(bool, string) string); ok {
+		r0 = rf(isMaster, pluginID)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(bool, string) error); ok {
+		r1 = rf(isMaster, pluginID)
 	} else {
 		r1 = ret.Error(1)
 	}

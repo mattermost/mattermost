@@ -7,6 +7,8 @@ import (
 	"database/sql/driver"
 	"log"
 	"net/rpc"
+
+	"github.com/pkg/errors"
 )
 
 // dbRPCClient contains the client-side logic to handle the RPC communication
@@ -43,10 +45,8 @@ type Z_DbBoolReturn struct {
 	A bool
 }
 
-func (db *dbRPCClient) Conn(isMaster bool, _ string) (string, error) {
+func (db *dbRPCClient) Conn(isMaster bool) (string, error) {
 	ret := &Z_DbStrErrReturn{}
-	// We don't care about passing the pluginID param because it's just there
-	// to satisfy the interface.
 	err := db.client.Call("Plugin.Conn", isMaster, ret)
 	if err != nil {
 		log.Printf("error during Plugin.Conn: %v", err)
@@ -56,9 +56,17 @@ func (db *dbRPCClient) Conn(isMaster bool, _ string) (string, error) {
 }
 
 func (db *dbRPCServer) Conn(isMaster bool, ret *Z_DbStrErrReturn) error {
-	ret.A, ret.B = db.dbImpl.Conn(isMaster, db.pluginID)
+	ret.A, ret.B = db.dbImpl.ConnWithPluginID(isMaster, db.pluginID)
 	ret.B = encodableError(ret.B)
 	return nil
+}
+
+func (db *dbRPCClient) ConnWithPluginID(_ bool, _ string) (string, error) {
+	return "", errors.New("do not call this method")
+}
+
+func (db *dbRPCServer) ConnWithPluginID(_ bool, _ string) (string, error) {
+	return "", errors.New("do not call this method")
 }
 
 func (db *dbRPCClient) ConnPing(connID string) error {
