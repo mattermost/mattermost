@@ -70,7 +70,7 @@ func TestCreateBot(t *testing.T) {
 		createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 		require.Equal(t, bot.Username, createdBot.Username)
 		require.Equal(t, bot.DisplayName, createdBot.DisplayName)
 		require.Equal(t, bot.Description, createdBot.Description)
@@ -117,7 +117,7 @@ func TestCreateBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 		th.App.UpdateUserRoles(th.Context, bot.UserId, model.TeamUserRoleId+" "+model.SystemUserAccessTokenRoleId, false)
 
 		rtoken, _, err := th.Client.CreateUserAccessToken(context.Background(), bot.UserId, "test token")
@@ -183,7 +183,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			botPatch := &model.BotPatch{
@@ -207,7 +207,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBotSystemAdmin.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBotSystemAdmin.UserId)
 
 		th.TestForSystemAdminAndLocal(t, func(t *testing.T, client *model.Client4) {
 			botPatch := &model.BotPatch{
@@ -241,7 +241,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		_, _, err = th.Client.PatchBot(context.Background(), createdBot.UserId, &model.BotPatch{})
 		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
@@ -265,7 +265,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		_, _, err = th.Client.PatchBot(context.Background(), createdBot.UserId, &model.BotPatch{})
 		CheckErrorID(t, err, "api.context.permissions.app_error")
@@ -289,7 +289,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username:    sToP(GenerateTestUsername()),
@@ -340,7 +340,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username:    sToP(GenerateTestUsername()),
@@ -371,7 +371,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username:    sToP(GenerateTestUsername()),
@@ -402,7 +402,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username:    sToP(GenerateTestUsername()),
@@ -440,7 +440,7 @@ func TestPatchBot(t *testing.T) {
 		createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		botPatch := &model.BotPatch{
 			Username: sToP(GenerateTestUsername()),
@@ -474,7 +474,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		r, err := th.Client.DoAPIPut(context.Background(), "/bots/"+createdBot.UserId, `{"creator_id":"`+th.BasicUser2.Id+`"}`)
 		require.NoError(t, err)
@@ -511,7 +511,7 @@ func TestPatchBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		var botPatch *model.BotPatch
 
@@ -536,7 +536,7 @@ func TestGetBot(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot1.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot1.UserId)
 
 	bot2, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
@@ -545,7 +545,7 @@ func TestGetBot(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot2.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot2.UserId)
 
 	deletedBot, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
@@ -553,7 +553,7 @@ func TestGetBot(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(deletedBot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, deletedBot.UserId)
 	deletedBot, resp, err = th.SystemAdminClient.DisableBot(context.Background(), deletedBot.UserId)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
@@ -571,7 +571,7 @@ func TestGetBot(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(myBot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, myBot.UserId)
 	th.RemovePermissionFromRole(model.PermissionCreateBot.Id, model.TeamUserRoleId)
 
 	t.Run("get unknown bot", func(t *testing.T) {
@@ -690,7 +690,7 @@ func TestGetBots(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot1.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot1.UserId)
 
 	deletedBot1, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
@@ -698,7 +698,7 @@ func TestGetBots(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(deletedBot1.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, deletedBot1.UserId)
 	deletedBot1, resp, err = th.SystemAdminClient.DisableBot(context.Background(), deletedBot1.UserId)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
@@ -710,7 +710,7 @@ func TestGetBots(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot2.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot2.UserId)
 
 	bot3, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
@@ -719,7 +719,7 @@ func TestGetBots(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot3.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot3.UserId)
 
 	deletedBot2, resp, err := th.SystemAdminClient.CreateBot(context.Background(), &model.Bot{
 		Username:    GenerateTestUsername(),
@@ -727,7 +727,7 @@ func TestGetBots(t *testing.T) {
 	})
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(deletedBot2.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, deletedBot2.UserId)
 	deletedBot2, resp, err = th.SystemAdminClient.DisableBot(context.Background(), deletedBot2.UserId)
 	require.NoError(t, err)
 	CheckOKStatus(t, resp)
@@ -742,7 +742,7 @@ func TestGetBots(t *testing.T) {
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
 	th.LoginBasic()
-	defer th.App.PermanentDeleteBot(orphanedBot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, orphanedBot.UserId)
 	// Automatic deactivation disabled
 	th.App.UpdateConfig(func(cfg *model.Config) {
 		*cfg.ServiceSettings.DisableBotsWhenOwnerIsDeactivated = false
@@ -975,7 +975,7 @@ func TestDisableBot(t *testing.T) {
 		createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		_, _, err = th.Client.DisableBot(context.Background(), createdBot.UserId)
 		CheckErrorID(t, err, "store.sql_bot.get.missing.app_error")
@@ -1001,7 +1001,7 @@ func TestDisableBot(t *testing.T) {
 		createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		_, _, err = th.Client.DisableBot(context.Background(), createdBot.UserId)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
@@ -1026,7 +1026,7 @@ func TestDisableBot(t *testing.T) {
 			})
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
-			defer th.App.PermanentDeleteBot(bot.UserId)
+			defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 			disabledBot, resp, err := client.DisableBot(context.Background(), bot.UserId)
 			require.NoError(t, err)
@@ -1080,7 +1080,7 @@ func TestEnableBot(t *testing.T) {
 		createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		_, resp, err = th.SystemAdminClient.DisableBot(context.Background(), createdBot.UserId)
 		require.NoError(t, err)
@@ -1110,7 +1110,7 @@ func TestEnableBot(t *testing.T) {
 		createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		_, resp, err = th.SystemAdminClient.DisableBot(context.Background(), createdBot.UserId)
 		require.NoError(t, err)
@@ -1139,7 +1139,7 @@ func TestEnableBot(t *testing.T) {
 			})
 			require.NoError(t, err)
 			CheckCreatedStatus(t, resp)
-			defer th.App.PermanentDeleteBot(bot.UserId)
+			defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 			_, resp, err = th.SystemAdminClient.DisableBot(context.Background(), bot.UserId)
 			require.NoError(t, err)
@@ -1195,7 +1195,7 @@ func TestAssignBot(t *testing.T) {
 		bot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		before, resp, err := th.Client.GetBot(context.Background(), bot.UserId, "")
 		require.NoError(t, err)
@@ -1244,7 +1244,7 @@ func TestAssignBot(t *testing.T) {
 		createdBot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(createdBot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, createdBot.UserId)
 
 		th.LoginBasic2()
 
@@ -1276,7 +1276,7 @@ func TestAssignBot(t *testing.T) {
 		bot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		// Simulate custom role by just changing the system user role
 		th.AddPermissionToRole(model.PermissionCreateBot.Id, model.SystemUserRoleId)
@@ -1312,7 +1312,7 @@ func TestAssignBot(t *testing.T) {
 		bot, resp, err := th.Client.CreateBot(context.Background(), bot)
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(bot.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 		bot2, resp, err := th.Client.CreateBot(context.Background(), &model.Bot{
 			Username:    GenerateTestUsername(),
@@ -1321,7 +1321,7 @@ func TestAssignBot(t *testing.T) {
 		})
 		require.NoError(t, err)
 		CheckCreatedStatus(t, resp)
-		defer th.App.PermanentDeleteBot(bot2.UserId)
+		defer th.App.PermanentDeleteBot(th.Context, bot2.UserId)
 
 		_, _, err = th.Client.AssignBot(context.Background(), bot.UserId, bot2.UserId)
 		CheckErrorID(t, err, "api.context.permissions.app_error")
@@ -1345,7 +1345,7 @@ func TestConvertBotToUser(t *testing.T) {
 	bot, resp, err := th.Client.CreateBot(context.Background(), bot)
 	require.NoError(t, err)
 	CheckCreatedStatus(t, resp)
-	defer th.App.PermanentDeleteBot(bot.UserId)
+	defer th.App.PermanentDeleteBot(th.Context, bot.UserId)
 
 	_, resp, err = th.Client.ConvertBotToUser(context.Background(), bot.UserId, &model.UserPatch{}, false)
 	require.Error(t, err)

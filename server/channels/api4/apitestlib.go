@@ -485,9 +485,9 @@ func (th *TestHelper) InitBasic() *TestHelper {
 }
 
 func (th *TestHelper) DeleteBots() *TestHelper {
-	preexistingBots, _ := th.App.GetBots(&model.BotGetOptions{Page: 0, PerPage: 100})
+	preexistingBots, _ := th.App.GetBots(th.Context, &model.BotGetOptions{Page: 0, PerPage: 100})
 	for _, bot := range preexistingBots {
-		th.App.PermanentDeleteBot(bot.UserId)
+		th.App.PermanentDeleteBot(th.Context, bot.UserId)
 	}
 	return th
 }
@@ -621,6 +621,41 @@ func (th *TestHelper) CreateUserWithAuth(authService string) *model.User {
 		panic(err)
 	}
 	return user
+}
+
+// CreateGuestAndClient creates a guest user, adds them to the basic
+// team, basic channel and basic private channel, and generates an API
+// client ready to use
+func (th *TestHelper) CreateGuestAndClient() (*model.User, *model.Client4) {
+	id := model.NewId()
+
+	// create a guest user and add it to the basic team and public/private channels
+	guest, cgErr := th.App.CreateGuest(th.Context, &model.User{
+		Email:         "test_guest" + id + "@sample.com",
+		Username:      "guest_" + id,
+		Nickname:      "guest_" + id,
+		Password:      "Password1",
+		EmailVerified: true,
+	})
+	if cgErr != nil {
+		panic(cgErr)
+	}
+
+	_, _, tErr := th.App.AddUserToTeam(th.Context, th.BasicTeam.Id, guest.Id, th.SystemAdminUser.Id)
+	if tErr != nil {
+		panic(tErr)
+	}
+	th.AddUserToChannel(guest, th.BasicChannel)
+	th.AddUserToChannel(guest, th.BasicPrivateChannel)
+
+	// create a client and login the guest
+	guestClient := th.CreateClient()
+	_, _, lErr := guestClient.Login(context.Background(), guest.Username, "Password1")
+	if lErr != nil {
+		panic(lErr)
+	}
+
+	return guest, guestClient
 }
 
 func (th *TestHelper) SetupLdapConfig() {
@@ -807,6 +842,23 @@ func (th *TestHelper) CreateDmChannel(user *model.User) *model.Channel {
 		panic(err)
 	}
 	return channel
+}
+
+func (th *TestHelper) PatchChannelModerationsForMembers(channelId, name string, val bool) {
+	patch := []*model.ChannelModerationPatch{{
+		Name:  &name,
+		Roles: &model.ChannelModeratedRolesPatch{Members: model.NewBool(val)},
+	}}
+
+	channel, err := th.App.GetChannel(th.Context, channelId)
+	if err != nil {
+		panic(err)
+	}
+
+	_, err = th.App.PatchChannelModerationsForChannel(th.Context, channel, patch)
+	if err != nil {
+		panic(err)
+	}
 }
 
 func (th *TestHelper) LoginBasic() {

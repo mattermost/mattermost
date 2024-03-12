@@ -3323,16 +3323,8 @@
     "translation": "Bei der Verbindung zum Identity Provider trat ein Fehler auf. Bitte kontaktiere deinen Systemadministrator."
   },
   {
-    "id": "ent.saml.build_request.encoding.app_error",
-    "translation": "Beim Kodieren der Anfrage für den Identity Provider trat ein Fehler auf. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
     "id": "ent.saml.configure.encryption_not_enabled.app_error",
     "translation": "SAML-Anmeldung war nicht erfolgreich, da Verschlüsselung nicht aktiviert ist. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
-    "id": "ent.saml.configure.load_idp_cert.app_error",
-    "translation": "Datei des öffentlichen Zertifikats des Identity Providers nicht gefunden. Bitte kontaktiere deinen Systemadministrator."
   },
   {
     "id": "ent.saml.configure.load_private_key.app_error",
@@ -3343,20 +3335,12 @@
     "translation": "SAML-Anmeldung war nicht erfolgreich, da die Antwort des Identity Providers nicht verschlüsselt war. Bitte kontaktiere deinen Systemadministrator."
   },
   {
-    "id": "ent.saml.do_login.decrypt.app_error",
-    "translation": "SAML-Anmeldung war nicht erfolgreich, da ein Fehler beim Entschlüsseln der Antwort des Identity Providers auftrat. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
     "id": "ent.saml.do_login.empty_response.app_error",
     "translation": "Leere Antwort vom Identitätsprovider erhalten."
   },
   {
     "id": "ent.saml.do_login.parse.app_error",
     "translation": "Es trat ein Fehler beim Verarbeiten der Antwort des Identity Providers auf. Bitte kontaktiere deinen Systemadministrator."
-  },
-  {
-    "id": "ent.saml.do_login.validate.app_error",
-    "translation": "Es trat ein Fehler beim Validieren der Antwort des Identity Providers auf. Bitte kontaktiere deinen Systemadministrator."
   },
   {
     "id": "ent.saml.license_disable.app_error",
@@ -10070,15 +10054,111 @@
     "translation": "Keine Benutzerkennung zum Senden des Berichts"
   },
   {
-    "id": "api.team.update_team_member_roles.guest_and_admin.app_error",
-    "translation": "Ungültige Aktualisierung eines Teammitglieds: Ein Benutzer kann nicht gleichzeitig als Gast und als Administrator festgelegt werden."
-  },
-  {
     "id": "api.team.update_team_member_roles.guest.app_error",
     "translation": "Ungültige Teammitglied Aktualisierung: Ein Gast kann nicht zum Teammitglied oder -administrator ernannt werden. Bitte ernenne ihn zuerst zu einem Benutzer."
   },
   {
     "id": "app.channel.add_member.deleted_user.app_error",
     "translation": "Der Benutzer konnte nicht als Mitglied des Kanals hinzugefügt werden."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.app_error",
+    "translation": "Beim Erstellen der ausgehenden OAuth-Verbindung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.create_connection.input_error",
+    "translation": "Ungültige Eingabeparameter."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.delete_connection.app_error",
+    "translation": "Beim Löschen der ausgehenden OAuth-Verbindung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.not_available.configuration_disabled",
+    "translation": "Ausgehende OAuth-Verbindungen sind auf diesem Server nicht verfügbar."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.app_error",
+    "translation": "Beim Aktualisieren der ausgehenden OAuth-Verbindung ist ein Fehler aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.update_connection.input_error",
+    "translation": "Ungültige Eingabeparameter."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.app_error",
+    "translation": "Es ist ein Fehler bei der Validierung der ausgehenden OAuth-Verbindungsdaten aufgetreten."
+  },
+  {
+    "id": "api.context.outgoing_oauth_connection.validate_connection_credentials.input_error",
+    "translation": "Die Anmeldedaten konnten mit der angegebenen Verbindungskonfiguration nicht abgerufen werden."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.feature_disabled",
+    "translation": "Ausgehende OAuth-Verbindungen sind auf diesem Server nicht verfügbar."
+  },
+  {
+    "id": "api.saml.invalid_email_token.app_error",
+    "translation": "Ungültiges email_token"
+  },
+  {
+    "id": "basic_security_check.url.too_long_error",
+    "translation": "URL ist zu lang"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.authenticate.app_error",
+    "translation": "Bei der Authentifizierung der ausgehenden OAuth-Verbindung ist ein Fehler aufgetreten: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.app_error",
+    "translation": "Es gibt bereits eine ausgehende OAuth-Verbindung für die angegebene Zielgruppe."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.connection_matching_audience_exists.not_found",
+    "translation": "Es gibt keine ausgehende OAuth-Verbindung für die angegebene Zielgruppe."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.app_error",
+    "translation": "Es gab einen Fehler beim Abrufen der ausgehenden OAuth-Verbindung für die Zielgruppe."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.get_connection_for_audience.not_found.app_error",
+    "translation": "Die ausgehende OAuth-Verbindung für die angegebene Zielgruppe wurde nicht gefunden."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.license_disable.app_error",
+    "translation": "Deine Lizenz unterstützt keine ausgehenden OAuth-Verbindungen."
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_duplicated",
+    "translation": "Es gibt bereits eine ausgehende OAuth-Verbindung für die angegebene Zielgruppe: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.save_connection.audience_invalid",
+    "translation": "Die angegebene Zielgruppe ist ungültig: {{ .Error }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_duplicated",
+    "translation": "Es gibt bereits eine ausgehende OAuth-Verbindung für die angegebene Zielgruppe: {{ .Audience }}"
+  },
+  {
+    "id": "ent.outgoing_oauth_connections.update_connection.audience_invalid",
+    "translation": "Die angegebene Zielgruppe ist ungültig: {{ .Error }}"
+  },
+  {
+    "id": "api.team.update_team_member_roles.user_and_guest.app_error",
+    "translation": "Ungültige Aktualisierung eines Teammitglieds: Ein Gast kann nicht für ein einzelnes Team festgelegt werden. Ein Systemadministrator muss Benutzer zu/von Gästen befördern oder degradieren."
+  },
+  {
+    "id": "model.user.is_valid.invalidProperty.app_error",
+    "translation": "Ungültige Eigenschaften (benutzerdefinierter Status)"
+  },
+  {
+    "id": "api.command_share.invite_remote_to_channel.error",
+    "translation": "Kann Remote nicht zum Kanal einladen: {{.Error}}"
+  },
+  {
+    "id": "api.server.cws.disabled",
+    "translation": "Die Interaktionen mit dem Mattermost-Kundenportal wurden vom Systemadministrator deaktiviert."
   }
 ]
