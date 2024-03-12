@@ -440,7 +440,7 @@
         .post {
             &.post--thread {
                 .post-pre-header__icons-container {
-                    width: 60px; // If the width of post__img changes, this needs to be adjusted accordingly
+                    width: 44px; // If the width of post__img changes, this needs to be adjusted accordingly
                     padding-right: 12px; // If the padding of post__img changes, this needs to be adjusted accordingly
                     margin-left: 0; // if left margin of post__content changes, this needs to be adjusted accordingly
                 }
