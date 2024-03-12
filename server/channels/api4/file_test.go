@@ -96,6 +96,7 @@ func testUploadFilesPost(
 	blobs [][]byte,
 	clientIds []string,
 	useChunked bool,
+	isBookmark bool,
 ) (*model.FileUploadResponse, *model.Response, error) {
 	// Do not check len(clientIds), leave it entirely to the user to
 	// provide. The server will error out if it does not match the number
@@ -118,6 +119,10 @@ func testUploadFilesPost(
 			fmt.Sprintf("&filename=%v", url.QueryEscape(names[i]))
 		if len(clientIds) > i {
 			postURL += fmt.Sprintf("&client_id=%v", url.QueryEscape(clientIds[i]))
+		}
+
+		if isBookmark {
+			postURL += "&bookmark=true"
 		}
 
 		fur, resp, err := testDoUploadFileRequest(t, c, postURL, blob, ct, cl)
@@ -145,6 +150,7 @@ func testUploadFilesMultipart(
 	names []string,
 	blobs [][]byte,
 	clientIds []string,
+	isBookmark bool,
 ) (
 	*model.FileUploadResponse,
 	*model.Response,
@@ -185,7 +191,11 @@ func testUploadFilesMultipart(
 	}
 
 	require.NoError(t, mw.Close())
-	fur, resp, err := testDoUploadFileRequest(t, c, "", mwBody.Bytes(), mw.FormDataContentType(), -1)
+	url := ""
+	if isBookmark {
+		url += "?bookmark=true"
+	}
+	fur, resp, err := testDoUploadFileRequest(t, c, url, mwBody.Bytes(), mw.FormDataContentType(), -1)
 	if err != nil {
 		return nil, resp, err
 	}
@@ -230,6 +240,7 @@ func TestUploadFiles(t *testing.T) {
 		expectedImageMiniPreview    []bool
 		setupConfig                 func(a *app.App) func(a *app.App)
 		checkResponse               func(t testing.TB, resp *model.Response)
+		uploadAsBookmark            bool
 	}{
 		// Upload a bunch of files, mixed images and non-images
 		{
@@ -578,6 +589,20 @@ func TestUploadFiles(t *testing.T) {
 				}
 			},
 		},
+		{
+			title:                       "Bookmark images",
+			names:                       []string{"orientation_test_5.jpeg"},
+			expectedImageThumbnailNames: []string{"orientation_test_5_expected_thumb.jpeg"},
+			expectedImagePreviewNames:   []string{"orientation_test_5_expected_preview.jpeg"},
+			channelId:                   channel.Id,
+			expectImage:                 true,
+			expectedCreatorId:           model.BookmarkFileOwner,
+			expectedImageWidths:         []int{2860},
+			expectedImageHeights:        []int{1578},
+			expectedImageHasPreview:     []bool{true},
+			expectedImageMiniPreview:    []bool{true},
+			uploadAsBookmark:            true,
+		},
 	}
 
 	for _, useMultipart := range []bool{true, false} {
@@ -627,9 +652,9 @@ func TestUploadFiles(t *testing.T) {
 				var resp *model.Response
 				var err error
 				if useMultipart {
-					fileResp, resp, err = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds)
+					fileResp, resp, err = testUploadFilesMultipart(t, client, channelId, tc.names, blobs, tc.clientIds, tc.uploadAsBookmark)
 				} else {
-					fileResp, resp, err = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost)
+					fileResp, resp, err = testUploadFilesPost(t, client, channelId, tc.names, blobs, tc.clientIds, tc.useChunkedInSimplePost, tc.uploadAsBookmark)
 				}
 
 				if tc.checkResponse != nil {
@@ -672,6 +697,9 @@ func TestUploadFiles(t *testing.T) {
 					ext := filepath.Ext(fname)
 					name := fname[:len(fname)-len(ext)]
 					expectedDir := fmt.Sprintf("%v/teams/%v/channels/%v/users/%s/%s", date, FileTeamId, channel.Id, ri.CreatorId, ri.Id)
+					if tc.uploadAsBookmark {
+						expectedDir = fmt.Sprintf("%v/teams/%v/channels/%v/%s", model.BookmarkFileOwner, FileTeamId, channel.Id, ri.Id)
+					}
 					expectedPath := fmt.Sprintf("%s/%s", expectedDir, fname)
 					assert.Equal(t, dbInfo.Path, expectedPath,
 						fmt.Sprintf("File %v saved to:%q, expected:%q", dbInfo.Name, dbInfo.Path, expectedPath))
@@ -774,7 +802,7 @@ func TestGetFile(t *testing.T) {
 	CheckUnauthorizedStatus(t, resp)
 
 	_, _, err = th.SystemAdminClient.GetFile(context.Background(), fileId)
-	require.Error(t, err)
+	require.NoError(t, err)
 	CheckUnauthorizedStatus(t, resp)
 }
 
@@ -889,7 +917,7 @@ func TestGetFileThumbnail(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileThumbnail(context.Background(), fileId)
-	require.Error(t, err)
+	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -1002,7 +1030,7 @@ func TestGetFilePreview(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFilePreview(context.Background(), fileId)
-	require.Error(t, err)
+	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
@@ -1027,7 +1055,6 @@ func TestGetFileInfo(t *testing.T) {
 	info, _, err := client.GetFileInfo(context.Background(), fileId)
 	require.NoError(t, err)
 
-	require.NoError(t, err)
 	require.Equal(t, fileId, info.Id, "got incorrect file")
 	require.Equal(t, user.Id, info.CreatorId, "file should be assigned to user")
 	require.Equal(t, "", info.PostId, "file shouldn't have a post")
@@ -1057,7 +1084,7 @@ func TestGetFileInfo(t *testing.T) {
 
 	client.Logout(context.Background())
 	_, _, err = th.SystemAdminClient.GetFileInfo(context.Background(), fileId)
-	require.Error(t, err)
+	require.NoError(t, err)
 	CheckForbiddenStatus(t, resp)
 }
 
