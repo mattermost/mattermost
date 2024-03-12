@@ -10,6 +10,7 @@ import {Link} from 'react-router-dom';
 import type {CloudState} from '@mattermost/types/cloud';
 import type {AdminConfig, ClientLicense, EnvironmentConfig} from '@mattermost/types/config';
 import type {Role} from '@mattermost/types/roles';
+import type {DeepPartial} from '@mattermost/types/utilities';
 
 import type {ActionResult} from 'mattermost-redux/types/actions';
 
@@ -53,7 +54,7 @@ type Props = {
     roles: Record<string, Role>;
     license: ClientLicense;
     editRole: (role: Role) => void;
-    updateConfig: (config: AdminConfig) => Promise<ActionResult>;
+    patchConfig: (config: DeepPartial<AdminConfig>) => Promise<ActionResult>;
     isDisabled: boolean;
     consoleAccess: ConsoleAccess;
     cloud: CloudState;
@@ -1145,7 +1146,7 @@ export class SchemaAdminSettings extends React.PureComponent<Props, State> {
         let config = JSON.parse(JSON.stringify(this.props.config));
         config = this.getConfigFromState(config);
 
-        const {error} = await this.props.updateConfig(config);
+        const {error} = await this.props.patchConfig(config);
         if (error) {
             this.setState({
                 serverError: error.message,
