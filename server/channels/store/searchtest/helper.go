@@ -249,7 +249,7 @@ func (th *SearchTestHelper) deleteBot(botID string) error {
 }
 
 func (th *SearchTestHelper) createChannel(teamID, name, displayName, purpose string, channelType model.ChannelType, user *model.User, deleted bool) (*model.Channel, error) {
-	channel, err := th.Store.Channel().Save(&model.Channel{
+	channel, err := th.Store.Channel().Save(th.Context, &model.Channel{
 		TeamId:      teamID,
 		DisplayName: displayName,
 		Name:        name,
@@ -315,7 +315,7 @@ func (th *SearchTestHelper) createGroupChannel(teamID, displayName string, users
 		Type:        model.ChannelTypeGroup,
 	}
 
-	channel, err := th.Store.Channel().Save(group, 10000)
+	channel, err := th.Store.Channel().Save(th.Context, group, 10000)
 	if err != nil {
 		return nil, errors.New(err.Error())
 	}
