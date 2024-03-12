@@ -4916,3 +4916,28 @@ func TestViewChannelWithoutCollapsedThreads(t *testing.T) {
 	require.NoError(t, err)
 	require.Zero(t, threads.TotalUnreadMentions)
 }
+
+func TestCreateChannelWithMissingTeamId(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+
+	channel := &model.Channel{DisplayName: "Test API Name", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: ""}
+
+	_, resp, err := client.CreateChannel(context.Background(), channel)
+	CheckErrorID(t, err, "api.channel.create_channel.missing_team_id.error")
+	CheckBadRequestStatus(t, resp)
+}
+
+func TestCreateChannelWithMissingDisplayName(t *testing.T) {
+	th := Setup(t).InitBasic()
+	defer th.TearDown()
+	client := th.Client
+	team := th.BasicTeam
+
+	channel := &model.Channel{DisplayName: "", Name: GenerateTestChannelName(), Type: model.ChannelTypeOpen, TeamId: team.Id}
+
+	_, resp, err := client.CreateChannel(context.Background(), channel)
+	CheckErrorID(t, err, "api.channel.create_channel.missing_display_name.error")
+	CheckBadRequestStatus(t, resp)
+}
