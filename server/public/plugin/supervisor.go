@@ -137,7 +137,9 @@ func (sup *supervisor) Shutdown() {
 	// And then shutdown conns.
 	if sup.hooksClient != nil {
 		sup.hooksClient.doneWg.Wait()
-		sup.hooksClient.driver.ShutdownConns(sup.pluginID)
+		if sup.hooksClient.driver != nil {
+			sup.hooksClient.driver.ShutdownConns(sup.pluginID)
+		}
 	}
 }
 
