@@ -386,12 +386,18 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		serverChannels map[importer.ChannelTeam]*model.Channel
 		serverUsers    map[string]*model.User
 		serverEmails   map[string]*model.User
+		maxPostSize    int
 	)
 
 	err := withClient(func(c client.Client, cmd *cobra.Command, args []string) error {
 		users, err := getPages(func(page, numPerPage int, etag string) ([]*model.User, *model.Response, error) {
 			return c.GetUsers(context.TODO(), page, numPerPage, etag)
 		}, 250)
+		if err != nil {
+			return err
+		}
+
+		maxPostSize, _, err = c.GetMaxPostsSize(context.TODO())
 		if err != nil {
 			return err
 		}
@@ -481,6 +487,7 @@ func importValidateCmdF(command *cobra.Command, args []string) error {
 		serverChannels,        // map of existing channels
 		serverUsers,           // map of users by name
 		serverEmails,          // map of users by email
+		maxPostSize,
 	)
 
 	templateError := template.Must(template.New("").Parse("{{ .Error }}\n"))

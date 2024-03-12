@@ -905,3 +905,7 @@ func (o *Post) CleanPost() *Post {
 	o.EditAt = 0
 	return o
 }
+
+type MaxPostSizeResponse struct {
+	MaxPostSize int
+}

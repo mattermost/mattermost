@@ -156,4 +156,5 @@ type Client interface {
 	GetPreferenceByCategoryAndName(ctx context.Context, userId, category, preferenceName string) (*model.Preference, *model.Response, error)
 	UpdatePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
 	DeletePreferences(ctx context.Context, userId string, preferences model.Preferences) (*model.Response, error)
+	GetMaxPostsSize(ctx context.Context) (int, *model.Response, error)
 }
