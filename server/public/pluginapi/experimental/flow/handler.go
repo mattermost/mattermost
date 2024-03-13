@@ -162,7 +162,7 @@ func (f *Flow) handle(
 
 		dialogRequest := model.OpenDialogRequest{
 			TriggerId: triggerID,
-			URL:       f.pluginURL + namePath(f.name) + "/dialog",
+			URL:       "/plugins/" + f.pluginID + namePath(f.name) + "/dialog",
 			Dialog:    processDialog(b.Dialog, state.AppState),
 		}
 		dialogRequest.Dialog.State = fmt.Sprintf("%v,%v", fromName, selectedButton)
@@ -205,6 +205,6 @@ func (f *Flow) processButtonPostActions(post *model.Post) {
 		if a.Integration == nil {
 			a.Integration = &model.PostActionIntegration{}
 		}
-		a.Integration.URL = f.pluginURL + namePath(f.name) + "/button"
+		a.Integration.URL = "/plugins/" + f.pluginID + namePath(f.name) + "/button"
 	}
 }

@@ -27,8 +27,10 @@ type Flow struct {
 
 	name      Name
 	api       *pluginapi.Client
-	pluginURL string
+	pluginID  string
 	botUserID string
+
+	siteURL string
 
 	steps map[Name]Step
 	index []Name
@@ -40,14 +42,28 @@ type Flow struct {
 // NewFlow creates a new flow using direct messages with the user.
 //
 // name must be a unique identifier for the flow within the plugin.
-func NewFlow(name Name, api *pluginapi.Client, pluginURL, botUserID string) *Flow {
+func NewFlow(name Name, api *pluginapi.Client, pluginID, botUserID string) (*Flow, error) {
+	if api == nil {
+		return nil, errors.New("API client must not be nil")
+	}
+
+	config := api.Configuration.GetConfig()
+	if config == nil {
+		return nil, errors.New("failed to fetch configuration")
+	}
+
+	if config.ServiceSettings.SiteURL == nil {
+		return nil, errors.New("please configure the Mattermost Server's SiteURL, then restart the plugin.")
+	}
+
 	return &Flow{
 		name:      name,
 		api:       api,
-		pluginURL: pluginURL,
+		pluginID:  pluginID,
 		botUserID: botUserID,
+		siteURL:   strings.TrimRight(*config.ServiceSettings.SiteURL, "/"),
 		steps:     map[Name]Step{},
-	}
+	}, nil
 }
 
 func (f *Flow) WithSteps(orderedSteps ...Step) *Flow {
