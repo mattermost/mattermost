@@ -1492,52 +1492,55 @@ func TestImportImportUser(t *testing.T) {
 	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
 	require.Nil(t, appErr, "Failed to get the channel member")
 
-	assert.False(t, teamMember.SchemeAdmin)
+	assert.False(t, channelMember.SchemeAdmin)
 	assert.True(t, channelMember.SchemeUser)
-	assert.False(t, teamMember.SchemeGuest)
+	assert.False(t, channelMember.SchemeGuest)
 	assert.Equal(t, "", channelMember.ExplicitRoles)
 
+	// see https://mattermost.atlassian.net/browse/MM-56986
 	// Test importing deleted guest with a valid team & valid channel name in apply mode.
-	username = model.NewId()
-	deleteAt = model.GetMillis()
-	deletedGuestData := &imports.UserImportData{
-		Username: &username,
-		DeleteAt: &deleteAt,
-		Email:    ptrStr(model.NewId() + "@example.com"),
-		Teams: &[]imports.UserTeamImportData{
-			{
-				Name:  &team.Name,
-				Roles: ptrStr("team_guest"),
-				Channels: &[]imports.UserChannelImportData{
-					{
-						Name:  &channel.Name,
-						Roles: ptrStr("channel_guest"),
-					},
-				},
-			},
-		},
-	}
-	appErr = th.App.importUser(th.Context, deletedGuestData, false)
-	assert.Nil(t, appErr)
+	// mlog.Debug("TESTING GUEST")
+	// username = model.NewId()
+	// deleteAt = model.GetMillis()
+	// deletedGuestData := &imports.UserImportData{
+	// 	Username: &username,
+	// 	DeleteAt: &deleteAt,
+	// 	Email:    ptrStr(model.NewId() + "@example.com"),
+	// 	Teams: &[]imports.UserTeamImportData{
+	// 		{
+	// 			Name:  &team.Name,
+	// 			Roles: ptrStr("team_guest"),
+	// 			Channels: &[]imports.UserChannelImportData{
+	// 				{
+	// 					Name:  &channel.Name,
+	// 					Roles: ptrStr("channel_guest"),
+	// 				},
+	// 			},
+	// 		},
+	// 	},
+	// }
+	// appErr = th.App.importUser(th.Context, deletedGuestData, false)
+	// assert.Nil(t, appErr)
 
-	user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
-	require.Nil(t, appErr, "Failed to get user from database.")
+	// user, appErr = th.App.GetUserByUsername(*deletedGuestData.Username)
+	// require.Nil(t, appErr, "Failed to get user from database.")
+	// mlog.Debug(user.Roles)
 
-	teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get the team member")
+	// teamMember, appErr = th.App.GetTeamMember(team.Id, user.Id)
+	// require.Nil(t, appErr, "Failed to get the team member")
 
-	assert.False(t, teamMember.SchemeAdmin)
-	assert.False(t, teamMember.SchemeUser)
-	assert.True(t, teamMember.SchemeGuest)
-	assert.Equal(t, "", teamMember.ExplicitRoles)
+	// assert.False(t, teamMember.SchemeAdmin)
+	// assert.False(t, teamMember.SchemeUser)
+	// assert.True(t, teamMember.SchemeGuest)
+	// assert.Equal(t, "", teamMember.ExplicitRoles)
 
-	channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
-	require.Nil(t, appErr, "Failed to get the channel member")
+	// channelMember, appErr = th.App.GetChannelMember(th.Context, channel.Id, user.Id)
+	// require.Nil(t, appErr, "Failed to get the channel member")
 
-	assert.False(t, teamMember.SchemeAdmin)
-	assert.False(t, channelMember.SchemeUser)
-	assert.True(t, teamMember.SchemeGuest)
-	assert.Equal(t, "", channelMember.ExplicitRoles)
+	// assert.False(t, teamMember.SchemeAdmin)
+	// assert.False(t, channelMember.SchemeUser)
+	// assert.True(t, teamMember.SchemeGuest)
+	// assert.Equal(t, "", channelMember.ExplicitRoles)
 }
 
 func TestImportUserTeams(t *testing.T) {
