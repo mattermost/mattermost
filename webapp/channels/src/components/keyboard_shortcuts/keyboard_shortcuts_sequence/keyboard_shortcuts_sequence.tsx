@@ -1,7 +1,6 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import type {FormatXMLElementFn, PrimitiveType} from 'intl-messageformat';
 import React, {memo} from 'react';
 import {useIntl} from 'react-intl';
 
@@ -16,7 +15,6 @@ import './keyboard_shortcuts_sequence.scss';
 
 type Props = {
     shortcut: KeyboardShortcutDescriptor;
-    values?: Record<string, PrimitiveType | FormatXMLElementFn<string, string>>;
     hideDescription?: boolean;
     hoistDescription?: boolean;
     isInsideTooltip?: boolean;
@@ -32,9 +30,9 @@ function normalizeShortcutDescriptor(shortcut: KeyboardShortcutDescriptor) {
 
 const KEY_SEPARATOR = '|';
 
-function KeyboardShortcutSequence({shortcut, values, hideDescription, hoistDescription, isInsideTooltip}: Props) {
+function KeyboardShortcutSequence({shortcut, hideDescription, hoistDescription, isInsideTooltip}: Props) {
     const {formatMessage} = useIntl();
-    const shortcutText = formatMessage(normalizeShortcutDescriptor(shortcut), values);
+    const shortcutText = formatMessage(normalizeShortcutDescriptor(shortcut));
     const splitShortcut = shortcutText.split('\t');
 
     let description = '';
