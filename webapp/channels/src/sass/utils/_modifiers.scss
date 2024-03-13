@@ -10,35 +10,35 @@ $positions: 't'top,
     @each $label,
         $position in $positions {
         .p#{$label}-#{$i} {
-            padding-#{$position}: #{$i*4}px !important;
+            padding-#{$position}: #{$i * 4}px !important;
         }
     }
 
     @each $label,
         $position in $positions {
         .m#{$label}-#{$i} {
-            margin-#{$position}: #{$i*4}px !important;
+            margin-#{$position}: #{$i * 4}px !important;
         }
     }
 
     .m-#{$i} {
-        margin: #{$i*4}px !important;
+        margin: #{$i * 4}px !important;
     }
 
     .p-#{$i} {
-        padding: #{$i*4}px !important;
+        padding: #{$i * 4}px !important;
     }
 
     .px-#{$i} {
-        padding: 0 #{$i*4}px 0 #{$i*4}px !important;
+        padding: 0 #{$i * 4}px 0 #{$i * 4}px !important;
     }
 
     .py-#{$i} {
-        padding: #{$i*4}px 0 #{$i*4}px 0 !important;
+        padding: #{$i * 4}px 0 #{$i * 4}px 0 !important;
     }
 
     .h-#{$i} {
-        height: #{$i*4}px !important;
+        height: #{$i * 4}px !important;
     }
 }
 

@@ -28,7 +28,8 @@
     "@types/shallow-equals": "^1.0.0",
     "@types/styled-components": "^5.1.19",
     "rollup": "^2.75.7",
-    "rollup-plugin-scss": "^3.0.0",
+    "rollup-plugin-scss": "4.0.0",
+    "rollup-plugin-ts": "^2.0.5",
     "typescript": "^5.0.0"
   },
   "peerDependencies": {

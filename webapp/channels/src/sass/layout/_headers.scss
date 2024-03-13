@@ -86,8 +86,8 @@
         z-index: 1;
         height: 24px;
         padding: 4px;
-        margin-left: 4px;
         border-radius: 4px;
+        margin-left: 4px;
         color: v(center-channel-color);
         float: left;
 
@@ -573,8 +573,8 @@
 
     .channel-intro__content {
         padding: 10px 15px;
-        background: $bg--gray;
         border-radius: 3px;
+        background: $bg--gray;
         word-break: break-word;
     }
 }
