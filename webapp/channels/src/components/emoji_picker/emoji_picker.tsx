@@ -429,7 +429,8 @@ const EmojiPicker = ({
                 />
             )}
             <div className='emoji-picker__footer'>
-                {areSearchResultsEmpty ? (<div/>) : (<EmojiPickerPreview emoji={cursor.emoji}/>)
+                {areSearchResultsEmpty ? (<div/>) :
+                    (<EmojiPickerPreview emoji={cursor.emoji}/>)
                 }
                 <EmojiPickerCustomEmojiButton
                     currentTeamName={currentTeamName}
