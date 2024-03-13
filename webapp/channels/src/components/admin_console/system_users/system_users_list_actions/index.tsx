@@ -12,8 +12,8 @@ import type {UserProfile} from '@mattermost/types/users';
 import {updateUserActive} from 'mattermost-redux/actions/users';
 import {Permissions} from 'mattermost-redux/constants';
 import General from 'mattermost-redux/constants/general';
-import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {getConfig} from 'mattermost-redux/selectors/entities/admin';
+import {getLicense} from 'mattermost-redux/selectors/entities/general';
 import {isSystemAdmin, isGuest} from 'mattermost-redux/utils/user_utils';
 
 import {adminResetMfa} from 'actions/admin_actions';
