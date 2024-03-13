@@ -2,6 +2,7 @@
 // See LICENSE.txt for license information.
 
 import React, {memo} from 'react';
+import {FormattedMessage} from 'react-intl';
 
 import type {Post} from '@mattermost/types/posts';
 
@@ -79,7 +80,13 @@ function ThreadViewerRow({
                 />
                 {replyCount > 0 && (
                     <div className='root-post__divider'>
-                        <div>{`${replyCount} Replies`}</div>
+                        <div>
+                            <FormattedMessage
+                                id='threading.numReplies'
+                                defaultMessage='{replyCount, plural, =0 {Reply} =1 {# reply} other {# replies}}'
+                                values={{replyCount}}
+                            />
+                        </div>
                     </div>
                 )}
             </>
