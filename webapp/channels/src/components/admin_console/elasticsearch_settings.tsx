@@ -3,17 +3,16 @@
 
 import React from 'react';
 import {FormattedMessage} from 'react-intl';
+import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
+import {t} from 'utils/i18n';
+import * as Utils from 'utils/utils';
 
 import type {AdminConfig} from '@mattermost/types/config';
 import type {Job, JobType} from '@mattermost/types/jobs';
 
-import {elasticsearchPurgeIndexes, elasticsearchTest} from 'actions/admin_actions.jsx';
+import {elasticsearchPurgeIndexes, elasticsearchTest, rebuildChannelsIndex} from 'actions/admin_actions.jsx';
 
 import ExternalLink from 'components/external_link';
-
-import {DocLinks, JobStatuses, JobTypes} from 'utils/constants';
-import {t} from 'utils/i18n';
-import * as Utils from 'utils/utils';
 
 import AdminSettings from './admin_settings';
 import type {BaseProps, BaseState} from './admin_settings';
@@ -148,8 +147,22 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
     };
 
     getExtraInfo(job: Job) {
+        let jobSubType = null;
+        if (job.data?.sub_type === 'channels_index_rebuild') {
+            jobSubType = (
+                <span>
+                    {'. '}
+                    <FormattedMessage
+                        id='admin.elasticsearch.channelIndexRebuildJobTitle'
+                        defaultMessage='Channels index rebuild job.'
+                    />
+                </span>
+            );
+        }
+
+        let jobProgress = null;
         if (job.status === JobStatuses.IN_PROGRESS) {
-            return (
+            jobProgress = (
                 <FormattedMessage
                     id='admin.elasticsearch.percentComplete'
                     defaultMessage='{percent}% Complete'
@@ -158,7 +171,7 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
             );
         }
 
-        return null;
+        return (<span>{jobProgress}{jobSubType}</span>);
     }
 
     renderTitle() {
@@ -428,6 +441,40 @@ export default class ElasticsearchSettings extends AdminSettings<Props, State> {
                         </div>
                     </div>
                 </div>
+                <RequestButton
+                    id='rebuildChannelsIndexButton'
+                    requestAction={rebuildChannelsIndex}
+                    helpText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.rebuildChannelsIndex.helpText'
+                            defaultMessage='This purges the channels index and re-indexes all channels in the database, from oldest to newest. Channel autocomplete is available during indexing but search results may be incomplete until the indexing job is complete.\n<b>Note- Please ensure no other indexing job is in progress in the table above.</b>'
+                            values={{
+                                b: (chunks: React.ReactNode) => (<b>{chunks}</b>),
+                            }}
+                        />
+                    }
+                    buttonText={
+                        <FormattedMessage
+                            id='admin.elasticsearch.rebuildChannelsIndex.title'
+                            defaultMessage='Rebuild Channels Index'
+                        />
+                    }
+                    successMessage={{
+                        id: 'admin.elasticsearch.rebuildIndexSuccessfully.success',
+                        defaultMessage: 'Channels index rebuild job triggered successfully.',
+                    }}
+                    errorMessage={{
+                        id: 'admin.elasticsearch.rebuildIndexSuccessfully.error',
+                        defaultMessage: 'Failed to trigger channels index rebuild job: {error}',
+                    }}
+                    disabled={!this.state.canPurgeAndIndex || this.props.isDisabled!}
+                    label={
+                        <FormattedMessage
+                            id='admin.elasticsearch.rebuildChannelsIndex.title'
+                            defaultMessage='Rebuild Channels Index'
+                        />
+                    }
+                />
                 <RequestButton
                     id='purgeIndexesSection'
                     requestAction={elasticsearchPurgeIndexes}
