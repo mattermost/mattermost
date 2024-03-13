@@ -32,7 +32,7 @@ func (s LocalCacheWebhookStore) ClearCaches() {
 }
 
 func (s LocalCacheWebhookStore) InvalidateWebhookCache(webhookId string) {
-	s.rootStore.doInvalidateCacheCluster(s.rootStore.webhookCache, webhookId)
+	s.rootStore.doInvalidateCacheCluster(s.rootStore.webhookCache, webhookId, nil)
 	if s.rootStore.metrics != nil {
 		s.rootStore.metrics.IncrementMemCacheInvalidationCounter("Webhook - Remove by WebhookId")
 	}
