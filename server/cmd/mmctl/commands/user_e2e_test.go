@@ -928,7 +928,7 @@ func (s *MmctlE2ETestSuite) TestPromoteGuestToUserCmd() {
 		printer.Clean()
 
 		err := promoteGuestToUserCmdF(c, nil, []string{user.Email})
-		s.Require().Nil(err)
+		s.Require().NoError(err)
 		defer s.Require().Nil(s.th.App.DemoteUserToGuest(s.th.Context, user))
 		s.Require().Len(printer.GetLines(), 1)
 		s.Require().Len(printer.GetErrorLines(), 0)
