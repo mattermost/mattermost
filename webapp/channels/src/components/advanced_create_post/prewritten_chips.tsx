@@ -3,9 +3,10 @@
 
 import React, {useMemo, memo} from 'react';
 import {useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 import styled from 'styled-components';
 
-import type {Channel} from '@mattermost/types/channels';
+import {getChannel, makeGetChannel} from 'mattermost-redux/selectors/entities/channels';
 
 import {trackEvent} from 'actions/telemetry_actions';
 
@@ -13,9 +14,11 @@ import Chip from 'components/common/chip/chip';
 
 import {t} from 'utils/i18n';
 
+import type {GlobalState} from 'types/store';
+
 type Props = {
     prefillMessage: (msg: string, shouldFocus: boolean) => void;
-    currentChannel: Channel;
+    channelId: string;
     currentUserId: string;
     currentChannelTeammateUsername?: string;
 }
@@ -30,8 +33,11 @@ const ChipContainer = styled.div`
     flex-wrap: wrap;
 `;
 
-const PrewrittenChips = ({currentChannel, currentUserId, currentChannelTeammateUsername, prefillMessage}: Props) => {
+const PrewrittenChips = ({channelId, currentUserId, currentChannelTeammateUsername, prefillMessage}: Props) => {
     const {formatMessage} = useIntl();
+    const getChannelWithTeammate = useMemo(makeGetChannel, []);
+    const channelType = useSelector((state: GlobalState) => getChannel(state, channelId)?.type || 'O');
+    const channelTeammate = useSelector((state: GlobalState) => getChannelWithTeammate(state, {id: channelId})?.teammate_id || '');
 
     const chips = useMemo(() => {
         const customChip = {
@@ -43,7 +49,7 @@ const PrewrittenChips = ({currentChannel, currentUserId, currentChannelTeammateU
             leadingIcon: '',
         };
 
-        if (currentChannel.type === 'O' || currentChannel.type === 'P' || currentChannel.type === 'G') {
+        if (channelType === 'O' || channelType === 'P' || channelType === 'G') {
             return [
                 {
                     event: 'prefilled_message_selected_team_hi',
@@ -73,7 +79,7 @@ const PrewrittenChips = ({currentChannel, currentUserId, currentChannelTeammateU
             ];
         }
 
-        if (currentChannel.teammate_id === currentUserId) {
+        if (channelTeammate === currentUserId) {
             return [
                 {
                     event: 'prefilled_message_selected_self_note',
@@ -114,7 +120,7 @@ const PrewrittenChips = ({currentChannel, currentUserId, currentChannelTeammateU
             },
             customChip,
         ];
-    }, [currentChannel, currentUserId]);
+    }, [channelType, channelTeammate, currentUserId]);
 
     return (
         <ChipContainer>

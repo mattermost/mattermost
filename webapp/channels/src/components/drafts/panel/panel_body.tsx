@@ -9,7 +9,7 @@ import type {UserProfile, UserStatus} from '@mattermost/types/users';
 
 import {getCurrentRelativeTeamUrl} from 'mattermost-redux/selectors/entities/teams';
 
-import PriorityLabels from 'components/advanced_create_post/priority_labels';
+import PriorityLabels from 'components/advanced_text_editor/priority_labels';
 import FilePreview from 'components/file_preview';
 import Markdown from 'components/markdown';
 import ProfilePicture from 'components/profile_picture';
