@@ -9,9 +9,8 @@ import Constants, {NotificationLevels} from 'utils/constants';
 import type {SelectOption, Props} from './index';
 import DesktopNotificationSettings, {
     getValueOfSendMobileNotificationForSelect,
-    shouldShowSendMobileNotificationsWhenSelect,
     getValueOfSendMobileNotificationWhenSelect,
-    shouldShowDesktopThreadNotificationCheckbox,
+    shouldShowTriggerMobileNotificationsSection,
 } from './index';
 
 const validNotificationLevels = Object.values(NotificationLevels);
@@ -128,9 +127,9 @@ describe('getValueOfSendMobileNotificationForSelect', () => {
     });
 });
 
-describe('shouldShowSendMobileNotificationsWhenSelect', () => {
+describe('shouldShowTriggerMobileNotificationsSection', () => {
     // test('', () => {
-    //     expect(shouldShowSendMobileNotificationsWhenSelect(false, 'invalid' as any, 'invalid' as any, true)).toBe(false);
+    //     expect(shouldShowTriggerMobileNotificationsSection(false, 'invalid' as any, 'invalid' as any, true)).toBe(false);
     // });
 });
 
@@ -163,22 +162,22 @@ describe('getValueOfSendMobileNotificationWhenSelect', () => {
     });
 });
 
-describe('shouldShowDesktopThreadNotificationCheckbox', () => {
+describe('shouldShowTriggerMobileNotificationsSection', () => {
     test('should return false when collapsed threads are not enabled', () => {
-        expect(shouldShowDesktopThreadNotificationCheckbox(false, 'hello' as any)).toBe(false);
+        expect(shouldShowTriggerMobileNotificationsSection(false, 'hello' as any)).toBe(false);
     });
 
     test('should return true when desktop setting is invalid', () => {
-        expect(shouldShowDesktopThreadNotificationCheckbox(true, 'nothing' as any)).toBe(true);
+        expect(shouldShowTriggerMobileNotificationsSection(true, 'nothing' as any)).toBe(true);
     });
 
     test('should return true when desktop setting is for mentions', () => {
-        expect(shouldShowDesktopThreadNotificationCheckbox(true, NotificationLevels.MENTION)).toBe(true);
-        expect(shouldShowDesktopThreadNotificationCheckbox(true, NotificationLevels.DEFAULT)).toBe(true);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.MENTION)).toBe(true);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.DEFAULT)).toBe(true);
     });
 
     test('should return false when desktop setting is not for mentions', () => {
-        expect(shouldShowDesktopThreadNotificationCheckbox(true, NotificationLevels.NONE)).toBe(false);
-        expect(shouldShowDesktopThreadNotificationCheckbox(true, NotificationLevels.ALL)).toBe(false);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.NONE)).toBe(false);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.ALL)).toBe(false);
     });
 });

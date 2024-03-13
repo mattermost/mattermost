@@ -3,7 +3,6 @@
 
 import type {ChangeEvent, ReactNode} from 'react';
 import React, {memo, useEffect, useRef, Fragment, useMemo, useCallback} from 'react';
-import type {IntlShape} from 'react-intl';
 import {FormattedMessage, useIntl} from 'react-intl';
 import type {ValueType} from 'react-select';
 import ReactSelect from 'react-select';
@@ -15,7 +14,13 @@ import SettingItemMin from 'components/setting_item_min';
 import type SettingItemMinComponent from 'components/setting_item_min';
 
 import {UserSettingsNotificationSections} from 'utils/constants';
-import {callsNotificationSounds, notificationSounds, stopTryNotificationRing, tryNotificationSound, tryNotificationRing} from 'utils/notification_sounds';
+import {
+    callsNotificationSounds,
+    notificationSounds,
+    stopTryNotificationRing,
+    tryNotificationSound,
+    tryNotificationRing,
+} from 'utils/notification_sounds';
 
 import type {Props as UserSettingsNotificationsProps} from '../user_settings_notifications';
 
@@ -109,13 +114,13 @@ function DesktopNotificationSoundsSettings({
         const maximizedSettingInputs = [];
 
         const isMessageNotificationSoundChecked = desktopSound === 'true';
-        const messageNotificationSoundSection = (
-            <Fragment key='messageNotificationSoundSection'>
+        const messageSoundSection = (
+            <Fragment key='messageSoundSection'>
                 <div className='checkbox inlineCheckboxSelect'>
                     <label>
                         <input
                             type='checkbox'
-                            checked={isMessageNotificationSoundChecked}
+                            checked={desktopSound === 'true'}
                             onChange={handleChangeForMessageNotificationSoundCheckbox}
                         />
                         <FormattedMessage
@@ -143,19 +148,18 @@ function DesktopNotificationSoundsSettings({
                 </div>
             </Fragment>
         );
-        maximizedSettingInputs.push(messageNotificationSoundSection);
+        maximizedSettingInputs.push(messageSoundSection);
 
         if (isCallsRingingEnabled) {
-            const isChecked = callsDesktopSound === 'true';
-
-            const incomingCallSoundNotificationSection = (
-                <Fragment key='incomingCallSoundNotificationSection'>
+            const isIncomingCallSoundChecked = callsDesktopSound === 'true';
+            const callSoundSection = (
+                <Fragment key='callSoundSection'>
                     <br/>
                     <div className='checkbox inlineCheckboxSelect'>
                         <label>
                             <input
                                 type='checkbox'
-                                checked={isChecked}
+                                checked={isIncomingCallSoundChecked}
                                 onChange={handleChangeForIncomginCallSoundCheckbox}
                             />
                             <FormattedMessage
@@ -171,7 +175,7 @@ function DesktopNotificationSoundsSettings({
                             clearable={false}
                             isClearable={false}
                             isSearchable={false}
-                            isDisabled={!isChecked}
+                            isDisabled={!isIncomingCallSoundChecked}
                             components={{IndicatorSeparator: NoIndicatorSeparatorComponent}}
                             placeholder={intl.formatMessage({
                                 id: 'user.settings.notifications.desktopNotificationSound.soundSelectPlaceholder',
@@ -183,7 +187,7 @@ function DesktopNotificationSoundsSettings({
                     </div>
                 </Fragment>
             );
-            maximizedSettingInputs.push(incomingCallSoundNotificationSection);
+            maximizedSettingInputs.push(callSoundSection);
         }
         return maximizedSettingInputs;
     },
@@ -242,7 +246,7 @@ function DesktopNotificationSoundsSettings({
                     defaultMessage='Desktop notification sounds'
                 />
             }
-            describe={getCollapsedText(isCallsRingingEnabled, desktopSound, desktopNotificationSound, callsDesktopSound, callsNotificationSound, intl)}
+            describe={getCollapsedText(isCallsRingingEnabled, desktopSound, desktopNotificationSound, callsDesktopSound, callsNotificationSound)}
             section={UserSettingsNotificationSections.DESKTOP_NOTIFICATION_SOUND}
             updateSection={handleChangeForMinSection}
         />
@@ -399,57 +403,89 @@ function getCollapsedText(
     desktopNotificationSound: UserNotifyProps['desktop_notification_sound'],
     callsDesktopSound: UserNotifyProps['calls_desktop_sound'],
     callsNotificationSound: UserNotifyProps['calls_notification_sound'],
-    intl: IntlShape,
-): ReactNode {
-    if (desktopSound === 'false' && isCallsRingingEnabled && callsDesktopSound === 'false') {
-        return intl.formatMessage({id: 'user.settings.notifications.desktopNotificationSound.noSound', defaultMessage: 'None'});
-    }
-
+) {
     const desktopNotificationSoundIsSelected = notificationSoundKeys.includes(desktopNotificationSound as string);
     const callNotificationSoundIsSelected = callNotificationSoundKeys.includes(callsNotificationSound as string);
 
-    let desktopSoundText: string;
-    if (desktopSound === 'true' && desktopNotificationSoundIsSelected) {
-        desktopSoundText = intl.formatMessage(
-            {
-                id: 'user.settings.notifications.desktopNotificationSound.messageNotificationSoundOn',
-                defaultMessage: '"{desktopNotificationSound}" for messages',
-            },
-            {desktopNotificationSound});
-    } else {
-        desktopSoundText = intl.formatMessage({
-            id: 'user.settings.notifications.desktopNotificationSound.messageNotificationNone',
-            defaultMessage: 'None for messages',
-        });
-    }
-
-    let callsSoundText: string;
-    if (isCallsRingingEnabled) {
-        if (callsDesktopSound === 'true' && callNotificationSoundIsSelected) {
-            callsSoundText = intl.formatMessage(
-                {
-                    id: 'user.settings.notifications.desktopNotificationSound.incomingCallSoundOn',
-                    defaultMessage: '"{callsNotificationSound}" for calls',
-                },
-                {callsNotificationSound});
+    let hasCallsSound: boolean | null = null;
+    if (isCallsRingingEnabled && callNotificationSoundIsSelected) {
+        if (callsDesktopSound === 'true') {
+            hasCallsSound = true;
         } else {
-            callsSoundText = intl.formatMessage({
-                id: 'user.settings.notifications.desktopNotificationSound.incomingCallNone',
-                defaultMessage: 'None for calls',
-            });
+            hasCallsSound = false;
         }
-    } else {
-        callsSoundText = '';
     }
 
-    let collapsedText: ReactNode;
-    if (callsSoundText.length > 0) {
-        collapsedText = `${desktopSoundText}, ${callsSoundText}`;
-    } else {
-        collapsedText = desktopSoundText;
+    let hasDesktopSound: boolean | null = null;
+    if (desktopNotificationSoundIsSelected) {
+        if (desktopSound === 'true') {
+            hasDesktopSound = true;
+        } else {
+            hasDesktopSound = false;
+        }
     }
 
-    return collapsedText;
+    if (hasDesktopSound !== null && hasCallsSound !== null) {
+        if (hasDesktopSound && hasCallsSound) {
+            return (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.hasDesktopAndCallsSound'
+                    defaultMessage='"{desktopSound}" for messages, "{callsSound}" for calls'
+                    values={{
+                        desktopSound: desktopNotificationSound,
+                        callsSound: callsNotificationSound,
+                    }}
+                />
+            );
+        } else if (!hasDesktopSound && hasCallsSound) {
+            return (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.noDesktopAndhasCallsSound'
+                    defaultMessage='No sound for messages, "{callsSound}" for calls'
+                    values={{callsSound: callsNotificationSound}}
+                />
+            );
+        } else if (hasDesktopSound && !hasCallsSound) {
+            return (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.hasDesktopAndNoCallsSound'
+                    defaultMessage='"{desktopSound}" for messages, no sound for calls'
+                    values={{desktopSound: desktopNotificationSound}}
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='user.settings.notifications.desktopNotificationSound.noDesktopAndNoCallsSound'
+                defaultMessage='No sound'
+            />
+        );
+    } else if (hasDesktopSound !== null && hasCallsSound === null) {
+        if (hasDesktopSound) {
+            return (
+                <FormattedMessage
+                    id='user.settings.notifications.desktopNotificationSound.hasDesktopSound'
+                    defaultMessage='"{desktopSound}" for messages'
+                    values={{desktopSound: desktopNotificationSound}}
+                />
+            );
+        }
+
+        return (
+            <FormattedMessage
+                id='user.settings.notifications.desktopNotificationSound.noDesktopSound'
+                defaultMessage='No sound'
+            />
+        );
+    }
+
+    return (
+        <FormattedMessage
+            id='user.settings.notifications.desktopNotificationSound.noValidSound'
+            defaultMessage='Configure desktop notification sounds'
+        />
+    );
 }
 
 export default memo(DesktopNotificationSoundsSettings);
