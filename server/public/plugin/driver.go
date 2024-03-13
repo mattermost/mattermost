@@ -29,9 +29,6 @@ type Driver interface {
 	ConnClose(connID string) error
 	ConnQuery(connID, q string, args []driver.NamedValue) (string, error)         // rows
 	ConnExec(connID, q string, args []driver.NamedValue) (ResultContainer, error) // result
-	// This is an extra method needed to shutdown connections
-	// after a plugin shuts down.
-	ShutdownConns(pluginID string)
 
 	// Transaction
 	Tx(connID string, opts driver.TxOptions) (string, error)
@@ -72,4 +69,7 @@ type AppDriver interface {
 
 	// ConnWithPluginID is only used by the server, and isn't exposed via the RPC API.
 	ConnWithPluginID(isMaster bool, pluginID string) (string, error)
+	// This is an extra method needed to shutdown connections
+	// after a plugin shuts down.
+	ShutdownConns(pluginID string)
 }

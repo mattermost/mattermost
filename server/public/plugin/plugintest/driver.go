@@ -234,11 +234,6 @@ func (_m *Driver) RowsNextResultSet(rowsID string) error {
 	return r0
 }
 
-// ShutdownConns provides a mock function with given fields: pluginID
-func (_m *Driver) ShutdownConns(pluginID string) {
-	_m.Called(pluginID)
-}
-
 // Stmt provides a mock function with given fields: connID, q
 func (_m *Driver) Stmt(connID string, q string) (string, error) {
 	ret := _m.Called(connID, q)

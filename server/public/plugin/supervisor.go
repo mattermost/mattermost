@@ -25,6 +25,7 @@ import (
 type supervisor struct {
 	lock        sync.RWMutex
 	pluginID    string
+	appDriver   AppDriver
 	client      *plugin.Client
 	hooks       Hooks
 	implemented [TotalHooksID]bool
@@ -43,7 +44,8 @@ func (d *driverForPlugin) Conn(isMaster bool) (string, error) {
 
 func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, parentLogger *mlog.Logger, metrics metricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{
-		pluginID: pluginInfo.Manifest.Id,
+		pluginID:  pluginInfo.Manifest.Id,
+		appDriver: &driverForPlugin{driver, pluginInfo.Manifest.Id},
 	}
 	defer func() {
 		if retErr != nil {
@@ -60,9 +62,8 @@ func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, 
 
 	pluginMap := map[string]plugin.Plugin{
 		"hooks": &hooksPlugin{
-			pluginID:   pluginInfo.Manifest.Id,
 			log:        wrappedLogger,
-			driverImpl: &driverForPlugin{driver, pluginInfo.Manifest.Id},
+			driverImpl: sup.appDriver,
 			apiImpl:    &apiTimerLayer{pluginInfo.Manifest.Id, apiImpl, metrics},
 		},
 	}
@@ -146,8 +147,8 @@ func (sup *supervisor) Shutdown() {
 	// And then shutdown conns.
 	if sup.hooksClient != nil {
 		sup.hooksClient.doneWg.Wait()
-		if sup.hooksClient.driver != nil {
-			sup.hooksClient.driver.ShutdownConns(sup.pluginID)
+		if sup.appDriver != nil {
+			sup.appDriver.ShutdownConns(sup.pluginID)
 		}
 	}
 }

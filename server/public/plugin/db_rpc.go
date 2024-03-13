@@ -19,8 +19,7 @@ type dbRPCClient struct {
 // dbRPCServer is the server-side component which is responsible for calling
 // the driver methods and properly encoding the responses back to the RPC client.
 type dbRPCServer struct {
-	pluginID string
-	dbImpl   Driver
+	dbImpl Driver
 }
 
 var _ Driver = &dbRPCClient{}
@@ -457,7 +456,4 @@ func (db *dbRPCClient) RowsColumnTypePrecisionScale(rowsID string, index int) (i
 func (db *dbRPCServer) RowsColumnTypePrecisionScale(args *Z_DbRowsColumnArg, ret *Z_DbRowsColumnTypePrecisionScaleReturn) error {
 	ret.A, ret.B, ret.C = db.dbImpl.RowsColumnTypePrecisionScale(args.A, args.B)
 	return nil
-}
-
-func (db *dbRPCClient) ShutdownConns(_ string) {
 }
