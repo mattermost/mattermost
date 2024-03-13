@@ -1,5 +1,7 @@
 @charset 'UTF-8';
 
+@use 'sass:color';
+
 a {
     color: $primary-color;
     cursor: pointer;
@@ -29,10 +31,10 @@ button.style--link {
 }
 
 .text-danger {
-    color: desaturate($red, 20%);
+    color: color.adjust($red, $saturation: -20%);
 
     &:hover,
     &:focus {
-        color: desaturate($red, 20%);
+        color: color.adjust($red, $saturation: -20%);
     }
 }

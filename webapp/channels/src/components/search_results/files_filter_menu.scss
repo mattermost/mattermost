@@ -12,8 +12,8 @@
             justify-content: center;
             padding: 0;
             border: none;
-            background: transparent;
             border-radius: 4px;
+            background: transparent;
             color: rgba(var(--center-channel-color-rgb), 0.75);
             cursor: pointer;
             text-align: center;
@@ -25,8 +25,8 @@
                 width: 10px;
                 height: 10px;
                 border: 2px solid var(--center-channel-bg);
-                background-color: var(--button-bg);
                 border-radius: 50%;
+                background-color: var(--button-bg);
             }
 
             &:hover {
