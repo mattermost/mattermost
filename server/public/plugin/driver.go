@@ -25,8 +25,6 @@ type ResultContainer struct {
 type Driver interface {
 	// Connection
 	Conn(isMaster bool) (string, error)
-	// ConnWithPluginID is only used by the server, and fails if called over RPC.
-	ConnWithPluginID(isMaster bool, pluginID string) (string, error)
 	ConnPing(connID string) error
 	ConnClose(connID string) error
 	ConnQuery(connID, q string, args []driver.NamedValue) (string, error)         // rows
@@ -66,4 +64,12 @@ type Driver interface {
 	// RowsColumnTypeNullable(rowsID string, index int) (bool, bool)
 	// ResetSession(ctx context.Context) error
 	// IsValid() bool
+}
+
+// AppDriver is an extension of the Driver interface to capture non-RPC APIs.
+type AppDriver interface {
+	Driver
+
+	// ConnWithPluginID is only used by the server, and isn't exposed via the RPC API.
+	ConnWithPluginID(isMaster bool, pluginID string) (string, error)
 }

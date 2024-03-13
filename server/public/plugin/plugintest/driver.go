@@ -117,30 +117,6 @@ func (_m *Driver) ConnQuery(connID string, q string, args []driver.NamedValue) (
 	return r0, r1
 }
 
-// ConnWithPluginID provides a mock function with given fields: isMaster, pluginID
-func (_m *Driver) ConnWithPluginID(isMaster bool, pluginID string) (string, error) {
-	ret := _m.Called(isMaster, pluginID)
-
-	var r0 string
-	var r1 error
-	if rf, ok := ret.Get(0).(func(bool, string) (string, error)); ok {
-		return rf(isMaster, pluginID)
-	}
-	if rf, ok := ret.Get(0).(func(bool, string) string); ok {
-		r0 = rf(isMaster, pluginID)
-	} else {
-		r0 = ret.Get(0).(string)
-	}
-
-	if rf, ok := ret.Get(1).(func(bool, string) error); ok {
-		r1 = rf(isMaster, pluginID)
-	} else {
-		r1 = ret.Error(1)
-	}
-
-	return r0, r1
-}
-
 // RowsClose provides a mock function with given fields: rowsID
 func (_m *Driver) RowsClose(rowsID string) error {
 	ret := _m.Called(rowsID)

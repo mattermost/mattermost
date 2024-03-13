@@ -33,15 +33,15 @@ type supervisor struct {
 }
 
 type driverForPlugin struct {
-	Driver
+	AppDriver
 	pluginID string
 }
 
 func (d *driverForPlugin) Conn(isMaster bool) (string, error) {
-	return d.Driver.ConnWithPluginID(isMaster, d.pluginID)
+	return d.AppDriver.ConnWithPluginID(isMaster, d.pluginID)
 }
 
-func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver Driver, parentLogger *mlog.Logger, metrics metricsInterface) (retSupervisor *supervisor, retErr error) {
+func newSupervisor(pluginInfo *model.BundleInfo, apiImpl API, driver AppDriver, parentLogger *mlog.Logger, metrics metricsInterface) (retSupervisor *supervisor, retErr error) {
 	sup := supervisor{
 		pluginID: pluginInfo.Manifest.Id,
 	}

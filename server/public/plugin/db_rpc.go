@@ -7,8 +7,6 @@ import (
 	"database/sql/driver"
 	"log"
 	"net/rpc"
-
-	"github.com/pkg/errors"
 )
 
 // dbRPCClient contains the client-side logic to handle the RPC communication
@@ -59,14 +57,6 @@ func (db *dbRPCServer) Conn(isMaster bool, ret *Z_DbStrErrReturn) error {
 	ret.A, ret.B = db.dbImpl.Conn(isMaster)
 	ret.B = encodableError(ret.B)
 	return nil
-}
-
-func (db *dbRPCClient) ConnWithPluginID(_ bool, _ string) (string, error) {
-	return "", errors.New("do not call this method")
-}
-
-func (db *dbRPCServer) ConnWithPluginID(_ bool, _ string) (string, error) {
-	return "", errors.New("do not call this method")
 }
 
 func (db *dbRPCClient) ConnPing(connID string) error {
