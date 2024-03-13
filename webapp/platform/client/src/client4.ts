@@ -3369,9 +3369,9 @@ export default class Client4 {
         );
     };
 
-    purgeElasticsearchIndexes = () => {
+    purgeElasticsearchIndexes = (indexes?: string[]) => {
         return this.doFetch<StatusOK>(
-            `${this.getBaseRoute()}/elasticsearch/purge_indexes`,
+            `${this.getBaseRoute()}/elasticsearch/purge_indexes${indexes && indexes.length > 0 ? '?index=' + indexes.join(',') : ''}`,
             {method: 'post'},
         );
     };
