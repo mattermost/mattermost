@@ -1150,12 +1150,7 @@ func (a *App) OriginChecker(logger *mlog.Logger) func(*http.Request) bool {
 			return false
 		}
 
-		if !strings.EqualFold(u.Host, siteURL.Host) || !strings.EqualFold(u.Scheme, siteURL.Scheme) {
-			logger.Warn("URL Blocked Because of CORS", mlog.String("Blocked Origin", origin[0]))
-			return false
-		}
-
-		return true
+		return strings.EqualFold(u.Host, siteURL.Host) && strings.EqualFold(u.Scheme, siteURL.Scheme)
 	}
 }
 
