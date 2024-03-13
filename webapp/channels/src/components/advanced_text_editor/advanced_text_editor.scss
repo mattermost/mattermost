@@ -18,10 +18,22 @@
 
     .sidebar--right & {
         padding-top: 12px;
+
+        .AutoHeight {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
     }
 
     .ThreadViewer & {
         padding-top: 12px;
+
+        .AutoHeight {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+        }
     }
 
     .custom-textarea {
