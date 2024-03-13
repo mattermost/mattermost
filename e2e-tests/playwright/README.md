@@ -57,7 +57,7 @@ export PW_HEADLESS=true
 cd mattermost/e2e-tests/playwright
 
 # Install npm packages. Use "npm ci" to match the automated environment
-npm ci
+PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 npm ci
 
 # Run specific test. See https://playwright.dev/docs/test-cli.
 npm run test -- login --project=chrome

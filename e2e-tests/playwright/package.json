@@ -12,7 +12,7 @@
         "playwright-ui": "cross-env NODE_OPTIONS='--no-experimental-fetch' playwright test --ui",
         "test-slomo": "cross-env NODE_OPTIONS='--no-experimental-fetch' PW_SNAPSHOT_ENABLE=true PW_SLOWMO=1000 playwright test",
         "show-report": "npx playwright show-report",
-        "playwright-install": "npx playwright install"
+        "postinstall": "script/post_install.sh"
     },
     "dependencies": {
         "@axe-core/playwright": "4.8.5",
