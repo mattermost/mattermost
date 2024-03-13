@@ -57,7 +57,7 @@ export default function TeamButton({
     teamIndex,
     teamId,
     tip,
-    ...props
+    ...otherProps
 }: Props) {
     const {formatMessage} = useIntl();
 
@@ -71,7 +71,7 @@ export default function TeamButton({
         }, 0);
     }, [switchTeam, url]);
 
-    let teamClass: string = props.active ? 'active' : '';
+    let teamClass: string = otherProps.active ? 'active' : '';
     const isNotCreateTeamButton: boolean = !url.endsWith('create_team') && !url.endsWith('select_team');
 
     let badge: JSX.Element | undefined;
@@ -85,7 +85,7 @@ export default function TeamButton({
     });
 
     if (!teamClass) {
-        if (unread && !props.isInProduct) {
+        if (unread && !otherProps.isInProduct) {
             teamClass = 'unread';
 
             badge = (
@@ -115,7 +115,7 @@ export default function TeamButton({
             });
 
             badge = (
-                <span className={classNames('badge badge-max-number pull-right small', {urgent: props.hasUrgent})}>{mentions > 99 ? '99+' : mentions}</span>
+                <span className={classNames('badge badge-max-number pull-right small', {urgent: otherProps.hasUrgent})}>{mentions > 99 ? '99+' : mentions}</span>
             );
         }
     }
@@ -126,14 +126,14 @@ export default function TeamButton({
         <TeamIcon
             className={teamClass}
             withHover={true}
-            content={props.content || displayName || ''}
+            content={otherProps.content || displayName || ''}
             url={teamIconUrl}
         />
     );
 
     let orderIndicator: JSX.Element | undefined;
     if (typeof order !== 'undefined' && order < 10) {
-        if (props.showOrder) {
+        if (otherProps.showOrder) {
             orderIndicator = (
                 <div className='order-indicator'>
                     {order}
@@ -149,7 +149,7 @@ export default function TeamButton({
             url={url}
         >
             <div className={'team-btn ' + btnClass}>
-                {!props.isInProduct && badge}
+                {!otherProps.isInProduct && badge}
                 {content}
             </div>
         </WithTeamTooltip>

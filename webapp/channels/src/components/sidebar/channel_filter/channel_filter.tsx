@@ -25,6 +25,11 @@ const messages = defineMessages({
     },
 });
 
+const shortcut = {
+    default: [ShortcutKeys.ctrl, ShortcutKeys.shift, 'U'],
+    mac: [ShortcutKeys.cmd, ShortcutKeys.shift, 'U'],
+};
+
 type Props = {
     intl: IntlShape;
     hasMultipleTeams: boolean;
@@ -79,10 +84,7 @@ export class ChannelFilter extends React.PureComponent<Props> {
                 <WithTooltip
                     id='channel-filter-tooltip'
                     title={unreadFilterEnabled ? messages.disableTooltip : messages.enableTooltip}
-                    shortcut={{
-                        default: [ShortcutKeys.ctrl, ShortcutKeys.shift, 'U'],
-                        mac: [ShortcutKeys.cmd, ShortcutKeys.shift, 'U'],
-                    }}
+                    shortcut={shortcut}
                     placement={hasMultipleTeams ? 'top' : 'right'}
                 >
                     <a
