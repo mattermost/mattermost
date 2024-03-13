@@ -255,7 +255,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 config={config}
                 environmentConfig={environmentConfig}
                 schema={{...schema}}
-                updateConfig={jest.fn()}
+                patchConfig={jest.fn()}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -268,7 +268,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 config={config}
                 environmentConfig={environmentConfig}
                 schema={{component: () => <p>{'Test'}</p>}}
-                updateConfig={jest.fn()}
+                patchConfig={jest.fn()}
             />,
         );
         expect(wrapper).toMatchSnapshot();
@@ -284,7 +284,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 ...schema,
                 header: headerText,
             },
-            updateConfig: jest.fn(),
+            patchConfig: jest.fn(),
         };
 
         const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
@@ -307,7 +307,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
                 ...schema,
                 footer: footerText,
             },
-            updateConfig: jest.fn(),
+            patchConfig: jest.fn(),
         };
 
         const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
@@ -326,7 +326,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             config,
             environmentConfig,
             schema: null,
-            updateConfig: jest.fn(),
+            patchConfig: jest.fn(),
         };
 
         const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
@@ -359,7 +359,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             config,
             environmentConfig,
             schema: localSchema,
-            updateConfig: jest.fn(),
+            patchConfig: jest.fn(),
         };
 
         const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
@@ -389,7 +389,7 @@ describe('components/admin_console/SchemaAdminSettings', () => {
             config,
             environmentConfig,
             schema: localSchema,
-            updateConfig: jest.fn(),
+            patchConfig: jest.fn(),
         };
 
         const wrapper = shallowWithIntl(<SchemaAdminSettings {...props}/>);
