@@ -17,6 +17,9 @@
     "include": [
         "./src/**/*"
     ],
+    "exclude": [
+        "**/*.test.*"
+    ],
     "references": [
         {"path": "../types"}
     ]
