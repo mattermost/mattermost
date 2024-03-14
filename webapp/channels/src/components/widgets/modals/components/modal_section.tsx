@@ -2,14 +2,13 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import type {MessageDescriptor} from 'react-intl';
-import {useIntl} from 'react-intl';
+import type {ReactNode} from 'react';
 
 import './modal_section.scss';
 
 type Props = {
-    title?: MessageDescriptor;
-    description?: MessageDescriptor;
+    title?: ReactNode;
+    description?: ReactNode;
     content: JSX.Element;
     titleSuffix?: JSX.Element;
 };
@@ -20,27 +19,29 @@ function ModalSection({
     content,
     titleSuffix,
 }: Props): JSX.Element {
-    const {formatMessage} = useIntl();
-    const titleContent = title ? (
+    const titleComponent = title && (
         <h4 className='mm-modal-generic-section__title'>
-            {formatMessage({id: title.id, defaultMessage: title.defaultMessage})}
+            {title}
         </h4>
-    ) : undefined;
+    );
 
-    const descriptionContent = description && (
+    const descriptionComponent = description && (
         <p className='mm-modal-generic-section__description'>
-            {formatMessage({id: description.id, defaultMessage: description.defaultMessage})}
+            {description}
         </p>
     );
 
     function titleRow() {
         if (titleSuffix) {
-            return (<div className='mm-modal-generic-section__row'>
-                {titleContent}
-                {titleSuffix}
-            </div>);
+            return (
+                <div className='mm-modal-generic-section__row'>
+                    {titleComponent}
+                    {titleSuffix}
+                </div>
+            );
         }
-        return titleContent;
+
+        return titleComponent;
     }
 
     const titleDescriptionSection = () => {
@@ -48,7 +49,7 @@ function ModalSection({
             return (
                 <div className='mm-modal-generic-section__title-description-ctr'>
                     {titleRow()}
-                    {descriptionContent}
+                    {descriptionComponent}
                 </div>
             );
         }

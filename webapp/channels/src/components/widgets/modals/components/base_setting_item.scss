@@ -170,4 +170,8 @@
     input[type="radio"]:checked {
         border-color: var(--denim-button-bg);
     }
+
+    &.first-setting-item {
+        margin-block-start: 24px;
+    }
 }

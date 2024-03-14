@@ -2,26 +2,11 @@
 // See LICENSE.txt for license information.
 
 import React, {useCallback, useState} from 'react';
-import {defineMessages, useIntl} from 'react-intl';
+import {FormattedMessage, useIntl} from 'react-intl';
 
 import SelectTextInput, {type SelectTextInputOption} from 'components/common/select_text_input/select_text_input';
 import CheckboxSettingItem from 'components/widgets/modals/components/checkbox_setting_item';
 import {type SaveChangesPanelState} from 'components/widgets/modals/components/save_changes_panel';
-
-const translations = defineMessages({
-    AllowedDomainsTitle: {
-        id: 'general_tab.AllowedDomainsTitle',
-        defaultMessage: 'Users with a specific email domain',
-    },
-    AllowedDomainsInfo: {
-        id: 'general_tab.AllowedDomainsInfo',
-        defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")',
-    },
-    AllowedDomains: {
-        id: 'general_tab.allowedDomains',
-        defaultMessage: 'Allow only users with a specific email domain to join this team',
-    },
-});
 
 type Props = {
     allowedDomains: string[];
@@ -52,15 +37,28 @@ const AllowedDomainsSelect = ({allowedDomains, setAllowedDomains, setHasChanges,
         setSaveChangesPanelState('editing');
         setAllowedDomains(allowedDomainsOptions?.map((domain) => domain.value) || []);
     }, [setAllowedDomains, setHasChanges, setSaveChangesPanelState]);
+
     return (
         <>
             <CheckboxSettingItem
+                inputFieldTitle={
+                    <FormattedMessage
+                        id='general_tab.allowedDomains'
+                        defaultMessage='Allow only users with a specific email domain to join this team'
+                    />
+                }
                 data-testid='allowedDomainsCheckbox'
                 className='access-allowed-domains-section'
-                title={translations.AllowedDomainsTitle}
-                description={translations.AllowedDomainsInfo}
+                title={formatMessage({
+                    id: 'general_tab.AllowedDomainsTitle',
+                    defaultMessage: 'Users with a specific email domain',
+                })}
+                description={formatMessage({
+                    id: 'general_tab.AllowedDomainsInfo',
+                    defaultMessage: 'When enabled, users can only join the team if their email matches a specific domain (e.g. "mattermost.org")',
+                })}
                 descriptionAboveContent={true}
-                inputFieldData={{title: translations.AllowedDomains, name: 'name'}}
+                inputFieldData={{name: 'name'}}
                 inputFieldValue={showAllowedDomains}
                 handleChange={handleEnableAllowedDomains}
             />
