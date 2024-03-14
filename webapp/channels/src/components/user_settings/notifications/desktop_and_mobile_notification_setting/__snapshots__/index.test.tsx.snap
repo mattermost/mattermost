@@ -25,7 +25,7 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             <legend
               class="form-legend"
             >
-              Send desktop notifications for:
+              Send notifications for:
             </legend>
             <div
               class="radio"
@@ -43,7 +43,6 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
             >
               <label>
                 <input
-                  checked=""
                   type="radio"
                   value="mention"
                 />
@@ -68,7 +67,6 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           >
             <label>
               <input
-                checked=""
                 type="checkbox"
               />
               Notify me about replies to threads I'm following
@@ -80,22 +78,18 @@ exports[`DesktopNotificationSettings should match snapshot, on max setting 1`] =
           >
             <label>
               <input
-                data-testid="differentMobileNotificationsCheckbox"
                 type="checkbox"
               />
-              Use different settings for 
-              <strong>
-                mobile push notifications
-              </strong>
+              Use different settings for my mobile devices
             </label>
           </div>
-          <hr />
+          <br />
           <label
             class="singleSelectLabel"
             for="pushMobileNotificationSelectInput"
             id="pushMobileNotificationsLabel"
           >
-            Send mobile notifications when I am:
+            Trigger mobile notifications when i am:
           </label>
           <div
             class="react-select singleSelect css-2b097c-container"
@@ -201,7 +195,7 @@ exports[`DesktopNotificationSettings should match snapshot, on min setting 1`] =
       class="section-min__describe"
       id="desktopAndMobileDesc"
     >
-      Mentions, direct messages, and group messages
+      Configure desktop and mobile settings
     </div>
   </div>
 </div>
@@ -232,7 +226,7 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             <legend
               class="form-legend"
             >
-              Send desktop notifications for:
+              Send notifications for:
             </legend>
             <div
               class="radio"
@@ -250,7 +244,6 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
             >
               <label>
                 <input
-                  checked=""
                   type="radio"
                   value="mention"
                 />
@@ -275,427 +268,18 @@ exports[`DesktopNotificationSettings should not show desktop thread notification
           >
             <label>
               <input
-                data-testid="differentMobileNotificationsCheckbox"
                 type="checkbox"
               />
-              Use different settings for 
-              <strong>
-                mobile push notifications
-              </strong>
+              Use different settings for my mobile devices
             </label>
           </div>
-          <hr />
+          <br />
           <label
             class="singleSelectLabel"
             for="pushMobileNotificationSelectInput"
             id="pushMobileNotificationsLabel"
           >
-            Send mobile notifications when I am:
-          </label>
-          <div
-            class="react-select singleSelect css-2b097c-container"
-          >
-            <div
-              class="react-select__control css-yk16xz-control"
-            >
-              <div
-                class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
-              >
-                <div
-                  class="react-select__single-value css-1uccc91-singleValue"
-                >
-                  Offline
-                </div>
-                <input
-                  class="css-62g3xt-dummyInput"
-                  id="pushMobileNotificationSelectInput"
-                  readonly=""
-                  tabindex="0"
-                  value=""
-                />
-              </div>
-              <div
-                class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
-              >
-                <div
-                  aria-hidden="true"
-                  class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="css-6q0nyr-Svg"
-                    focusable="false"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    width="20"
-                  >
-                    <path
-                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="setting-list-item"
-        >
-          <hr />
-          <button
-            class="btn btn-primary "
-            data-testid="saveSetting"
-            id="saveSetting"
-            type="submit"
-          >
-            <span>
-              Save
-            </span>
-          </button>
-          <button
-            class="btn btn-tertiary"
-            id="cancelSetting"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-`;
-
-exports[`DesktopNotificationSettings should not show desktop thread notification checkbox when desktop is none 1`] = `
-<div>
-  <section
-    class="section-max form-horizontal "
-  >
-    <h4
-      class="col-sm-12 section-title"
-      id="settingTitle"
-    >
-      Desktop and mobile notifications
-    </h4>
-    <div
-      class="sectionContent col-sm-10 col-sm-offset-2"
-    >
-      <div
-        class="setting-list"
-        tabindex="-1"
-      >
-        <div
-          class="setting-list-item"
-        >
-          <fieldset>
-            <legend
-              class="form-legend"
-            >
-              Send desktop notifications for:
-            </legend>
-            <div
-              class="radio"
-            >
-              <label>
-                <input
-                  type="radio"
-                  value="all"
-                />
-                All new messages
-              </label>
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
-                <input
-                  checked=""
-                  type="radio"
-                  value="mention"
-                />
-                Mentions, direct messages, and group messages
-              </label>
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
-                <input
-                  type="radio"
-                  value="none"
-                />
-                Nothing
-              </label>
-            </div>
-          </fieldset>
-          <br />
-          <div
-            class="checkbox single-checkbox"
-          >
-            <label>
-              <input
-                type="checkbox"
-              />
-              Notify me about replies to threads I'm following
-            </label>
-          </div>
-          <hr />
-          <div
-            class="checkbox single-checkbox"
-          >
-            <label>
-              <input
-                data-testid="differentMobileNotificationsCheckbox"
-                type="checkbox"
-              />
-              Use different settings for 
-              <strong>
-                mobile push notifications
-              </strong>
-            </label>
-          </div>
-          <hr />
-          <label
-            class="singleSelectLabel"
-            for="pushMobileNotificationSelectInput"
-            id="pushMobileNotificationsLabel"
-          >
-            Send mobile notifications when I am:
-          </label>
-          <div
-            class="react-select singleSelect css-2b097c-container"
-          >
-            <div
-              class="react-select__control css-yk16xz-control"
-            >
-              <div
-                class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
-              >
-                <div
-                  class="react-select__single-value css-1uccc91-singleValue"
-                >
-                  Offline
-                </div>
-                <input
-                  class="css-62g3xt-dummyInput"
-                  id="pushMobileNotificationSelectInput"
-                  readonly=""
-                  tabindex="0"
-                  value=""
-                />
-              </div>
-              <div
-                class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
-              >
-                <div
-                  aria-hidden="true"
-                  class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="css-6q0nyr-Svg"
-                    focusable="false"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    width="20"
-                  >
-                    <path
-                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div
-          class="setting-list-item"
-        >
-          <hr />
-          <button
-            class="btn btn-primary "
-            data-testid="saveSetting"
-            id="saveSetting"
-            type="submit"
-          >
-            <span>
-              Save
-            </span>
-          </button>
-          <button
-            class="btn btn-tertiary"
-            id="cancelSetting"
-          >
-            Cancel
-          </button>
-        </div>
-      </div>
-    </div>
-  </section>
-</div>
-`;
-
-exports[`DesktopNotificationSettings should show mobile notification when checkbox for use different mobile settings is checked 1`] = `
-<div>
-  <section
-    class="section-max form-horizontal "
-  >
-    <h4
-      class="col-sm-12 section-title"
-      id="settingTitle"
-    >
-      Desktop and mobile notifications
-    </h4>
-    <div
-      class="sectionContent col-sm-10 col-sm-offset-2"
-    >
-      <div
-        class="setting-list"
-        tabindex="-1"
-      >
-        <div
-          class="setting-list-item"
-        >
-          <fieldset>
-            <legend
-              class="form-legend"
-            >
-              Send desktop notifications for:
-            </legend>
-            <div
-              class="radio"
-            >
-              <label>
-                <input
-                  type="radio"
-                  value="all"
-                />
-                All new messages
-              </label>
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
-                <input
-                  checked=""
-                  type="radio"
-                  value="mention"
-                />
-                Mentions, direct messages, and group messages
-              </label>
-            </div>
-            <div
-              class="radio"
-            >
-              <label>
-                <input
-                  type="radio"
-                  value="none"
-                />
-                Nothing
-              </label>
-            </div>
-          </fieldset>
-          <br />
-          <div
-            class="checkbox single-checkbox"
-          >
-            <label>
-              <input
-                checked=""
-                type="checkbox"
-              />
-              Notify me about replies to threads I'm following
-            </label>
-          </div>
-          <hr />
-          <div
-            class="checkbox single-checkbox"
-          >
-            <label>
-              <input
-                checked=""
-                data-testid="differentMobileNotificationsCheckbox"
-                type="checkbox"
-              />
-              Use different settings for 
-              <strong>
-                mobile push notifications
-              </strong>
-            </label>
-          </div>
-          <br />
-          <label
-            class="singleSelectLabel"
-            for="sendMobileNotificationsSelectInput"
-            id="sendMobileNotificationsLabel"
-          >
-            Send mobile notifications for:
-          </label>
-          <div
-            class="react-select singleSelect css-2b097c-container"
-          >
-            <div
-              class="react-select__control css-yk16xz-control"
-            >
-              <div
-                class="react-select__value-container react-select__value-container--has-value css-1hwfws3"
-              >
-                <div
-                  class="react-select__single-value css-1uccc91-singleValue"
-                >
-                  Mentions, direct messages, and group messages
-                </div>
-                <input
-                  class="css-62g3xt-dummyInput"
-                  id="sendMobileNotificationsSelectInput"
-                  readonly=""
-                  tabindex="0"
-                  value=""
-                />
-              </div>
-              <div
-                class="react-select__indicators css-1hb7zxy-IndicatorsContainer"
-              >
-                <div
-                  aria-hidden="true"
-                  class="react-select__indicator react-select__dropdown-indicator css-tlfecz-indicatorContainer"
-                >
-                  <svg
-                    aria-hidden="true"
-                    class="css-6q0nyr-Svg"
-                    focusable="false"
-                    height="20"
-                    viewBox="0 0 20 20"
-                    width="20"
-                  >
-                    <path
-                      d="M4.516 7.548c0.436-0.446 1.043-0.481 1.576 0l3.908 3.747 3.908-3.747c0.533-0.481 1.141-0.446 1.574 0 0.436 0.445 0.408 1.197 0 1.615-0.406 0.418-4.695 4.502-4.695 4.502-0.217 0.223-0.502 0.335-0.787 0.335s-0.57-0.112-0.789-0.335c0 0-4.287-4.084-4.695-4.502s-0.436-1.17 0-1.615z"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </div>
-          </div>
-          <br />
-          <div
-            class="checkbox single-checkbox"
-          >
-            <label>
-              <input
-                checked=""
-                type="checkbox"
-              />
-              Notify me on mobile about replies to threads I'm following
-            </label>
-          </div>
-          <hr />
-          <label
-            class="singleSelectLabel"
-            for="pushMobileNotificationSelectInput"
-            id="pushMobileNotificationsLabel"
-          >
-            Send mobile notifications when I am:
+            Trigger mobile notifications when i am:
           </label>
           <div
             class="react-select singleSelect css-2b097c-container"

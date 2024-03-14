@@ -108,7 +108,9 @@ Object {
             <div
               class="section-min__describe"
               id="desktopAndMobileDesc"
-            />
+            >
+              Configure desktop and mobile settings
+            </div>
           </div>
           <div
             class="divider-light"
@@ -142,7 +144,7 @@ Object {
               class="section-min__describe"
               id="desktopNotificationSoundDesc"
             >
-              None for messages, "Calm" for calls
+              No sound
             </div>
           </div>
           <div
@@ -364,7 +366,9 @@ Object {
           <div
             class="section-min__describe"
             id="desktopAndMobileDesc"
-          />
+          >
+            Configure desktop and mobile settings
+          </div>
         </div>
         <div
           class="divider-light"
@@ -398,7 +402,7 @@ Object {
             class="section-min__describe"
             id="desktopNotificationSoundDesc"
           >
-            None for messages, "Calm" for calls
+            No sound
           </div>
         </div>
         <div
@@ -679,7 +683,9 @@ Object {
             <div
               class="section-min__describe"
               id="desktopAndMobileDesc"
-            />
+            >
+              Configure desktop and mobile settings
+            </div>
           </div>
           <div
             class="divider-light"
@@ -713,7 +719,7 @@ Object {
               class="section-min__describe"
               id="desktopNotificationSoundDesc"
             >
-              None for messages, "Calm" for calls
+              No sound
             </div>
           </div>
           <div
@@ -938,7 +944,9 @@ Object {
           <div
             class="section-min__describe"
             id="desktopAndMobileDesc"
-          />
+          >
+            Configure desktop and mobile settings
+          </div>
         </div>
         <div
           class="divider-light"
@@ -972,7 +980,7 @@ Object {
             class="section-min__describe"
             id="desktopNotificationSoundDesc"
           >
-            None for messages, "Calm" for calls
+            No sound
           </div>
         </div>
         <div
@@ -1256,7 +1264,9 @@ Object {
             <div
               class="section-min__describe"
               id="desktopAndMobileDesc"
-            />
+            >
+              Configure desktop and mobile settings
+            </div>
           </div>
           <div
             class="divider-light"
@@ -1290,7 +1300,7 @@ Object {
               class="section-min__describe"
               id="desktopNotificationSoundDesc"
             >
-              None for messages, "Calm" for calls
+              No sound
             </div>
           </div>
           <div
@@ -1477,7 +1487,9 @@ Object {
           <div
             class="section-min__describe"
             id="desktopAndMobileDesc"
-          />
+          >
+            Configure desktop and mobile settings
+          </div>
         </div>
         <div
           class="divider-light"
@@ -1511,7 +1523,7 @@ Object {
             class="section-min__describe"
             id="desktopNotificationSoundDesc"
           >
-            None for messages, "Calm" for calls
+            No sound
           </div>
         </div>
         <div

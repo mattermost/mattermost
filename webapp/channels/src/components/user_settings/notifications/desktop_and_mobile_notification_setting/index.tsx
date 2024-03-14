@@ -164,7 +164,6 @@ function DesktopAndMobileNotificationSettings({
                         <label>
                             <input
                                 type='checkbox'
-                                data-testid='differentMobileNotificationsCheckbox'
                                 checked={desktopAndMobileSettingsDifferent}
                                 onChange={handleChangeForDifferentMobileNotificationsCheckbox}
                             />
@@ -211,7 +210,7 @@ function DesktopAndMobileNotificationSettings({
             maximizedSettingInputs.push(sendMobileNotificationsSection);
         }
 
-        if (shouldShowMobileThreadsSection(sendPushNotifications, isCollapsedThreadsEnabled, desktopAndMobileSettingsDifferent, desktopActivity, pushActivity)) {
+        if (shouldShowMobileThreadsSection(sendPushNotifications, isCollapsedThreadsEnabled, desktopAndMobileSettingsDifferent, pushActivity)) {
             const threadNotificationSection = (
                 <Fragment key='threadNotificationSection'>
                     <br/>
@@ -373,7 +372,7 @@ export function shouldShowDesktopThreadsSection(isCollapsedThreadsEnabled: boole
     return true;
 }
 
-export function shouldShowMobileThreadsSection(sendPushNotifications: UserSettingsNotificationsProps['sendPushNotifications'], isCollapsedThreadsEnabled: boolean, desktopAndMobileSettingsDifferent: boolean, desktopActivity: UserNotifyProps['desktop'], pushActivity: UserNotifyProps['push']) {
+export function shouldShowMobileThreadsSection(sendPushNotifications: UserSettingsNotificationsProps['sendPushNotifications'], isCollapsedThreadsEnabled: boolean, desktopAndMobileSettingsDifferent: boolean, pushActivity: UserNotifyProps['push']) {
     if (!sendPushNotifications) {
         return false;
     }
@@ -427,34 +426,18 @@ export function shouldShowTriggerMobileNotificationsSection(sendPushNotification
         return true;
     }
 
-    let shouldShow: boolean;
-    if (desktopActivity === NotificationLevels.ALL || desktopActivity === NotificationLevels.MENTION) {
-        //  Here we explicitly pass the state of desktopAndMobileSettingsDifferent instead of deriving as
-        //  we need to show the select for mobile notifications when the desktop and mobile settings are different
-        if (desktopAndMobileSettingsDifferent === true) {
-            if (pushActivity === NotificationLevels.NONE) {
-                shouldShow = false;
-            } else {
-                shouldShow = true;
-            }
-        } else {
-            shouldShow = true;
+    if (!desktopAndMobileSettingsDifferent) {
+        if (desktopActivity === NotificationLevels.NONE) {
+            return false;
         }
-    } else if (desktopActivity === NotificationLevels.NONE) {
-        if (desktopAndMobileSettingsDifferent === true) {
-            if (pushActivity === NotificationLevels.NONE) {
-                shouldShow = false;
-            } else {
-                shouldShow = true;
-            }
-        } else {
-            shouldShow = false;
-        }
-    } else {
-        shouldShow = true;
+        return true;
     }
 
-    return shouldShow;
+    if (pushActivity === NotificationLevels.NONE) {
+        return false;
+    }
+
+    return true;
 }
 
 const optionsOfSendMobileNotificationsWhenSelect: OptionsType<SelectOption> = [

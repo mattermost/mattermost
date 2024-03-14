@@ -8,6 +8,8 @@ import Constants, {NotificationLevels} from 'utils/constants';
 
 import type {SelectOption, Props} from './index';
 import DesktopNotificationSettings, {
+    shouldShowDesktopThreadsSection,
+    shouldShowMobileThreadsSection,
     getValueOfSendMobileNotificationForSelect,
     getValueOfSendMobileNotificationWhenSelect,
     shouldShowTriggerMobileNotificationsSection,
@@ -26,11 +28,11 @@ describe('DesktopNotificationSettings', () => {
         setParentState: jest.fn(),
         areAllSectionsInactive: false,
         isCollapsedThreadsEnabled: true,
-        desktopActivity: NotificationLevels.MENTION,
-        pushActivity: NotificationLevels.MENTION,
+        desktopActivity: NotificationLevels.DEFAULT,
+        pushActivity: NotificationLevels.DEFAULT,
         pushStatus: Constants.UserStatuses.OFFLINE,
-        desktopThreads: NotificationLevels.ALL,
-        pushThreads: NotificationLevels.ALL,
+        desktopThreads: NotificationLevels.DEFAULT,
+        pushThreads: NotificationLevels.DEFAULT,
         sendPushNotifications: true,
         desktopAndMobileSettingsDifferent: false,
     };
@@ -63,7 +65,7 @@ describe('DesktopNotificationSettings', () => {
     });
 
     test('should not show desktop thread notification checkbox when desktop is all', () => {
-        const props = {...baseProps, desktopThreads: NotificationLevels.ALL};
+        const props = {...baseProps, desktopActivity: NotificationLevels.ALL};
         renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
@@ -72,7 +74,7 @@ describe('DesktopNotificationSettings', () => {
     });
 
     test('should not show desktop thread notification checkbox when desktop is none', () => {
-        const props = {...baseProps, desktopThreads: NotificationLevels.NONE};
+        const props = {...baseProps, desktopActivity: NotificationLevels.NONE};
         renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
@@ -81,7 +83,7 @@ describe('DesktopNotificationSettings', () => {
     });
 
     test('should show desktop thread notification checkbox when desktop is mention', () => {
-        const props = {...baseProps, desktopThreads: NotificationLevels.MENTION};
+        const props = {...baseProps, desktopActivity: NotificationLevels.MENTION};
         renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
@@ -91,12 +93,133 @@ describe('DesktopNotificationSettings', () => {
 
     test('should show mobile notification when checkbox for use different mobile settings is checked', () => {
         const props = {...baseProps, desktopAndMobileSettingsDifferent: true};
-        const {container} = renderWithContext(
+        renderWithContext(
             <DesktopNotificationSettings {...props}/>,
         );
 
         expect(screen.getByText('Send mobile notifications for:')).toBeInTheDocument();
-        expect(container).toMatchSnapshot();
+    });
+
+    test('should not show mobile notification when checkbox for use different mobile settings is not checked', () => {
+        const props = {...baseProps, desktopAndMobileSettingsDifferent: false};
+        renderWithContext(
+            <DesktopNotificationSettings {...props}/>,
+        );
+
+        expect(screen.queryByText('Send mobile notifications for:')).toBeNull();
+    });
+
+    test('should shown notify me about mobile threads when mobile setting is mention and desktop setting is anything', () => {
+        const {rerender} = renderWithContext(
+            <DesktopNotificationSettings
+                {...baseProps}
+                desktopAndMobileSettingsDifferent={true}
+                pushActivity={NotificationLevels.MENTION}
+                desktopActivity={NotificationLevels.NONE}
+            />,
+        );
+
+        expect(screen.getByText('Notify me on mobile about replies to threads I\'m following')).toBeInTheDocument();
+
+        rerender(
+            <DesktopNotificationSettings
+                {...baseProps}
+                desktopAndMobileSettingsDifferent={true}
+                pushActivity={NotificationLevels.MENTION}
+                desktopActivity={NotificationLevels.ALL}
+            />,
+        );
+
+        expect(screen.getByText('Notify me on mobile about replies to threads I\'m following')).toBeInTheDocument();
+    });
+
+    test('should not show notify me about mobile threads when mobile setting is anything other than mention', () => {
+        const {rerender} = renderWithContext(
+            <DesktopNotificationSettings
+                {...baseProps}
+                desktopAndMobileSettingsDifferent={true}
+                pushActivity={NotificationLevels.NONE}
+                desktopActivity={NotificationLevels.NONE}
+            />,
+        );
+
+        expect(screen.queryByText('Notify me on mobile about replies to threads I\'m following')).toBeNull();
+
+        rerender(
+            <DesktopNotificationSettings
+                {...baseProps}
+                desktopAndMobileSettingsDifferent={true}
+                pushActivity={NotificationLevels.ALL}
+                desktopActivity={NotificationLevels.ALL}
+            />,
+        );
+
+        expect(screen.queryByText('Notify me on mobile about replies to threads I\'m following')).toBeNull();
+    });
+
+    test('should show trigger mobile notifications section when desktop setting is mention', () => {
+        const props = {...baseProps, desktopActivity: NotificationLevels.MENTION, desktopAndMobileSettingsDifferent: false};
+        renderWithContext(
+            <DesktopNotificationSettings {...props}/>,
+        );
+
+        expect(screen.getByText('Trigger mobile notifications when i am:')).toBeInTheDocument();
+    });
+
+    test('should not show trigger mobile notifications section when desktop setting is none', () => {
+        const props = {...baseProps, desktopActivity: NotificationLevels.NONE, desktopAndMobileSettingsDifferent: false};
+        renderWithContext(
+            <DesktopNotificationSettings {...props}/>,
+        );
+
+        expect(screen.queryByText('Trigger mobile notifications when i am:')).toBeNull();
+    });
+});
+
+describe('shouldShowDesktopThreadsSection', () => {
+    test('should not show when collapsed threads are not enabled', () => {
+        expect(shouldShowDesktopThreadsSection(false, 'hello' as any)).toBe(false);
+    });
+
+    test('should not show when desktop setting is either none or all', () => {
+        expect(shouldShowDesktopThreadsSection(true, NotificationLevels.NONE)).toBe(false);
+        expect(shouldShowDesktopThreadsSection(true, NotificationLevels.ALL)).toBe(false);
+    });
+
+    test('should show when desktop setting is mention', () => {
+        expect(shouldShowDesktopThreadsSection(true, NotificationLevels.MENTION)).toBe(true);
+        expect(shouldShowDesktopThreadsSection(true, NotificationLevels.DEFAULT)).toBe(true);
+    });
+
+    test('should show by default when desktop setting is undefined', () => {
+        expect(shouldShowDesktopThreadsSection(true, undefined as any)).toBe(true);
+    });
+});
+
+describe('shouldShowMobileThreadsSection', () => {
+    test('should return false if sendPushNotifications is false', () => {
+        const result = shouldShowMobileThreadsSection(false, true, true, 'any' as any);
+        expect(result).toBe(false);
+    });
+
+    test('should return false if isCollapsedThreadsEnabled is false', () => {
+        const result = shouldShowMobileThreadsSection(true, false, true, 'any' as any);
+        expect(result).toBe(false);
+    });
+
+    test('should return false if desktop and mobile settings are same', () => {
+        const result = shouldShowMobileThreadsSection(true, true, false, 'any' as any);
+        expect(result).toBe(false);
+    });
+
+    test('should return false if pushActivity is all', () => {
+        const result = shouldShowMobileThreadsSection(true, true, true, NotificationLevels.ALL);
+        expect(result).toBe(false);
+    });
+
+    test('should return false if pushActivity is none', () => {
+        const result = shouldShowMobileThreadsSection(true, true, true, NotificationLevels.NONE);
+        expect(result).toBe(false);
     });
 });
 
@@ -128,9 +251,35 @@ describe('getValueOfSendMobileNotificationForSelect', () => {
 });
 
 describe('shouldShowTriggerMobileNotificationsSection', () => {
-    // test('', () => {
-    //     expect(shouldShowTriggerMobileNotificationsSection(false, 'invalid' as any, 'invalid' as any, true)).toBe(false);
-    // });
+    test('should not show when push notifications are off', () => {
+        expect(shouldShowTriggerMobileNotificationsSection(false, NotificationLevels.ALL, NotificationLevels.ALL, true)).toBe(false);
+    });
+
+    test('should show if either of desktop or mobile settings are not defined', () => {
+        expect(shouldShowTriggerMobileNotificationsSection(true, undefined as any, NotificationLevels.ALL, true)).toBe(true);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.ALL, undefined as any, true)).toBe(true);
+    });
+
+    test('should show if desktop is either mention or all for same mobile setting', () => {
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.MENTION, NotificationLevels.MENTION, false)).toBe(true);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.ALL, NotificationLevels.ALL, false)).toBe(true);
+    });
+
+    test('should not show if desktop is none for same mobile setting', () => {
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.NONE, NotificationLevels.NONE, false)).toBe(false);
+    });
+
+    test('should show for any desktop setting if mobile setting is mention', () => {
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.ALL, NotificationLevels.MENTION, true)).toBe(true);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.MENTION, NotificationLevels.MENTION, true)).toBe(true);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.NONE, NotificationLevels.MENTION, true)).toBe(true);
+    });
+
+    test('should not show for any desktop setting if mobile setting is none', () => {
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.ALL, NotificationLevels.NONE, true)).toBe(false);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.MENTION, NotificationLevels.NONE, true)).toBe(false);
+        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.NONE, NotificationLevels.NONE, true)).toBe(false);
+    });
 });
 
 describe('getValueOfSendMobileNotificationWhenSelect', () => {
@@ -159,25 +308,5 @@ describe('getValueOfSendMobileNotificationWhenSelect', () => {
 
         const result2 = getValueOfSendMobileNotificationWhenSelect(Constants.UserStatuses.AWAY) as SelectOption;
         expect(result2.value).toBe(Constants.UserStatuses.AWAY);
-    });
-});
-
-describe('shouldShowTriggerMobileNotificationsSection', () => {
-    test('should return false when collapsed threads are not enabled', () => {
-        expect(shouldShowTriggerMobileNotificationsSection(false, 'hello' as any)).toBe(false);
-    });
-
-    test('should return true when desktop setting is invalid', () => {
-        expect(shouldShowTriggerMobileNotificationsSection(true, 'nothing' as any)).toBe(true);
-    });
-
-    test('should return true when desktop setting is for mentions', () => {
-        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.MENTION)).toBe(true);
-        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.DEFAULT)).toBe(true);
-    });
-
-    test('should return false when desktop setting is not for mentions', () => {
-        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.NONE)).toBe(false);
-        expect(shouldShowTriggerMobileNotificationsSection(true, NotificationLevels.ALL)).toBe(false);
     });
 });

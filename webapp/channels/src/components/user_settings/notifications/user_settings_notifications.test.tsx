@@ -10,8 +10,6 @@ import {TestHelper} from 'utils/test_helper';
 
 import UserSettingsNotifications, {areDesktopAndMobileSettingsDifferent} from './user_settings_notifications';
 
-const validNotificationLevels = Object.values(NotificationLevels);
-
 describe('components/user_settings/display/UserSettingsDisplay', () => {
     const defaultProps = {
         user: TestHelper.getUserMock({id: 'user_id'}),
@@ -23,7 +21,7 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
         isCollapsedThreadsEnabled: true,
         sendPushNotifications: false,
         enableAutoResponder: false,
-        isCallsRingingEnabled: true,
+        isCallsRingingEnabled: false,
         intl: {} as IntlShape,
         isEnterpriseOrCloudOrSKUStarterFree: false,
         isEnterpriseReady: true,
@@ -68,24 +66,24 @@ describe('components/user_settings/display/UserSettingsDisplay', () => {
 
 describe('areDesktopAndMobileSettingsDifferent', () => {
     test('should return true when desktop and push notification levels are different', () => {
-        validNotificationLevels.forEach((desktopLevel) => {
-            validNotificationLevels.forEach((mobileLevel) => {
-                if (desktopLevel !== mobileLevel) {
-                    expect(areDesktopAndMobileSettingsDifferent(desktopLevel, mobileLevel)).toBe(true);
-                }
-            });
-        });
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.ALL, NotificationLevels.NONE, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.NONE, NotificationLevels.ALL, NotificationLevels.MENTION, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.NONE, NotificationLevels.MENTION, NotificationLevels.NONE, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.NONE, NotificationLevels.NONE, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.NONE, NotificationLevels.NONE, NotificationLevels.NONE, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.MENTION, NotificationLevels.ALL, NotificationLevels.MENTION, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.NONE, NotificationLevels.ALL, NotificationLevels.NONE, true)).toBe(true);
     });
 
     test('should return false when desktop and push notification levels are the same', () => {
-        validNotificationLevels.forEach((level) => {
-            expect(areDesktopAndMobileSettingsDifferent(level, level)).toBe(false);
-        });
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, true)).toBe(false);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.MENTION, NotificationLevels.MENTION, NotificationLevels.MENTION, NotificationLevels.MENTION, false)).toBe(false);
     });
 
-    test('should return true when desktop or push notification levels are undefined', () => {
-        expect(areDesktopAndMobileSettingsDifferent(undefined as any, undefined as any)).toBe(true);
-        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, undefined as any)).toBe(true);
-        expect(areDesktopAndMobileSettingsDifferent('hello' as any, NotificationLevels.ALL)).toBe(true);
+    test('should return true any of desktop or push settings are undefined', () => {
+        expect(areDesktopAndMobileSettingsDifferent(undefined as any, NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, undefined as any, NotificationLevels.ALL, NotificationLevels.ALL, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.ALL, undefined as any, NotificationLevels.ALL, true)).toBe(true);
+        expect(areDesktopAndMobileSettingsDifferent(NotificationLevels.ALL, NotificationLevels.ALL, NotificationLevels.ALL, undefined as any, true)).toBe(true);
     });
 });
