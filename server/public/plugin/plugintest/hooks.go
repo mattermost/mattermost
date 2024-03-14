@@ -106,19 +106,19 @@ func (_m *Hooks) FileWillBeUploaded(c *plugin.Context, info *model.FileInfo, fil
 }
 
 // GenerateSupportData provides a mock function with given fields: c
-func (_m *Hooks) GenerateSupportData(c *plugin.Context) (*model.FileData, error) {
+func (_m *Hooks) GenerateSupportData(c *plugin.Context) ([]*model.FileData, error) {
 	ret := _m.Called(c)
 
-	var r0 *model.FileData
+	var r0 []*model.FileData
 	var r1 error
-	if rf, ok := ret.Get(0).(func(*plugin.Context) (*model.FileData, error)); ok {
+	if rf, ok := ret.Get(0).(func(*plugin.Context) ([]*model.FileData, error)); ok {
 		return rf(c)
 	}
-	if rf, ok := ret.Get(0).(func(*plugin.Context) *model.FileData); ok {
+	if rf, ok := ret.Get(0).(func(*plugin.Context) []*model.FileData); ok {
 		r0 = rf(c)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(*model.FileData)
+			r0 = ret.Get(0).([]*model.FileData)
 		}
 	}
 
