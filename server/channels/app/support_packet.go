@@ -70,9 +70,12 @@ func (a *App) GenerateSupportPacket(c request.CTX, options *model.SupportPacketO
 			}
 			fileData, err := hooks.GenerateSupportData(pluginContext)
 			if err != nil {
-				c.Logger().Error("Failed to generate plugin file for support package", mlog.Err(err), mlog.String("plugin", id))
+				c.Logger().Warn("Failed to generate plugin file for support package", mlog.Err(err), mlog.String("plugin", id))
 				warnings = append(warnings, err.Error())
-			} else if fileData != nil {
+				continue
+			}
+			
+			if fileData != nil {
 				fileDatas = append(fileDatas, *fileData)
 			}
 		}

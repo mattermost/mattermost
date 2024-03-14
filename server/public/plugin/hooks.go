@@ -384,8 +384,8 @@ type Hooks interface {
 	// Minimum server version: 9.5
 	OnSharedChannelsProfileImageSyncMsg(user *model.User, rc *model.RemoteCluster) error
 
-	// GenerateSupportData should be used by plugins which includes it's own content
-	// to the support packet.
+	// GenerateSupportData is invoked when a Support Packet gets generated.
+	// It allows plugins to include their own content in the Support Packet.
 	//
 	// Minimum server version: 10.x
 	GenerateSupportData(c *Context) (*model.FileData, error)
