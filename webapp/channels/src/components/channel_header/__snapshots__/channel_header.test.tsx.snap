@@ -166,7 +166,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -199,7 +199,7 @@ exports[`components/ChannelHeader should match snapshot with last active display
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -440,7 +440,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -473,7 +473,7 @@ exports[`components/ChannelHeader should match snapshot with no last active disp
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -680,7 +680,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -713,7 +713,7 @@ exports[`components/ChannelHeader should render active channel files 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -918,7 +918,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -951,7 +951,7 @@ exports[`components/ChannelHeader should render active flagged posts 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -1156,7 +1156,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -1189,7 +1189,7 @@ exports[`components/ChannelHeader should render active mentions posts 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -1394,7 +1394,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -1427,7 +1427,7 @@ exports[`components/ChannelHeader should render active pinned posts 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -1632,7 +1632,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -1665,7 +1665,7 @@ exports[`components/ChannelHeader should render archived view 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -1902,7 +1902,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -1935,7 +1935,7 @@ exports[`components/ChannelHeader should render correct menu when muted 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -2140,7 +2140,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -2173,7 +2173,7 @@ exports[`components/ChannelHeader should render not active channel files 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -2430,7 +2430,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -2463,7 +2463,7 @@ exports[`components/ChannelHeader should render properly when custom status is e
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -2742,7 +2742,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -2775,7 +2775,7 @@ exports[`components/ChannelHeader should render properly when custom status is s
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -2982,7 +2982,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -3015,7 +3015,7 @@ exports[`components/ChannelHeader should render properly when empty 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -3220,7 +3220,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -3253,7 +3253,7 @@ exports[`components/ChannelHeader should render properly when populated 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -3462,7 +3462,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -3499,7 +3499,7 @@ exports[`components/ChannelHeader should render properly when populated with cha
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -3722,7 +3722,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -3755,7 +3755,7 @@ exports[`components/ChannelHeader should render shared view 1`] = `
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={
@@ -3970,7 +3970,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
               show={false}
               target={null}
             >
-              <Memo(Popover)
+              <Memo([object Object])
                 className="channel-header__popover"
                 id="header-popover"
                 placement="bottom"
@@ -4003,7 +4003,7 @@ exports[`components/ChannelHeader should render the pinned icon with the pinned 
                     }
                   />
                 </span>
-              </Memo(Popover)>
+              </Memo([object Object])>
             </Overlay>
             <Connect(Markdown)
               imageProps={

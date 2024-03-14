@@ -429,7 +429,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
           <OverlayTrigger
             defaultOverlayShown={false}
             overlay={
-              <Memo(Popover)
+              <Memo
                 className="code-popover"
                 id="code-popover"
                 popoverStyle="info"
@@ -439,7 +439,7 @@ exports[`components/user_settings/display/CustomThemeChooser should match, init 
                   src={null}
                   width="200"
                 />
-              </Memo(Popover)>
+              </Memo>
             }
             placement="top"
             trigger={

@@ -79,7 +79,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
         searchTerm=""
         showUserOverlay={[MockFunction]}
       >
-        <Memo(Popover)
+        <ForwardRef
           actions={
             Object {
               "openModal": [MockFunction],
@@ -2126,7 +2126,7 @@ exports[`component/user_group_popover should match snapshot 1`] = `
               </div>
             </div>
           </Popover>
-        </Memo(Popover)>
+        </ForwardRef>
       </Memo(UserGroupPopover)>
     </Router>
   </BrowserRouter>
