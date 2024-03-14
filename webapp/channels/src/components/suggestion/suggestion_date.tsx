@@ -6,8 +6,12 @@ import React, {memo} from 'react';
 import Popover from 'components/widgets/popover';
 
 type SuggestionItem = {
+    date: string;
+    label: string;
+}
+
+type SuggestionItemProps = {
     key: string;
-    ref: string;
     item: SuggestionItem;
     term: string;
     matchedPretext: string;
@@ -24,7 +28,7 @@ type Props = {
     terms: string[];
     preventClose: () => void;
     handleEscape: () => void;
-    components: Array<React.ComponentType<SuggestionItem>>;
+    components: Array<React.ComponentType<SuggestionItemProps>>;
 }
 
 const SuggestionDate = ({
@@ -54,7 +58,6 @@ const SuggestionDate = ({
         >
             <Component
                 key={term}
-                ref={term}
                 item={item}
                 term={term}
                 matchedPretext={matchedPretext[0]}

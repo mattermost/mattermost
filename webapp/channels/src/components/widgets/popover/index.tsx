@@ -19,10 +19,9 @@ interface Props {
     style?: React.CSSProperties;
     onMouseOut?: React.MouseEventHandler<BSPopover>; // didn't find a better way to satisfy typing, so for now we have a slight 'bootstrap leakage'
     onMouseOver?: React.MouseEventHandler<BSPopover>;
-    ref?: React.Ref<BSPopover>;
 }
 
-const Popover = ({
+const Popover = React.forwardRef<BSPopover, Props>(({
     placement = 'right',
     popoverSize = 'sm',
     children,
@@ -33,8 +32,7 @@ const Popover = ({
     onMouseOver,
     className,
     style,
-    ref,
-}: Props) => {
+}, ref?) => {
     return (
         <BSPopover
             id={id}
@@ -45,13 +43,13 @@ const Popover = ({
             bsClass='popover'
             title={title}
             bsSize={popoverSize && SizeMap[popoverSize] as BSSizes} // map our sizes to bootstrap
-            onMouseOut={onMouseOut!}
+            onMouseOut={onMouseOut}
             onMouseOver={onMouseOver}
             ref={ref}
         >
             {children}
         </BSPopover>
     );
-};
+});
 
 export default React.memo(Popover);
