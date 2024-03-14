@@ -89,28 +89,24 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
         return url.toString();
     };
 
-    downloadSupportPacket = () => {
+    downloadSupportPacket = async () => {
         this.setState({loading: true});
-        fetch(this.genereateDownloadURLWithParams(), {
+        const res = await fetch(this.genereateDownloadURLWithParams(), {
             method: 'GET',
             headers: {'Content-Type': 'application/zip'},
-        }).then((res) => {
-            return res.blob();
-        }).finally(() => {
-            this.setState({loading: false});
-        }).then((blob) => {
-            // we emulate the server filenaming convention to maintain file name
-            const formattedDate = (moment(new Date())).format('YYYY-MM-DD-HH-mm');
-            const href = window.URL.createObjectURL(blob);
-            const link = document.createElement('a');
-            link.href = href;
-            link.setAttribute('download', `mattermost_support_packet_${formattedDate}.zip`);
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }).catch((err) => {
-            return Promise.reject(err);
         });
+        const blob = await res.blob();
+        this.setState({loading: false});
+
+        // we emulate the server filenaming convention to maintain file name
+        const formattedDate = (moment(new Date())).format('YYYY-MM-DD-HH-mm');
+        const href = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = href;
+        link.setAttribute('download', `mattermost_support_packet_${formattedDate}.zip`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     };
 
     render() {
@@ -196,7 +192,7 @@ export default class CommercialSupportModal extends React.PureComponent<Props, S
                                 onClick={this.downloadSupportPacket}
                                 rel='noopener noreferrer'
                             >
-                                { this.state.loading ? <LoadingSpinner/> : <span className='icon icon-download-outline'/> }
+                                { this.state.loading ? <LoadingSpinner/> : <i className='icon icon-download-outline'/> }
                                 <FormattedMessage
                                     id='commercial_support.download_support_packet'
                                     defaultMessage='Download Support Packet'

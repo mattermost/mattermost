@@ -86,7 +86,7 @@ exports[`components/CommercialSupportModal should match snapshot 1`] = `
           onClick={[Function]}
           rel="noopener noreferrer"
         >
-          <span
+          <i
             className="icon icon-download-outline"
           />
           <MemoizedFormattedMessage

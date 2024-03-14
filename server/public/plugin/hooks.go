@@ -388,5 +388,5 @@ type Hooks interface {
 	// It allows plugins to include their own content in the Support Packet.
 	//
 	// Minimum server version: 10.x
-	GenerateSupportData(c *Context) (*model.FileData, error)
+	GenerateSupportData(c *Context) ([]*model.FileData, error)
 }

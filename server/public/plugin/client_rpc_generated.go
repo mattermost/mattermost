@@ -1134,11 +1134,11 @@ type Z_GenerateSupportDataArgs struct {
 }
 
 type Z_GenerateSupportDataReturns struct {
-	A *model.FileData
+	A []*model.FileData
 	B error
 }
 
-func (g *hooksRPCClient) GenerateSupportData(c *Context) (*model.FileData, error) {
+func (g *hooksRPCClient) GenerateSupportData(c *Context) ([]*model.FileData, error) {
 	_args := &Z_GenerateSupportDataArgs{c}
 	_returns := &Z_GenerateSupportDataReturns{}
 	if g.implemented[GenerateSupportDataID] {
@@ -1151,7 +1151,7 @@ func (g *hooksRPCClient) GenerateSupportData(c *Context) (*model.FileData, error
 
 func (s *hooksRPCServer) GenerateSupportData(args *Z_GenerateSupportDataArgs, returns *Z_GenerateSupportDataReturns) error {
 	if hook, ok := s.impl.(interface {
-		GenerateSupportData(c *Context) (*model.FileData, error)
+		GenerateSupportData(c *Context) ([]*model.FileData, error)
 	}); ok {
 		returns.A, returns.B = hook.GenerateSupportData(args.A)
 		returns.B = encodableError(returns.B)
