@@ -15,6 +15,8 @@ import (
 	"path/filepath"
 	"strings"
 
+	sqlUtils "github.com/mattermost/mattermost/server/public/utils/sql"
+
 	"github.com/jmoiron/sqlx"
 	"github.com/pkg/errors"
 
@@ -27,8 +29,6 @@ import (
 
 	"github.com/mattermost/mattermost/server/public/model"
 	"github.com/mattermost/mattermost/server/public/shared/mlog"
-	"github.com/mattermost/mattermost/server/v8/channels/store/sqlstore"
-
 	"github.com/mattermost/morph/drivers"
 	ms "github.com/mattermost/morph/drivers/mysql"
 	ps "github.com/mattermost/morph/drivers/postgres"
@@ -121,12 +121,12 @@ func (ds *DatabaseStore) initializeConfigurationsTable() error {
 	var driver drivers.Driver
 	switch ds.driverName {
 	case model.DatabaseDriverMysql:
-		dataSource, rErr := sqlstore.ResetReadTimeout(ds.dataSourceName)
+		dataSource, rErr := sqlUtils.ResetReadTimeout(ds.dataSourceName)
 		if rErr != nil {
 			return fmt.Errorf("failed to reset read timeout from datasource: %w", rErr)
 		}
 
-		dataSource, err = sqlstore.AppendMultipleStatementsFlag(dataSource)
+		dataSource, err = sqlUtils.AppendMultipleStatementsFlag(dataSource)
 		if err != nil {
 			return err
 		}
@@ -409,7 +409,7 @@ func (ds *DatabaseStore) RemoveFile(name string) error {
 func (ds *DatabaseStore) String() string {
 	// This is called during the running of MM, so we expect the parsing of DSN
 	// to be successful.
-	sanitized, _ := sqlstore.SanitizeDataSource(ds.driverName, ds.originalDsn)
+	sanitized, _ := sqlUtils.SanitizeDataSource(ds.driverName, ds.originalDsn)
 	return sanitized
 }
 
